@@ -30,7 +30,7 @@ class Good(TimestampableModel):
 
     # CLC
     is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
-    control_code = models.TextField(default="", blank=True, null=True)
+    control_code = models.CharField(default="", blank=True, null=True, max_length=20)
 
     # PV
     is_pv_graded = models.CharField(choices=GoodPvGraded.choices, default=GoodPvGraded.GRADING_REQUIRED, max_length=20)
@@ -38,7 +38,7 @@ class Good(TimestampableModel):
         PvGradingDetails, on_delete=models.CASCADE, default=None, blank=True, null=True
     )
 
-    part_number = models.TextField(default="", blank=True, null=True)
+    part_number = models.CharField(default="", blank=True, null=True, max_length=255)
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     status = models.CharField(choices=GoodStatus.choices, default=GoodStatus.DRAFT, max_length=20)
     flags = models.ManyToManyField(Flag, related_name="goods")
@@ -46,8 +46,9 @@ class Good(TimestampableModel):
 
     # Gov
     comment = models.TextField(default=None, blank=True, null=True)
-    grading_comment = models.TextField(default="", blank=True, null=True)
-    report_summary = models.TextField(default=None, blank=True, null=True)
+    grading_comment = models.TextField(default=None, blank=True, null=True)
+    # max length same as picklist
+    report_summary = models.TextField(default=None, blank=True, null=True, max_length=5000)
 
 
 class GoodDocument(Document):

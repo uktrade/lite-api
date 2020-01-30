@@ -18,4 +18,4 @@ class GoodsQuery(Query):
     clc_responded = models.BooleanField(default="False")
     pv_grading_responded = models.BooleanField(default="False")
 
-    notifications = GenericRelation(ExporterNotification, related_query_name="goods_query")
+    notifications = GenericRelation(ExporterNotification, related_query_name="goodsquery")

@@ -210,6 +210,10 @@ class GoodQueryPVGradingResponse(APIView):
                     payload={"grading": grading},
                 )
 
+                # Send a notification to the user
+                for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
+                    user_relationship.send_notification(content_object=query, case=query)
+
                 return JsonResponse(
                     data={"pv_grading_query": pv_grading_good_serializer.data}, status=status.HTTP_200_OK,
                 )
