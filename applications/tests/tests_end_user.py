@@ -4,6 +4,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from lite_content.lite_api.strings import Parties
 from parties.models import PartyDocument
 from parties.models import EndUser
 from static.countries.helpers import get_country
@@ -304,3 +305,64 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(EndUser.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
+
+    def test_end_user_validate_only_success(self):
+        """
+        Given a standard draft has been created
+        When there is an attempt to validate a end party's data
+        Then 200 OK and end user is not created
+        """
+        end_user = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": True,
+        }
+
+        response = self.client.post(self.url, end_user, **self.exporter_headers)
+        response_data = response.json()["end_user"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(self.draft.end_user.name, end_user["name"])
+        self.assertEqual(response_data["name"], end_user["name"])
+        self.assertEqual(response_data["address"], end_user["address"])
+        self.assertEqual(response_data["country"], end_user["country"])
+        self.assertEqual(response_data["sub_type"], end_user["sub_type"])
+        self.assertEqual(response_data["website"], end_user["website"])
+
+    def test_end_user_validate_only_failure(self):
+        """
+        Given a standard draft has been created
+        When there is an attempt to validate an end user's data that is invalid (no name data)
+        Then 400 Bad Request and end party is not created
+        """
+        end_user = {
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": True,
+        }
+
+        response = self.client.post(self.url, end_user, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": {"name": [Parties.REQUIRED_FIELD]}})
+
+    def test_end_user_copy_of_success(self):
+        end_user = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": False,
+            "copy_of": self.draft.end_user.id,
+        }
+
+        response = self.client.post(self.url, end_user, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["end_user"]["copy_of"], str(end_user["copy_of"]))

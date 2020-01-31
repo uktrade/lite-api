@@ -1,10 +1,12 @@
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
+from cases.models import CaseAssignment
 from conf import constants
 from flags.enums import SystemFlags
 from flags.models import Flag
@@ -18,6 +20,31 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
+
+
+class GoodsQueryManageStatusTests(DataTestClient):
+    @parameterized.expand([[DataTestClient.create_clc_query], [DataTestClient.create_pv_grading_query]])
+    def test_set_query_status_to_withdrawn_removes_case_from_queues_users_and_updates_status_success(self, query):
+        """
+        When a case is set to a terminal status, its assigned users, case officer and queues should be removed
+        """
+        query = query("This is a widget", self.organisation)
+        query.case_officer = self.gov_user
+        query.save()
+        query.queues.set([self.queue])
+        case_assignment = CaseAssignment.objects.create(case=query, queue=self.queue)
+        case_assignment.users.set([self.gov_user])
+        url = reverse("queries:goods_queries:manage_status", kwargs={"pk": query.pk})
+        data = {"status": "withdrawn"}
+
+        response = self.client.put(url, data, **self.gov_headers)
+        query.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
+        self.assertEqual(query.queues.count(), 0)
+        self.assertEqual(query.case_officer, None)
+        self.assertEqual(CaseAssignment.objects.filter(case=query).count(), 0)
 
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):
@@ -201,19 +228,6 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class ControlListClassificationsQueryManageStatusTests(DataTestClient):
-    def test_user_set_clc_status_success(self):
-        query = self.create_clc_query("This is a widget", self.organisation)
-        url = reverse("queries:goods_queries:manage_status", kwargs={"pk": query.pk})
-        data = {"status": "withdrawn"}
-
-        response = self.client.put(url, data, **self.gov_headers)
-        query.refresh_from_db()
-
-        self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
 class ControlListClassificationsGeneratedDocumentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -313,19 +327,6 @@ class PvGradingQueryCreateTests(DataTestClient):
             response.json()["errors"], [strings.GoodsQuery.GOOD_CLC_UNSURE_OR_PV_REQUIRED_ERROR],
         )
         self.assertEqual(GoodsQuery.objects.count(), 0)
-
-
-class PvGradingQueryManageStatusTests(DataTestClient):
-    def test_when_setting_pv_graded_good_query_to_withdrawn_then_the_status_is_updated_and_a_200_ok_is_returned(self):
-        query = self.create_pv_grading_query("This is a widget", self.organisation)
-        url = reverse("queries:goods_queries:manage_status", kwargs={"pk": query.pk})
-        data = {"status": "withdrawn"}
-
-        response = self.client.put(url, data, **self.gov_headers)
-        query.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(query.status.status, CaseStatusEnum.WITHDRAWN)
 
 
 class CombinedPvGradingAndClcQuery(DataTestClient):
