@@ -35,7 +35,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
         )
 
     def get_destinations(self, application):
-        if hasattr(application, "end_user"):
+        if getattr(application, "end_user", None):
             serializer = PartySerializer(application.end_user.party)
             return {"type": "end_user", "data": serializer.data}
         else:

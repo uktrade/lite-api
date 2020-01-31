@@ -48,7 +48,7 @@ def get_destination_flags(case):
     if case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
         query = get_end_user_advisory_by_pk(case.id)
         if query.end_user:
-            flags += query.end_user.party.flags.all()
+            flags += query.end_user.flags.all()
     else:
         application = get_application(case.id)
         if isinstance(application, StandardApplication):
