@@ -4,6 +4,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from lite_content.lite_api.strings import Parties
 from parties.models import PartyDocument, Consignee
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -217,3 +218,64 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Consignee.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
+
+    def test_consignee_validate_only_success(self):
+        """
+        Given a standard draft has been created
+        When there is an attempt to validate a consignee's data
+        Then 200 OK and consignee is not created
+        """
+        consignee = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": True,
+        }
+
+        response = self.client.post(self.url, consignee, **self.exporter_headers)
+        response_data = response.json()["consignee"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(self.draft.end_user.name, consignee["name"])
+        self.assertEqual(response_data["name"], consignee["name"])
+        self.assertEqual(response_data["address"], consignee["address"])
+        self.assertEqual(response_data["country"], consignee["country"])
+        self.assertEqual(response_data["sub_type"], consignee["sub_type"])
+        self.assertEqual(response_data["website"], consignee["website"])
+
+    def test_consignee_validate_only_failure(self):
+        """
+        Given a standard draft has been created
+        When there is an attempt to validate an consignee's data that is invalid (no name data)
+        Then 400 Bad Request and consignee is not created
+        """
+        end_user = {
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": True,
+        }
+
+        response = self.client.post(self.url, end_user, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": {"name": [Parties.REQUIRED_FIELD]}})
+
+    def test_consignee_copy_of_success(self):
+        consignee = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": False,
+            "copy_of": self.draft.end_user.id,
+        }
+
+        response = self.client.post(self.url, consignee, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["consignee"]["copy_of"], str(consignee["copy_of"]))
