@@ -1,17 +1,15 @@
 from django.http import JsonResponse
-from rest_framework.views import APIView
 from rest_framework.status import HTTP_200_OK
+from rest_framework.views import APIView
 
+from cases.views.search.service import get_case_status_list
 from static.statuses.models import CaseStatus
-from static.statuses.serializers import CaseStatusSerializer
 
 
 class StatusesAsList(APIView):
     def get(self, request):
-        # Exclude the 'Draft' system status
-        statuses = CaseStatus.objects.all().order_by("priority").exclude(status="draft")
-        serializer = CaseStatusSerializer(statuses, many=True)
-        return JsonResponse(data={"statuses": serializer.data}, status=HTTP_200_OK)
+        statuses = get_case_status_list()
+        return JsonResponse(data={"statuses": statuses}, status=HTTP_200_OK)
 
 
 class StatusProperties(APIView):

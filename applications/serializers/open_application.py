@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.models import OpenApplication, ApplicationDocument
-from applications.serializers.document import ApplicationDocumentSerializer
+from applications.models import OpenApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -14,8 +13,6 @@ from goodstype.serializers import FullGoodsTypeSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
@@ -42,17 +39,11 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         serializer = CountryWithFlagsSerializer(countries, many=True)
         return {"type": "countries", "data": serializer.data}
 
-    def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance)
-        return ApplicationDocumentSerializer(documents, many=True).data
-
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["organisation"] = self.context.id
         self.initial_data["type"] = CaseTypeEnum.APPLICATION
-        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = OpenApplication
@@ -73,7 +64,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Goods.REF_NAME},
+        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
 
     class Meta:

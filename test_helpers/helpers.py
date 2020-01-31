@@ -1,5 +1,6 @@
 import random
 
+from flags.enums import SystemFlags
 from users.models import ExporterUser, UserOrganisationRelationship
 
 
@@ -36,3 +37,8 @@ def create_exporter_users(organisation, quantity=1):
         users.append(user)
 
     return users
+
+
+def is_not_verified_flag_set_on_good(good):
+    flags_on_good = [str(id) for id in good.flags.values_list("id", flat=True)]
+    return SystemFlags.GOOD_NOT_YET_VERIFIED_ID in flags_on_good

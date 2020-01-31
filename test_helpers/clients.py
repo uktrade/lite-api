@@ -9,6 +9,7 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
+from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.models import (
     BaseApplication,
     GoodOnApplication,
@@ -18,6 +19,7 @@ from applications.models import (
     OpenApplication,
     HmrcQuery,
     ApplicationDocument,
+    ExhibitionClearanceApplication,
 )
 from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -282,10 +284,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        if application.application_type == ApplicationType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(application=application):
-                good_on_application.good.status = GoodStatus.SUBMITTED
-                good_on_application.good.save()
+        update_submitted_application_good_statuses_and_flags(application)
 
         return application
 
@@ -508,6 +507,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return organisation, exporter_user
 
+    def add_application_and_party_documents(self, application, safe_document):
+        # Set the application party documents
+        self.create_document_for_party(application.end_user, safe=safe_document)
+        self.create_document_for_party(application.consignee, safe=safe_document)
+        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+        self.create_application_document(application)
+
     def create_standard_application(
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
@@ -528,6 +534,41 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
         application.third_parties.set([self.create_third_party("Third party", self.organisation)])
+
+        # Add a good to the standard application
+        self.good_on_application = GoodOnApplication(
+            good=self.create_good("a thing", organisation),
+            application=application,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+        )
+        self.good_on_application.save()
+
+        self.add_application_and_party_documents(application, safe_document)
+
+        # Add a site to the application
+        SiteOnApplication(site=organisation.primary_site, application=application).save()
+
+        return application
+
+    def create_exhibition_clearance_application(
+        self, organisation: Organisation, reference_name="Exhibition Clearance Draft", safe_document=True,
+    ):
+        application = ExhibitionClearanceApplication(
+            name=reference_name,
+            application_type=ApplicationType.EXHIBITION_CLEARANCE,
+            activity="Trade",
+            usage="Trade",
+            organisation=organisation,
+            end_user=self.create_end_user("End User", organisation),
+            consignee=self.create_consignee("Consignee", organisation),
+            type=CaseTypeEnum.EXHIBITION_CLEARANCE,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+        )
+
+        application.save()
+        application.third_parties.set([self.create_third_party("Third party", self.organisation)])
         application.save()
 
         # Add a good to the standard application
@@ -542,10 +583,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.good_on_application.save()
 
         # Set the application party documents
-        self.create_document_for_party(application.end_user, safe=safe_document)
-        self.create_document_for_party(application.consignee, safe=safe_document)
-        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
-        self.create_application_document(application)
+        self.add_application_and_party_documents(application, safe_document)
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()
