@@ -14,13 +14,19 @@ class FlagSerializer(serializers.Serializer):
     name = serializers.CharField()
     id = serializers.CharField()
 
+class CountrySerializer(serializers.Serializer):
+    id = serializers.CharField(required=False)
+    name = serializers.CharField()
+    type = serializers.CharField(required=False)
+    is_eu = serializers.CharField(required=False)
+
 
 class PartySerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
     country = CountrySerializerField()
     website = serializers.CharField(required=False, allow_blank=True)
-    type = serializers.ChoiceField(choices=PartyType.choices, required=False)
+    type = serializers.ChoiceField(choices=PartyType.choices)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
     sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_TYPE})
@@ -46,14 +52,21 @@ class PartySerializer(serializers.ModelSerializer):
         )
 
     def __init__(self, *args, **kwargs):
-        required_fields = kwargs.pop("required_fields", 0)
-
         super(PartySerializer, self).__init__(*args, **kwargs)
+        #
+        #
+        # print('1-------------')
+        # print(args)
+        # print(kwargs)
+        # print(kwargs.get("data"))
+        # Pre-validation: update required parameter on serializer fields at PartyType level
+        if "data" in kwargs and "type" in kwargs["data"]:
+            party_type = kwargs["data"]["type"]
 
-        if required_fields:
-            for field, serializer_instance in self.fields.items():
-                if field in required_fields:
-                    serializer_instance.required = True
+            if party_type == PartyType.THIRD_PARTY:
+                for field, serializer_instance in self.fields.items():
+                    if field == "role":
+                        serializer_instance.required = True
 
     @staticmethod
     def validate_website(value):
@@ -77,8 +90,9 @@ class PartySerializer(serializers.ModelSerializer):
             return ""
 
     def get_document(self, instance):
-        docs = PartyDocument.objects.filter(party=instance).values()
-        return docs[0] if docs else None
+        docs = PartyDocument.objects.filter(party=instance)
+
+        return docs.values()[0] if docs.exists() else None
 
 
 class PartyDocumentSerializer(serializers.ModelSerializer):

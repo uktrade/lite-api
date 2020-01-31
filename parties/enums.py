@@ -11,6 +11,15 @@ class PartyType:
         (THIRD_PARTY, "Third Party"),
     ]
 
+    @classmethod
+    def plural(cls, key):
+        return {
+            PartyType.CONSIGNEE: "consignees",
+            PartyType.END_USER: "end_users",
+            PartyType.ULTIMATE_END_USER: "ultimate_end_users",
+            PartyType.THIRD_PARTY: "third_parties"
+        }[key]
+
 
 class SubType:
     GOVERNMENT = "government"

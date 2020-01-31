@@ -1,3 +1,4 @@
+from applications.models import PartyOnApplication
 from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
@@ -5,6 +6,7 @@ from rest_framework import status
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from goodstype.models import GoodsType
+from parties.enums import PartyType
 from parties.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
@@ -35,8 +37,8 @@ class HmrcQueryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_submit_hmrc_query_without_end_user_failure(self):
-        self.draft.end_user = None
-        self.draft.save()
+        PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.END_USER).delete()
+
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.hmrc_exporter_headers)
@@ -46,7 +48,7 @@ class HmrcQueryTests(DataTestClient):
         )
 
     def test_submit_hmrc_query_without_end_user_document_failure(self):
-        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+        PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.hmrc_exporter_headers)

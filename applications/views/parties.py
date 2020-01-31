@@ -3,301 +3,125 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
+from applications.libraries.get_applications import get_application
+from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
-    application_in_major_editable_state,
-    application_in_editable_state,
     allowed_application_types,
 )
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.helpers import delete_party_document_if_exists
 from parties.models import Party
 from parties.serializers import PartySerializer
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
-class ApplicationEndUser(APIView):
+class ApplicationPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
-    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
-        Create an end user and add it to a application
+        Add a party to an application.
         """
+        # Check if application is in an editable state.
+        if not application.is_major_editable():
+            return JsonResponse(
+                data={
+                    "errors": [
+                        f"You can only perform this operation when the application is "
+                        f"in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state"
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         data = request.data
         data["organisation"] = request.user.organisation.id
-        data["type"] = PartyType.END_USER
-        case = application.get_case()
 
+        # Validate data
         serializer = PartySerializer(data=data)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        previous_end_user = application.end_user
+        # Save party
+        serializer.save()
+        try:
+            # Add party to application
+            party, removed_party = application.add_party(serializer.instance)
+        except ApplicationException as exc:
+            return JsonResponse(data=exc.data, status=status.HTTP_400_BAD_REQUEST)
 
-        new_end_user = serializer.save()
-        application.end_user = new_end_user
-        application.save()
-        if previous_end_user:
-            delete_party_document_if_exists(previous_end_user)
-            previous_end_user.delete()
+        # Audit
+        if removed_party:
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.REMOVE_PARTY,
-                target=case,
-                payload={"party_type": previous_end_user.type.replace("_", " "), "party_name": previous_end_user.name,},
+                target=application,
+                payload={"party_type": removed_party.type.replace("_", " "), "party_name": removed_party.name},
             )
 
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.ADD_PARTY,
-            target=case,
-            payload={"party_type": new_end_user.type.replace("_", " "), "party_name": new_end_user.name,},
+            target=application,
+            payload={"party_type": party.type.replace("_", " "), "party_name": party.name},
         )
 
-        return JsonResponse(data={"end_user": serializer.data}, status=status.HTTP_201_CREATED)
-
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def delete(self, request, application):
-        """
-        Delete an end user and their document from an application
-        """
-        end_user = application.end_user
-
-        if not end_user:
-            return JsonResponse(data={"errors": "end user not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        application.end_user = None
-        application.save()
-        delete_party_document_if_exists(end_user)
-        end_user.delete()
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.REMOVE_PARTY,
-            target=application.get_case(),
-            payload={"party_type": end_user.type.replace("_", " "), "party_name": end_user.name,},
-        )
-
-        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-
-
-class ApplicationUltimateEndUsers(APIView):
-    authentication_classes = (ExporterAuthentication,)
+        return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
 
     @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
-    def get(self, request, application):
-        """
-        Get ultimate end users associated with a application
-        """
-        ueu_data = PartySerializer(application.ultimate_end_users, many=True).data
-
-        return JsonResponse(data={"ultimate_end_users": ueu_data})
-
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
-        """
-        Create an ultimate end user and add it to a application
-        """
-        data = request.data
-        data["organisation"] = request.user.organisation.id
-        data["type"] = PartyType.ULTIMATE_END_USER
-
-        serializer = PartySerializer(data=data)
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        ultimate_end_user = serializer.save()
-        application.ultimate_end_users.add(ultimate_end_user.id)
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.ADD_PARTY,
-            target=application.get_case(),
-            payload={"party_type": ultimate_end_user.type.replace("_", " "), "party_name": ultimate_end_user.name,},
-        )
-
-        return JsonResponse(data={"ultimate_end_user": serializer.data}, status=status.HTTP_201_CREATED)
-
-
-class RemoveApplicationUltimateEndUser(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
-    @authorised_users(ExporterUser)
-    @application_in_editable_state()
-    def delete(self, request, application, ueu_pk):
+    def delete(self, request, application, party_pk):
         """
         Delete an ultimate end user and remove it from the application
         """
         try:
-            ultimate_end_user = application.ultimate_end_users.get(id=ueu_pk)
-        except Party.DoesNotExist:
-            return JsonResponse(data={"errors": "ultimate end user not found"}, status=status.HTTP_404_NOT_FOUND,)
+            poa = application.parties.all().get(party__pk=party_pk)
+        except PartyOnApplication.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
-        application.ultimate_end_users.remove(ultimate_end_user.id)
-        delete_party_document_if_exists(ultimate_end_user)
-        ultimate_end_user.delete()
+        if not application.party_is_editable(poa.party):
+            return JsonResponse(
+                data={"errors": [strings.Applications.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Delete party
+        application.delete_party(poa)
+
+        # Audit
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.REMOVE_PARTY,
             target=application.get_case(),
-            payload={"party_type": ultimate_end_user.type.replace("_", " "), "party_name": ultimate_end_user.name,},
+            payload={"party_type": poa.party.type.replace("_", " "), "party_name": poa.party.name,},
         )
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-
-
-class ApplicationConsignee(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
-        """
-        Create a consignee and add it to a application
-        """
-        data = request.data
-        data["organisation"] = request.user.organisation.id
-        data["type"] = PartyType.CONSIGNEE
-
-        case = application.get_case()
-        serializer = PartySerializer(data=data)
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        previous_consignee = application.consignee
-
-        new_consignee = serializer.save()
-        application.consignee = new_consignee
-        application.save()
-
-        if previous_consignee:
-            delete_party_document_if_exists(previous_consignee)
-            previous_consignee.delete()
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.REMOVE_PARTY,
-                target=case,
-                payload={
-                    "party_type": previous_consignee.type.replace("_", " "),
-                    "party_name": previous_consignee.name,
-                },
-            )
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.ADD_PARTY,
-            target=case,
-            payload={"party_type": new_consignee.type.replace("_", " "), "party_name": new_consignee.name,},
-        )
-
-        return JsonResponse(data={"consignee": serializer.data}, status=status.HTTP_201_CREATED)
-
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def delete(self, request, application):
-        """
-        Delete a consignee and their document from an application
-        """
-        consignee = application.consignee
-        case = application.get_case()
-
-        if not consignee:
-            return JsonResponse(data={"errors": "consignee not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        application.consignee = None
-        application.save()
-        delete_party_document_if_exists(consignee)
-        consignee.delete()
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.REMOVE_PARTY,
-            target=case,
-            payload={"party_type": consignee.type.replace("_", " "), "party_name": consignee.name,},
-        )
-
-        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-
-
-class ApplicationThirdParties(APIView):
-    authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
-        Get third parties associated with a application
+        Get parties for an application
         """
-        third_party_data = PartySerializer(application.third_parties, many=True, required_fields=("role",)).data
+        application_parties = application.parties.all().filter(deleted_at__isnull=True).select_related("party")
 
-        return JsonResponse(data={"third_parties": third_party_data})
+        if "type" in request.GET:
+            application_parties = application_parties.filter(party__type=request.GET["type"])
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
-        """
-        Create a third party and add it to a application
-        """
-        data = request.data
-        data["organisation"] = request.user.organisation.id
-        data["type"] = PartyType.THIRD_PARTY
+        parties_data = PartySerializer([p.party for p in application_parties], many=True).data
 
-        case = application.get_case()
+        def api_compatible(key):
+            return f"{PartyType.plural(key)}" if key in [PartyType.ULTIMATE_END_USER, PartyType.THIRD_PARTY] else key
 
-        serializer = PartySerializer(data=data, required_fields=("role"))
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        key = api_compatible(request.GET["type"]) if "type" in request.GET else "parties"
 
-        third_party = serializer.save()
-        application.third_parties.add(third_party.id)
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.ADD_PARTY,
-            target=case,
-            payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name},
-        )
-
-        return JsonResponse(data={"third_party": serializer.data}, status=status.HTTP_201_CREATED)
-
-
-class RemoveThirdParty(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
-    @authorised_users(ExporterUser)
-    @application_in_editable_state()
-    def delete(self, request, application, tp_pk):
-        """ Delete a third party and remove it from the application. """
-        try:
-            third_party = application.third_parties.get(pk=tp_pk, type=PartyType.THIRD_PARTY)
-        except Party.DoesNotExist:
-            return JsonResponse(data={"errors": "third party not found"}, status=status.HTTP_404_NOT_FOUND,)
-
-        application.third_parties.remove(third_party.id)
-        delete_party_document_if_exists(third_party)
-        third_party.delete()
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.REMOVE_PARTY,
-            target=application.get_case(),
-            payload={"party_type": third_party.type.replace("_", " "), "party_name": third_party.name,},
-        )
-
-        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+        return JsonResponse(data={key: parties_data})

@@ -5,6 +5,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
+from applications.models import PartyOnApplication
 from audit_trail.models import Audit
 from lite_content.lite_api.strings import Parties
 from parties.enums import PartyType
@@ -17,11 +18,12 @@ class ThirdPartiesOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
+
         self.url = reverse("applications:third_parties", kwargs={"pk": self.draft.id})
 
         self.document_url = reverse(
             "applications:third_party_document",
-            kwargs={"pk": self.draft.id, "tp_pk": self.draft.third_parties.first().id},
+            kwargs={"pk": self.draft.id, "party_pk": self.draft.third_parties.first().party.id},
         )
         self.new_document_data = {
             "name": "document_name.pdf",
@@ -37,7 +39,8 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then all third parties are successfully added to the draft
         """
         audit_qs = Audit.objects.all()
-        self.draft.third_parties.set([])
+        PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.THIRD_PARTY).delete()
+
         parties = [
             {
                 "name": "UK Government",
@@ -46,6 +49,7 @@ class ThirdPartiesOnDraft(DataTestClient):
                 "sub_type": "government",
                 "role": "agent",
                 "website": "https://www.gov.uk",
+                "type": PartyType.THIRD_PARTY,
             },
             {
                 "name": "French Government",
@@ -54,6 +58,7 @@ class ThirdPartiesOnDraft(DataTestClient):
                 "sub_type": "government",
                 "role": "other",
                 "website": "https://www.gov.fr",
+                "type": PartyType.THIRD_PARTY,
             },
         ]
 
@@ -77,6 +82,7 @@ class ThirdPartiesOnDraft(DataTestClient):
             "address": "Westminster, London SW1A 0AA",
             "country": "GB",
             "website": "https://www.gov.uk",
+            "type": PartyType.THIRD_PARTY,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -88,19 +94,22 @@ class ThirdPartiesOnDraft(DataTestClient):
         )
 
     def test_get_third_parties(self):
-        third_party = self.draft.third_parties.first()
-        response = self.client.get(self.url, **self.exporter_headers)
-        third_parties = response.json()["third_parties"]
+        third_party = self.draft.third_parties.all().first().party
+        response = self.client.get(f"{self.url}?type={PartyType.THIRD_PARTY}", **self.exporter_headers)
+        parties = response.json()["third_parties"]
 
-        self.assertEqual(len(third_parties), 1)
-        self.assertEqual(third_parties[0]["id"], str(third_party.id))
-        self.assertEqual(third_parties[0]["name"], str(third_party.name))
-        self.assertEqual(third_parties[0]["country"]["name"], str(third_party.country.name))
-        self.assertEqual(third_parties[0]["website"], str(third_party.website))
-        self.assertEqual(third_parties[0]["type"], str(third_party.type))
-        self.assertEqual(third_parties[0]["organisation"], str(third_party.organisation.id))
-        self.assertEqual(third_parties[0]["sub_type"]["key"], str(third_party.sub_type))
-        self.assertEqual(third_parties[0]["role"]["key"], str(third_party.role))
+        self.assertEqual(len(parties), 1)
+
+        party = parties[0]
+
+        self.assertEqual(party["id"], str(third_party.id))
+        self.assertEqual(party["name"], str(third_party.name))
+        self.assertEqual(party["country"]["name"], str(third_party.country.name))
+        self.assertEqual(party["website"], str(third_party.website))
+        self.assertEqual(party["type"], str(third_party.type))
+        self.assertEqual(party["organisation"], str(third_party.organisation.id))
+        self.assertEqual(party["sub_type"]["key"], str(third_party.sub_type))
+        self.assertEqual(party["role"]["key"], str(third_party.role))
 
     def test_set_third_parties_on_draft_open_application_failure(self):
         """
@@ -109,7 +118,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no third parties have been added
         """
-        third_party_qs = Party.objects.filter(type=PartyType.THIRD_PARTY)
+        third_party_qs = PartyOnApplication.objects.filter(party__type=PartyType.THIRD_PARTY, application=self.draft, deleted_at__isnull=True)
         pre_test_third_party_count = third_party_qs.count()
         data = {
             "name": "UK Government",
@@ -117,6 +126,7 @@ class ThirdPartiesOnDraft(DataTestClient):
             "country": "GB",
             "sub_type": "agent",
             "website": "https://www.gov.uk",
+            "type": PartyType.THIRD_PARTY,
         }
         open_draft = self.create_open_application(self.organisation)
         url = reverse("applications:third_parties", kwargs={"pk": open_draft.id})
@@ -136,9 +146,9 @@ class ThirdPartiesOnDraft(DataTestClient):
         When I try to delete a third party from the application
         Then a 404 NOT FOUND is returned
         """
-        third_party = self.draft.third_parties.first()
-        self.draft.third_parties.set([])
-        url = reverse("applications:remove_third_party", kwargs={"pk": self.draft.id, "tp_pk": third_party.id},)
+        third_party = self.draft.third_parties.first().party
+        PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.THIRD_PARTY).delete()
+        url = reverse("applications:remove_third_party", kwargs={"pk": self.draft.id, "party_pk": third_party.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -153,7 +163,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
-        PartyDocument.objects.filter(party=self.draft.third_parties.first()).delete()
+        PartyDocument.objects.filter(party=self.draft.third_parties.all().first().party).delete()
 
         response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
@@ -201,16 +211,21 @@ class ThirdPartiesOnDraft(DataTestClient):
         When there is an attempt to delete third party
         Then 200 OK
         """
+        poa = self.draft.third_parties.first()
         remove_tp_url = reverse(
             "applications:remove_third_party",
-            kwargs={"pk": self.draft.id, "tp_pk": self.draft.third_parties.first().id},
+            kwargs={"pk": self.draft.id, "party_pk": poa.party.id},
         )
 
-        response = self.client.delete(remove_tp_url, **self.exporter_headers)
+        self.assertIsNone(poa.deleted_at)  # Not marked as deleted
 
+        response = self.client.delete(remove_tp_url, **self.exporter_headers)
+        poa.refresh_from_db()
+
+        self.assertIsNotNone(poa.deleted_at)  # Marked as deleted
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Party.objects.filter(type=PartyType.THIRD_PARTY).count(), 0)
-        delete_s3_function.assert_called_once()
+        self.assertEqual(Party.objects.filter(type=PartyType.THIRD_PARTY).count(), 1)  # Party object still exists
+        # delete_s3_function.assert_called_once()
 
     @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch("documents.tasks.prepare_document.now")
@@ -223,7 +238,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         application.save()
         url = reverse(
             "applications:remove_third_party",
-            kwargs={"pk": application.id, "tp_pk": application.third_parties.first().id,},
+            kwargs={"pk": application.id, "party_pk": application.third_parties.first().party.id,},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
@@ -242,7 +257,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         application.save()
         url = reverse(
             "applications:remove_third_party",
-            kwargs={"pk": application.id, "tp_pk": application.third_parties.first().id,},
+            kwargs={"pk": application.id, "party_pk": application.third_parties.first().party.id,},
         )
 
         response = self.client.delete(url, **self.exporter_headers)

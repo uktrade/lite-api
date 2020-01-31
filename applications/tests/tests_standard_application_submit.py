@@ -3,10 +3,11 @@ from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import SiteOnApplication, GoodOnApplication
+from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
 from cases.models import Case
 from goods.enums import GoodStatus
-from parties.models import PartyDocument
+from parties.enums import PartyType
+from parties.models import PartyDocument, Party
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -61,8 +62,8 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_submit_standard_application_without_end_user_failure(self):
-        self.draft.end_user = None
-        self.draft.save()
+        PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.END_USER).delete()
+
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
@@ -72,7 +73,8 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_submit_standard_application_without_end_user_document_failure(self):
-        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+        PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
+
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
@@ -84,7 +86,7 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_submit_standard_application_without_consignee_failure(self):
-        self.draft.consignee = None
+        PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE).delete()
         self.draft.save()
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
@@ -95,7 +97,7 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_submit_standard_application_without_consignee_document_failure(self):
-        PartyDocument.objects.filter(party=self.draft.consignee).delete()
+        PartyDocument.objects.filter(party=self.draft.consignee.party).delete()
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
@@ -122,7 +124,7 @@ class StandardApplicationTests(DataTestClient):
         there is a part which is to be incorporated into another good
         """
         draft = self.create_standard_application_with_incorporated_good(self.organisation)
-        draft.ultimate_end_users.set([])
+        PartyOnApplication.objects.filter(application=draft, party__type=PartyType.ULTIMATE_END_USER).delete()
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
@@ -135,8 +137,8 @@ class StandardApplicationTests(DataTestClient):
 
     def test_submit_draft_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self):
         draft = self.create_standard_application_with_incorporated_good(self.organisation)
-        for ueu in draft.ultimate_end_users.all():
-            PartyDocument.objects.filter(party=ueu).delete()
+        for poa in draft.ultimate_end_users.all():
+            PartyDocument.objects.filter(party=poa.party).delete()
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
         response = self.client.put(url, **self.exporter_headers)

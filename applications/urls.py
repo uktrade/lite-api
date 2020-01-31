@@ -43,28 +43,29 @@ urlpatterns = [
         name="application_goodstype_assign_countries",
     ),
     # End user
-    path("<uuid:pk>/end-user/", parties.ApplicationEndUser.as_view(), name="end_user"),
+    path("<uuid:pk>/end-user/", parties.ApplicationPartyView.as_view(), name="end_user"),
     path("<uuid:pk>/end-user/document/", party_documents.EndUserDocumentView.as_view(), name="end_user_document",),
     # Ultimate end users
-    path("<uuid:pk>/ultimate-end-users/", parties.ApplicationUltimateEndUsers.as_view(), name="ultimate_end_users",),
+    path("<uuid:pk>/ultimate-end-users/", parties.ApplicationPartyView.as_view(), name="ultimate_end_users",),
     path(
-        "<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>",
-        parties.RemoveApplicationUltimateEndUser.as_view(),
+        "<uuid:pk>/ultimate-end-users/<uuid:party_pk>",
+        parties.ApplicationPartyView.as_view(),
         name="remove_ultimate_end_user",
     ),
     path(
-        "<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/",
+        "<uuid:pk>/ultimate-end-user/<uuid:party_pk>/document/",
         party_documents.UltimateEndUserDocumentsView.as_view(),
         name="ultimate_end_user_document",
     ),
     # Consignee
-    path("<uuid:pk>/consignee/", parties.ApplicationConsignee.as_view(), name="consignee"),
+    path("<uuid:pk>/consignee/", parties.ApplicationPartyView.as_view(), name="consignee"),
+    path("<uuid:pk>/consignee/<uuid:party_pk>", parties.ApplicationPartyView.as_view(), name="remove_consignee", ),
     path("<uuid:pk>/consignee/document/", party_documents.ConsigneeDocumentView.as_view(), name="consignee_document",),
     # Third parties
-    path("<uuid:pk>/third-parties/", parties.ApplicationThirdParties.as_view(), name="third_parties",),
-    path("<uuid:pk>/third-parties/<uuid:tp_pk>", parties.RemoveThirdParty.as_view(), name="remove_third_party",),
+    path("<uuid:pk>/third-parties/", parties.ApplicationPartyView.as_view(), name="third_parties",),
+    path("<uuid:pk>/third-parties/<uuid:party_pk>", parties.ApplicationPartyView.as_view(), name="remove_third_party",),
     path(
-        "<uuid:pk>/third-parties/<uuid:tp_pk>/document/",
+        "<uuid:pk>/third-parties/<uuid:party_pk>/document/",
         party_documents.ThirdPartyDocumentView.as_view(),
         name="third_party_document",
     ),

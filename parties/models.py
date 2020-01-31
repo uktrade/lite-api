@@ -24,6 +24,8 @@ class Party(TimestampableModel):
     sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
     role = models.CharField(choices=PartyRole.choices, default=PartyRole.OTHER, max_length=22, null=True)
 
+    objects = models.Manager()
+
 
 class PartyDocument(Document):
     party = models.ForeignKey(Party, on_delete=models.CASCADE)

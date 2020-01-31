@@ -25,15 +25,15 @@ def get_destination(pk):
 def get_standard_application_destination_flags(application):
     flags = []
     if application.end_user:
-        flags += application.end_user.flags.all()
+        flags += application.end_user.party.flags.all()
     if application.consignee:
-        flags += application.consignee.flags.all()
+        flags += application.consignee.party.flags.all()
 
-    for ultimate_end_user in application.ultimate_end_users.values_list("id", flat=True):
-        flags += get_destination(ultimate_end_user).flags.all()
+    for ultimate_end_user in application.ultimate_end_users.select_related('party'):
+        flags += get_destination(ultimate_end_user.party.id).flags.all()
 
-    for third_party in application.third_parties.values_list("id", flat=True):
-        flags += get_destination(third_party).flags.all()
+    for third_party in application.third_parties.select_related('party'):
+        flags += get_destination(third_party.party.id).flags.all()
 
     return flags
 
@@ -48,7 +48,7 @@ def get_destination_flags(case):
     if case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
         query = get_end_user_advisory_by_pk(case.id)
         if query.end_user:
-            flags += query.end_user.flags.all()
+            flags += query.end_user.party.flags.all()
     else:
         application = get_application(case.id)
         if isinstance(application, StandardApplication):

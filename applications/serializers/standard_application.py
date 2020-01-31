@@ -1,38 +1,30 @@
 from rest_framework import serializers
-
-from applications.serializers.document import ApplicationDocumentSerializer
-from lite_content.lite_api import strings
 from rest_framework.fields import CharField
 
 from applications.models import StandardApplication, ApplicationDocument
+from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
+from applications.mixins.serializers import PartiesSerializerMixin
 from cases.enums import CaseTypeEnum
+from lite_content.lite_api import strings
 from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
-    end_user = PartySerializer(required_fields=("flags",))
-    ultimate_end_users = PartySerializer(many=True, required_fields=("flags",))
-    third_parties = PartySerializer(many=True, required_fields=("flags",))
-    consignee = PartySerializer(required_fields=("flags",))
+class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationViewSerializer.Meta.fields + (
-            "end_user",
-            "ultimate_end_users",
-            "third_parties",
-            "consignee",
+        fields = GenericApplicationViewSerializer.Meta.fields + PartiesSerializerMixin.Meta.fields + (
             "goods",
             "have_you_been_informed",
             "reference_number_on_information_form",
@@ -43,8 +35,8 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
         )
 
     def get_destinations(self, application):
-        if application.end_user:
-            serializer = PartySerializer(application.end_user)
+        if hasattr(application, "end_user"):
+            serializer = PartySerializer(application.end_user.party)
             return {"type": "end_user", "data": serializer.data}
         else:
             return {"type": "end_user", "data": ""}

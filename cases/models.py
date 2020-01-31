@@ -11,7 +11,6 @@ from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
 from organisations.models import Organisation
-from parties.models import Party
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -157,10 +156,10 @@ class Advice(TimestampableModel):
     good = models.ForeignKey("goods.Good", on_delete=models.CASCADE, null=True)
     goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE, null=True)
     country = models.ForeignKey("countries.Country", on_delete=models.CASCADE, null=True)
-    end_user = models.ForeignKey(Party, on_delete=models.CASCADE, null=True)
-    ultimate_end_user = models.ForeignKey(Party, on_delete=models.CASCADE, related_name="ultimate_end_user", null=True,)
-    consignee = models.ForeignKey(Party, on_delete=models.CASCADE, related_name="consignee", null=True)
-    third_party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name="third_party", null=True)
+    end_user = models.ForeignKey("parties.Party", on_delete=models.CASCADE, null=True)
+    ultimate_end_user = models.ForeignKey("parties.Party", on_delete=models.CASCADE, related_name="ultimate_end_user", null=True)
+    consignee = models.ForeignKey("parties.Party", on_delete=models.CASCADE, related_name="consignee", null=True)
+    third_party = models.ForeignKey("parties.Party", on_delete=models.CASCADE, related_name="third_party", null=True)
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)

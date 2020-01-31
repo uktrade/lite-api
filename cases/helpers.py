@@ -2,7 +2,6 @@ from collections import defaultdict
 
 from cases.enums import AdviceType
 from goods.models import Good
-from parties.models import Party
 from static.countries.models import Country
 from users.models import GovUser, GovNotification
 
@@ -74,17 +73,17 @@ def assign_field(application_field, advice, key):
     if application_field == "good":
         advice.good = Good.objects.get(pk=key)
     elif application_field == "end_user":
-        advice.end_user = Party.objects.get(pk=key)
+        advice.end_user = key
     elif application_field == "country":
         advice.country = Country.objects.get(pk=key)
     elif application_field == "ultimate_end_user":
-        advice.ultimate_end_user = Party.objects.get(pk=key)
+        advice.ultimate_end_user = key
     elif application_field == "goods_type":
         advice.goods_type = GoodsType.objects.get(pk=key)
     elif application_field == "consignee":
-        advice.consignee = Party.objects.get(pk=key)
+        advice.consignee = key
     elif application_field == "third_party":
-        advice.third_party = Party.objects.get(pk=key)
+        advice.third_party = key
 
 
 def collate_advice(application_field, collection, case, user, advice_class):
@@ -124,19 +123,19 @@ def create_grouped_advice(case, request, advice, level):
 
     for advice in advice:
         if advice.end_user:
-            end_users[advice.end_user.id].append(advice)
+            end_users[advice.end_user].append(advice)
         elif advice.country:
             countries[advice.country.id].append(advice)
         elif advice.good:
             goods[advice.good.id].append(advice)
         elif advice.ultimate_end_user:
-            ultimate_end_users[advice.ultimate_end_user.id].append(advice)
+            ultimate_end_users[advice.ultimate_end_user].append(advice)
         elif advice.goods_type:
             goods_types[advice.goods_type.id].append(advice)
         elif advice.consignee:
-            consignees[advice.consignee.id].append(advice)
+            consignees[advice.consignee].append(advice)
         elif advice.third_party:
-            third_parties[advice.third_party.id].append(advice)
+            third_parties[advice.third_party].append(advice)
 
     collate_advice("end_user", end_users.items(), case, request.user, level)
     collate_advice("good", goods.items(), case, request.user, level)

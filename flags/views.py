@@ -254,18 +254,11 @@ class AssignFlags(APIView):
 
     @staticmethod
     def _get_case_for_destination(party):
-        qs = StandardApplication.objects.filter(
-            Q(consignee=party) | Q(end_user=party) | Q(ultimate_end_users__in=[party]) | Q(third_parties__in=[party])
-        )
+        qs = StandardApplication.objects.filter(party__party=party)
         if not qs:
             qs = EndUserAdvisoryQuery.objects.filter(Q(end_user=party))
 
         if not qs:
-            qs = HmrcQuery.objects.filter(
-                Q(consignee=party)
-                | Q(end_user=party)
-                | Q(ultimate_end_users__in=[party])
-                | Q(third_parties__in=[party])
-            )
+            qs = HmrcQuery.objects.filter(party__party=party)
         if qs:
             return qs.first().get_case()

@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from parties.enums import PartyType
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
@@ -11,10 +12,11 @@ class PartyFlagsManagementTests(DataTestClient):
         # Destinations
         name = "a name"
         organisation = self.organisation
-        self.end_user = self.create_end_user(name, organisation)
-        self.ultimate_end_user = self.create_ultimate_end_user(name, organisation)
-        self.consignee = self.create_consignee(name, organisation)
-        self.third_party = self.create_third_party(name, organisation)
+        application = self.create_standard_application(organisation=organisation)
+        self.end_user = self.create_party(name, organisation, PartyType.END_USER, application)
+        self.ultimate_end_user = self.create_party(name, organisation, PartyType.ULTIMATE_END_USER, application)
+        self.consignee = self.create_party(name, organisation, PartyType.CONSIGNEE, application)
+        self.third_party = self.create_party(name, organisation, PartyType.THIRD_PARTY, application)
 
         # Teams
         self.other_team = self.create_team("Team")

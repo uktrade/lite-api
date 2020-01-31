@@ -458,7 +458,7 @@ class Destination(APIView):
         if isinstance(destination, Country):
             serializer = CountryWithFlagsSerializer(destination)
         else:
-            serializer = PartySerializer(destination, required_fields=("flags",))
+            serializer = PartySerializer(destination)
 
         return JsonResponse(data={"destination": serializer.data}, status=status.HTTP_200_OK)
 

@@ -1,4 +1,5 @@
 import abc
+from collections import defaultdict
 
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -18,6 +19,7 @@ from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import OrganisationDetailSerializer, SiteViewSerializer, ExternalLocationSerializer
+from parties.serializers import PartySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import (
@@ -107,7 +109,7 @@ class GenericApplicationViewSerializer(GenericApplicationListSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations", "case_officer",)
+        fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations", "case_officer", "parties")
 
     def get_exporter_user_notification_count(self, instance):
         """
