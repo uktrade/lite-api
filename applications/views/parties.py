@@ -58,21 +58,22 @@ class ApplicationEndUser(APIView):
                         actor=request.user,
                         verb=AuditType.REMOVE_PARTY,
                         target=case,
-                        payload={"party_type": previous_end_user.type.replace("_", " "),
-                                 "party_name": previous_end_user.name, },
+                        payload={
+                            "party_type": previous_end_user.type.replace("_", " "),
+                            "party_name": previous_end_user.name,
+                        },
                     )
 
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.ADD_PARTY,
                     target=case,
-                    payload={"party_type": new_end_user.type.replace("_", " "), "party_name": new_end_user.name, },
+                    payload={"party_type": new_end_user.type.replace("_", " "), "party_name": new_end_user.name,},
                 )
 
                 return JsonResponse(data={"end_user": serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
 
     @allowed_application_types(
         [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]

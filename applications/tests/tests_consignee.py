@@ -219,7 +219,6 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(Consignee.objects.all().count(), 0)
         delete_s3_function.assert_called_once()
 
-
     def test_consignee_validate_only_success(self):
         """
         Given a standard draft has been created
@@ -236,15 +235,15 @@ class ConsigneeOnDraftTests(DataTestClient):
         }
 
         response = self.client.post(self.url, consignee, **self.exporter_headers)
-        response_data = response.json()['consignee']
+        response_data = response.json()["consignee"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertNotEqual(self.draft.end_user.name, consignee['name'])
-        self.assertEqual(response_data['name'], consignee['name'])
-        self.assertEqual(response_data['address'], consignee['address'])
-        self.assertEqual(response_data['country'], consignee['country'])
-        self.assertEqual(response_data['sub_type'], consignee['sub_type'])
-        self.assertEqual(response_data['website'], consignee['website'])
+        self.assertNotEqual(self.draft.end_user.name, consignee["name"])
+        self.assertEqual(response_data["name"], consignee["name"])
+        self.assertEqual(response_data["address"], consignee["address"])
+        self.assertEqual(response_data["country"], consignee["country"])
+        self.assertEqual(response_data["sub_type"], consignee["sub_type"])
+        self.assertEqual(response_data["website"], consignee["website"])
 
     def test_consignee_validate_only_failure(self):
         """

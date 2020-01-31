@@ -322,15 +322,15 @@ class EndUserOnDraftTests(DataTestClient):
         }
 
         response = self.client.post(self.url, end_user, **self.exporter_headers)
-        response_data = response.json()['end_user']
+        response_data = response.json()["end_user"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertNotEqual(self.draft.end_user.name, end_user['name'])
-        self.assertEqual(response_data['name'], end_user['name'])
-        self.assertEqual(response_data['address'], end_user['address'])
-        self.assertEqual(response_data['country'], end_user['country'])
-        self.assertEqual(response_data['sub_type'], end_user['sub_type'])
-        self.assertEqual(response_data['website'], end_user['website'])
+        self.assertNotEqual(self.draft.end_user.name, end_user["name"])
+        self.assertEqual(response_data["name"], end_user["name"])
+        self.assertEqual(response_data["address"], end_user["address"])
+        self.assertEqual(response_data["country"], end_user["country"])
+        self.assertEqual(response_data["sub_type"], end_user["sub_type"])
+        self.assertEqual(response_data["website"], end_user["website"])
 
     def test_end_user_validate_only_failure(self):
         """
