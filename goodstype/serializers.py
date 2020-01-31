@@ -44,8 +44,8 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         application = self.get_initial().get("application")
         if application:
             if get_application(application).application_type == ApplicationType.OPEN_LICENCE:
-                self.fields["is_good_incorporated"] = serializers.BooleanField()
-                self.fields["is_good_controlled"] = serializers.BooleanField()
+                self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
+                self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
                 self.fields["control_code"] = serializers.CharField(required=False, allow_blank=True, allow_null=True)
                 self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_code")
             else:
