@@ -41,32 +41,38 @@ class ApplicationEndUser(APIView):
         case = application.get_case()
 
         serializer = EndUserSerializer(data=data)
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if str_to_bool(data.get("validate_only")):
+            if serializer.is_valid():
+                return JsonResponse(data={"end_user": serializer.initial_data}, status=status.HTTP_200_OK)
+        else:
+            if serializer.is_valid():
+                previous_end_user = application.end_user
 
-        previous_end_user = application.end_user
+                new_end_user = serializer.save()
+                application.end_user = new_end_user
+                application.save()
+                if previous_end_user:
+                    delete_party_document_if_exists(previous_end_user)
+                    previous_end_user.delete()
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REMOVE_PARTY,
+                        target=case,
+                        payload={"party_type": previous_end_user.type.replace("_", " "),
+                                 "party_name": previous_end_user.name, },
+                    )
 
-        new_end_user = serializer.save()
-        application.end_user = new_end_user
-        application.save()
-        if previous_end_user:
-            delete_party_document_if_exists(previous_end_user)
-            previous_end_user.delete()
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.REMOVE_PARTY,
-                target=case,
-                payload={"party_type": previous_end_user.type.replace("_", " "), "party_name": previous_end_user.name,},
-            )
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ADD_PARTY,
+                    target=case,
+                    payload={"party_type": new_end_user.type.replace("_", " "), "party_name": new_end_user.name, },
+                )
 
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.ADD_PARTY,
-            target=case,
-            payload={"party_type": new_end_user.type.replace("_", " "), "party_name": new_end_user.name,},
-        )
+                return JsonResponse(data={"end_user": serializer.data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={"end_user": serializer.data}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 
     @allowed_application_types(
         [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
@@ -196,37 +202,42 @@ class ApplicationConsignee(APIView):
 
         serializer = ConsigneeSerializer(data=data)
 
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if str_to_bool(data.get("validate_only")):
+            if serializer.is_valid():
+                return JsonResponse(data={"consignee": serializer.initial_data}, status=status.HTTP_200_OK)
 
-        previous_consignee = application.consignee
+        else:
+            if serializer.is_valid():
+                previous_consignee = application.consignee
 
-        new_consignee = serializer.save()
-        application.consignee = new_consignee
-        application.save()
+                new_consignee = serializer.save()
+                application.consignee = new_consignee
+                application.save()
 
-        if previous_consignee:
-            delete_party_document_if_exists(previous_consignee)
-            previous_consignee.delete()
+                if previous_consignee:
+                    delete_party_document_if_exists(previous_consignee)
+                    previous_consignee.delete()
 
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.REMOVE_PARTY,
-                target=case,
-                payload={
-                    "party_type": previous_consignee.type.replace("_", " "),
-                    "party_name": previous_consignee.name,
-                },
-            )
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REMOVE_PARTY,
+                        target=case,
+                        payload={
+                            "party_type": previous_consignee.type.replace("_", " "),
+                            "party_name": previous_consignee.name,
+                        },
+                    )
 
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.ADD_PARTY,
-            target=case,
-            payload={"party_type": new_consignee.type.replace("_", " "), "party_name": new_consignee.name,},
-        )
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ADD_PARTY,
+                    target=case,
+                    payload={"party_type": new_consignee.type.replace("_", " "), "party_name": new_consignee.name,},
+                )
 
-        return JsonResponse(data={"consignee": serializer.data}, status=status.HTTP_201_CREATED)
+                return JsonResponse(data={"consignee": serializer.data}, status=status.HTTP_201_CREATED)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @allowed_application_types(
         [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]

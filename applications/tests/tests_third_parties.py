@@ -292,9 +292,16 @@ class ThirdPartiesOnDraft(DataTestClient):
         original_party_count = self.draft.third_parties.count()
 
         response = self.client.post(self.url, third_party, **self.exporter_headers)
+        response_data = response.json()['third_party']
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(original_party_count, self.draft.third_parties.count())
+        self.assertEqual(response_data['name'], third_party['name'])
+        self.assertEqual(response_data['address'], third_party['address'])
+        self.assertEqual(response_data['country'], third_party['country'])
+        self.assertEqual(response_data['sub_type'], third_party['sub_type'])
+        self.assertEqual(response_data['website'], third_party['website'])
+        self.assertEqual(response_data['role'], third_party['role'])
 
     def test_third_party_validate_only_failure(self):
         """

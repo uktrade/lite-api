@@ -105,7 +105,7 @@ class GetExistingPartiesTests(DataTestClient):
         response_data = self.client.get(self.url, **self.exporter_headers).data["results"]
 
         response_data_ids = [party["id"] for party in response_data]
-        expected_copy_id = Party.objects.all().filter(name="Mr Original", address="456 abc st.").get().id
+        expected_copy_id = Party.objects.filter(name="Mr Original", address="456 abc st.").get().id
         second_expected_copy_id = Party.objects.filter(name="Mr Copy").get().id
 
         # Party table data contains one duplicate, so results returned is 1 less than all parties
