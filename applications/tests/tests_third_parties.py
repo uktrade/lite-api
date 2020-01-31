@@ -290,6 +290,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         }
 
         original_party_count = self.draft.third_parties.count()
+        self.draft.refresh_from_db()
 
         response = self.client.post(self.url, third_party, **self.exporter_headers)
         response_data = response.json()["third_party"]
@@ -319,6 +320,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         }
 
         original_party_count = self.draft.third_parties.count()
+        self.draft.refresh_from_db()
 
         response = self.client.post(self.url, third_party, **self.exporter_headers)
 

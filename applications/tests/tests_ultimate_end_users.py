@@ -251,6 +251,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         }
 
         original_party_count = self.draft.ultimate_end_users.count()
+        self.draft.refresh_from_db()
 
         response = self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
 
@@ -272,6 +273,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         }
 
         original_party_count = self.draft.ultimate_end_users.count()
+        self.draft.refresh_from_db()
 
         response = self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
 
