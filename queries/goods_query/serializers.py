@@ -4,6 +4,7 @@ from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceFie
 from goods.enums import PvGrading
 from goods.models import PvGradingDetails
 from goods.serializers import GoodWithFlagsSerializer
+from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
 from queries.goods_query.models import GoodsQuery
@@ -51,7 +52,7 @@ class PVGradingResponseSerializer(serializers.ModelSerializer):
         allow_null=False,
         allow_blank=False,
         required=True,
-        error_messages={"invalid_choice": "Select a grading"},
+        error_messages={"invalid_choice": strings.PvGrading.NO_GRADING},
     )
     prefix = serializers.CharField(allow_blank=True, allow_null=True, max_length=30)
     suffix = serializers.CharField(allow_blank=True, allow_null=True, max_length=30)
