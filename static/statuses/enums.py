@@ -96,7 +96,7 @@ class CaseStatusEnum:
     }
 
     @classmethod
-    def human_readable(cls, status):
+    def get_text(cls, status):
         for k, v in cls.choices:
             if status == k:
                 return v
@@ -123,8 +123,9 @@ class CaseStatusEnum:
 
     @classmethod
     def as_list(cls):
-        choices = [
-            {"key": choice[0], "value": choice[1], "priority": cls.priority[choice[0]]} for choice in cls.choices
-        ]
-        choices.sort(key=lambda x: x["priority"])
-        return choices
+        from static.statuses.models import CaseStatus
+        from static.statuses.serializers import CaseStatusSerializer
+
+        # Exclude the 'Draft' system status
+        statuses = CaseStatus.objects.all().order_by("priority").exclude(status="draft")
+        return CaseStatusSerializer(statuses, many=True).data

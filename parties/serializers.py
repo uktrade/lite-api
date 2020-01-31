@@ -34,6 +34,7 @@ class PartySerializer(serializers.ModelSerializer):
         choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}, required=False
     )
     flags = FlagSerializer(many=True, required=False)
+    copy_of = relations.PrimaryKeyRelatedField(queryset=Party.objects.all(), allow_null=True, required=False)
 
     class Meta:
         model = Party
@@ -49,6 +50,7 @@ class PartySerializer(serializers.ModelSerializer):
             "sub_type",
             "role",
             "flags",
+            "copy_of",
         )
 
     def __init__(self, *args, **kwargs):
@@ -91,7 +93,6 @@ class PartySerializer(serializers.ModelSerializer):
 
     def get_document(self, instance):
         docs = PartyDocument.objects.filter(party=instance)
-
         return docs.values()[0] if docs.exists() else None
 
 

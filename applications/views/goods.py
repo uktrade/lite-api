@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
 from applications.libraries.case_status_helpers import get_case_statuses
-from applications.libraries.get_goods_on_applications import get_good_on_application
+from applications.libraries.goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers.good import (
     GoodOnApplicationViewSerializer,
@@ -38,7 +38,7 @@ class ApplicationGoodsOnApplication(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE])
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.EXHIBITION_CLEARANCE])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods = GoodOnApplication.objects.filter(application=application)
@@ -46,7 +46,7 @@ class ApplicationGoodsOnApplication(APIView):
 
         return JsonResponse(data={"goods": goods_data})
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE])
+    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.EXHIBITION_CLEARANCE])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):

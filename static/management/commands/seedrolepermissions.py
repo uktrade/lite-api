@@ -19,12 +19,12 @@ def _create_role_and_output(id, type, name):
     role, created = Role.objects.get_or_create(id=id, type=type, name=name)
     if created:
         role = dict(id=role.id, type=role.type, name=role.name)
-        print(f"CREATED: {role}")
+        print(f"CREATED Role: {role}")
 
 
 class Command(SeedCommand):
     """
-    pipenv run ./manage.py seedpermissions
+    pipenv run ./manage.py seedrolepermissions
     """
 
     help = "Creates and updates default roles and permissions"
@@ -40,18 +40,18 @@ class Command(SeedCommand):
                 id=permission.name, defaults={"name": permission.value, "type": UserType.INTERNAL}
             )
             if created:
-                print(f"CREATED GOV PERMISSION: {permission.name}")
+                print(f"CREATED Permission: {{'name': {permission.value}, 'type': {UserType.INTERNAL}}}")
             else:
-                print(f"UPDATED GOV PERMISSION: {permission.name}")
+                print(f"UPDATED Permission: {{'name': {permission.value}, 'type': {UserType.INTERNAL}}}")
 
         for permission in ExporterPermissions:
             _, created = Permission.objects.update_or_create(
                 id=permission.name, defaults={"name": permission.value, "type": UserType.EXPORTER}
             )
             if created:
-                print(f"CREATED EXPORTER PERMISSION: {permission.name}")
+                print(f"CREATED Permission: {{'name': {permission.value}, 'type': {UserType.EXPORTER}}}")
             else:
-                print(f"UPDATED EXPORTER PERMISSION: {permission.name}")
+                print(f"UPDATED Permission: {{'name': {permission.value}, 'type': {UserType.EXPORTER}}}")
 
         self.delete_unused_objects(
             Permission, [{"id": x.name} for x in GovPermissions] + [{"id": x.name} for x in ExporterPermissions]

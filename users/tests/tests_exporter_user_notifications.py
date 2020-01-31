@@ -3,6 +3,7 @@ from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
+from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, EcjuQuery
 from test_helpers.clients import DataTestClient
@@ -96,9 +97,11 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual("notifications" in response_data and len(response_data["notifications"]) == 9, not count_only)
         self.assertEqual(response_data["notification_count"]["application"], 3)
         self.assertEqual(response_data["notification_count"]["end_user_advisory_query"], 3)
-        self.assertEqual(response_data["notification_count"]["clc_query"], 3)
+        self.assertEqual(response_data["notification_count"]["goods_query"], 3)
 
-    @parameterized.expand([["application"], ["end_user_advisory_query"], ["clc_query"]])
+    @parameterized.expand(
+        [[CaseTypeEnum.APPLICATION], [CaseTypeEnum.END_USER_ADVISORY_QUERY], [CaseTypeEnum.GOODS_QUERY]]
+    )
     def test_get_notifications_for_user_individual_case_type_without_count_only_param_success(self, case_type):
         self._create_all_case_types_with_notifications()
 
@@ -111,7 +114,9 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(len(response_data["notifications"]), 3)
         self.assertEqual(response_data["notification_count"][case_type], 3)
 
-    @parameterized.expand([["application"], ["end_user_advisory_query"], ["clc_query"]])
+    @parameterized.expand(
+        [[CaseTypeEnum.APPLICATION], [CaseTypeEnum.END_USER_ADVISORY_QUERY], [CaseTypeEnum.GOODS_QUERY]]
+    )
     def test_get_notifications_for_user_individual_case_type_with_count_only_param_success(self, case_type):
         self._create_all_case_types_with_notifications()
 

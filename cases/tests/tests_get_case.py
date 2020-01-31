@@ -1,8 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import PartyOnApplication
-from parties.enums import PartyType
+from flags.enums import SystemFlags
 from test_helpers.clients import DataTestClient
 
 
@@ -21,6 +20,7 @@ class CaseGetTests(DataTestClient):
         url = reverse("cases:case", kwargs={"pk": case.id})
 
         response = self.client.get(url, **self.gov_headers)
+
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -44,3 +44,35 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(
             str(expected.sub_type), sub_type["key"] if isinstance(sub_type, dict) else sub_type,
         )
+
+    def test_case_returns_expected_goods_flags(self):
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        expected_flags = [SystemFlags.GOOD_NOT_YET_VERIFIED_ID]
+        actual_flags_on_case = [flag["id"] for flag in response_data["case"]["all_flags"]]
+        actual_flags_on_goods = [flag["id"] for flag in response_data["case"]["application"]["goods"][0]["flags"]]
+
+        self.assertIn(actual_flags_on_case[0], expected_flags)
+        self.assertEqual(actual_flags_on_goods, expected_flags)
+
+    def test_case_returns_expected_goods_types_flags(self):
+        self.open_application = self.create_open_application(self.organisation)
+        self.open_case = self.submit_application(self.open_application)
+        self.open_case_url = reverse("cases:case", kwargs={"pk": self.open_case.id})
+
+        response = self.client.get(self.open_case_url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        expected_flags = [SystemFlags.GOOD_NOT_YET_VERIFIED_ID]
+        actual_flags_on_case = [flag["id"] for flag in response_data["case"]["all_flags"]]
+        actual_flags_on_goods_type = [
+            flag["id"] for flag in response_data["case"]["application"]["goods_types"][0]["flags"]
+        ]
+
+        self.assertIn(actual_flags_on_case[0], expected_flags)
+        self.assertEqual(actual_flags_on_goods_type, expected_flags)

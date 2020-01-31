@@ -9,6 +9,7 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
+from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.models import (
     BaseApplication,
     GoodOnApplication,
@@ -18,28 +19,30 @@ from applications.models import (
     OpenApplication,
     HmrcQuery,
     ApplicationDocument,
-    PartyOnApplication)
+    ExhibitionClearanceApplication,
+)
 from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
+from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodStatus
-from goods.models import Good, GoodDocument
+from goods.enums import GoodControlled, GoodPvGraded
+from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import SubType, PartyType, PartyRole
-from parties.models import PartyDocument
 from parties.models import Party
+from parties.models import PartyDocument
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
-from queries.control_list_classifications.models import ControlListClassificationQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
+from queries.goods_query.models import GoodsQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
@@ -251,10 +254,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        if application.application_type == ApplicationType.STANDARD_LICENCE:
-            for good_on_application in GoodOnApplication.objects.filter(application=application):
-                good_on_application.good.status = GoodStatus.SUBMITTED
-                good_on_application.good.save()
+        update_submitted_application_good_statuses_and_flags(application)
 
         return application
 
@@ -360,38 +360,69 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return picklist_item
 
     @staticmethod
-    def create_controlled_good(description: str, org: Organisation, control_code: str = "ML1") -> Good:
+    def create_good(
+        description: str,
+        org: Organisation,
+        is_good_controlled: str = GoodControlled.YES,
+        control_code: str = "ML1X",
+        is_pv_graded: str = GoodPvGraded.YES,
+        pv_grading_details: PvGradingDetails = None,
+    ) -> Good:
+        if is_pv_graded == GoodPvGraded.YES and not pv_grading_details:
+            pv_grading_details = PvGradingDetails.objects.create(
+                grading=None,
+                custom_grading="Custom Grading",
+                prefix="Prefix",
+                suffix="Suffix",
+                issuing_authority="Issuing Authority",
+                reference="ref123",
+                date_of_issue="2019-12-25",
+            )
+
         good = Good(
             description=description,
-            is_good_controlled=GoodControlled.YES,
+            is_good_controlled=is_good_controlled,
             control_code=control_code,
             part_number="123456",
             organisation=org,
+            comment=None,
+            report_summary=None,
+            is_pv_graded=is_pv_graded,
+            pv_grading_details=pv_grading_details,
         )
         good.save()
         return good
 
     @staticmethod
-    def create_clc_query(description, organisation):
-        good = Good(
-            description=description,
-            is_good_controlled=GoodControlled.UNSURE,
-            control_code="ML1",
-            part_number="123456",
-            organisation=organisation,
-            comment=None,
-            report_summary=None,
-        )
-        good.save()
+    def create_clc_query(description, organisation) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
 
-        clc_query = ControlListClassificationQuery.objects.create(
-            details="this is a test text",
+        clc_query = GoodsQuery.objects.create(
+            clc_raised_reasons="this is a test text",
             good=good,
             organisation=organisation,
-            type=CaseTypeEnum.CLC_QUERY,
+            type=CaseTypeEnum.GOODS_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
+        clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+        clc_query.save()
         return clc_query
+
+    @staticmethod
+    def create_pv_grading_query(description, organisation) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.YES)
+
+        pv_grading_query = GoodsQuery.objects.create(
+            clc_raised_reasons=None,
+            pv_grading_raised_reasons="this is a test text",
+            good=good,
+            organisation=organisation,
+            type=CaseTypeEnum.GOODS_QUERY,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+        )
+        pv_grading_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
+        pv_grading_query.save()
+        return pv_grading_query
 
     @staticmethod
     def create_advice(user, case, advice_field, advice_type, advice_level):
@@ -446,6 +477,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return organisation, exporter_user
 
+    def add_application_and_party_documents(self, application, safe_document):
+        # Set the application party documents
+        self.create_document_for_party(application.end_user, safe=safe_document)
+        self.create_document_for_party(application.consignee, safe=safe_document)
+        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+        self.create_application_document(application)
+
     def create_standard_application(
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
@@ -461,12 +499,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             type=CaseTypeEnum.APPLICATION,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
-        application.save()
 
+        application.save()
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication(
-            good=self.create_controlled_good("a thing", organisation),
+            good=self.create_good("a thing", organisation),
             application=application,
             quantity=10,
             unit=Units.NAR,
@@ -478,10 +516,42 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         consignee = self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
         third_party = self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
         # Set the application party documents
+
         self.create_document_for_party(end_user, safe=safe_document)
         self.create_document_for_party(consignee, safe=safe_document)
         self.create_document_for_party(third_party, safe=safe_document)
         self.create_application_document(application)
+
+        # Add a site to the application
+        SiteOnApplication(site=organisation.primary_site, application=application).save()
+
+        return application
+
+    def create_exhibition_clearance_application(
+        self, organisation: Organisation, reference_name="Exhibition Clearance Draft", safe_document=True,
+    ):
+        application = ExhibitionClearanceApplication(
+            name=reference_name,
+            application_type=ApplicationType.EXHIBITION_CLEARANCE,
+            activity="Trade",
+            usage="Trade",
+            organisation=organisation,
+            type=CaseTypeEnum.EXHIBITION_CLEARANCE,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+        )
+
+        application.save()
+
+        end_user = self.create_party("End User", organisation, PartyType.END_USER, application)
+        consignee = self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+        third_party = self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+
+        self.create_document_for_party(end_user, safe=safe_document)
+        self.create_document_for_party(consignee, safe=safe_document)
+        self.create_document_for_party(third_party, safe=safe_document)
+        self.create_application_document(application)
+
+        self.add_application_and_party_documents(application, safe_document)
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()

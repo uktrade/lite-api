@@ -3,7 +3,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
-from applications.libraries.get_applications import get_application
 from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
@@ -14,8 +13,6 @@ from conf.decorators import (
 )
 from lite_content.lite_api import strings
 from parties.enums import PartyType
-from parties.helpers import delete_party_document_if_exists
-from parties.models import Party
 from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
@@ -24,7 +21,9 @@ from users.models import ExporterUser
 class ApplicationPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -76,7 +75,9 @@ class ApplicationPartyView(APIView):
 
         return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
         """
@@ -106,7 +107,9 @@ class ApplicationPartyView(APIView):
 
         return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """

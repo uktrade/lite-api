@@ -1,20 +1,16 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.models import StandardApplication, ApplicationDocument
-from applications.serializers.document import ApplicationDocumentSerializer
+from applications.mixins.serializers import PartiesSerializerMixin
+from applications.models import StandardApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from applications.mixins.serializers import PartiesSerializerMixin
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
-from parties.serializers import PartySerializer
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -34,24 +30,11 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
             "additional_documents",
         )
 
-    def get_destinations(self, application):
-        if getattr(application, "end_user", None):
-            serializer = PartySerializer(application.end_user.party)
-            return {"type": "end_user", "data": serializer.data}
-        else:
-            return {"type": "end_user", "data": ""}
-
-    def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance)
-        return ApplicationDocumentSerializer(documents, many=True).data
-
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["organisation"] = self.context.id
         self.initial_data["type"] = CaseTypeEnum.APPLICATION
-        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = StandardApplication
@@ -74,7 +57,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Goods.REF_NAME},
+        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 

@@ -1,23 +1,63 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from conf.helpers import str_to_bool
+from common.libraries import (
+    initialize_good_or_goods_type_control_code_serializer,
+    update_good_or_goods_type_control_code_details,
+)
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from goods.enums import GoodStatus, GoodControlled
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
 from goods.libraries.get_goods import get_good_query_with_notifications
-from goods.models import Good, GoodDocument
+from goods.models import Good, GoodDocument, PvGradingDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
-from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
+
+
+class PvGradingDetailsSerializer(serializers.ModelSerializer):
+    grading = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, allow_blank=True)
+    custom_grading = serializers.CharField(allow_blank=True, allow_null=True)
+    prefix = serializers.CharField(allow_blank=True, allow_null=True)
+    suffix = serializers.CharField(allow_blank=True, allow_null=True)
+    issuing_authority = serializers.CharField(allow_blank=False, allow_null=False)
+    reference = serializers.CharField(allow_blank=False, allow_null=False)
+    date_of_issue = serializers.DateField(
+        allow_null=False,
+        error_messages={"invalid": "Enter the products date of issue and include a day, month, year."},
+    )
+
+    class Meta:
+        model = PvGradingDetails
+        fields = (
+            "grading",
+            "custom_grading",
+            "prefix",
+            "suffix",
+            "issuing_authority",
+            "reference",
+            "date_of_issue",
+        )
+
+    def validate(self, data):
+        validated_data = super(PvGradingDetailsSerializer, self).validate(data)
+
+        if not validated_data.get("grading") and not validated_data.get("custom_grading"):
+            raise serializers.ValidationError({"custom_grading": strings.Goods.NO_CUSTOM_GRADING_ERROR})
+
+        if validated_data.get("grading") and validated_data.get("custom_grading"):
+            raise serializers.ValidationError(
+                {"custom_grading": strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR}
+            )
+
+        return validated_data
 
 
 class GoodListSerializer(serializers.ModelSerializer):
@@ -54,6 +94,15 @@ class GoodListSerializer(serializers.ModelSerializer):
 
 
 class GoodSerializer(serializers.ModelSerializer):
+    """
+    This serializer contains a nested creatable and writable serializer: PvGradingDetailsSerializer.
+    By default, nested serializers provide the ability to only retrieve data;
+    To make them writable and updatable you must override the create and update methods in the parent serializer.
+
+    This serializer sometimes can contain OrderedDict instance types due to it's 'validate_only' nature.
+    Because of this, each 'get' override must check the instance type before creating queries
+    """
+
     description = serializers.CharField(
         max_length=280, error_messages={"blank": strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK}
     )
@@ -62,7 +111,7 @@ class GoodSerializer(serializers.ModelSerializer):
     )
     control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    status = KeyValueChoiceField(choices=GoodStatus.choices)
+    status = KeyValueChoiceField(read_only=True, choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
     case_id = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()
@@ -70,6 +119,10 @@ class GoodSerializer(serializers.ModelSerializer):
     case_status = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices, read_only=True)
+    is_pv_graded = KeyValueChoiceField(
+        choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
+    )
+    pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
 
     class Meta:
         model = Good
@@ -87,6 +140,8 @@ class GoodSerializer(serializers.ModelSerializer):
             "query",
             "documents",
             "case_status",
+            "is_pv_graded",
+            "pv_grading_details",
             "missing_document_reason",
         )
 
@@ -99,37 +154,47 @@ class GoodSerializer(serializers.ModelSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["control_code"] = None
 
-    # pylint: disable=W0703
-    def get_case_id(self, instance):
-        clc_query = ControlListClassificationQuery.objects.filter(good=instance)
-        if clc_query:
-            return clc_query.first().id
+        # This removes data being passed forward from product grading forms on editing goods when not needed
+        if not self.get_initial().get("is_pv_graded") == GoodPvGraded.YES:
+            if hasattr(self, "initial_data"):
+                self.initial_data["pv_grading_details"] = None
 
-    def get_case_officer(self, instance):
-        clc_query_qs = ControlListClassificationQuery.objects.filter(good=instance, case_officer__isnull=False)
-        if clc_query_qs:
-            user = get_user_by_pk(clc_query_qs.first().case_officer)
-            return GovUserSimpleSerializer(user).data
-
-    def get_query(self, instance):
-        return get_good_query_with_notifications(
-            good=instance, exporter_user=self.context.get("exporter_user"), total_count=False
+        self.goods_query_case = (
+            GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
         )
 
+    def get_case_id(self, instance):
+        return str(self.goods_query_case.id) if self.goods_query_case else None
+
+    def get_case_officer(self, instance):
+        if self.goods_query_case:
+            return GovUserSimpleSerializer(self.goods_query_case.case_officer).data
+        return None
+
+    def get_query(self, instance):
+        if isinstance(instance, Good):
+            return get_good_query_with_notifications(
+                good=instance, exporter_user=self.context.get("exporter_user"), total_count=False
+            )
+
+        return None
+
     def get_case_status(self, instance):
-        try:
-            clc_query = ControlListClassificationQuery.objects.get(good=instance)
+        if self.goods_query_case:
             return {
-                "key": clc_query.status.status,
-                "value": get_status_value_from_case_status_enum(clc_query.status.status),
+                "key": self.goods_query_case.status.status,
+                "value": get_status_value_from_case_status_enum(self.goods_query_case.status.status),
             }
-        except ControlListClassificationQuery.DoesNotExist:
-            return None
+
+        return None
 
     def get_documents(self, instance):
-        documents = GoodDocument.objects.filter(good=instance)
-        if documents:
-            return SimpleGoodDocumentViewSerializer(documents, many=True).data
+        if isinstance(instance, Good):
+            documents = GoodDocument.objects.filter(good=instance)
+            if documents.exists():
+                return SimpleGoodDocumentViewSerializer(documents, many=True).data
+
+        return None
 
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
@@ -138,14 +203,63 @@ class GoodSerializer(serializers.ModelSerializer):
 
         return value
 
+    def create(self, validated_data):
+        pv_grading_details = validated_data.pop("pv_grading_details", None)
+        if pv_grading_details:
+            pv_grading_details = GoodSerializer._create_pv_grading_details(pv_grading_details)
+
+        return Good.objects.create(pv_grading_details=pv_grading_details, **validated_data)
+
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
         instance.control_code = validated_data.get("control_code", "")
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
+        instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
+        instance.pv_grading_details = GoodSerializer._create_update_or_delete_pv_grading_details(
+            is_pv_graded=instance.is_pv_graded == GoodPvGraded.YES,
+            pv_grading_details=validated_data.get("pv_grading_details"),
+            instance=instance.pv_grading_details,
+        )
+
         instance.save()
         return instance
+
+    @staticmethod
+    def _create_update_or_delete_pv_grading_details(is_pv_graded=False, pv_grading_details=None, instance=None):
+        """
+        Creates/Updates/Deletes PV Grading Details depending on the parameters supplied
+        :param is_pv_graded: If the good is not PV Graded, ensure there are no PV Grading Details
+        :param pv_grading_details: The PV Grading Details to be created or updated
+        :param instance: If supplied, it implies the instance of PV Grading Details to be updated or deleted
+        :return:
+        """
+        if not is_pv_graded and instance:
+            return GoodSerializer._delete_pv_grading_details(instance)
+
+        if pv_grading_details:
+            if instance:
+                return GoodSerializer._update_pv_grading_details(pv_grading_details, instance)
+
+            return GoodSerializer._create_pv_grading_details(pv_grading_details)
+
+        return None
+
+    @staticmethod
+    def _create_pv_grading_details(pv_grading_details):
+        return PvGradingDetailsSerializer.create(PvGradingDetailsSerializer(), validated_data=pv_grading_details)
+
+    @staticmethod
+    def _update_pv_grading_details(pv_grading_details, instance):
+        return PvGradingDetailsSerializer.update(
+            PvGradingDetailsSerializer(), validated_data=pv_grading_details, instance=instance,
+        )
+
+    @staticmethod
+    def _delete_pv_grading_details(instance):
+        instance.delete()
+        return None
 
 
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):
@@ -158,7 +272,10 @@ class GoodMissingDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Good
-        fields = ("id", "missing_document_reason")
+        fields = (
+            "id",
+            "missing_document_reason",
+        )
 
 
 class GoodDocumentCreateSerializer(serializers.ModelSerializer):
@@ -235,7 +352,7 @@ class GoodWithFlagsSerializer(GoodSerializer):
 
 
 class ClcControlGoodSerializer(serializers.ModelSerializer):
-    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
+    control_code = ControlListEntryField(required=False, allow_blank=True, allow_null=True, write_only=True)
     is_good_controlled = serializers.ChoiceField(
         choices=GoodControlled.choices,
         allow_null=False,
@@ -259,35 +376,11 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(ClcControlGoodSerializer, self).__init__(*args, **kwargs)
+        initialize_good_or_goods_type_control_code_serializer(self)
 
-        # Only validate the control code if the good is controlled
-        if str_to_bool(self.get_initial().get("is_good_controlled")):
-            self.fields["control_code"] = ControlListEntryField(required=True, write_only=True)
-            self.fields["report_summary"] = serializers.PrimaryKeyRelatedField(
-                queryset=PicklistItem.objects.all(),
-                required=True,
-                error_messages={
-                    "required": strings.Picklists.REQUIRED_REPORT_SUMMARY,
-                    "null": strings.Picklists.REQUIRED_REPORT_SUMMARY,
-                },
-            )
-
-    # pylint: disable = W0221
     def update(self, instance, validated_data):
-        # Update the good's details
-        instance.comment = validated_data.get("comment")
-        if validated_data["report_summary"]:
-            instance.report_summary = validated_data.get("report_summary").text
-        else:
-            instance.report_summary = ""
         instance.is_good_controlled = validated_data.get("is_good_controlled")
-        if instance.is_good_controlled == "yes":
-            instance.control_code = validated_data.get("control_code")
-        else:
-            instance.control_code = ""
+        instance = update_good_or_goods_type_control_code_details(instance, validated_data)
         instance.status = GoodStatus.VERIFIED
-        instance.flags.clear()
-
         instance.save()
-
         return instance

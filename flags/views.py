@@ -19,7 +19,7 @@ from flags.serializers import FlagSerializer, FlagAssignmentSerializer
 from goods.models import Good
 from lite_content.lite_api import strings
 from parties.models import Party
-from queries.control_list_classifications.models import ControlListClassificationQuery
+from queries.goods_query.models import GoodsQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.countries.models import Country
 
@@ -161,11 +161,7 @@ class AssignFlags(APIView):
         if isinstance(obj, Good):
             cases = []
 
-            cases.extend(
-                Case.objects.filter(
-                    id__in=ControlListClassificationQuery.objects.filter(good=obj).values_list("id", flat=True)
-                )
-            )
+            cases.extend(Case.objects.filter(id__in=GoodsQuery.objects.filter(good=obj).values_list("id", flat=True)))
 
             cases.extend(
                 Case.objects.filter(id__in=GoodOnApplication.objects.filter(good=obj).values_list("id", flat=True))

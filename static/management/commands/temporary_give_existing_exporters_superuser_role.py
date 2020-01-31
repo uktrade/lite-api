@@ -8,12 +8,12 @@ from users.models import UserOrganisationRelationship, Role
 
 class Command(SeedCommand):
     """
-    pipenv run ./manage.py seedpermissions
+    pipenv run ./manage.py temporary_give_existing_exporters_superuser_role
     """
 
-    help = "Seeds permissions"
-    info = "Seeding permissions"
-    success = "Successfully seeded permissions"
+    help = "Seeds exporter users the super user role (temporary)"
+    info = "Seeding super user role to exporter users (temporary)"
+    success = "Successfully seeded super user role to exporter users (temporary)"
     seed_command = "temporary_give_existing_exporters_superuser_role"
 
     @transaction.atomic

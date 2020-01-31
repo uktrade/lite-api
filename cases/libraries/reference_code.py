@@ -2,6 +2,28 @@ from datetime import datetime
 
 SLASH = "/"
 
+# Applications
+APPLICATION_PREFIX = "GB"
+
+STANDARD = "S"
+OPEN = "O"
+
+INDIVIDUAL = "I"
+
+EXPORT = "E"
+TRADE_CONTROL = "C"
+
+PERMANENT = "P"
+TEMPORARY = "T"
+
+# Queries
+GOODS_QUERY_PREFIX = "GQY"
+END_USER_ADVISORY_QUERY_PREFIX = "EUA"
+HMRC_QUERY_PREFIX = "CRE"
+
+# MOD Clearances
+EXHIBITION_CLEARANCE_PREFIX = "EXHC"
+
 
 def generate_reference_code(case):
     """
@@ -31,26 +53,28 @@ def generate_reference_code(case):
 
     if case.type == CaseTypeEnum.APPLICATION:
         # GB
-        reference_code += "GB"
+        reference_code += APPLICATION_PREFIX
 
         # Application type
         if hasattr(case, "application_type"):
             reference_code += case.application_type[0]
 
         # General or individual
-        reference_code += "I"
+        reference_code += INDIVIDUAL
 
         # Export, transhipment and trade control
         if case.application_sites.count():
-            reference_code += "E" + SLASH
+            reference_code += EXPORT + SLASH
         elif case.external_application_sites.count():
-            reference_code += "C" + SLASH
-    elif case.type == CaseTypeEnum.CLC_QUERY:
-        reference_code += "GQY" + SLASH
+            reference_code += TRADE_CONTROL + SLASH
+    elif case.type == CaseTypeEnum.GOODS_QUERY:
+        reference_code += GOODS_QUERY_PREFIX + SLASH
     elif case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
-        reference_code += "EUA" + SLASH
+        reference_code += END_USER_ADVISORY_QUERY_PREFIX + SLASH
     elif case.type == CaseTypeEnum.HMRC_QUERY:
-        reference_code += "CRE" + SLASH
+        reference_code += HMRC_QUERY_PREFIX + SLASH
+    elif case.type == CaseTypeEnum.EXHIBITION_CLEARANCE:
+        reference_code += EXHIBITION_CLEARANCE_PREFIX + SLASH
 
     # Year
     reference_code += str(datetime.now().year) + SLASH

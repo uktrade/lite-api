@@ -229,7 +229,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(application.ultimate_end_users.count(), 0)
 
     @parameterized.expand(get_case_statuses(read_only=True))
-    def test_delete_third_party_when_application_read_only_failure(self, read_only_status):
+    def test_delete_ultimate_end_user_when_application_read_only_failure(self, read_only_status):
         application = self.create_standard_application_with_incorporated_good(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
@@ -243,3 +243,74 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(application.ultimate_end_users.count(), 1)
+
+    def test_ultimate_end_user_validate_only_success(self):
+        """
+        Given a standard draft has been created
+        When there is an attempt to validate an ultimate end user's data
+        Then 200 OK and ultimate end user is not created
+        """
+        ultimate_end_user = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "role": "agent",
+            "website": "https://www.gov.uk",
+            "validate_only": True,
+        }
+
+        original_party_count = self.draft.ultimate_end_users.count()
+        self.draft.refresh_from_db()
+
+        response = self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(original_party_count, self.draft.ultimate_end_users.count())
+
+    def test_ultimate_end_user_validate_only_failure(self):
+        """
+        Given a standard draft has been created
+        When there is an attempt to validate a ultimate_end_user's data that is invalid (no name data)
+        Then 400 Bad Request and the ultimate_end_user is not created
+        """
+        ultimate_end_user = {
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": True,
+        }
+
+        original_party_count = self.draft.ultimate_end_users.count()
+        self.draft.refresh_from_db()
+
+        response = self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(original_party_count, self.draft.ultimate_end_users.count())
+        self.assertEqual(response.json(), {"errors": {"name": [Parties.REQUIRED_FIELD]}})
+
+    def test_ultimate_end_user_copy_of_success(self):
+        ultimate_end_user = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": False,
+            "copy_of": self.draft.end_user.id,
+        }
+
+        # Delete existing ultimate end user to enable easy assertion of copied ultimate end user
+        delete_url = reverse(
+            "applications:remove_ultimate_end_user",
+            kwargs={"pk": self.draft.id, "ueu_pk": self.draft.ultimate_end_users.first().id},
+        )
+        self.client.delete(delete_url, **self.exporter_headers)
+
+        response = self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.draft.end_user.id, self.draft.ultimate_end_users.first().copy_of.id)
+        self.assertEqual(response.json()["ultimate_end_user"]["copy_of"], str(ultimate_end_user["copy_of"]))

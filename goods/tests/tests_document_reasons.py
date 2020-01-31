@@ -11,7 +11,7 @@ from test_helpers.clients import DataTestClient
 class GoodDocumentMissingReasonsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.good = self.create_controlled_good("a good", self.organisation)
+        self.good = self.create_good("a good", self.organisation)
         self.url = reverse("goods:good_document_sensitivity", kwargs={"pk": self.good.id})
 
     def test_has_document_to_upload_yes_success(self):

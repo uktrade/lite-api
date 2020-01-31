@@ -63,35 +63,59 @@ class ThirdPartiesOnDraft(DataTestClient):
         ]
 
         for count, third_party in enumerate(parties, 1):
-            self.client.post(self.url, third_party, **self.exporter_headers)
+            response = self.client.post(self.url, third_party, **self.exporter_headers)
+            response_party = response.json()["third_party"]
+
             self.assertEqual(self.draft.third_parties.count(), count)
+            self.assertEqual(third_party["name"], response_party["name"])
+            self.assertEqual(third_party["address"], response_party["address"])
+            self.assertEqual(third_party["country"], response_party["country"]["id"])
+            self.assertEqual(third_party["sub_type"], response_party["sub_type"]["key"])
+            self.assertEqual(third_party["role"], response_party["role"]["key"])
+            self.assertEqual(third_party["website"], response_party["website"])
 
         # Drafts do not create audit
         self.assertEqual(audit_qs.count(), 0)
         self.assertEqual(self.draft.third_parties.count(), len(parties))
 
-    def test_unsuccessful_add_third_party(self):
+    @parameterized.expand(
+        [
+            [
+                {},
+                {
+                    "errors": {
+                        "name": [Parties.REQUIRED_FIELD],
+                        "address": [Parties.REQUIRED_FIELD],
+                        "country": [Parties.REQUIRED_FIELD],
+                        "sub_type": [Parties.NULL_TYPE],
+                        "role": [Parties.ThirdParty.NULL_ROLE],
+                    }
+                },
+            ],
+            [
+                {
+                    "name": "UK Government",
+                    "address": "Westminster, London SW1A 0AA",
+                    "country": "GB",
+                    "website": "https://www.gov.uk",
+                    "type": PartyType.THIRD_PARTY,
+                },
+                {"errors": {"sub_type": [Parties.NULL_TYPE], "role": [Parties.ThirdParty.NULL_ROLE]}},
+            ],
+        ]
+    )
+    def test_unsuccessful_add_third_party(self, data, errors):
         """
         Given a standard draft has been created
         And the draft does not yet contain a third party
         When attempting to add an invalid third party
         Then the third party is not added to the draft
         """
-        data = {
-            "name": "UK Government",
-            "address": "Westminster, London SW1A 0AA",
-            "country": "GB",
-            "website": "https://www.gov.uk",
-            "type": PartyType.THIRD_PARTY,
-        }
-
         response = self.client.post(self.url, data, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response_data, {"errors": {"sub_type": [Parties.NULL_TYPE], "role": [Parties.ThirdParty.NULL_ROLE]}}
-        )
+        self.assertEqual(response_data, errors)
 
     def test_get_third_parties(self):
         third_party = self.draft.third_parties.all().first().party
@@ -257,10 +281,93 @@ class ThirdPartiesOnDraft(DataTestClient):
         application.save()
         url = reverse(
             "applications:remove_third_party",
-            kwargs={"pk": application.id, "party_pk": application.third_parties.first().party.id,},
+            kwargs={"pk": application.id, "party_pk": application.third_parties.first().party.id},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(application.third_parties.count(), 1)
+
+    def test_third_party_validate_only_success(self):
+        """
+        Given a standard draft has been created
+        When there is an attempt to validate a third party's data
+        Then 200 OK and third party is not created
+        """
+        third_party = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "role": "agent",
+            "website": "https://www.gov.uk",
+            "validate_only": True,
+            "type": PartyType.THIRD_PARTY,
+        }
+
+        original_party_count = self.draft.third_parties.count()
+        self.draft.refresh_from_db()
+
+        response = self.client.post(self.url, third_party, **self.exporter_headers)
+        response_data = response.json()["third_party"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(original_party_count, self.draft.third_parties.count())
+        self.assertEqual(response_data["name"], third_party["name"])
+        self.assertEqual(response_data["address"], third_party["address"])
+        self.assertEqual(response_data["country"], third_party["country"])
+        self.assertEqual(response_data["sub_type"], third_party["sub_type"])
+        self.assertEqual(response_data["website"], third_party["website"])
+        self.assertEqual(response_data["role"], third_party["role"])
+
+    def test_third_party_validate_only_failure(self):
+        """
+        Given a standard draft has been created
+        When there is an attempt to validate a third party's data that is invalid (no role data)
+        Then 400 Bad Request and third party is not created
+        """
+        third_party = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": True,
+            "type": PartyType.THIRD_PARTY,
+        }
+
+        original_party_count = self.draft.third_parties.count()
+        self.draft.refresh_from_db()
+
+        response = self.client.post(self.url, third_party, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(original_party_count, self.draft.third_parties.count())
+        self.assertEqual(response.json(), {"errors": {"role": [Parties.ThirdParty.NULL_ROLE]}})
+
+    def test_third_party_copy_of_success(self):
+        third_party = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "government",
+            "website": "https://www.gov.uk",
+            "validate_only": False,
+            "role": "agent",
+            "type": PartyType.THIRD_PARTY,
+            "copy_of": self.draft.end_user.id,
+        }
+
+        # Delete existing third party to enable easy assertion of copied third party
+        delete_url = reverse(
+            "applications:remove_third_party",
+            kwargs={"pk": self.draft.id, "tp_pk": self.draft.third_parties.first().id},
+        )
+        self.client.delete(delete_url, **self.exporter_headers)
+
+        response = self.client.post(self.url, third_party, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.draft.end_user.id, self.draft.third_parties.first().copy_of.id)
+        self.assertEqual(response.json()["third_party"]["copy_of"], str(third_party["copy_of"]))

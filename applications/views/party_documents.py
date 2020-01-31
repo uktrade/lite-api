@@ -29,7 +29,9 @@ class EndUserDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application):
         try:
@@ -41,7 +43,9 @@ class EndUserDocumentView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -54,7 +58,9 @@ class EndUserDocumentView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         try:
@@ -72,7 +78,9 @@ class UltimateEndUserDocumentsView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
         party = PartyOnApplication.objects.get(application=application, party__pk=party_pk).party
@@ -80,7 +88,9 @@ class UltimateEndUserDocumentsView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, party_pk):
@@ -89,7 +99,9 @@ class UltimateEndUserDocumentsView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
         party = PartyOnApplication.objects.get(application=application, party__pk=party_pk).party
@@ -103,7 +115,9 @@ class ConsigneeDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application):
         party = PartyOnApplication.objects.get(application=application, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
@@ -111,7 +125,9 @@ class ConsigneeDocumentView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -120,7 +136,9 @@ class ConsigneeDocumentView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         party = PartyOnApplication.objects.get(application=application, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
@@ -134,7 +152,9 @@ class ThirdPartyDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
         party = PartyOnApplication.objects.get(application=application, party__pk=party_pk, deleted_at__isnull=True).party
@@ -142,7 +162,9 @@ class ThirdPartyDocumentView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, party_pk):
@@ -151,7 +173,9 @@ class ThirdPartyDocumentView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
         party = PartyOnApplication.objects.get(application=application, party__pk=party_pk, deleted_at__isnull=True).party

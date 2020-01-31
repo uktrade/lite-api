@@ -149,6 +149,9 @@ class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
 
 
+class ExhibitionClearanceApplication(BaseApplication):
+    pass
+
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
     reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
@@ -189,7 +192,7 @@ class ExternalLocationOnApplication(models.Model):
 class GoodOnApplication(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
-    application = models.ForeignKey(StandardApplication, related_name="goods", on_delete=models.CASCADE)
+    application = models.ForeignKey(BaseApplication, related_name="goods", on_delete=models.CASCADE)
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, default=Units.GRM, max_length=50)
     value = models.DecimalField(max_digits=256, decimal_places=2)
