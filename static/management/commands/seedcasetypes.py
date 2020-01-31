@@ -4,8 +4,6 @@ from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from static.management.SeedCommand import SeedCommand
 
-CASE_TYPES_FILE = "lite_content/lite_api/case_types.csv"
-
 
 class Command(SeedCommand):
     """
