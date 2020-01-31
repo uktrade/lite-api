@@ -25,6 +25,5 @@ class Command(SeedCommand):
             item["id"] = item.pop("key")
             item["name"] = item.pop("value")
 
-        print(data)
         self.update_or_create(CaseType, data)
         self.delete_unused_objects(CaseType, data)
