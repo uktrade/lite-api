@@ -11,6 +11,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="hmrcquery", name="is_goods_departed", field=models.BooleanField(default=False),
+            model_name="hmrcquery", name="have_goods_departed", field=models.BooleanField(default=False),
         ),
     ]

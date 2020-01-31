@@ -10,6 +10,6 @@ def hmrc_query_save(instance: HmrcQuery, **kwargs):
     Every time a HMRC Query is saved, run these automations
     """
     # If the goods are set to already departed, clear all existing sites and locations
-    if instance.is_goods_departed:
+    if instance.have_goods_departed:
         instance.application_sites.all().delete()
         instance.external_application_sites.all().delete()

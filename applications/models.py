@@ -67,7 +67,7 @@ class HmrcQuery(BaseApplication):
     )
     third_parties = models.ManyToManyField(ThirdParty, related_name="hmrc_query_third_parties")
     reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
-    is_goods_departed = models.BooleanField(default=False)
+    have_goods_departed = models.BooleanField(default=False)
 
     objects = HmrcQueryManager()
 

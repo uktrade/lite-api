@@ -29,14 +29,14 @@ class HmrcQueryTests(DataTestClient):
 
     def test_submit_hmrc_query_with_goods_departed_success(self):
         SiteOnApplication.objects.get(application=self.hmrc_query).delete()
-        self.hmrc_query.is_goods_departed = True
+        self.hmrc_query.have_goods_departed = True
         self.hmrc_query.save()
 
         response = self.client.put(self.url, **self.hmrc_exporter_headers)
         response_data = response.json()["application"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["is_goods_departed"], True)
+        self.assertEqual(response_data["have_goods_departed"], True)
 
     def test_submit_hmrc_query_with_invalid_id_failure(self):
         draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
@@ -102,12 +102,12 @@ class HmrcQueryTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_setting_is_goods_departed_success(self):
+    def test_setting_have_goods_departed_success(self):
         """
-        Ensure that when setting is_goods_departed to True
+        Ensure that when setting have_goods_departed to True
         that it deletes all existing sites and locations on that application
         """
-        data = {"is_goods_departed": True}
+        data = {"have_goods_departed": True}
 
         response = self.client.put(
             reverse("applications:application", kwargs={"pk": self.hmrc_query.id}), data, **self.hmrc_exporter_headers
@@ -115,16 +115,16 @@ class HmrcQueryTests(DataTestClient):
         self.hmrc_query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(self.hmrc_query.is_goods_departed)
+        self.assertTrue(self.hmrc_query.have_goods_departed)
         self.assertEqual(SiteOnApplication.objects.filter(application=self.hmrc_query).count(), 0)
         self.assertEqual(ExternalLocationOnApplication.objects.filter(application=self.hmrc_query).count(), 0)
 
-    def test_setting_is_goods_departed_to_false_success(self):
+    def test_setting_have_goods_departed_to_false_success(self):
         """
-        Ensure that when setting is_goods_departed to False that it doesn't
+        Ensure that when setting have_goods_departed to False that it doesn't
         delete all existing sites and locations on that application
         """
-        data = {"is_goods_departed": False}
+        data = {"have_goods_departed": False}
 
         response = self.client.put(
             reverse("applications:application", kwargs={"pk": self.hmrc_query.id}), data, **self.hmrc_exporter_headers
@@ -132,5 +132,5 @@ class HmrcQueryTests(DataTestClient):
         self.hmrc_query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(self.hmrc_query.is_goods_departed)
+        self.assertFalse(self.hmrc_query.have_goods_departed)
         self.assertEqual(SiteOnApplication.objects.filter(application=self.hmrc_query).count(), 1)
