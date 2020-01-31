@@ -421,12 +421,12 @@ class PvGradingQueryRespondTests(DataTestClient):
 
     def test_respond_to_pv_grading_query_success(self):
         response = self.client.put(self.url, self.data, **self.gov_headers)
-        self.query.refresh_from_db()
+        response_data = response.json()["pv_grading_query"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.good.pv_grading_details.prefix, self.data["prefix"])
-        self.assertEqual(self.query.good.pv_grading_details.grading, self.data["grading"])
-        self.assertEqual(self.query.good.pv_grading_details.suffix, self.data["suffix"])
+        self.assertEqual(response_data["prefix"], self.data["prefix"])
+        self.assertEqual(response_data["grading"]["key"], self.data["grading"])
+        self.assertEqual(response_data["suffix"], self.data["suffix"])
 
         case = self.query.get_case()
         # Check that an audit item has been added
@@ -438,15 +438,22 @@ class PvGradingQueryRespondTests(DataTestClient):
     def test_respond_to_pv_grading_query_no_grading_failure(self):
         self.data.pop("grading")
         response = self.client.put(self.url, self.data, **self.gov_headers)
+        errors = response.json()["errors"]
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors, {"grading": [strings.PvGrading.NO_GRADING]})
 
     def test_respond_to_pv_grading_query_success_validate_only(self):
         self.data["validate_only"] = True
         response = self.client.put(self.url, self.data, **self.gov_headers)
         self.query.refresh_from_db()
 
+        response_data = response.json()["pv_grading_query"]
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["prefix"], self.data["prefix"])
+        self.assertEqual(response_data["grading"]["key"], self.data["grading"])
+        self.assertEqual(response_data["suffix"], self.data["suffix"])
         self.assertEqual(self.query.good.pv_grading_details, None)
 
         case = self.query.get_case()
@@ -464,3 +471,4 @@ class PvGradingQueryRespondTests(DataTestClient):
 
         self.assertEqual(Audit.objects.all().count(), 0)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR])

@@ -52,7 +52,7 @@ class PVGradingResponseSerializer(serializers.ModelSerializer):
         allow_null=False,
         allow_blank=False,
         required=True,
-        error_messages={"invalid_choice": strings.PvGrading.NO_GRADING},
+        error_messages={"invalid_choice": strings.PvGrading.NO_GRADING, "required": strings.PvGrading.NO_GRADING},
     )
     prefix = serializers.CharField(allow_blank=True, allow_null=True, max_length=30)
     suffix = serializers.CharField(allow_blank=True, allow_null=True, max_length=30)
