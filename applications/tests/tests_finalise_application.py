@@ -3,6 +3,7 @@ from rest_framework import status
 
 from applications.enums import LicenceDuration
 from applications.libraries.licence import get_default_duration
+from cases.models import CaseAssignment
 from conf.constants import GovPermissions
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -45,6 +46,33 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
         self.assertEqual(self.standard_application.licence_duration, data["licence_duration"])
+
+    def test_gov_user_finalise_application_removes_case_from_queues_and_users_from_case_success(self):
+        """
+        When a case is set to the finalised status, its assigned users, case officer and queues should be removed
+        """
+        self.standard_application.case_officer = self.gov_user
+        self.standard_application.save()
+        self.standard_application.queues.set([self.queue])
+        case_assignment = CaseAssignment.objects.create(case=self.standard_application, queue=self.queue)
+        case_assignment.users.set([self.gov_user])
+
+        self.gov_user.role = self.role
+        self.gov_user.role.permissions.set(
+            [GovPermissions.MANAGE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
+        )
+        self.gov_user.save()
+
+        data = {"licence_duration": 13}
+        response = self.client.put(self.url, data, **self.gov_headers)
+
+        self.standard_application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
+        self.assertEqual(self.standard_application.licence_duration, data["licence_duration"])
+        self.assertEqual(self.standard_application.queues.count(), 0)
+        self.assertEqual(self.standard_application.case_officer, None)
+        self.assertEqual(CaseAssignment.objects.filter(case=self.standard_application).count(), 0)
 
     def test_gov_use_set_duration_permission_denied(self):
         self.gov_user.role = self.role
