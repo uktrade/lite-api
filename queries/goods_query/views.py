@@ -111,7 +111,7 @@ class GoodQueryCLCResponse(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = json.loads(request.body)
+        data = request.data
 
         clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)
 
@@ -182,7 +182,7 @@ class GoodQueryPVGradingResponse(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = json.loads(request.body)
+        data = request.data
 
         pv_grading_good_serializer = PVGradingResponseSerializer(data=data)
 

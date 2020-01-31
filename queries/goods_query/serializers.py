@@ -53,8 +53,8 @@ class PVGradingResponseSerializer(serializers.ModelSerializer):
         required=True,
         error_messages={"invalid_choice": "Select a grading"},
     )
-    prefix = serializers.CharField(allow_blank=True, allow_null=True)
-    suffix = serializers.CharField(allow_blank=True, allow_null=True)
+    prefix = serializers.CharField(allow_blank=True, allow_null=True, max_length=30)
+    suffix = serializers.CharField(allow_blank=True, allow_null=True, max_length=30)
 
     class Meta:
         model = PvGradingDetails
@@ -82,13 +82,9 @@ class ExporterReadGoodQuerySerializer(serializers.ModelSerializer):
         )
 
     def get_exporter_user_notification_count(self, instance):
-        if self.context.get("exporter_user"):
-            return (
-                get_exporter_user_notification_total_count(
-                    exporter_user=self.context.get("exporter_user"), case=instance
-                )
-                if self.context.get("total_count")
-                else get_exporter_user_notification_individual_count(
-                    exporter_user=self.context.get("exporter_user"), case=instance
-                )
-            )
+        exporter_user = self.context.get("exporter_user")
+        if exporter_user:
+            if self.context.get("total_count"):
+                return get_exporter_user_notification_total_count(exporter_user=exporter_user, case=instance)
+            else:
+                return get_exporter_user_notification_individual_count(exporter_user=exporter_user, case=instance)

@@ -17,10 +17,10 @@ class PvGradingDetails(models.Model):
     grading = models.CharField(choices=PvGrading.choices, default=None, blank=True, null=True, max_length=30)
     # custom_grading is required if grading is not provided
     custom_grading = models.TextField(blank=True, null=True, max_length=100)
-    prefix = models.TextField(blank=True, null=True, max_length=30)
-    suffix = models.TextField(blank=True, null=True, max_length=30)
-    issuing_authority = models.TextField(blank=True, null=True, max_length=100)
-    reference = models.TextField(blank=True, null=True, max_length=100)
+    prefix = models.CharField(blank=True, null=True, max_length=30)
+    suffix = models.CharField(blank=True, null=True, max_length=30)
+    issuing_authority = models.CharField(blank=True, null=True, max_length=100)
+    reference = models.CharField(blank=True, null=True, max_length=100)
     date_of_issue = models.DateField(blank=True, null=True)
 
 
