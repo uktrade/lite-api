@@ -452,7 +452,7 @@ class PvGradingQueryRespondTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["prefix"], self.data["prefix"])
-        self.assertEqual(response_data["grading"]["key"], self.data["grading"])
+        self.assertEqual(response_data["grading"], self.data["grading"])
         self.assertEqual(response_data["suffix"], self.data["suffix"])
         self.assertEqual(self.query.good.pv_grading_details, None)
 
