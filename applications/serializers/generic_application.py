@@ -110,7 +110,7 @@ class GenericApplicationViewSerializer(GenericApplicationListSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations", "case_officer", "parties")
+        fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations", "case_officer")
 
     def get_exporter_user_notification_count(self, instance):
         """
