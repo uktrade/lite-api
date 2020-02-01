@@ -54,7 +54,7 @@ class ApplicationPartyMixin:
             if not party.role:
                 raise ApplicationException({"errors": {"required": Parties.ThirdParty.NULL_ROLE}})
 
-        PartyOnApplication.objects.create(application=self, party=party)
+        poa = PartyOnApplication.objects.create(application=self, party=party)
 
         return party, old_poa.party if old_poa else None
 

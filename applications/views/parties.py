@@ -11,6 +11,7 @@ from conf.decorators import (
     authorised_users,
     allowed_application_types,
 )
+from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.serializers import PartySerializer
@@ -48,6 +49,9 @@ class ApplicationPartyView(APIView):
         serializer = PartySerializer(data=data)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        if str_to_bool(data.get("validate_only", False)):
+            return JsonResponse(data={data["type"]: serializer.initial_data}, status=status.HTTP_200_OK)
 
         # Save party
         serializer.save()

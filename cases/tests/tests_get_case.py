@@ -46,7 +46,10 @@ class CaseGetTests(DataTestClient):
         )
 
     def test_case_returns_expected_goods_flags(self):
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        case = self.submit_application(self.standard_application)
+        url = reverse("cases:case", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

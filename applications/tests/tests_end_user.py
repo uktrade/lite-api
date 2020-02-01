@@ -352,13 +352,14 @@ class EndUserOnDraftTests(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": True,
+            "type": PartyType.END_USER
         }
 
         response = self.client.post(self.url, end_user, **self.exporter_headers)
         response_data = response.json()["end_user"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertNotEqual(self.draft.end_user.name, end_user["name"])
+        self.assertNotEqual(self.draft.end_user.party.name, end_user["name"])
         self.assertEqual(response_data["name"], end_user["name"])
         self.assertEqual(response_data["address"], end_user["address"])
         self.assertEqual(response_data["country"], end_user["country"])
@@ -377,6 +378,7 @@ class EndUserOnDraftTests(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": True,
+            "type": PartyType.END_USER
         }
 
         response = self.client.post(self.url, end_user, **self.exporter_headers)
@@ -392,10 +394,10 @@ class EndUserOnDraftTests(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": False,
-            "copy_of": self.draft.end_user.id,
+            "copy_of": self.draft.end_user.party.id,
+            "type": PartyType.END_USER,
         }
 
         response = self.client.post(self.url, end_user, **self.exporter_headers)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["end_user"]["copy_of"], str(end_user["copy_of"]))

@@ -55,16 +55,8 @@ class PartySerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(PartySerializer, self).__init__(*args, **kwargs)
-        #
-        #
-        # print('1-------------')
-        # print(args)
-        # print(kwargs)
-        # print(kwargs.get("data"))
-        # Pre-validation: update required parameter on serializer fields at PartyType level
         if "data" in kwargs and "type" in kwargs["data"]:
             party_type = kwargs["data"]["type"]
-
             if party_type == PartyType.THIRD_PARTY:
                 for field, serializer_instance in self.fields.items():
                     if field == "role":

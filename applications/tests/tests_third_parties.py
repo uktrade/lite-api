@@ -88,7 +88,7 @@ class ThirdPartiesOnDraft(DataTestClient):
                         "address": [Parties.REQUIRED_FIELD],
                         "country": [Parties.REQUIRED_FIELD],
                         "sub_type": [Parties.NULL_TYPE],
-                        "role": [Parties.ThirdParty.NULL_ROLE],
+                        "type": [Parties.REQUIRED_FIELD],
                     }
                 },
             ],
@@ -356,18 +356,17 @@ class ThirdPartiesOnDraft(DataTestClient):
             "validate_only": False,
             "role": "agent",
             "type": PartyType.THIRD_PARTY,
-            "copy_of": self.draft.end_user.id,
+            "copy_of": self.draft.end_user.party.id,
         }
 
         # Delete existing third party to enable easy assertion of copied third party
         delete_url = reverse(
             "applications:remove_third_party",
-            kwargs={"pk": self.draft.id, "tp_pk": self.draft.third_parties.first().id},
+            kwargs={"pk": self.draft.id, "party_pk": self.draft.third_parties.first().party.id},
         )
         self.client.delete(delete_url, **self.exporter_headers)
 
         response = self.client.post(self.url, third_party, **self.exporter_headers)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.draft.end_user.id, self.draft.third_parties.first().copy_of.id)
+        self.assertEqual(self.draft.end_user.party.id, self.draft.third_parties.first().party.copy_of.id)
         self.assertEqual(response.json()["third_party"]["copy_of"], str(third_party["copy_of"]))

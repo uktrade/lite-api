@@ -255,13 +255,14 @@ class ConsigneeOnDraftTests(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": True,
+            "type": PartyType.CONSIGNEE,
         }
 
         response = self.client.post(self.url, consignee, **self.exporter_headers)
         response_data = response.json()["consignee"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertNotEqual(self.draft.end_user.name, consignee["name"])
+        self.assertNotEqual(self.draft.end_user.party.name, consignee["name"])
         self.assertEqual(response_data["name"], consignee["name"])
         self.assertEqual(response_data["address"], consignee["address"])
         self.assertEqual(response_data["country"], consignee["country"])
@@ -280,6 +281,7 @@ class ConsigneeOnDraftTests(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": True,
+            "type": PartyType.CONSIGNEE,
         }
 
         response = self.client.post(self.url, end_user, **self.exporter_headers)
@@ -295,7 +297,8 @@ class ConsigneeOnDraftTests(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": False,
-            "copy_of": self.draft.end_user.id,
+            "copy_of": self.draft.end_user.party.id,
+            "type": PartyType.CONSIGNEE,
         }
 
         response = self.client.post(self.url, consignee, **self.exporter_headers)

@@ -36,13 +36,14 @@ class GetExistingPartiesTests(DataTestClient):
     def test_get_existing_parties_only_returns_parties_from_own_organisation_success(self):
         second_organisation, _ = self.create_organisation_with_exporter_user(name="Second organisation")
 
-        party = EndUser.objects.create(
+        party = Party.objects.create(
             name="Mr Original",
             address="123 abc st.",
             website="https://www.gov.py",
             country=self.country,
             sub_type="government",
             organisation=second_organisation,
+            type=PartyType.END_USER
         )
 
         response_data = self.client.get(self.url, **self.exporter_headers).data["results"]
@@ -86,13 +87,14 @@ class GetExistingPartiesTests(DataTestClient):
         self.assertEqual(results[0]["country"]["id"], self.country.id)
 
     def test_get_existing_parties_contains_no_duplicates_without_filters_success(self):
-        original_party = EndUser.objects.create(
+        original_party = Party.objects.create(
             name="Mr Original",
             address="123 abc st.",
             website="https://www.gov.py",
             country=self.country,
             sub_type="government",
             organisation=self.organisation,
+            type=PartyType.END_USER,
         )
 
         parties = [
@@ -101,12 +103,13 @@ class GetExistingPartiesTests(DataTestClient):
         ]
 
         for party in parties:
-            EndUser.objects.create(
+            Party.objects.create(
                 **party,
                 country=self.country,
                 sub_type="government",
                 organisation=self.organisation,
                 copy_of_id=original_party.id,
+                type=PartyType.END_USER
             )
 
         response_data = self.client.get(self.url, **self.exporter_headers).data["results"]
@@ -120,22 +123,23 @@ class GetExistingPartiesTests(DataTestClient):
 
         self.assertIn(str(expected_copy_id), response_data_ids)
         self.assertIn(str(second_expected_copy_id), response_data_ids)
-        self.assertIn(str(self.draft.end_user.id), response_data_ids)
+        self.assertIn(str(self.draft.end_user.party.id), response_data_ids)
         self.assertNotIn(str(original_party.id), response_data_ids)
 
     def test_get_existing_parties_contains_no_duplicates_with_filters_success(self):
         params = f"?name=Mr"
 
-        original_party = EndUser.objects.create(
+        original_party = Party.objects.create(
             name="Mr Original",
             address="123 abc st.",
             website="https://www.gov.py",
             country=self.country,
             sub_type="government",
             organisation=self.organisation,
+            type=PartyType.END_USER
         )
 
-        copied_party = EndUser.objects.create(
+        copied_party = Party.objects.create(
             name="Mr Original",
             address="123 abc st.",
             website="https://www.gov.py",
@@ -143,6 +147,7 @@ class GetExistingPartiesTests(DataTestClient):
             sub_type="government",
             organisation=self.organisation,
             copy_of_id=original_party.id,
+            type=PartyType.END_USER
         )
 
         response = self.client.get(self.url + params, **self.exporter_headers)

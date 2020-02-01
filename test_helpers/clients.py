@@ -479,9 +479,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def add_application_and_party_documents(self, application, safe_document):
         # Set the application party documents
-        self.create_document_for_party(application.end_user, safe=safe_document)
-        self.create_document_for_party(application.consignee, safe=safe_document)
-        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+        self.create_document_for_party(application.end_user.party, safe=safe_document)
+        self.create_document_for_party(application.consignee.party, safe=safe_document)
+        self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
         self.create_application_document(application)
 
     def create_standard_application(
@@ -512,15 +512,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
         self.good_on_application.save()
-        end_user = self.create_party("End User", organisation, PartyType.END_USER, application)
-        consignee = self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-        third_party = self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+        self.create_party("End User", organisation, PartyType.END_USER, application)
+        self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
         # Set the application party documents
 
-        self.create_document_for_party(end_user, safe=safe_document)
-        self.create_document_for_party(consignee, safe=safe_document)
-        self.create_document_for_party(third_party, safe=safe_document)
-        self.create_application_document(application)
+        self.add_application_and_party_documents(application, safe_document)
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()
@@ -541,15 +538,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
         application.save()
+        # Add a good to the standard application
+        self.good_on_application = GoodOnApplication(
+            good=self.create_good("a thing", organisation),
+            application=application,
+            quantity=10,
+            unit=Units.NAR,
+            value=500,
+        )
+        self.good_on_application.save()
 
-        end_user = self.create_party("End User", organisation, PartyType.END_USER, application)
-        consignee = self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-        third_party = self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-
-        self.create_document_for_party(end_user, safe=safe_document)
-        self.create_document_for_party(consignee, safe=safe_document)
-        self.create_document_for_party(third_party, safe=safe_document)
-        self.create_application_document(application)
+        self.create_party("End User", organisation, PartyType.END_USER, application)
+        self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
 
         self.add_application_and_party_documents(application, safe_document)
 

@@ -258,6 +258,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
             "role": "agent",
             "website": "https://www.gov.uk",
             "validate_only": True,
+            "type": PartyType.ULTIMATE_END_USER,
         }
 
         original_party_count = self.draft.ultimate_end_users.count()
@@ -280,6 +281,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": True,
+            "type": PartyType.ULTIMATE_END_USER,
         }
 
         original_party_count = self.draft.ultimate_end_users.count()
@@ -299,18 +301,18 @@ class UltimateEndUsersOnDraft(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": False,
-            "copy_of": self.draft.end_user.id,
+            "copy_of": self.draft.end_user.party.id,
+            "type": PartyType.ULTIMATE_END_USER,
         }
 
         # Delete existing ultimate end user to enable easy assertion of copied ultimate end user
         delete_url = reverse(
             "applications:remove_ultimate_end_user",
-            kwargs={"pk": self.draft.id, "ueu_pk": self.draft.ultimate_end_users.first().id},
+            kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
         self.client.delete(delete_url, **self.exporter_headers)
 
         response = self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.draft.end_user.id, self.draft.ultimate_end_users.first().copy_of.id)
+        self.assertEqual(self.draft.end_user.party.id, self.draft.ultimate_end_users.first().party.copy_of.id)
         self.assertEqual(response.json()["ultimate_end_user"]["copy_of"], str(ultimate_end_user["copy_of"]))

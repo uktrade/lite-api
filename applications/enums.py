@@ -24,6 +24,12 @@ class ApplicationType:
         (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),
     ]
 
+    @classmethod
+    def has_parties(cls, application_type):
+        return application_type in [
+            ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE
+        ]
+
 
 class ApplicationExportLicenceOfficialType:
     YES = "yes"

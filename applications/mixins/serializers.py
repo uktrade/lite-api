@@ -25,13 +25,13 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         fields = ('end_user', 'ultimate_end_users', 'third_parties', 'consignee')
 
     def __parties(self, instance, party_type, cache=defaultdict(list)):
+        if not ApplicationType.has_parties(instance.application_type):
+            return
+
         if cache and party_type in cache:
             return cache[party_type]
         else:
             cache.clear()
-
-        if instance.application_type not in [ApplicationType.HMRC_QUERY, ApplicationType.STANDARD_LICENCE]:
-            return
 
         data = PartySerializer(
             [
@@ -49,7 +49,6 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
 
     def get_end_user(self, instance):
         data = self.__parties(instance, PartyType.END_USER)
-
         if not data:
             return
 
