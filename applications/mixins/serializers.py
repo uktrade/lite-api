@@ -38,7 +38,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
                 poa.party for poa in (
                     instance.parties
                     .filter(deleted_at__isnull=True)
-                    .select_related("party__organisation")
+                    .select_related("party", "party__organisation")
                 )
             ], many=True
         ).data
