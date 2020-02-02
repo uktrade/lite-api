@@ -29,7 +29,7 @@ class ApplicationPartyMixin:
     def add_party(self, party):
         old_poa = None
 
-        if PartyOnApplication.objects.filter(party=party).exists():
+        if PartyOnApplication.objects.filter(party=party).exclude(application=self).exists():
             # Party cannot be used in multiple applications
             raise ApplicationException({"error": "Party exists"})
 
@@ -37,17 +37,11 @@ class ApplicationPartyMixin:
             # Rule: Append
             pass
 
-        elif party.type in [PartyType.END_USER, PartyType.CONSIGNEE]:
+        elif party.type in [PartyType.END_USER, PartyType.CONSIGNEE] and getattr(self, party.type, False):
             # Rule: Replace
-            try:
-                old_poa = PartyOnApplication.objects.get(
-                    application=self, party__type=party.type, deleted_at__isnull=True
-                )
-                old_poa.deleted_at = timezone.now()
-                old_poa.save()
-
-            except PartyOnApplication.DoesNotExist:
-                pass
+            old_poa = getattr(self, party.type)
+            old_poa.deleted_at = timezone.now()
+            old_poa.save()
 
         elif party.type == PartyType.THIRD_PARTY:
             # Rule: Append
@@ -56,7 +50,7 @@ class ApplicationPartyMixin:
 
         poa = PartyOnApplication.objects.create(application=self, party=party)
 
-        return party, old_poa.party if old_poa else None
+        return poa.party, old_poa.party if old_poa else None
 
     def delete_party(self, poa):
         poa.deleted_at = timezone.now()
@@ -88,9 +82,8 @@ class ApplicationPartyMixin:
         Backwards compatible
         Standard and HMRC Query applications
         """
-        related_parties = PartyOnApplication.objects.filter(application=self, deleted_at__isnull=True)
         try:
-            return related_parties.get(party__type=PartyType.CONSIGNEE)
+            return self.parties.filter(deleted_at__isnull=True).get(party__type=PartyType.CONSIGNEE)
         except PartyOnApplication.DoesNotExist:
             pass
 
@@ -100,9 +93,8 @@ class ApplicationPartyMixin:
         Backwards compatible
         Standard and HMRC Query applications
         """
-        related_parties = PartyOnApplication.objects.filter(application=self, deleted_at__isnull=True)
         try:
-            return related_parties.get(party__type=PartyType.END_USER)
+            return self.parties.filter(deleted_at__isnull=True).get(party__type=PartyType.END_USER)
         except PartyOnApplication.DoesNotExist:
             pass
 
@@ -112,9 +104,7 @@ class ApplicationPartyMixin:
         Backwards compatible
         Standard and HMRC Query applications
         """
-        return PartyOnApplication.objects.filter(
-            application=self, party__type=PartyType.ULTIMATE_END_USER, deleted_at__isnull=True
-        )
+        return self.parties.filter(deleted_at__isnull=True, party__type=PartyType.ULTIMATE_END_USER)
 
     @property
     def third_parties(self):
@@ -122,9 +112,7 @@ class ApplicationPartyMixin:
         Backwards compatible
         Standard and HMRC Query applications
         """
-        return PartyOnApplication.objects.filter(
-            application=self, party__type=PartyType.THIRD_PARTY, deleted_at__isnull=True
-        )
+        return self.parties.filter(deleted_at__isnull=True, party__type=PartyType.THIRD_PARTY)
 
 
 class BaseApplication(ApplicationPartyMixin, Case):

@@ -35,7 +35,11 @@ class EndUserDocumentView(APIView):
     @authorised_users(ExporterUser)
     def get(self, request, application):
         try:
-            party = PartyOnApplication.objects.get(application=application, party__type=PartyType.END_USER, deleted_at__isnull=True).party
+            party = PartyOnApplication.objects.get(
+                application=application,
+                party__type=PartyType.END_USER,
+                deleted_at__isnull=True
+            ).party
         except PartyOnApplication.DoesNotExist:
             return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
 
@@ -50,7 +54,11 @@ class EndUserDocumentView(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         try:
-            party = PartyOnApplication.objects.get(application=application, party__type=PartyType.END_USER, deleted_at__isnull=True).party
+            party = PartyOnApplication.objects.get(
+                application=application,
+                party__type=PartyType.END_USER,
+                deleted_at__isnull=True
+            ).party
         except PartyOnApplication.DoesNotExist:
             return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
 
@@ -64,7 +72,11 @@ class EndUserDocumentView(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application):
         try:
-            party = PartyOnApplication.objects.get(application=application, party__type=PartyType.END_USER, deleted_at__isnull=True).party
+            party = PartyOnApplication.objects.get(
+                application=application,
+                party__type=PartyType.END_USER,
+                deleted_at__isnull=True
+            ).party
         except PartyOnApplication.DoesNotExist:
             return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
 
@@ -83,7 +95,15 @@ class UltimateEndUserDocumentsView(APIView):
     )
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
-        party = PartyOnApplication.objects.get(application=application, party__pk=party_pk).party
+        try:
+            party = PartyOnApplication.objects.get(
+                application=application,
+                party__type=PartyType.ULTIMATE_END_USER,
+                deleted_at__isnull=True
+            ).party
+        except PartyOnApplication.DoesNotExist:
+            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
+
         return get_party_document(party)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
@@ -94,7 +114,15 @@ class UltimateEndUserDocumentsView(APIView):
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, party_pk):
-        party = PartyOnApplication.objects.get(application=application, party__pk=party_pk).party
+        try:
+            party = PartyOnApplication.objects.get(
+                application=application,
+                party__type=PartyType.ULTIMATE_END_USER,
+                deleted_at__isnull=True
+            ).party
+        except PartyOnApplication.DoesNotExist:
+            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
+
         return upload_party_document(party, request.data, application, request.user)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
@@ -104,7 +132,14 @@ class UltimateEndUserDocumentsView(APIView):
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
-        party = PartyOnApplication.objects.get(application=application, party__pk=party_pk).party
+        try:
+            party = PartyOnApplication.objects.get(
+                application=application,
+                party__type=PartyType.ULTIMATE_END_USER,
+                deleted_at__isnull=True
+            ).party
+        except PartyOnApplication.DoesNotExist:
+            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
         return delete_party_document(party, application, request.user)
 
 
@@ -120,7 +155,12 @@ class ConsigneeDocumentView(APIView):
     )
     @authorised_users(ExporterUser)
     def get(self, request, application):
-        party = PartyOnApplication.objects.get(application=application, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        try:
+            party = PartyOnApplication.objects.get(
+                application=application, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True,
+            ).party
+        except PartyOnApplication.DoesNotExist:
+            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
         return get_party_document(party)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
@@ -131,7 +171,12 @@ class ConsigneeDocumentView(APIView):
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
-        party = PartyOnApplication.objects.get(application=application, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        try:
+            party = PartyOnApplication.objects.get(
+                application=application, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True,
+            ).party
+        except PartyOnApplication.DoesNotExist:
+            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
         return upload_party_document(party, request.data, application, request.user)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
@@ -141,7 +186,12 @@ class ConsigneeDocumentView(APIView):
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application):
-        party = PartyOnApplication.objects.get(application=application, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        try:
+            party = PartyOnApplication.objects.get(
+                application=application, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True,
+            ).party
+        except PartyOnApplication.DoesNotExist:
+            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
         return delete_party_document(party, application, request.user)
 
 
@@ -157,7 +207,12 @@ class ThirdPartyDocumentView(APIView):
     )
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
-        party = PartyOnApplication.objects.get(application=application, party__pk=party_pk, deleted_at__isnull=True).party
+        try:
+            party = PartyOnApplication.objects.get(
+                application=application, party__type=PartyType.THIRD_PARTY, deleted_at__isnull=True,
+            ).party
+        except PartyOnApplication.DoesNotExist:
+            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
         return get_party_document(party)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
@@ -168,7 +223,12 @@ class ThirdPartyDocumentView(APIView):
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, party_pk):
-        party = PartyOnApplication.objects.get(application=application, party__pk=party_pk, deleted_at__isnull=True).party
+        try:
+            party = PartyOnApplication.objects.get(
+                application=application, party__type=PartyType.THIRD_PARTY, deleted_at__isnull=True,
+            ).party
+        except PartyOnApplication.DoesNotExist:
+            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
         return upload_party_document(party, request.data, application, request.user)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
@@ -178,5 +238,10 @@ class ThirdPartyDocumentView(APIView):
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
-        party = PartyOnApplication.objects.get(application=application, party__pk=party_pk, deleted_at__isnull=True).party
+        try:
+            party = PartyOnApplication.objects.get(
+                application=application, party__type=PartyType.THIRD_PARTY, deleted_at__isnull=True,
+            ).party
+        except PartyOnApplication.DoesNotExist:
+            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
         return delete_party_document(party, application, request.user)
