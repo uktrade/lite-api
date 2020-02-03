@@ -6,7 +6,7 @@ from conf import constants
 from conf.constants import ExporterPermissions
 from test_helpers.clients import DataTestClient
 from users.enums import UserType
-from users.models import Role, Permission
+from users.models import Role, Permission, ExporterUser
 
 
 class RolesAndPermissionsTests(DataTestClient):
@@ -297,20 +297,34 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertNotEqual(second_user.get_role(self.organisation), second_user_role)
 
     def test_can_change_another_users_role_to_newly_created_role(self):
-        user_role = Role(name="new role", organisation=self.organisation)
+        user_role = Role(name="new role one", organisation=self.organisation, type=UserType.EXPORTER)
         user_role.permissions.set([constants.ExporterPermissions.ADMINISTER_USERS.name])
         user_role.save()
-        second_user_role = Role(name="new role", organisation=self.organisation)
-        second_user_role.permissions.set([constants.ExporterPermissions.ADMINISTER_USERS.name])
+
+        print("User Role One: ", user_role)
+
+        second_user_role = Role(name="new role two", organisation=self.organisation, type=UserType.EXPORTER)
         second_user_role.save()
+
+        print("Second User Two: ", second_user_role)
+
         self.exporter_user.set_role(self.organisation, user_role)
         second_user = self.create_exporter_user(self.organisation)
 
+        print("Second User: ", second_user)
+
         response = self.client.put(
             reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": second_user.id},),
-            data={"role": str(second_user_role.id)},
+            data={"role": second_user_role.id},
             **self.exporter_headers,
         )
 
+        response_body = response.json()
+        print("Response Body: ", response_body)
+
+        exporter_user_from_db = ExporterUser(organisation=self.organisation, type=UserType.EXPORTER),
+
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(second_user.get_role(self.organisation), user_role)
+
