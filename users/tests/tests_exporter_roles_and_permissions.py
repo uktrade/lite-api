@@ -301,17 +301,11 @@ class RolesAndPermissionsTests(DataTestClient):
         user_role.permissions.set([constants.ExporterPermissions.ADMINISTER_USERS.name])
         user_role.save()
 
-        print("User Role One: ", user_role)
-
         second_user_role = Role(name="new role two", organisation=self.organisation, type=UserType.EXPORTER)
         second_user_role.save()
 
-        print("Second User Two: ", second_user_role)
-
         self.exporter_user.set_role(self.organisation, user_role)
         second_user = self.create_exporter_user(self.organisation)
-
-        print("Second User: ", second_user)
 
         response = self.client.put(
             reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": second_user.id},),
@@ -320,11 +314,12 @@ class RolesAndPermissionsTests(DataTestClient):
         )
 
         response_body = response.json()
-        print("Response Body: ", response_body)
-
-        exporter_user_from_db = ExporterUser(organisation=self.organisation, type=UserType.EXPORTER),
-
+        second_user.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotEqual(second_user.get_role(self.organisation), user_role)
+        self.assertEqual(response_body["user_relationship"]["role"], str(second_user_role.id))
+        self.assertEqual(response_body["user_relationship"]["status"]["key"], "Active")
+        self.assertEqual(response_body["user_relationship"]["status"]["value"], "Active")
+
 
