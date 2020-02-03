@@ -42,6 +42,12 @@ class ApplicationExternalLocations(APIView):
         data = request.data
         location_ids = data.get("external_locations")
 
+        if getattr(application, "have_goods_departed", False):
+            return JsonResponse(
+                data={"errors": {"external_locations": ["Application has have_goods_departed set to True"]}},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         # Validate that there are actually external locations
         if not location_ids:
             return JsonResponse(

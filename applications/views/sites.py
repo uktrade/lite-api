@@ -39,6 +39,12 @@ class ApplicationSites(APIView):
         data = request.data
         site_ids = data.get("sites")
 
+        if getattr(application, "have_goods_departed", False):
+            return JsonResponse(
+                data={"errors": {"sites": ["Application has have_goods_departed set to True"]}},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         # Validate that there are sites
         if not site_ids:
             return JsonResponse(

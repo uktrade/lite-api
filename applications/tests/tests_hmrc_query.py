@@ -134,3 +134,42 @@ class HmrcQueryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(self.hmrc_query.have_goods_departed)
         self.assertEqual(SiteOnApplication.objects.filter(application=self.hmrc_query).count(), 1)
+
+    def test_setting_sites_when_goods_departed_is_set_to_true_failure(self):
+        """
+        Ensure that it is not possible to add sites to the application
+        when have_goods_departed is set to True
+        """
+        SiteOnApplication.objects.get(application=self.hmrc_query).delete()
+        self.hmrc_query.have_goods_departed = True
+        self.hmrc_query.save()
+
+        data = {"sites": [self.hmrc_organisation.primary_site.id]}
+
+        response = self.client.post(
+            reverse("applications:application_sites", kwargs={"pk": self.hmrc_query.id}),
+            data,
+            **self.hmrc_exporter_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_setting_locations_when_goods_departed_is_set_to_true_failure(self):
+        """
+        Ensure that it is not possible to add external locations
+        to the application when have_goods_departed is set to True
+        """
+        SiteOnApplication.objects.get(application=self.hmrc_query).delete()
+        self.hmrc_query.have_goods_departed = True
+        self.hmrc_query.save()
+        external_location = self.create_external_location("storage facility", self.hmrc_organisation)
+
+        data = {"external_locations": [external_location.id]}
+
+        response = self.client.post(
+            reverse("applications:application_external_locations", kwargs={"pk": self.hmrc_query.id}),
+            data,
+            **self.hmrc_exporter_headers,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
