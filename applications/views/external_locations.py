@@ -42,6 +42,7 @@ class ApplicationExternalLocations(APIView):
         data = request.data
         location_ids = data.get("external_locations")
 
+        # Validate that have_goods_departed isn't True
         if getattr(application, "have_goods_departed", False):
             return JsonResponse(
                 data={"errors": {"external_locations": ["Application has have_goods_departed set to True"]}},
