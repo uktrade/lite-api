@@ -45,7 +45,7 @@ class ApplicationExternalLocations(APIView):
         if getattr(application, "have_goods_departed", False):
             return JsonResponse(
                 data={"errors": {"external_locations": ["Application has have_goods_departed set to True"]}},
-                status=status.HTTP_403_FORBIDDEN,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Validate that there are actually external locations

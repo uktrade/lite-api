@@ -152,7 +152,7 @@ class HmrcQueryTests(DataTestClient):
             **self.hmrc_exporter_headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_setting_locations_when_goods_departed_is_set_to_true_failure(self):
         """
@@ -172,4 +172,4 @@ class HmrcQueryTests(DataTestClient):
             **self.hmrc_exporter_headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
