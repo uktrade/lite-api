@@ -17,6 +17,7 @@ from flags.enums import SystemFlags
 from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
 from goods.libraries.get_goods import get_good
+from goods.libraries.get_pv_grading import get_pv_grading_value_from_key
 from goods.models import Good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
@@ -213,7 +214,8 @@ class GoodQueryPVGradingResponse(APIView):
 
     def generate_audit_trail(self, user, query):
         grading = (
-            f"{query.good.pv_grading_details.prefix} {query.good.pv_grading_details.grading} "
+            f"{query.good.pv_grading_details.prefix} "
+            f"{get_pv_grading_value_from_key(query.good.pv_grading_details.grading)} "
             f"{query.good.pv_grading_details.suffix}"
         )
 
