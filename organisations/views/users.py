@@ -119,7 +119,10 @@ class UserDetail(APIView):
                 )
             # Cannot assign a role, you do not have access to
             exporter_roles = [str(role) for role in Roles.EXPORTER_PRESET_ROLES]
-            user_roles = [str(role.id) for role in filter_roles_by_user_role(request.user, Role.objects.filter(organisation=org_pk), org_pk)]
+            user_roles = [
+                str(role.id)
+                for role in filter_roles_by_user_role(request.user, Role.objects.filter(organisation=org_pk), org_pk)
+            ]
             if data["role"] not in exporter_roles + user_roles:
                 raise PermissionDenied()
 

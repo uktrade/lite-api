@@ -321,5 +321,3 @@ class RolesAndPermissionsTests(DataTestClient):
         self.assertEqual(response_body["user_relationship"]["role"], str(second_user_role.id))
         self.assertEqual(response_body["user_relationship"]["status"]["key"], "Active")
         self.assertEqual(response_body["user_relationship"]["status"]["value"], "Active")
-
-
