@@ -82,9 +82,11 @@ class GoodsQueriesCreate(APIView):
         if is_clc_required:
             flag = Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID)
             goods_query.flags.add(flag)
+            goods_query.clc_responded = False
         if is_pv_grading_required:
             flag = Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID)
             goods_query.flags.add(flag)
+            goods_query.pv_grading_responded = False
 
         good.save()
         goods_query.save()
