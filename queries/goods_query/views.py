@@ -121,7 +121,6 @@ class GoodQueryCLCResponse(APIView):
                 )
 
                 clc_good_serializer.save()
-                query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
                 query.clc_responded = True
                 query.save()
 
@@ -211,7 +210,6 @@ class GoodQueryPVGradingResponse(APIView):
         query.good.pv_grading_details = pv_grading
         query.good.grading_comment = data.get("comment", "")
         query.good.save()
-        query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
         query.pv_grading_responded = True
         query.save()
 
