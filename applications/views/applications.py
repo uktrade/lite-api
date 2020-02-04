@@ -303,6 +303,7 @@ class ApplicationFinaliseView(APIView):
         data = deepcopy(request.data)
 
         default_licence_duration = get_default_duration(application)
+        action = data.get("action")
 
         if (
             data.get("licence_duration") is not None
@@ -313,7 +314,7 @@ class ApplicationFinaliseView(APIView):
                 data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        else:
+        elif action == AdviceType.APPROVE:
             data["licence_duration"] = data.get("licence_duration", default_licence_duration)
 
         data["status"] = str(get_case_status_by_status(CaseStatusEnum.FINALISED).pk)
@@ -326,7 +327,6 @@ class ApplicationFinaliseView(APIView):
 
         serializer.save()
 
-        action = data.get("action")
         if action == AdviceType.REFUSE:
             audit_trail_service.create(
                 actor=request.user,
