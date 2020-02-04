@@ -17,7 +17,6 @@ class ConsigneeOnDraftTests(DataTestClient):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
         self.url = reverse("applications:parties", kwargs={"pk": self.draft.id})
-        self.document_url = reverse("applications:consignee_document", kwargs={"pk": self.draft.id})
         self.new_document_data = {
             "name": "document_name.pdf",
             "s3_key": "s3_keykey.pdf",
@@ -179,9 +178,10 @@ class ConsigneeOnDraftTests(DataTestClient):
         Then a 201 CREATED is returned
         """
         party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        document_url = reverse("applications:party_document", kwargs={"pk": self.draft.id, "party_pk": str(party.pk)})
         PartyDocument.objects.filter(party=party).delete()
 
-        response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
+        response = self.client.post(document_url, data=self.new_document_data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -194,7 +194,10 @@ class ConsigneeOnDraftTests(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached consignee document
         """
-        response = self.client.get(self.document_url, **self.exporter_headers)
+        party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        document_url = reverse("applications:party_document", kwargs={"pk": self.draft.id, "party_pk": str(party.pk)})
+
+        response = self.client.get(document_url, **self.exporter_headers)
         response_data = response.json()["document"]
         expected = self.new_document_data
 
@@ -212,7 +215,10 @@ class ConsigneeOnDraftTests(DataTestClient):
         When there is an attempt to delete the document
         Then 204 NO CONTENT is returned
         """
-        response = self.client.delete(self.document_url, **self.exporter_headers)
+        party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        document_url = reverse("applications:party_document", kwargs={"pk": self.draft.id, "party_pk": str(party.pk)})
+
+        response = self.client.delete(document_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
