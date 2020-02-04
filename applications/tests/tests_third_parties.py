@@ -142,7 +142,9 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no third parties have been added
         """
-        third_party_qs = PartyOnApplication.objects.filter(party__type=PartyType.THIRD_PARTY, application=self.draft, deleted_at__isnull=True)
+        third_party_qs = PartyOnApplication.objects.filter(
+            party__type=PartyType.THIRD_PARTY, application=self.draft, deleted_at__isnull=True
+        )
         pre_test_third_party_count = third_party_qs.count()
         data = {
             "name": "UK Government",
@@ -237,8 +239,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         """
         poa = self.draft.third_parties.first()
         remove_tp_url = reverse(
-            "applications:remove_third_party",
-            kwargs={"pk": self.draft.id, "party_pk": poa.party.id},
+            "applications:remove_third_party", kwargs={"pk": self.draft.id, "party_pk": poa.party.id},
         )
 
         self.assertIsNone(poa.deleted_at)  # Not marked as deleted

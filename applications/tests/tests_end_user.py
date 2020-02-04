@@ -24,7 +24,7 @@ class EndUserOnDraftTests(DataTestClient):
             "country": "PY",
             "sub_type": "government",
             "website": "https://www.gov.py",
-            "type": PartyType.END_USER
+            "type": PartyType.END_USER,
         }
 
         self.document_url = reverse("applications:end_user_document", kwargs={"pk": self.draft.id})
@@ -48,9 +48,7 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         party_on_application = PartyOnApplication.objects.get(
-            application=self.draft,
-            party__type=PartyType.END_USER,
-            deleted_at__isnull=True,
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True,
         )
 
         self.draft.refresh_from_db()
@@ -68,7 +66,9 @@ class EndUserOnDraftTests(DataTestClient):
         Then a 404 NOT FOUND is returned
         And no end users have been added
         """
-        pre_test_end_user_count = PartyOnApplication.objects.filter(application=self.draft, deleted_at__isnull=True, party__type=PartyType.END_USER).count()
+        pre_test_end_user_count = PartyOnApplication.objects.filter(
+            application=self.draft, deleted_at__isnull=True, party__type=PartyType.END_USER
+        ).count()
         draft_open_application = self.create_open_application(organisation=self.organisation)
         data = {
             "name": "Government",
@@ -94,7 +94,7 @@ class EndUserOnDraftTests(DataTestClient):
                     "address": "3730 Martinsburg Rd, Gambier, Ohio",
                     "country": "US",
                     "website": "https://www.americanmary.com",
-                    "type": PartyType.END_USER
+                    "type": PartyType.END_USER,
                 }
             ],
             [
@@ -104,7 +104,7 @@ class EndUserOnDraftTests(DataTestClient):
                     "country": "US",
                     "sub_type": "business",
                     "website": "https://www.americanmary.com",
-                    "type": PartyType.END_USER
+                    "type": PartyType.END_USER,
                 }
             ],
         ]
@@ -115,11 +115,9 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             PartyOnApplication.objects.filter(
-                party__type=PartyType.END_USER,
-                application=self.draft,
-                deleted_at__isnull=True,
+                party__type=PartyType.END_USER, application=self.draft, deleted_at__isnull=True,
             ).count(),
-            1
+            1,
         )
 
     @mock.patch("documents.models.Document.delete_s3")
@@ -130,15 +128,19 @@ class EndUserOnDraftTests(DataTestClient):
         When a new end user is added
         Then the old one is removed
         """
-        poa = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True)
+        poa = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
+        )
 
         self.client.post(self.url, self.new_end_user_data, **self.exporter_headers)
         poa.refresh_from_db()
 
-        new_poa = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True)
+        new_poa = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
+        )
 
         self.assertNotEqual(poa.id, new_poa.id)
-        #delete_s3_function.assert_called_once()
+        # delete_s3_function.assert_called_once()
 
     def test_set_end_user_on_open_draft_application_failure(self):
         """
@@ -153,7 +155,7 @@ class EndUserOnDraftTests(DataTestClient):
             "country": "PY",
             "sub_type": "government",
             "website": "https://www.gov.py",
-            "type": PartyType.END_USER
+            "type": PartyType.END_USER,
         }
 
         open_draft = self.create_open_application(self.organisation)
@@ -164,11 +166,9 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             PartyOnApplication.objects.filter(
-                party__type=PartyType.END_USER,
-                application=open_draft,
-                deleted_at__isnull=True,
+                party__type=PartyType.END_USER, application=open_draft, deleted_at__isnull=True,
             ).count(),
-            0
+            0,
         )
 
     def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self,):
@@ -177,7 +177,9 @@ class EndUserOnDraftTests(DataTestClient):
         When I try to delete an end user from the application
         Then a 404 NOT FOUND is returned
         """
-        poa = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True)
+        poa = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
+        )
 
         poa.delete()
 
@@ -212,7 +214,9 @@ class EndUserOnDraftTests(DataTestClient):
         When there is an attempt to retrieve a document
         Then a 400 BAD REQUEST is returned
         """
-        PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True).delete()
+        PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
+        ).delete()
 
         response = self.client.get(self.document_url, **self.exporter_headers)
 
@@ -226,7 +230,9 @@ class EndUserOnDraftTests(DataTestClient):
         When there is an attempt to submit a document
         Then a 400 BAD REQUEST is returned
         """
-        PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True).delete()
+        PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
+        ).delete()
 
         response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
@@ -239,7 +245,9 @@ class EndUserOnDraftTests(DataTestClient):
         When there is an attempt to delete a document
         Then a 400 BAD REQUEST is returned
         """
-        PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True).delete()
+        PartyOnApplication.objects.filter(
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
+        ).delete()
 
         response = self.client.delete(self.document_url, **self.exporter_headers)
 
@@ -254,7 +262,9 @@ class EndUserOnDraftTests(DataTestClient):
         Then a 404 NOT FOUND is returned
         And the response contains a null document
         """
-        party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True).party
+        party = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
+        ).party
         PartyDocument.objects.filter(party=party).delete()
 
         response = self.client.get(self.document_url, **self.exporter_headers)
@@ -272,9 +282,7 @@ class EndUserOnDraftTests(DataTestClient):
         Then a 201 CREATED is returned
         """
         party = PartyOnApplication.objects.get(
-            application=self.draft,
-            deleted_at__isnull=True,
-            party__type=PartyType.END_USER
+            application=self.draft, deleted_at__isnull=True, party__type=PartyType.END_USER
         ).party
 
         PartyDocument.objects.filter(party=party).delete()
@@ -293,7 +301,9 @@ class EndUserOnDraftTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         """
         response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
-        end_user = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True).party
+        end_user = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
+        ).party
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(PartyDocument.objects.filter(party=end_user).count(), 1)
@@ -311,7 +321,7 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.delete(self.document_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        #delete_s3_function.assert_called_once()
+        # delete_s3_function.assert_called_once()
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
@@ -323,7 +333,9 @@ class EndUserOnDraftTests(DataTestClient):
         When there is an attempt to delete the end user
         Then 204 NO CONTENT is returned
         """
-        end_user = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True).party
+        end_user = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
+        ).party
         url = reverse("applications:remove_consignee", kwargs={"pk": self.draft.id, "party_pk": end_user.pk})
 
         response = self.client.delete(url, **self.exporter_headers)
@@ -331,13 +343,11 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(
             PartyOnApplication.objects.filter(
-                application=self.draft,
-                deleted_at__isnull=False,
-                party__type=PartyType.END_USER
+                application=self.draft, deleted_at__isnull=False, party__type=PartyType.END_USER
             ).count(),
-            1
+            1,
         )
-        #delete_s3_function.assert_called_once()
+        # delete_s3_function.assert_called_once()
 
     def test_end_user_validate_only_success(self):
         """
@@ -352,7 +362,7 @@ class EndUserOnDraftTests(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": True,
-            "type": PartyType.END_USER
+            "type": PartyType.END_USER,
         }
 
         response = self.client.post(self.url, end_user, **self.exporter_headers)
@@ -378,7 +388,7 @@ class EndUserOnDraftTests(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": True,
-            "type": PartyType.END_USER
+            "type": PartyType.END_USER,
         }
 
         response = self.client.post(self.url, end_user, **self.exporter_headers)

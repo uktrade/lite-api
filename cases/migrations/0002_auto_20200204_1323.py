@@ -9,19 +9,21 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('cases', '0001_initial'),
-        ('goodstype', '0001_initial'),
+        ("cases", "0001_initial"),
+        ("goodstype", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='goodcountrydecision',
-            name='good',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='goodstype.GoodsType'),
+            model_name="goodcountrydecision",
+            name="good",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="goodstype.GoodsType"),
         ),
         migrations.AddField(
-            model_name='ecjuquery',
-            name='case',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='case_ecju_query', to='cases.Case'),
+            model_name="ecjuquery",
+            name="case",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="case_ecju_query", to="cases.Case"
+            ),
         ),
     ]

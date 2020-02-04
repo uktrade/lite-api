@@ -20,12 +20,10 @@ class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicati
 
     class Meta:
         model = ExhibitionClearanceApplication
-        fields = GenericApplicationViewSerializer.Meta.fields + PartiesSerializerMixin.Meta.fields + (
-            "goods",
-            "activity",
-            "usage",
-            "destinations",
-            "additional_documents",
+        fields = (
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + ("goods", "activity", "usage", "destinations", "additional_documents",)
         )
 
 

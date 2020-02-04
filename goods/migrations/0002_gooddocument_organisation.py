@@ -9,14 +9,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('organisations', '0001_initial'),
-        ('goods', '0001_initial'),
+        ("organisations", "0001_initial"),
+        ("goods", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='gooddocument',
-            name='organisation',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='organisations.Organisation'),
+            model_name="gooddocument",
+            name="organisation",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="organisations.Organisation"),
         ),
     ]

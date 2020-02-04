@@ -20,14 +20,18 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationViewSerializer.Meta.fields + PartiesSerializerMixin.Meta.fields + (
-            "goods",
-            "have_you_been_informed",
-            "reference_number_on_information_form",
-            "activity",
-            "usage",
-            "destinations",
-            "additional_documents",
+        fields = (
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + (
+                "goods",
+                "have_you_been_informed",
+                "reference_number_on_information_form",
+                "activity",
+                "usage",
+                "destinations",
+                "additional_documents",
+            )
         )
 
 

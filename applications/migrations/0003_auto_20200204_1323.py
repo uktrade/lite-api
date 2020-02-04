@@ -9,78 +9,116 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('parties', '0001_initial'),
-        ('countries', '0001_initial'),
-        ('applications', '0002_baseapplication_countryonapplication_exhibitionclearanceapplication_externallocationonapplication_go'),
-        ('organisations', '0001_initial'),
-        ('denial_reasons', '0001_initial'),
-        ('goods', '0001_initial'),
+        ("parties", "0001_initial"),
+        ("countries", "0001_initial"),
+        (
+            "applications",
+            "0002_baseapplication_countryonapplication_exhibitionclearanceapplication_externallocationonapplication_go",
+        ),
+        ("organisations", "0001_initial"),
+        ("denial_reasons", "0001_initial"),
+        ("goods", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='siteonapplication',
-            name='site',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sites_on_application', to='organisations.Site'),
+            model_name="siteonapplication",
+            name="site",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="sites_on_application",
+                to="organisations.Site",
+            ),
         ),
         migrations.AddField(
-            model_name='partyonapplication',
-            name='application',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parties', related_query_name='party', to='applications.BaseApplication'),
+            model_name="partyonapplication",
+            name="application",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="parties",
+                related_query_name="party",
+                to="applications.BaseApplication",
+            ),
         ),
         migrations.AddField(
-            model_name='partyonapplication',
-            name='party',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parties.Party'),
+            model_name="partyonapplication",
+            name="party",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to="parties.Party"),
         ),
         migrations.AddField(
-            model_name='goodonapplication',
-            name='application',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='goods', to='applications.BaseApplication'),
+            model_name="goodonapplication",
+            name="application",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="goods", to="applications.BaseApplication"
+            ),
         ),
         migrations.AddField(
-            model_name='goodonapplication',
-            name='good',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='goods_on_application', to='goods.Good'),
+            model_name="goodonapplication",
+            name="good",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="goods_on_application", to="goods.Good"
+            ),
         ),
         migrations.AddField(
-            model_name='externallocationonapplication',
-            name='application',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='external_application_sites', to='applications.BaseApplication'),
+            model_name="externallocationonapplication",
+            name="application",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="external_application_sites",
+                to="applications.BaseApplication",
+            ),
         ),
         migrations.AddField(
-            model_name='externallocationonapplication',
-            name='external_location',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='external_locations_on_application', to='organisations.ExternalLocation'),
+            model_name="externallocationonapplication",
+            name="external_location",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="external_locations_on_application",
+                to="organisations.ExternalLocation",
+            ),
         ),
         migrations.AddField(
-            model_name='countryonapplication',
-            name='country',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='countries_on_application', to='countries.Country'),
+            model_name="countryonapplication",
+            name="country",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="countries_on_application",
+                to="countries.Country",
+            ),
         ),
         migrations.AddField(
-            model_name='applicationdocument',
-            name='application',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='applications.BaseApplication'),
+            model_name="applicationdocument",
+            name="application",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="applications.BaseApplication"),
         ),
         migrations.AddField(
-            model_name='applicationdenialreason',
-            name='application',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='application_denial_reason', to='applications.BaseApplication'),
+            model_name="applicationdenialreason",
+            name="application",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="application_denial_reason",
+                to="applications.BaseApplication",
+            ),
         ),
         migrations.AddField(
-            model_name='applicationdenialreason',
-            name='reasons',
-            field=models.ManyToManyField(to='denial_reasons.DenialReason'),
+            model_name="applicationdenialreason",
+            name="reasons",
+            field=models.ManyToManyField(to="denial_reasons.DenialReason"),
         ),
         migrations.AddField(
-            model_name='hmrcquery',
-            name='hmrc_organisation',
-            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.PROTECT, to='organisations.Organisation'),
+            model_name="hmrcquery",
+            name="hmrc_organisation",
+            field=models.ForeignKey(
+                default=None, on_delete=django.db.models.deletion.PROTECT, to="organisations.Organisation"
+            ),
         ),
         migrations.AddField(
-            model_name='countryonapplication',
-            name='application',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='application_countries', to='applications.OpenApplication'),
+            model_name="countryonapplication",
+            name="application",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="application_countries",
+                to="applications.OpenApplication",
+            ),
         ),
     ]

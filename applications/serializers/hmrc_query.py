@@ -23,12 +23,10 @@ class HmrcQueryViewSerializer(PartiesSerializerMixin, GenericApplicationViewSeri
 
     class Meta:
         model = HmrcQuery
-        fields = GenericApplicationViewSerializer.Meta.fields + PartiesSerializerMixin.Meta.fields + (
-            "goods_types",
-            "hmrc_organisation",
-            "reasoning",
-            "supporting_documentation",
-            "have_goods_departed",
+        fields = (
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + ("goods_types", "hmrc_organisation", "reasoning", "supporting_documentation", "have_goods_departed",)
         )
 
     def get_goods_types(self, instance):

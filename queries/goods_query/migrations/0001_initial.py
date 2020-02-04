@@ -9,22 +9,35 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('queries', '0001_initial'),
-        ('goods', '0001_initial'),
+        ("queries", "0001_initial"),
+        ("goods", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GoodsQuery',
+            name="GoodsQuery",
             fields=[
-                ('query_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='queries.Query')),
-                ('clc_raised_reasons', models.TextField(blank=True, default=None, max_length=2000, null=True)),
-                ('pv_grading_raised_reasons', models.TextField(blank=True, default=None, max_length=2000, null=True)),
-                ('good', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='good', to='goods.Good')),
+                (
+                    "query_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="queries.Query",
+                    ),
+                ),
+                ("clc_raised_reasons", models.TextField(blank=True, default=None, max_length=2000, null=True)),
+                ("pv_grading_raised_reasons", models.TextField(blank=True, default=None, max_length=2000, null=True)),
+                (
+                    "good",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING, related_name="good", to="goods.Good"
+                    ),
+                ),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('queries.query',),
+            options={"abstract": False,},
+            bases=("queries.query",),
         ),
     ]

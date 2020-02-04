@@ -201,18 +201,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             pk = uuid.uuid4()
 
         data = {
-            'id': pk,
-            'name': name,
-            'organisation': organisation,
-            'address': "42 Road, London, Buckinghamshire",
-            'website': "www." + name + ".com",
-            'sub_type': SubType.GOVERNMENT,
-            'type': party_type,
-            'country': get_country("GB"),
+            "id": pk,
+            "name": name,
+            "organisation": organisation,
+            "address": "42 Road, London, Buckinghamshire",
+            "website": "www." + name + ".com",
+            "sub_type": SubType.GOVERNMENT,
+            "type": party_type,
+            "country": get_country("GB"),
         }
-        #print(f'Creating {data}')
+        # print(f'Creating {data}')
         if party_type == PartyType.THIRD_PARTY:
-            data['role'] = PartyRole.AGENT
+            data["role"] = PartyRole.AGENT
 
         party = Party(**data)
         party.save()
@@ -579,10 +579,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         ).save()
 
         self.ultimate_end_user = self.create_party(
-            "Ultimate End User",
-            organisation,
-            PartyType.ULTIMATE_END_USER,
-            application
+            "Ultimate End User", organisation, PartyType.ULTIMATE_END_USER, application
         )
         self.create_document_for_party(application.ultimate_end_users.first().party, safe=safe_document)
 

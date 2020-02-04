@@ -42,14 +42,14 @@ urlpatterns = [
         goods.ApplicationGoodsTypeCountries.as_view(),
         name="application_goodstype_assign_countries",
     ),
-
     # Parties
     path("<uuid:pk>/parties/", parties.ApplicationPartyView.as_view(), name="parties"),
     path("<uuid:pk>/parties/<uuid:party_pk>/", parties.ApplicationPartyView.as_view(), name="parties"),
     path(
-        "<uuid:pk>/parties/<uuid:party_pk>/document/", party_documents.PartyDocumentView.as_view(), name="party_document"
+        "<uuid:pk>/parties/<uuid:party_pk>/document/",
+        party_documents.PartyDocumentView.as_view(),
+        name="party_document",
     ),
-
     # Sites, locations and countries
     path("<uuid:pk>/sites/", sites.ApplicationSites.as_view(), name="application_sites"),
     path(

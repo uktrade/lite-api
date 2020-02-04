@@ -14,6 +14,7 @@ class FlagSerializer(serializers.Serializer):
     name = serializers.CharField()
     id = serializers.CharField()
 
+
 class CountrySerializer(serializers.Serializer):
     id = serializers.CharField(required=False)
     name = serializers.CharField()

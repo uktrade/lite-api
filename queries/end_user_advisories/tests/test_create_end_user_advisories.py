@@ -192,7 +192,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
                 "website": "https://gov.uk",
                 "address": "123",
                 "country": "GB",
-                "type": PartyType.END_USER
+                "type": PartyType.END_USER,
             },
             "note": "I Am Easy to Find",
             "reasoning": "Lack of hairpin turns",

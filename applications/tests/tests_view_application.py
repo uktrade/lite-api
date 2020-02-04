@@ -3,11 +3,7 @@ from uuid import UUID
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import (
-    GoodOnApplication,
-    CountryOnApplication,
-    SiteOnApplication
-)
+from applications.models import GoodOnApplication, CountryOnApplication, SiteOnApplication
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient

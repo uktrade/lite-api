@@ -27,7 +27,7 @@ class CaseGetTests(DataTestClient):
 
         self._assert_party(
             self.standard_application.third_parties.last().party,
-            response_data["case"]["application"]["third_parties"][0]
+            response_data["case"]["application"]["third_parties"][0],
         )
         self._assert_party(self.standard_application.consignee.party, response_data["case"]["application"]["consignee"])
 

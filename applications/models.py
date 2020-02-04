@@ -58,8 +58,7 @@ class ApplicationPartyMixin:
 
     def is_major_editable(self):
         return not (
-                not is_case_status_draft(self.status.status)
-                and self.status.status != CaseStatusEnum.APPLICANT_EDITING
+            not is_case_status_draft(self.status.status) and self.status.status != CaseStatusEnum.APPLICANT_EDITING
         )
 
     def is_editable(self):
@@ -80,7 +79,8 @@ class ApplicationPartyMixin:
     def parties_on_application(self):
         return (
             self.parties.filter(deleted_at__isnull=True)
-            .prefetch_related('party__flags').select_related('party', 'party__organisation', 'party__country')
+            .prefetch_related("party__flags")
+            .select_related("party", "party__organisation", "party__country")
         )
 
     @property
@@ -119,7 +119,11 @@ class ApplicationPartyMixin:
         Backwards compatible
         Standard and HMRC Query applications
         """
-        qs = self.parties.filter(deleted_at__isnull=True).select_related('party', 'party__organisation').prefetch_related('party__flags')
+        qs = (
+            self.parties.filter(deleted_at__isnull=True)
+            .select_related("party", "party__organisation")
+            .prefetch_related("party__flags")
+        )
         return qs.filter(party__type=PartyType.THIRD_PARTY)
 
 
@@ -147,6 +151,7 @@ class OpenApplication(BaseApplication):
 
 class ExhibitionClearanceApplication(BaseApplication):
     pass
+
 
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
@@ -211,10 +216,7 @@ class CountryOnApplication(models.Model):
 
 class PartyOnApplication(TimestampableModel):
     application = models.ForeignKey(
-        BaseApplication,
-        on_delete=models.CASCADE,
-        related_name="parties",
-        related_query_name='party',
+        BaseApplication, on_delete=models.CASCADE, related_name="parties", related_query_name="party",
     )
     party = models.ForeignKey(Party, on_delete=models.PROTECT)
     deleted_at = models.DateTimeField(null=True, default=None)
@@ -222,4 +224,11 @@ class PartyOnApplication(TimestampableModel):
     objects = models.Manager()
 
     def __repr__(self):
-        return str({'application': self.application.id, 'party_type': self.party.type, 'deleted_at': self.deleted_at, 'party_id': self.party.id})
+        return str(
+            {
+                "application": self.application.id,
+                "party_type": self.party.type,
+                "deleted_at": self.deleted_at,
+                "party_id": self.party.id,
+            }
+        )

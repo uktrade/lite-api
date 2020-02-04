@@ -9,29 +9,38 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='CaseStatus',
+            name="CaseStatus",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('status', models.CharField(max_length=50)),
-                ('priority', models.IntegerField()),
-                ('is_read_only', models.BooleanField(null=True)),
-                ('is_terminal', models.BooleanField(null=True)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("status", models.CharField(max_length=50)),
+                ("priority", models.IntegerField()),
+                ("is_read_only", models.BooleanField(null=True)),
+                ("is_terminal", models.BooleanField(null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='CaseStatusCaseType',
+            name="CaseStatusCaseType",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('application', 'Application'), ('goods_query', 'Product Query'), ('end_user_advisory_query', 'End User Advisory Query'), ('hmrc_query', 'HMRC Query'), ('exhibition_clearance', 'MOD Exhibition Clearance')], max_length=35)),
-                ('status', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='statuses.CaseStatus')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("application", "Application"),
+                            ("goods_query", "Product Query"),
+                            ("end_user_advisory_query", "End User Advisory Query"),
+                            ("hmrc_query", "HMRC Query"),
+                            ("exhibition_clearance", "MOD Exhibition Clearance"),
+                        ],
+                        max_length=35,
+                    ),
+                ),
+                ("status", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="statuses.CaseStatus")),
             ],
-            options={
-                'unique_together': {('type', 'status')},
-            },
+            options={"unique_together": {("type", "status")},},
         ),
     ]

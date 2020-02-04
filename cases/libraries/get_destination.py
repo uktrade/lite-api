@@ -25,7 +25,7 @@ def get_destination(pk):
 
 
 def get_standard_application_destination_flags(application):
-    party_on_applications = application.parties.prefetch_related('party__flags').filter(
+    party_on_applications = application.parties.prefetch_related("party__flags").filter(
         deleted_at__isnull=True, party__flags__isnull=False
     )
     flags = []

@@ -9,21 +9,34 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('cases', '0001_initial'),
-        ('letter_templates', '0001_initial'),
+        ("cases", "0001_initial"),
+        ("letter_templates", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GeneratedCaseDocument',
+            name="GeneratedCaseDocument",
             fields=[
-                ('casedocument_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='cases.CaseDocument')),
-                ('text', models.TextField(blank=True, default=True)),
-                ('template', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='letter_templates.LetterTemplate')),
+                (
+                    "casedocument_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="cases.CaseDocument",
+                    ),
+                ),
+                ("text", models.TextField(blank=True, default=True)),
+                (
+                    "template",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING, to="letter_templates.LetterTemplate"
+                    ),
+                ),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('cases.casedocument',),
+            options={"abstract": False,},
+            bases=("cases.casedocument",),
         ),
     ]

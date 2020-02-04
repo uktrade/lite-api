@@ -75,7 +75,9 @@ class UltimateEndUsersOnDraft(DataTestClient):
     def test_get_ultimate_end_users(self):
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
 
-        ultimate_end_user = self.create_party("ultimate end user", self.organisation, PartyType.ULTIMATE_END_USER, self.draft)
+        ultimate_end_user = self.create_party(
+            "ultimate end user", self.organisation, PartyType.ULTIMATE_END_USER, self.draft
+        )
 
         response = self.client.get(f"{self.url}?type={PartyType.ULTIMATE_END_USER}", **self.exporter_headers)
         ultimate_end_users = response.json()["ultimate_end_users"]
@@ -126,9 +128,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         """
         ultimate_end_user = self.draft.ultimate_end_users.first().party
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
-        url = reverse(
-            "applications:parties", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.id},
-        )
+        url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.id},)
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -201,13 +201,11 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(
             PartyOnApplication.objects.filter(
-                application=self.draft,
-                party__type=PartyType.ULTIMATE_END_USER,
-                deleted_at__isnull=False,
+                application=self.draft, party__type=PartyType.ULTIMATE_END_USER, deleted_at__isnull=False,
             ).count(),
-            1
+            1,
         )
-        #delete_s3_function.assert_called_once()
+        # delete_s3_function.assert_called_once()
 
     @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch("documents.tasks.prepare_document.now")

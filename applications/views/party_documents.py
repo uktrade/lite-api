@@ -50,9 +50,7 @@ class PartyDocumentView(APIView):
     def post(self, request, application, party_pk):
         try:
             party = PartyOnApplication.objects.get(
-                application=application,
-                party__pk=party_pk,
-                deleted_at__isnull=True
+                application=application, party__pk=party_pk, deleted_at__isnull=True
             ).party
         except PartyOnApplication.DoesNotExist:
             return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
@@ -68,9 +66,7 @@ class PartyDocumentView(APIView):
     def delete(self, request, application, party_pk):
         try:
             party = PartyOnApplication.objects.get(
-                application=application,
-                party__pk=party_pk,
-                deleted_at__isnull=True
+                application=application, party__pk=party_pk, deleted_at__isnull=True
             ).party
         except PartyOnApplication.DoesNotExist:
             return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)

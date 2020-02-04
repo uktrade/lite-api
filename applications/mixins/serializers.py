@@ -16,13 +16,14 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
     class Meta:
         fields = (...) + PartiesMixin.fields
     """
+
     end_user = serializers.SerializerMethodField(required=False)
     ultimate_end_users = serializers.SerializerMethodField(required=False)
     third_parties = serializers.SerializerMethodField(required=False)
     consignee = serializers.SerializerMethodField(required=False)
 
     class Meta:
-        fields = ('end_user', 'ultimate_end_users', 'third_parties', 'consignee')
+        fields = ("end_user", "ultimate_end_users", "third_parties", "consignee")
 
     __cache = None
 

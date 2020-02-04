@@ -43,7 +43,7 @@ class GetExistingPartiesTests(DataTestClient):
             country=self.country,
             sub_type="government",
             organisation=second_organisation,
-            type=PartyType.END_USER
+            type=PartyType.END_USER,
         )
 
         response_data = self.client.get(self.url, **self.exporter_headers).data["results"]
@@ -109,7 +109,7 @@ class GetExistingPartiesTests(DataTestClient):
                 sub_type="government",
                 organisation=self.organisation,
                 copy_of_id=original_party.id,
-                type=PartyType.END_USER
+                type=PartyType.END_USER,
             )
 
         response_data = self.client.get(self.url, **self.exporter_headers).data["results"]
@@ -136,7 +136,7 @@ class GetExistingPartiesTests(DataTestClient):
             country=self.country,
             sub_type="government",
             organisation=self.organisation,
-            type=PartyType.END_USER
+            type=PartyType.END_USER,
         )
 
         copied_party = Party.objects.create(
@@ -147,7 +147,7 @@ class GetExistingPartiesTests(DataTestClient):
             sub_type="government",
             organisation=self.organisation,
             copy_of_id=original_party.id,
-            type=PartyType.END_USER
+            type=PartyType.END_USER,
         )
 
         response = self.client.get(self.url + params, **self.exporter_headers)

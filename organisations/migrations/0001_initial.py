@@ -12,52 +12,101 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('addresses', '0001_initial'),
+        ("addresses", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ExternalLocation',
+            name="ExternalLocation",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(default=None)),
-                ('address', models.TextField(default=None)),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.TextField(default=None)),
+                ("address", models.TextField(default=None)),
             ],
-            options={
-                'abstract': False,
-            },
+            options={"abstract": False,},
         ),
         migrations.CreateModel(
-            name='Organisation',
+            name="Organisation",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(blank=True, default=None)),
-                ('type', models.CharField(choices=[('hmrc', 'HMRC'), ('commercial', 'Commercial Organisation'), ('individual', 'Individual')], default='commercial', max_length=20)),
-                ('eori_number', models.TextField(blank=True, default=None, null=True)),
-                ('sic_number', models.TextField(blank=True, default=None, null=True)),
-                ('vat_number', models.TextField(blank=True, default=None, null=True)),
-                ('registration_number', models.TextField(blank=True, default=None, null=True)),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.TextField(blank=True, default=None)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("hmrc", "HMRC"),
+                            ("commercial", "Commercial Organisation"),
+                            ("individual", "Individual"),
+                        ],
+                        default="commercial",
+                        max_length=20,
+                    ),
+                ),
+                ("eori_number", models.TextField(blank=True, default=None, null=True)),
+                ("sic_number", models.TextField(blank=True, default=None, null=True)),
+                ("vat_number", models.TextField(blank=True, default=None, null=True)),
+                ("registration_number", models.TextField(blank=True, default=None, null=True)),
             ],
-            options={
-                'abstract': False,
-            },
+            options={"abstract": False,},
         ),
         migrations.CreateModel(
-            name='Site',
+            name="Site",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.TextField(default=None)),
-                ('address', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='site', to='addresses.Address')),
-                ('organisation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='site', to='organisations.Organisation')),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.TextField(default=None)),
+                (
+                    "address",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="site", to="addresses.Address"
+                    ),
+                ),
+                (
+                    "organisation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="site",
+                        to="organisations.Organisation",
+                    ),
+                ),
             ],
-            options={
-                'ordering': ['name'],
-            },
+            options={"ordering": ["name"],},
         ),
     ]

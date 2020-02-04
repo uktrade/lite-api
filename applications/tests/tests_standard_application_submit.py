@@ -136,7 +136,7 @@ class StandardApplicationTests(DataTestClient):
 
     def test_submit_draft_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self):
         draft = self.create_standard_application_with_incorporated_good(self.organisation)
-        PartyDocument.objects.filter(party__in=draft.ultimate_end_users.all().values('party')).delete()
+        PartyDocument.objects.filter(party__in=draft.ultimate_end_users.all().values("party")).delete()
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
         response = self.client.put(url, **self.exporter_headers)

@@ -12,23 +12,47 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('teams', '0001_initial'),
+        ("teams", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Flag',
+            name="Flag",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(default='Untitled Flag', max_length=25)),
-                ('level', models.CharField(choices=[('Case', 'Case'), ('Organisation', 'Organisation'), ('Good', 'Good'), ('Destination', 'Destination')], max_length=20)),
-                ('status', models.CharField(choices=[('Active', 'Active'), ('Deactivated', 'Deactivated')], default='Active', max_length=20)),
-                ('team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='teams.Team')),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(default="Untitled Flag", max_length=25)),
+                (
+                    "level",
+                    models.CharField(
+                        choices=[
+                            ("Case", "Case"),
+                            ("Organisation", "Organisation"),
+                            ("Good", "Good"),
+                            ("Destination", "Destination"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20
+                    ),
+                ),
+                ("team", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="teams.Team")),
             ],
-            options={
-                'abstract': False,
-            },
+            options={"abstract": False,},
         ),
     ]

@@ -17,7 +17,7 @@ class PartyType:
             PartyType.CONSIGNEE: "consignees",
             PartyType.END_USER: "end_users",
             PartyType.ULTIMATE_END_USER: "ultimate_end_users",
-            PartyType.THIRD_PARTY: "third_parties"
+            PartyType.THIRD_PARTY: "third_parties",
         }[key]
 
     @classmethod

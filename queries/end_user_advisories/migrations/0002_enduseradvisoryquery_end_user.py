@@ -9,14 +9,16 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('end_user_advisories', '0001_initial'),
-        ('parties', '0001_initial'),
+        ("end_user_advisories", "0001_initial"),
+        ("parties", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='enduseradvisoryquery',
-            name='end_user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='eua_query', to='parties.Party'),
+            model_name="enduseradvisoryquery",
+            name="end_user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING, related_name="eua_query", to="parties.Party"
+            ),
         ),
     ]

@@ -37,15 +37,13 @@ class ConsigneeOnDraftTests(DataTestClient):
             "country": "PY",
             "sub_type": data_type,
             "website": "https://www.gov.py",
-            "type": PartyType.CONSIGNEE
+            "type": PartyType.CONSIGNEE,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         party_on_application = PartyOnApplication.objects.get(
-            application=self.draft,
-            party__type=PartyType.CONSIGNEE,
-            deleted_at__isnull=True,
+            application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True,
         )
 
         self.draft.refresh_from_db()
@@ -65,7 +63,7 @@ class ConsigneeOnDraftTests(DataTestClient):
                     "address": "3730 Martinsburg Rd, Gambier, Ohio",
                     "country": "US",
                     "website": "https://www.americanmary.com",
-                    "type": PartyType.CONSIGNEE
+                    "type": PartyType.CONSIGNEE,
                 }
             ],
             [
@@ -75,7 +73,7 @@ class ConsigneeOnDraftTests(DataTestClient):
                     "country": "US",
                     "sub_type": "made-up",
                     "website": "https://www.americanmary.com",
-                    "type": PartyType.CONSIGNEE
+                    "type": PartyType.CONSIGNEE,
                 }
             ],
         ]
@@ -103,14 +101,16 @@ class ConsigneeOnDraftTests(DataTestClient):
         When a new consignee is added
         Then the old one is removed
         """
-        old_consignee = PartyOnApplication.objects.get(application=self.draft, deleted_at__isnull=True, party__type=PartyType.CONSIGNEE).party
+        old_consignee = PartyOnApplication.objects.get(
+            application=self.draft, deleted_at__isnull=True, party__type=PartyType.CONSIGNEE
+        ).party
         new_consignee = {
             "name": "Government of Paraguay",
             "address": "Asuncion",
             "country": "PY",
             "sub_type": "government",
             "website": "https://www.gov.py",
-            "type": PartyType.CONSIGNEE
+            "type": PartyType.CONSIGNEE,
         }
 
         self.client.post(self.url, new_consignee, **self.exporter_headers)
@@ -119,7 +119,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         deleted_consignees = PartyOnApplication.objects.filter(party=old_consignee, deleted_at__isnull=False)
 
         self.assertEqual(deleted_consignees.count(), 1)
-        #delete_s3_function.assert_called_once()
+        # delete_s3_function.assert_called_once()
 
     def test_set_consignee_on_open_draft_application_failure(self):
         """
@@ -135,7 +135,7 @@ class ConsigneeOnDraftTests(DataTestClient):
             "country": "PY",
             "sub_type": "government",
             "website": "https://www.gov.py",
-            "type": PartyType.CONSIGNEE
+            "type": PartyType.CONSIGNEE,
         }
 
         open_draft = self.create_open_application(self.organisation)
@@ -146,11 +146,9 @@ class ConsigneeOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             PartyOnApplication.objects.filter(
-                application=self.draft,
-                party__type=PartyType.CONSIGNEE,
-                deleted_at__isnull=True
+                application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
             ).count(),
-            0
+            0,
         )
 
     def test_delete_consignee_on_standard_application_when_application_has_no_consignee_failure(self,):
@@ -177,7 +175,9 @@ class ConsigneeOnDraftTests(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
-        party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        party = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
+        ).party
         document_url = reverse("applications:party_document", kwargs={"pk": self.draft.id, "party_pk": str(party.pk)})
         PartyDocument.objects.filter(party=party).delete()
 
@@ -194,7 +194,9 @@ class ConsigneeOnDraftTests(DataTestClient):
         When the document is retrieved
         Then the data in the document is the same as the data in the attached consignee document
         """
-        party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        party = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
+        ).party
         document_url = reverse("applications:party_document", kwargs={"pk": self.draft.id, "party_pk": str(party.pk)})
 
         response = self.client.get(document_url, **self.exporter_headers)
@@ -215,7 +217,9 @@ class ConsigneeOnDraftTests(DataTestClient):
         When there is an attempt to delete the document
         Then 204 NO CONTENT is returned
         """
-        party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        party = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
+        ).party
         document_url = reverse("applications:party_document", kwargs={"pk": self.draft.id, "party_pk": str(party.pk)})
 
         response = self.client.delete(document_url, **self.exporter_headers)
@@ -233,20 +237,20 @@ class ConsigneeOnDraftTests(DataTestClient):
         When there is an attempt to delete the consignee
         Then 204 NO CONTENT is returned
         """
-        consignee = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True).party
+        consignee = PartyOnApplication.objects.get(
+            application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
+        ).party
         url = reverse("applications:remove_consignee", kwargs={"pk": self.draft.id, "party_pk": consignee.pk})
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(
             PartyOnApplication.objects.filter(
-                application=self.draft,
-                party__type=PartyType.CONSIGNEE,
-                deleted_at__isnull=False
+                application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=False
             ).count(),
-            1
+            1,
         )
-        #delete_s3_function.assert_called_once()
+        # delete_s3_function.assert_called_once()
 
     def test_consignee_validate_only_success(self):
         """
