@@ -22,6 +22,7 @@ from static.units.enums import Units
 
 class ApplicationException(Exception):
     def __init__(self, data=None, *args, **kwargs):
+        super().__init__(data)
         self.data = data
 
 

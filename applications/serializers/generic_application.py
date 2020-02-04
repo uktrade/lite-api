@@ -1,5 +1,4 @@
 import abc
-from collections import defaultdict
 
 from rest_framework import serializers
 from rest_framework.fields import CharField
