@@ -25,7 +25,7 @@ class OpenApplicationTests(DataTestClient):
         self.assertIsNotNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
 
-    def test_submit_open_application_without_site_failure(self):
+    def test_submit_open_application_without_site_or_external_location_failure(self):
         SiteOnApplication.objects.get(application=self.draft).delete()
 
         response = self.client.put(self.url, **self.exporter_headers)

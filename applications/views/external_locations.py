@@ -9,7 +9,7 @@ from applications.serializers.location import ExternalLocationOnApplicationSeria
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users
+from conf.decorators import authorised_users, application_in_non_readonly_state
 from organisations.libraries.get_external_location import get_location
 from organisations.libraries.get_site import has_previous_sites
 from organisations.models import ExternalLocation
@@ -38,9 +38,17 @@ class ApplicationExternalLocations(APIView):
 
     @transaction.atomic
     @authorised_users(ExporterUser)
+    @application_in_non_readonly_state()
     def post(self, request, application):
         data = request.data
         location_ids = data.get("external_locations")
+
+        # Validate that have_goods_departed isn't True
+        if getattr(application, "have_goods_departed", False):
+            return JsonResponse(
+                data={"errors": {"external_locations": ["Application has have_goods_departed set to True"]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Validate that there are actually external locations
         if not location_ids:
@@ -54,16 +62,6 @@ class ApplicationExternalLocations(APIView):
             str(previous_location_id)
             for previous_location_id in previous_locations.values_list("external_location__id", flat=True)
         ]
-
-        if is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
-            read_only=True
-        ):
-            return JsonResponse(
-                data={
-                    "errors": {"external_locations": [f"Application status {application.status.status} is read-only."]}
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         if (
             is_case_status_draft(application.status.status)

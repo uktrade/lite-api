@@ -19,8 +19,6 @@ from static.countries.serializers import CountrySerializer
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=DESCRIPTION_MAX_LENGTH)
-    control_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    is_good_controlled = serializers.BooleanField()
     application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     countries = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
@@ -30,8 +28,6 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "description",
-            "is_good_controlled",
-            "control_code",
             "application",
             "countries",
             "document",
@@ -48,10 +44,13 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         application = self.get_initial().get("application")
         if application:
             if get_application(application).application_type == ApplicationType.OPEN_LICENCE:
-                self.fields["is_good_incorporated"] = serializers.BooleanField()
-                self.Meta.fields = self.Meta.fields + ("is_good_incorporated",)
+                self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
+                self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
+                self.fields["control_code"] = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+                self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_code")
             else:
                 if hasattr(self, "initial_data"):
+                    self.initial_data["is_good_controlled"] = False
                     self.initial_data["is_good_incorporated"] = None
 
         # Only validate the control code if the good is controlled

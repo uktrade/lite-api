@@ -41,6 +41,7 @@ class HmrcQueryViewSerializer(GenericApplicationViewSerializer):
             "hmrc_organisation",
             "reasoning",
             "supporting_documentation",
+            "have_goods_departed",
         )
 
     def get_goods_types(self, instance):
@@ -86,4 +87,5 @@ class HmrcQueryUpdateSerializer(serializers.ModelSerializer):
         fields = (
             "reasoning",
             "status",
+            "have_goods_departed",
         )
