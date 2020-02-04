@@ -16,7 +16,7 @@ class ConsigneeOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
-        self.url = reverse("applications:consignee", kwargs={"pk": self.draft.id})
+        self.url = reverse("applications:parties", kwargs={"pk": self.draft.id})
         self.document_url = reverse("applications:consignee_document", kwargs={"pk": self.draft.id})
         self.new_document_data = {
             "name": "document_name.pdf",
@@ -140,7 +140,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         }
 
         open_draft = self.create_open_application(self.organisation)
-        url = reverse("applications:consignee", kwargs={"pk": open_draft.id})
+        url = reverse("applications:parties", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 

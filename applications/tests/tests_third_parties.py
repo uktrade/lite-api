@@ -19,7 +19,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         super().setUp()
         self.draft = self.create_standard_application(self.organisation)
 
-        self.url = reverse("applications:third_parties", kwargs={"pk": self.draft.id})
+        self.url = reverse("applications:parties", kwargs={"pk": self.draft.id})
 
         self.document_url = reverse(
             "applications:third_party_document",
@@ -153,7 +153,7 @@ class ThirdPartiesOnDraft(DataTestClient):
             "type": PartyType.THIRD_PARTY,
         }
         open_draft = self.create_open_application(self.organisation)
-        url = reverse("applications:third_parties", kwargs={"pk": open_draft.id})
+        url = reverse("applications:parties", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
