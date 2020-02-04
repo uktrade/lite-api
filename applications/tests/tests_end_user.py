@@ -27,7 +27,10 @@ class EndUserOnDraftTests(DataTestClient):
             "type": PartyType.END_USER,
         }
 
-        self.document_url = reverse("applications:end_user_document", kwargs={"pk": self.draft.id})
+        self.document_url = reverse(
+            "applications:party_document", kwargs={"pk": self.draft.id, "party_pk": self.draft.end_user.party.id}
+        )
+
         self.new_document_data = {
             "name": "document_name.pdf",
             "s3_key": "s3_keykey.pdf",
@@ -183,7 +186,7 @@ class EndUserOnDraftTests(DataTestClient):
 
         poa.delete()
 
-        url = reverse("applications:remove_consignee", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
+        url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -336,7 +339,7 @@ class EndUserOnDraftTests(DataTestClient):
         end_user = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         ).party
-        url = reverse("applications:remove_consignee", kwargs={"pk": self.draft.id, "party_pk": end_user.pk})
+        url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": end_user.pk})
 
         response = self.client.delete(url, **self.exporter_headers)
 
