@@ -151,6 +151,7 @@ class ExhibitionClearanceApplication(BaseApplication):
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
     reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)
+    have_goods_departed = models.BooleanField(default=False)  # Signal in signals.py
 
     objects = HmrcQueryManager()
 

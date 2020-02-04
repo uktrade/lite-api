@@ -54,8 +54,6 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
         data = {
             "description": "Widget",
-            "is_good_controlled": True,
-            "control_code": "ML1a",
         }
 
         response = self.client.post(url, data, **self.hmrc_exporter_headers)
@@ -63,9 +61,9 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(response_data["description"], "Widget")
-        self.assertEquals(response_data["is_good_controlled"], True)
-        self.assertEquals(response_data["control_code"], "ML1a")
         self.assertNotIn("is_good_incorporated", response_data)
+        self.assertNotIn("is_good_controlled", response_data)
+        self.assertNotIn("control_code", response_data)
 
     def test_create_goodstype_on_open_application_as_exporter_user_failure(self):
         data = {}

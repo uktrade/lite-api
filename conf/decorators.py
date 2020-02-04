@@ -104,6 +104,29 @@ def application_in_editable_state():
     return decorator
 
 
+def application_in_non_readonly_state():
+    """ Validate that an application is not in a readonly state. """
+
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            application = _get_application(request, kwargs)
+
+            if is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
+                read_only=True
+            ):
+                return JsonResponse(
+                    data={"errors": [f"Application status {application.status.status} is read-only."]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            return func(request, *args, **kwargs)
+
+        return inner
+
+    return decorator
+
+
 def authorised_users(user_type):
     """
     Checks if the user is the correct type and if they have access to the application being requested

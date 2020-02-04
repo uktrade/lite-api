@@ -2,11 +2,11 @@ import os
 
 from django.test import tag
 
+from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from conf.constants import GovPermissions, ExporterPermissions
 from conf.settings import BASE_DIR
 from flags.models import Flag
-from organisations.models import Organisation, Site
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -19,13 +19,11 @@ from static.management.commands import (
     seedcontrollistentries,
     seedcountries,
     seeddenialreasons,
-    seedgovusers,
-    seedorgusers,
     seedrolepermissions,
     seedsystemflags,
 )
 from static.statuses.models import CaseStatus, CaseStatusCaseType
-from users.models import Permission, GovUser, Role, ExporterUser, UserOrganisationRelationship
+from users.models import Permission
 
 
 @tag("seeding")
@@ -42,9 +40,10 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_case_types(self):
         self.seed_command(seedcasetypes.Command)
-        self.assertEqual(
-            CaseType.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasetypes.CASE_TYPES_FILE))
-        )
+        enum = CaseTypeEnum.as_list()
+        self.assertEqual(CaseType.objects.count(), len(enum))
+        for item in enum:
+            self.assertTrue(CaseType.objects.get(id=item["key"]))
 
     def test_seed_control_list_entries(self):
         self.seed_command(seedcontrollistentries.Command)
