@@ -24,28 +24,24 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
     class Meta:
         fields = ('end_user', 'ultimate_end_users', 'third_parties', 'consignee')
 
-    def __parties(self, instance, party_type, cache=defaultdict(list)):
+    __cache = None
+
+    def __parties(self, instance, party_type):
         if not ApplicationType.has_parties(instance.application_type):
             return
 
-        if cache and party_type in cache:
-            return cache[party_type]
+        if self.__cache and isinstance(self.__cache, defaultdict):
+            try:
+                return self.__cache[party_type]
+            except KeyError:
+                return
         else:
-            cache.clear()
+            self.__cache = defaultdict(list)
+        serializer = PartySerializer([poa.party for poa in instance.parties_on_application], many=True)
+        for party in serializer.data:
+            self.__cache[party["type"]].append(party)
 
-        data = PartySerializer(
-            [
-                poa.party for poa in (
-                    instance.parties
-                    .filter(deleted_at__isnull=True)
-                    .select_related("party", "party__organisation")
-                )
-            ], many=True
-        ).data
-        for party in data:
-            cache[party["type"]].append(party)
-
-        return cache[party_type]
+        return self.__cache[party_type]
 
     def get_end_user(self, instance):
         data = self.__parties(instance, PartyType.END_USER)

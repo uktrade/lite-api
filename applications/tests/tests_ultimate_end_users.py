@@ -18,10 +18,10 @@ class UltimateEndUsersOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application_with_incorporated_good(self.organisation)
-        self.url = reverse("applications:ultimate_end_users", kwargs={"pk": self.draft.id})
+        self.url = reverse("applications:parties", kwargs={"pk": self.draft.id})
 
         self.document_url = reverse(
-            "applications:ultimate_end_user_document",
+            "applications:party_document",
             kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
         self.new_document_data = {
@@ -111,7 +111,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         }
 
         open_draft = self.create_open_application(self.organisation)
-        url = reverse("applications:ultimate_end_users", kwargs={"pk": open_draft.id})
+        url = reverse("applications:parties", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
@@ -127,7 +127,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         ultimate_end_user = self.draft.ultimate_end_users.first().party
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
         url = reverse(
-            "applications:remove_ultimate_end_user", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.id},
+            "applications:parties", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.id},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
@@ -192,7 +192,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         Then 200 OK
         """
         url = reverse(
-            "applications:remove_ultimate_end_user",
+            "applications:parties",
             kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
 
@@ -219,7 +219,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         application.status = get_case_status_by_status(editable_status)
         application.save()
         url = reverse(
-            "applications:remove_ultimate_end_user",
+            "applications:parties",
             kwargs={"pk": application.id, "party_pk": application.ultimate_end_users.first().party.id},
         )
 
@@ -235,8 +235,8 @@ class UltimateEndUsersOnDraft(DataTestClient):
         application.save()
 
         url = reverse(
-            "applications:remove_ultimate_end_user",
-            kwargs={"pk": application.id, "party_pk": application.ultimate_end_users.first().party.id,},
+            "applications:parties",
+            kwargs={"pk": application.id, "party_pk": application.ultimate_end_users.first().party.id},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
@@ -307,7 +307,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         # Delete existing ultimate end user to enable easy assertion of copied ultimate end user
         delete_url = reverse(
-            "applications:remove_ultimate_end_user",
+            "applications:parties",
             kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
         self.client.delete(delete_url, **self.exporter_headers)

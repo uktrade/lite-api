@@ -77,13 +77,20 @@ class ApplicationPartyMixin:
         return is_editable
 
     @property
+    def parties_on_application(self):
+        return (
+            self.parties.filter(deleted_at__isnull=True)
+            .prefetch_related('party__flags').select_related('party', 'party__organisation', 'party__country')
+        )
+
+    @property
     def consignee(self):
         """
         Backwards compatible
         Standard and HMRC Query applications
         """
         try:
-            return self.parties.filter(deleted_at__isnull=True).get(party__type=PartyType.CONSIGNEE)
+            return self.parties_on_application.get(party__type=PartyType.CONSIGNEE)
         except PartyOnApplication.DoesNotExist:
             pass
 
@@ -94,7 +101,7 @@ class ApplicationPartyMixin:
         Standard and HMRC Query applications
         """
         try:
-            return self.parties.filter(deleted_at__isnull=True).get(party__type=PartyType.END_USER)
+            return self.parties_on_application.get(party__type=PartyType.END_USER)
         except PartyOnApplication.DoesNotExist:
             pass
 
@@ -104,7 +111,7 @@ class ApplicationPartyMixin:
         Backwards compatible
         Standard and HMRC Query applications
         """
-        return self.parties.filter(deleted_at__isnull=True, party__type=PartyType.ULTIMATE_END_USER)
+        return self.parties_on_application.filter(party__type=PartyType.ULTIMATE_END_USER)
 
     @property
     def third_parties(self):
@@ -112,7 +119,8 @@ class ApplicationPartyMixin:
         Backwards compatible
         Standard and HMRC Query applications
         """
-        return self.parties.filter(deleted_at__isnull=True, party__type=PartyType.THIRD_PARTY)
+        qs = self.parties.filter(deleted_at__isnull=True).select_related('party', 'party__organisation').prefetch_related('party__flags')
+        return qs.filter(party__type=PartyType.THIRD_PARTY)
 
 
 class BaseApplication(ApplicationPartyMixin, Case):

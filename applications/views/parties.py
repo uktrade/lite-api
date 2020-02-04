@@ -41,7 +41,6 @@ class ApplicationPartyView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         data = request.data
         data["organisation"] = request.user.organisation.id
 
@@ -53,10 +52,9 @@ class ApplicationPartyView(APIView):
         if str_to_bool(data.get("validate_only", False)):
             return JsonResponse(data={data["type"]: serializer.initial_data}, status=status.HTTP_200_OK)
 
-        # Save party
+        # Save party and add to application
         serializer.save()
         try:
-            # Add party to application
             party, removed_party = application.add_party(serializer.instance)
         except ApplicationException as exc:
             return JsonResponse(data=exc.data, status=status.HTTP_400_BAD_REQUEST)
@@ -126,9 +124,6 @@ class ApplicationPartyView(APIView):
 
         parties_data = PartySerializer([p.party for p in application_parties], many=True).data
 
-        def api_compatible(key):
-            return f"{PartyType.plural(key)}" if key in [PartyType.ULTIMATE_END_USER, PartyType.THIRD_PARTY] else key
-
-        key = api_compatible(request.GET["type"]) if "type" in request.GET else "parties"
+        key = PartyType.api_compatible(request.GET["type"]) if "type" in request.GET else "parties"
 
         return JsonResponse(data={key: parties_data})

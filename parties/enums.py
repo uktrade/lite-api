@@ -20,6 +20,11 @@ class PartyType:
             PartyType.THIRD_PARTY: "third_parties"
         }[key]
 
+    @classmethod
+    def api_compatible(cls, party_type):
+        is_plural = party_type in [PartyType.ULTIMATE_END_USER, PartyType.THIRD_PARTY]
+        return f"{PartyType.plural(party_type)}" if is_plural else party_type
+
 
 class SubType:
     GOVERNMENT = "government"
