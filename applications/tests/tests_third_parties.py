@@ -238,9 +238,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then 200 OK
         """
         poa = self.draft.third_parties.first()
-        remove_tp_url = reverse(
-            "applications:parties", kwargs={"pk": self.draft.id, "party_pk": poa.party.id},
-        )
+        remove_tp_url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": poa.party.id},)
 
         self.assertIsNone(poa.deleted_at)  # Not marked as deleted
 
@@ -362,8 +360,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         # Delete existing third party to enable easy assertion of copied third party
         delete_url = reverse(
-            "applications:parties",
-            kwargs={"pk": self.draft.id, "party_pk": self.draft.third_parties.first().party.id},
+            "applications:parties", kwargs={"pk": self.draft.id, "party_pk": self.draft.third_parties.first().party.id},
         )
         self.client.delete(delete_url, **self.exporter_headers)
 
