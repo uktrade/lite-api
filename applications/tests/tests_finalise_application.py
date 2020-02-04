@@ -146,4 +146,3 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response_data["licence_duration"], get_default_duration(self.standard_application))
         self.assertEqual(response_data["status"], str(self.finalised_status.id))
         self.assertEqual(Audit.objects.first().verb, AuditType.FINALISED_APPLICATION.value)
-
