@@ -3,6 +3,7 @@ from copy import deepcopy
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
+from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
@@ -23,8 +24,18 @@ from applications.libraries.application_helpers import (
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
-from applications.models import BaseApplication, HmrcQuery, SiteOnApplication
-from applications.serializers.generic_application import GenericApplicationListSerializer
+from applications.models import (
+    BaseApplication,
+    HmrcQuery,
+    SiteOnApplication,
+    GoodOnApplication,
+    CountryOnApplication,
+    ExternalLocationOnApplication,
+)
+from applications.serializers.generic_application import (
+    GenericApplicationListSerializer,
+    GenericApplicationCopySerializer,
+)
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
@@ -32,6 +43,7 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication, Go
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
+from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
@@ -348,3 +360,87 @@ class ApplicationDurationView(APIView):
         duration = get_default_duration(application)
 
         return JsonResponse(data={"licence_duration": duration}, status=status.HTTP_200_OK)
+
+
+class ApplicationCopy(APIView):
+    @transaction.atomic
+    def post(self, request, pk):
+        old_application = get_application(pk)
+
+        data = request.data
+
+        serializer = GenericApplicationCopySerializer(data=data)
+
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        new_application = deepcopy(old_application)
+
+        #  clear references to parent objects, and current application instance object
+        new_application.pk = None
+        new_application.id = None
+        new_application.case_ptr = None
+        new_application.base_application_ptr = None
+
+        # replace the reference and have you been informed (if required) with users answer
+        new_application.name = request.data["name"]
+        new_application.have_you_been_informed = request.data["have_you_been_informed"]
+
+        # remove data that should not be copied
+        new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
+        set_none = [
+            "case_officer",
+            "reference_code",
+            "submitted_at",
+            "licence_duration",
+            "reference_code",
+        ]
+        for attribute in set_none:
+            setattr(new_application, attribute, None)
+
+        # need to save here to create the pk/id for further connections
+        new_application.save()
+
+        # create new many to many connection from old version to new version
+        relationships = [
+            GoodOnApplication,
+            SiteOnApplication,
+            CountryOnApplication,
+            GoodsType,
+            ExternalLocationOnApplication,
+        ]
+
+        for relation in relationships:
+            relation_objects = relation.objects.filter(application_id=old_application.id).all()
+
+            for relation_object in relation_objects:
+                relation_object.pk = None
+                relation_object.id = None
+                setattr(relation_object, "application_id", new_application.id)
+                relation_object.save()
+
+        # get all parties connected to the application and produce a copy (and replace reference for each one)
+        foreign_key_party = ["end_user", "consignee"]
+        for party_type in foreign_key_party:
+            party = getattr(old_application, party_type, False)
+
+            if party:
+                party.pk = None
+                party.id = None
+                party.save()
+                setattr(new_application, party_type, party)
+
+        many_party = ["ultimate_end_users", "third_parties"]
+        for party_type in many_party:
+            parties = getattr(old_application, party_type).all()
+
+            for party in parties:
+                party.pk = None
+                party.id = None
+                party.save()
+                getattr(new_application, party_type).add(party)
+
+        # save
+        new_application.created_at = now()
+        new_application.save()
+        return JsonResponse(data={"data": new_application.id}, status=status.HTTP_201_CREATED)

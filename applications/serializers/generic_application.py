@@ -228,3 +228,17 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return data
+
+
+class GenericApplicationCopySerializer(serializers.ModelSerializer):
+    name = serializers.CharField(allow_null=False, allow_blank=False)
+    have_you_been_informed = KeyValueChoiceField(
+        choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
+    )
+
+    class Meta:
+        model = BaseApplication
+        fields = (
+            "name",
+            "have_you_been_informed",
+        )
