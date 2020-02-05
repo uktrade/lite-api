@@ -5,6 +5,9 @@ orbs:
 
 jobs:
   tests:
+    machine:
+      docker_layer_caching: true
+    
     docker:
       - image: circleci/python:3.7
       - image: circleci/postgres:11
