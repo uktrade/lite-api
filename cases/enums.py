@@ -7,7 +7,7 @@ class CaseTypeEnum:
 
     choices = [
         (APPLICATION, "Application"),
-        (GOODS_QUERY, "Product Query"),
+        (GOODS_QUERY, "Goods Query"),
         (END_USER_ADVISORY_QUERY, "End User Advisory Query"),
         (HMRC_QUERY, "HMRC Query"),
         (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),

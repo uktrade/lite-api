@@ -440,7 +440,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_pv_grading_query(description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.YES)
+        good = DataTestClient.create_good(
+            description=description, org=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
+        )
 
         pv_grading_query = GoodsQuery.objects.create(
             clc_raised_reasons=None,

@@ -10,7 +10,7 @@ from cases.models import CaseAssignment
 from conf import constants
 from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodStatus, GoodPvGraded
+from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
 from goods.models import Good
 from lite_content.lite_api import strings
 from picklists.enums import PicklistType, PickListStatus
@@ -56,7 +56,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
             is_good_controlled=GoodControlled.UNSURE,
             is_pv_graded=GoodPvGraded.NO,
             pv_grading_details=None,
-            control_code="ML1",
+            control_code="ML1b",
             part_number="123456",
             organisation=self.organisation,
         )
@@ -334,7 +334,9 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
         super().setUp()
 
         role = Role(name="review_goods")
-        role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])
+        role.permissions.set(
+            [constants.GovPermissions.REVIEW_GOODS.name, constants.GovPermissions.RESPOND_PV_GRADING.name]
+        )
         role.save()
         self.gov_user.role = role
         self.gov_user.save()
@@ -367,29 +369,27 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
         )
         self.clc_and_pv_query.save()
 
-        self.clc_response_url = reverse(
-            "queries:goods_queries:clc_query_response", kwargs={"pk": self.clc_and_pv_query.pk}
-        )
-
+    def test_when_responding_to_only_clc_then_only_the_clc_is_responded_to(self):
+        clc_response_url = reverse("queries:goods_queries:clc_query_response", kwargs={"pk": self.clc_and_pv_query.pk})
         # The control_code and is_good_controlled must be equal to what they are currently on the good
         # otherwise two audits will be created;
         # One for the response to the query and another for updating the good
-        self.data = {
+        data = {
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
             "control_code": "ML1a",
             "is_good_controlled": "yes",
         }
-
-    def test_when_responding_to_only_clc_then_only_the_clc_system_flag_is_removed_from_case(self):
-        response = self.client.put(self.clc_response_url, self.data, **self.gov_headers)
+        response = self.client.put(clc_response_url, data, **self.gov_headers)
         self.clc_and_pv_query.refresh_from_db()
         case = self.clc_and_pv_query.get_case()
         remaining_flags = [str(id) for id in case.flags.values_list("id", flat=True)]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(SystemFlags.GOOD_CLC_QUERY_ID not in remaining_flags)
+        self.assertTrue(SystemFlags.GOOD_CLC_QUERY_ID in remaining_flags)
+        self.assertTrue(case.query.goodsquery.clc_responded)
         self.assertTrue(SystemFlags.GOOD_PV_GRADING_QUERY_ID in remaining_flags)
+        self.assertFalse(case.query.goodsquery.pv_grading_responded)
         self.assertEqual(self.clc_and_pv_query.good.status, GoodStatus.VERIFIED)
 
         # Check that an audit item has been added
@@ -397,3 +397,107 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
             target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
         )
         self.assertEqual(audit_qs.count(), 1)
+
+    def test_when_responding_to_only_pv_grading_only_it_is_responded_to(self):
+        pv_grading_response_url = reverse(
+            "queries:goods_queries:pv_grading_query_response", kwargs={"pk": self.clc_and_pv_query.pk}
+        )
+        data = {
+            "prefix": "abc",
+            "grading": PvGrading.UK_SECRET,
+            "suffix": "123",
+            "comment": "the good is graded",
+        }
+        response = self.client.put(pv_grading_response_url, data, **self.gov_headers)
+        self.clc_and_pv_query.refresh_from_db()
+        case = self.clc_and_pv_query.get_case()
+        remaining_flags = [str(id) for id in case.flags.values_list("id", flat=True)]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(SystemFlags.GOOD_CLC_QUERY_ID in remaining_flags)
+        self.assertFalse(case.query.goodsquery.clc_responded)
+        self.assertTrue(SystemFlags.GOOD_PV_GRADING_QUERY_ID in remaining_flags)
+        self.assertTrue(case.query.goodsquery.pv_grading_responded)
+        self.assertNotEqual(self.clc_and_pv_query.good.status, GoodStatus.VERIFIED)
+
+        # Check that an audit item has been added
+        audit_qs = Audit.objects.filter(
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
+        )
+        self.assertEqual(audit_qs.count(), 1)
+
+
+class PvGradingQueryRespondTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.query = self.create_pv_grading_query("This is a widget", self.organisation)
+
+        role = Role(name="review_goods")
+        role.permissions.set([constants.GovPermissions.RESPOND_PV_GRADING.name])
+        role.save()
+        self.gov_user.role = role
+        self.gov_user.save()
+
+        self.url = reverse("queries:goods_queries:pv_grading_query_response", kwargs={"pk": self.query.pk})
+
+        self.data = {
+            "prefix": "abc",
+            "grading": PvGrading.UK_SECRET,
+            "suffix": "123",
+            "comment": "the good is graded",
+        }
+
+    def test_respond_to_pv_grading_query_success(self):
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+        response_data = response.json()["pv_grading_query"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["prefix"], self.data["prefix"])
+        self.assertEqual(response_data["grading"]["key"], self.data["grading"])
+        self.assertEqual(response_data["suffix"], self.data["suffix"])
+
+        case = self.query.get_case()
+        # Check that an audit item has been added
+        audit_qs = Audit.objects.filter(
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
+        )
+        self.assertEqual(audit_qs.count(), 1)
+
+    def test_respond_to_pv_grading_query_no_grading_failure(self):
+        self.data.pop("grading")
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+        errors = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors, {"grading": [strings.PvGrading.NO_GRADING]})
+
+    def test_respond_to_pv_grading_query_success_validate_only(self):
+        self.data["validate_only"] = True
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+        self.query.refresh_from_db()
+
+        response_data = response.json()["pv_grading_query"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["prefix"], self.data["prefix"])
+        self.assertEqual(response_data["grading"], self.data["grading"])
+        self.assertEqual(response_data["suffix"], self.data["suffix"])
+        self.assertEqual(self.query.good.pv_grading_details, None)
+
+        case = self.query.get_case()
+        # Check that an audit item has been added
+        audit_qs = Audit.objects.filter(
+            target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
+        )
+        self.assertEqual(audit_qs.count(), 0)
+
+    def test_user_cannot_respond_to_pv_grading_with_case_in_terminal_state(self):
+        self.query.status = CaseStatus.objects.get(status="finalised")
+        self.query.save()
+
+        response = self.client.put(self.url, self.data, **self.gov_headers)
+
+        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR])
