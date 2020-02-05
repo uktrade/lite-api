@@ -329,12 +329,12 @@ class ApplicationFinaliseView(APIView):
 
         if action == AdviceType.REFUSE:
             audit_trail_service.create(
-                actor=request.user, verb=AuditType.REFUSED_APPLICATION, target=application.get_case(),
+                actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
             )
         elif action == AdviceType.APPROVE:
             audit_trail_service.create(
                 actor=request.user,
-                verb=AuditType.FINALISED_APPLICATION,
+                verb=AuditType.GRANTED_APPLICATION,
                 target=application.get_case(),
                 payload={"licence_duration": serializer.validated_data["licence_duration"]},
             )
