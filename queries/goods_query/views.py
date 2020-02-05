@@ -1,5 +1,4 @@
-import json
-
+from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -18,11 +17,12 @@ from flags.enums import SystemFlags
 from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
 from goods.libraries.get_goods import get_good
+from goods.libraries.get_pv_grading import get_pv_grading_value_from_key
 from goods.models import Good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
-from queries.goods_query.helpers import update_goods_query_status
 from queries.goods_query.models import GoodsQuery
+from queries.goods_query.serializers import PVGradingResponseSerializer
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -82,9 +82,11 @@ class GoodsQueriesCreate(APIView):
         if is_clc_required:
             flag = Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID)
             goods_query.flags.add(flag)
+            goods_query.clc_responded = False
         if is_pv_grading_required:
             flag = Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID)
             goods_query.flags.add(flag)
+            goods_query.pv_grading_responded = False
 
         good.save()
         goods_query.save()
@@ -94,7 +96,7 @@ class GoodsQueriesCreate(APIView):
 
 class GoodQueryCLCResponse(APIView):
     """
-    Respond to the CLC query part of a Goods Query
+    Respond to the CLC query of a Goods Query
     """
 
     authentication_classes = (GovAuthentication,)
@@ -110,7 +112,7 @@ class GoodQueryCLCResponse(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = json.loads(request.body)
+        data = request.data
 
         clc_good_serializer = ClcControlGoodSerializer(query.good, data=data)
 
@@ -121,8 +123,7 @@ class GoodQueryCLCResponse(APIView):
                 )
 
                 clc_good_serializer.save()
-                query.flags.remove(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
-                query.status = update_goods_query_status(query)
+                query.clc_responded = True
                 query.save()
 
                 new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
@@ -145,6 +146,9 @@ class GoodQueryCLCResponse(APIView):
                         },
                     )
 
+                    query.good.flags.clear()
+                    query.good.save()
+
                 audit_trail_service.create(
                     actor=request.user, verb=AuditType.CLC_RESPONSE, action_object=query.good, target=query.get_case(),
                 )
@@ -160,6 +164,71 @@ class GoodQueryCLCResponse(APIView):
             return JsonResponse(data={"control_list_classification_query": data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": clc_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GoodQueryPVGradingResponse(APIView):
+    """
+    Respond to the PV Grading query of a Goods Query
+    """
+
+    authentication_classes = (GovAuthentication,)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        """ Respond to a control list classification."""
+        assert_user_has_permission(request.user, constants.GovPermissions.RESPOND_PV_GRADING)
+
+        query = get_exporter_query(pk)
+        if CaseStatusEnum.is_terminal(query.status.status):
+            return JsonResponse(
+                data={"errors": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = request.data
+
+        pv_grading_good_serializer = PVGradingResponseSerializer(data=data)
+
+        if pv_grading_good_serializer.is_valid():
+            if not str_to_bool(data.get("validate_only")):
+                pv_grading = pv_grading_good_serializer.save()
+                self.update_query_and_good(query, data, pv_grading)
+                self.generate_audit_trail(request.user, query)
+
+                # Send a notification to the user
+                for user_relationship in UserOrganisationRelationship.objects.filter(organisation=query.organisation):
+                    user_relationship.send_notification(content_object=query, case=query)
+
+                return JsonResponse(
+                    data={"pv_grading_query": pv_grading_good_serializer.data}, status=status.HTTP_200_OK,
+                )
+
+            return JsonResponse(data={"pv_grading_query": data}, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={"errors": pv_grading_good_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update_query_and_good(self, query, data, pv_grading):
+        query.good.is_pv_graded = GoodPvGraded.YES
+        query.good.pv_grading_details = pv_grading
+        query.good.grading_comment = data.get("comment", "")
+        query.good.save()
+        query.pv_grading_responded = True
+        query.save()
+
+    def generate_audit_trail(self, user, query):
+        grading = (
+            f"{query.good.pv_grading_details.prefix} "
+            f"{get_pv_grading_value_from_key(query.good.pv_grading_details.grading)} "
+            f"{query.good.pv_grading_details.suffix}"
+        )
+
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.PV_GRADING_RESPONSE,
+            action_object=query.good,
+            target=query.get_case(),
+            payload={"grading": grading},
+        )
 
 
 class GoodQueryManageStatus(APIView):

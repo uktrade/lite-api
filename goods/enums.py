@@ -58,3 +58,11 @@ class PvGrading:
         (OCCAR_RESTRICTED, "OCCAR restricted"),
         (OCCAR_SECRET, "OCCAR secret"),
     ]
+
+    gov_choices = [
+        (UK_UNCLASSIFIED, "UK unclassified"),
+        (UK_OFFICIAL, "UK official"),
+        (UK_OFFICIAL_SENSITIVE, "UK official - sensitive"),
+        (UK_SECRET, "UK secret"),
+        (UK_TOP_SECRET, "UK top secret"),
+    ]

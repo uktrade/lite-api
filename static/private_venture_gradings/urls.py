@@ -1,9 +1,10 @@
 from django.urls import path
 
-from static.private_venture_gradings.views import PVGradingsList
+from static.private_venture_gradings import views
 
 app_name = "private_venture_gradings"
 
 urlpatterns = [
-    path("", PVGradingsList.as_view(), name="private_venture_gradings"),
+    path("", views.PVGradingsList.as_view(), name="private_venture_gradings"),
+    path("gov/", views.GovPVGradingsList.as_view(), name="gov_private_venture_gradings"),
 ]
