@@ -7,6 +7,7 @@ class GovPermissions(Enum):
     MANAGE_TEAM_ADVICE = "Manage team advice"
     MANAGE_TEAM_CONFIRM_OWN_ADVICE = "Confirm own advice"
     REVIEW_GOODS = "Review goods"
+    RESPOND_PV_GRADING = "Respond to grading"
     ADMINISTER_ROLES = "Administer roles"
     CONFIRM_OWN_ADVICE = "Confirm own advice"
     CONFIGURE_TEMPLATES = "Create and edit templates"
