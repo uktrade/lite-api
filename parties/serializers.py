@@ -53,7 +53,7 @@ class PartySerializer(serializers.ModelSerializer):
             "role",
             "flags",
             "copy_of",
-            "deleted_at"
+            "deleted_at",
         )
 
     def __init__(self, *args, **kwargs):
