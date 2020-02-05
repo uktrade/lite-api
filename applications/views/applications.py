@@ -255,13 +255,13 @@ class ApplicationManageStatus(APIView):
 
             if not can_status_can_be_set_by_exporter_user(application.status.status, data["status"]):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
+                    data={"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             if not can_status_can_be_set_by_gov_user(request.user, application.status.status, data["status"]):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
+                    data={"errors": [strings.Applications.Finalise.Error.GOV_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

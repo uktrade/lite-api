@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.models import CaseAssignment
+from lite_content.lite_api import strings
 from users.models import UserOrganisationRelationship
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -23,7 +24,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json().get("errors")[0], "Status cannot be set by Gov user.")
+        self.assertEqual(response.json().get("errors")[0], strings.Applications.Finalise.Error.GOV_SET_STATUS)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
     def test_set_application_status_on_application_not_in_users_organisation_failure(self):
@@ -111,15 +112,6 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.UNDER_FINAL_REVIEW))
 
-    def test_status_cannot_be_set_to_finalised(self):
-        data = {"status": CaseStatusEnum.FINALISED}
-        response = self.client.put(self.url, data=data, **self.exporter_headers)
-
-        self.standard_application.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json().get("errors")[0], "Status cannot be set to finalised.")
-
     @parameterized.expand(
         [
             status
@@ -141,13 +133,51 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
+
+    def test_exporter_set_application_status_surrendered_success(self):
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        self.standard_application.save()
+
+        data = {"status": CaseStatusEnum.SURRENDERED}
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SURRENDERED))
+
+    def test_exporter_set_application_status_surrendered_failure(self):
+        """ Test failure in exporter user setting a case status to surrendered when the case was not
+        previously finalised.
+        """
+        self.standard_application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        self.standard_application.save()
+
+        data = {"status": CaseStatusEnum.SURRENDERED}
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]})
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
+
+    def test_status_cannot_be_set_to_finalised(self):
+        data = {"status": CaseStatusEnum.FINALISED}
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json().get("errors")[0], strings.Applications.Finalise.Error.SET_FINALISED)
+
     def test_gov_set_status_to_applicant_editing_failure(self):
         data = {"status": CaseStatusEnum.APPLICANT_EDITING}
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json().get("errors")[0], "Status cannot be set by Gov user.")
+        self.assertEqual(response.json().get("errors")[0], strings.Applications.Finalise.Error.GOV_SET_STATUS)
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
