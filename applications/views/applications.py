@@ -369,7 +369,9 @@ class ApplicationCopy(APIView):
 
         data = request.data
 
-        serializer = GenericApplicationCopySerializer(data=data)
+        serializer = GenericApplicationCopySerializer(
+            data=data, context={"application_type": old_application.application_type}
+        )
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -384,10 +386,10 @@ class ApplicationCopy(APIView):
 
         # replace the reference and have you been informed (if required) with users answer
         new_application.name = request.data["name"]
-        new_application.have_you_been_informed = request.data["have_you_been_informed"]
+        new_application.have_you_been_informed = request.data.get("have_you_been_informed")
+        new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
 
         # remove data that should not be copied
-        new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         set_none = [
             "case_officer",
             "reference_code",

@@ -242,3 +242,12 @@ class GenericApplicationCopySerializer(serializers.ModelSerializer):
             "name",
             "have_you_been_informed",
         )
+
+    def __init__(self, context=None, *args, **kwargs):
+
+        if context and not context.get("application_type") == ApplicationType.STANDARD_LICENCE:
+            self.fields["have_you_been_informed"] = serializers.CharField(
+                required=False, allow_null=True, allow_blank=True
+            )
+
+        super().__init__(*args, **kwargs)

@@ -61,7 +61,7 @@ class DraftCopyTests(DataTestClient):
 
         url = reverse_lazy("applications:copy", kwargs={"pk": application.id})
 
-        data = {"name": "New application", "have_you_been_informed": ApplicationExportLicenceOfficialType.YES}
+        data = {"name": "New application"}
 
         response = self.client.post(url, data, **self.exporter_headers)
         response_data = response.json()["data"]
@@ -78,7 +78,40 @@ class DraftCopyTests(DataTestClient):
 
         url = reverse_lazy("applications:copy", kwargs={"pk": application.id})
 
-        data = {"name": "New application", "have_you_been_informed": ApplicationExportLicenceOfficialType.YES}
+        data = {"name": "New application"}
+
+        response = self.client.post(url, data, **self.exporter_headers)
+        response_data = response.json()["data"]
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(response_data, application.id)
+
+    def test_copy_draft_exhibition_application_successful(self):
+        """
+        Ensure we can create a new standard application draft object
+        """
+        application = self.create_exhibition_clearance_application(self.organisation)
+
+        url = reverse_lazy("applications:copy", kwargs={"pk": application.id})
+
+        data = {"name": "New application"}
+
+        response = self.client.post(url, data, **self.exporter_headers)
+        response_data = response.json()["data"]
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(response_data, application.id)
+
+    def test_copy_submitted_exhibition_application_successful(self):
+        """
+        Ensure we can create a new standard application draft object
+        """
+        application = self.create_exhibition_clearance_application(self.organisation)
+        self.submit_application(application)
+
+        url = reverse_lazy("applications:copy", kwargs={"pk": application.id})
+
+        data = {"name": "New application"}
 
         response = self.client.post(url, data, **self.exporter_headers)
         response_data = response.json()["data"]
