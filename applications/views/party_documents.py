@@ -5,18 +5,10 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
-from applications.libraries.document_helpers import (
-    upload_party_document,
-    delete_party_document,
-    get_party_document,
-)
+from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
 from applications.models import PartyOnApplication
 from conf.authentication import ExporterAuthentication
-from conf.decorators import (
-    authorised_users,
-    application_in_major_editable_state,
-    allowed_application_types,
-)
+from conf.decorators import authorised_users, allowed_application_types
 from parties.serializers import PartyDocumentSerializer
 from users.models import ExporterUser
 
@@ -34,10 +26,9 @@ class PartyDocumentView(APIView):
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
         try:
-            party = application.parties.all().get(party__pk=party_pk).party
+            party = application.active_parties.all().get(party__pk=party_pk).party
         except PartyOnApplication.DoesNotExist:
             return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
-
         return get_party_document(party)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
@@ -45,7 +36,6 @@ class PartyDocumentView(APIView):
     @allowed_application_types(
         [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
     )
-    @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, party_pk):
         try:
@@ -54,7 +44,6 @@ class PartyDocumentView(APIView):
             ).party
         except PartyOnApplication.DoesNotExist:
             return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
-
         return upload_party_document(party, request.data, application, request.user)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
@@ -70,5 +59,4 @@ class PartyDocumentView(APIView):
             ).party
         except PartyOnApplication.DoesNotExist:
             return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
-
         return delete_party_document(party, application, request.user)

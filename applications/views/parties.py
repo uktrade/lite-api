@@ -30,7 +30,6 @@ class ApplicationPartyView(APIView):
         """
         Add a party to an application.
         """
-        # Check if application is in an editable state.
         if not application.is_major_editable():
             return JsonResponse(
                 data={
@@ -41,6 +40,7 @@ class ApplicationPartyView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
         data = request.data
         data["organisation"] = request.user.organisation.id
 
@@ -86,7 +86,7 @@ class ApplicationPartyView(APIView):
         Delete an ultimate end user and remove it from the application
         """
         try:
-            poa = application.parties.all().get(party__pk=party_pk)
+            poa = application.active_parties.all().get(party__pk=party_pk)
         except PartyOnApplication.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
@@ -117,7 +117,7 @@ class ApplicationPartyView(APIView):
         """
         Get parties for an application
         """
-        application_parties = application.parties.all().filter(deleted_at__isnull=True).select_related("party")
+        application_parties = application.active_parties.all().filter(deleted_at__isnull=True).select_related("party")
 
         if "type" in request.GET:
             application_parties = application_parties.filter(party__type=request.GET["type"])

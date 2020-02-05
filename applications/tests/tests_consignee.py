@@ -85,7 +85,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         When attempting to add an invalid consignee
         Then the consignee is not added to the draft
         """
-        PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE).delete()
+        self.draft.delete_party(PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE))
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
@@ -128,7 +128,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no consignees have been added
         """
-        PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE).delete()
+        self.draft.delete_party(PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE))
         data = {
             "name": "Government of Paraguay",
             "address": "Asuncion",
@@ -158,7 +158,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         Then a 404 NOT FOUND is returned
         """
         poa = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE)
-        poa.delete()
+        self.draft.delete_party(poa)
 
         url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
 

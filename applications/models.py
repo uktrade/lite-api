@@ -77,11 +77,12 @@ class ApplicationPartyMixin:
         return is_editable
 
     @property
-    def parties_on_application(self):
-        return (
-            self.parties.filter(deleted_at__isnull=True)
-            .prefetch_related("party__flags")
-            .select_related("party", "party__organisation", "party__country")
+    def active_parties(self):
+        return self.all_parties().filter(deleted_at__isnull=True)
+
+    def all_parties(self):
+        return self.parties.prefetch_related("party__flags").select_related(
+            "party", "party__organisation", "party__country"
         )
 
     @property
@@ -91,7 +92,7 @@ class ApplicationPartyMixin:
         Standard and HMRC Query applications
         """
         try:
-            return self.parties_on_application.get(party__type=PartyType.CONSIGNEE)
+            return self.active_parties.get(party__type=PartyType.CONSIGNEE)
         except PartyOnApplication.DoesNotExist:
             pass
 
@@ -102,7 +103,7 @@ class ApplicationPartyMixin:
         Standard and HMRC Query applications
         """
         try:
-            return self.parties_on_application.get(party__type=PartyType.END_USER)
+            return self.active_parties.get(party__type=PartyType.END_USER)
         except PartyOnApplication.DoesNotExist:
             pass
 
@@ -112,7 +113,7 @@ class ApplicationPartyMixin:
         Backwards compatible
         Standard and HMRC Query applications
         """
-        return self.parties_on_application.filter(party__type=PartyType.ULTIMATE_END_USER)
+        return self.active_parties.filter(party__type=PartyType.ULTIMATE_END_USER)
 
     @property
     def third_parties(self):
@@ -120,12 +121,7 @@ class ApplicationPartyMixin:
         Backwards compatible
         Standard and HMRC Query applications
         """
-        qs = (
-            self.parties.filter(deleted_at__isnull=True)
-            .select_related("party", "party__organisation")
-            .prefetch_related("party__flags")
-        )
-        return qs.filter(party__type=PartyType.THIRD_PARTY)
+        return self.active_parties.filter(party__type=PartyType.THIRD_PARTY)
 
 
 class BaseApplication(ApplicationPartyMixin, Case):

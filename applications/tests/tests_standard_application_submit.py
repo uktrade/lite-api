@@ -62,7 +62,7 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_submit_standard_application_without_end_user_failure(self):
-        PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.END_USER).delete()
+        self.draft.delete_party(PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER))
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
@@ -86,7 +86,8 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_submit_standard_application_without_consignee_failure(self):
-        PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE).delete()
+        self.draft.delete_party(self.draft.consignee)
+
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)

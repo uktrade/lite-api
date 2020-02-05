@@ -36,6 +36,7 @@ class PartySerializer(serializers.ModelSerializer):
     )
     flags = FlagSerializer(many=True, required=False)
     copy_of = relations.PrimaryKeyRelatedField(queryset=Party.objects.all(), allow_null=True, required=False)
+    deleted_at = serializers.DateTimeField(allow_null=True, required=False)
 
     class Meta:
         model = Party
@@ -52,6 +53,7 @@ class PartySerializer(serializers.ModelSerializer):
             "role",
             "flags",
             "copy_of",
+            "deleted_at"
         )
 
     def __init__(self, *args, **kwargs):

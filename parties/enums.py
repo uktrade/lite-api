@@ -4,6 +4,8 @@ class PartyType:
     ULTIMATE_END_USER = "ultimate_end_user"
     THIRD_PARTY = "third_party"
 
+    INACTIVE_PARTIES = "inactive_parties"
+
     choices = [
         (CONSIGNEE, "Consignee"),
         (END_USER, "End User"),
