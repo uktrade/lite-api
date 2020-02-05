@@ -266,6 +266,11 @@ class ApplicationManageStatus(APIView):
                 )
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
+            if not application.licence_duration:
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Finalise.Error.SURRENDER]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             application.licence_duration = None
 
         case_status = get_case_status_by_status(data["status"])
