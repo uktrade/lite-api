@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-black = "~=19.10b0"
+black = "==19.10b0"
 bandit = "~=1.6.2"
 coverage = "~=5.0.3"
 parameterized = "~=0.7.1"
@@ -30,7 +30,7 @@ psycopg2 = "~=2.8.2"
 python-json-logger = "~=0.1.11"
 requests-toolbelt = "~=0.9.1"
 tblib = "~=1.6.0"
-weasyprint = "~=51"
+weasyprint = "~=51.0"
 
 [requires]
 python_version = "3.7"
