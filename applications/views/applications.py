@@ -374,7 +374,7 @@ class ApplicationCopy(APIView):
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        new_application = deepcopy(old_application)
+        new_application = old_application
 
         #  clear references to parent objects, and current application instance object
         new_application.pk = None
@@ -432,13 +432,14 @@ class ApplicationCopy(APIView):
 
         many_party = ["ultimate_end_users", "third_parties"]
         for party_type in many_party:
-            parties = getattr(old_application, party_type).all()
+            if getattr(old_application, party_type, False):
+                parties = getattr(old_application, party_type).all()
 
-            for party in parties:
-                party.pk = None
-                party.id = None
-                party.save()
-                getattr(new_application, party_type).add(party)
+                for party in parties:
+                    party.pk = None
+                    party.id = None
+                    party.save()
+                    getattr(new_application, party_type).add(party)
 
         # save
         new_application.created_at = now()
