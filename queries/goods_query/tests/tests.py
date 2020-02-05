@@ -56,7 +56,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
             is_good_controlled=GoodControlled.UNSURE,
             is_pv_graded=GoodPvGraded.NO,
             pv_grading_details=None,
-            control_code="ML1",
+            control_code="ML1b",
             part_number="123456",
             organisation=self.organisation,
         )
