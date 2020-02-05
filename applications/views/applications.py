@@ -395,7 +395,6 @@ class ApplicationCopy(APIView):
             "reference_code",
             "submitted_at",
             "licence_duration",
-            "reference_code",
         ]
         for attribute in set_none:
             setattr(new_application, attribute, None)
