@@ -265,6 +265,9 @@ class ApplicationManageStatus(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+        if data["status"] == CaseStatusEnum.SURRENDERED:
+            application.licence_duration = None
+
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
 
