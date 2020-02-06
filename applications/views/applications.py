@@ -27,7 +27,7 @@ from applications.models import BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum, AdviceType
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
@@ -303,6 +303,7 @@ class ApplicationFinaliseView(APIView):
         data = deepcopy(request.data)
 
         default_licence_duration = get_default_duration(application)
+        action = data.get("action")
 
         if (
             data.get("licence_duration") is not None
@@ -313,7 +314,7 @@ class ApplicationFinaliseView(APIView):
                 data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        else:
+        elif action == AdviceType.APPROVE:
             data["licence_duration"] = data.get("licence_duration", default_licence_duration)
 
         data["status"] = str(get_case_status_by_status(CaseStatusEnum.FINALISED).pk)
@@ -326,12 +327,17 @@ class ApplicationFinaliseView(APIView):
 
         serializer.save()
 
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.FINALISED_APPLICATION,
-            target=application.get_case(),
-            payload={"licence_duration": serializer.validated_data["licence_duration"]},
-        )
+        if action == AdviceType.REFUSE:
+            audit_trail_service.create(
+                actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
+            )
+        elif action == AdviceType.APPROVE:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.GRANTED_APPLICATION,
+                target=application.get_case(),
+                payload={"licence_duration": serializer.validated_data["licence_duration"]},
+            )
 
         return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
