@@ -3,7 +3,6 @@ from collections import defaultdict
 from rest_framework import serializers
 
 from applications.enums import ApplicationType
-from applications.models import PartyOnApplication
 from parties.enums import PartyType
 from parties.serializers import PartySerializer
 
