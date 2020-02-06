@@ -7,58 +7,125 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parties', '0006_party_copy_of'),
-        ('applications', '0010_hmrcquery_is_goods_departed'),
+        ("parties", "0006_party_copy_of"),
+        ("applications", "0010_hmrcquery_is_goods_departed"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='baseapplication',
-            name='application_type',
-            field=models.CharField(choices=[('standard_licence', 'Standard Licence'), ('open_licence', 'Open Licence'), ('hmrc_query', 'HMRC Query'), ('exhibition_clearance', 'MOD Exhibition Clearance'), ('gifting_clearance', 'Gifting Clearance'), ('F680_clearance', 'F680 Clearance')], default=None, max_length=50),
+            model_name="baseapplication",
+            name="application_type",
+            field=models.CharField(
+                choices=[
+                    ("standard_licence", "Standard Licence"),
+                    ("open_licence", "Open Licence"),
+                    ("hmrc_query", "HMRC Query"),
+                    ("exhibition_clearance", "MOD Exhibition Clearance"),
+                    ("gifting_clearance", "Gifting Clearance"),
+                    ("F680_clearance", "F680 Clearance"),
+                ],
+                default=None,
+                max_length=50,
+            ),
         ),
         migrations.AlterField(
-            model_name='exhibitionclearanceapplication',
-            name='consignee',
-            field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='exhibition_consignee', to='parties.Consignee'),
+            model_name="exhibitionclearanceapplication",
+            name="consignee",
+            field=models.ForeignKey(
+                blank=True,
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="exhibition_consignee",
+                to="parties.Consignee",
+            ),
         ),
         migrations.AlterField(
-            model_name='exhibitionclearanceapplication',
-            name='end_user',
-            field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='exhibition_end_user', to='parties.EndUser'),
+            model_name="exhibitionclearanceapplication",
+            name="end_user",
+            field=models.ForeignKey(
+                blank=True,
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="exhibition_end_user",
+                to="parties.EndUser",
+            ),
         ),
         migrations.AlterField(
-            model_name='exhibitionclearanceapplication',
-            name='third_parties',
-            field=models.ManyToManyField(related_name='exhibition_third_parties', to='parties.ThirdParty'),
+            model_name="exhibitionclearanceapplication",
+            name="third_parties",
+            field=models.ManyToManyField(related_name="exhibition_third_parties", to="parties.ThirdParty"),
         ),
         migrations.AlterField(
-            model_name='exhibitionclearanceapplication',
-            name='ultimate_end_users',
-            field=models.ManyToManyField(related_name='exhibition_ultimate_end_users', to='parties.UltimateEndUser'),
+            model_name="exhibitionclearanceapplication",
+            name="ultimate_end_users",
+            field=models.ManyToManyField(related_name="exhibition_ultimate_end_users", to="parties.UltimateEndUser"),
         ),
         migrations.CreateModel(
-            name='GiftingClearanceApplication',
+            name="GiftingClearanceApplication",
             fields=[
-                ('baseapplication_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='applications.BaseApplication')),
-                ('end_user', models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='gifting_end_user', to='parties.EndUser')),
-                ('third_parties', models.ManyToManyField(related_name='gifting_third_parties', to='parties.ThirdParty')),
+                (
+                    "baseapplication_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="applications.BaseApplication",
+                    ),
+                ),
+                (
+                    "end_user",
+                    models.ForeignKey(
+                        blank=True,
+                        default=None,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="gifting_end_user",
+                        to="parties.EndUser",
+                    ),
+                ),
+                (
+                    "third_parties",
+                    models.ManyToManyField(related_name="gifting_third_parties", to="parties.ThirdParty"),
+                ),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('applications.baseapplication',),
+            options={"abstract": False,},
+            bases=("applications.baseapplication",),
         ),
         migrations.CreateModel(
-            name='FSixEightyClearanceApplication',
+            name="FSixEightyClearanceApplication",
             fields=[
-                ('baseapplication_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='applications.BaseApplication')),
-                ('end_user', models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='f_six_eighty_end_user', to='parties.EndUser')),
-                ('third_parties', models.ManyToManyField(related_name='f_six_eighty_third_parties', to='parties.ThirdParty')),
+                (
+                    "baseapplication_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="applications.BaseApplication",
+                    ),
+                ),
+                (
+                    "end_user",
+                    models.ForeignKey(
+                        blank=True,
+                        default=None,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="f_six_eighty_end_user",
+                        to="parties.EndUser",
+                    ),
+                ),
+                (
+                    "third_parties",
+                    models.ManyToManyField(related_name="f_six_eighty_third_parties", to="parties.ThirdParty"),
+                ),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('applications.baseapplication',),
+            options={"abstract": False,},
+            bases=("applications.baseapplication",),
         ),
     ]
