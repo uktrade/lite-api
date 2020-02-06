@@ -81,23 +81,13 @@ def _validate_goods_types(draft, errors):
     return errors
 
 
-def _validate_standard_licence(draft, errors):
-    errors = _validate_end_user(draft, errors)
-    errors = _validate_consignee(draft, errors)
-
+def _validate_ultimate_end_users(draft, errors):
     ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory=True)
     if ultimate_end_user_documents_error:
         errors["ultimate_end_user_documents"] = ultimate_end_user_documents_error
 
-    third_parties_documents_error = check_parties_documents(draft.third_parties.all(), is_mandatory=False)
-    if third_parties_documents_error:
-        errors["third_parties_documents"] = third_parties_documents_error
-
-    if not GoodOnApplication.objects.filter(application=draft):
-        errors["goods"] = strings.Applications.Standard.NO_GOODS_SET
-
     ultimate_end_user_required = False
-    if next(filter(lambda x: x.is_good_incorporated, GoodOnApplication.objects.filter(application=draft),), None,):
+    if next(filter(lambda x: x.is_good_incorporated, GoodOnApplication.objects.filter(application=draft), ), None, ):
         ultimate_end_user_required = True
 
     if ultimate_end_user_required:
@@ -108,6 +98,31 @@ def _validate_standard_licence(draft, errors):
             for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                 if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.id):
                     errors["ultimate_end_users"] = strings.Applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
+
+    return errors
+
+
+def _validate_third_parties(draft, errors):
+    third_parties_documents_error = check_parties_documents(draft.third_parties.all(), is_mandatory=False)
+    if third_parties_documents_error:
+        errors["third_parties_documents"] = third_parties_documents_error
+
+    return errors
+
+
+def _validate_has_goods(draft, errors):
+    if not GoodOnApplication.objects.filter(application=draft):
+        errors["goods"] = strings.Applications.Standard.NO_GOODS_SET
+
+    return errors
+
+
+def _validate_standard_licence(draft, errors):
+    errors = _validate_end_user(draft, errors)
+    errors = _validate_consignee(draft, errors)
+    errors = _validate_third_parties(draft, errors)
+    errors = _validate_has_goods(draft, errors)
+    errors = _validate_ultimate_end_users(draft, errors)
 
     return errors
 
