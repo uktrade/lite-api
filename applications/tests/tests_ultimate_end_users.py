@@ -218,7 +218,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.draft.ultimate_end_users.count(), 0)
 
     def test_ultimate_end_user_validate_only_success(self):

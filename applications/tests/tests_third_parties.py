@@ -222,7 +222,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         """
         response = self.client.delete(self.document_url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
     @mock.patch("documents.tasks.prepare_document.now")
