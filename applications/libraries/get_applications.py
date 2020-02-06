@@ -3,6 +3,8 @@ from django.http import Http404
 from applications.enums import ApplicationType
 from applications.models import (
     BaseApplication,
+    FSixEightyClearanceApplication,
+    GiftingClearanceApplication,
     OpenApplication,
     StandardApplication,
     HmrcQuery,
@@ -26,6 +28,10 @@ def get_application(pk, organisation_id=None):
             return HmrcQuery.objects.get(pk=pk)
         elif application_type == ApplicationType.EXHIBITION_CLEARANCE:
             return ExhibitionClearanceApplication.objects.get(pk=pk)
+        elif application_type == ApplicationType.GIFTING_CLEARANCE:
+            return GiftingClearanceApplication.objects.get(pk=pk)
+        elif application_type == ApplicationType.F_SIX_EIGHTY_CLEARANCE:
+            return FSixEightyClearanceApplication.objects.get(pk=pk)
         else:
             raise NotImplementedError(f"get_application does not support this application type: {application_type}")
     except (
