@@ -15,6 +15,7 @@ from applications.models import (
     ExhibitionClearanceApplication,
     GoodOnApplication,
 )
+from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from parties.models import UltimateEndUser, ThirdParty
 from static.statuses.enums import CaseStatusEnum
@@ -27,7 +28,7 @@ class CopyTests(DataTestClient):
     # standard application
     def test_copy_draft_standard_application_successful(self):
         """
-        Ensure we can create a new standard application draft object
+        Ensure we can copy a standard application that is a draft
         """
         self.original_application = self.create_standard_application(self.organisation)
 
@@ -47,7 +48,7 @@ class CopyTests(DataTestClient):
 
     def test_copy_submitted_standard_application_successful(self):
         """
-        Ensure we can create a new standard application draft object
+        Ensure we can copy a standard application that has been submitted (ongoing or not)
         """
         self.original_application = self.create_standard_application_case(self.organisation)
 
@@ -67,7 +68,7 @@ class CopyTests(DataTestClient):
 
     def test_copy_draft_open_application_successful(self):
         """
-        Ensure we can create a new standard application draft object
+        Ensure we can copy an open application that is a draft
         """
         self.original_application = self.create_open_application(self.organisation)
 
@@ -87,7 +88,7 @@ class CopyTests(DataTestClient):
 
     def test_copy_submitted_open_application_successful(self):
         """
-        Ensure we can create a new standard application draft object
+        Ensure we can copy an open application that is submitted (ongoing or otherwise)
         """
         self.original_application = self.create_open_application(self.organisation)
         self.submit_application(self.original_application)
@@ -108,7 +109,7 @@ class CopyTests(DataTestClient):
 
     def test_copy_draft_exhibition_application_successful(self):
         """
-        Ensure we can create a new standard application draft object
+        Ensure we can copy an exhibition application that is a draft
         """
         application = self.create_exhibition_clearance_application(self.organisation)
 
@@ -122,9 +123,11 @@ class CopyTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertNotEqual(response_data, application.id)
 
+        self.exhibition_application_test()
+
     def test_copy_submitted_exhibition_application_successful(self):
         """
-        Ensure we can create a new standard application draft object
+        Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
         application = self.create_exhibition_clearance_application(self.organisation)
         self.submit_application(application)
@@ -138,6 +141,49 @@ class CopyTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertNotEqual(response_data, application.id)
+
+        self.exhibition_application_test()
+
+    def test_copy_draft_hmrc_enquiry_successful(self):
+        """
+        Ensure we can copy an hmrc enquiry that is a draft
+        """
+        self.original_application = self.create_hmrc_query(self.organisation)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application", "have_you_been_informed": ApplicationExportLicenceOfficialType.YES}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = HmrcQuery.objects.get(id=self.response_data)
+
+        # self.hmrc_enquiry_test()
+
+    def test_copy_submitted_hmrc_enquiry_successful(self):
+        """
+        Ensure we can copy an hmrc enquiry that is submitted ongoing or otherwise
+        """
+        self.original_application = self.create_hmrc_query(self.organisation)
+        self.submit_application(self.original_application)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application", "have_you_been_informed": ApplicationExportLicenceOfficialType.YES}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = HmrcQuery.objects.get(id=self.response_data)
+
+        # self.hmrc_enquiry_test()
 
     def standard_application_test(self):
         self.reset_data_test()
@@ -154,7 +200,7 @@ class CopyTests(DataTestClient):
     def open_application_test(self):
         self.reset_data_test()
 
-        self.good_on_application_test()  # update with goodtype
+        self.goodstype_test()  # update with goodtype
 
         self.country_on_application_test()
 
@@ -243,3 +289,7 @@ class CopyTests(DataTestClient):
 
     def country_on_application_test(self):
         self.assertIsNotNone(self.copied_application.application_countries)
+
+    def goodstype_test(self):
+        goodstype_objects = GoodsType.objects.filter(application_id=self.copied_application.id)
+        self.assertIsNotNone(goodstype_objects)

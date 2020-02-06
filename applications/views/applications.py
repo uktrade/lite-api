@@ -402,7 +402,7 @@ class ApplicationCopy(APIView):
         # need to save here to create the pk/id for relationships
         new_application.save()
 
-        # create new many to many connection from old version to new version
+        # create new many to many connection using data from old application
         relationships = [
             GoodOnApplication,
             SiteOnApplication,
@@ -418,6 +418,8 @@ class ApplicationCopy(APIView):
                 relation_object.pk = None
                 relation_object.id = None
                 setattr(relation_object, "application_id", new_application.id)
+                if getattr(relation_object, "created_at", False):
+                    relation_object.created_at = now()
                 relation_object.save()
 
         # get all parties connected to the application and produce a copy (and replace reference for each one)
