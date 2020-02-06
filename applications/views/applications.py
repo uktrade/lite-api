@@ -399,7 +399,7 @@ class ApplicationCopy(APIView):
         for attribute in set_none:
             setattr(new_application, attribute, None)
 
-        # need to save here to create the pk/id for further connections
+        # need to save here to create the pk/id for relationships
         new_application.save()
 
         # create new many to many connection from old version to new version
@@ -426,8 +426,10 @@ class ApplicationCopy(APIView):
             party = getattr(old_application, party_type, False)
 
             if party:
+                party.copy_of_id = party.id
                 party.pk = None
                 party.id = None
+                party.created_at = now()
                 party.save()
                 setattr(new_application, party_type, party)
 
@@ -437,8 +439,10 @@ class ApplicationCopy(APIView):
                 parties = getattr(old_application, party_type).all()
 
                 for party in parties:
+                    party.copy_of_id = party.id
                     party.pk = None
                     party.id = None
+                    party.created_at = now()
                     party.save()
                     getattr(new_application, party_type).add(party)
 
