@@ -132,6 +132,25 @@ def _validate_exhibition_clearance(draft, errors):
     return _validate_standard_licence(draft, errors)
 
 
+def _validate_gifting_clearance(draft, errors):
+    errors = _validate_end_user(draft, errors)
+    errors = _validate_third_parties(draft, errors)
+    errors = _validate_has_goods(draft, errors)
+
+    return errors
+
+
+def _validate_f_six_eighty_clearance(draft, errors):
+    errors = _validate_end_user(draft, errors)
+    errors = _validate_third_parties(draft, errors)
+    errors = _validate_has_goods(draft, errors)
+
+    if not draft.end_user and not draft.third_parties:
+        errors["party"] = "F680's require at least 1 End User or Third Party"
+
+    return errors
+
+
 def _validate_open_licence(draft, errors):
     if len(CountryOnApplication.objects.filter(application=draft)) == 0:
         errors["countries"] = strings.Applications.Open.NO_COUNTRIES_SET
@@ -168,6 +187,10 @@ def validate_application_ready_for_submission(application):
         _validate_hmrc_query(application, errors)
     elif application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
         _validate_exhibition_clearance(application, errors)
+    elif application.application_type == ApplicationType.GIFTING_CLEARANCE:
+        _validate_gifting_clearance(application, errors)
+    elif application.application_type == ApplicationType.F_SIX_EIGHTY_CLEARANCE:
+        _validate_f_six_eighty_clearance(application, errors)
     else:
         errors["unsupported_application"] = "You can only validate a supported application type"
 
