@@ -45,17 +45,33 @@ class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
 
 
+# MOD Clearances
 class ExhibitionClearanceApplication(BaseApplication):
     end_user = models.ForeignKey(
-        EndUser, related_name="clearance_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+        EndUser, related_name="exhibition_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
-    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="clearance_ultimate_end_users")
+    ultimate_end_users = models.ManyToManyField(UltimateEndUser, related_name="exhibition_ultimate_end_users")
     consignee = models.ForeignKey(
-        Consignee, related_name="clearance_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
+        Consignee, related_name="exhibition_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
-    third_parties = models.ManyToManyField(ThirdParty, related_name="clearance_third_parties")
+    third_parties = models.ManyToManyField(ThirdParty, related_name="exhibition_third_parties")
 
 
+class GiftingClearanceApplication(BaseApplication):
+    end_user = models.ForeignKey(
+        EndUser, related_name="gifting_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    third_parties = models.ManyToManyField(ThirdParty, related_name="gifting_third_parties")
+
+
+class FSixEightyClearanceApplication(BaseApplication):
+    end_user = models.ForeignKey(
+        EndUser, related_name="f_six_eighty_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+    )
+    third_parties = models.ManyToManyField(ThirdParty, related_name="f_six_eighty_third_parties")
+
+
+# Queries
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
     end_user = models.ForeignKey(
