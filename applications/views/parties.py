@@ -70,7 +70,7 @@ class ApplicationPartyView(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
         """
-        Delete an ultimate end user and remove it from the application
+        Removes a party from application.
         """
         try:
             poa = application.active_parties.all().get(party__pk=party_pk)
