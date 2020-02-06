@@ -22,8 +22,8 @@ def can_status_can_be_set_by_exporter_user(original_status: str, new_status: str
     if new_status == CaseStatusEnum.WITHDRAWN:
         if CaseStatusEnum.is_terminal(original_status):
             return False
-    elif original_status == CaseStatusEnum.FINALISED:
-        if new_status != CaseStatusEnum.SURRENDERED:
+    elif new_status == CaseStatusEnum.SURRENDERED:
+        if original_status != CaseStatusEnum.FINALISED:
             return False
     elif CaseStatusEnum.is_read_only(original_status) or new_status != CaseStatusEnum.APPLICANT_EDITING:
         return False
