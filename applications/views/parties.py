@@ -28,7 +28,13 @@ class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -76,7 +82,13 @@ class ApplicationEndUser(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -273,7 +285,13 @@ class ApplicationThirdParties(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application):
@@ -285,7 +303,13 @@ class ApplicationThirdParties(APIView):
         return JsonResponse(data={"third_parties": third_party_data})
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -321,7 +345,13 @@ class RemoveThirdParty(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     @application_in_editable_state()

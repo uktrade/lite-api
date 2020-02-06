@@ -38,7 +38,14 @@ class ApplicationGoodsOnApplication(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.EXHIBITION_CLEARANCE])
+    @allowed_application_types(
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
+    )
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods = GoodOnApplication.objects.filter(application=application)
@@ -46,7 +53,14 @@ class ApplicationGoodsOnApplication(APIView):
 
         return JsonResponse(data={"goods": goods_data})
 
-    @allowed_application_types([ApplicationType.STANDARD_LICENCE, ApplicationType.EXHIBITION_CLEARANCE])
+    @allowed_application_types(
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
+    )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):

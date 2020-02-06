@@ -32,7 +32,13 @@ class EndUserDocumentView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application):
@@ -42,7 +48,13 @@ class EndUserDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -53,7 +65,13 @@ class EndUserDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application):
@@ -143,7 +161,13 @@ class ThirdPartyDocumentView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application, tp_pk):
@@ -153,7 +177,13 @@ class ThirdPartyDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -164,7 +194,13 @@ class ThirdPartyDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application, tp_pk):
