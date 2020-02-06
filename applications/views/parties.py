@@ -12,10 +12,8 @@ from conf.decorators import (
     allowed_application_types,
 )
 from conf.helpers import str_to_bool
-from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.serializers import PartySerializer
-from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -90,7 +88,7 @@ class ApplicationPartyView(APIView):
             payload={"party_type": poa.party.type.replace("_", " "), "party_name": poa.party.name,},
         )
 
-        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+        return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)
 
     @allowed_application_types(
         [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
@@ -110,3 +108,5 @@ class ApplicationPartyView(APIView):
         key = PartyType.api_compatible(request.GET["type"]) if "type" in request.GET else "parties"
 
         return JsonResponse(data={key: parties_data})
+
+

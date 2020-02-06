@@ -9,12 +9,12 @@ from applications.libraries.document_helpers import (
     upload_application_document,
     delete_application_document,
     get_application_document,
-    get_application_documents,
     upload_goods_type_document,
     delete_goods_type_document,
     get_goods_type_document,
     get_generated_case_document,
 )
+from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentExporterSerializer
@@ -43,7 +43,12 @@ class ApplicationDocumentView(APIView):
         """
         View all additional documents on an application
         """
-        return get_application_documents(application)
+        documents = ApplicationDocumentSerializer(
+            ApplicationDocument.objects.filter(application=application), many=True
+        ).data
+
+        return JsonResponse({"documents": documents, "editable": application.is_major_editable()})
+
 
     @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic

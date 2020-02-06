@@ -218,11 +218,11 @@ class ThirdPartiesOnDraft(DataTestClient):
         And the draft contains a third party
         And the draft contains a third party document
         When there is an attempt to delete the document
-        Then 204 NO CONTENT is returned
+        Then 200 NO CONTENT is returned
         """
         response = self.client.delete(self.document_url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         delete_s3_function.assert_called_once()
 
     @mock.patch("documents.tasks.prepare_document.now")
@@ -244,7 +244,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         poa.refresh_from_db()
 
         self.assertIsNotNone(poa.deleted_at)  # Marked as deleted
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Party.objects.filter(type=PartyType.THIRD_PARTY).count(), 1)  # Party object still exists
         self.assertEqual(self.draft.third_parties.count(), 0)
 

@@ -32,11 +32,6 @@ def get_party_document(party):
     return _get_document(documents)
 
 
-def get_application_documents(application):
-    documents = ApplicationDocument.objects.filter(application=application)
-    return JsonResponse({"documents": list(documents.values())})
-
-
 def get_application_document(doc_pk):
     return _get_document(ApplicationDocument.objects.filter(pk=doc_pk))
 

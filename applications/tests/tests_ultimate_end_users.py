@@ -195,7 +195,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             PartyOnApplication.objects.filter(
                 application=self.draft, party__type=PartyType.ULTIMATE_END_USER, deleted_at__isnull=False,
