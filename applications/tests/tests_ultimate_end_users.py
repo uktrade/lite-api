@@ -1,17 +1,14 @@
 from unittest import mock
 
 from django.urls import reverse
-from parameterized import parameterized
 from rest_framework import status
 
-from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import PartyOnApplication
-from parties.enums import PartyType
-from parties.models import PartyDocument
-from parties.models import Party
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from test_helpers.clients import DataTestClient
 from lite_content.lite_api.strings import Parties
+from parties.enums import PartyType
+from parties.models import Party
+from parties.models import PartyDocument
+from test_helpers.clients import DataTestClient
 
 
 class UltimateEndUsersOnDraft(DataTestClient):
@@ -205,42 +202,24 @@ class UltimateEndUsersOnDraft(DataTestClient):
             ).count(),
             1,
         )
-        # delete_s3_function.assert_called_once()
+        delete_s3_function.assert_not_called()
 
-    @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_ultimate_end_user_when_application_editable_success(
-        self, editable_status, delete_s3_function, prepare_document_function
+    def test_delete_ultimate_end_user_success(
+        self, delete_s3_function, prepare_document_function
     ):
-        application = self.create_standard_application_with_incorporated_good(self.organisation)
-        application.status = get_case_status_by_status(editable_status)
-        application.save()
+        self.assertEqual(self.draft.ultimate_end_users.count(), 1)
+
         url = reverse(
             "applications:parties",
-            kwargs={"pk": application.id, "party_pk": application.ultimate_end_users.first().party.id},
+            kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(application.ultimate_end_users.count(), 0)
-
-    @parameterized.expand(get_case_statuses(read_only=True))
-    def test_delete_ultimate_end_user_when_application_read_only_failure(self, read_only_status):
-        application = self.create_standard_application_with_incorporated_good(self.organisation)
-        application.status = get_case_status_by_status(read_only_status)
-        application.save()
-
-        url = reverse(
-            "applications:parties",
-            kwargs={"pk": application.id, "party_pk": application.ultimate_end_users.first().party.id},
-        )
-
-        response = self.client.delete(url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(application.ultimate_end_users.count(), 1)
+        self.assertEqual(self.draft.ultimate_end_users.count(), 0)
 
     def test_ultimate_end_user_validate_only_success(self):
         """

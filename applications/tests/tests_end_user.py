@@ -143,7 +143,7 @@ class EndUserOnDraftTests(DataTestClient):
         )
 
         self.assertNotEqual(poa.id, new_poa.id)
-        # delete_s3_function.assert_called_once()
+        delete_s3_function.assert_not_called()
 
     def test_set_end_user_on_open_draft_application_failure(self):
         """
@@ -324,7 +324,7 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.delete(self.document_url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        # delete_s3_function.assert_called_once()
+        delete_s3_function.assert_not_called()
 
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
@@ -350,7 +350,7 @@ class EndUserOnDraftTests(DataTestClient):
             ).count(),
             1,
         )
-        # delete_s3_function.assert_called_once()
+        delete_s3_function.assert_not_called()
 
     def test_end_user_validate_only_success(self):
         """

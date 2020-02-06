@@ -119,7 +119,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         deleted_consignees = PartyOnApplication.objects.filter(party=old_consignee, deleted_at__isnull=False)
 
         self.assertEqual(deleted_consignees.count(), 1)
-        # delete_s3_function.assert_called_once()
+        delete_s3_function.assert_not_called()
 
     def test_set_consignee_on_open_draft_application_failure(self):
         """
@@ -250,7 +250,7 @@ class ConsigneeOnDraftTests(DataTestClient):
             ).count(),
             1,
         )
-        # delete_s3_function.assert_called_once()
+        delete_s3_function.assert_not_called()
 
     def test_consignee_validate_only_success(self):
         """

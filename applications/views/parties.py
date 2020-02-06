@@ -30,17 +30,6 @@ class ApplicationPartyView(APIView):
         """
         Add a party to an application.
         """
-        if not application.is_major_editable():
-            return JsonResponse(
-                data={
-                    "errors": [
-                        f"You can only perform this operation when the application is "
-                        f"in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state"
-                    ]
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         data = request.data
         data["organisation"] = request.user.organisation.id
 
@@ -89,12 +78,6 @@ class ApplicationPartyView(APIView):
             poa = application.active_parties.all().get(party__pk=party_pk)
         except PartyOnApplication.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-        if not application.party_is_editable(poa.party):
-            return JsonResponse(
-                data={"errors": [strings.Applications.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Delete party
         application.delete_party(poa)
