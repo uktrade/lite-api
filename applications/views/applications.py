@@ -255,15 +255,23 @@ class ApplicationManageStatus(APIView):
 
             if not can_status_can_be_set_by_exporter_user(application.status.status, data["status"]):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
+                    data={"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             if not can_status_can_be_set_by_gov_user(request.user, application.status.status, data["status"]):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
+                    data={"errors": [strings.Applications.Finalise.Error.GOV_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+
+        if data["status"] == CaseStatusEnum.SURRENDERED:
+            if not application.licence_duration:
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Finalise.Error.SURRENDER]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            application.licence_duration = None
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -283,7 +291,7 @@ class ApplicationManageStatus(APIView):
             payload={"status": CaseStatusEnum.get_text(case_status.status)},
         )
 
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class ApplicationFinaliseView(APIView):
