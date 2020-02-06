@@ -108,5 +108,3 @@ class ApplicationPartyView(APIView):
         key = PartyType.api_compatible(request.GET["type"]) if "type" in request.GET else "parties"
 
         return JsonResponse(data={key: parties_data})
-
-

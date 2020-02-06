@@ -49,7 +49,6 @@ class ApplicationDocumentView(APIView):
 
         return JsonResponse({"documents": documents, "editable": application.is_major_editable()})
 
-
     @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @authorised_users(ExporterUser)
