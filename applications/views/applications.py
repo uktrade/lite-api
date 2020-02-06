@@ -291,7 +291,7 @@ class ApplicationManageStatus(APIView):
             payload={"status": CaseStatusEnum.get_text(case_status.status)},
         )
 
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class ApplicationFinaliseView(APIView):

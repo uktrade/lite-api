@@ -141,13 +141,16 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.licence_duration = 24
         self.standard_application.save()
+        surrendered_status = get_case_status_by_status("surrendered")
 
         data = {"status": CaseStatusEnum.SURRENDERED}
         response = self.client.put(self.url, data=data, **self.exporter_headers)
+        response_data = response.json()["data"]
 
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["status"], str(surrendered_status.pk))
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SURRENDERED))
 
     def test_exporter_set_application_status_surrendered_no_licence_failure(self):
