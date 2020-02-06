@@ -87,7 +87,7 @@ def _validate_ultimate_end_users(draft, errors):
         errors["ultimate_end_user_documents"] = ultimate_end_user_documents_error
 
     ultimate_end_user_required = False
-    if next(filter(lambda x: x.is_good_incorporated, GoodOnApplication.objects.filter(application=draft), ), None, ):
+    if next(filter(lambda x: x.is_good_incorporated, GoodOnApplication.objects.filter(application=draft),), None,):
         ultimate_end_user_required = True
 
     if ultimate_end_user_required:
