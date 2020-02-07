@@ -26,7 +26,7 @@ def _get_document(documents):
 
 def get_party_document(party):
     if not party:
-        return JsonResponse(data={"error": "No such user"}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"error": "No such user"}, status=status.HTTP_404_NOT_FOUND)
 
     documents = PartyDocument.objects.filter(party=party)
     return _get_document(documents)
@@ -75,7 +75,7 @@ def delete_application_document(document_id, application, user):
 
 def upload_party_document(party, data, application, user):
     if not party:
-        return JsonResponse(data={"error": "No such user"}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"error": "No such user"}, status=status.HTTP_404_NOT_FOUND)
 
     documents = PartyDocument.objects.filter(party=party)
     if documents:
@@ -102,7 +102,7 @@ def upload_party_document(party, data, application, user):
 
 def delete_party_document(party, application, user):
     if not party:
-        return JsonResponse(data={"error": "No such user"}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"error": "No such user"}, status=status.HTTP_404_NOT_FOUND)
 
     documents = PartyDocument.objects.filter(party=party)
     for document in documents:

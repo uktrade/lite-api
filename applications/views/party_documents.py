@@ -30,7 +30,7 @@ class PartyDocumentView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types( 
+    @allowed_application_types(
         [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
