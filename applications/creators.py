@@ -141,11 +141,16 @@ def _validate_gifting_clearance(draft, errors):
 
 
 def _validate_f_680_clearance(draft, errors):
-    errors = _validate_third_parties(draft, errors)
     errors = _validate_has_goods(draft, errors)
 
     if not draft.end_user and not draft.third_parties.exists():
         errors["party"] = strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY
+
+    if draft.end_user:
+        errors = _validate_end_user(draft, errors)
+
+    if draft.third_parties.exists():
+        errors = _validate_third_parties(draft, errors)
 
     return errors
 
