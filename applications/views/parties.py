@@ -52,14 +52,13 @@ class ApplicationPartyView(APIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.REMOVE_PARTY,
-                target=application,
+                target=application.get_case(),
                 payload={"party_type": removed_party.type.replace("_", " "), "party_name": removed_party.name},
             )
-
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.ADD_PARTY,
-            target=application,
+            target=application.get_case(),
             payload={"party_type": party.type.replace("_", " "), "party_name": party.name},
         )
 
