@@ -25,25 +25,17 @@ class PartyDocumentView(APIView):
     )
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
-        try:
-            party = application.active_parties.all().get(party__pk=party_pk).party
-        except PartyOnApplication.DoesNotExist:
-            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
+        party = application.get_party(party_pk)
         return get_party_document(party)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types(
+    @allowed_application_types( 
         [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def post(self, request, application, party_pk):
-        try:
-            party = PartyOnApplication.objects.get(
-                application=application, party__pk=party_pk, deleted_at__isnull=True
-            ).party
-        except PartyOnApplication.DoesNotExist:
-            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
+        party = application.get_party(party_pk)
         return upload_party_document(party, request.data, application, request.user)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
@@ -53,10 +45,5 @@ class PartyDocumentView(APIView):
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
-        try:
-            party = PartyOnApplication.objects.get(
-                application=application, party__pk=party_pk, deleted_at__isnull=True
-            ).party
-        except PartyOnApplication.DoesNotExist:
-            return JsonResponse(data={}, status=status.HTTP_404_NOT_FOUND)
+        party = application.get_party(party_pk)
         return delete_party_document(party, application, request.user)

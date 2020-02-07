@@ -50,6 +50,12 @@ class ApplicationPartyMixin:
 
         return poa.party, old_poa.party if old_poa else None
 
+    def get_party(self, party_pk):
+        try:
+            return self.active_parties.get(party=party_pk).party
+        except PartyOnApplication.DoesNotExist:
+            pass
+
     def delete_party(self, poa):
         poa.delete()
 
