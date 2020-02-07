@@ -145,8 +145,8 @@ def _validate_f_680_clearance(draft, errors):
     errors = _validate_third_parties(draft, errors)
     errors = _validate_has_goods(draft, errors)
 
-    if not draft.end_user and not draft.third_parties:
-        errors["party"] = "F680's require at least 1 End User or Third Party"
+    if not draft.end_user and not draft.third_parties.exists():
+        errors["party"] = strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY
 
     return errors
 
