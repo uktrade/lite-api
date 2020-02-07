@@ -79,11 +79,15 @@ class BaseUser(AbstractUser, TimestampableModel):
     last_login = None
     is_staff = None
     is_active = None
+    type = models.CharField(choices=UserType.choices, null=False, blank=False, max_length=8)
 
     # Set this to use id as email cannot be unique in the base user model
     # (and we couldn't think of anything else to use instead)
     USERNAME_FIELD = "id"
     REQUIRED_FIELDS = []
+
+    class Meta:
+        unique_together = [["email", "type"]]
 
     def __str__(self):
         return self.email
@@ -116,6 +120,10 @@ class GovNotification(BaseNotification):
 
 
 class ExporterUser(BaseUser):
+    def __init__(self, *args, **kwargs):
+        super(ExporterUser, self).__init__(*args, **kwargs)
+        self.type = UserType.EXPORTER
+
     def send_notification(self, organisation, content_object, case):
         ExporterNotification.objects.create(
             user=self, organisation=organisation, content_object=content_object, case=case
@@ -140,6 +148,10 @@ class GovUser(BaseUser):
     role = models.ForeignKey(
         Role, related_name="role", default=Roles.INTERNAL_DEFAULT_ROLE_ID, on_delete=models.PROTECT
     )
+
+    def __init__(self, *args, **kwargs):
+        super(GovUser, self).__init__(*args, **kwargs)
+        self.type = UserType.INTERNAL
 
     def unassign_from_cases(self):
         """
