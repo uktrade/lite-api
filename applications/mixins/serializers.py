@@ -22,7 +22,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
     inactive_parties = serializers.SerializerMethodField(required=False)
 
     class Meta:
-        fields = ("end_user", "ultimate_end_users", "third_parties", "consignee", "inactive_parties")
+        fields = ("end_user", "ultimate_end_users", "third_parties", "consignee", "inactive_parties",)
 
     __cache = None
 
@@ -54,9 +54,6 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
 
     def get_end_user(self, instance):
         data = self.__parties(instance, PartyType.END_USER)
-        if not data:
-            return
-
         return data[0] if data else None
 
     def get_ultimate_end_users(self, instance):
@@ -67,7 +64,6 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
 
     def get_consignee(self, instance):
         data = self.__parties(instance, PartyType.CONSIGNEE)
-
         return data[0] if data else None
 
     def get_inactive_parties(self, instance):

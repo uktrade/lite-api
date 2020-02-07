@@ -105,7 +105,7 @@ class ApplicationPartyView(APIView):
 
         parties_data = PartySerializer([p.party for p in application_parties], many=True).data
 
-        key = PartyType.api_compatible(request.GET["type"]) if "type" in request.GET else "parties"
+        key = PartyType.api_key_name(request.GET["type"]) if "type" in request.GET else "parties"
 
         return JsonResponse(data={key: parties_data})
 

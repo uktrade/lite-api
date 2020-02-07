@@ -29,21 +29,18 @@ class ApplicationException(Exception):
 class ApplicationPartyMixin:
     def add_party(self, party):
         old_poa = None
-
         if PartyOnApplication.objects.filter(party=party).exclude(application=self).exists():
             # Party cannot be used in multiple applications
-            raise ApplicationException({"error": "Party exists"})
-
+            raise ApplicationException({"error": Parties.Errors.PARTY_EXISTS})
+        # Alternate behaviour of adding a party depending on party type
         if party.type == PartyType.ULTIMATE_END_USER:
             # Rule: Append
             pass
-
-        elif party.type in [PartyType.END_USER, PartyType.CONSIGNEE] and getattr(self, party.type, False):
+        elif party.type in [PartyType.END_USER, PartyType.CONSIGNEE]:
             # Rule: Replace
             old_poa = getattr(self, party.type)
-            old_poa.deleted_at = timezone.now()
-            old_poa.save()
-
+            if old_poa:
+                self.delete_party(old_poa)
         elif party.type == PartyType.THIRD_PARTY:
             # Rule: Append
             if not party.role:
@@ -54,13 +51,10 @@ class ApplicationPartyMixin:
         return poa.party, old_poa.party if old_poa else None
 
     def delete_party(self, poa):
-        poa.deleted_at = timezone.now()
-        poa.save()
+        poa.delete()
 
     def is_major_editable(self):
-        return not (
-            not is_case_status_draft(self.status.status) and self.status.status != CaseStatusEnum.APPLICANT_EDITING
-        )
+        return self.status.status == CaseStatusEnum.APPLICANT_EDITING or is_case_status_draft(self.status.status)
 
     def is_editable(self):
         return not CaseStatusEnum.is_read_only(self.status.status)
@@ -229,3 +223,7 @@ class PartyOnApplication(TimestampableModel):
                 "party_id": self.party.id,
             }
         )
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()

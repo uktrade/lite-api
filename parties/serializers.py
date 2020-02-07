@@ -58,12 +58,11 @@ class PartySerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(PartySerializer, self).__init__(*args, **kwargs)
-        if "data" in kwargs and "type" in kwargs["data"]:
-            party_type = kwargs["data"]["type"]
-            if party_type == PartyType.THIRD_PARTY:
-                for field, serializer_instance in self.fields.items():
-                    if field == "role":
-                        serializer_instance.required = True
+        party_type = kwargs.get("data", {}).get("type")
+        if party_type == PartyType.THIRD_PARTY:
+            for field, serializer_instance in self.fields.items():
+                if field == "role":
+                    serializer_instance.required = True
 
     @staticmethod
     def validate_website(value):

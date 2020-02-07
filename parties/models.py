@@ -38,7 +38,9 @@ class Party(TimestampableModel):
     )
     flags = models.ManyToManyField(Flag, related_name="parties")
     sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
-    role = models.CharField(choices=PartyRole.choices, default=PartyRole.OTHER, max_length=22, null=True)
+    role = models.CharField(
+        choices=PartyRole.choices, default=PartyRole.OTHER, max_length=22, null=True, help_text="Third party type only"
+    )
     # FK is self referencing
     copy_of = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
 

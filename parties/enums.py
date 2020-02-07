@@ -14,18 +14,17 @@ class PartyType:
     ]
 
     @classmethod
-    def plural(cls, key):
-        return {
-            PartyType.CONSIGNEE: "consignees",
-            PartyType.END_USER: "end_users",
+    def api_key_name(cls, party_type):
+        """
+        Return key name for party responses returned by API.
+        """
+        api_names = {
             PartyType.ULTIMATE_END_USER: "ultimate_end_users",
             PartyType.THIRD_PARTY: "third_parties",
-        }[key]
-
-    @classmethod
-    def api_compatible(cls, party_type):
-        is_plural = party_type in [PartyType.ULTIMATE_END_USER, PartyType.THIRD_PARTY]
-        return f"{PartyType.plural(party_type)}" if is_plural else party_type
+            PartyType.END_USER: PartyType.END_USER,
+            PartyType.CONSIGNEE: PartyType.CONSIGNEE,
+        }
+        return api_names.get(party_type, 'parties')
 
 
 class SubType:
