@@ -3,23 +3,12 @@ from rest_framework import serializers, relations
 
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
+from flags.serializers import FlagSerializer
 from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation
 from parties.enums import PartyType, SubType, PartyRole
 from parties.models import Party
 from parties.models import PartyDocument
-
-
-class FlagSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    id = serializers.CharField()
-
-
-class CountrySerializer(serializers.Serializer):
-    id = serializers.CharField(required=False)
-    name = serializers.CharField()
-    type = serializers.CharField(required=False)
-    is_eu = serializers.CharField(required=False)
 
 
 class PartySerializer(serializers.ModelSerializer):
