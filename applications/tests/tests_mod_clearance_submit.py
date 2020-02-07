@@ -18,7 +18,11 @@ from lite_content.lite_api import strings
     ],
 )
 class MODClearanceTests(DataTestClient):
-    """ Shared MOD clearance tests """
+    """
+    Shared MOD clearance tests.
+    Covers elements MOD clearances have in common like the requirement
+    for goods & locations.
+    """
 
     def setUp(self):
         super().setUp()
@@ -50,7 +54,7 @@ class MODClearanceTests(DataTestClient):
 
     def test_submit_MOD_clearance_without_parties_failure(self):
         self.draft.end_user = None
-        self.draft.third_parties.get_queryset().delete()
+        self.draft.third_parties.all().delete()
         self.draft.save()
 
         response = self.client.put(self.url, **self.exporter_headers)
@@ -61,6 +65,79 @@ class MODClearanceTests(DataTestClient):
             self.assertEqual(errors["end_user"], strings.Applications.Standard.NO_END_USER_SET)
         else:
             self.assertEqual(errors["party"], strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY)
+
+
+class ExhibitionClearanceTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.draft = self.create_mod_clearance_application(self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE)
+        self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+
+    def test_submit_exhibition_clearance_success(self):
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["application"]["name"], self.draft.name)
+
+    def test_submit_exhibition_clearance_without_end_user_failure(self):
+        self.draft.end_user = None
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_SET)
+
+    def test_submit_exhibition_clearance_without_end_user_document_failure(self):
+        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_DOCUMENT_SET)
+
+    def test_submit_exhibition_clearance_without_consignee_failure(self):
+        self.draft.consignee = None
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["consignee"], strings.Applications.Standard.NO_CONSIGNEE_SET)
+
+    def test_submit_exhibition_clearance_without_consignee_document_failure(self):
+        PartyDocument.objects.filter(party=self.draft.consignee).delete()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["consignee"], strings.Applications.Standard.NO_CONSIGNEE_DOCUMENT_SET
+        )
+
+    def test_submit_exhibition_clearance_with_incorporated_good_and_without_ultimate_end_users_failure(self):
+        self.create_incorporated_good_and_ultimate_end_user_on_application(self.draft)
+        self.draft.ultimate_end_users.all().delete()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["ultimate_end_users"], strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET
+        )
+
+    def test_submit_exhibition_clearance_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self):
+        self.create_incorporated_good_and_ultimate_end_user_on_application(self.draft)
+        PartyDocument.objects.filter(party__in=self.draft.ultimate_end_users.all()).delete()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["ultimate_end_user_documents"],
+            strings.Applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
+        )
 
 
 class GiftingClearanceTests(DataTestClient):

@@ -621,6 +621,24 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
+    def create_incorporated_good_and_ultimate_end_user_on_application(self, application):
+        good = Good.objects.create(
+            is_good_controlled=True,
+            control_code="ML17",
+            organisation=self.organisation,
+            description="a good",
+            part_number="123456",
+        )
+
+        GoodOnApplication.objects.create(
+            good=good, application=application, quantity=17, value=18, is_good_incorporated=True
+        )
+
+        application.ultimate_end_users.set([self.create_ultimate_end_user("Ultimate End User", self.organisation)])
+        self.create_document_for_party(application.ultimate_end_users.first(), safe=True)
+
+        return application
+
     def create_standard_application_with_incorporated_good(
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
