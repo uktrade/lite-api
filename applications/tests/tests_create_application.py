@@ -14,7 +14,7 @@ from applications.models import (
     BaseApplication,
     ExhibitionClearanceApplication,
     GiftingClearanceApplication,
-    F680ClearanceApplication
+    F680ClearanceApplication,
 )
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient

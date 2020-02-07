@@ -42,7 +42,9 @@ class ReferenceCode(DataTestClient):
         )
 
     def test_exhibition_clearance_reference_code(self):
-        exhibition_clearance = self.create_mod_clearance_application(self.organisation, model=ExhibitionClearanceApplication)
+        exhibition_clearance = self.create_mod_clearance_application(
+            self.organisation, model=ExhibitionClearanceApplication
+        )
         exhibition_clearance = self.submit_application(exhibition_clearance)
 
         expected_prefix = EXHIBITION_CLEARANCE_PREFIX + SLASH

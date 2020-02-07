@@ -14,7 +14,9 @@ class DeleteApplication(DataTestClient):
         self.applications = {
             ApplicationType.STANDARD_LICENCE: self.create_standard_application(self.organisation),
             ApplicationType.HMRC_QUERY: self.create_hmrc_query(self.organisation),
-            ApplicationType.EXHIBITION_CLEARANCE: self.create_mod_clearance_application(self.organisation, model=ExhibitionClearanceApplication),
+            ApplicationType.EXHIBITION_CLEARANCE: self.create_mod_clearance_application(
+                self.organisation, model=ExhibitionClearanceApplication
+            ),
         }
         self.users = {"EXPORTER": self.exporter_headers, "GOV": self.gov_headers, "HMRC": self.hmrc_exporter_headers}
 
