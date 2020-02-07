@@ -123,4 +123,4 @@ class CopyPartyView(APIView):
         """
         detail = Party.objects.copy_detail(pk=party_pk)
 
-        return JsonResponse(data={'party': detail})
+        return JsonResponse(data={"party": detail})

@@ -16,8 +16,9 @@ class PartyManager(models.Manager):
         Copies the details of a party.
         """
         values = dict(
-            self.values('name', 'address', 'country', 'website', 'type', 'organisation', 'sub_type', 'copy_of')
-            .get(pk=pk)
+            self.values("name", "address", "country", "website", "type", "organisation", "sub_type", "copy_of").get(
+                pk=pk
+            )
         )
         if not values["copy_of"]:
             values["copy_of"] = str(pk)

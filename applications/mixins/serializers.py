@@ -22,7 +22,13 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
     inactive_parties = serializers.SerializerMethodField(required=False)
 
     class Meta:
-        fields = ("end_user", "ultimate_end_users", "third_parties", "consignee", "inactive_parties",)
+        fields = (
+            "end_user",
+            "ultimate_end_users",
+            "third_parties",
+            "consignee",
+            "inactive_parties",
+        )
 
     __cache = None
 

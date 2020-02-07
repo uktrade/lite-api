@@ -24,7 +24,7 @@ class PartyType:
             PartyType.END_USER: PartyType.END_USER,
             PartyType.CONSIGNEE: PartyType.CONSIGNEE,
         }
-        return api_names.get(party_type, 'parties')
+        return api_names.get(party_type, "parties")
 
 
 class SubType:
