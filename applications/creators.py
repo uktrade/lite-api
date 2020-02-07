@@ -141,6 +141,9 @@ def _validate_gifting_clearance(draft, errors):
 
 
 def _validate_f_680_clearance(draft, errors):
+    """
+    F680 requires at least 1 end user or third party.
+    """
     errors = _validate_has_goods(draft, errors)
 
     if not draft.end_user and not draft.third_parties.exists():
