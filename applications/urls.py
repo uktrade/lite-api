@@ -44,7 +44,8 @@ urlpatterns = [
     ),
     # Parties
     path("<uuid:pk>/parties/", parties.ApplicationPartyView.as_view(), name="parties"),
-    path("<uuid:pk>/parties/<uuid:party_pk>/", parties.ApplicationPartyView.as_view(), name="parties"),
+    path("<uuid:pk>/parties/<uuid:party_pk>/", parties.ApplicationPartyView.as_view(), name="party"),
+    path("<uuid:pk>/parties/<uuid:party_pk>/copy", parties.CopyPartyView.as_view(), name="copy_party"),
     path(
         "<uuid:pk>/parties/<uuid:party_pk>/document/",
         party_documents.PartyDocumentView.as_view(),

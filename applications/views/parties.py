@@ -13,6 +13,7 @@ from conf.decorators import (
 )
 from conf.helpers import str_to_bool
 from parties.enums import PartyType
+from parties.models import Party
 from parties.serializers import PartySerializer
 from users.models import ExporterUser
 
@@ -108,3 +109,19 @@ class ApplicationPartyView(APIView):
         key = PartyType.api_compatible(request.GET["type"]) if "type" in request.GET else "parties"
 
         return JsonResponse(data={key: parties_data})
+
+
+class CopyPartyView(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @allowed_application_types(
+        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+    )
+    @authorised_users(ExporterUser)
+    def get(self, request, application, party_pk):
+        """
+        Get parties for an application
+        """
+        detail = Party.objects.copy_detail(pk=party_pk)
+
+        return JsonResponse(data={'party': detail})

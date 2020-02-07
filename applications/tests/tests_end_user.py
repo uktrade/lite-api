@@ -186,7 +186,7 @@ class EndUserOnDraftTests(DataTestClient):
 
         poa.delete()
 
-        url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -339,7 +339,7 @@ class EndUserOnDraftTests(DataTestClient):
         end_user = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.END_USER, deleted_at__isnull=True
         ).party
-        url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": end_user.pk})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": end_user.pk})
 
         response = self.client.delete(url, **self.exporter_headers)
 

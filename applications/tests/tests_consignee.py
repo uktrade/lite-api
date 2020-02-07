@@ -160,7 +160,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         poa = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.CONSIGNEE)
         self.draft.delete_party(poa)
 
-        url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": poa.party.pk})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -240,7 +240,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         consignee = PartyOnApplication.objects.get(
             application=self.draft, party__type=PartyType.CONSIGNEE, deleted_at__isnull=True
         ).party
-        url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": consignee.pk})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": consignee.pk})
         response = self.client.delete(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

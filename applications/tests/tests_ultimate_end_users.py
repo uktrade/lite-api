@@ -125,7 +125,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         """
         ultimate_end_user = self.draft.ultimate_end_users.first().party
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
-        url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.id},)
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.id},)
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -189,7 +189,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         Then 200 OK
         """
         url = reverse(
-            "applications:parties",
+            "applications:party",
             kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
 
@@ -210,7 +210,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(self.draft.ultimate_end_users.count(), 1)
 
         url = reverse(
-            "applications:parties",
+            "applications:party",
             kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
 
@@ -282,7 +282,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         # Delete existing ultimate end user to enable easy assertion of copied ultimate end user
         delete_url = reverse(
-            "applications:parties",
+            "applications:party",
             kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
         self.client.delete(delete_url, **self.exporter_headers)

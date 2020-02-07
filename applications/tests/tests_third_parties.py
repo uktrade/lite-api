@@ -172,7 +172,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         """
         third_party = self.draft.third_parties.first().party
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.THIRD_PARTY).delete()
-        url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": third_party.id})
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": third_party.id})
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -236,7 +236,7 @@ class ThirdPartiesOnDraft(DataTestClient):
         Then 200 OK
         """
         poa = self.draft.third_parties.first()
-        remove_tp_url = reverse("applications:parties", kwargs={"pk": self.draft.id, "party_pk": poa.party.id},)
+        remove_tp_url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": poa.party.id},)
 
         self.assertIsNone(poa.deleted_at)  # Not marked as deleted
 
@@ -322,7 +322,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         # Delete existing third party to enable easy assertion of copied third party
         delete_url = reverse(
-            "applications:parties", kwargs={"pk": self.draft.id, "party_pk": self.draft.third_parties.first().party.id},
+            "applications:party", kwargs={"pk": self.draft.id, "party_pk": self.draft.third_parties.first().party.id},
         )
         self.client.delete(delete_url, **self.exporter_headers)
 
