@@ -141,7 +141,6 @@ def _validate_gifting_clearance(draft, errors):
 
 
 def _validate_f_680_clearance(draft, errors):
-    errors = _validate_end_user(draft, errors)
     errors = _validate_third_parties(draft, errors)
     errors = _validate_has_goods(draft, errors)
 
