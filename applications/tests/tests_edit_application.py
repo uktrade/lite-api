@@ -127,17 +127,18 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(audit_qs.first().payload, {"old_ref_number": "no reference"})
 
 
-@parameterized_class('application_type', [
-    (ApplicationType.EXHIBITION_CLEARANCE,),
-    (ApplicationType.GIFTING_CLEARANCE,),
-    (ApplicationType.F_680_CLEARANCE,),
-])
+@parameterized_class(
+    "application_type",
+    [
+        (ApplicationType.EXHIBITION_CLEARANCE,),
+        (ApplicationType.GIFTING_CLEARANCE,),
+        (ApplicationType.F_680_CLEARANCE,),
+    ],
+)
 class EditMODClearanceApplicationsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.application = self.create_mod_clearance_application(
-            self.organisation, type=self.application_type
-        )
+        self.application = self.create_mod_clearance_application(self.organisation, type=self.application_type)
         self.url = reverse("applications:application", kwargs={"pk": self.application.id})
         self.data = {"name": "abc"}
 

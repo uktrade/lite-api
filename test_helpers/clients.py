@@ -558,7 +558,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_mod_clearance_application(
-        self, organisation: Organisation, type: ApplicationType, reference_name="Exhibition Clearance Draft", safe_document=True,
+        self,
+        organisation: Organisation,
+        type: ApplicationType,
+        reference_name="Exhibition Clearance Draft",
+        safe_document=True,
     ):
         if type == ApplicationType.EXHIBITION_CLEARANCE:
             application = ExhibitionClearanceApplication.objects.create(
@@ -608,7 +612,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
         # Set the application party documents
-        self.add_application_and_party_documents(application, safe_document, consignee=type == ApplicationType.EXHIBITION_CLEARANCE)
+        self.add_application_and_party_documents(
+            application, safe_document, consignee=type == ApplicationType.EXHIBITION_CLEARANCE
+        )
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()
