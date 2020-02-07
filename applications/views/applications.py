@@ -421,6 +421,7 @@ class ApplicationCopy(APIView):
             setattr(self.application, attribute, None)
 
     def update_parties_with_copies(self):
+        # TODO: update when Party On Application refactor comes in
         foreign_key_party = ["end_user", "consignee"]
         for party_type in foreign_key_party:
             party = getattr(self.application, party_type, False)
