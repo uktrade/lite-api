@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from compat import get_model
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
@@ -365,32 +366,31 @@ class ApplicationDurationView(APIView):
 class ApplicationCopy(APIView):
     @transaction.atomic
     def post(self, request, pk):
-        self.old_application = get_application(pk)
+        self.old_application_id = pk
+        self.application = get_application(pk)
 
         data = request.data
 
         serializer = GenericApplicationCopySerializer(
-            data=data, context={"application_type": self.old_application.application_type}
+            data=data, context={"application_type": self.application.application_type}
         )
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        self.new_application = self.old_application
-
         #  clear references to parent objects, and current application instance object
-        self.strip_id_from_application_copy()
+        self.strip_id_for_application_copy()
 
         # replace the reference and have you been informed (if required) with users answer
-        self.new_application.name = request.data["name"]
-        self.new_application.have_you_been_informed = request.data.get("have_you_been_informed")
-        self.new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
+        self.application.name = request.data["name"]
+        self.application.have_you_been_informed = request.data.get("have_you_been_informed")
+        self.application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
 
         # remove data that should not be copied
         self.remove_data_from_application_copy()
 
         # need to save here to create the pk/id for relationships
-        self.new_application.save()
+        self.application.save()
 
         # create new many to many connection using data from old application
         self.create_many_to_many_relations_for_new_application()
@@ -399,15 +399,16 @@ class ApplicationCopy(APIView):
         self.update_parties_with_copies()
 
         # save
-        self.new_application.created_at = now()
-        self.new_application.save()
-        return JsonResponse(data={"data": self.new_application.id}, status=status.HTTP_201_CREATED)
+        self.application.created_at = now()
+        self.application.save()
+        return JsonResponse(data={"data": self.application.id}, status=status.HTTP_201_CREATED)
 
-    def strip_id_from_application_copy(self):
-        self.new_application.pk = None
-        self.new_application.id = None
-        self.new_application.case_ptr = None
-        self.new_application.base_application_ptr = None
+    def strip_id_for_application_copy(self):
+        # the current object id and pk need removed, and the pointers otherwise save() will determine the object exists
+        self.application.pk = None
+        self.application.id = None
+        self.application.case_ptr = None
+        self.application.base_application_ptr = None
 
     def remove_data_from_application_copy(self):
         set_none = [
@@ -417,12 +418,12 @@ class ApplicationCopy(APIView):
             "licence_duration",
         ]
         for attribute in set_none:
-            setattr(self.new_application, attribute, None)
+            setattr(self.application, attribute, None)
 
     def update_parties_with_copies(self):
         foreign_key_party = ["end_user", "consignee"]
         for party_type in foreign_key_party:
-            party = getattr(self.old_application, party_type, False)
+            party = getattr(self.application, party_type, False)
 
             if party:
                 party.copy_of_id = party.id
@@ -430,12 +431,12 @@ class ApplicationCopy(APIView):
                 party.id = None
                 party.created_at = now()
                 party.save()
-                setattr(self.new_application, party_type, party)
+                setattr(self.application, party_type, party)
 
         many_party = ["ultimate_end_users", "third_parties"]
         for party_type in many_party:
-            if getattr(self.old_application, party_type, False):
-                parties = getattr(self.old_application, party_type).all()
+            if getattr(self.application, party_type, False):
+                parties = getattr(self.application, party_type).all()
 
                 for party in parties:
                     party.copy_of_id = party.id
@@ -443,7 +444,7 @@ class ApplicationCopy(APIView):
                     party.id = None
                     party.created_at = now()
                     party.save()
-                    getattr(self.new_application, party_type).add(party)
+                    getattr(self.application, party_type).add(party)
 
     def create_many_to_many_relations_for_new_application(self):
         relationships = [
@@ -455,12 +456,12 @@ class ApplicationCopy(APIView):
         ]
 
         for relation in relationships:
-            relation_objects = relation.objects.filter(application_id=self.old_application.id).all()
+            relation_objects = relation.objects.filter(application_id=self.old_application_id).all()
 
             for relation_object in relation_objects:
                 relation_object.pk = None
                 relation_object.id = None
-                relation_object.application_id = self.new_application.id
+                relation_object.application = self.application
                 # Some models listed above are not inheriting timestampable models,
                 # as such we need to ensure created_at exists
                 if getattr(relation_object, "created_at", False):
