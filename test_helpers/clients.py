@@ -19,6 +19,9 @@ from applications.models import (
     OpenApplication,
     HmrcQuery,
     ApplicationDocument,
+    ExhibitionClearanceApplication,
+    GiftingClearanceApplication,
+    F680ClearanceApplication,
 )
 from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -554,19 +557,42 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_mod_clearance_application(
-        self, organisation: Organisation, model, reference_name="Exhibition Clearance Draft", safe_document=True,
+        self, organisation: Organisation, type: ApplicationType, reference_name="Exhibition Clearance Draft", safe_document=True,
     ):
-        application = model.objects.create(
-            name=reference_name,
-            application_type=ApplicationType.EXHIBITION_CLEARANCE,
-            activity="Trade",
-            usage="Trade",
-            organisation=organisation,
-            end_user=self.create_end_user("End User", organisation),
-            consignee=self.create_consignee("Consignee", organisation),
-            type=CaseTypeEnum.EXHIBITION_CLEARANCE,
-            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-        )
+        if type == ApplicationType.EXHIBITION_CLEARANCE:
+            application = ExhibitionClearanceApplication.objects.create(
+                name=reference_name,
+                application_type=ApplicationType.EXHIBITION_CLEARANCE,
+                activity="Trade",
+                usage="Trade",
+                organisation=organisation,
+                end_user=self.create_end_user("End User", organisation),
+                consignee=self.create_consignee("Consignee", organisation),
+                type=type,
+                status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            )
+        elif type == ApplicationType.GIFTING_CLEARANCE:
+            application = GiftingClearanceApplication.objects.create(
+                name=reference_name,
+                application_type=ApplicationType.GIFTING_CLEARANCE,
+                activity="Trade",
+                usage="Trade",
+                organisation=organisation,
+                end_user=self.create_end_user("End User", organisation),
+                type=type,
+                status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            )
+        elif type == ApplicationType.F_680_CLEARANCE:
+            application = F680ClearanceApplication.objects.create(
+                name=reference_name,
+                application_type=ApplicationType.GIFTING_CLEARANCE,
+                activity="Trade",
+                usage="Trade",
+                organisation=organisation,
+                end_user=self.create_end_user("End User", organisation),
+                type=type,
+                status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            )
 
         application.third_parties.set([self.create_third_party("Third party", self.organisation)])
         application.save()
