@@ -169,3 +169,52 @@ class GiftingClearanceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_DOCUMENT_SET)
+
+
+class F680ClearanceTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.draft = self.create_mod_clearance_application(self.organisation, type=ApplicationType.F_680_CLEARANCE)
+        self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+
+    def test_submit_F680_clearance_success(self):
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["application"]["name"], self.draft.name)
+
+    def test_submit_F680_with_end_user_and_without_third_party_success(self):
+        self.draft.third_parties.all().delete()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["application"]["name"], self.draft.name)
+
+    def test_submit_F680_without_end_user_and_with_third_party_success(self):
+        self.draft.end_user = None
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["application"]["name"], self.draft.name)
+
+    def test_submit_F680_without_end_user_or_third_party_failure(self):
+        self.draft.end_user = None
+        self.draft.third_parties.all().delete()
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["party"], strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY)
+
+    def test_submit_F680_without_end_user_document_failure(self):
+        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_DOCUMENT_SET)
