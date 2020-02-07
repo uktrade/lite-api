@@ -2,6 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from applications.models import ExhibitionClearanceApplication
 from applications.libraries.case_status_helpers import get_case_statuses
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
@@ -129,7 +130,7 @@ class EditStandardApplicationTests(DataTestClient):
 class EditExhibitionClearanceApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.application = self.create_exhibition_clearance_application(self.organisation)
+        self.application = self.create_mod_clearance_application(self.organisation, model=ExhibitionClearanceApplication)
         self.url = reverse("applications:application", kwargs={"pk": self.application.id})
         self.data = {"name": "abc"}
 

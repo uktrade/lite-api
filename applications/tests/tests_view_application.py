@@ -7,6 +7,7 @@ from applications.models import (
     GoodOnApplication,
     CountryOnApplication,
     SiteOnApplication,
+    ExhibitionClearanceApplication,
 )
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
@@ -134,7 +135,7 @@ class DraftTests(DataTestClient):
 
     def test_view_draft_exhibition_clearances_list_as_exporter_success(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        application = self.create_exhibition_clearance_application(self.organisation)
+        application = self.create_mod_clearance_application(self.organisation, model=ExhibitionClearanceApplication)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -151,7 +152,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_view_draft_exhibition_clearance_as_exporter_success(self):
-        application = self.create_exhibition_clearance_application(self.organisation)
+        application = self.create_mod_clearance_application(self.organisation, model=ExhibitionClearanceApplication)
 
         url = reverse("applications:application", kwargs={"pk": application.id})
 

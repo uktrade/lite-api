@@ -3,7 +3,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FO
 from parameterized import parameterized
 
 from applications.enums import ApplicationType
-from applications.models import BaseApplication
+from applications.models import BaseApplication, ExhibitionClearanceApplication
 from test_helpers.clients import DataTestClient
 from lite_content.lite_api import strings
 
@@ -14,7 +14,7 @@ class DeleteApplication(DataTestClient):
         self.applications = {
             ApplicationType.STANDARD_LICENCE: self.create_standard_application(self.organisation),
             ApplicationType.HMRC_QUERY: self.create_hmrc_query(self.organisation),
-            ApplicationType.EXHIBITION_CLEARANCE: self.create_exhibition_clearance_application(self.organisation),
+            ApplicationType.EXHIBITION_CLEARANCE: self.create_mod_clearance_application(self.organisation, model=ExhibitionClearanceApplication),
         }
         self.users = {"EXPORTER": self.exporter_headers, "GOV": self.gov_headers, "HMRC": self.hmrc_exporter_headers}
 

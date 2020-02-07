@@ -19,7 +19,6 @@ from applications.models import (
     OpenApplication,
     HmrcQuery,
     ApplicationDocument,
-    ExhibitionClearanceApplication,
 )
 from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -29,20 +28,20 @@ from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodStatus, GoodPvGraded
+from goods.enums import GoodControlled, GoodPvGraded
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
-from parties.models import PartyDocument
 from parties.enums import SubType, PartyType, ThirdPartyRole
 from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
+from parties.models import PartyDocument
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
-from queries.goods_query.models import GoodsQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
+from queries.goods_query.models import GoodsQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
@@ -554,10 +553,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_exhibition_clearance_application(
-        self, organisation: Organisation, reference_name="Exhibition Clearance Draft", safe_document=True,
+    def create_mod_clearance_application(
+        self, organisation: Organisation, model, reference_name="Exhibition Clearance Draft", safe_document=True,
     ):
-        application = ExhibitionClearanceApplication(
+        application = model.objects.create(
             name=reference_name,
             application_type=ApplicationType.EXHIBITION_CLEARANCE,
             activity="Trade",
@@ -569,20 +568,17 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
-        application.save()
         application.third_parties.set([self.create_third_party("Third party", self.organisation)])
         application.save()
 
         # Add a good to the standard application
-        self.good_on_application = GoodOnApplication(
+        self.good_on_application = GoodOnApplication.objects.create(
             good=self.create_good("a thing", organisation),
             application=application,
             quantity=10,
             unit=Units.NAR,
             value=500,
         )
-
-        self.good_on_application.save()
 
         # Set the application party documents
         self.add_application_and_party_documents(application, safe_document)
