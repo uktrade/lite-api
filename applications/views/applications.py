@@ -385,6 +385,7 @@ class ApplicationCopy(APIView):
         self.application.name = request.data["name"]
         self.application.have_you_been_informed = request.data.get("have_you_been_informed")
         self.application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
+        self.application.copy_of_id = self.old_application_id
 
         # remove data that should not be copied
         self.remove_data_from_application_copy()

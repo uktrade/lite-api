@@ -207,6 +207,7 @@ class CopyTests(DataTestClient):
         self.case_data_test()
 
     def reset_data_test(self):
+        self.assertEqual(self.copied_application.copy_of.id, self.original_application.id)
         self.assertEqual(self.copied_application.status, get_case_status_by_status(CaseStatusEnum.DRAFT))
         self.assertGreater(self.copied_application.created_at, self.original_application.created_at)
 
