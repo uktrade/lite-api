@@ -37,7 +37,7 @@ class EndUserDocumentView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+            ApplicationType.F_680_CLEARANCE,
         ]
     )
     @authorised_users(ExporterUser)
@@ -53,7 +53,7 @@ class EndUserDocumentView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+            ApplicationType.F_680_CLEARANCE,
         ]
     )
     @application_in_major_editable_state()
@@ -70,7 +70,7 @@ class EndUserDocumentView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+            ApplicationType.F_680_CLEARANCE,
         ]
     )
     @authorised_users(ExporterUser)
@@ -166,7 +166,7 @@ class ThirdPartyDocumentView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+            ApplicationType.F_680_CLEARANCE,
         ]
     )
     @authorised_users(ExporterUser)
@@ -182,7 +182,7 @@ class ThirdPartyDocumentView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+            ApplicationType.F_680_CLEARANCE,
         ]
     )
     @application_in_major_editable_state()
@@ -199,7 +199,7 @@ class ThirdPartyDocumentView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+            ApplicationType.F_680_CLEARANCE,
         ]
     )
     @authorised_users(ExporterUser)

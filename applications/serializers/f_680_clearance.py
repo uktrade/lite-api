@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.models import FSixEightyClearanceApplication
+from applications.models import F680ClearanceApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationViewSerializer,
@@ -16,7 +16,7 @@ from parties.serializers import (
 )
 
 
-class FSixEightyClearanceViewSerializer(GenericApplicationViewSerializer):
+class F680ClearanceViewSerializer(GenericApplicationViewSerializer):
     end_user = EndUserWithFlagsSerializer()
     third_parties = ThirdPartyWithFlagsSerializer(many=True)
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
@@ -24,7 +24,7 @@ class FSixEightyClearanceViewSerializer(GenericApplicationViewSerializer):
     additional_documents = serializers.SerializerMethodField()
 
     class Meta:
-        model = FSixEightyClearanceApplication
+        model = F680ClearanceApplication
         fields = GenericApplicationViewSerializer.Meta.fields + (
             "end_user",
             "third_parties",
@@ -36,13 +36,13 @@ class FSixEightyClearanceViewSerializer(GenericApplicationViewSerializer):
         )
 
 
-class FSixEightyClearanceCreateSerializer(GenericApplicationCreateSerializer):
+class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.initial_data["type"] = CaseTypeEnum.GIFTING_CLEARANCE
 
     class Meta:
-        model = FSixEightyClearanceApplication
+        model = F680ClearanceApplication
         fields = (
             "id",
             "name",
@@ -53,7 +53,7 @@ class FSixEightyClearanceCreateSerializer(GenericApplicationCreateSerializer):
         )
 
 
-class FSixEightyClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
+class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
     name = CharField(
         max_length=100,
         required=True,
@@ -63,5 +63,5 @@ class FSixEightyClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
     )
 
     class Meta:
-        model = FSixEightyClearanceApplication
+        model = F680ClearanceApplication
         fields = GenericApplicationUpdateSerializer.Meta.fields

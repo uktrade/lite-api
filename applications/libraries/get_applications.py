@@ -3,7 +3,7 @@ from django.http import Http404
 from applications.enums import ApplicationType
 from applications.models import (
     BaseApplication,
-    FSixEightyClearanceApplication,
+    F680ClearanceApplication,
     GiftingClearanceApplication,
     OpenApplication,
     StandardApplication,
@@ -30,8 +30,8 @@ def get_application(pk, organisation_id=None):
             return ExhibitionClearanceApplication.objects.get(pk=pk)
         elif application_type == ApplicationType.GIFTING_CLEARANCE:
             return GiftingClearanceApplication.objects.get(pk=pk)
-        elif application_type == ApplicationType.F_SIX_EIGHTY_CLEARANCE:
-            return FSixEightyClearanceApplication.objects.get(pk=pk)
+        elif application_type == ApplicationType.F_680_CLEARANCE:
+            return F680ClearanceApplication.objects.get(pk=pk)
         else:
             raise NotImplementedError(f"get_application does not support this application type: {application_type}")
     except (

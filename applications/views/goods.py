@@ -43,7 +43,7 @@ class ApplicationGoodsOnApplication(APIView):
             ApplicationType.STANDARD_LICENCE,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+            ApplicationType.F_680_CLEARANCE,
         ]
     )
     @authorised_users(ExporterUser)
@@ -58,7 +58,7 @@ class ApplicationGoodsOnApplication(APIView):
             ApplicationType.STANDARD_LICENCE,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_SIX_EIGHTY_CLEARANCE,
+            ApplicationType.F_680_CLEARANCE,
         ]
     )
     @application_in_major_editable_state()

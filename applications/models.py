@@ -25,6 +25,7 @@ class BaseApplication(Case):
     objects = BaseApplicationManager()
 
 
+# Export Licence Applications
 class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
@@ -45,7 +46,7 @@ class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
 
 
-# MOD Clearances
+# MOD Clearances Applications
 class ExhibitionClearanceApplication(BaseApplication):
     end_user = models.ForeignKey(
         EndUser, related_name="exhibition_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
@@ -64,11 +65,11 @@ class GiftingClearanceApplication(BaseApplication):
     third_parties = models.ManyToManyField(ThirdParty, related_name="gifting_third_parties")
 
 
-class FSixEightyClearanceApplication(BaseApplication):
+class F680ClearanceApplication(BaseApplication):
     end_user = models.ForeignKey(
-        EndUser, related_name="f_six_eighty_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
+        EndUser, related_name="f_680_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
-    third_parties = models.ManyToManyField(ThirdParty, related_name="f_six_eighty_third_parties")
+    third_parties = models.ManyToManyField(ThirdParty, related_name="f_680_parties")
 
 
 # Queries

@@ -140,7 +140,7 @@ def _validate_gifting_clearance(draft, errors):
     return errors
 
 
-def _validate_f_six_eighty_clearance(draft, errors):
+def _validate_f_680_clearance(draft, errors):
     errors = _validate_end_user(draft, errors)
     errors = _validate_third_parties(draft, errors)
     errors = _validate_has_goods(draft, errors)
@@ -189,8 +189,8 @@ def validate_application_ready_for_submission(application):
         _validate_exhibition_clearance(application, errors)
     elif application.application_type == ApplicationType.GIFTING_CLEARANCE:
         _validate_gifting_clearance(application, errors)
-    elif application.application_type == ApplicationType.F_SIX_EIGHTY_CLEARANCE:
-        _validate_f_six_eighty_clearance(application, errors)
+    elif application.application_type == ApplicationType.F_680_CLEARANCE:
+        _validate_f_680_clearance(application, errors)
     else:
         errors["unsupported_application"] = "You can only validate a supported application type"
 
