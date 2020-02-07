@@ -11,9 +11,9 @@ from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdPart
 
 
 class PartySerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
-    address = serializers.CharField()
-    country = CountrySerializerField()
+    name = serializers.CharField(error_messages={"required": Parties.NULL_NAME})
+    address = serializers.CharField(error_messages={"required": Parties.NULL_ADDRESS})
+    country = CountrySerializerField(error_messages={"required": Parties.NULL_COUNTRY})
     website = serializers.CharField(required=False, allow_blank=True)
     type = serializers.ChoiceField(choices=PartyType.choices, required=False)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())

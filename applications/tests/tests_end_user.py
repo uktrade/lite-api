@@ -349,7 +349,7 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(self.url, end_user, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"name": [Parties.REQUIRED_FIELD]}})
+        self.assertEqual(response.json(), {"errors": {"name": [Parties.NULL_NAME]}})
 
     def test_end_user_copy_of_success(self):
         end_user = {
