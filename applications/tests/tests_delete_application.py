@@ -1,11 +1,11 @@
 from django.urls import reverse
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 from parameterized import parameterized
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 
 from applications.enums import ApplicationType
-from applications.models import BaseApplication, ExhibitionClearanceApplication
-from test_helpers.clients import DataTestClient
+from applications.models import BaseApplication
 from lite_content.lite_api import strings
+from test_helpers.clients import DataTestClient
 
 
 class DeleteApplication(DataTestClient):
@@ -17,6 +17,12 @@ class DeleteApplication(DataTestClient):
             ApplicationType.EXHIBITION_CLEARANCE: self.create_mod_clearance_application(
                 self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
             ),
+            ApplicationType.GIFTING_CLEARANCE: self.create_mod_clearance_application(
+                self.organisation, type=ApplicationType.GIFTING_CLEARANCE
+            ),
+            ApplicationType.F_680_CLEARANCE: self.create_mod_clearance_application(
+                self.organisation, type=ApplicationType.F_680_CLEARANCE
+            ),
         }
         self.users = {"EXPORTER": self.exporter_headers, "GOV": self.gov_headers, "HMRC": self.hmrc_exporter_headers}
 
@@ -24,6 +30,8 @@ class DeleteApplication(DataTestClient):
         [
             (ApplicationType.STANDARD_LICENCE, "EXPORTER"),
             (ApplicationType.EXHIBITION_CLEARANCE, "EXPORTER"),
+            (ApplicationType.GIFTING_CLEARANCE, "EXPORTER"),
+            (ApplicationType.F_680_CLEARANCE, "EXPORTER"),
             (ApplicationType.HMRC_QUERY, "HMRC"),
         ]
     )
@@ -47,6 +55,8 @@ class DeleteApplication(DataTestClient):
         [
             (ApplicationType.STANDARD_LICENCE, "GOV"),
             (ApplicationType.EXHIBITION_CLEARANCE, "GOV"),
+            (ApplicationType.GIFTING_CLEARANCE, "GOV"),
+            (ApplicationType.F_680_CLEARANCE, "GOV"),
             (ApplicationType.HMRC_QUERY, "EXPORTER"),
         ]
     )
@@ -68,6 +78,8 @@ class DeleteApplication(DataTestClient):
         [
             (ApplicationType.STANDARD_LICENCE, "EXPORTER"),
             (ApplicationType.EXHIBITION_CLEARANCE, "EXPORTER"),
+            (ApplicationType.GIFTING_CLEARANCE, "EXPORTER"),
+            (ApplicationType.F_680_CLEARANCE, "EXPORTER"),
             (ApplicationType.HMRC_QUERY, "HMRC"),
         ]
     )
