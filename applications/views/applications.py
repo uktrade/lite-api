@@ -110,8 +110,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         serializer = get_application_view_serializer(application)
         data = serializer(application, context={"exporter_user": request.user}).data
 
-        data["is_major_editable"] = application.is_major_editable()
-
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)

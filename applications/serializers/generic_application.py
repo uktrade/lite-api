@@ -49,6 +49,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     case = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
     licence_duration = serializers.IntegerField(allow_null=True)
+    is_major_editable = serializers.SerializerMethodField(required=False)
 
     class Meta:
         model = BaseApplication
@@ -102,6 +103,9 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         override this function in child classes
         """
         return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
+
+    def get_is_major_editable(self, instance):
+        return instance.is_major_editable()
 
 
 class GenericApplicationViewSerializer(GenericApplicationListSerializer):
