@@ -155,7 +155,13 @@ class CaseDetailSerializer(CaseSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY, CaseTypeEnum.EXHIBITION_CLEARANCE]:
+        if instance.type in [
+            CaseTypeEnum.APPLICATION,
+            CaseTypeEnum.HMRC_QUERY,
+            CaseTypeEnum.EXHIBITION_CLEARANCE,
+            CaseTypeEnum.F_680_CLEARANCE,
+            CaseTypeEnum.GIFTING_CLEARANCE,
+        ]:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
