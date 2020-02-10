@@ -15,3 +15,13 @@ class CountriesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(countries[0]["name"], "Abu Dhabi")
         self.assertEqual(countries[-1]["name"], "Zimbabwe")
+
+    def test_filter_countries_by_exclude(self):
+        response = self.client.get(self.url + "?exclude=GB&exclude=PL")
+        countries = response.json()["countries"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(countries[0]["name"], "Abu Dhabi")
+        self.assertEqual(countries[-1]["name"], "Zimbabwe")
+        self.assertNotIn("United Kingdom", str(countries))
+        self.assertNotIn("Poland", str(countries))
