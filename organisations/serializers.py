@@ -9,9 +9,10 @@ from conf.serializers import (
     KeyValueChoiceField,
     CountrySerializerField,
 )
+from gov_users.serializers import RoleNameSerializer
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
-from users.models import GovUser, UserOrganisationRelationship, Permission
+from users.models import GovUser, UserOrganisationRelationship, Permission, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
@@ -213,3 +214,24 @@ class ExternalLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExternalLocation
         fields = ("id", "name", "address", "country", "organisation")
+
+
+class OrganisationUserListView(serializers.ModelSerializer):
+    status = serializers.CharField()
+    role = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ExporterUser
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "role",
+            "status",
+        )
+
+    def get_role(self, instance):
+        if self.context:
+            role = instance.get_role(self.context)
+            return RoleNameSerializer(role).data
