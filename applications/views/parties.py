@@ -12,9 +12,11 @@ from conf.decorators import (
     allowed_application_types,
 )
 from conf.helpers import str_to_bool
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import Party
 from parties.serializers import PartySerializer
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -31,6 +33,17 @@ class ApplicationPartyView(APIView):
         """
         data = request.data
         data["organisation"] = request.user.organisation.id
+
+        if not application.is_major_editable():
+            return JsonResponse(
+                data={
+                    "errors": [
+                        f"You can only perform this operation when the application is "
+                        f"in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state"
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Validate data
         serializer = PartySerializer(data=data)
@@ -76,6 +89,12 @@ class ApplicationPartyView(APIView):
             poa = application.active_parties.all().get(party__pk=party_pk)
         except PartyOnApplication.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+        if not application.party_is_editable(poa.party):
+            return JsonResponse(
+                data={"errors": [strings.Applications.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Delete party
         application.delete_party(poa)

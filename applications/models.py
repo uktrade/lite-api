@@ -29,9 +29,7 @@ class ApplicationException(Exception):
 class ApplicationPartyMixin:
     def add_party(self, party):
         old_poa = None
-        if PartyOnApplication.objects.filter(party=party).exclude(application=self).exists():
-            # Party cannot be used in multiple applications
-            raise ApplicationException({"error": Parties.Errors.PARTY_EXISTS})
+
         # Alternate behaviour of adding a party depending on party type
         if party.type == PartyType.ULTIMATE_END_USER:
             # Rule: Append
