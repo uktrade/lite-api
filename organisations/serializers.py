@@ -9,7 +9,7 @@ from conf.serializers import (
     KeyValueChoiceField,
     CountrySerializerField,
 )
-from gov_users.serializers import RoleSerializer, RoleNameSerializer
+from gov_users.serializers import RoleNameSerializer
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
 from users.models import GovUser, UserOrganisationRelationship, Permission, ExporterUser
