@@ -27,7 +27,10 @@ class PermissionSerializer(serializers.ModelSerializer):
 class RoleNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
-        fields = ("id", "name")
+        fields = (
+            "id",
+            "name",
+        )
 
 
 class RoleSerializer(serializers.ModelSerializer):

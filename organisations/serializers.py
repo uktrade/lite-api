@@ -222,7 +222,14 @@ class OrganisationUserListView(serializers.ModelSerializer):
 
     class Meta:
         model = ExporterUser
-        fields = ("id", "first_name", "last_name", "email", "role", "status")
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "role",
+            "status",
+        )
 
     def get_role(self, instance):
         if self.context:
