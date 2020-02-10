@@ -16,6 +16,7 @@ class PicklistSerializer(ModelSerializer):
     )
     type = KeyValueChoiceField(
         choices=PicklistType.choices, required=True, error_messages={"invalid_choice": strings.Picklists.BLANK_TYPE},
+        allow_null=False, allow_blank=False,
     )
     status = KeyValueChoiceField(
         choices=PickListStatus.choices, error_messages={"invalid_choice": strings.Picklists.BLANK_STATUS},
