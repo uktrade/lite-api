@@ -39,7 +39,7 @@ class F680ClearanceViewSerializer(GenericApplicationViewSerializer):
 class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.GIFTING_CLEARANCE
+        self.initial_data["type"] = CaseTypeEnum.F_680_CLEARANCE
 
     class Meta:
         model = F680ClearanceApplication
