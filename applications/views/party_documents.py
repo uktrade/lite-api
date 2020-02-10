@@ -1,12 +1,9 @@
 from django.db import transaction
-from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
 from rest_framework.views import APIView
 
 from applications.enums import ApplicationType
 from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
-from applications.models import PartyOnApplication
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, allowed_application_types
 from parties.serializers import PartyDocumentSerializer
