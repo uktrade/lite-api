@@ -13,8 +13,8 @@ class CaseTypeEnum:
         (END_USER_ADVISORY_QUERY, "End User Advisory Query"),
         (HMRC_QUERY, "HMRC Query"),
         (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),
-        (GIFTING_CLEARANCE, "Gifting Clearance"),
-        (F_680_CLEARANCE, "F680 Clearance"),
+        (GIFTING_CLEARANCE, "MOD Gifting Clearance"),
+        (F_680_CLEARANCE, "MOD F680 Clearance"),
     ]
 
     @classmethod
