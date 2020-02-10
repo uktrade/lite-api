@@ -1,6 +1,6 @@
 from datetime import datetime
 
-SLASH = "/"
+SEPARATOR = "/"
 
 # Applications
 APPLICATION_PREFIX = "GB"
@@ -23,6 +23,8 @@ HMRC_QUERY_PREFIX = "CRE"
 
 # MOD Clearances
 EXHIBITION_CLEARANCE_PREFIX = "EXHC"
+F680_CLEARANCE_PREFIX = "F680"
+GIFTING_CLEARANCE_PREFIX = "GIFT"
 
 
 def generate_reference_code(case):
@@ -64,20 +66,24 @@ def generate_reference_code(case):
 
         # Export, transhipment and trade control
         if case.application_sites.count():
-            reference_code += EXPORT + SLASH
+            reference_code += EXPORT + SEPARATOR
         elif case.external_application_sites.count():
-            reference_code += TRADE_CONTROL + SLASH
+            reference_code += TRADE_CONTROL + SEPARATOR
     elif case.type == CaseTypeEnum.GOODS_QUERY:
-        reference_code += GOODS_QUERY_PREFIX + SLASH
+        reference_code += GOODS_QUERY_PREFIX + SEPARATOR
     elif case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
-        reference_code += END_USER_ADVISORY_QUERY_PREFIX + SLASH
+        reference_code += END_USER_ADVISORY_QUERY_PREFIX + SEPARATOR
     elif case.type == CaseTypeEnum.HMRC_QUERY:
-        reference_code += HMRC_QUERY_PREFIX + SLASH
+        reference_code += HMRC_QUERY_PREFIX + SEPARATOR
     elif case.type == CaseTypeEnum.EXHIBITION_CLEARANCE:
-        reference_code += EXHIBITION_CLEARANCE_PREFIX + SLASH
+        reference_code += EXHIBITION_CLEARANCE_PREFIX + SEPARATOR
+    elif case.type == CaseTypeEnum.F_680_CLEARANCE:
+        reference_code += F680_CLEARANCE_PREFIX + SEPARATOR
+    elif case.type == CaseTypeEnum.GIFTING_CLEARANCE:
+        reference_code += GIFTING_CLEARANCE_PREFIX + SEPARATOR
 
     # Year
-    reference_code += str(datetime.now().year) + SLASH
+    reference_code += str(datetime.now().year) + SEPARATOR
 
     # Int
     from cases.models import CaseReferenceCode
@@ -88,6 +94,6 @@ def generate_reference_code(case):
     if case.type == CaseTypeEnum.APPLICATION:
         # Export type
         if hasattr(case, "export_type"):
-            reference_code += SLASH + case.export_type[0]
+            reference_code += SEPARATOR + case.export_type[0]
 
     return reference_code.upper()
