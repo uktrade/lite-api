@@ -568,10 +568,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             value=500,
         )
 
-        self.create_party("End User", organisation, PartyType.END_USER, application)
-        self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-
         # Set the application party documents
         self.add_application_and_party_documents(
             application, safe_document, consignee=type == ApplicationType.EXHIBITION_CLEARANCE

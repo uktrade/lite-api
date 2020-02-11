@@ -3,7 +3,8 @@ from parameterized import parameterized_class
 from rest_framework import status
 
 from applications.enums import ApplicationType
-from applications.models import SiteOnApplication, GoodOnApplication
+from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
+from parties.enums import PartyType
 from parties.models import PartyDocument
 from test_helpers.clients import DataTestClient
 from lite_content.lite_api import strings
@@ -53,7 +54,7 @@ class MODClearanceTests(DataTestClient):
         self.assertEqual(response.json()["errors"]["goods"], strings.Applications.Standard.NO_GOODS_SET)
 
     def test_submit_MOD_clearance_without_parties_failure(self):
-        self.draft.end_user = None
+        self.draft.delete_party(PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.END_USER))
         self.draft.third_parties.all().delete()
         self.draft.save()
 
@@ -81,7 +82,7 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
 
     def test_submit_exhibition_clearance_without_end_user_failure(self):
-        self.draft.end_user = None
+        self.draft.delete_party(self.draft.end_user)
         self.draft.save()
 
         response = self.client.put(self.url, **self.exporter_headers)
@@ -90,7 +91,7 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_SET)
 
     def test_submit_exhibition_clearance_without_end_user_document_failure(self):
-        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+        PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
 
         response = self.client.put(self.url, **self.exporter_headers)
 
@@ -98,8 +99,7 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_DOCUMENT_SET)
 
     def test_submit_exhibition_clearance_without_consignee_failure(self):
-        self.draft.consignee = None
-        self.draft.save()
+        self.draft.delete_party(self.draft.consignee)
 
         response = self.client.put(self.url, **self.exporter_headers)
 
@@ -107,7 +107,7 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.json()["errors"]["consignee"], strings.Applications.Standard.NO_CONSIGNEE_SET)
 
     def test_submit_exhibition_clearance_without_consignee_document_failure(self):
-        PartyDocument.objects.filter(party=self.draft.consignee).delete()
+        PartyDocument.objects.filter(party=self.draft.consignee.party).delete()
 
         response = self.client.put(self.url, **self.exporter_headers)
 
@@ -117,7 +117,7 @@ class ExhibitionClearanceTests(DataTestClient):
         )
 
     def test_submit_exhibition_clearance_with_incorporated_good_and_without_ultimate_end_users_failure(self):
-        self.create_incorporated_good_and_ultimate_end_user_on_application(self.draft)
+        self.create_incorporated_good_and_ultimate_end_user_on_application(self.organisation, self.draft)
         self.draft.ultimate_end_users.all().delete()
 
         response = self.client.put(self.url, **self.exporter_headers)
@@ -128,8 +128,8 @@ class ExhibitionClearanceTests(DataTestClient):
         )
 
     def test_submit_exhibition_clearance_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self):
-        self.create_incorporated_good_and_ultimate_end_user_on_application(self.draft)
-        PartyDocument.objects.filter(party__in=self.draft.ultimate_end_users.all()).delete()
+        self.create_incorporated_good_and_ultimate_end_user_on_application(self.organisation, self.draft)
+        PartyDocument.objects.filter(party__in=self.draft.ultimate_end_users.all().values("party")).delete()
 
         response = self.client.put(self.url, **self.exporter_headers)
 
@@ -154,8 +154,7 @@ class GiftingClearanceTests(DataTestClient):
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
 
     def test_submit_gifting_clearance_without_end_user_failure(self):
-        self.draft.end_user = None
-        self.draft.save()
+        self.draft.delete_party(self.draft.end_user)
 
         response = self.client.put(self.url, **self.exporter_headers)
 
@@ -163,7 +162,7 @@ class GiftingClearanceTests(DataTestClient):
         self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_SET)
 
     def test_submit_gifting_clearance_without_end_user_document_failure(self):
-        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+        PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
 
         response = self.client.put(self.url, **self.exporter_headers)
 
@@ -193,8 +192,7 @@ class F680ClearanceTests(DataTestClient):
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
 
     def test_submit_F680_without_end_user_and_with_third_party_success(self):
-        self.draft.end_user = None
-        self.draft.save()
+        self.draft.delete_party(self.draft.end_user)
 
         response = self.client.put(self.url, **self.exporter_headers)
 
@@ -202,7 +200,7 @@ class F680ClearanceTests(DataTestClient):
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
 
     def test_submit_F680_without_end_user_or_third_party_failure(self):
-        self.draft.end_user = None
+        self.draft.delete_party(self.draft.end_user)
         self.draft.third_parties.all().delete()
         self.draft.save()
 
@@ -212,7 +210,7 @@ class F680ClearanceTests(DataTestClient):
         self.assertEqual(response.json()["errors"]["party"], strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY)
 
     def test_submit_F680_without_end_user_document_failure(self):
-        PartyDocument.objects.filter(party=self.draft.end_user).delete()
+        PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
 
         response = self.client.put(self.url, **self.exporter_headers)
 
