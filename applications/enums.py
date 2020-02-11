@@ -28,6 +28,17 @@ class ApplicationType:
         (F_680_CLEARANCE, "F680 Clearance"),
     ]
 
+    @classmethod
+    def has_parties(cls, application_type):
+        """
+        Check if the application_type uses parties.
+        """
+        return application_type in [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+        ]
+
 
 class ApplicationExportLicenceOfficialType:
     YES = "yes"

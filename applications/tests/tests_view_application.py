@@ -17,7 +17,9 @@ from users.libraries.get_user import get_user_organisation_relationship
 
 
 class DraftTests(DataTestClient):
-    url = reverse("applications:applications") + "?submitted=false"
+    def setUp(self):
+        super().setUp()
+        self.url = reverse("applications:applications") + "?submitted=false"
 
     def test_view_draft_standard_application_list_as_exporter_success(self):
         """
@@ -110,6 +112,7 @@ class DraftTests(DataTestClient):
         retrieved_application = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieved_application["id"], str(standard_application.id))
         self.assertEqual(retrieved_application["name"], standard_application.name)
         self.assertEqual(
             retrieved_application["application_type"]["key"], standard_application.application_type,
@@ -125,13 +128,13 @@ class DraftTests(DataTestClient):
             GoodOnApplication.objects.filter(application__id=standard_application.id).count(), 1,
         )
         self.assertEqual(
-            retrieved_application["end_user"]["id"], str(standard_application.end_user.id),
+            retrieved_application["end_user"]["id"], str(standard_application.end_user.party.id),
         )
         self.assertEqual(
-            retrieved_application["consignee"]["id"], str(standard_application.consignee.id),
+            retrieved_application["consignee"]["id"], str(standard_application.consignee.party.id),
         )
         self.assertEqual(
-            retrieved_application["third_parties"][0]["id"], str(standard_application.third_parties.get().id),
+            retrieved_application["third_parties"][0]["id"], str(standard_application.third_parties.get().party.id),
         )
 
     @parameterized.expand(
@@ -176,13 +179,13 @@ class DraftTests(DataTestClient):
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEqual(GoodOnApplication.objects.filter(application__id=application.id).count(), 1)
         self.assertEqual(
-            retrieved_application["end_user"]["id"], str(application.end_user.id),
+            retrieved_application["end_user"]["id"], str(application.end_user.party.id),
         )
         self.assertEqual(
-            retrieved_application["consignee"]["id"], str(application.consignee.id),
+            retrieved_application["consignee"]["id"], str(application.consignee.party.id),
         )
         self.assertEqual(
-            retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().id),
+            retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().party.id),
         )
 
     def test_view_draft_gifting_clearance_as_exporter_success(self):
@@ -286,10 +289,10 @@ class DraftTests(DataTestClient):
             retrieved_application["hmrc_organisation"]["id"], str(hmrc_query.hmrc_organisation.id),
         )
         self.assertIsNotNone(GoodsType.objects.get(application__id=hmrc_query.id))
-        self.assertEqual(retrieved_application["end_user"]["id"], str(hmrc_query.end_user.id))
-        self.assertEqual(retrieved_application["consignee"]["id"], str(hmrc_query.consignee.id))
+        self.assertEqual(retrieved_application["end_user"]["id"], str(hmrc_query.end_user.party.id))
+        self.assertEqual(retrieved_application["consignee"]["id"], str(hmrc_query.consignee.party.id))
         self.assertEqual(
-            retrieved_application["third_parties"][0]["id"], str(hmrc_query.third_parties.get().id),
+            retrieved_application["third_parties"][0]["id"], str(hmrc_query.third_parties.get().party.id),
         )
 
     def test_view_nonexisting_draft_failure(self):
