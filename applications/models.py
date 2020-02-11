@@ -39,6 +39,12 @@ class StandardApplication(BaseApplication):
         Consignee, related_name="application_consignee", on_delete=models.CASCADE, default=None, blank=True, null=True,
     )
     third_parties = models.ManyToManyField(ThirdParty, related_name="application_third_parties")
+    languages = SeparatedValuesField(
+        max_length=150,
+        token=',',
+        choices=(
+            ('en', 'English'),
+            ('fr', 'French')))
 
 
 class OpenApplication(BaseApplication):

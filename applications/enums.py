@@ -25,6 +25,20 @@ class ApplicationType:
     ]
 
 
+class GoodsCategory:
+    ANTI_PIRACY = "anti_piracy"
+    MARITIME_ANTI_PIRACY = "maritime_anti_piracy"
+    FIREARMS = "firearms"
+    INCORPORATED_GOODS = "incorporated_goods"
+
+    choices = [
+        (ANTI_PIRACY, "Anti-piracy"),
+        (MARITIME_ANTI_PIRACY, "Maritime anti-piracy"),
+        (FIREARMS, "Firearms"),
+        (INCORPORATED_GOODS, "Incorporated goods"),
+    ]
+
+
 class ApplicationExportLicenceOfficialType:
     YES = "yes"
     NO = "no"
