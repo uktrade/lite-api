@@ -85,9 +85,9 @@ class ApplicationPartyView(APIView):
 
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE, 
-            ApplicationType.HMRC_QUERY, 
-            ApplicationType.EXHIBITION_CLEARANCE, 
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
             ApplicationType.F_680_CLEARANCE,
         ]
