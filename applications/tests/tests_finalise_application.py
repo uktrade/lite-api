@@ -35,12 +35,48 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_gov_user_finalise_clearance_application_success(self):
+        clearance_application = self.create_exhibition_clearance_application(self.organisation)
+
+        self.gov_user.role = self.role
+        self.gov_user.role.permissions.set(
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name]
+        )
+        self.gov_user.save()
+
+        data = {"licence_duration": 13}
+        url = reverse("applications:finalise", kwargs={"pk": clearance_application.pk})
+        response = self.client.put(url, data=data, **self.gov_headers)
+
+        self.standard_application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
+        self.assertEqual(self.standard_application.licence_duration, data["licence_duration"])
+
+    def test_gov_user_finalise_clearance_application_failure(self):
+        """ Test failure in finalising a clearance application as the gov user does not have the
+         permission.
+        """
+        clearance_application = self.create_exhibition_clearance_application(self.organisation)
+
+        self.gov_user.role = self.role
+        self.gov_user.role.permissions.set(
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name]
+        )
+        self.gov_user.save()
+
+        data = {"licence_duration": 13}
+        url = reverse("applications:finalise", kwargs={"pk": clearance_application.pk})
+        response = self.client.put(url, data=data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_gov_user_finalise_application_success(self):
         self.assertEqual(self.standard_application.licence_duration, None)
 
         self.gov_user.role = self.role
         self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
         )
         self.gov_user.save()
 
@@ -64,7 +100,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.gov_user.role = self.role
         self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
         )
         self.gov_user.save()
 
@@ -81,7 +117,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_gov_use_set_duration_permission_denied(self):
         self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name])
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.gov_user.save()
 
         data = {"licence_duration": 13}
@@ -93,7 +129,7 @@ class FinaliseApplicationTests(DataTestClient):
     def test_invalid_duration_data(self):
         self.gov_user.role = self.role
         self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
         )
         self.gov_user.save()
 
@@ -107,7 +143,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_default_duration_no_permission_application_finalised_success(self):
         self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name])
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.gov_user.save()
 
         data = {"licence_duration": get_default_duration(self.standard_application)}
@@ -119,7 +155,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_refuse_application_success(self):
         self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name])
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.gov_user.save()
 
         data = {"action": AdviceType.REFUSE}
@@ -136,7 +172,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_grant_application_success(self):
         self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name])
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.gov_user.save()
 
         data = {"action": AdviceType.APPROVE}

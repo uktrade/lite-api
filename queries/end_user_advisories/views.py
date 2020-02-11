@@ -5,7 +5,7 @@ from rest_framework import status, serializers
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
+from applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from conf import constants
@@ -81,10 +81,12 @@ class EndUserAdvisoryDetail(APIView):
 
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         if data.get("status") == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         new_status = data.get("status")
-        if not can_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
+        if not can_status_be_set_by_gov_user(
+            request.user, end_user_advisory.status.status, new_status, is_licence_application=False
+        ):
             return JsonResponse(
                 data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
             )

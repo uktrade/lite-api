@@ -28,10 +28,10 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         role = Role(name="team_level")
         role.permissions.set(
             [
-                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
                 constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
                 constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name,
-                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
                 constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
             ]
         )
