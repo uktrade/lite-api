@@ -58,7 +58,7 @@ class Case(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, null=True, blank=False, editable=False, default=None)
-    case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, blank=True, null=True)
+    case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=True, blank=False, default=None)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
