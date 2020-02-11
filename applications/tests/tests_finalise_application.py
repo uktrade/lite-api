@@ -40,7 +40,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.gov_user.role = self.role
         self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name]
+            [GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
         )
         self.gov_user.save()
 
@@ -48,10 +48,10 @@ class FinaliseApplicationTests(DataTestClient):
         url = reverse("applications:finalise", kwargs={"pk": clearance_application.pk})
         response = self.client.put(url, data=data, **self.gov_headers)
 
-        self.standard_application.refresh_from_db()
+        clearance_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
-        self.assertEqual(self.standard_application.licence_duration, data["licence_duration"])
+        self.assertEqual(clearance_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
+        self.assertEqual(clearance_application.licence_duration, data["licence_duration"])
 
     def test_gov_user_finalise_clearance_application_failure(self):
         """ Test failure in finalising a clearance application as the gov user does not have the
@@ -61,7 +61,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.gov_user.role = self.role
         self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name]
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
         )
         self.gov_user.save()
 
