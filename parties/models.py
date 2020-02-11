@@ -6,8 +6,25 @@ from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
 from organisations.models import Organisation
-from parties.enums import PartyType, SubType, ThirdPartyRole
+from parties.enums import PartyType, SubType, PartyRole
 from static.countries.models import Country
+
+
+class PartyManager(models.Manager):
+    def copy_detail(self, pk):
+        """
+        Copies the details of a party.
+        """
+        values = dict(
+            self.values("name", "address", "country", "website", "type", "organisation", "sub_type", "copy_of").get(
+                pk=pk
+            )
+        )
+        if not values["copy_of"]:
+            values["copy_of"] = str(pk)
+        values["organisation"] = str(values.get("organisation", ""))
+
+        return values
 
 
 class Party(TimestampableModel):
@@ -22,34 +39,13 @@ class Party(TimestampableModel):
     )
     flags = models.ManyToManyField(Flag, related_name="parties")
     sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
+    role = models.CharField(
+        choices=PartyRole.choices, default=PartyRole.OTHER, max_length=22, null=True, help_text="Third party type only"
+    )
     # FK is self referencing
     copy_of = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
 
-
-class Consignee(Party):
-    def save(self, *args, **kwargs):
-        self.type = PartyType.CONSIGNEE
-        super(Consignee, self).save(*args, **kwargs)
-
-
-class EndUser(Party):
-    def save(self, *args, **kwargs):
-        self.type = PartyType.END
-        super(EndUser, self).save(*args, **kwargs)
-
-
-class UltimateEndUser(Party):
-    def save(self, *args, **kwargs):
-        self.type = PartyType.ULTIMATE
-        super(UltimateEndUser, self).save(*args, **kwargs)
-
-
-class ThirdParty(Party):
-    role = models.CharField(choices=ThirdPartyRole.choices, default=ThirdPartyRole.OTHER, max_length=22)
-
-    def save(self, *args, **kwargs):
-        self.type = PartyType.THIRD
-        super(ThirdParty, self).save(*args, **kwargs)
+    objects = PartyManager()
 
 
 class PartyDocument(Document):

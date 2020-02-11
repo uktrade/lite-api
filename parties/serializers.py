@@ -3,11 +3,12 @@ from rest_framework import serializers, relations
 
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
+from flags.serializers import FlagSerializer
 from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation
+from parties.enums import PartyType, SubType, PartyRole
+from parties.models import Party
 from parties.models import PartyDocument
-from parties.enums import PartyType, SubType, ThirdPartyRole
-from parties.models import Party, EndUser, UltimateEndUser, Consignee, ThirdParty
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -15,11 +16,16 @@ class PartySerializer(serializers.ModelSerializer):
     address = serializers.CharField()
     country = CountrySerializerField()
     website = serializers.CharField(required=False, allow_blank=True)
-    type = serializers.ChoiceField(choices=PartyType.choices, required=False)
+    type = serializers.ChoiceField(choices=PartyType.choices)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
     sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_TYPE})
+    role = KeyValueChoiceField(
+        choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}, required=False
+    )
+    flags = FlagSerializer(many=True, required=False)
     copy_of = relations.PrimaryKeyRelatedField(queryset=Party.objects.all(), allow_null=True, required=False)
+    deleted_at = serializers.DateTimeField(allow_null=True, required=False)
 
     class Meta:
         model = Party
@@ -33,8 +39,19 @@ class PartySerializer(serializers.ModelSerializer):
             "organisation",
             "document",
             "sub_type",
+            "role",
+            "flags",
             "copy_of",
+            "deleted_at",
         )
+
+    def __init__(self, *args, **kwargs):
+        super(PartySerializer, self).__init__(*args, **kwargs)
+        party_type = kwargs.get("data", {}).get("type")
+        if party_type == PartyType.THIRD_PARTY:
+            for field, serializer_instance in self.fields.items():
+                if field == "role":
+                    serializer_instance.required = True
 
     @staticmethod
     def validate_website(value):
@@ -58,125 +75,8 @@ class PartySerializer(serializers.ModelSerializer):
             return ""
 
     def get_document(self, instance):
-        docs = PartyDocument.objects.filter(party=instance).values()
-        return docs[0] if docs else None
-
-
-class EndUserSerializer(PartySerializer):
-    class Meta:
-        model = EndUser
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-            "copy_of",
-        )
-
-
-class EndUserWithFlagsSerializer(EndUserSerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = EndUser
-        fields = "__all__"
-
-
-class UltimateEndUserSerializer(PartySerializer):
-    class Meta:
-        model = UltimateEndUser
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-            "copy_of",
-        )
-
-
-class UltimateEndUserWithFlagsSerializer(UltimateEndUserSerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = UltimateEndUser
-        fields = "__all__"
-
-
-class ConsigneeSerializer(PartySerializer):
-    class Meta:
-        model = Consignee
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-            "copy_of",
-        )
-
-
-class ConsigneeWithFlagsSerializer(ConsigneeSerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = Consignee
-        fields = "__all__"
-
-
-class ThirdPartySerializer(PartySerializer):
-    role = KeyValueChoiceField(
-        choices=ThirdPartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}
-    )
-
-    class Meta:
-        model = ThirdParty
-        fields = (
-            "id",
-            "name",
-            "address",
-            "country",
-            "website",
-            "type",
-            "organisation",
-            "document",
-            "sub_type",
-            "role",
-            "copy_of",
-        )
-
-
-class ThirdPartyWithFlagsSerializer(ThirdPartySerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = ThirdParty
-        fields = "__all__"
+        docs = PartyDocument.objects.filter(party=instance)
+        return docs.values()[0] if docs.exists() else None
 
 
 class PartyDocumentSerializer(serializers.ModelSerializer):
@@ -198,14 +98,3 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         document.save()
         process_document(document)
         return document
-
-
-class PartyWithFlagsSerializer(PartySerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
-
-    class Meta:
-        model = Party
-        fields = "__all__"
