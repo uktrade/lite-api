@@ -11,7 +11,7 @@ def get_default_duration(application):
     if application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
         return DefaultDuration.TEMPORARY.value
 
-    if application.export_type == ApplicationExportType.TEMPORARY:
+    elif application.export_type == ApplicationExportType.TEMPORARY:
         return DefaultDuration.TEMPORARY.value
 
     elif (
