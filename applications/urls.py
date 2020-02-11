@@ -42,31 +42,14 @@ urlpatterns = [
         goods.ApplicationGoodsTypeCountries.as_view(),
         name="application_goodstype_assign_countries",
     ),
-    # End user
-    path("<uuid:pk>/end-user/", parties.ApplicationEndUser.as_view(), name="end_user"),
-    path("<uuid:pk>/end-user/document/", party_documents.EndUserDocumentView.as_view(), name="end_user_document",),
-    # Ultimate end users
-    path("<uuid:pk>/ultimate-end-users/", parties.ApplicationUltimateEndUsers.as_view(), name="ultimate_end_users",),
+    # Parties
+    path("<uuid:pk>/parties/", parties.ApplicationPartyView.as_view(), name="parties"),
+    path("<uuid:pk>/parties/<uuid:party_pk>/", parties.ApplicationPartyView.as_view(), name="party"),
+    path("<uuid:pk>/parties/<uuid:party_pk>/copy", parties.CopyPartyView.as_view(), name="copy_party"),
     path(
-        "<uuid:pk>/ultimate-end-users/<uuid:ueu_pk>",
-        parties.RemoveApplicationUltimateEndUser.as_view(),
-        name="remove_ultimate_end_user",
-    ),
-    path(
-        "<uuid:pk>/ultimate-end-user/<uuid:ueu_pk>/document/",
-        party_documents.UltimateEndUserDocumentsView.as_view(),
-        name="ultimate_end_user_document",
-    ),
-    # Consignee
-    path("<uuid:pk>/consignee/", parties.ApplicationConsignee.as_view(), name="consignee"),
-    path("<uuid:pk>/consignee/document/", party_documents.ConsigneeDocumentView.as_view(), name="consignee_document",),
-    # Third parties
-    path("<uuid:pk>/third-parties/", parties.ApplicationThirdParties.as_view(), name="third_parties",),
-    path("<uuid:pk>/third-parties/<uuid:tp_pk>", parties.RemoveThirdParty.as_view(), name="remove_third_party",),
-    path(
-        "<uuid:pk>/third-parties/<uuid:tp_pk>/document/",
-        party_documents.ThirdPartyDocumentView.as_view(),
-        name="third_party_document",
+        "<uuid:pk>/parties/<uuid:party_pk>/document/",
+        party_documents.PartyDocumentView.as_view(),
+        name="party_document",
     ),
     # Sites, locations and countries
     path("<uuid:pk>/sites/", sites.ApplicationSites.as_view(), name="application_sites"),
