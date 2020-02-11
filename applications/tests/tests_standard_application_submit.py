@@ -7,7 +7,7 @@ from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApp
 from cases.models import Case
 from goods.enums import GoodStatus
 from parties.enums import PartyType
-from parties.models import PartyDocument, Party
+from parties.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
