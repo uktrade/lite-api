@@ -12,11 +12,7 @@ from lite_content.lite_api import strings
 
 @parameterized_class(
     "application_type",
-    [
-        (ApplicationType.EXHIBITION_CLEARANCE,),
-        (ApplicationType.GIFTING_CLEARANCE,),
-        (ApplicationType.F680_CLEARANCE,),
-    ],
+    [(ApplicationType.EXHIBITION_CLEARANCE,), (ApplicationType.GIFTING_CLEARANCE,), (ApplicationType.F680_CLEARANCE,),],
 )
 class MODClearanceTests(DataTestClient):
     """

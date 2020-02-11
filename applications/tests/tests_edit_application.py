@@ -129,11 +129,7 @@ class EditStandardApplicationTests(DataTestClient):
 
 @parameterized_class(
     "application_type",
-    [
-        (ApplicationType.EXHIBITION_CLEARANCE,),
-        (ApplicationType.GIFTING_CLEARANCE,),
-        (ApplicationType.F680_CLEARANCE,),
-    ],
+    [(ApplicationType.EXHIBITION_CLEARANCE,), (ApplicationType.GIFTING_CLEARANCE,), (ApplicationType.F680_CLEARANCE,),],
 )
 class EditMODClearanceApplicationsTests(DataTestClient):
     def setUp(self):
