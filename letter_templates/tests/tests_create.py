@@ -3,7 +3,7 @@ from itertools import permutations
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from conf import constants
 from letter_templates.models import LetterTemplate
 from picklists.enums import PickListStatus, PicklistType
@@ -51,7 +51,7 @@ class LetterTemplateCreateTests(DataTestClient):
         Fail as the name is not unique
         """
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
-        self.letter_template.case_types.set([CaseTypeSubTypeEnum.GOODS, CaseTypeSubTypeEnum.EUA])
+        self.letter_template.case_types.set([CaseTypeEnum.GQY.id, CaseTypeEnum.EUA.id])
         self.letter_template.letter_paragraphs.add(self.picklist_item_1)
 
         data = {
@@ -114,7 +114,7 @@ class LetterTemplateCreateTests(DataTestClient):
             name = f"Test Template {i}"
             data = {
                 "name": name,
-                "case_types": [CaseTypeSubTypeEnum.GOODS, CaseTypeSubTypeEnum.EUA],
+                "case_types": [CaseTypeEnum.GQY.id, CaseTypeEnum.EUA.id],
                 "layout": self.letter_layout.id,
                 "letter_paragraphs": [item.id for item in picklist_items],
             }

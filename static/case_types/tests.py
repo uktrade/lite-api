@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -13,6 +13,6 @@ class CaseTypesTests(DataTestClient):
         response_data = response.json()["case_types"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), len(CaseTypeExtendedEnum.case_type_list))
-        for key, value in CaseTypeExtendedEnum.case_type_list:
-            self.assertEqual(response_data[key], value)
+        self.assertEqual(len(response_data), len(CaseTypeEnum.case_type_list))
+        for case_type in CaseTypeEnum.case_type_list:
+            self.assertIn(case_type.referece, str(response_data))

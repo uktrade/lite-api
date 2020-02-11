@@ -4,7 +4,7 @@ from rest_framework import generics, status
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from audit_trail.serializers import AuditSerializer
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeEnum
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf import constants
@@ -78,7 +78,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         template_object = self.get_object()
-        old_case_types = set(template_object.case_types.all().values_list("name", flat=True))
+        old_case_types = set(template_object.case_types.all().values_list("id", flat=True))
         old_paragraphs = list(template_object.letter_paragraphs.all().values_list("id", "name"))
         old_layout_id = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)

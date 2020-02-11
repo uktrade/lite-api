@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from cases.enums import CaseTypeEnum
+
 SLASH = "/"
 
 # Applications
@@ -51,13 +53,21 @@ def generate_reference_code(case):
 
     reference_code = ""
 
-    if case.type == CaseTypeTypeEnum.APPLICATION:
+    if case.case_type.id == CaseTypeEnum.GQY.id:
+        reference_code += GOODS_QUERY_PREFIX + SLASH
+    elif case.case_type.id == CaseTypeEnum.EUA.id:
+        reference_code += END_USER_ADVISORY_QUERY_PREFIX + SLASH
+    elif case.case_type.id == CaseTypeEnum.HMRC:
+        reference_code += HMRC_PREFIX + SLASH
+    elif case.case_type.id == CaseTypeEnum.EXHC.id:
+        reference_code += EXHIBITION_CLEARANCE_PREFIX + SLASH
+    elif case.case_type.type == CaseTypeTypeEnum.APPLICATION:
         # GB
         reference_code += APPLICATION_PREFIX
 
         # Application type
         if hasattr(case, "application_type"):
-            reference_code += case.application_type[0]
+            reference_code += case.case_type.sub_type[0]
 
         # General or individual
         reference_code += INDIVIDUAL
@@ -67,14 +77,8 @@ def generate_reference_code(case):
             reference_code += EXPORT + SLASH
         elif case.external_application_sites.count():
             reference_code += TRADE_CONTROL + SLASH
-    elif case.type == CaseTypeTypeEnum.GOODS_QUERY:
-        reference_code += GOODS_QUERY_PREFIX + SLASH
-    elif case.type == CaseTypeTypeEnum.END_USER_ADVISORY_QUERY:
-        reference_code += END_USER_ADVISORY_QUERY_PREFIX + SLASH
-    elif case.type == CaseTypeTypeEnum.HMRC:
-        reference_code += HMRC_PREFIX + SLASH
-    elif case.type == CaseTypeTypeEnum.EXHIBITION_CLEARANCE:
-        reference_code += EXHIBITION_CLEARANCE_PREFIX + SLASH
+    else:
+        raise BaseException("Unknown case type")
 
     # Year
     reference_code += str(datetime.now().year) + SLASH
@@ -85,7 +89,7 @@ def generate_reference_code(case):
     value = CaseReferenceCode.objects.create()
     reference_code += str(value.reference_number).zfill(7)
 
-    if case.type == CaseTypeTypeEnum.APPLICATION:
+    if case.case_type.type == CaseTypeTypeEnum.APPLICATION:
         # Export type
         if hasattr(case, "export_type"):
             reference_code += SLASH + case.export_type[0]

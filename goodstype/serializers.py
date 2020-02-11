@@ -6,7 +6,7 @@ from common.libraries import (
     update_good_or_goods_type_control_code_details,
     initialize_good_or_goods_type_control_code_serializer,
 )
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeSubTypeEnum
 from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from goodstype.constants import DESCRIPTION_MAX_LENGTH

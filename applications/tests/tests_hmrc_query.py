@@ -25,7 +25,7 @@ class HmrcQueryTests(DataTestClient):
         self.assertEqual(case.id, self.hmrc_query.id)
         self.assertIsNotNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
-        self.assertEqual(case.type, CaseTypeSubTypeEnum.HMRC)
+        self.assertEqual(case.case_type.sub_type, CaseTypeSubTypeEnum.HMRC)
 
     def test_submit_hmrc_query_with_goods_departed_success(self):
         SiteOnApplication.objects.get(application=self.hmrc_query).delete()

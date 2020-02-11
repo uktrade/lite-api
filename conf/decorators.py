@@ -38,7 +38,7 @@ def allowed_application_types(application_types: [str]):
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.case_Type.sub_type not in application_types:
+            if application.case_type.sub_type not in application_types:
                 return JsonResponse(
                     data={
                         "errors": [

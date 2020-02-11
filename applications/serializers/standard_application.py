@@ -8,7 +8,7 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeTypeEnum
 from lite_content.lite_api import strings
 from parties.serializers import (
     EndUserWithFlagsSerializer,

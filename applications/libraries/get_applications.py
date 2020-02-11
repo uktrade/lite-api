@@ -7,7 +7,7 @@ from applications.models import (
     HmrcQuery,
     ExhibitionClearanceApplication,
 )
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeSubTypeEnum
 
 
 def get_application(pk, organisation_id=None):

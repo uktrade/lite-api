@@ -72,7 +72,7 @@ class CaseTypeSubTypeEnum:
         return [{"key": choice[0], "value": choice[0]} for choice in cls.choices]
 
 
-class CaseTypeExtendedEnum:
+class CaseTypeEnum:
     class OIEL:
         id = UUID("00000000-0000-0000-0000-000000000001")
         reference = CaseTypeReferenceEnum.OIEL
@@ -127,7 +127,7 @@ class CaseTypeExtendedEnum:
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.GIFTING_CLEARANCE
 
-    class CRE:
+    class HMRC:
         id = UUID("00000000-0000-0000-0000-000000000010")
         reference = CaseTypeReferenceEnum.CRE
         type = CaseTypeTypeEnum.APPLICATION
@@ -145,7 +145,7 @@ class CaseTypeExtendedEnum:
         type = CaseTypeTypeEnum.QUERY
         sub_type = CaseTypeSubTypeEnum.EUA
 
-    case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHC, GIFT, CRE, GQY, EUA]
+    case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHC, GIFT, HMRC, GQY, EUA]
 
     @classmethod
     def case_type_list_to_representation(cls):

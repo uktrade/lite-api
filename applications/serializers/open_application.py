@@ -7,7 +7,7 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from lite_content.lite_api import strings

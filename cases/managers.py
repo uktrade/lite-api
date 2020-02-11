@@ -63,8 +63,9 @@ class CaseQuerySet(models.QuerySet):
     def has_status(self, status):
         return self.filter(status__status=status)
 
+    # TODO: case types
     def is_type(self, case_type):
-        return self.filter(type=case_type)
+        return self.filter(case_type=case_type)
 
     def order_by_status(self, order=""):
         """
@@ -128,6 +129,7 @@ class CaseManager(models.Manager):
         if status:
             case_qs = case_qs.has_status(status=status)
 
+        #  TODO: case types
         if case_type:
             case_qs = case_qs.is_type(case_type=case_type)
 

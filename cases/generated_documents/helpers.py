@@ -21,7 +21,7 @@ def html_to_pdf(request, html: str, template_name: str):
 
 
 def get_letter_templates_for_case(case):
-    return LetterTemplate.objects.filter(case_types__id=case.type)
+    return LetterTemplate.objects.filter(case_types=case.case_type)
 
 
 def get_letter_template_for_case(template_id, case):

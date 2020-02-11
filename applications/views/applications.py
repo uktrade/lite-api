@@ -26,7 +26,7 @@ from applications.models import BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import AdviceType, CaseTypeSubTypeEnum
+from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
@@ -76,7 +76,7 @@ class ApplicationList(ListCreateAPIView):
                 "application", flat=True
             )
             applications = applications.exclude(id__in=disallowed_applications).exclude(
-                case_type__sub_type=CaseTypeSubTypeEnum.HMRC
+                case_type_id=CaseTypeEnum.HMRC.id
             )
 
         return applications

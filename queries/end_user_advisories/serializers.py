@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 from rest_framework import serializers
 
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeEnum
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from gov_users.serializers import GovUserSimpleSerializer
 from organisations.models import Organisation
@@ -94,7 +94,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
             end_user = end_user_serializer.save()
         else:
             raise serializers.ValidationError({"errors": end_user_serializer.errors})
-        validated_data["type"] = CaseTypeSubTypeEnum.EUA
+        validated_data["case_type_id"] = CaseTypeEnum.EUA.id
         validated_data["organisation_id"] = end_user_data["organisation"]
         validated_data["status"] = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         validated_data["submitted_at"] = datetime.now(timezone.utc)

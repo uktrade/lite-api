@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from static.management.SeedCommand import SeedCommand
 
@@ -17,7 +17,7 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        case_type_list = CaseTypeExtendedEnum.case_type_list
+        case_type_list = CaseTypeEnum.case_type_list
         data = []
         # Convert extended_enums_list from list of objects to list of dicts
         for case_type_obj in case_type_list:

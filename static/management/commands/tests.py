@@ -2,7 +2,7 @@ import os
 
 from django.test import tag
 
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from conf.constants import GovPermissions, ExporterPermissions
 from conf.settings import BASE_DIR
@@ -40,7 +40,7 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_case_types(self):
         self.seed_command(seedcasetypes.Command)
-        enum = CaseTypeExtendedEnum.case_type_list
+        enum = CaseTypeEnum.case_type_list
         self.assertEqual(CaseType.objects.count(), len(enum))
         for item in enum:
             self.assertTrue(CaseType.objects.get(id=item.id))
