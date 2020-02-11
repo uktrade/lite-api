@@ -49,6 +49,12 @@ class GoodsCategory:
         (INCORPORATED_GOODS, "Incorporated goods"),
     ]
 
+    @classmethod
+    def get_text(cls, choice):
+        for key, value in cls.choices:
+            if key == choice:
+                return value
+
 
 class ApplicationExportLicenceOfficialType:
     YES = "yes"
