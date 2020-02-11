@@ -536,43 +536,28 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         reference_name="Exhibition Clearance Draft",
         safe_document=True,
     ):
-        if type == ApplicationType.EXHIBITION_CLEARANCE:
-            application = ExhibitionClearanceApplication.objects.create(
-                name=reference_name,
-                application_type=ApplicationType.EXHIBITION_CLEARANCE,
-                activity="Trade",
-                usage="Trade",
-                organisation=organisation,
-                end_user=self.create_end_user("End User", organisation),
-                consignee=self.create_consignee("Consignee", organisation),
-                type=type,
-                status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            )
+        if type == ApplicationType.F_680_CLEARANCE:
+            model = F680ClearanceApplication
         elif type == ApplicationType.GIFTING_CLEARANCE:
-            application = GiftingClearanceApplication.objects.create(
-                name=reference_name,
-                application_type=ApplicationType.GIFTING_CLEARANCE,
-                activity="Trade",
-                usage="Trade",
-                organisation=organisation,
-                end_user=self.create_end_user("End User", organisation),
-                type=type,
-                status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            )
-        elif type == ApplicationType.F_680_CLEARANCE:
-            application = F680ClearanceApplication.objects.create(
-                name=reference_name,
-                application_type=ApplicationType.F_680_CLEARANCE,
-                activity="Trade",
-                usage="Trade",
-                organisation=organisation,
-                end_user=self.create_end_user("End User", organisation),
-                type=type,
-                status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            )
+            model = GiftingClearanceApplication
+        elif type == ApplicationType.EXHIBITION_CLEARANCE:
+            model = ExhibitionClearanceApplication
 
-        application.third_parties.set([self.create_third_party("Third party", self.organisation)])
-        application.save()
+        application = model.objects.create(
+            name=reference_name,
+            application_type=type,
+            activity="Trade",
+            usage="Trade",
+            organisation=organisation,
+            type=type,
+            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+        )
+
+        if type == ApplicationType.EXHIBITION_CLEARANCE:
+            self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+
+        self.create_party("End User", organisation, PartyType.END_USER, application)
+        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication.objects.create(
@@ -597,7 +582,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_incorporated_good_and_ultimate_end_user_on_application(self, application):
+    def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
             is_good_controlled=True,
             control_code="ML17",
@@ -610,8 +595,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             good=good, application=application, quantity=17, value=18, is_good_incorporated=True
         )
 
-        application.ultimate_end_users.set([self.create_ultimate_end_user("Ultimate End User", self.organisation)])
-        self.create_document_for_party(application.ultimate_end_users.first(), safe=True)
+        self.ultimate_end_user = self.create_party(
+            "Ultimate End User", organisation, PartyType.ULTIMATE_END_USER, application
+        )
+        self.create_document_for_party(application.ultimate_end_users.first().party, safe=True)
 
         return application
 
