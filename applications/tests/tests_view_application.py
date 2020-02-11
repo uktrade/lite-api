@@ -138,7 +138,7 @@ class DraftTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [ApplicationType.EXHIBITION_CLEARANCE, ApplicationType.F_680_CLEARANCE, ApplicationType.GIFTING_CLEARANCE]
+        [ApplicationType.EXHIBITION_CLEARANCE, ApplicationType.F680_CLEARANCE, ApplicationType.GIFTING_CLEARANCE]
     )
     def test_view_draft_MOD_clearances_list_as_exporter_success(self, type):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
@@ -214,7 +214,7 @@ class DraftTests(DataTestClient):
         )
 
     def test_view_draft_f680_clearance_as_exporter_success(self):
-        application = self.create_mod_clearance_application(self.organisation, type=ApplicationType.F_680_CLEARANCE)
+        application = self.create_mod_clearance_application(self.organisation, type=ApplicationType.F680_CLEARANCE)
 
         url = reverse("applications:application", kwargs={"pk": application.id})
 

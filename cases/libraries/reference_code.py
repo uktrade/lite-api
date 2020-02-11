@@ -77,7 +77,7 @@ def generate_reference_code(case):
         reference_code += HMRC_QUERY_PREFIX + SEPARATOR
     elif case.type == CaseTypeEnum.EXHIBITION_CLEARANCE:
         reference_code += EXHIBITION_CLEARANCE_PREFIX + SEPARATOR
-    elif case.type == CaseTypeEnum.F_680_CLEARANCE:
+    elif case.type == CaseTypeEnum.F680_CLEARANCE:
         reference_code += F680_CLEARANCE_PREFIX + SEPARATOR
     elif case.type == CaseTypeEnum.GIFTING_CLEARANCE:
         reference_code += GIFTING_CLEARANCE_PREFIX + SEPARATOR

@@ -29,7 +29,7 @@ class ApplicationPartyView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_680_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
         ]
     )
     @authorised_users(ExporterUser)
@@ -89,7 +89,7 @@ class ApplicationPartyView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_680_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
         ]
     )
     @authorised_users(ExporterUser)
@@ -127,7 +127,7 @@ class ApplicationPartyView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_680_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
         ]
     )
     @authorised_users(ExporterUser)
@@ -156,7 +156,7 @@ class CopyPartyView(APIView):
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F_680_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
         ]
     )
     @authorised_users(ExporterUser)

@@ -17,7 +17,7 @@ class ApplicationType:
     HMRC_QUERY = "hmrc_query"
     EXHIBITION_CLEARANCE = "exhibition_clearance"
     GIFTING_CLEARANCE = "gifting_clearance"
-    F_680_CLEARANCE = "F680_clearance"
+    F680_CLEARANCE = "F680_clearance"
 
     choices = [
         (STANDARD_LICENCE, "Standard Licence"),
@@ -25,7 +25,7 @@ class ApplicationType:
         (HMRC_QUERY, "HMRC Query"),
         (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),
         (GIFTING_CLEARANCE, "Gifting Clearance"),
-        (F_680_CLEARANCE, "F680 Clearance"),
+        (F680_CLEARANCE, "F680 Clearance"),
     ]
 
     @classmethod
@@ -37,7 +37,7 @@ class ApplicationType:
             ApplicationType.STANDARD_LICENCE,
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.F_680_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
             ApplicationType.GIFTING_CLEARANCE,
         ]
 

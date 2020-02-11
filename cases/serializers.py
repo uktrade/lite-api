@@ -160,7 +160,7 @@ class CaseDetailSerializer(CaseSerializer):
             CaseTypeEnum.APPLICATION,
             CaseTypeEnum.HMRC_QUERY,
             CaseTypeEnum.EXHIBITION_CLEARANCE,
-            CaseTypeEnum.F_680_CLEARANCE,
+            CaseTypeEnum.F680_CLEARANCE,
             CaseTypeEnum.GIFTING_CLEARANCE,
         ]:
             application = get_application(instance.id)

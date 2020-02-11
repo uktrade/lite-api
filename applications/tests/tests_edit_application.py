@@ -132,7 +132,7 @@ class EditStandardApplicationTests(DataTestClient):
     [
         (ApplicationType.EXHIBITION_CLEARANCE,),
         (ApplicationType.GIFTING_CLEARANCE,),
-        (ApplicationType.F_680_CLEARANCE,),
+        (ApplicationType.F680_CLEARANCE,),
     ],
 )
 class EditMODClearanceApplicationsTests(DataTestClient):

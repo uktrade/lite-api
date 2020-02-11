@@ -20,8 +20,8 @@ class DeleteApplication(DataTestClient):
             ApplicationType.GIFTING_CLEARANCE: self.create_mod_clearance_application(
                 self.organisation, type=ApplicationType.GIFTING_CLEARANCE
             ),
-            ApplicationType.F_680_CLEARANCE: self.create_mod_clearance_application(
-                self.organisation, type=ApplicationType.F_680_CLEARANCE
+            ApplicationType.F680_CLEARANCE: self.create_mod_clearance_application(
+                self.organisation, type=ApplicationType.F680_CLEARANCE
             ),
         }
         self.users = {"EXPORTER": self.exporter_headers, "GOV": self.gov_headers, "HMRC": self.hmrc_exporter_headers}
@@ -31,7 +31,7 @@ class DeleteApplication(DataTestClient):
             (ApplicationType.STANDARD_LICENCE, "EXPORTER"),
             (ApplicationType.EXHIBITION_CLEARANCE, "EXPORTER"),
             (ApplicationType.GIFTING_CLEARANCE, "EXPORTER"),
-            (ApplicationType.F_680_CLEARANCE, "EXPORTER"),
+            (ApplicationType.F680_CLEARANCE, "EXPORTER"),
             (ApplicationType.HMRC_QUERY, "HMRC"),
         ]
     )
@@ -56,7 +56,7 @@ class DeleteApplication(DataTestClient):
             (ApplicationType.STANDARD_LICENCE, "GOV"),
             (ApplicationType.EXHIBITION_CLEARANCE, "GOV"),
             (ApplicationType.GIFTING_CLEARANCE, "GOV"),
-            (ApplicationType.F_680_CLEARANCE, "GOV"),
+            (ApplicationType.F680_CLEARANCE, "GOV"),
             (ApplicationType.HMRC_QUERY, "EXPORTER"),
         ]
     )
@@ -79,7 +79,7 @@ class DeleteApplication(DataTestClient):
             (ApplicationType.STANDARD_LICENCE, "EXPORTER"),
             (ApplicationType.EXHIBITION_CLEARANCE, "EXPORTER"),
             (ApplicationType.GIFTING_CLEARANCE, "EXPORTER"),
-            (ApplicationType.F_680_CLEARANCE, "EXPORTER"),
+            (ApplicationType.F680_CLEARANCE, "EXPORTER"),
             (ApplicationType.HMRC_QUERY, "HMRC"),
         ]
     )

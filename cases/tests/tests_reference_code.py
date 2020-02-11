@@ -57,7 +57,7 @@ class ReferenceCode(DataTestClient):
 
     def test_f680_clearance_reference_code(self):
         exhibition_clearance = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.F_680_CLEARANCE
+            self.organisation, type=ApplicationType.F680_CLEARANCE
         )
         exhibition_clearance = self.submit_application(exhibition_clearance)
 

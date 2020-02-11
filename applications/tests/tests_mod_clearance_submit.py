@@ -15,7 +15,7 @@ from lite_content.lite_api import strings
     [
         (ApplicationType.EXHIBITION_CLEARANCE,),
         (ApplicationType.GIFTING_CLEARANCE,),
-        (ApplicationType.F_680_CLEARANCE,),
+        (ApplicationType.F680_CLEARANCE,),
     ],
 )
 class MODClearanceTests(DataTestClient):
@@ -173,7 +173,7 @@ class GiftingClearanceTests(DataTestClient):
 class F680ClearanceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, type=ApplicationType.F_680_CLEARANCE)
+        self.draft = self.create_mod_clearance_application(self.organisation, type=ApplicationType.F680_CLEARANCE)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 

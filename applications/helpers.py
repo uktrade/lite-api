@@ -1,6 +1,6 @@
 from applications.enums import ApplicationType
 from applications.models import BaseApplication
-from applications.serializers.f_680_clearance import (
+from applications.serializers.f680_clearance import (
     F680ClearanceCreateSerializer,
     F680ClearanceViewSerializer,
     F680ClearanceUpdateSerializer,
@@ -45,7 +45,7 @@ def get_application_view_serializer(application: BaseApplication):
         return ExhibitionClearanceViewSerializer
     elif application.application_type == ApplicationType.GIFTING_CLEARANCE:
         return GiftingClearanceViewSerializer
-    elif application.application_type == ApplicationType.F_680_CLEARANCE:
+    elif application.application_type == ApplicationType.F680_CLEARANCE:
         return F680ClearanceViewSerializer
     else:
         raise BadRequestError(
@@ -67,7 +67,7 @@ def get_application_create_serializer(application_type):
         return ExhibitionClearanceCreateSerializer
     elif application_type == ApplicationType.GIFTING_CLEARANCE:
         return GiftingClearanceCreateSerializer
-    elif application_type == ApplicationType.F_680_CLEARANCE:
+    elif application_type == ApplicationType.F680_CLEARANCE:
         return F680ClearanceCreateSerializer
     else:
         raise BadRequestError({"application_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
@@ -84,7 +84,7 @@ def get_application_update_serializer(application: BaseApplication):
         return ExhibitionClearanceUpdateSerializer
     elif application.application_type == ApplicationType.GIFTING_CLEARANCE:
         return GiftingClearanceUpdateSerializer
-    elif application.application_type == ApplicationType.F_680_CLEARANCE:
+    elif application.application_type == ApplicationType.F680_CLEARANCE:
         return F680ClearanceUpdateSerializer
     else:
         raise BadRequestError(

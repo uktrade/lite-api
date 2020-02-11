@@ -5,7 +5,7 @@ class CaseTypeEnum:
     HMRC_QUERY = "hmrc_query"
     EXHIBITION_CLEARANCE = "exhibition_clearance"
     GIFTING_CLEARANCE = "gifting_clearance"
-    F_680_CLEARANCE = "F680_clearance"
+    F680_CLEARANCE = "F680_clearance"
 
     choices = [
         (APPLICATION, "Application"),
@@ -14,7 +14,7 @@ class CaseTypeEnum:
         (HMRC_QUERY, "HMRC Query"),
         (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),
         (GIFTING_CLEARANCE, "MOD Gifting Clearance"),
-        (F_680_CLEARANCE, "MOD F680 Clearance"),
+        (F680_CLEARANCE, "MOD F680 Clearance"),
     ]
 
     @classmethod

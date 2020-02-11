@@ -81,7 +81,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "application_type": ApplicationType.F_680_CLEARANCE,
+            "application_type": ApplicationType.F680_CLEARANCE,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)

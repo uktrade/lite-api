@@ -140,7 +140,7 @@ def _validate_gifting_clearance(draft, errors):
     return errors
 
 
-def _validate_f_680_clearance(draft, errors):
+def _validate_f680_clearance(draft, errors):
     """
     F680 requires at least 1 end user or third party.
     """
@@ -196,8 +196,8 @@ def validate_application_ready_for_submission(application):
         _validate_exhibition_clearance(application, errors)
     elif application.application_type == ApplicationType.GIFTING_CLEARANCE:
         _validate_gifting_clearance(application, errors)
-    elif application.application_type == ApplicationType.F_680_CLEARANCE:
-        _validate_f_680_clearance(application, errors)
+    elif application.application_type == ApplicationType.F680_CLEARANCE:
+        _validate_f680_clearance(application, errors)
     else:
         errors["unsupported_application"] = "You can only validate a supported application type"
 

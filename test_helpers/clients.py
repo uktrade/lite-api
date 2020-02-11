@@ -536,7 +536,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         reference_name="Exhibition Clearance Draft",
         safe_document=True,
     ):
-        if type == ApplicationType.F_680_CLEARANCE:
+        if type == ApplicationType.F680_CLEARANCE:
             model = F680ClearanceApplication
         elif type == ApplicationType.GIFTING_CLEARANCE:
             model = GiftingClearanceApplication
