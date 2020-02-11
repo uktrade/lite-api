@@ -2,8 +2,14 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
+from separatedvaluesfield.models import SeparatedValuesField
 
-from applications.enums import ApplicationType, ApplicationExportType, ApplicationExportLicenceOfficialType
+from applications.enums import (
+    ApplicationType,
+    ApplicationExportType,
+    ApplicationExportLicenceOfficialType,
+    GoodsCategory,
+)
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
 from common.models import TimestampableModel
@@ -138,12 +144,9 @@ class StandardApplication(BaseApplication):
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50,
     )
-    languages = SeparatedValuesField(
-        max_length=150,
-        token=',',
-        choices=(
-            ('en', 'English'),
-            ('fr', 'French')))
+    goods_categories = SeparatedValuesField(
+        max_length=150, token=",", choices=GoodsCategory.choices, blank=True, null=True, default=None
+    )
 
 
 class OpenApplication(BaseApplication):

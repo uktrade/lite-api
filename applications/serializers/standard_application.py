@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
+from applications.enums import GoodsCategory
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import StandardApplication
 from applications.serializers.generic_application import (
@@ -36,6 +37,10 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    goods_categories = serializers.MultipleChoiceField(
+        choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
+    )
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.initial_data["type"] = CaseTypeEnum.APPLICATION
@@ -49,6 +54,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
+            "goods_categories",
             "organisation",
             "type",
             "status",
