@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from audit_trail.models import Audit
-from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
+from cases.enums import CaseTypeExtendedEnum, AdviceType, CaseDocumentState
 from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
@@ -74,7 +74,7 @@ class CaseSerializer(serializers.ModelSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.type in [CaseTypeEnum.Type.APPLICATION]:
+        if instance.type in [CaseTypeExtendedEnum.Type.APPLICATION]:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
@@ -166,7 +166,7 @@ class CaseDetailSerializer(CaseSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.case_type.type == CaseTypeEnum.Type.APPLICATION:
+        if instance.case_type.type == CaseTypeExtendedEnum.Type.APPLICATION:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data

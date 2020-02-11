@@ -8,7 +8,7 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from lite_content.lite_api import strings
 from parties.serializers import (
     EndUserWithFlagsSerializer,
@@ -47,7 +47,7 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.Type.APPLICATION
+        self.initial_data["type"] = CaseTypeExtendedEnum.Type.APPLICATION
 
     class Meta:
         model = StandardApplication

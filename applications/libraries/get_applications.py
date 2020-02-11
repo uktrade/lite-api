@@ -7,7 +7,7 @@ from applications.models import (
     HmrcQuery,
     ExhibitionClearanceApplication,
 )
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 
 
 def get_application(pk, organisation_id=None):
@@ -18,13 +18,13 @@ def get_application(pk, organisation_id=None):
     application_type = _get_application_type(pk)
 
     try:
-        if application_type == CaseTypeEnum.SubType.STANDARD:
+        if application_type == CaseTypeExtendedEnum.SubType.STANDARD:
             return StandardApplication.objects.get(pk=pk, **kwargs)
-        elif application_type == CaseTypeEnum.SubType.OPEN:
+        elif application_type == CaseTypeExtendedEnum.SubType.OPEN:
             return OpenApplication.objects.get(pk=pk, **kwargs)
-        elif application_type == CaseTypeEnum.SubType.HMRC:
+        elif application_type == CaseTypeExtendedEnum.SubType.HMRC:
             return HmrcQuery.objects.get(pk=pk)
-        elif application_type == CaseTypeEnum.SubType.EXHIBITION_CLEARANCE:
+        elif application_type == CaseTypeExtendedEnum.SubType.EXHIBITION_CLEARANCE:
             return ExhibitionClearanceApplication.objects.get(pk=pk)
         else:
             raise NotImplementedError(f"get_application does not support this application type: {application_type}")

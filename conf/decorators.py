@@ -6,7 +6,7 @@ from rest_framework import status
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
@@ -149,10 +149,10 @@ def authorised_users(user_type):
             if isinstance(request.request.user, ExporterUser):
                 application = _get_application(request, kwargs)
                 if (
-                    application.case_type.sub_type == CaseTypeEnum.SubType.HMRC
+                    application.case_type.sub_type == CaseTypeExtendedEnum.SubType.HMRC
                     and application.hmrc_organisation.id != request.request.user.organisation.id
                 ) or (
-                    application.case_type.sub_type != CaseTypeEnum.SubType.HMRC
+                    application.case_type.sub_type != CaseTypeExtendedEnum.SubType.HMRC
                     and application.organisation.id != request.request.user.organisation.id
                 ):
                     return JsonResponse(

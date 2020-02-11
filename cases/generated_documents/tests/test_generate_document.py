@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from audit_trail.models import Audit
-from cases.enums import CaseTypeTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from users.models import ExporterNotification
 from letter_templates.models import LetterTemplate
@@ -23,7 +23,7 @@ class GenerateDocumentTests(DataTestClient):
         )
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
-        self.letter_template.case_types.add(CaseTypeTypeEnum.APPLICATION)
+        self.letter_template.case_types.add(CaseTypeExtendedEnum.Type.APPLICATION)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id), "text": "sample"}

@@ -7,7 +7,7 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from lite_content.lite_api import strings
@@ -43,7 +43,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.Type.APPLICATION
+        self.initial_data["type"] = CaseTypeExtendedEnum.Type.APPLICATION
 
     class Meta:
         model = OpenApplication

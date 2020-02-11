@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from cases.models import CaseType
 from static.management.SeedCommand import SeedCommand
 
@@ -17,13 +17,17 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        data = CaseTypeEnum.Reference().as_list()
-        # Rename key to id and value to name
-        for item in data:
-            item["id"] = item.pop("key")
-            item["reference"] = item.pop("value")
-            item["type"] = item.pop("value")
-            item["sub_type"] = item.pop("value")
+        extended_enums_list = CaseTypeExtendedEnum.extended_enums_list()
+        data = []
+        # Convert extended_enums_list from list of objects to list of dicts
+        for extended_enum_obj in extended_enums_list:
+            extended_enum_dict = dict(
+                id=extended_enum_obj.id,
+                reference=extended_enum_obj.reference,
+                type=extended_enum_obj.type,
+                sub_type=extended_enum_obj.sub_type,
+            )
+            data.append(extended_enum_dict)
 
         self.update_or_create(CaseType, data)
         self.delete_unused_objects(CaseType, data)

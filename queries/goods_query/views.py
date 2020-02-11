@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentExporterSerializer
 from conf import constants
@@ -74,7 +74,7 @@ class GoodsQueriesCreate(APIView):
             pv_grading_raised_reasons=data.get("pv_grading_raised_reasons"),
             good=good,
             organisation=data["organisation"],
-            case_type=CaseTypeEnum.Type.QUERY,
+            case_type=CaseTypeExtendedEnum.SubType.GOODS,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
 

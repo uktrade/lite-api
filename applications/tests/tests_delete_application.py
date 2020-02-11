@@ -3,7 +3,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FO
 from parameterized import parameterized
 
 from applications.models import BaseApplication
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from test_helpers.clients import DataTestClient
 from lite_content.lite_api import strings
 
@@ -12,17 +12,19 @@ class DeleteApplication(DataTestClient):
     def setUp(self):
         super().setUp()
         self.applications = {
-            CaseTypeSubTypeEnum.STANDARD: self.create_standard_application(self.organisation),
-            CaseTypeSubTypeEnum.HMRC: self.create_hmrc_query(self.organisation),
-            CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE: self.create_exhibition_clearance_application(self.organisation),
+            CaseTypeExtendedEnum.SubType.STANDARD: self.create_standard_application(self.organisation),
+            CaseTypeExtendedEnum.SubType.HMRC: self.create_hmrc_query(self.organisation),
+            CaseTypeExtendedEnum.SubType.EXHIBITION_CLEARANCE: self.create_exhibition_clearance_application(
+                self.organisation
+            ),
         }
         self.users = {"EXPORTER": self.exporter_headers, "GOV": self.gov_headers, "HMRC": self.hmrc_exporter_headers}
 
     @parameterized.expand(
         [
-            (CaseTypeSubTypeEnum.STANDARD, "EXPORTER"),
-            (CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE, "EXPORTER"),
-            (CaseTypeSubTypeEnum.HMRC, "HMRC"),
+            (CaseTypeExtendedEnum.SubType.STANDARD, "EXPORTER"),
+            (CaseTypeExtendedEnum.SubType.EXHIBITION_CLEARANCE, "EXPORTER"),
+            (CaseTypeExtendedEnum.SubType.HMRC, "HMRC"),
         ]
     )
     def test_delete_draft_application_as_valid_user_success(self, application_type, user):
@@ -43,9 +45,9 @@ class DeleteApplication(DataTestClient):
 
     @parameterized.expand(
         [
-            (CaseTypeSubTypeEnum.STANDARD, "GOV"),
-            (CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE, "GOV"),
-            (CaseTypeSubTypeEnum.HMRC, "EXPORTER"),
+            (CaseTypeExtendedEnum.SubType.STANDARD, "GOV"),
+            (CaseTypeExtendedEnum.SubType.EXHIBITION_CLEARANCE, "GOV"),
+            (CaseTypeExtendedEnum.SubType.HMRC, "EXPORTER"),
         ]
     )
     def test_delete_draft_application_as_invalid_user_failure(self, application_type, user):
@@ -64,9 +66,9 @@ class DeleteApplication(DataTestClient):
 
     @parameterized.expand(
         [
-            (CaseTypeSubTypeEnum.STANDARD, "EXPORTER"),
-            (CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE, "EXPORTER"),
-            (CaseTypeSubTypeEnum.HMRC, "HMRC"),
+            (CaseTypeExtendedEnum.SubType.STANDARD, "EXPORTER"),
+            (CaseTypeExtendedEnum.SubType.EXHIBITION_CLEARANCE, "EXPORTER"),
+            (CaseTypeExtendedEnum.SubType.HMRC, "HMRC"),
         ]
     )
     def test_delete_submitted_application_failure(self, application_type, user):

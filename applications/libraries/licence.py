@@ -1,5 +1,5 @@
 from applications.enums import ApplicationExportType, DefaultDuration
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from static.countries.models import Country
 
 
@@ -14,13 +14,13 @@ def get_default_duration(application):
         return DefaultDuration.TEMPORARY.value
 
     elif (
-        application.case_type.sub_type == CaseTypeEnum.SubType.STANDARD
+        application.case_type.sub_type == CaseTypeExtendedEnum.SubType.STANDARD
         and application.export_type == ApplicationExportType.PERMANENT
     ):
         return DefaultDuration.PERMANENT_STANDARD.value
 
     elif (
-        application.case_type.sub_type == CaseTypeEnum.SubType.OPEN
+        application.case_type.sub_type == CaseTypeExtendedEnum.SubType.OPEN
         and application.export_type == ApplicationExportType.PERMANENT
     ):
         is_eu = Country.objects.filter(countries_on_application__application=application, is_eu=True).exists()

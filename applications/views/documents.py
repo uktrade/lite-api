@@ -15,7 +15,7 @@ from applications.libraries.document_helpers import (
     get_generated_case_document,
 )
 from applications.serializers.document import ApplicationDocumentSerializer
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentExporterSerializer
 from cases.libraries.delete_notifications import delete_exporter_notifications
@@ -88,7 +88,7 @@ class GoodsTypeDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([CaseTypeEnum.SubType.HMRC])
+    @allowed_application_types([CaseTypeExtendedEnum.SubType.HMRC])
     @authorised_users(ExporterUser)
     def get(self, request, application, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
@@ -96,7 +96,7 @@ class GoodsTypeDocumentView(APIView):
 
     @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([CaseTypeEnum.SubType.HMRC])
+    @allowed_application_types([CaseTypeExtendedEnum.SubType.HMRC])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, goods_type_pk):
@@ -105,7 +105,7 @@ class GoodsTypeDocumentView(APIView):
 
     @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([CaseTypeEnum.SubType.HMRC])
+    @allowed_application_types([CaseTypeExtendedEnum.SubType.HMRC])
     @authorised_users(ExporterUser)
     def delete(self, request, application, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)

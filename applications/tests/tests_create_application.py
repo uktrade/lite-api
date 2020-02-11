@@ -13,7 +13,7 @@ from applications.models import (
     BaseApplication,
     ExhibitionClearanceApplication,
 )
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -28,7 +28,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "case_type": CaseTypeEnum.SubType.STANDARD,
+            "case_type": CaseTypeExtendedEnum.SubType.STANDARD,
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",

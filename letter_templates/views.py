@@ -4,7 +4,7 @@ from rest_framework import generics, status
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from audit_trail.serializers import AuditSerializer
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeExtendedEnum
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf import constants
@@ -97,7 +97,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     )
 
             if request.data.get("case_types"):
-                new_case_types = set([CaseTypeEnum.Type.get_text(choice) for choice in request.data.get("case_types")])
+                new_case_types = set(
+                    [CaseTypeExtendedEnum.Type.get_text(choice) for choice in request.data.get("case_types")]
+                )
                 if new_case_types != old_case_types:
                     audit_trail_service.create(
                         actor=request.user,
