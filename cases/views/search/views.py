@@ -35,7 +35,7 @@ class CasesSearchView(generics.ListAPIView):
         queues = SearchQueueSerializer(service.get_search_queues(user=request.user), many=True).data
         cases = TinyCaseSerializer(page, context=context, team=request.user.team, many=True).data
         statuses = service.get_case_status_list()
-        case_types = service.get_case_type_list()
+        case_types = service.get_case_type_type_list()
         queue = next(q for q in queues if q["id"] == queue_id)
 
         return self.get_paginated_response(

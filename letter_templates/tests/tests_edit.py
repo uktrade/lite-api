@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeTypeEnum
 from conf import constants
 from letter_templates.models import LetterTemplate
 from picklists.enums import PickListStatus, PicklistType
@@ -21,7 +21,7 @@ class LetterTemplateEditTests(DataTestClient):
         )
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
-        self.letter_template.case_types.set([CaseTypeEnum.GOODS_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY])
+        self.letter_template.case_types.set([CaseTypeTypeEnum.GOODS_QUERY, CaseTypeTypeEnum.END_USER_ADVISORY_QUERY])
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.url = reverse("letter_templates:letter_template", kwargs={"pk": self.letter_template.id})
 

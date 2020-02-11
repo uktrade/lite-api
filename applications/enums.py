@@ -11,20 +11,6 @@ class ApplicationExportType:
     ]
 
 
-class ApplicationType:
-    STANDARD_LICENCE = "standard_licence"
-    OPEN_LICENCE = "open_licence"
-    HMRC_QUERY = "hmrc_query"
-    EXHIBITION_CLEARANCE = "exhibition_clearance"
-
-    choices = [
-        (STANDARD_LICENCE, "Standard Licence"),
-        (OPEN_LICENCE, "Open Licence"),
-        (HMRC_QUERY, "HMRC Query"),
-        (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),
-    ]
-
-
 class ApplicationExportLicenceOfficialType:
     YES = "yes"
     NO = "no"

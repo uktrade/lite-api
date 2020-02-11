@@ -11,7 +11,7 @@ from cases.libraries.reference_code import (
     SLASH,
     PERMANENT,
     EXHIBITION_CLEARANCE_PREFIX,
-    HMRC_QUERY_PREFIX,
+    HMRC_PREFIX,
     END_USER_ADVISORY_QUERY_PREFIX,
     GOODS_QUERY_PREFIX,
     TEMPORARY,
@@ -55,7 +55,7 @@ class ReferenceCode(DataTestClient):
         hmrc_query = self.create_hmrc_query(self.organisation)
         hmrc_query = self.submit_application(hmrc_query)
 
-        expected_prefix = HMRC_QUERY_PREFIX + SLASH
+        expected_prefix = HMRC_PREFIX + SLASH
         expected_postfix = SLASH + "0000001"
         self.assertEquals(hmrc_query.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix)
 

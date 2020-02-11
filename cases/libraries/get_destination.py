@@ -46,7 +46,7 @@ def get_destination_flags(case):
     for country_on_application in countries_on_application:
         flags += country_on_application.country.flags.all()
 
-    if case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
+    if case.type == CaseTypeEnum.SubType.END_USER_ADVISORY_QUERY:
         query = get_end_user_advisory_by_pk(case.id)
         if query.end_user:
             flags += query.end_user.flags.all()

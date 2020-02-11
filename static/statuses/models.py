@@ -17,5 +17,5 @@ class CaseStatusCaseType(models.Model):
     class Meta:
         unique_together = (("type", "status"),)
 
-    type = models.CharField(choices=CaseTypeEnum.choices, null=False, max_length=35)
+    type = models.CharField(choices=CaseTypeEnum.Type.choices, null=False, max_length=35)
     status = models.ForeignKey(CaseStatus, on_delete=models.CASCADE, null=False)

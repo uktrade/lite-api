@@ -19,7 +19,7 @@ TEMPORARY = "T"
 # Queries
 GOODS_QUERY_PREFIX = "GQY"
 END_USER_ADVISORY_QUERY_PREFIX = "EUA"
-HMRC_QUERY_PREFIX = "CRE"
+HMRC_PREFIX = "CRE"
 
 # MOD Clearances
 EXHIBITION_CLEARANCE_PREFIX = "EXHC"
@@ -29,12 +29,12 @@ def generate_reference_code(case):
     """
     Generates a unique reference code for each case.
 
-    Example for licence application cases: P/GBOIE/2020/0000012
-    First character T or P (temporary or permanent)
-    Second-fourth characters /GB
-    Fifth character O or S (open or standard)
-    Sixth character G or I (general or individual)
-    Seventh character E, T, C (export, transhipment, trade control)
+    Example for licence application cases: GBOIE/2020/0000012/P
+    First-third characters GB/
+    Fourth character O or S (open or standard)
+    Fifth character G or I (general or individual)
+    Sixth character E, T, C (export, transhipment, trade control)
+    Seventh character T or P (temporary or permanent)
 
     For all other case types, prefixes as described below followed by the 4 digit year and 6 digit sequential number:
 
@@ -47,11 +47,11 @@ def generate_reference_code(case):
     For compliance site cases: COMP
     For compliance visit cases: CVIS
     """
-    from cases.enums import CaseTypeEnum
+    from cases.enums import CaseTypeTypeEnum
 
     reference_code = ""
 
-    if case.type == CaseTypeEnum.APPLICATION:
+    if case.type == CaseTypeTypeEnum.APPLICATION:
         # GB
         reference_code += APPLICATION_PREFIX
 
@@ -67,13 +67,13 @@ def generate_reference_code(case):
             reference_code += EXPORT + SLASH
         elif case.external_application_sites.count():
             reference_code += TRADE_CONTROL + SLASH
-    elif case.type == CaseTypeEnum.GOODS_QUERY:
+    elif case.type == CaseTypeTypeEnum.GOODS_QUERY:
         reference_code += GOODS_QUERY_PREFIX + SLASH
-    elif case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
+    elif case.type == CaseTypeTypeEnum.END_USER_ADVISORY_QUERY:
         reference_code += END_USER_ADVISORY_QUERY_PREFIX + SLASH
-    elif case.type == CaseTypeEnum.HMRC_QUERY:
-        reference_code += HMRC_QUERY_PREFIX + SLASH
-    elif case.type == CaseTypeEnum.EXHIBITION_CLEARANCE:
+    elif case.type == CaseTypeTypeEnum.HMRC:
+        reference_code += HMRC_PREFIX + SLASH
+    elif case.type == CaseTypeTypeEnum.EXHIBITION_CLEARANCE:
         reference_code += EXHIBITION_CLEARANCE_PREFIX + SLASH
 
     # Year
@@ -85,7 +85,7 @@ def generate_reference_code(case):
     value = CaseReferenceCode.objects.create()
     reference_code += str(value.reference_number).zfill(7)
 
-    if case.type == CaseTypeEnum.APPLICATION:
+    if case.type == CaseTypeTypeEnum.APPLICATION:
         # Export type
         if hasattr(case, "export_type"):
             reference_code += SLASH + case.export_type[0]

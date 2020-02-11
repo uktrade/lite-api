@@ -1,4 +1,3 @@
-from applications.enums import ApplicationType
 from applications.models import BaseApplication
 from applications.serializers.hmrc_query import (
     HmrcQueryCreateSerializer,
@@ -20,54 +19,55 @@ from applications.serializers.exhibition_clearance import (
     ExhibitionClearanceViewSerializer,
     ExhibitionClearanceUpdateSerializer,
 )
+from cases.enums import CaseTypeEnum
 from conf.exceptions import BadRequestError
 from lite_content.lite_api import strings
 
 
 def get_application_view_serializer(application: BaseApplication):
-    if application.application_type == ApplicationType.STANDARD_LICENCE:
+    if application.case_type.sub_type == CaseTypeEnum.SubType.STANDARD:
         return StandardApplicationViewSerializer
-    elif application.application_type == ApplicationType.OPEN_LICENCE:
+    elif application.case_type.sub_type == CaseTypeEnum.SubType.OPEN:
         return OpenApplicationViewSerializer
-    elif application.application_type == ApplicationType.HMRC_QUERY:
+    elif application.case_type.sub_type == CaseTypeEnum.SubType.HMRC:
         return HmrcQueryViewSerializer
-    elif application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
+    elif application.case_type.sub_type == CaseTypeEnum.SubType.EXHIBITION_CLEARANCE:
         return ExhibitionClearanceViewSerializer
     else:
         raise BadRequestError(
             {
                 f"get_application_view_serializer does "
-                f"not support this application type: {application.application_type}"
+                f"not support this application type: {application.case_type.sub_type}"
             }
         )
 
 
 def get_application_create_serializer(application_type):
-    if application_type == ApplicationType.STANDARD_LICENCE:
+    if application_type == CaseTypeEnum.SubType.STANDARD:
         return StandardApplicationCreateSerializer
-    elif application_type == ApplicationType.OPEN_LICENCE:
+    elif application_type == CaseTypeEnum.SubType.OPEN:
         return OpenApplicationCreateSerializer
-    elif application_type == ApplicationType.HMRC_QUERY:
+    elif application_type == CaseTypeEnum.SubType.HMRC:
         return HmrcQueryCreateSerializer
-    elif application_type == ApplicationType.EXHIBITION_CLEARANCE:
+    elif application_type == CaseTypeEnum.SubType.EXHIBITION_CLEARANCE:
         return ExhibitionClearanceCreateSerializer
     else:
         raise BadRequestError({"application_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
 
 
 def get_application_update_serializer(application: BaseApplication):
-    if application.application_type == ApplicationType.STANDARD_LICENCE:
+    if application.case_type.sub_type == CaseTypeEnum.SubType.STANDARD:
         return StandardApplicationUpdateSerializer
-    elif application.application_type == ApplicationType.OPEN_LICENCE:
+    elif application.case_type.sub_type == CaseTypeEnum.SubType.OPEN:
         return OpenApplicationUpdateSerializer
-    elif application.application_type == ApplicationType.HMRC_QUERY:
+    elif application.case_type.sub_type == CaseTypeEnum.SubType.HMRC:
         return HmrcQueryUpdateSerializer
-    elif application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
+    elif application.case_type.sub_type == CaseTypeEnum.SubType.EXHIBITION_CLEARANCE:
         return ExhibitionClearanceUpdateSerializer
     else:
         raise BadRequestError(
             {
                 f"get_application_update_serializer does "
-                f"not support this application type: {application.application_type}"
+                f"not support this application type: {application.case_type.sub_type}"
             }
         )

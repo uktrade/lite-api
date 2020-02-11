@@ -3,7 +3,6 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from applications.enums import (
-    ApplicationType,
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
@@ -14,6 +13,7 @@ from applications.models import (
     BaseApplication,
     ExhibitionClearanceApplication,
 )
+from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -28,7 +28,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "application_type": ApplicationType.STANDARD_LICENCE,
+            "case_type": CaseTypeEnum.SubType.STANDARD,
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
@@ -47,7 +47,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "application_type": ApplicationType.EXHIBITION_CLEARANCE,
+            "case_type": CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -61,7 +61,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "application_type": ApplicationType.OPEN_LICENCE,
+            "case_type": CaseTypeSubTypeEnum.OPEN,
             "export_type": ApplicationExportType.TEMPORARY,
         }
 
@@ -75,7 +75,7 @@ class DraftTests(DataTestClient):
         Ensure we can create a new HMRC query draft object
         """
         data = {
-            "application_type": ApplicationType.HMRC_QUERY,
+            "application_type": CaseTypeSubTypeEnum.HMRC,
             "organisation": self.organisation.id,
         }
 
@@ -101,11 +101,11 @@ class DraftTests(DataTestClient):
     @parameterized.expand(
         [
             [{}],
-            [{"application_type": ApplicationType.STANDARD_LICENCE, "export_type": ApplicationExportType.TEMPORARY,}],
-            [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY,}],
-            [{"name": "Test", "application_type": ApplicationType.STANDARD_LICENCE,}],
-            [{"application_type": ApplicationType.EXHIBITION_CLEARANCE,}],
-            [{"name": "Test",}],
+            [{"application_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY,}],
+            [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY}],
+            [{"name": "Test", "case_type": CaseTypeSubTypeEnum.STANDARD}],
+            [{"application_type": CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE}],
+            [{"name": "Test"}],
         ]
     )
     def test_create_draft_failure(self, data):

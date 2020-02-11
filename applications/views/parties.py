@@ -2,7 +2,6 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationType
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from conf.authentication import ExporterAuthentication
@@ -12,6 +11,7 @@ from conf.decorators import (
     application_in_editable_state,
     allowed_application_types,
 )
+from cases.enums import CaseTypeEnum
 from conf.helpers import str_to_bool
 from parties.helpers import delete_party_document_if_exists
 from parties.models import UltimateEndUser, ThirdParty
@@ -28,7 +28,7 @@ class ApplicationEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -76,7 +76,7 @@ class ApplicationEndUser(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -108,7 +108,7 @@ class ApplicationUltimateEndUsers(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application):
@@ -120,7 +120,7 @@ class ApplicationUltimateEndUsers(APIView):
         return JsonResponse(data={"ultimate_end_users": ueu_data})
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -159,7 +159,7 @@ class RemoveApplicationUltimateEndUser(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     @application_in_editable_state()
@@ -189,7 +189,7 @@ class ApplicationConsignee(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -241,7 +241,7 @@ class ApplicationConsignee(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -273,7 +273,7 @@ class ApplicationThirdParties(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application):
@@ -285,7 +285,7 @@ class ApplicationThirdParties(APIView):
         return JsonResponse(data={"third_parties": third_party_data})
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -321,7 +321,7 @@ class RemoveThirdParty(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     @application_in_editable_state()

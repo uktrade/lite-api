@@ -1,27 +1,74 @@
 class CaseTypeEnum:
-    APPLICATION = "application"
-    GOODS_QUERY = "goods_query"
-    END_USER_ADVISORY_QUERY = "end_user_advisory_query"
-    HMRC_QUERY = "hmrc_query"
-    EXHIBITION_CLEARANCE = "exhibition_clearance"
+    class Reference:
+        OIEL = "oiel"
+        OGEL = "ogel"
+        OICL = "oicl"
+        SIEL = "siel"
+        SICL = "sicl"
+        SITL = "sitl"
+        F680 = "f680"
+        EXHC = "exhc"
+        GIFT = "gift"
+        CRE = "cre"
+        GQY = "gqy"
+        EUA = "eua"
 
-    choices = [
-        (APPLICATION, "Application"),
-        (GOODS_QUERY, "Goods Query"),
-        (END_USER_ADVISORY_QUERY, "End User Advisory Query"),
-        (HMRC_QUERY, "HMRC Query"),
-        (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),
-    ]
+        choices = [
+            (OIEL, "OIEL"),
+            (OGEL, "OGEL"),
+            (OICL, "OICL"),
+            (SIEL, "SIEL"),
+            (SICL, "SICL"),
+            (SITL, "SITL"),
+            (F680, "F680"),
+            (EXHC, "EXHC"),
+            (GIFT, "GIFT"),
+            (CRE, "CRE"),
+            (GQY, "GQY"),
+            (EUA, "EUA"),
+        ]
 
-    @classmethod
-    def get_text(cls, choice):
-        for key, value in cls.choices:
-            if key == choice:
-                return value
+        @classmethod
+        def as_list(cls):
+            return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
-    @classmethod
-    def as_list(cls):
-        return [{"key": choice[0], "value": choice[1],} for choice in cls.choices]
+    class Type:
+        APPLICATION = "application"
+        QUERY = "query"
+
+        choices = [
+            (APPLICATION, "Application"),
+            (QUERY, "Query"),
+        ]
+
+        @classmethod
+        def get_text(cls, choice):
+            for key, value in cls.choices:
+                if key == choice:
+                    return value
+
+        @classmethod
+        def as_list(cls):
+            return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
+
+    class SubType:
+        STANDARD = "standard"
+        OPEN = "open"
+        HMRC = "hmrc"
+        EUA = "eua"
+        EXHIBITION_CLEARANCE = "exhibition_clearance"
+
+        choices = [
+            (STANDARD, "Standard"),
+            (OPEN, "Open"),
+            (HMRC, "HMRC"),
+            (EXHIBITION_CLEARANCE, "Exhibition clearance"),
+            (EUA, "End user advisory"),
+        ]
+
+        @classmethod
+        def as_list(cls):
+            return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
 
 class AdviceType:

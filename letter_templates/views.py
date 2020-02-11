@@ -97,13 +97,13 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     )
 
             if request.data.get("case_types"):
-                new_case_types = set([CaseTypeEnum.get_text(choice) for choice in request.data.get("case_types")])
+                new_case_types = set([CaseTypeEnum.Type.get_text(choice) for choice in request.data.get("case_types")])
                 if new_case_types != old_case_types:
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
                         target=serializer.instance,
-                        payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types),},
+                        payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types)},
                     )
 
             if request.data.get("letter_paragraphs"):

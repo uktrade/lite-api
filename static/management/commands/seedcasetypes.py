@@ -17,11 +17,13 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        data = CaseTypeEnum.as_list()
+        data = CaseTypeEnum.Reference().as_list()
         # Rename key to id and value to name
         for item in data:
             item["id"] = item.pop("key")
-            item["name"] = item.pop("value")
+            item["reference"] = item.pop("value")
+            item["type"] = item.pop("value")
+            item["sub_type"] = item.pop("value")
 
         self.update_or_create(CaseType, data)
         self.delete_unused_objects(CaseType, data)

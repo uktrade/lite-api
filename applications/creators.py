@@ -1,11 +1,11 @@
 from lite_content.lite_api import strings
-from applications.enums import ApplicationType
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
     SiteOnApplication,
     ExternalLocationOnApplication,
 )
+from cases.enums import CaseTypeEnum
 from documents.models import Document
 from goodstype.models import GoodsType
 from parties.models import PartyDocument
@@ -145,13 +145,13 @@ def validate_application_ready_for_submission(application):
         errors["location"] = strings.Applications.Generic.NO_LOCATION_SET
 
     # Perform additional validation and append errors if found
-    if application.application_type == ApplicationType.STANDARD_LICENCE:
+    if application.case_type.sub_type == CaseTypeEnum.SubType.STANDARD:
         _validate_standard_licence(application, errors)
-    elif application.application_type == ApplicationType.OPEN_LICENCE:
+    elif application.case_type.sub_type == CaseTypeEnum.SubType.OPEN:
         _validate_open_licence(application, errors)
-    elif application.application_type == ApplicationType.HMRC_QUERY:
+    elif application.case_type.sub_type == CaseTypeEnum.SubType.HMRC:
         _validate_hmrc_query(application, errors)
-    elif application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
+    elif application.case_type.sub_type == CaseTypeEnum.SubType.EXHIBITION_CLEARANCE:
         _validate_exhibition_clearance(application, errors)
     else:
         errors["unsupported_application"] = "You can only validate a supported application type"

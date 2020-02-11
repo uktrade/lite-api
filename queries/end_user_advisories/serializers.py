@@ -94,7 +94,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
             end_user = end_user_serializer.save()
         else:
             raise serializers.ValidationError({"errors": end_user_serializer.errors})
-        validated_data["type"] = CaseTypeEnum.END_USER_ADVISORY_QUERY
+        validated_data["type"] = CaseTypeEnum.SubType.EUA
         validated_data["organisation_id"] = end_user_data["organisation"]
         validated_data["status"] = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         validated_data["submitted_at"] = datetime.now(timezone.utc)

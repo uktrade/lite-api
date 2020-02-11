@@ -43,14 +43,14 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.APPLICATION
+        self.initial_data["type"] = CaseTypeEnum.Type.APPLICATION
 
     class Meta:
         model = OpenApplication
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "export_type",
             "organisation",
             "type",

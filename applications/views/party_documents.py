@@ -2,12 +2,12 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationType
 from applications.libraries.document_helpers import (
     upload_party_document,
     delete_party_document,
     get_party_document,
 )
+from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -32,7 +32,7 @@ class EndUserDocumentView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application):
@@ -42,7 +42,7 @@ class EndUserDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -53,7 +53,7 @@ class EndUserDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application):
@@ -69,7 +69,7 @@ class UltimateEndUserDocumentsView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application, ueu_pk):
@@ -79,7 +79,7 @@ class UltimateEndUserDocumentsView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -90,7 +90,7 @@ class UltimateEndUserDocumentsView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application, ueu_pk):
@@ -106,7 +106,7 @@ class ConsigneeDocumentView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application):
@@ -116,7 +116,7 @@ class ConsigneeDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -127,7 +127,7 @@ class ConsigneeDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application):
@@ -143,7 +143,7 @@ class ThirdPartyDocumentView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application, tp_pk):
@@ -153,7 +153,7 @@ class ThirdPartyDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
@@ -164,7 +164,7 @@ class ThirdPartyDocumentView(APIView):
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [CaseTypeEnum.SubType.STANDARD, CaseTypeEnum.SubType.HMRC, CaseTypeEnum.SubType.EXHIBITION_CLEARANCE]
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application, tp_pk):

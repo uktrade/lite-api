@@ -5,7 +5,6 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import (
-    ApplicationType,
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
@@ -23,7 +22,7 @@ from applications.models import (
 )
 from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
@@ -431,7 +430,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             clc_raised_reasons="this is a test text",
             good=good,
             organisation=organisation,
-            type=CaseTypeEnum.GOODS_QUERY,
+            case_type=CaseTypeEnum.Type.QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
@@ -449,7 +448,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             pv_grading_raised_reasons="this is a test text",
             good=good,
             organisation=organisation,
-            type=CaseTypeEnum.GOODS_QUERY,
+            case_type=CaseTypeEnum.Type.QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         pv_grading_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
@@ -521,7 +520,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     ):
         application = StandardApplication(
             name=reference_name,
-            application_type=ApplicationType.STANDARD_LICENCE,
+            case_type__sub_type=CaseTypeEnum.SubType.STANDARD,
             export_type=ApplicationExportType.PERMANENT,
             have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
             reference_number_on_information_form="",
@@ -530,7 +529,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
-            type=CaseTypeEnum.APPLICATION,
+            case_type__type=CaseTypeEnum.Type.APPLICATION,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
@@ -559,13 +558,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     ):
         application = ExhibitionClearanceApplication(
             name=reference_name,
-            application_type=ApplicationType.EXHIBITION_CLEARANCE,
+            case_type__sub_type=CaseTypeEnum.SubType.EXHIBITION_CLEARANCE,
             activity="Trade",
             usage="Trade",
             organisation=organisation,
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
-            type=CaseTypeEnum.EXHIBITION_CLEARANCE,
+            case_type__type=CaseTypeEnum.Type.APPLICATION,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
@@ -619,12 +618,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_open_application(self, organisation: Organisation, reference_name="Open Draft"):
         application = OpenApplication(
             name=reference_name,
-            application_type=ApplicationType.OPEN_LICENCE,
+            case_type__sub_type=CaseTypeEnum.SubType.OPEN,
             export_type=ApplicationExportType.PERMANENT,
             activity="Trade",
             usage="Trade",
             organisation=organisation,
-            type=CaseTypeEnum.APPLICATION,
+            case_type__type=CaseTypeEnum.Type.APPLICATION,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
@@ -647,7 +646,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     ):
         application = HmrcQuery(
             name=reference_name,
-            application_type=ApplicationType.HMRC_QUERY,
+            case_type__sub_type=CaseTypeEnum.SubType.HMRC,
             activity="Trade",
             usage="Trade",
             organisation=organisation,
@@ -655,7 +654,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             end_user=self.create_end_user("End User", organisation),
             consignee=self.create_consignee("Consignee", organisation),
             reasoning="I Am Easy to Find",
-            type=CaseTypeEnum.HMRC_QUERY,
+            case_type__type=CaseTypeEnum.Type.APPLICATION,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
@@ -698,7 +697,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             contact_job_title="director",
             nature_of_business="guns",
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            type=CaseTypeEnum.END_USER_ADVISORY_QUERY,
+            case_type__sub_type=CaseTypeEnum.SubType.EUA,
+            case_type__type=CaseTypeEnum.Type.QUERY,
         )
         end_user_advisory_query.save()
         return end_user_advisory_query
@@ -720,7 +720,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         generated_case_doc.save()
         return generated_case_doc
 
-    def create_letter_template(self, name=None, case_type=CaseTypeEnum.APPLICATION):
+    def create_letter_template(self, name=None, case_type=CaseTypeEnum.choices[0][0]):
         if not name:
             name = str(uuid.uuid4())[0:35]
 

@@ -28,6 +28,23 @@ from users.models import (
 )
 
 
+class CaseType(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    type = models.CharField(
+        choices=CaseTypeEnum.Type.choices, default=CaseTypeEnum.Type.APPLICATION, null=False, max_length=35
+    )
+    sub_type = models.CharField(
+        choices=CaseTypeEnum.SubType.choices, default=CaseTypeEnum.SubType.STANDARD, null=False, max_length=35
+    )
+    reference = models.CharField(
+        choices=CaseTypeEnum.Reference.choices,
+        default=CaseTypeEnum.Reference.SIEL,
+        unique=True,
+        null=False,
+        max_length=5,
+    )
+
+
 class Case(TimestampableModel):
     """
     Base model for applications and queries
@@ -35,7 +52,7 @@ class Case(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, null=True, blank=False, editable=False, default=None)
-    type = models.CharField(choices=CaseTypeEnum.choices, max_length=35)
+    case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, blank=True, null=True)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
@@ -297,8 +314,3 @@ class GoodCountryDecision(TimestampableModel):
         GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
-
-
-class CaseType(models.Model):
-    id = models.CharField(primary_key=True, editable=False, max_length=30)
-    name = models.CharField(choices=CaseTypeEnum.choices, null=False, max_length=35)

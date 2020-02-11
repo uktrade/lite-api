@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from applications.enums import ApplicationType
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
 from common.libraries import (
     update_good_or_goods_type_control_code_details,
     initialize_good_or_goods_type_control_code_serializer,
 )
+from cases.enums import CaseTypeEnum
 from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
@@ -39,11 +39,11 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         """
         super(GoodsTypeSerializer, self).__init__(*args, **kwargs)
 
-        # Only add is_good_incorporated if application is of type OPEN_LICENCE
-        # and not if it's a HMRC_QUERY
+        # Only add is_good_incorporated if application is of type OPEN
+        # and not if it's a HMRC
         application = self.get_initial().get("application")
         if application:
-            if get_application(application).application_type == ApplicationType.OPEN_LICENCE:
+            if get_application(application).case_type.sub_type == CaseTypeEnum.SubType.OPEN:
                 self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
                 self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
                 self.fields["control_code"] = serializers.CharField(required=False, allow_blank=True, allow_null=True)
