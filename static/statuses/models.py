@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeReferenceEnum
 
 
 class CaseStatus(models.Model):
@@ -17,5 +17,5 @@ class CaseStatusCaseType(models.Model):
     class Meta:
         unique_together = (("type", "status"),)
 
-    type = models.CharField(choices=CaseTypeExtendedEnum.Type.choices, null=False, max_length=35)
+    type = models.CharField(choices=CaseTypeReferenceEnum.choices, null=False, max_length=35)
     status = models.ForeignKey(CaseStatus, on_delete=models.CASCADE, null=False)

@@ -74,7 +74,7 @@ class GoodsQueriesCreate(APIView):
             pv_grading_raised_reasons=data.get("pv_grading_raised_reasons"),
             good=good,
             organisation=data["organisation"],
-            case_type=CaseTypeExtendedEnum.SubType.GOODS,
+            case_type=CaseTypeSubTypeEnum.GOODS,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
 

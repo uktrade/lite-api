@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, EcjuQuery
 from test_helpers.clients import DataTestClient
@@ -100,11 +100,7 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response_data["notification_count"]["goods_query"], 3)
 
     @parameterized.expand(
-        [
-            [CaseTypeExtendedEnum.Type.APPLICATION],
-            [CaseTypeExtendedEnum.SubType.EUA],
-            [CaseTypeExtendedEnum.SubType.GOODS],
-        ]
+        [[CaseTypeTypeEnum.APPLICATION], [CaseTypeSubTypeEnum.EUA], [CaseTypeSubTypeEnum.GOODS],]
     )
     def test_get_notifications_for_user_individual_case_type_without_count_only_param_success(self, case_type):
         self._create_all_case_types_with_notifications()
@@ -119,11 +115,7 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response_data["notification_count"][case_type], 3)
 
     @parameterized.expand(
-        [
-            [CaseTypeExtendedEnum.Type.APPLICATION],
-            [CaseTypeExtendedEnum.SubType.EUA],
-            [CaseTypeExtendedEnum.SubType.GOODS],
-        ]
+        [[CaseTypeTypeEnum.APPLICATION], [CaseTypeSubTypeEnum.EUA], [CaseTypeSubTypeEnum.GOODS],]
     )
     def test_get_notifications_for_user_individual_case_type_with_count_only_param_success(self, case_type):
         self._create_all_case_types_with_notifications()

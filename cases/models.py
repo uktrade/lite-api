@@ -4,7 +4,13 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
 
-from cases.enums import CaseTypeExtendedEnum, AdviceType, CaseDocumentState
+from cases.enums import (
+    AdviceType,
+    CaseDocumentState,
+    CaseTypeTypeEnum,
+    CaseTypeSubTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager
 from common.models import TimestampableModel
@@ -31,20 +37,14 @@ from users.models import (
 class CaseType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = models.CharField(
-        choices=CaseTypeExtendedEnum.Type.choices,
-        default=CaseTypeExtendedEnum.Type.APPLICATION,
-        null=False,
-        max_length=35,
+        choices=CaseTypeTypeEnum.choices, default=CaseTypeTypeEnum.APPLICATION, null=False, max_length=35,
     )
     sub_type = models.CharField(
-        choices=CaseTypeExtendedEnum.SubType.choices,
-        default=CaseTypeExtendedEnum.SubType.STANDARD,
-        null=False,
-        max_length=35,
+        choices=CaseTypeSubTypeEnum.choices, default=CaseTypeSubTypeEnum.STANDARD, null=False, max_length=35,
     )
     reference = models.CharField(
-        choices=CaseTypeExtendedEnum.Reference.choices,
-        default=CaseTypeExtendedEnum.Reference.SIEL,
+        choices=CaseTypeReferenceEnum.choices,
+        default=CaseTypeReferenceEnum.SIEL,
         unique=True,
         null=False,
         max_length=5,

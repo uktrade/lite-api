@@ -43,7 +43,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         # and not if it's a HMRC
         application = self.get_initial().get("application")
         if application:
-            if get_application(application).case_type.sub_type == CaseTypeExtendedEnum.SubType.OPEN:
+            if get_application(application).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
                 self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
                 self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
                 self.fields["control_code"] = serializers.CharField(required=False, allow_blank=True, allow_null=True)

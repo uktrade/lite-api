@@ -26,7 +26,7 @@ from applications.models import BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import AdviceType, CaseTypeExtendedEnum
+from cases.enums import AdviceType, CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
@@ -76,7 +76,7 @@ class ApplicationList(ListCreateAPIView):
                 "application", flat=True
             )
             applications = applications.exclude(id__in=disallowed_applications).exclude(
-                case_type__sub_type=CaseTypeExtendedEnum.SubType.HMRC
+                case_type__sub_type=CaseTypeSubTypeEnum.HMRC
             )
 
         return applications
@@ -123,7 +123,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        if application.case_type.sub_type == CaseTypeExtendedEnum.SubType.HMRC:
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
             serializer.save()
 
             return JsonResponse(data={}, status=status.HTTP_200_OK)
@@ -143,7 +143,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
-        if application.case_type.sub_type == CaseTypeExtendedEnum.SubType.STANDARD:
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             old_have_you_been_informed = application.have_you_been_informed == "yes"
             have_you_been_informed = request.data.get("have_you_been_informed") == "yes"
 
@@ -200,7 +200,7 @@ class ApplicationSubmission(APIView):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         """
-        if application.case_type.sub_type != CaseTypeExtendedEnum.SubType.HMRC:
+        if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
             assert_user_has_permission(
                 request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
             )

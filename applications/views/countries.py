@@ -7,7 +7,7 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import allowed_application_types, authorised_users
@@ -22,7 +22,7 @@ from users.models import ExporterUser
 class ApplicationCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([CaseTypeExtendedEnum.SubType.OPEN])
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -34,7 +34,7 @@ class ApplicationCountries(APIView):
         return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
-    @allowed_application_types([CaseTypeExtendedEnum.SubType.OPEN])
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """ Add countries to an open licence application. """

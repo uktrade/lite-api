@@ -18,13 +18,13 @@ def get_application(pk, organisation_id=None):
     application_type = _get_application_type(pk)
 
     try:
-        if application_type == CaseTypeExtendedEnum.SubType.STANDARD:
+        if application_type == CaseTypeSubTypeEnum.STANDARD:
             return StandardApplication.objects.get(pk=pk, **kwargs)
-        elif application_type == CaseTypeExtendedEnum.SubType.OPEN:
+        elif application_type == CaseTypeSubTypeEnum.OPEN:
             return OpenApplication.objects.get(pk=pk, **kwargs)
-        elif application_type == CaseTypeExtendedEnum.SubType.HMRC:
+        elif application_type == CaseTypeSubTypeEnum.HMRC:
             return HmrcQuery.objects.get(pk=pk)
-        elif application_type == CaseTypeExtendedEnum.SubType.EXHIBITION_CLEARANCE:
+        elif application_type == CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE:
             return ExhibitionClearanceApplication.objects.get(pk=pk)
         else:
             raise NotImplementedError(f"get_application does not support this application type: {application_type}")

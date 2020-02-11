@@ -97,9 +97,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     )
 
             if request.data.get("case_types"):
-                new_case_types = set(
-                    [CaseTypeExtendedEnum.Type.get_text(choice) for choice in request.data.get("case_types")]
-                )
+                new_case_types = set([CaseTypeTypeEnum.get_text(choice) for choice in request.data.get("case_types")])
                 if new_case_types != old_case_types:
                     audit_trail_service.create(
                         actor=request.user,

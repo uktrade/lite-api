@@ -46,7 +46,7 @@ def get_destination_flags(case):
     for country_on_application in countries_on_application:
         flags += country_on_application.country.flags.all()
 
-    if case.type == CaseTypeExtendedEnum.SubType.END_USER_ADVISORY_QUERY:
+    if case.type == CaseTypeSubtypeEnum.END_USER_ADVISORY_QUERY:
         query = get_end_user_advisory_by_pk(case.id)
         if query.end_user:
             flags += query.end_user.flags.all()
@@ -64,7 +64,7 @@ def get_ordered_flags(case: Case, team: Team):
     goods_flags = []
     destination_flags = []
 
-    if case.type in [
+    if case.case_type in [
         CaseTypeExtendedEnum.APPLICATION,
         CaseTypeExtendedEnum.HMRC_QUERY,
         CaseTypeExtendedEnum.END_USER_ADVISORY_QUERY,

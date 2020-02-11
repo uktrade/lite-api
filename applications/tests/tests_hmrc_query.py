@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
@@ -25,7 +25,7 @@ class HmrcQueryTests(DataTestClient):
         self.assertEqual(case.id, self.hmrc_query.id)
         self.assertIsNotNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
-        self.assertEqual(case.type, CaseTypeExtendedEnum.SubType.HMRC)
+        self.assertEqual(case.type, CaseTypeSubTypeEnum.HMRC)
 
     def test_submit_hmrc_query_with_goods_departed_success(self):
         SiteOnApplication.objects.get(application=self.hmrc_query).delete()

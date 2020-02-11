@@ -47,7 +47,7 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeExtendedEnum.Type.APPLICATION
+        self.initial_data["type"] = CaseTypeTypeEnum.APPLICATION
 
     class Meta:
         model = StandardApplication

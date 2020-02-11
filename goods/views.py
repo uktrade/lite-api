@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeExtendedEnum
+from cases.enums import CaseTypeSubTypeEnum
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case
 from conf import constants
@@ -62,7 +62,7 @@ class GoodsListControlCode(APIView):
         if not isinstance(objects, list):
             objects = [objects]
 
-        if application.case_type.sub_type == CaseTypeExtendedEnum.SubType.STANDARD:
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             serializer_class = ClcControlGoodSerializer
             get_good_func = get_good
         else:
