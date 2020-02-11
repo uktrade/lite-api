@@ -24,7 +24,7 @@ class ViewCaseAdviceTests(DataTestClient):
             proviso="I Am Easy to Proviso",
             text="This is advice",
             note="This is a note",
-            end_user=self.standard_application.end_user,
+            end_user=self.standard_application.end_user.party,
         )
         advice.save()
 

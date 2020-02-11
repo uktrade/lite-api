@@ -363,7 +363,9 @@ class FilterQueueUpdatedCasesTests(DataTestClient):
         self.assertEqual(response_data[0]["id"], str(self.case.id))
 
     def test_get_cases_on_updated_cases_queue_when_user_is_not_assigned_to_a_case_returns_no_cases(self):
-        other_user = GovUser.objects.create(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
+        other_user = GovUser.objects.create(
+            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team
+        )
         gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user)}
 
         response = self.client.get(self.url, **gov_headers)
