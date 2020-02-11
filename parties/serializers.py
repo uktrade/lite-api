@@ -16,10 +16,10 @@ class PartySerializer(serializers.ModelSerializer):
     address = serializers.CharField(error_messages={"required": Parties.NULL_ADDRESS})
     country = CountrySerializerField(error_messages={"required": Parties.NULL_COUNTRY})
     website = serializers.CharField(required=False, allow_blank=True)
-    type = serializers.ChoiceField(choices=PartyType.choices)
+    type = serializers.ChoiceField(choices=PartyType.choices, error_messages={"required": Parties.NULL_TYPE})
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
-    sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_TYPE})
+    sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_SUB_TYPE})
     role = KeyValueChoiceField(
         choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}, required=False
     )
