@@ -31,7 +31,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
         )
 
 
-class F680ClearanceCreateSerializer(PartiesSerializerMixin, GenericApplicationCreateSerializer):
+class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.initial_data["type"] = CaseTypeEnum.F_680_CLEARANCE
