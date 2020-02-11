@@ -24,6 +24,17 @@ class ApplicationType:
         (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),
     ]
 
+    @classmethod
+    def has_parties(cls, application_type):
+        """
+        Check if the application_type uses parties.
+        """
+        return application_type in [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+        ]
+
 
 class GoodsCategory:
     ANTI_PIRACY = "anti_piracy"

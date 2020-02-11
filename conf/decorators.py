@@ -7,10 +7,10 @@ from applications.enums import ApplicationType
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
+from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
-from lite_content.lite_api import strings
 
 
 def _get_application(request, kwargs):
@@ -67,10 +67,7 @@ def application_in_major_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if (
-                not is_case_status_draft(application.status.status)
-                and application.status.status != CaseStatusEnum.APPLICANT_EDITING
-            ):
+            if not application.is_major_editable():
                 return JsonResponse(
                     data={
                         "errors": [
@@ -96,7 +93,7 @@ def application_in_editable_state():
         def inner(request, *args, **kwargs):
             application = _get_application(request, kwargs)
 
-            if application.status.status in get_case_statuses(read_only=True):
+            if not application.is_editable():
                 return JsonResponse(
                     data={"errors": [strings.Applications.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                     status=status.HTTP_400_BAD_REQUEST,

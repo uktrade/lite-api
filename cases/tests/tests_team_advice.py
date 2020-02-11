@@ -94,7 +94,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": advice_type,
-            "end_user": str(self.standard_application.end_user.id),
+            "end_user": str(self.standard_application.end_user.party.id),
         }
 
         if advice_type == AdviceType.PROVISO:
@@ -213,7 +213,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
-            "end_user": str(self.standard_application.end_user.id),
+            "end_user": str(self.standard_application.end_user.party.id),
         }
 
         response = self.client.post(
@@ -234,7 +234,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
-            "end_user": str(self.standard_application.end_user.id),
+            "end_user": str(self.standard_application.end_user.party.id),
         }
 
         response = self.client.post(
@@ -337,7 +337,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
-            "end_user": str(self.standard_application.end_user.id),
+            "end_user": str(self.standard_application.end_user.party.id),
         }
 
         response = self.client.post(
@@ -353,7 +353,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
-            "end_user": str(self.standard_application.end_user.id),
+            "end_user": str(self.standard_application.end_user.party.id),
         }
 
         response = self.client.post(
@@ -368,7 +368,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
-            "end_user": str(self.standard_application.end_user.id),
+            "end_user": str(self.standard_application.end_user.party.id),
         }
 
         self.standard_application.status = get_case_status_by_status(terminal_status)
