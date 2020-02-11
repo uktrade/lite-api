@@ -53,7 +53,7 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(clearance_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
         self.assertEqual(clearance_application.licence_duration, data["licence_duration"])
-        self.assertEqual(licence_duration, response.json()['licence_duration'])
+        self.assertEqual(licence_duration, response.json()["licence_duration"])
 
     def test_gov_user_finalise_clearance_application_failure(self):
         """ Test failure in finalising a clearance application as the gov user does not have the
