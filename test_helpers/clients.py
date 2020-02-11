@@ -20,7 +20,7 @@ from applications.models import (
     ApplicationDocument,
     ExhibitionClearanceApplication,
 )
-from cases.enums import AdviceType, CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseDocumentState
+from cases.enums import AdviceType, CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseDocumentState, CaseTypeExtendedEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType
 from conf import settings
@@ -720,7 +720,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         generated_case_doc.save()
         return generated_case_doc
 
-    def create_letter_template(self, name=None, case_type=CaseTypeExtendedEnum.extended_enums_list[0][0]):
+    def create_letter_template(self, name=None, case_type=CaseTypeExtendedEnum.case_type_list[0].id):
         if not name:
             name = str(uuid.uuid4())[0:35]
 

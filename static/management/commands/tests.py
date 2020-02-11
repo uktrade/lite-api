@@ -40,10 +40,10 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_case_types(self):
         self.seed_command(seedcasetypes.Command)
-        enum = CaseTypeExtendedEnum.case_type_list.as_list()
+        enum = CaseTypeExtendedEnum.case_type_list
         self.assertEqual(CaseType.objects.count(), len(enum))
         for item in enum:
-            self.assertTrue(CaseType.objects.get(id=item["key"]))
+            self.assertTrue(CaseType.objects.get(id=item.id))
 
     def test_seed_control_list_entries(self):
         self.seed_command(seedcontrollistentries.Command)
