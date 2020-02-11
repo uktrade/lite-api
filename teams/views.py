@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.http import JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -75,7 +77,7 @@ class TeamDetail(APIView):
         """
         Update a team instance
         """
-        if pk == Teams.ADMIN_TEAM_ID:
+        if UUID(pk) == Teams.ADMIN_TEAM_ID:
             return JsonResponse(data={"errors": "cannot update admin team"}, status=status.HTTP_400_BAD_REQUEST)
         data = JSONParser().parse(request)
         serializer = TeamSerializer(self.get_object(pk), data=data, partial=True)
