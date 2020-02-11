@@ -32,6 +32,7 @@ from applications.models import (
     GoodOnApplication,
     CountryOnApplication,
     ExternalLocationOnApplication,
+    PartyOnApplication,
 )
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
@@ -382,7 +383,6 @@ class ApplicationCopy(APIView):
     @transaction.atomic
     def post(self, request, pk):
         self.old_application_id = pk
-        # TODO: keep this old application local
         old_application = get_application(pk)
 
         data = request.data
@@ -441,9 +441,27 @@ class ApplicationCopy(APIView):
             setattr(self.new_application, attribute, None)
 
     def update_parties_with_copies(self):
-        # TODO: docstring
-        # TODO: update when Party On Application refactor comes in
-        pass
+        party_on_old_application = PartyOnApplication.objects.filter(
+            application_id=self.old_application_id, deleted_at__isnull=True
+        )
+        for old_party_on_app in party_on_old_application:
+            old_party_on_app.pk = None
+            old_party_on_app.id = None
+
+            # copy party
+            old_party_id = old_party_on_app.party.id
+            party = old_party_on_app.party
+            party.id = None
+            party.pk = None
+            party.created_at = now()
+            if not party.copy_of:
+                party.copy_of_id = old_party_id
+            party.save()
+
+            old_party_on_app.party = party
+            old_party_on_app.application = self.new_application
+            old_party_on_app.created_at = now()
+            old_party_on_app.save()
 
     def create_many_to_many_relations_for_new_application(self):
         # TODO: Docstring

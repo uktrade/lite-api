@@ -1,23 +1,15 @@
-from parameterized import parameterized
 from rest_framework import status
-from rest_framework.reverse import reverse, reverse_lazy
+from rest_framework.reverse import reverse_lazy
 
-from applications.enums import (
-    ApplicationType,
-    ApplicationExportType,
-    ApplicationExportLicenceOfficialType,
-)
+from applications.enums import ApplicationExportLicenceOfficialType
 from applications.models import (
     StandardApplication,
     OpenApplication,
     HmrcQuery,
-    BaseApplication,
-    ExhibitionClearanceApplication,
     GoodOnApplication,
 )
 from goodstype.models import GoodsType
-from lite_content.lite_api import strings
-from parties.models import UltimateEndUser, ThirdParty
+from parties.models import Party
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -252,7 +244,7 @@ class CopyTests(DataTestClient):
         original_ultimate_end_users = self.original_application.ultimate_end_users.all()
         for ueu in ultimate_end_users:
             self.assertNotIn(ueu, original_ultimate_end_users)
-            original_ueu = UltimateEndUser.objects.get(id=ueu.copy_of_id, application_id=self.original_application.id)
+            original_ueu = Party.objects.get(id=ueu.copy_of_id, application_id=self.original_application.id)
 
             self.assertNotEqual(ueu.id, original_ueu.id)
             self.assertGreater(ueu.created_at, original_ueu.created_at)
@@ -268,7 +260,7 @@ class CopyTests(DataTestClient):
         original_third_parties = self.original_application.ultimate_end_users.all()
         for third_party in third_parties:
             self.assertNotIn(third_party, original_third_parties)
-            original_third_party = ThirdParty.objects.get(
+            original_third_party = Party.objects.get(
                 id=third_party.copy_of_id, application_id=self.original_application.id
             )
 

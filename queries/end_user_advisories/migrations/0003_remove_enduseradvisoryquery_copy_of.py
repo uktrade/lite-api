@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('end_user_advisories', '0002_enduseradvisoryquery_end_user'),
+        ("end_user_advisories", "0002_enduseradvisoryquery_end_user"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='enduseradvisoryquery',
-            name='copy_of',
-        ),
+        migrations.RemoveField(model_name="enduseradvisoryquery", name="copy_of",),
     ]
