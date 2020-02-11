@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
+from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import GiftingClearanceApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -12,7 +13,7 @@ from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 
 
-class GiftingClearanceViewSerializer(GenericApplicationViewSerializer):
+class GiftingClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()

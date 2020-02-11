@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
+from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import F680ClearanceApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -30,7 +31,7 @@ class F680ClearanceViewSerializer(GenericApplicationViewSerializer):
         )
 
 
-class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
+class F680ClearanceCreateSerializer(PartiesSerializerMixin, GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.initial_data["type"] = CaseTypeEnum.F_680_CLEARANCE
