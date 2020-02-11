@@ -146,22 +146,19 @@ class OpenApplication(BaseApplication):
 
 
 # MOD Clearances Applications
+# Exhibition includes End User, Consignee, Ultimate end users & Third parties
 class ExhibitionClearanceApplication(BaseApplication):
     pass
 
 
+# Gifting includes End User & Third parties
 class GiftingClearanceApplication(BaseApplication):
-    end_user = models.ForeignKey(
-        EndUser, related_name="gifting_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
-    )
-    third_parties = models.ManyToManyField(ThirdParty, related_name="gifting_third_parties")
+    pass
 
 
+# F680 includes End User & Third parties
 class F680ClearanceApplication(BaseApplication):
-    end_user = models.ForeignKey(
-        EndUser, related_name="f_680_end_user", on_delete=models.CASCADE, default=None, blank=True, null=True,
-    )
-    third_parties = models.ManyToManyField(ThirdParty, related_name="f_680_parties")
+    pass
 
 
 # Queries
