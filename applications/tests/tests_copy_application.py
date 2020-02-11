@@ -222,21 +222,35 @@ class CopyTests(DataTestClient):
         self.assertIsNotNone(self.copied_application.end_user)
         self.assertNotEqual(self.copied_application.end_user.id, self.original_application.end_user.id)
         self.assertGreater(self.copied_application.end_user.created_at, self.original_application.end_user.created_at)
-        self.assertEqual(self.copied_application.end_user.name, self.original_application.end_user.name)
-        self.assertEqual(self.copied_application.end_user.address, self.original_application.end_user.address)
-        self.assertEqual(self.copied_application.end_user.country, self.original_application.end_user.country)
-        self.assertEqual(self.copied_application.end_user.type, self.original_application.end_user.type)
-        self.assertEqual(self.copied_application.end_user.sub_type, self.original_application.end_user.sub_type)
+        self.assertEqual(self.copied_application.end_user.party.name, self.original_application.end_user.party.name)
+        self.assertEqual(
+            self.copied_application.end_user.party.address, self.original_application.end_user.party.address
+        )
+        self.assertEqual(
+            self.copied_application.end_user.party.country, self.original_application.end_user.party.country
+        )
+        self.assertEqual(self.copied_application.end_user.party.type, self.original_application.end_user.party.type)
+        self.assertEqual(
+            self.copied_application.end_user.party.sub_type, self.original_application.end_user.party.sub_type
+        )
 
     def consignee_test(self):
         self.assertIsNotNone(self.copied_application.consignee)
         self.assertNotEqual(self.copied_application.consignee.id, self.original_application.consignee.id)
-        self.assertGreater(self.copied_application.consignee.created_at, self.original_application.consignee.created_at)
-        self.assertEqual(self.copied_application.consignee.name, self.original_application.consignee.name)
-        self.assertEqual(self.copied_application.consignee.address, self.original_application.consignee.address)
-        self.assertEqual(self.copied_application.consignee.country, self.original_application.consignee.country)
-        self.assertEqual(self.copied_application.consignee.type, self.original_application.consignee.type)
-        self.assertEqual(self.copied_application.consignee.sub_type, self.original_application.consignee.sub_type)
+        self.assertGreater(
+            self.copied_application.consignee.created_at, self.original_application.consignee.party.created_at
+        )
+        self.assertEqual(self.copied_application.consignee.party.name, self.original_application.consignee.party.name)
+        self.assertEqual(
+            self.copied_application.consignee.party.address, self.original_application.consignee.party.address
+        )
+        self.assertEqual(
+            self.copied_application.consignee.party.country, self.original_application.consignee.party.country
+        )
+        self.assertEqual(self.copied_application.consignee.party.type, self.original_application.consignee.party.type)
+        self.assertEqual(
+            self.copied_application.consignee.party.sub_type, self.original_application.consignee.party.sub_type
+        )
 
     def ultimate_end_user_test(self):
         self.assertIsNotNone(self.copied_application.ultimate_end_users)
