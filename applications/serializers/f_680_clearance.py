@@ -13,7 +13,7 @@ from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 
 
-class F680ClearanceViewSerializer(GenericApplicationViewSerializer):
+class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
