@@ -7,5 +7,5 @@ from cases.enums import CaseTypeExtendedEnum
 
 class CaseTypes(APIView):
     def get(self, request):
-        case_types = {choice[0]: choice[1] for choice in CaseTypeExtendedEnum.extended_enums_list}
+        case_types = {choice[0]: choice[1] for choice in CaseTypeExtendedEnum.case_type_list}
         return JsonResponse(data={"case_types": case_types}, status=HTTP_200_OK)

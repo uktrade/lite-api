@@ -13,6 +13,6 @@ class CaseTypesTests(DataTestClient):
         response_data = response.json()["case_types"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), len(CaseTypeExtendedEnum.extended_enums_list))
-        for key, value in CaseTypeExtendedEnum.extended_enums_list:
+        self.assertEqual(len(response_data), len(CaseTypeExtendedEnum.case_type_list))
+        for key, value in CaseTypeExtendedEnum.case_type_list:
             self.assertEqual(response_data[key], value)

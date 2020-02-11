@@ -40,14 +40,3 @@ def get_value_from_enum(enum, value):
     for choice in enum.choices:
         if choice[0] == value:
             return choice[1]
-
-
-class ExtendedEnum(object):
-    @staticmethod
-    def build(kwargs: dict):
-        extended_enum = ExtendedEnum()
-
-        for kwarg_key, kwarg_value in kwargs.items():
-            setattr(extended_enum, kwarg_key, kwarg_value)
-
-        return extended_enum

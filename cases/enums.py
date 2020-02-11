@@ -1,7 +1,5 @@
 from uuid import UUID
 
-from conf.helpers import ExtendedEnum
-
 
 class CaseTypeReferenceEnum:
     OIEL = "oiel"
@@ -75,110 +73,83 @@ class CaseTypeSubTypeEnum:
 
 
 class CaseTypeExtendedEnum:
-    OIEL = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000001"),
-            "reference": CaseTypeReferenceEnum.OIEL,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.OPEN,
-        }
-    )
-    OGEL = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000002"),
-            "reference": CaseTypeReferenceEnum.OGEL,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.OPEN,
-        }
-    )
-    OICL = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000003"),
-            "reference": CaseTypeReferenceEnum.OICL,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.OPEN,
-        }
-    )
-    SIEL = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000004"),
-            "reference": CaseTypeReferenceEnum.SIEL,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.STANDARD,
-        }
-    )
-    SICL = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000005"),
-            "reference": CaseTypeReferenceEnum.SICL,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.STANDARD,
-        }
-    )
-    SITL = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000006"),
-            "reference": CaseTypeReferenceEnum.SITL,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.STANDARD,
-        }
-    )
-    F680 = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000007"),
-            "reference": CaseTypeReferenceEnum.F680,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.F680_CLEARANCE,
-        }
-    )
-    EXHC = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000008"),
-            "reference": CaseTypeReferenceEnum.EXHC,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE,
-        }
-    )
-    GIFT = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000009"),
-            "reference": CaseTypeReferenceEnum.GIFT,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.GIFTING_CLEARANCE,
-        }
-    )
-    CRE = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000010"),
-            "reference": CaseTypeReferenceEnum.CRE,
-            "type": CaseTypeTypeEnum.APPLICATION,
-            "sub_type": CaseTypeSubTypeEnum.HMRC,
-        }
-    )
-    GQY = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000011"),
-            "reference": CaseTypeReferenceEnum.GQY,
-            "type": CaseTypeTypeEnum.QUERY,
-            "sub_type": CaseTypeSubTypeEnum.GOODS,
-        }
-    )
-    EUA = ExtendedEnum.build(
-        {
-            "id": UUID("00000000-0000-0000-0000-000000000012"),
-            "reference": CaseTypeReferenceEnum.EUA,
-            "type": CaseTypeTypeEnum.QUERY,
-            "sub_type": CaseTypeSubTypeEnum.EUA,
-        }
-    )
+    class OIEL:
+        id = UUID("00000000-0000-0000-0000-000000000001")
+        reference = CaseTypeReferenceEnum.OIEL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.OPEN
 
-    extended_enums_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHC, GIFT, CRE, GQY, EUA]
+    class OGEL:
+        id = UUID("00000000-0000-0000-0000-000000000002")
+        reference = CaseTypeReferenceEnum.OGEL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.OPEN
+
+    class OICL:
+        id = UUID("00000000-0000-0000-0000-000000000003")
+        reference = CaseTypeReferenceEnum.OICL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.OPEN
+
+    class SIEL:
+        id = UUID("00000000-0000-0000-0000-000000000004")
+        reference = CaseTypeReferenceEnum.SIEL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.STANDARD
+
+    class SICL:
+        id = UUID("00000000-0000-0000-0000-000000000005")
+        reference = CaseTypeReferenceEnum.SICL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.STANDARD
+
+    class SITL:
+        id = UUID("00000000-0000-0000-0000-000000000006")
+        reference = CaseTypeReferenceEnum.SITL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.STANDARD
+
+    class F680:
+        id = UUID("00000000-0000-0000-0000-000000000007")
+        reference = CaseTypeReferenceEnum.F680
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.F680_CLEARANCE
+
+    class EXHC:
+        id = UUID("00000000-0000-0000-0000-000000000008")
+        reference = CaseTypeReferenceEnum.EXHC
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE
+
+    class GIFT:
+        id = UUID("00000000-0000-0000-0000-000000000009")
+        reference = CaseTypeReferenceEnum.GIFT
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.GIFTING_CLEARANCE
+
+    class CRE:
+        id = UUID("00000000-0000-0000-0000-000000000010")
+        reference = CaseTypeReferenceEnum.CRE
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.HMRC
+
+    class GQY:
+        id = UUID("00000000-0000-0000-0000-000000000011")
+        reference = CaseTypeReferenceEnum.GQY
+        type = CaseTypeTypeEnum.QUERY
+        sub_type = CaseTypeSubTypeEnum.GOODS
+
+    class EUA:
+        id = UUID("00000000-0000-0000-0000-000000000012")
+        reference = CaseTypeReferenceEnum.EUA
+        type = CaseTypeTypeEnum.QUERY
+        sub_type = CaseTypeSubTypeEnum.EUA
+
+    case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHC, GIFT, CRE, GQY, EUA]
 
     @classmethod
-    def extended_enums_representation(cls):
-        return [
-            {"key": extended_enum.reference, "value": extended_enum.id} for extended_enum in cls.extended_enums_list
-        ]
+    def case_type_list_to_representation(cls):
+        return [{"key": case_type.reference, "value": case_type.id} for case_type in cls.case_type_list]
 
 
 class AdviceType:
