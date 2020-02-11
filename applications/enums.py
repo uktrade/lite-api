@@ -37,6 +37,8 @@ class ApplicationType:
             ApplicationType.STANDARD_LICENCE,
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.F_680_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
         ]
 
 
