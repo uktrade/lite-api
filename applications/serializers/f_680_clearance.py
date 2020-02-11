@@ -10,15 +10,9 @@ from applications.serializers.generic_application import (
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
-from parties.serializers import (
-    EndUserWithFlagsSerializer,
-    ThirdPartyWithFlagsSerializer,
-)
 
 
 class F680ClearanceViewSerializer(GenericApplicationViewSerializer):
-    end_user = EndUserWithFlagsSerializer()
-    third_parties = ThirdPartyWithFlagsSerializer(many=True)
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
