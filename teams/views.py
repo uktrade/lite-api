@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from conf.authentication import GovAuthentication
 from conf.constants import Teams
 from gov_users.serializers import GovUserViewSerializer
-from teams.helpers import get_team_by_pk, get_admin_team
+from teams.helpers import get_team_by_pk
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.models import GovUser
@@ -77,7 +77,7 @@ class TeamDetail(APIView):
         """
         Update a team instance
         """
-        if UUID(pk) == Teams.ADMIN_TEAM_ID:
+        if str(pk) == Teams.ADMIN_TEAM_ID:
             return JsonResponse(data={"errors": "cannot update admin team"}, status=status.HTTP_400_BAD_REQUEST)
         data = JSONParser().parse(request)
         serializer = TeamSerializer(self.get_object(pk), data=data, partial=True)

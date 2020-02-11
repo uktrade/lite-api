@@ -1,7 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from teams.helpers import get_admin_team
+from conf.constants import Teams
+from teams.helpers import get_team_by_pk
 from teams.models import Team
 from test_helpers.clients import DataTestClient
 
@@ -42,7 +43,7 @@ class TeamEditTests(DataTestClient):
         self.assertNotEqual(team.name, data["name"])
 
     def test_cannot_edit_admin_team(self):
-        team = get_admin_team()
+        team = get_team_by_pk(pk=Teams.ADMIN_TEAM_ID)
 
         data = {"name": "Renamed Team"}
 
