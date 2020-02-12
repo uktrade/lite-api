@@ -177,6 +177,12 @@ def _validate_gifting_clearance(draft, errors):
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
 
+    if draft.consignee:
+        errors["party"] = strings.Applications.Gifting.CONSIGNEE
+
+    if draft.ultimate_end_users:
+        errors["party"] = strings.Applications.Gifting.ULTIMATE_END_USERS
+
     return errors
 
 
@@ -189,6 +195,12 @@ def _validate_f680_clearance(draft, errors):
 
     if not draft.end_user and not draft.third_parties.exists():
         errors["party"] = strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY
+
+    if draft.consignee:
+        errors["party"] = strings.Applications.F680.CONSIGNEE
+
+    if draft.ultimate_end_users:
+        errors["party"] = strings.Applications.F680.ULTIMATE_END_USERS
 
     return errors
 
