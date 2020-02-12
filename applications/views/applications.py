@@ -494,7 +494,6 @@ class ApplicationCopy(APIView):
             GoodOnApplication,
             SiteOnApplication,
             CountryOnApplication,
-            GoodsType,
             ExternalLocationOnApplication,
         ]
 
@@ -510,3 +509,14 @@ class ApplicationCopy(APIView):
                 if getattr(result, "created_at", False):
                     result.created_at = now()
                 result.save()
+
+        for good in GoodsType.objects.filter(application_id=self.old_application_id).all():
+            old_good_countries = list(good.countries.all())
+            old_good_flags = list(good.countries.all())
+            good.pk = None
+            good.id = None
+            good.application = self.new_application
+            good.created_at = now()
+            good.save()
+            good.countries.set(old_good_countries)
+            good.flags.set(old_good_flags)
