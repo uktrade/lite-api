@@ -14,14 +14,14 @@ class DeleteApplication(DataTestClient):
         self.applications = {
             CaseTypeSubTypeEnum.STANDARD: self.create_standard_application(self.organisation),
             CaseTypeSubTypeEnum.HMRC: self.create_hmrc_query(self.organisation),
-            CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE: self.create_exhibition_clearance_application(self.organisation),
+            CaseTypeSubTypeEnum.EXHIBITION: self.create_exhibition_clearance_application(self.organisation),
         }
         self.users = {"EXPORTER": self.exporter_headers, "GOV": self.gov_headers, "HMRC": self.hmrc_exporter_headers}
 
     @parameterized.expand(
         [
             (CaseTypeSubTypeEnum.STANDARD, "EXPORTER"),
-            (CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE, "EXPORTER"),
+            (CaseTypeSubTypeEnum.EXHIBITION, "EXPORTER"),
             (CaseTypeSubTypeEnum.HMRC, "HMRC"),
         ]
     )
@@ -44,7 +44,7 @@ class DeleteApplication(DataTestClient):
     @parameterized.expand(
         [
             (CaseTypeSubTypeEnum.STANDARD, "GOV"),
-            (CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE, "GOV"),
+            (CaseTypeSubTypeEnum.EXHIBITION, "GOV"),
             (CaseTypeSubTypeEnum.HMRC, "EXPORTER"),
         ]
     )
@@ -65,7 +65,7 @@ class DeleteApplication(DataTestClient):
     @parameterized.expand(
         [
             (CaseTypeSubTypeEnum.STANDARD, "EXPORTER"),
-            (CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE, "EXPORTER"),
+            (CaseTypeSubTypeEnum.EXHIBITION, "EXPORTER"),
             (CaseTypeSubTypeEnum.HMRC, "HMRC"),
         ]
     )

@@ -24,7 +24,7 @@ def get_application(pk, organisation_id=None):
             return OpenApplication.objects.get(pk=pk, **kwargs)
         elif application_case_type_sub_type == CaseTypeSubTypeEnum.HMRC:
             return HmrcQuery.objects.get(pk=pk)
-        elif application_case_type_sub_type == CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE:
+        elif application_case_type_sub_type == CaseTypeSubTypeEnum.EXHIBITION:
             return ExhibitionClearanceApplication.objects.get(pk=pk)
         else:
             raise NotImplementedError(

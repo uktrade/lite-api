@@ -31,7 +31,7 @@ def get_application_view_serializer(application: BaseApplication):
         return OpenApplicationViewSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
         return HmrcQueryViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE:
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceViewSerializer
     else:
         raise BadRequestError(
@@ -49,7 +49,7 @@ def get_application_create_serializer(application_case_type_sub_type):
         return OpenApplicationCreateSerializer
     elif application_case_type_sub_type == CaseTypeSubTypeEnum.HMRC:
         return HmrcQueryCreateSerializer
-    elif application_case_type_sub_type == CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE:
+    elif application_case_type_sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceCreateSerializer
     else:
         raise BadRequestError({"case_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
@@ -62,7 +62,7 @@ def get_application_update_serializer(application: BaseApplication):
         return OpenApplicationUpdateSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
         return HmrcQueryUpdateSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE:
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceUpdateSerializer
     else:
         raise BadRequestError(

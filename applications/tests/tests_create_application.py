@@ -103,7 +103,7 @@ class DraftTests(DataTestClient):
             [{"case_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY}],
             [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY}],
             [{"name": "Test", "case_type": CaseTypeSubTypeEnum.STANDARD}],
-            [{"case_type": CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE}],
+            [{"case_type": CaseTypeSubTypeEnum.EXHIBITION}],
             [{"name": "Test"}],
         ]
     )

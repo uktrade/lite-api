@@ -53,17 +53,17 @@ class CaseTypeSubTypeEnum:
     STANDARD = "standard"
     OPEN = "open"
     HMRC = "hmrc"
-    EUA = "eua"
-    EXHIBITION_CLEARANCE = "exhibition_clearance"
-    GIFTING_CLEARANCE = "gifting_clearance"
-    F680_CLEARANCE = "f680_clearance"
+    EUA = "end_user_advisory"
+    EXHIBITION = "exhibition_clearance"
+    GIFTING = "gifting_clearance"
+    F680 = "f680_clearance"
     GOODS = "goods"
 
     choices = [
         (STANDARD, "Standard"),
         (OPEN, "Open"),
         (HMRC, "HMRC"),
-        (EXHIBITION_CLEARANCE, "Exhibition clearance"),
+        (EXHIBITION, "Exhibition clearance"),
         (EUA, "End user advisory"),
     ]
 
@@ -79,7 +79,7 @@ class CaseTypeSubTypeEnum:
         return application_type in [
             CaseTypeSubTypeEnum.STANDARD,
             CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE,
+            CaseTypeSubTypeEnum.EXHIBITION,
         ]
 
 
@@ -124,19 +124,19 @@ class CaseTypeEnum:
         id = UUID("00000000-0000-0000-0000-000000000007")
         reference = CaseTypeReferenceEnum.F680
         type = CaseTypeTypeEnum.APPLICATION
-        sub_type = CaseTypeSubTypeEnum.F680_CLEARANCE
+        sub_type = CaseTypeSubTypeEnum.F680
 
     class EXHC:
         id = UUID("00000000-0000-0000-0000-000000000008")
         reference = CaseTypeReferenceEnum.EXHC
         type = CaseTypeTypeEnum.APPLICATION
-        sub_type = CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE
+        sub_type = CaseTypeSubTypeEnum.EXHIBITION
 
     class GIFT:
         id = UUID("00000000-0000-0000-0000-000000000009")
         reference = CaseTypeReferenceEnum.GIFT
         type = CaseTypeTypeEnum.APPLICATION
-        sub_type = CaseTypeSubTypeEnum.GIFTING_CLEARANCE
+        sub_type = CaseTypeSubTypeEnum.GIFTING
 
     class HMRC:
         id = UUID("00000000-0000-0000-0000-000000000010")

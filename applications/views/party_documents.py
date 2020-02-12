@@ -17,9 +17,7 @@ class PartyDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(
-        [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE]
-    )
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION])
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
         party = application.get_party(party_pk)
@@ -27,9 +25,7 @@ class PartyDocumentView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types(
-        [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE]
-    )
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION])
     @authorised_users(ExporterUser)
     def post(self, request, application, party_pk):
         party = application.get_party(party_pk)
@@ -37,9 +33,7 @@ class PartyDocumentView(APIView):
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types(
-        [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE]
-    )
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION])
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
         party = application.get_party(party_pk)

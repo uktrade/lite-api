@@ -151,7 +151,7 @@ def validate_application_ready_for_submission(application):
         _validate_open_licence(application, errors)
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
         _validate_hmrc_query(application, errors)
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE:
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         _validate_exhibition_clearance(application, errors)
     else:
         errors["unsupported_application"] = "You can only validate a supported application type"

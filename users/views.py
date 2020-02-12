@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from django.db.models import Count, Q
+from django.db.models import Count, Q, CharField, Value
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
@@ -20,11 +20,10 @@ from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser, ExporterNotification
+from users.models import ExporterUser
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
-    ExporterNotificationSerializer,
 )
 
 
@@ -146,32 +145,41 @@ class NotificationViewSet(APIView):
     authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Case.objects.all()
-    serializer_class = ExporterNotificationSerializer
 
     def get(self, request):
         """
-        Count the number of exporter user notifications for each sub_type+type grouping
+        Count the number of application, eua and goods_query exporter user notifications
         """
         queryset = self.queryset.filter(organisation=request.user.organisation)
 
         applications_queryset = (
             queryset.filter(case_type__type=CaseTypeTypeEnum.APPLICATION)
-            .annotate(notification_count=Count("basenotification", filter=Q(basenotification__user=request.user)))
-            .values("case_type__type", "case_type__sub_type", "notification_count")
+            .annotate(
+                type=Value(CaseTypeTypeEnum.APPLICATION, CharField()),
+                count=Count("basenotification", filter=Q(basenotification__user=request.user)),
+            )
+            .values("type", "count")
         )
-
         eua_queries_queryset = (
             queryset.filter(case_type__sub_type=CaseTypeSubTypeEnum.EUA)
-            .annotate(notification_count=Count("basenotification", filter=Q(basenotification__user=request.user)))
-            .values("case_type__type", "case_type__sub_type", "notification_count")
+            .annotate(
+                type=Value(f"{CaseTypeSubTypeEnum.EUA}_{CaseTypeTypeEnum.QUERY}", CharField()),
+                count=Count("basenotification", filter=Q(basenotification__user=request.user)),
+            )
+            .values("type", "count")
         )
         goods_queries_queryset = (
             queryset.filter(case_type__sub_type=CaseTypeSubTypeEnum.GOODS)
-            .annotate(notification_count=Count("basenotification", filter=Q(basenotification__user=request.user)))
-            .values("case_type__type", "case_type__sub_type", "notification_count")
+            .annotate(
+                type=Value(f"{CaseTypeSubTypeEnum.GOODS}_{CaseTypeTypeEnum.QUERY}", CharField()),
+                count=Count("basenotification", filter=Q(basenotification__user=request.user)),
+            )
+            .values("type", "count")
         )
 
-        data = list(applications_queryset | eua_queries_queryset | goods_queries_queryset)
+        queryset = applications_queryset.union(eua_queries_queryset).union(goods_queries_queryset)
+
+        data = {"notifications": {row["type"]: row["count"] for row in queryset}}
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 

@@ -105,7 +105,7 @@ class BaseNotification(models.Model):
     # All notifications are currently linked to a case
     case = models.ForeignKey("cases.Case", on_delete=models.CASCADE, null=False)
 
-    # Generic Foriegn Key Fields
+    # Generic Foreign Key Fields (case notes, ecju queries, generated documents)
     content_type = models.ForeignKey(ContentType, default=None, on_delete=models.CASCADE)
     object_id = models.UUIDField(default=uuid.uuid4)
     content_object = GenericForeignKey("content_type", "object_id")

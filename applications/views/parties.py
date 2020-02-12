@@ -23,9 +23,7 @@ from users.models import ExporterUser
 class ApplicationPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(
-        [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE]
-    )
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION])
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -77,9 +75,7 @@ class ApplicationPartyView(APIView):
 
         return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
 
-    @allowed_application_types(
-        [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE]
-    )
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION])
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
         """
@@ -109,9 +105,7 @@ class ApplicationPartyView(APIView):
 
         return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)
 
-    @allowed_application_types(
-        [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE]
-    )
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -132,9 +126,7 @@ class ApplicationPartyView(APIView):
 class CopyPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(
-        [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE]
-    )
+    @allowed_application_types([CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.HMRC, CaseTypeSubTypeEnum.EXHIBITION])
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
         """
