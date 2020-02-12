@@ -17,8 +17,8 @@ from applications.helpers import (
 )
 from applications.libraries.application_helpers import (
     optional_str_to_bool,
-    can_status_can_be_set_by_exporter_user,
-    can_status_can_be_set_by_gov_user,
+    can_status_be_set_by_exporter_user,
+    can_status_be_set_by_gov_user,
 )
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
@@ -27,7 +27,7 @@ from applications.models import BaseApplication, HmrcQuery, SiteOnApplication
 from applications.serializers.generic_application import GenericApplicationListSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum, AdviceType
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
@@ -108,8 +108,9 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Retrieve an application instance
         """
         serializer = get_application_view_serializer(application)
-        serializer = serializer(application, context={"exporter_user": request.user})
-        return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
+        data = serializer(application, context={"exporter_user": request.user}).data
+
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
     @application_in_editable_state()
@@ -241,6 +242,7 @@ class ApplicationManageStatus(APIView):
     @transaction.atomic
     def put(self, request, pk):
         application = get_application(pk)
+        is_licence_application = application.application_type != "exhibition_clearance"
 
         data = deepcopy(request.data)
 
@@ -253,17 +255,27 @@ class ApplicationManageStatus(APIView):
             if request.user.organisation.id != application.organisation.id:
                 raise PermissionDenied()
 
-            if not can_status_can_be_set_by_exporter_user(application.status.status, data["status"]):
+            if not can_status_be_set_by_exporter_user(application.status.status, data["status"]):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
+                    data={"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
-            if not can_status_can_be_set_by_gov_user(request.user, application.status.status, data["status"]):
+            if not can_status_be_set_by_gov_user(
+                request.user, application.status.status, data["status"], is_licence_application
+            ):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SET_STATUS]},
+                    data={"errors": [strings.Applications.Finalise.Error.GOV_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+
+        if data["status"] == CaseStatusEnum.SURRENDERED:
+            if not application.licence_duration:
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Finalise.Error.SURRENDER]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            application.licence_duration = None
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -283,7 +295,7 @@ class ApplicationManageStatus(APIView):
             payload={"status": CaseStatusEnum.get_text(case_status.status)},
         )
 
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class ApplicationFinaliseView(APIView):
@@ -295,7 +307,10 @@ class ApplicationFinaliseView(APIView):
         Finalise an application
         """
         application = get_application(pk)
-        if not can_status_can_be_set_by_gov_user(request.user, application.status.status, CaseStatusEnum.FINALISED):
+        is_licence_application = application.application_type != ApplicationType.EXHIBITION_CLEARANCE
+        if not can_status_be_set_by_gov_user(
+            request.user, application.status.status, CaseStatusEnum.FINALISED, is_licence_application
+        ):
             return JsonResponse(
                 data={"errors": [strings.Applications.Finalise.Error.SET_FINALISED]}, status=status.HTTP_400_BAD_REQUEST
             )
@@ -303,6 +318,7 @@ class ApplicationFinaliseView(APIView):
         data = deepcopy(request.data)
 
         default_licence_duration = get_default_duration(application)
+        action = data.get("action")
 
         if (
             data.get("licence_duration") is not None
@@ -313,7 +329,7 @@ class ApplicationFinaliseView(APIView):
                 data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        else:
+        elif action == AdviceType.APPROVE:
             data["licence_duration"] = data.get("licence_duration", default_licence_duration)
 
         data["status"] = str(get_case_status_by_status(CaseStatusEnum.FINALISED).pk)
@@ -326,12 +342,17 @@ class ApplicationFinaliseView(APIView):
 
         serializer.save()
 
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.FINALISED_APPLICATION,
-            target=application.get_case(),
-            payload={"licence_duration": serializer.validated_data["licence_duration"]},
-        )
+        if action == AdviceType.REFUSE:
+            audit_trail_service.create(
+                actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
+            )
+        elif action == AdviceType.APPROVE:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.GRANTED_APPLICATION,
+                target=application.get_case(),
+                payload={"licence_duration": serializer.validated_data["licence_duration"]},
+            )
 
         return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 

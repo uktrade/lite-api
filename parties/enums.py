@@ -1,15 +1,30 @@
 class PartyType:
     CONSIGNEE = "consignee"
-    END = "end_user"
-    ULTIMATE = "ultimate_end_user"
-    THIRD = "third_party"
+    END_USER = "end_user"
+    ULTIMATE_END_USER = "ultimate_end_user"
+    THIRD_PARTY = "third_party"
+
+    INACTIVE_PARTIES = "inactive_parties"
 
     choices = [
         (CONSIGNEE, "Consignee"),
-        (END, "End User"),
-        (ULTIMATE, "Ultimate End User"),
-        (THIRD, "Third Party"),
+        (END_USER, "End User"),
+        (ULTIMATE_END_USER, "Ultimate End User"),
+        (THIRD_PARTY, "Third Party"),
     ]
+
+    @classmethod
+    def api_key_name(cls, party_type):
+        """
+        Return key name for party responses returned by API.
+        """
+        api_names = {
+            PartyType.ULTIMATE_END_USER: "ultimate_end_users",
+            PartyType.THIRD_PARTY: "third_parties",
+            PartyType.END_USER: PartyType.END_USER,
+            PartyType.CONSIGNEE: PartyType.CONSIGNEE,
+        }
+        return api_names.get(party_type, "parties")
 
 
 class SubType:
@@ -26,7 +41,7 @@ class SubType:
     ]
 
 
-class ThirdPartyRole:
+class PartyRole:
     INTERMEDIATE = "intermediate_consignee"
     END = "additional_end_user"
     AGENT = "agent"

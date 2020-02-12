@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
+from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import StandardApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -10,37 +11,27 @@ from applications.serializers.generic_application import (
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
-from parties.serializers import (
-    EndUserWithFlagsSerializer,
-    UltimateEndUserWithFlagsSerializer,
-    ThirdPartyWithFlagsSerializer,
-    ConsigneeWithFlagsSerializer,
-)
 
 
-class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
-    end_user = EndUserWithFlagsSerializer()
-    ultimate_end_users = UltimateEndUserWithFlagsSerializer(many=True)
-    third_parties = ThirdPartyWithFlagsSerializer(many=True)
-    consignee = ConsigneeWithFlagsSerializer()
+class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationViewSerializer.Meta.fields + (
-            "end_user",
-            "ultimate_end_users",
-            "third_parties",
-            "consignee",
-            "goods",
-            "have_you_been_informed",
-            "reference_number_on_information_form",
-            "activity",
-            "usage",
-            "destinations",
-            "additional_documents",
+        fields = (
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + (
+                "goods",
+                "have_you_been_informed",
+                "reference_number_on_information_form",
+                "activity",
+                "usage",
+                "destinations",
+                "additional_documents",
+            )
         )
 
 

@@ -10,6 +10,7 @@ from conf.constants import Roles, ExporterPermissions
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_organisation_by_pk
+from organisations.serializers import OrganisationUserListView
 from users.libraries.get_user import get_users_from_organisation, get_user_by_pk
 from users.models import ExporterUser, Role
 from users.serializers import (
@@ -32,7 +33,7 @@ class UsersList(APIView):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
 
         users = get_users_from_organisation(organisation)
-        view_serializer = ExporterUserViewSerializer(users, many=True, context=org_pk)
+        view_serializer = OrganisationUserListView(users, many=True, context=org_pk)
         return JsonResponse(data={"users": view_serializer.data})
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
