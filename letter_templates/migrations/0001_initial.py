@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("picklists", "0001_initial"),
-        ("cases", "004_auto_20200211_1459"),
+        ("cases", "0004_auto_20200211_1459"),
         ("letter_layouts", "0001_initial"),
     ]
 

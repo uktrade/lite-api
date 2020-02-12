@@ -1,5 +1,3 @@
-from functools import reduce
-from operator import or_
 from uuid import UUID
 
 from django.db.models import Count, Q
@@ -11,10 +9,11 @@ from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
+from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
+from cases.models import Case
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
-from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
@@ -146,30 +145,33 @@ class UserMeDetail(APIView):
 class NotificationViewSet(APIView):
     authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated,)
-    queryset = ExporterNotification.objects.all()
+    queryset = Case.objects.all()
     serializer_class = ExporterNotificationSerializer
 
     def get(self, request):
-        data = {}
-        queryset = ExporterNotification.objects.filter(user=request.user, organisation=request.user.organisation)
+        """
+        Count the number of exporter user notifications for each sub_type+type grouping
+        """
+        queryset = self.queryset.filter(organisation=request.user.organisation)
 
-        # Iterate through the case types and build an 'OR' queryset
-        # to get notifications matching different case types
-        case_types = request.GET.getlist("case_type")
-        if case_types:
-            queries = [Q(case__type=case_type) for case_type in case_types]
-            # Collapses the queries list into a usable filter
-            queryset = queryset.filter(reduce(or_, queries))
+        applications_queryset = (
+            queryset.filter(case_type__type=CaseTypeTypeEnum.APPLICATION)
+            .annotate(notification_count=Count("basenotification", filter=Q(basenotification__user=request.user)))
+            .values("case_type__type", "case_type__sub_type", "notification_count")
+        )
 
-        # Count the number of notifications for each type
-        count_queryset = queryset.values("case__type").annotate(total=Count("case__type"))
-        data["notification_count"] = {
-            content_type["case__type"]: content_type["total"] for content_type in count_queryset
-        }
+        eua_queries_queryset = (
+            queryset.filter(case_type__sub_type=CaseTypeSubTypeEnum.EUA)
+            .annotate(notification_count=Count("basenotification", filter=Q(basenotification__user=request.user)))
+            .values("case_type__type", "case_type__sub_type", "notification_count")
+        )
+        goods_queries_queryset = (
+            queryset.filter(case_type__sub_type=CaseTypeSubTypeEnum.GOODS)
+            .annotate(notification_count=Count("basenotification", filter=Q(basenotification__user=request.user)))
+            .values("case_type__type", "case_type__sub_type", "notification_count")
+        )
 
-        # Serialize notifications
-        if not str_to_bool(request.GET.get("count_only")):
-            data["notifications"] = ExporterNotificationSerializer(queryset, many=True).data
+        data = list(applications_queryset | eua_queries_queryset | goods_queries_queryset)
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 

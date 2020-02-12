@@ -17,6 +17,7 @@ class ExporterUserNotificationTests(DataTestClient):
         self.case_note_content_type = ContentType.objects.get_for_model(CaseNote)
         self.ecju_query_content_type = ContentType.objects.get_for_model(EcjuQuery)
         self.generated_case_doc_content_type = ContentType.objects.get_for_model(GeneratedCaseDocument)
+        self.url = reverse_lazy("users:notifications")
 
     def _create_all_case_types_with_notifications(self):
         self._create_end_user_advisory_query_with_notifications()
@@ -88,9 +89,7 @@ class ExporterUserNotificationTests(DataTestClient):
     def test_get_notifications_for_user_with_and_without_count_only_param_success(self, count_only):
         self._create_all_case_types_with_notifications()
 
-        response = self.client.get(
-            reverse_lazy("users:notifications") + f"?count_only={count_only}", **self.exporter_headers
-        )
+        response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -105,9 +104,7 @@ class ExporterUserNotificationTests(DataTestClient):
     def test_get_notifications_for_user_individual_case_type_without_count_only_param_success(self, case_type):
         self._create_all_case_types_with_notifications()
 
-        response = self.client.get(
-            reverse_lazy("users:notifications") + f"?case_type={case_type}", **self.exporter_headers
-        )
+        response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -120,9 +117,7 @@ class ExporterUserNotificationTests(DataTestClient):
     def test_get_notifications_for_user_individual_case_type_with_count_only_param_success(self, case_type):
         self._create_all_case_types_with_notifications()
 
-        response = self.client.get(
-            reverse_lazy("users:notifications") + f"?count_only=True&case_type={case_type}", **self.exporter_headers
-        )
+        response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -148,7 +143,7 @@ class ExporterUserNotificationTests(DataTestClient):
         ecju_query = self.create_ecju_query(application, "This is an ecju query")
         notification_object_ids = [str(case_note.id), str(ecju_query.id)]
 
-        response = self.client.get(reverse_lazy("users:notifications"), **self.exporter_headers)
+        response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
