@@ -34,6 +34,8 @@ class LetterTemplatesList(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
+        data = request.data
+        data["case_types"] = CaseTypeEnum.references_to_ids(data["case_types"])
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
@@ -78,12 +80,18 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         template_object = self.get_object()
-        old_case_types = set(template_object.case_types.all().values_list("id", flat=True))
-        old_paragraphs = list(template_object.letter_paragraphs.all().values_list("id", "name"))
+        old_case_types = set(template_object.case_types.values_list("reference", flat=True))
+        old_paragraphs = list(template_object.letter_paragraphs.values_list("id", "name"))
         old_layout_id = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
         old_name = template_object.name
-        serializer = self.get_serializer(template_object, data=request.data, partial=True)
+
+        data = request.data
+        new_case_types = data.get("case_types")
+        if new_case_types:
+            data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
+
+        serializer = self.get_serializer(template_object, data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -97,7 +105,6 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     )
 
             if request.data.get("case_types"):
-                new_case_types = set([CaseTypeTypeEnum.get_text(choice) for choice in request.data.get("case_types")])
                 if new_case_types != old_case_types:
                     audit_trail_service.create(
                         actor=request.user,

@@ -54,7 +54,7 @@ class ExhibitionClearanceCreateSerializer(GenericApplicationCreateSerializer):
             "name",
             "case_type",
             "organisation",
-            "type",
+            "case_type",
             "status",
         )
 

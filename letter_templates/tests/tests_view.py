@@ -48,7 +48,7 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response_data["name"], self.letter_template.name)
         self.assertEqual(response_data["layout"]["id"], str(self.letter_layout.id))
         self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
-        self.assertIn(CaseTypeEnum.SIEL.id, str(response_data["case_types"]))
+        self.assertIn(str(CaseTypeEnum.SIEL.id), str(response_data["case_types"]))
         self.assertIsNotNone(response_data.get("created_at"))
         self.assertIsNotNone(response_data.get("updated_at"))
 

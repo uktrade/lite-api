@@ -15,4 +15,4 @@ class CaseTypesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(CaseTypeEnum.case_type_list))
         for case_type in CaseTypeEnum.case_type_list:
-            self.assertIn(case_type.referece, str(response_data))
+            self.assertIn(case_type.reference, str(response_data))
