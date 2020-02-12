@@ -69,9 +69,12 @@ class DraftTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
+        application = GiftingClearanceApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(GiftingClearanceApplication.objects.count(), 1)
+        self.assertEqual(application.name, data["name"])
+        self.assertEqual(application.application_type, data["application_type"])
 
     def test_create_draft_f680_clearance_application_successful(self):
         """
@@ -85,9 +88,12 @@ class DraftTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
+        application = F680ClearanceApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(F680ClearanceApplication.objects.count(), 1)
+        self.assertEqual(application.name, data["name"])
+        self.assertEqual(application.application_type, data["application_type"])
 
     def test_create_draft_open_application_successful(self):
         """
