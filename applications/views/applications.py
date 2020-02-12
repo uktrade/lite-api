@@ -121,6 +121,13 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         case = application.get_case()
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
 
+        # Prevent minor edits of the goods categories
+        if not application.is_major_editable() and request.data.get("goods_categories"):
+            return JsonResponse(
+                data={"errors": {"goods_categories": ["This isn't possible on a minor edit"]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
