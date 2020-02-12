@@ -2,7 +2,7 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.exceptions import ParseError, PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny
@@ -60,21 +60,19 @@ class AuthenticateGovUser(APIView):
         return JsonResponse(data={"token": token, "lite_api_user_id": str(user.id)})
 
 
-class GovUserList(APIView):
+class GovUserList(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         """
         Fetches all government users
         """
-        teams = request.GET.get("teams", None)
-        activated_only = request.GET.get("activated", None)
-        full_name = request.GET.get("name", None)
-
-        gov_users_qs = GovUser.objects.all()
-
-        if activated_only:
-            gov_users_qs = gov_users_qs.exclude(status=UserStatuses.DEACTIVATED)
+        teams = request.GET.get("teams")
+        status = request.GET.get("status")
+        full_name = request.GET.get("name")
+        gov_users_qs = GovUser.objects.all().order_by("email")
+        if status:
+            gov_users_qs = gov_users_qs.filter(status=UserStatuses.from_string(status))
 
         if full_name:
             gov_users_qs = gov_users_qs.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
@@ -84,8 +82,10 @@ class GovUserList(APIView):
         if teams:
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 
-        serializer = GovUserViewSerializer(gov_users_qs.order_by("email"), many=True)
-        return JsonResponse(data={"gov_users": serializer.data})
+        page = self.paginate_queryset(gov_users_qs)
+        serializer = GovUserViewSerializer(page, many=True)
+
+        return self.get_paginated_response({"gov_users": serializer.data})
 
     @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})
     def post(self, request):

@@ -105,7 +105,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (),
     "DEFAULT_PARSER_CLASSES": ("rest_framework.parsers.JSONParser", "rest_framework.parsers.FormParser"),
     "DEFAULT_PAGINATION_CLASS": "conf.pagination.MaxPageNumberPagination",
-    "PAGE_SIZE": 25,
+    "PAGE_SIZE": 2,
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
