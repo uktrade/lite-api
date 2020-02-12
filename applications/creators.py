@@ -42,23 +42,24 @@ def check_parties_documents(parties, is_mandatory=True):
     return None
 
 
-def check_party_error(party, object_not_found_error, is_document_mandatory=True):
+def check_party_error(party, object_not_found_error, is_mandatory, is_document_mandatory=True):
     """ Check a given party exists and has a document if is_document_mandatory """
 
-    if not party:
+    if is_mandatory and not party:
         return object_not_found_error
-    else:
+    elif party:
         document_error = check_party_document(party, is_document_mandatory)
         if document_error:
             return document_error
 
 
-def _validate_end_user(draft, errors):
+def _validate_end_user(draft, errors, is_mandatory):
     """ Checks there is an end user (with a document if is_document_mandatory) """
 
     end_user_errors = check_party_error(
         draft.end_user.party if draft.end_user else None,
         object_not_found_error=strings.Applications.Standard.NO_END_USER_SET,
+        is_mandatory=is_mandatory,
         is_document_mandatory=True,
     )
     if end_user_errors:
@@ -67,12 +68,13 @@ def _validate_end_user(draft, errors):
     return errors
 
 
-def _validate_consignee(draft, errors):
+def _validate_consignee(draft, errors, is_mandatory):
     """ Checks there is an consignee (with a document if is_document_mandatory) """
 
     consignee_errors = check_party_error(
         draft.consignee.party if draft.consignee else None,
         object_not_found_error=strings.Applications.Standard.NO_CONSIGNEE_SET,
+        is_mandatory=is_mandatory,
         is_document_mandatory=True,
     )
     if consignee_errors:
@@ -140,8 +142,8 @@ def _validate_has_goods(draft, errors, is_mandatory):
 
 def _validate_standard_licence(draft, errors):
     """ Checks that a standard licence has all party types & goods """
-    errors = _validate_end_user(draft, errors)
-    errors = _validate_consignee(draft, errors)
+    errors = _validate_end_user(draft, errors, is_mandatory=True)
+    errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
@@ -156,7 +158,7 @@ def _validate_exhibition_clearance(draft, errors):
 
 def _validate_gifting_clearance(draft, errors):
     """ Checks that a gifting clearance has an end_user and goods"""
-    errors = _validate_end_user(draft, errors)
+    errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
 
@@ -168,15 +170,11 @@ def _validate_f680_clearance(draft, errors):
     F680 requires at least 1 end user or third party.
     """
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_end_user(draft, errors, is_mandatory=False)
+    errors = _validate_third_parties(draft, errors, is_mandatory=False)
 
     if not draft.end_user and not draft.third_parties.exists():
         errors["party"] = strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY
-
-    if draft.end_user:
-        errors = _validate_end_user(draft, errors)
-
-    if draft.third_parties.exists():
-        errors = _validate_third_parties(draft, errors, is_mandatory=False)
 
     return errors
 
@@ -192,7 +190,7 @@ def _validate_open_licence(draft, errors):
 
 def _validate_hmrc_query(draft, errors):
     errors = _validate_goods_types(draft, errors)
-    errors = _validate_end_user(draft, errors)
+    errors = _validate_end_user(draft, errors, is_mandatory=True)
 
     return errors
 
