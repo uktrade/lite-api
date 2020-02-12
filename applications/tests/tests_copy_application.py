@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
@@ -9,6 +11,7 @@ from applications.models import (
     GoodOnApplication,
     CountryOnApplication,
     SiteOnApplication,
+    ExhibitionClearanceApplication,
 )
 from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
@@ -17,7 +20,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
-class CopyTests(DataTestClient):
+class CopyApplicationSuccessTests(DataTestClient):
 
     # standard application
     def test_copy_draft_standard_application_successful(self):
@@ -68,7 +71,7 @@ class CopyTests(DataTestClient):
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
-        self.data = {"name": "New application", "have_you_been_informed": ApplicationExportLicenceOfficialType.YES}
+        self.data = {"name": "New application"}
 
         self.response = self.client.post(self.url, self.data, **self.exporter_headers)
         self.response_data = self.response.json()["data"]
@@ -89,7 +92,7 @@ class CopyTests(DataTestClient):
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
-        self.data = {"name": "New application", "have_you_been_informed": ApplicationExportLicenceOfficialType.YES}
+        self.data = {"name": "New application"}
 
         self.response = self.client.post(self.url, self.data, **self.exporter_headers)
         self.response_data = self.response.json()["data"]
@@ -105,38 +108,43 @@ class CopyTests(DataTestClient):
         """
         Ensure we can copy an exhibition application that is a draft
         """
-        application = self.create_exhibition_clearance_application(self.organisation)
+        self.original_application = self.create_exhibition_clearance_application(self.organisation)
+        self.submit_application(self.original_application)
 
-        url = reverse_lazy("applications:copy", kwargs={"pk": application.id})
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
-        data = {"name": "New application"}
+        self.data = {"name": "New application"}
 
-        response = self.client.post(url, data, **self.exporter_headers)
-        response_data = response.json()["data"]
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertNotEqual(response_data, application.id)
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
 
-        # self.exhibition_application_test()
+        self.copied_application = ExhibitionClearanceApplication.objects.get(id=self.response_data)
+
+        self.exhibition_application_test()
 
     def test_copy_submitted_exhibition_application_successful(self):
         """
         Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
-        application = self.create_exhibition_clearance_application(self.organisation)
-        self.submit_application(application)
+        self.original_application = self.create_exhibition_clearance_application(self.organisation)
+        self.submit_application(self.original_application)
 
-        url = reverse_lazy("applications:copy", kwargs={"pk": application.id})
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
-        data = {"name": "New application"}
+        self.data = {"name": "New application"}
 
-        response = self.client.post(url, data, **self.exporter_headers)
-        response_data = response.json()["data"]
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertNotEqual(response_data, application.id)
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
 
-        # self.exhibition_application_test()
+        self.copied_application = ExhibitionClearanceApplication.objects.get(id=self.response_data)
+
+        self.exhibition_application_test()
 
     def test_copy_draft_hmrc_enquiry_successful(self):
         """
@@ -146,7 +154,7 @@ class CopyTests(DataTestClient):
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
-        self.data = {"name": "New application", "have_you_been_informed": ApplicationExportLicenceOfficialType.YES}
+        self.data = {"name": "New application"}
 
         self.response = self.client.post(self.url, self.data, **self.exporter_headers)
         self.response_data = self.response.json()["data"]
@@ -156,7 +164,7 @@ class CopyTests(DataTestClient):
 
         self.copied_application = HmrcQuery.objects.get(id=self.response_data)
 
-        # self.hmrc_enquiry_test()
+        self.hmrc_enquiry_test()
 
     def test_copy_submitted_hmrc_enquiry_successful(self):
         """
@@ -167,7 +175,7 @@ class CopyTests(DataTestClient):
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
-        self.data = {"name": "New application", "have_you_been_informed": ApplicationExportLicenceOfficialType.YES}
+        self.data = {"name": "New application"}
 
         self.response = self.client.post(self.url, self.data, **self.exporter_headers)
         self.response_data = self.response.json()["data"]
@@ -177,7 +185,7 @@ class CopyTests(DataTestClient):
 
         self.copied_application = HmrcQuery.objects.get(id=self.response_data)
 
-        # self.hmrc_enquiry_test()
+        self.hmrc_enquiry_test()
 
     def standard_application_test(self):
         self.reset_data_test()
@@ -194,9 +202,37 @@ class CopyTests(DataTestClient):
     def open_application_test(self):
         self.reset_data_test()
 
-        self.goodstype_test()  # update with goodtype
+        self.goodstype_test()
+
+        self.site_on_application_test()
 
         self.country_on_application_test()
+
+        self.case_data_test()
+
+    def exhibition_application_test(self):
+        self.reset_data_test()
+
+        self.good_on_application_test()
+
+        self.end_user_test()
+        self.consignee_test()
+        self.ultimate_end_user_test()
+        self.third_party_test()
+
+        self.case_data_test()
+
+    def hmrc_enquiry_test(self):
+        self.reset_data_test()
+        self.assertEqual(self.original_application.reasoning, self.copied_application.reasoning)
+        self.assertEqual(self.original_application.have_goods_departed, self.copied_application.have_goods_departed)
+
+        self.goodstype_test()
+
+        self.end_user_test()
+        self.consignee_test()
+        self.ultimate_end_user_test()
+        self.third_party_test()
 
         self.case_data_test()
 
@@ -283,8 +319,10 @@ class CopyTests(DataTestClient):
 
     def site_on_application_test(self):
         self.assertIsNotNone(self.copied_application.application_sites)
-        new_sites = list(SiteOnApplication.objects.filter(application=self.copied_application).values("country").all())
-        for site in SiteOnApplication.objects.filter(application=self.original_application).values("country").all():
+        new_sites = list(SiteOnApplication.objects.filter(application=self.copied_application).values("site").all())
+        old_sites = SiteOnApplication.objects.filter(application=self.original_application).values("site").all()
+        self.assertEqual(len(new_sites), len(old_sites))
+        for site in old_sites:
             self.assertIn(site, new_sites)
 
     def goodstype_test(self):
@@ -314,3 +352,38 @@ class CopyTests(DataTestClient):
             )
 
             self.assertEqual(old_goodsType, new_goodsType)
+
+
+class CopyApplicationFailTests(DataTestClient):
+    def test_copy_bad_pk(self):
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": uuid4()})
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+
+        self.assertEqual(self.response.status_code, status.HTTP_404_NOT_FOUND)
+
+    # standard
+    def test_copy_standard_application_missing_data_informed(self):
+        """
+        Ensure we can copy a standard application that is a draft
+        """
+        self.original_application = self.create_standard_application(self.organisation)
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+
+        self.assertEqual(self.response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_copy_missing_data_name(self):
+        """
+        Ensure we can copy a standard application that is a draft
+        """
+        self.original_application = self.create_standard_application(self.organisation)
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+        self.data = {"have_you_been_informed": ApplicationExportLicenceOfficialType.YES}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+
+        self.assertEqual(self.response.status_code, status.HTTP_400_BAD_REQUEST)

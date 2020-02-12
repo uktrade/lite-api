@@ -237,8 +237,9 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
 
 class GenericApplicationCopySerializer(serializers.ModelSerializer):
     name = serializers.CharField(allow_null=False, allow_blank=False)
-    have_you_been_informed = KeyValueChoiceField(
-        choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
+    have_you_been_informed = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    reference_number_on_information_form = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=255
     )
 
     class Meta:
@@ -246,13 +247,18 @@ class GenericApplicationCopySerializer(serializers.ModelSerializer):
         fields = (
             "name",
             "have_you_been_informed",
+            "reference_number_on_information_form",
         )
 
     def __init__(self, context=None, *args, **kwargs):
 
-        if context and not context.get("application_type") == ApplicationType.STANDARD_LICENCE:
+        if context and context.get("application_type") == ApplicationType.STANDARD_LICENCE:
+            self.fields["have_you_been_informed"] = KeyValueChoiceField(
+                choices=ApplicationExportLicenceOfficialType.choices,
+                error_messages={"required": strings.Goods.INFORMED},
+            )
             self.fields["have_you_been_informed"] = serializers.CharField(
-                required=False, allow_null=True, allow_blank=True
+                required=True, allow_null=True, allow_blank=True, max_length=255
             )
 
         super().__init__(*args, **kwargs)

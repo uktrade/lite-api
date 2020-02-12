@@ -1,6 +1,5 @@
 from copy import deepcopy
 
-from compat import get_model
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
@@ -49,8 +48,6 @@ from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
-from parties.models import Party
-from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -404,6 +401,9 @@ class ApplicationCopy(APIView):
         # replace the reference and have you been informed (if required) with users answer
         self.new_application.name = request.data["name"]
         self.new_application.have_you_been_informed = request.data.get("have_you_been_informed")
+        self.new_application.reference_number_on_information_form = request.data.get(
+            "reference_number_on_information_form"
+        )
         self.new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         self.new_application.copy_of_id = self.old_application_id
 
