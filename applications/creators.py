@@ -83,11 +83,23 @@ def _validate_consignee(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_goods_types(draft, errors):
+def _validate_countries(draft, errors, is_mandatory):
+    """ Checks there are countries for the draft """
+
+    if is_mandatory:
+        if len(CountryOnApplication.objects.filter(application=draft)) == 0:
+            errors["countries"] = strings.Applications.Open.NO_COUNTRIES_SET
+
+    return errors
+
+
+def _validate_goods_types(draft, errors, is_mandatory):
     """ Checks there are GoodsTypes for the draft """
-    results = GoodsType.objects.filter(application=draft)
-    if not results:
-        errors["goods"] = strings.Applications.Open.NO_GOODS_SET
+
+    if is_mandatory:
+        results = GoodsType.objects.filter(application=draft)
+        if not results:
+            errors["goods"] = strings.Applications.Open.NO_GOODS_SET
 
     return errors
 
@@ -133,6 +145,7 @@ def _validate_third_parties(draft, errors, is_mandatory):
 
 def _validate_has_goods(draft, errors, is_mandatory):
     """ Checks draft has Goods """
+
     if is_mandatory:
         if not GoodOnApplication.objects.filter(application=draft):
             errors["goods"] = strings.Applications.Standard.NO_GOODS_SET
@@ -142,6 +155,7 @@ def _validate_has_goods(draft, errors, is_mandatory):
 
 def _validate_standard_licence(draft, errors):
     """ Checks that a standard licence has all party types & goods """
+
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
@@ -157,7 +171,8 @@ def _validate_exhibition_clearance(draft, errors):
 
 
 def _validate_gifting_clearance(draft, errors):
-    """ Checks that a gifting clearance has an end_user and goods"""
+    """ Checks that a gifting clearance has an end_user and goods """
+
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
@@ -166,9 +181,8 @@ def _validate_gifting_clearance(draft, errors):
 
 
 def _validate_f680_clearance(draft, errors):
-    """
-    F680 requires at least 1 end user or third party.
-    """
+    """ F680 require goods and at least 1 end user or third party """
+
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
@@ -180,16 +194,18 @@ def _validate_f680_clearance(draft, errors):
 
 
 def _validate_open_licence(draft, errors):
-    if len(CountryOnApplication.objects.filter(application=draft)) == 0:
-        errors["countries"] = strings.Applications.Open.NO_COUNTRIES_SET
+    """ Open licences require countries & goods types """
 
-    errors = _validate_goods_types(draft, errors)
+    errors = _validate_countries(draft, errors, is_mandatory=True)
+    errors = _validate_goods_types(draft, errors, is_mandatory=True)
 
     return errors
 
 
 def _validate_hmrc_query(draft, errors):
-    errors = _validate_goods_types(draft, errors)
+    """ HMRC queries require goods types & an end user """
+
+    errors = _validate_goods_types(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
 
     return errors
