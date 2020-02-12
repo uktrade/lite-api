@@ -71,6 +71,17 @@ class CaseTypeSubTypeEnum:
     def as_list(cls):
         return [{"key": choice[0], "value": choice[0]} for choice in cls.choices]
 
+    @classmethod
+    def has_parties(cls, application_type):
+        """
+        Check if the application_type uses parties.
+        """
+        return application_type in [
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE,
+        ]
+
 
 class CaseTypeEnum:
     class OIEL:

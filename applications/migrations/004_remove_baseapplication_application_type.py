@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("applications", "0010_hmrcquery_is_goods_departed"),
+        ("applications", "0003_auto_20200210_1326"),
     ]
 
     operations = [

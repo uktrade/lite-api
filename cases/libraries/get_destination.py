@@ -6,6 +6,7 @@ from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.models import Case
 from flags.serializers import FlagSerializer
 from goodstype.models import GoodsType
+from parties.enums import PartyType
 from parties.models import Party
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from static.countries.models import Country
@@ -24,17 +25,14 @@ def get_destination(pk):
 
 
 def get_standard_application_destination_flags(application):
+    party_on_applications = application.active_parties.prefetch_related("party__flags").filter(
+        deleted_at__isnull=True, party__flags__isnull=False
+    )
     flags = []
-    if application.end_user:
-        flags += application.end_user.flags.all()
-    if application.consignee:
-        flags += application.consignee.flags.all()
-
-    for ultimate_end_user in application.ultimate_end_users.values_list("id", flat=True):
-        flags += get_destination(ultimate_end_user).flags.all()
-
-    for third_party in application.third_parties.values_list("id", flat=True):
-        flags += get_destination(third_party).flags.all()
+    for poa in party_on_applications:
+        flags += poa.party.flags.all()
+        if poa.party.type in [PartyType.THIRD_PARTY, PartyType.ULTIMATE_END_USER]:
+            flags += get_destination(poa.party.id).flags.all()
 
     return flags
 

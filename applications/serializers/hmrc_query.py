@@ -5,43 +5,28 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationViewSerializer
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from applications.mixins.serializers import PartiesSerializerMixin
+from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
-from parties.serializers import (
-    EndUserSerializer,
-    UltimateEndUserSerializer,
-    ThirdPartySerializer,
-    ConsigneeSerializer,
-)
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class HmrcQueryViewSerializer(GenericApplicationViewSerializer):
+class HmrcQueryViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
-    end_user = EndUserSerializer()
-    ultimate_end_users = UltimateEndUserSerializer(many=True)
-    third_parties = ThirdPartySerializer(many=True)
-    consignee = ConsigneeSerializer()
     hmrc_organisation = TinyOrganisationViewSerializer()
     supporting_documentation = serializers.SerializerMethodField()
 
     class Meta:
         model = HmrcQuery
-        fields = GenericApplicationViewSerializer.Meta.fields + (
-            "goods_types",
-            "end_user",
-            "ultimate_end_users",
-            "third_parties",
-            "consignee",
-            "hmrc_organisation",
-            "reasoning",
-            "supporting_documentation",
-            "have_goods_departed",
+        fields = (
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + ("goods_types", "hmrc_organisation", "reasoning", "supporting_documentation", "have_goods_departed",)
         )
 
     def get_goods_types(self, instance):

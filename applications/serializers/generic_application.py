@@ -19,6 +19,7 @@ from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation, Site, ExternalLocation
 from organisations.serializers import OrganisationDetailSerializer, SiteViewSerializer, ExternalLocationSerializer
+from parties.serializers import PartySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import (
@@ -26,7 +27,6 @@ from static.statuses.libraries.get_case_status import (
     get_case_status_by_status,
 )
 from static.statuses.models import CaseStatus
-from parties.serializers import EndUserSerializer
 from users.libraries.notifications import (
     get_exporter_user_notification_total_count,
     get_exporter_user_notification_individual_count,
@@ -49,6 +49,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     case = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
     licence_duration = serializers.IntegerField(allow_null=True)
+    is_major_editable = serializers.SerializerMethodField(required=False)
 
     class Meta:
         model = BaseApplication
@@ -66,6 +67,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "exporter_user_notification_count",
             "licence_duration",
             "reference_code",
+            "is_major_editable",
         )
 
     def __init__(self, *args, **kwargs):
@@ -108,6 +110,9 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         """
         return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
 
+    def get_is_major_editable(self, instance):
+        return instance.is_major_editable()
+
 
 class GenericApplicationViewSerializer(GenericApplicationListSerializer):
     goods_locations = serializers.SerializerMethodField()
@@ -137,8 +142,8 @@ class GenericApplicationViewSerializer(GenericApplicationListSerializer):
         return {}
 
     def get_destinations(self, application):
-        if application.end_user:
-            serializer = EndUserSerializer(application.end_user)
+        if getattr(application, "end_user", None):
+            serializer = PartySerializer(application.end_user.party)
             return {"type": "end_user", "data": serializer.data}
         else:
             return {"type": "end_user", "data": ""}
