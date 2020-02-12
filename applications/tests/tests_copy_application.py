@@ -7,6 +7,8 @@ from applications.models import (
     OpenApplication,
     HmrcQuery,
     GoodOnApplication,
+    CountryOnApplication,
+    SiteOnApplication,
 )
 from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
@@ -271,7 +273,44 @@ class CopyTests(DataTestClient):
 
     def country_on_application_test(self):
         self.assertIsNotNone(self.copied_application.application_countries)
+        new_countries = list(
+            CountryOnApplication.objects.filter(application=self.copied_application).values("country").all()
+        )
+        for country in (
+            CountryOnApplication.objects.filter(application=self.original_application).values("country").all()
+        ):
+            self.assertIn(country, new_countries)
+
+    def site_on_application_test(self):
+        self.assertIsNotNone(self.copied_application.application_sites)
+        new_sites = list(SiteOnApplication.objects.filter(application=self.copied_application).values("country").all())
+        for site in SiteOnApplication.objects.filter(application=self.original_application).values("country").all():
+            self.assertIn(site, new_sites)
 
     def goodstype_test(self):
-        goodstype_objects = GoodsType.objects.filter(application_id=self.copied_application.id)
-        self.assertIsNotNone(goodstype_objects)
+        new_goodstype_objects = GoodsType.objects.filter(application_id=self.copied_application.id)
+        self.assertIsNotNone(new_goodstype_objects)
+
+        for goodstype in new_goodstype_objects:
+            # we seed multiple goodstype with the same data, so testing that there are the same amount of
+            #  goodstype on both old and new application based on the current goodstype data.
+            old_goodsType = len(
+                GoodsType.objects.filter(
+                    description=goodstype.description,
+                    is_good_controlled=goodstype.is_good_controlled,
+                    control_code=goodstype.control_code,
+                    is_good_incorporated=goodstype.is_good_incorporated,
+                    application=self.original_application,
+                ).all()
+            )
+            new_goodsType = len(
+                GoodsType.objects.filter(
+                    description=goodstype.description,
+                    is_good_controlled=goodstype.is_good_controlled,
+                    control_code=goodstype.control_code,
+                    is_good_incorporated=goodstype.is_good_incorporated,
+                    application=self.copied_application,
+                ).all()
+            )
+
+            self.assertEqual(old_goodsType, new_goodsType)
