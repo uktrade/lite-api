@@ -27,23 +27,23 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
         # Return a formatted key, value format of GoodsCategories
         # Order according to the choices in GoodsCategory
         return_value = [{"key": x, "value": GoodsCategory.get_text(x)} for x in instance.goods_categories]
-        return sorted(return_value, key=lambda i: [x[0] for x in GoodsCategory.choices].index(i['key']))
+        return sorted(return_value, key=lambda i: [x[0] for x in GoodsCategory.choices].index(i["key"]))
 
     class Meta:
         model = StandardApplication
         fields = (
-                GenericApplicationViewSerializer.Meta.fields
-                + PartiesSerializerMixin.Meta.fields
-                + (
-                    "goods",
-                    "have_you_been_informed",
-                    "reference_number_on_information_form",
-                    "goods_categories",
-                    "activity",
-                    "usage",
-                    "destinations",
-                    "additional_documents",
-                )
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + (
+                "goods",
+                "have_you_been_informed",
+                "reference_number_on_information_form",
+                "goods_categories",
+                "activity",
+                "usage",
+                "destinations",
+                "additional_documents",
+            )
         )
 
 
