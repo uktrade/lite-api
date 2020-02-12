@@ -387,6 +387,9 @@ class ApplicationDurationView(APIView):
 class ApplicationCopy(APIView):
     @transaction.atomic
     def post(self, request, pk):
+        """
+        copy an application
+        """
         self.old_application_id = pk
         old_application = get_application(pk)
 
@@ -431,13 +434,18 @@ class ApplicationCopy(APIView):
         return JsonResponse(data={"data": self.new_application.id}, status=status.HTTP_201_CREATED)
 
     def strip_id_for_application_copy(self):
-        # the current object id and pk need removed, and the pointers otherwise save() will determine the object exists
+        """
+        The current object id and pk need removed, and the pointers otherwise save() will determine the object exists
+        """
         self.new_application.pk = None
         self.new_application.id = None
         self.new_application.case_ptr = None
         self.new_application.base_application_ptr = None
 
     def remove_data_from_application_copy(self):
+        """
+        Removes data of fields that are stored on the case model, and we wish not to copy.
+        """
         set_none = [
             "case_officer",
             "reference_code",
@@ -448,6 +456,10 @@ class ApplicationCopy(APIView):
             setattr(self.new_application, attribute, None)
 
     def update_parties_with_copies(self):
+        """
+        Generates a copy of each party, and recreates any old application Party relations using the new copied party.
+        Deleted parties are not copied over.
+        """
         party_on_old_application = PartyOnApplication.objects.filter(
             application_id=self.old_application_id, deleted_at__isnull=True
         )
