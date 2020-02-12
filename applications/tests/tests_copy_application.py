@@ -9,7 +9,7 @@ from applications.models import (
     GoodOnApplication,
 )
 from goodstype.models import GoodsType
-from parties.models import Party
+from parties.models import Party, PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -202,12 +202,14 @@ class CopyTests(DataTestClient):
         self.assertEqual(self.copied_application.copy_of.id, self.original_application.id)
         self.assertEqual(self.copied_application.status, get_case_status_by_status(CaseStatusEnum.DRAFT))
         self.assertGreater(self.copied_application.created_at, self.original_application.created_at)
+        self.assertGreater(self.copied_application.updated_at, self.original_application.updated_at)
 
     def good_on_application_test(self):
         new_goods_on_app = self.copied_application.goods.all()
         original_goods_on_app = self.original_application.goods.all()
         for good_on_app in new_goods_on_app:
             self.assertNotIn(good_on_app, original_goods_on_app)
+
             original_good_on_app = GoodOnApplication.objects.get(
                 application_id=self.original_application.id, good_id=good_on_app.good.id
             )
@@ -218,39 +220,24 @@ class CopyTests(DataTestClient):
             self.assertEqual(good_on_app.unit, original_good_on_app.unit)
             self.assertGreater(good_on_app.created_at, original_good_on_app.created_at)
 
+    def party_details_test(self, new_party, original_party):
+        self.assertNotEqual(new_party.id, original_party.id)
+        self.assertGreater(new_party.created_at, original_party.created_at)
+        self.assertGreater(new_party.updated_at, original_party.updated_at)
+        self.assertEqual(new_party.name, original_party.name)
+        self.assertEqual(new_party.address, original_party.address)
+        self.assertEqual(new_party.country, original_party.country)
+        self.assertEqual(new_party.type, original_party.type)
+        self.assertEqual(new_party.sub_type, original_party.sub_type)
+        self.assertEqual(list(PartyDocument.objects.filter(party=new_party).all()), [])
+
     def end_user_test(self):
         self.assertIsNotNone(self.copied_application.end_user)
-        self.assertNotEqual(self.copied_application.end_user.id, self.original_application.end_user.id)
-        self.assertGreater(self.copied_application.end_user.created_at, self.original_application.end_user.created_at)
-        self.assertEqual(self.copied_application.end_user.party.name, self.original_application.end_user.party.name)
-        self.assertEqual(
-            self.copied_application.end_user.party.address, self.original_application.end_user.party.address
-        )
-        self.assertEqual(
-            self.copied_application.end_user.party.country, self.original_application.end_user.party.country
-        )
-        self.assertEqual(self.copied_application.end_user.party.type, self.original_application.end_user.party.type)
-        self.assertEqual(
-            self.copied_application.end_user.party.sub_type, self.original_application.end_user.party.sub_type
-        )
+        self.party_details_test(self.copied_application.end_user.party, self.original_application.end_user.party)
 
     def consignee_test(self):
         self.assertIsNotNone(self.copied_application.consignee)
-        self.assertNotEqual(self.copied_application.consignee.id, self.original_application.consignee.id)
-        self.assertGreater(
-            self.copied_application.consignee.created_at, self.original_application.consignee.party.created_at
-        )
-        self.assertEqual(self.copied_application.consignee.party.name, self.original_application.consignee.party.name)
-        self.assertEqual(
-            self.copied_application.consignee.party.address, self.original_application.consignee.party.address
-        )
-        self.assertEqual(
-            self.copied_application.consignee.party.country, self.original_application.consignee.party.country
-        )
-        self.assertEqual(self.copied_application.consignee.party.type, self.original_application.consignee.party.type)
-        self.assertEqual(
-            self.copied_application.consignee.party.sub_type, self.original_application.consignee.party.sub_type
-        )
+        self.party_details_test(self.copied_application.consignee.party, self.original_application.consignee.party)
 
     def ultimate_end_user_test(self):
         self.assertIsNotNone(self.copied_application.ultimate_end_users)
@@ -260,13 +247,7 @@ class CopyTests(DataTestClient):
             self.assertNotIn(ueu, original_ultimate_end_users)
             original_ueu = Party.objects.get(id=ueu.copy_of_id, application_id=self.original_application.id)
 
-            self.assertNotEqual(ueu.id, original_ueu.id)
-            self.assertGreater(ueu.created_at, original_ueu.created_at)
-            self.assertEqual(ueu.name, original_ueu.name)
-            self.assertEqual(ueu.address, original_ueu.address)
-            self.assertEqual(ueu.country, original_ueu.country)
-            self.assertEqual(ueu.type, original_ueu.type)
-            self.assertEqual(ueu.sub_type, original_ueu.sub_type)
+            self.party_details_test(ueu, original_ueu)
 
     def third_party_test(self):
         self.assertIsNotNone(self.copied_application.third_parties)
@@ -278,13 +259,7 @@ class CopyTests(DataTestClient):
                 id=third_party.copy_of_id, application_id=self.original_application.id
             )
 
-            self.assertNotEqual(third_party.id, original_third_party.id)
-            self.assertGreater(third_party.created_at, original_third_party.created_at)
-            self.assertEqual(third_party.name, original_third_party.name)
-            self.assertEqual(third_party.address, original_third_party.address)
-            self.assertEqual(third_party.country, original_third_party.country)
-            self.assertEqual(third_party.type, original_third_party.type)
-            self.assertEqual(third_party.sub_type, original_third_party.sub_type)
+            self.party_details_test(third_party, original_third_party)
 
     def case_data_test(self):
         self.assertEqual(list(self.copied_application.case_ecju_query.all()), [])

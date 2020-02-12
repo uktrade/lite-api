@@ -49,6 +49,8 @@ from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
+from parties.models import Party
+from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -418,7 +420,6 @@ class ApplicationCopy(APIView):
         self.update_parties_with_copies()
 
         # save
-        # TODO: update_at? see below
         self.new_application.created_at = now()
         self.new_application.save()
         return JsonResponse(data={"data": self.new_application.id}, status=status.HTTP_201_CREATED)
@@ -453,9 +454,9 @@ class ApplicationCopy(APIView):
             party = old_party_on_app.party
             party.id = None
             party.pk = None
-            party.created_at = now()
             if not party.copy_of:
                 party.copy_of_id = old_party_id
+            party.created_at = now()
             party.save()
 
             old_party_on_app.party = party
@@ -464,7 +465,10 @@ class ApplicationCopy(APIView):
             old_party_on_app.save()
 
     def create_many_to_many_relations_for_new_application(self):
-        # TODO: Docstring
+        """
+        recreates any many to many connections existing on the current application,
+         we wish to move to the new application.
+        """
         # This is the super set of all many to many related objects for ALL application types.
         # The loop below caters for the possibility that any of the relationships are not relevant to the current
         # application type
@@ -477,16 +481,14 @@ class ApplicationCopy(APIView):
         ]
 
         for relation in relationships:
-            # TODO: rename to show results are from old application
-            relation_objects = relation.objects.filter(application_id=self.old_application_id).all()
+            old_application_relation_results = relation.objects.filter(application_id=self.old_application_id).all()
 
-            for relation_object in relation_objects:
-                # TODO: strip method on each model rather than manually set
-                relation_object.pk = None
-                relation_object.id = None
-                relation_object.application = self.new_application
+            for result in old_application_relation_results:
+                result.pk = None
+                result.id = None
+                result.application = self.new_application
                 # Some models listed above are not inheriting timestampable models,
                 # as such we need to ensure created_at exists
-                if getattr(relation_object, "created_at", False):
-                    relation_object.created_at = now()
-                relation_object.save()
+                if getattr(result, "created_at", False):
+                    result.created_at = now()
+                result.save()
