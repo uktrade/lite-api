@@ -303,7 +303,7 @@ class CaseFinalAdvice(APIView):
         Concatenates all advice for a case and returns it or just returns if team advice already exists
         """
         if len(self.final_advice) == 0:
-            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
 
@@ -322,14 +322,14 @@ class CaseFinalAdvice(APIView):
         """
         Creates advice for a case
         """
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         return post_advice(request, self.case, self.serializer_object, team=True)
 
     def delete(self, request, pk):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         self.final_advice.delete()
         audit_trail_service.create(
             actor=request.user, verb=AuditType.CLEARED_FINAL_ADVICE, target=self.case,
@@ -426,14 +426,14 @@ class GoodsCountriesDecisions(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         goods_countries = GoodCountryDecision.objects.filter(case=pk)
         serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
 
         return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         data = JSONParser().parse(request).get("good_countries")
 
         serializer = GoodCountryDecisionSerializer(data=data, many=True)

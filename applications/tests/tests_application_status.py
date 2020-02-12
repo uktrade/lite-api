@@ -185,7 +185,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.json(), {"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]})
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
-    def test_status_cannot_be_set_to_finalised(self):
+    def test_exporter_cannot_set_status_to_finalised(self):
         data = {"status": CaseStatusEnum.FINALISED}
         response = self.client.put(self.url, data=data, **self.exporter_headers)
 

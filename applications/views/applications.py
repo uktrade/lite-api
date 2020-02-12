@@ -17,8 +17,8 @@ from applications.helpers import (
 )
 from applications.libraries.application_helpers import (
     optional_str_to_bool,
-    can_status_can_be_set_by_exporter_user,
-    can_status_can_be_set_by_gov_user,
+    can_status_be_set_by_exporter_user,
+    can_status_be_set_by_gov_user,
 )
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
@@ -242,6 +242,7 @@ class ApplicationManageStatus(APIView):
     @transaction.atomic
     def put(self, request, pk):
         application = get_application(pk)
+        is_licence_application = application.application_type != "exhibition_clearance"
 
         data = deepcopy(request.data)
 
@@ -254,13 +255,15 @@ class ApplicationManageStatus(APIView):
             if request.user.organisation.id != application.organisation.id:
                 raise PermissionDenied()
 
-            if not can_status_can_be_set_by_exporter_user(application.status.status, data["status"]):
+            if not can_status_be_set_by_exporter_user(application.status.status, data["status"]):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
-            if not can_status_can_be_set_by_gov_user(request.user, application.status.status, data["status"]):
+            if not can_status_be_set_by_gov_user(
+                request.user, application.status.status, data["status"], is_licence_application
+            ):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.GOV_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -304,7 +307,10 @@ class ApplicationFinaliseView(APIView):
         Finalise an application
         """
         application = get_application(pk)
-        if not can_status_can_be_set_by_gov_user(request.user, application.status.status, CaseStatusEnum.FINALISED):
+        is_licence_application = application.application_type != ApplicationType.EXHIBITION_CLEARANCE
+        if not can_status_be_set_by_gov_user(
+            request.user, application.status.status, CaseStatusEnum.FINALISED, is_licence_application
+        ):
             return JsonResponse(
                 data={"errors": [strings.Applications.Finalise.Error.SET_FINALISED]}, status=status.HTTP_400_BAD_REQUEST
             )
