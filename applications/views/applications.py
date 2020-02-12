@@ -482,9 +482,9 @@ class ApplicationCopy(APIView):
             old_party_on_app.created_at = now()
             old_party_on_app.save()
 
-    def create_many_to_many_relations_for_new_application(self):
+    def create_foreign_relations_for_new_application(self):
         """
-        recreates any many to many connections existing on the current application,
+        recreates any connections from foreign tables existing on the current application,
          we wish to move to the new application.
         """
         # This is the super set of all many to many related objects for ALL application types.
@@ -510,6 +510,7 @@ class ApplicationCopy(APIView):
                     result.created_at = now()
                 result.save()
 
+        # GoodsType has more logic than above, such as listing the countries on the goodstype, and flags
         for good in GoodsType.objects.filter(application_id=self.old_application_id).all():
             old_good_countries = list(good.countries.all())
             old_good_flags = list(good.countries.all())
