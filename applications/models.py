@@ -145,7 +145,7 @@ class StandardApplication(BaseApplication):
         choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50,
     )
     goods_categories = SeparatedValuesField(
-        max_length=150, token=",", choices=GoodsCategory.choices, blank=True, null=True, default=None
+        max_length=150, choices=GoodsCategory.choices, blank=True, null=True, default=None
     )
 
 
