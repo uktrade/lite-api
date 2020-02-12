@@ -218,7 +218,7 @@ class ApplicationSubmission(APIView):
         update_submitted_application_good_statuses_and_flags(application)
 
         # Serialize for the response message
-        serializer = get_application_update_serializer(application)
+        serializer = get_application_view_serializer(application)
         serializer = serializer(application)
 
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
