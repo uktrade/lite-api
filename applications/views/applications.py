@@ -422,8 +422,8 @@ class ApplicationCopy(APIView):
         # need to save here to create the pk/id for relationships
         self.new_application.save()
 
-        # create new many to many connection using data from old application
-        self.create_many_to_many_relations_for_new_application()
+        # create new foreign key connection using data from old application (this is for tables pointing to the case)
+        self.create_foreign_relations_for_new_application()
 
         # get all parties connected to the application and produce a copy (and replace reference for each one)
         self.update_parties_with_copies()
