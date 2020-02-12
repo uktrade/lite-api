@@ -64,7 +64,7 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
             raise exceptions.PermissionDenied("User does not belong to an HMRC organisation")
 
         self.initial_data["hmrc_organisation"] = self.context.id
-        self.initial_data["case_type"] = CaseTypeEnum.HMRC.id
+        self.initial_data["case_type"] = CaseTypeEnum.HMRC.id  # TODO: case types FIND OUT WHAT CASE TYPE IT REALLY IS
         self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:

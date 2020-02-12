@@ -8,7 +8,7 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 from parties.serializers import (
     EndUserWithFlagsSerializer,
@@ -45,7 +45,7 @@ class ExhibitionClearanceViewSerializer(GenericApplicationViewSerializer):
 class ExhibitionClearanceCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE
+        self.initial_data["case_type"] = CaseTypeEnum.EXHC.id  # TODO: case types FIND OUT WHAT CASE TYPE IT REALLY IS
 
     class Meta:
         model = ExhibitionClearanceApplication

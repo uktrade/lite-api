@@ -57,7 +57,7 @@ def generate_reference_code(case):
         reference_code += GOODS_QUERY_PREFIX + SLASH
     elif case.case_type.id == CaseTypeEnum.EUA.id:
         reference_code += END_USER_ADVISORY_QUERY_PREFIX + SLASH
-    elif case.case_type.id == CaseTypeEnum.HMRC:
+    elif case.case_type.id == CaseTypeEnum.HMRC.id:
         reference_code += HMRC_PREFIX + SLASH
     elif case.case_type.id == CaseTypeEnum.EXHC.id:
         reference_code += EXHIBITION_CLEARANCE_PREFIX + SLASH
@@ -66,8 +66,7 @@ def generate_reference_code(case):
         reference_code += APPLICATION_PREFIX
 
         # Application type
-        if hasattr(case, "application_type"):
-            reference_code += case.case_type.sub_type[0]
+        reference_code += case.case_type.sub_type[0]
 
         # General or individual
         reference_code += INDIVIDUAL

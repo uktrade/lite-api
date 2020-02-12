@@ -42,17 +42,17 @@ def get_application_view_serializer(application: BaseApplication):
         )
 
 
-def get_application_create_serializer(application_type):
-    if application_type == CaseTypeSubTypeEnum.STANDARD:
+def get_application_create_serializer(application_case_type_sub_type):
+    if application_case_type_sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationCreateSerializer
-    elif application_type == CaseTypeSubTypeEnum.OPEN:
+    elif application_case_type_sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationCreateSerializer
-    elif application_type == CaseTypeSubTypeEnum.HMRC:
+    elif application_case_type_sub_type == CaseTypeSubTypeEnum.HMRC:
         return HmrcQueryCreateSerializer
-    elif application_type == CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE:
+    elif application_case_type_sub_type == CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE:
         return ExhibitionClearanceCreateSerializer
     else:
-        raise BadRequestError({"application_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
+        raise BadRequestError({"case_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
 
 
 def get_application_update_serializer(application: BaseApplication):

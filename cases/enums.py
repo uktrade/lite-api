@@ -149,19 +149,21 @@ class CaseTypeEnum:
 
     @classmethod
     def case_type_list_to_representation(cls):
-        return [{"key": case_type.reference, "value": case_type.id} for case_type in cls.case_type_list]
+        return [{"key": case_type.reference, "value": case_type.reference.upper()} for case_type in cls.case_type_list]
 
     @classmethod
-    def reference_to_id(cls, case_tye_reference):
+    def reference_to_id(cls, case_type_reference):
+        if not case_type_reference:
+            return None
         for case_type in cls.case_type_list:
-            if case_type.reference == case_tye_reference:
+            if case_type.reference == case_type_reference:
                 return case_type.id
 
     @classmethod
-    def references_to_ids(cls, case_tye_references) -> list:
-        if not case_tye_references:
+    def references_to_ids(cls, case_type_references) -> list:
+        if not case_type_references:
             return []
-        return [cls.reference_to_id(case_tye_reference) for case_tye_reference in case_tye_references]
+        return [cls.reference_to_id(case_type_reference) for case_type_reference in case_type_references]
 
 
 class AdviceType:

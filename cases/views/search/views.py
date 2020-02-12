@@ -1,5 +1,6 @@
 from rest_framework import generics
 
+from cases.enums import CaseTypeEnum
 from cases.models import Case
 from cases.serializers import TinyCaseSerializer
 from cases.views.search import service
@@ -25,7 +26,7 @@ class CasesSearchView(generics.ListAPIView):
                 queue_id=queue_id,
                 user=request.user,
                 status=request.GET.get("status"),
-                case_type=request.GET.get("case_type"),
+                case_type=CaseTypeEnum.reference_to_id(request.GET.get("case_type")),
                 assigned_user=request.GET.get("assigned_user"),
                 case_officer=request.GET.get("case_officer"),
                 sort=request.GET.get("sort"),

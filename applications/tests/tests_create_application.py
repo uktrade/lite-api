@@ -13,13 +13,12 @@ from applications.models import (
     BaseApplication,
     ExhibitionClearanceApplication,
 )
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
 
 class DraftTests(DataTestClient):
-
     url = reverse("applications:applications")
 
     def test_create_draft_standard_application_successful(self):
@@ -47,7 +46,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "case_type": CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE,
+            "case_type": CaseTypeEnum.EXHC.reference,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -75,7 +74,7 @@ class DraftTests(DataTestClient):
         Ensure we can create a new HMRC query draft object
         """
         data = {
-            "application_type": CaseTypeSubTypeEnum.HMRC,
+            "case_type": CaseTypeEnum.HMRC.reference,
             "organisation": self.organisation.id,
         }
 
@@ -89,7 +88,7 @@ class DraftTests(DataTestClient):
         Ensure that a normal exporter cannot create an HMRC query
         """
         data = {
-            "application_type": "hmrc_query",
+            "case_type": CaseTypeEnum.HMRC.reference,
             "organisation": self.organisation.id,
         }
 
@@ -101,10 +100,10 @@ class DraftTests(DataTestClient):
     @parameterized.expand(
         [
             [{}],
-            [{"application_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY,}],
+            [{"case_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY}],
             [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY}],
             [{"name": "Test", "case_type": CaseTypeSubTypeEnum.STANDARD}],
-            [{"application_type": CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE}],
+            [{"case_type": CaseTypeSubTypeEnum.EXHIBITION_CLEARANCE}],
             [{"name": "Test"}],
         ]
     )
@@ -130,4 +129,4 @@ class DraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["application_type"][0], strings.Applications.SELECT_A_LICENCE_TYPE)
+        self.assertEqual(response.json()["errors"]["case_type"][0], strings.Applications.SELECT_A_LICENCE_TYPE)

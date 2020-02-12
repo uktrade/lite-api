@@ -84,10 +84,9 @@ class ApplicationList(ListCreateAPIView):
     def post(self, request, **kwargs):
         """
         Create a new application
-        Types include StandardApplication, OpenApplication and HmrcQuery
         """
         data = request.data
-        serializer = get_application_create_serializer(data.get("application_type"))
+        serializer = get_application_create_serializer(data.get("case_type"))
         serializer = serializer(data=data, context=request.user.organisation)
 
         if not serializer.is_valid():

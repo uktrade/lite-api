@@ -8,7 +8,7 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeTypeEnum
+from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 from parties.serializers import (
     EndUserWithFlagsSerializer,
@@ -47,19 +47,19 @@ class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeTypeEnum.APPLICATION
+        self.initial_data["case_type"] = CaseTypeEnum.SIEL.id  # TODO: case types FIND OUT WHAT CASE TYPE IT REALLY IS
 
     class Meta:
         model = StandardApplication
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
             "organisation",
-            "type",
+            "case_type",
             "status",
         )
 

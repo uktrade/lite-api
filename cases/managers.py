@@ -129,7 +129,6 @@ class CaseManager(models.Manager):
         if status:
             case_qs = case_qs.has_status(status=status)
 
-        #  TODO: case types
         if case_type:
             case_qs = case_qs.is_type(case_type=case_type)
 
