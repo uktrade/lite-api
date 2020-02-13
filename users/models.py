@@ -16,7 +16,7 @@ from users.managers import InternalManager, ExporterManager
 
 
 class Permission(models.Model):
-    id = models.CharField(primary_key=True, editable=False, max_length=30)
+    id = models.CharField(primary_key=True, editable=False, max_length=35)
     name = models.CharField(default="permission - FIX", max_length=80)
     # For convenience using UserType as a proxy for Permission Type
     type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)

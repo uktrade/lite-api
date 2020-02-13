@@ -9,8 +9,10 @@ def get_default_duration(application):
 
     Rules defined in: https://uktrade.atlassian.net/browse/LT-1586
     """
+    if application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
+        return DefaultDuration.TEMPORARY.value
 
-    if application.export_type == ApplicationExportType.TEMPORARY:
+    elif application.export_type == ApplicationExportType.TEMPORARY:
         return DefaultDuration.TEMPORARY.value
 
     elif (

@@ -16,7 +16,7 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_create_new_role_with_permission_to_make_final_decisions(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        data = {"name": "some role", "permissions": [constants.GovPermissions.MANAGE_FINAL_ADVICE.name]}
+        data = {"name": "some role", "permissions": [constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name]}
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
@@ -37,7 +37,7 @@ class RolesAndPermissionsTests(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
         role = Role(name="some")
-        role.permissions.set([constants.GovPermissions.MANAGE_FINAL_ADVICE.name])
+        role.permissions.set([constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         role.save()
         initial_roles_count = Role.objects.filter(type=UserType.INTERNAL).count()
 
@@ -53,13 +53,13 @@ class RolesAndPermissionsTests(DataTestClient):
         role_id = Roles.INTERNAL_DEFAULT_ROLE_ID
         url = reverse("gov_users:role", kwargs={"pk": role_id})
 
-        data = {"permissions": [constants.GovPermissions.MANAGE_FINAL_ADVICE.name]}
+        data = {"permissions": [constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name]}
 
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            constants.GovPermissions.MANAGE_FINAL_ADVICE.name
+            constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name
             in Role.objects.get(id=role_id).permissions.values_list("id", flat=True)
         )
 
@@ -92,7 +92,7 @@ class RolesAndPermissionsTests(DataTestClient):
         role_id = Roles.INTERNAL_DEFAULT_ROLE_ID
         url = reverse("gov_users:role", kwargs={"pk": role_id})
 
-        data = {"permissions": [constants.GovPermissions.MANAGE_FINAL_ADVICE.name]}
+        data = {"permissions": [constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name]}
 
         response = self.client.put(url, data, **self.gov_headers)
 
@@ -101,7 +101,7 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_max(self):
         permissions = [
             constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
-            constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+            constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
             constants.GovPermissions.REVIEW_GOODS.name,
         ]
         user_role = Role(name="new role")
@@ -119,7 +119,7 @@ class RolesAndPermissionsTests(DataTestClient):
         second_role.permissions.set(
             [
                 constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
-                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
                 constants.GovPermissions.REVIEW_GOODS.name,
             ]
         )
@@ -135,7 +135,7 @@ class RolesAndPermissionsTests(DataTestClient):
             str(Role.objects.get(name=constants.GovPermissions.MANAGE_TEAM_ADVICE.name).id), str(response_data)
         )
         self.assertIn(
-            str(Role.objects.get(name=constants.GovPermissions.MANAGE_FINAL_ADVICE.name).id), str(response_data)
+            str(Role.objects.get(name=constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name).id), str(response_data)
         )
         self.assertIn(
             str(Role.objects.get(name=constants.GovPermissions.REVIEW_GOODS.name).id), str(response_data),
@@ -144,7 +144,7 @@ class RolesAndPermissionsTests(DataTestClient):
     def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_mid(self):
         permissions = [
             constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
-            constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+            constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
         ]
         user_role = Role(name="new role")
         user_role.permissions.set(permissions)
@@ -161,7 +161,7 @@ class RolesAndPermissionsTests(DataTestClient):
         second_role.permissions.set(
             [
                 constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
-                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
                 constants.GovPermissions.REVIEW_GOODS.name,
             ]
         )
@@ -176,7 +176,7 @@ class RolesAndPermissionsTests(DataTestClient):
             str(Role.objects.get(name=constants.GovPermissions.MANAGE_TEAM_ADVICE.name).id), str(response_data)
         )
         self.assertIn(
-            str(Role.objects.get(name=constants.GovPermissions.MANAGE_FINAL_ADVICE.name).id), str(response_data)
+            str(Role.objects.get(name=constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name).id), str(response_data)
         )
 
     def test_only_roles_that_a_user_sees_are_roles_with_a_subset_of_the_permissions_of_the_users_own_role_min(self):
@@ -196,7 +196,7 @@ class RolesAndPermissionsTests(DataTestClient):
         second_role.permissions.set(
             [
                 constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
-                constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
                 constants.GovPermissions.REVIEW_GOODS.name,
             ]
         )
@@ -216,11 +216,16 @@ class RolesAndPermissionsTests(DataTestClient):
             [
                 [
                     constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
-                    constants.GovPermissions.MANAGE_FINAL_ADVICE.name,
+                    constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
                     constants.GovPermissions.REVIEW_GOODS.name,
                 ]
             ],
-            [[constants.GovPermissions.MANAGE_TEAM_ADVICE.name, constants.GovPermissions.MANAGE_FINAL_ADVICE.name]],
+            [
+                [
+                    constants.GovPermissions.MANAGE_TEAM_ADVICE.name,
+                    constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,
+                ]
+            ],
             [[constants.GovPermissions.MANAGE_TEAM_ADVICE.name]],
         ]
     )
