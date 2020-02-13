@@ -262,8 +262,9 @@ class GenericApplicationCopySerializer(serializers.ModelSerializer):
                 choices=ApplicationExportLicenceOfficialType.choices,
                 error_messages={"required": strings.Goods.INFORMED},
             )
-            self.fields["reference_number_on_information_form"] = serializers.CharField(
-                required=True, allow_blank=True, max_length=255
-            )
+            if kwargs.get("data").get("have_you_been_informed") == ApplicationExportLicenceOfficialType.YES:
+                self.fields["reference_number_on_information_form"] = serializers.CharField(
+                    required=True, allow_blank=True, max_length=255
+                )
 
         super().__init__(*args, **kwargs)
