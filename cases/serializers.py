@@ -5,7 +5,14 @@ from rest_framework.exceptions import ValidationError
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from audit_trail.models import Audit
-from cases.enums import CaseTypeTypeEnum, AdviceType, CaseDocumentState
+from cases.enums import (
+    CaseTypeTypeEnum,
+    AdviceType,
+    CaseDocumentState,
+    CaseTypeSubTypeEnum,
+    CaseTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
@@ -44,6 +51,10 @@ from users.serializers import (
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
+    reference = KeyValueChoiceField(choices=CaseTypeReferenceEnum.choices)
+    type = KeyValueChoiceField(choices=CaseTypeTypeEnum.choices)
+    sub_type = KeyValueChoiceField(choices=CaseTypeSubTypeEnum.choices)
+
     class Meta:
         model = CaseType
         fields = (

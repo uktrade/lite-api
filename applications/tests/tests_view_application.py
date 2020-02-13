@@ -29,7 +29,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], standard_application.name)
         self.assertEqual(
-            response_data[0]["case_type"]["reference"], standard_application.case_type.reference,
+            response_data[0]["case_type"]["reference"]["key"], standard_application.case_type.reference,
         )
         self.assertEqual(response_data[0]["export_type"]["key"], standard_application.export_type)
         self.assertIsNotNone(response_data[0]["created_at"])
@@ -88,7 +88,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], hmrc_query.name)
-        self.assertEqual(response_data[0]["case_type"]["reference"], hmrc_query.case_type.reference)
+        self.assertEqual(response_data[0]["case_type"]["reference"]["key"], hmrc_query.case_type.reference)
         self.assertEqual(response_data[0]["organisation"]["name"], hmrc_query.organisation.name)
         self.assertIsNone(response_data[0]["export_type"])
         self.assertIsNotNone(response_data[0]["created_at"])
@@ -109,7 +109,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(retrieved_application["id"], str(standard_application.id))
         self.assertEqual(retrieved_application["name"], standard_application.name)
         self.assertEqual(
-            retrieved_application["case_type"]["reference"], standard_application.case_type.reference,
+            retrieved_application["case_type"]["reference"]["key"], standard_application.case_type.reference,
         )
         self.assertEqual(
             retrieved_application["export_type"]["key"], standard_application.export_type,
@@ -142,7 +142,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], application.name)
         self.assertEqual(
-            response_data[0]["case_type"]["reference"], application.case_type.reference,
+            response_data[0]["case_type"]["reference"]["key"], application.case_type.reference,
         )
         self.assertIsNotNone(response_data[0]["created_at"])
         self.assertIsNotNone(response_data[0]["updated_at"])
@@ -159,7 +159,7 @@ class DraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], application.name)
-        self.assertEqual(retrieved_application["case_type"]["reference"], application.case_type.reference)
+        self.assertEqual(retrieved_application["case_type"]["reference"]["key"], application.case_type.reference)
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["updated_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
@@ -187,7 +187,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], open_application.name)
         self.assertEqual(
-            retrieved_application["case_type"]["reference"], open_application.case_type.reference,
+            retrieved_application["case_type"]["reference"]["key"], open_application.case_type.reference,
         )
         self.assertEqual(retrieved_application["export_type"]["key"], open_application.export_type)
         self.assertIsNotNone(retrieved_application["created_at"])
@@ -215,7 +215,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], hmrc_query.name)
         self.assertEqual(
-            retrieved_application["case_type"]["reference"], hmrc_query.case_type.reference,
+            retrieved_application["case_type"]["reference"]["key"], hmrc_query.case_type.reference,
         )
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["updated_at"])

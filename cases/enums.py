@@ -16,18 +16,18 @@ class CaseTypeReferenceEnum:
     EUA = "eua"
 
     choices = [
-        (OIEL, "OIEL"),
-        (OGEL, "OGEL"),
-        (OICL, "OICL"),
-        (SIEL, "SIEL"),
-        (SICL, "SICL"),
-        (SITL, "SITL"),
-        (F680, "F680"),
-        (EXHC, "EXHC"),
-        (GIFT, "GIFT"),
-        (CRE, "CRE"),
-        (GQY, "GQY"),
-        (EUA, "EUA"),
+        (OIEL, "Open Individual Export Licence"),
+        (OGEL, "Open General Export Licence"),
+        (OICL, "Open Individual Trade Control Licence"),
+        (SIEL, "Standard Individual Export Licence"),
+        (SICL, "Standard Individual Trade Control Licence"),
+        (SITL, "Standard Individual Transhipment Licence"),
+        (F680, "MOD F680 Clearance"),
+        (EXHC, "MOD Exhibition Clearance"),
+        (GIFT, "MOD Gifting Clearance"),
+        (CRE, "HMRC Query"),
+        (GQY, "Goods Query"),
+        (EUA, "End User Advisory Query"),
     ]
 
     @classmethod
@@ -54,17 +54,20 @@ class CaseTypeSubTypeEnum:
     OPEN = "open"
     HMRC = "hmrc"
     EUA = "end_user_advisory"
+    GOODS = "goods"
     EXHIBITION = "exhibition_clearance"
     GIFTING = "gifting_clearance"
     F680 = "f680_clearance"
-    GOODS = "goods"
 
     choices = [
-        (STANDARD, "Standard"),
-        (OPEN, "Open"),
-        (HMRC, "HMRC"),
-        (EXHIBITION, "Exhibition clearance"),
-        (EUA, "End user advisory"),
+        (STANDARD, "Standard Licence"),
+        (OPEN, "Open Licence"),
+        (HMRC, "HMRC Query"),
+        (EUA, "End User Advisory Query"),
+        (GOODS, "Goods Query"),
+        (EXHIBITION, "MOD Exhibition Clearance"),
+        (GIFTING, "MOD Gifting Clearance"),
+        (F680, "MOD F680 Clearance"),
     ]
 
     @classmethod
