@@ -32,7 +32,9 @@ class CaseFinalDecisionTests(DataTestClient):
         finalise application.
         """
         role = Role(name="some")
-        role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name])
+        role.permissions.set(
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
+        )
         role.save()
         self.gov_user.role = role
         self.gov_user.save()

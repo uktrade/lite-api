@@ -3,13 +3,13 @@ from uuid import UUID
 
 
 class GovPermissions(Enum):
-    MANAGE_FINAL_ADVICE = "Manage final advice"
+    MANAGE_LICENCE_FINAL_ADVICE = "Manage licence final advice"
+    MANAGE_CLEARANCE_FINAL_ADVICE = "Manage clearance final advice"
     MANAGE_TEAM_ADVICE = "Manage team advice"
     MANAGE_TEAM_CONFIRM_OWN_ADVICE = "Confirm own advice"
     REVIEW_GOODS = "Review goods"
     RESPOND_PV_GRADING = "Respond to grading"
     ADMINISTER_ROLES = "Administer roles"
-    CONFIRM_OWN_ADVICE = "Confirm own advice"
     CONFIGURE_TEMPLATES = "Create and edit templates"
     REOPEN_CLOSED_CASES = "Can re-open closed cases"
     MANAGE_LICENCE_DURATION = "Can edit licence duration"
