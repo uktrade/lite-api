@@ -21,12 +21,9 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     goods_categories = serializers.SerializerMethodField()
 
     def get_goods_categories(self, instance):
-        if not instance.goods_categories:
-            return []
-
         # Return a formatted key, value format of GoodsCategories
         # Order according to the choices in GoodsCategory
-        return_value = [{"key": x, "value": GoodsCategory.get_text(x)} for x in instance.goods_categories]
+        return_value = [{"key": x, "value": GoodsCategory.get_text(x)} for x in instance.goods_categories or []]
         return sorted(return_value, key=lambda i: [x[0] for x in GoodsCategory.choices].index(i["key"]))
 
     class Meta:
