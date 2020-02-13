@@ -12,7 +12,6 @@ from applications.enums import (
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
-from cases.enums import CaseTypeReferenceEnum
 from cases.models import CaseType
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
@@ -94,10 +93,9 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         return None
 
     def get_case_type(self, instance):
-        return {
-            "key": instance.case_type.reference,
-            "value": get_value_from_enum(CaseTypeReferenceEnum, instance.case_type.reference),
-        }
+        from cases.serializers import CaseTypeSerializer
+
+        return CaseTypeSerializer(instance.case_type).data
 
     def get_case(self, instance):
         return instance.pk
