@@ -78,7 +78,7 @@ class GoodsQueriesCreate(APIView):
             organisation=data["organisation"],
             type=CaseTypeEnum.GOODS_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            submitted_at=datetime.now(timezone.utc)
+            submitted_at=datetime.now(timezone.utc),
         )
 
         # attach flags based on what's required
