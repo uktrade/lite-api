@@ -245,6 +245,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self._case_data_test()
 
     def _reset_data_test(self):
+        self.assertNotEqual(self.copied_application.id, self.original_application.id)
         self.assertEqual(self.copied_application.copy_of.id, self.original_application.id)
         self.assertEqual(self.copied_application.status, get_case_status_by_status(CaseStatusEnum.DRAFT))
         self.assertGreater(self.copied_application.created_at, self.original_application.created_at)
@@ -264,7 +265,6 @@ class CopyApplicationSuccessTests(DataTestClient):
             self.assertEqual(good_on_app.value, new_good_on_app.value)
             self.assertEqual(good_on_app.quantity, new_good_on_app.quantity)
             self.assertEqual(good_on_app.unit, new_good_on_app.unit)
-            self.assertGreater(good_on_app.created_at, new_good_on_app.created_at)
 
         self.assertEqual(len(new_goods_on_app), len(original_goods_on_app))
 
