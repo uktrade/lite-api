@@ -50,7 +50,6 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "have_you_been_informed",
             "reference_number_on_information_form",
             "organisation",
-            "case_type",
             "status",
         )
 

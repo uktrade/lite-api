@@ -64,7 +64,6 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
             "case_type",
             "organisation",
             "hmrc_organisation",
-            "case_type",
             "status",
         )
 

@@ -64,10 +64,6 @@ class Static:
     seeded = False
 
 
-class CaseTypeEnumE(object):
-    pass
-
-
 class DataTestClient(APITestCase, URLPatternsTestCase):
     """
     Test client which creates seeds the database with system data and sets up an initial organisation and user
