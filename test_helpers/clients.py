@@ -568,7 +568,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application = self.create_standard_application(organisation, reference_name, safe_document)
 
         part_good = Good(
-            is_good_controlled=True,
+            is_good_controlled=GoodControlled.YES,
             control_code="ML17",
             organisation=self.organisation,
             description="a good",
