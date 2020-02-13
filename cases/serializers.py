@@ -10,7 +10,6 @@ from cases.enums import (
     AdviceType,
     CaseDocumentState,
     CaseTypeSubTypeEnum,
-    CaseTypeEnum,
     CaseTypeReferenceEnum,
 )
 from cases.libraries.get_destination import get_ordered_flags

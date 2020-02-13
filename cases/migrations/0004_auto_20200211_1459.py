@@ -48,6 +48,7 @@ class Migration(migrations.Migration):
                     ("hmrc", "HMRC Query"),
                     ("end_user_advisory", "End User Advisory Query"),
                     ("goods", "Goods Query"),
+                    ("exhibition_clearance", "MOD Exhibition Clearance"),
                     ("gifting_clearance", "MOD Gifting Clearance"),
                     ("f680_clearance", "MOD F680 Clearance"),
                 ],
