@@ -243,7 +243,7 @@ class ControlListClassificationsGeneratedDocumentsTests(DataTestClient):
 
     def test_get_generated_documents_success(self):
         document_name = "Abc"
-        template = self.create_letter_template("Template", case_type=CaseTypeEnum.GQY.id)
+        template = self.create_letter_template("Template", case_type=CaseTypeEnum.GOODS.id)
         self.create_generated_case_document(self.query, template, document_name=document_name)
 
         response = self.client.get(self.url, **self.exporter_headers)
@@ -358,7 +358,7 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
             pv_grading_raised_reasons="some pv reasons",
             good=self.pv_graded_and_controlled_good,
             organisation=self.organisation,
-            case_type_id=CaseTypeEnum.GQY.id,
+            case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         self.clc_and_pv_query.flags.set(

@@ -13,7 +13,7 @@ from applications.models import (
     BaseApplication,
     ExhibitionClearanceApplication,
 )
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, CaseTypeTypeEnum
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -27,7 +27,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "case_type": CaseTypeSubTypeEnum.STANDARD,
+            "case_type__sub_type": CaseTypeSubTypeEnum.STANDARD,
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
@@ -46,7 +46,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "case_type": CaseTypeEnum.EXHC.reference,
+            "case_type__sub_type": CaseTypeSubTypeEnum.EXHIBITION,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -60,7 +60,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "case_type": CaseTypeSubTypeEnum.OPEN,
+            "case_type__sub_type": CaseTypeSubTypeEnum.OPEN,
             "export_type": ApplicationExportType.TEMPORARY,
         }
 
@@ -74,7 +74,7 @@ class DraftTests(DataTestClient):
         Ensure we can create a new HMRC query draft object
         """
         data = {
-            "case_type": CaseTypeEnum.HMRC.reference,
+            "case_type__sub_type": CaseTypeSubTypeEnum.HMRC,
             "organisation": self.organisation.id,
         }
 
@@ -88,7 +88,7 @@ class DraftTests(DataTestClient):
         Ensure that a normal exporter cannot create an HMRC query
         """
         data = {
-            "case_type": CaseTypeEnum.HMRC.reference,
+            "case_type__sub_type": CaseTypeSubTypeEnum.HMRC,
             "organisation": self.organisation.id,
         }
 
@@ -100,10 +100,10 @@ class DraftTests(DataTestClient):
     @parameterized.expand(
         [
             [{}],
-            [{"case_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY}],
+            [{"case_type__sub_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY}],
             [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY}],
-            [{"name": "Test", "case_type": CaseTypeSubTypeEnum.STANDARD}],
-            [{"case_type": CaseTypeSubTypeEnum.EXHIBITION}],
+            [{"name": "Test", "case_type__sub_type": CaseTypeSubTypeEnum.STANDARD}],
+            [{"case_type__sub_type": CaseTypeSubTypeEnum.EXHIBITION}],
             [{"name": "Test"}],
         ]
     )

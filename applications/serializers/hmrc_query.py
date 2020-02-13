@@ -7,8 +7,10 @@ from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationViewSerializer
 from applications.mixins.serializers import PartiesSerializerMixin
 from cases.enums import CaseTypeEnum
+from cases.models import CaseType
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
+from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
@@ -41,6 +43,9 @@ class HmrcQueryViewSerializer(PartiesSerializerMixin, GenericApplicationViewSeri
 class HmrcQueryCreateSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     hmrc_organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    case_type = PrimaryKeyRelatedField(
+        queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -49,7 +54,7 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
             raise exceptions.PermissionDenied("User does not belong to an HMRC organisation")
 
         self.initial_data["hmrc_organisation"] = self.context.id
-        self.initial_data["case_type"] = CaseTypeEnum.HMRC.id  # TODO: case types FIND OUT WHAT CASE TYPE IT REALLY IS
+        self.initial_data["case_type"] = CaseTypeEnum.HMRC.id
         self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:

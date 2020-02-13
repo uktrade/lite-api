@@ -90,7 +90,7 @@ class FilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = f"{self.url}?case_type={CaseTypeEnum.GQY.reference}"
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -103,7 +103,7 @@ class FilterAndSortTests(DataTestClient):
         # Assert Case Type
         for case in response_data["cases"]:
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
-            self.assertEqual(case_type_reference, CaseTypeEnum.GQY.reference)
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
     def test_get_submitted_status_cases(self):
         """
@@ -113,7 +113,7 @@ class FilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = f"{self.url}?case_type={CaseTypeEnum.GQY.reference}"
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -125,7 +125,7 @@ class FilterAndSortTests(DataTestClient):
         # Assert Case Type
         for case in response_data["cases"]:
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
-            self.assertEqual(case_type_reference, CaseTypeEnum.GQY.reference)
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
     def test_get_all_cases_queue_submitted_status_and_clc_type_cases(self):
         """
@@ -137,9 +137,7 @@ class FilterAndSortTests(DataTestClient):
         # Arrange
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
-        url = (
-            f'{reverse("cases:search")}?case_type={CaseTypeEnum.GQY.reference}&status={case_status.status}&sort=status'
-        )
+        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}&sort=status'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -151,7 +149,7 @@ class FilterAndSortTests(DataTestClient):
         # Assert Case Type
         for case in response_data["cases"]:
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
-            self.assertEqual(case_type_reference, CaseTypeEnum.GQY.reference)
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
     def test_get_cases_filter_by_case_officer(self):
         """
@@ -255,7 +253,7 @@ class FilterAndSortTests(DataTestClient):
         # Arrange
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.status == case_status, self.clc_cases))
-        url = f"{self.url}?case_type={CaseTypeEnum.GQY.reference}&status={case_status.status}"
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -267,7 +265,7 @@ class FilterAndSortTests(DataTestClient):
         # Assert Case Type
         for case in response_data["cases"]:
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
-            self.assertEqual(case_type_reference, CaseTypeEnum.GQY.reference)
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
     def test_get_cases_no_filter_sort_by_status_ascending(self):
         """

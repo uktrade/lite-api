@@ -16,7 +16,7 @@ class LetterTemplatesListTests(DataTestClient):
         )
         self.letter_layout = LetterLayout.objects.first()
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
-        self.letter_template.case_types.set([CaseTypeEnum.GQY.id, CaseTypeEnum.EUA.id])
+        self.letter_template.case_types.set([CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id])
         self.letter_template.letter_paragraphs.add(self.picklist_item)
 
     def test_get_letter_templates_success(self):

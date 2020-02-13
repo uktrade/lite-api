@@ -173,6 +173,12 @@ class NotificationViewSet(APIView):
 
     @staticmethod
     def _build_queryset(queryset: QuerySet, filter: dict, type: str) -> QuerySet:
+        """
+        :param queryset: An ExporterNotification QuerySet
+        :param filter: Additional filter containing 1 key-value pair
+        :param type: An annotated static field in the queryset
+        :return: An ExporterNotification QuerySet containing only the type and count of rows found matching the filter
+        """
         return (
             queryset.filter(**filter)
             .values(list(filter)[0])

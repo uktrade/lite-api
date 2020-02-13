@@ -3,7 +3,6 @@ from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, EcjuQuery
 from test_helpers.clients import DataTestClient

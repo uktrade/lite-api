@@ -31,7 +31,7 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         data = {
             "name": "Letter Template",
-            "case_types": [CaseTypeEnum.GQY.reference, CaseTypeEnum.EUA.reference],
+            "case_types": [CaseTypeEnum.GOODS.reference, CaseTypeEnum.EUA.reference],
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
         }
@@ -44,7 +44,7 @@ class LetterTemplateCreateTests(DataTestClient):
         self.assertEqual(letter_template.name, data["name"])
         self.assertEqual(letter_template.layout.id, data["layout"])
         self.assertIn(
-            CaseTypeEnum.GQY.reference, letter_template.case_types.values_list("reference", flat=True),
+            CaseTypeEnum.GOODS.reference, letter_template.case_types.values_list("reference", flat=True),
         )
         self.assertIn(
             CaseTypeEnum.EUA.reference, letter_template.case_types.values_list("reference", flat=True),
@@ -55,12 +55,12 @@ class LetterTemplateCreateTests(DataTestClient):
         Fail as the name is not unique
         """
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
-        self.letter_template.case_types.set([CaseTypeEnum.GQY.id, CaseTypeEnum.EUA.id])
+        self.letter_template.case_types.set([CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id])
         self.letter_template.letter_paragraphs.add(self.picklist_item_1)
 
         data = {
             "name": "SIEL",
-            "case_types": [CaseTypeEnum.GQY.reference],
+            "case_types": [CaseTypeEnum.GOODS.reference],
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
         }
@@ -75,7 +75,7 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         data = {
             "name": "Letter Template",
-            "case_types": [CaseTypeEnum.GQY.reference],
+            "case_types": [CaseTypeEnum.GOODS.reference],
             "layout": self.letter_layout.id,
             "letter_paragraphs": [],
         }
@@ -90,7 +90,7 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         data = {
             "name": "Letter Template",
-            "case_types": [CaseTypeEnum.GQY.reference],
+            "case_types": [CaseTypeEnum.GOODS.reference],
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
         }
 
@@ -118,7 +118,7 @@ class LetterTemplateCreateTests(DataTestClient):
             name = f"Test Template {i}"
             data = {
                 "name": name,
-                "case_types": [CaseTypeEnum.GQY.reference, CaseTypeEnum.EUA.reference],
+                "case_types": [CaseTypeEnum.GOODS.reference, CaseTypeEnum.EUA.reference],
                 "layout": self.letter_layout.id,
                 "letter_paragraphs": [item.id for item in picklist_items],
             }

@@ -126,13 +126,13 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.F680
 
-    class EXHC:
+    class EXHIBITION:
         id = UUID("00000000-0000-0000-0000-000000000008")
         reference = CaseTypeReferenceEnum.EXHC
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.EXHIBITION
 
-    class GIFT:
+    class GIFTING:
         id = UUID("00000000-0000-0000-0000-000000000009")
         reference = CaseTypeReferenceEnum.GIFT
         type = CaseTypeTypeEnum.APPLICATION
@@ -144,7 +144,7 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.HMRC
 
-    class GQY:
+    class GOODS:
         id = UUID("00000000-0000-0000-0000-000000000011")
         reference = CaseTypeReferenceEnum.GQY
         type = CaseTypeTypeEnum.QUERY
@@ -156,7 +156,7 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.QUERY
         sub_type = CaseTypeSubTypeEnum.EUA
 
-    case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHC, GIFT, HMRC, GQY, EUA]
+    case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA]
 
     @classmethod
     def case_type_list_to_representation(cls):

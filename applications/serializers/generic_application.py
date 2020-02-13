@@ -13,6 +13,7 @@ from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
+from cases.models import CaseType
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import GovUserSimpleSerializer
@@ -167,7 +168,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
     case_type = PrimaryKeyRelatedField(
-        queryset=Organisation.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
+        queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
     )
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},

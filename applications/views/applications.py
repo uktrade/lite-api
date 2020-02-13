@@ -86,7 +86,7 @@ class ApplicationList(ListCreateAPIView):
         Create a new application
         """
         data = request.data
-        serializer = get_application_create_serializer(data.get("case_type"))
+        serializer = get_application_create_serializer(data.pop("case_type__sub_type", None))
         serializer = serializer(data=data, context=request.user.organisation)
 
         if not serializer.is_valid():

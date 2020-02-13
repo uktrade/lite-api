@@ -53,13 +53,13 @@ def generate_reference_code(case):
 
     reference_code = ""
 
-    if case.case_type.id == CaseTypeEnum.GQY.id:
+    if case.case_type.id == CaseTypeEnum.GOODS.id:
         reference_code += GOODS_QUERY_PREFIX + SLASH
     elif case.case_type.id == CaseTypeEnum.EUA.id:
         reference_code += END_USER_ADVISORY_QUERY_PREFIX + SLASH
     elif case.case_type.id == CaseTypeEnum.HMRC.id:
         reference_code += HMRC_PREFIX + SLASH
-    elif case.case_type.id == CaseTypeEnum.EXHC.id:
+    elif case.case_type.id == CaseTypeEnum.EXHIBITION.id:
         reference_code += EXHIBITION_CLEARANCE_PREFIX + SLASH
     elif case.case_type.type == CaseTypeTypeEnum.APPLICATION:
         # GB
