@@ -14,9 +14,9 @@ from parties.models import PartyDocument
 def _validate_locations(application, errors):
     """ Site & External location errors """
     if (
-            not SiteOnApplication.objects.filter(application=application).exists()
-            and not ExternalLocationOnApplication.objects.filter(application=application).exists()
-            and not getattr(application, "have_goods_departed", False)
+        not SiteOnApplication.objects.filter(application=application).exists()
+        and not ExternalLocationOnApplication.objects.filter(application=application).exists()
+        and not getattr(application, "have_goods_departed", False)
     ):
         errors["location"] = strings.Applications.Generic.NO_LOCATION_SET
 
