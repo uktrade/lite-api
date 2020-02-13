@@ -36,8 +36,11 @@ class DraftTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
+        standard_application = StandardApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertEqual(StandardApplication.objects.count(), 1)
 
     def test_create_draft_standard_application_with_goods_categories_successful(self):
@@ -54,9 +57,11 @@ class DraftTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
         standard_application = StandardApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertCountEqual(standard_application.goods_categories, data["goods_categories"])
 
     def test_create_draft_standard_application_with_invalid_goods_categories_failure(self):
