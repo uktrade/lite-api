@@ -28,22 +28,28 @@ from users.models import Permission
 
 @tag("seeding")
 class SeedingTests(SeedCommandTest):
-    def test_seed_case_statuses(self):
-        self.seed_command(seedcasestatuses.Command)
-        self.assertEqual(
-            CaseStatus.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE))
-        )
-        self.assertEqual(
-            CaseStatusCaseType.objects.count(),
-            len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUS_ON_TYPE_FILE)),
-        )
-
     def test_seed_case_types(self):
         self.seed_command(seedcasetypes.Command)
         enum = CaseTypeEnum.case_type_list
         self.assertEqual(CaseType.objects.count(), len(enum))
         for item in enum:
             self.assertTrue(CaseType.objects.get(id=item.id))
+
+    def test_seed_case_statuses(self):
+        self.seed_command(seedcasetypes.Command)
+        self.seed_command(seedcasestatuses.Command)
+        self.assertEqual(
+            CaseStatus.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE))
+        )
+
+        case_type_list = CaseTypeEnum.case_type_list
+        counter = 0
+        for case_type in case_type_list:
+            for key, value in seedcasestatuses.Command.STATUSES_ON_CASE_TYPES.items():
+                if case_type.sub_type in value or case_type.type in value:
+                    counter += 1
+
+        self.assertEqual(counter, CaseStatusCaseType.objects.all().count())
 
     def test_seed_control_list_entries(self):
         self.seed_command(seedcontrollistentries.Command)

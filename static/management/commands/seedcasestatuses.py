@@ -6,7 +6,6 @@ from static.management.SeedCommand import SeedCommand
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 
 STATUSES_FILE = "lite_content/lite_api/case_statuses.csv"
-STATUS_ON_TYPE_FILE = "lite_content/lite_api/case_status_on_type.csv"
 
 
 class Command(SeedCommand):
@@ -49,4 +48,4 @@ class Command(SeedCommand):
 
                     if not case_status_case_type.exists():
                         CaseStatusCaseType.objects.create(**case_to_status_data)
-                        print(f"CREATED {CaseStatusCaseType.__name__}: {dict(case_to_status_data)}")
+                        print(f"CREATED {CaseStatusCaseType.__name__}: {case_to_status_data}")
