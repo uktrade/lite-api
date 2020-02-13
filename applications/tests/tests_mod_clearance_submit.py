@@ -3,7 +3,7 @@ from parameterized import parameterized_class
 from rest_framework import status
 
 from applications.enums import ApplicationType
-from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
+from applications.models import SiteOnApplication, GoodOnApplication
 from parties.enums import PartyType
 from parties.models import PartyDocument
 from test_helpers.clients import DataTestClient
@@ -151,6 +151,24 @@ class GiftingClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_DOCUMENT_SET)
 
+    def test_submit_gifting_with_consignee_failure(self):
+        self.create_party("Consignee", self.organisation, PartyType.CONSIGNEE, self.draft)
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["consignee"], strings.Applications.Gifting.CONSIGNEE)
+
+    def test_submit_gifting_with_ultimate_end_user_failure(self):
+        self.create_party("Ultimate End User", self.organisation, PartyType.ULTIMATE_END_USER, self.draft)
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["ultimate_end_users"], strings.Applications.Gifting.ULTIMATE_END_USERS
+        )
+
 
 class F680ClearanceTests(DataTestClient):
     def setUp(self):
@@ -198,3 +216,19 @@ class F680ClearanceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_DOCUMENT_SET)
+
+    def test_submit_F680_with_consignee_failure(self):
+        self.create_party("Consignee", self.organisation, PartyType.CONSIGNEE, self.draft)
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["consignee"], strings.Applications.F680.CONSIGNEE)
+
+    def test_submit_F680_with_ultimate_end_user_failure(self):
+        self.create_party("Ultimate End User", self.organisation, PartyType.ULTIMATE_END_USER, self.draft)
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["ultimate_end_users"], strings.Applications.F680.ULTIMATE_END_USERS)
