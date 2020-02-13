@@ -53,7 +53,6 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "case_type",
             "export_type",
             "organisation",
-            "case_type",
             "status",
         )
 

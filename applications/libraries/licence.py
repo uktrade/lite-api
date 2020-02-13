@@ -9,7 +9,7 @@ def get_default_duration(application):
 
     Rules defined in: https://uktrade.atlassian.net/browse/LT-1586
     """
-    if application.application_type == ApplicationType.EXHIBITION_CLEARANCE:
+    if application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return DefaultDuration.TEMPORARY.value
 
     elif application.export_type == ApplicationExportType.TEMPORARY:

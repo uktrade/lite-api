@@ -305,7 +305,7 @@ class ApplicationFinaliseView(APIView):
         Finalise an application
         """
         application = get_application(pk)
-        is_licence_application = application.application_type != ApplicationType.EXHIBITION_CLEARANCE
+        is_licence_application = application.case_type != CaseTypeSubTypeEnum.EXHIBITION
         if not can_status_be_set_by_gov_user(
             request.user, application.status.status, CaseStatusEnum.FINALISED, is_licence_application
         ):
