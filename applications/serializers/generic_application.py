@@ -236,6 +236,10 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
 
 
 class GenericApplicationCopySerializer(serializers.ModelSerializer):
+    """
+    Serializer for copying applications that can handle any type
+    """
+
     name = serializers.CharField(allow_null=False, allow_blank=False)
     have_you_been_informed = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     reference_number_on_information_form = serializers.CharField(
@@ -254,6 +258,7 @@ class GenericApplicationCopySerializer(serializers.ModelSerializer):
 
         if context and context.get("application_type") == ApplicationType.STANDARD_LICENCE:
             self.fields["have_you_been_informed"] = KeyValueChoiceField(
+                required=True,
                 choices=ApplicationExportLicenceOfficialType.choices,
                 error_messages={"required": strings.Goods.INFORMED},
             )

@@ -388,7 +388,9 @@ class ApplicationCopy(APIView):
     @transaction.atomic
     def post(self, request, pk):
         """
-        copy an application
+        Copy an application
+        In this function we get the application and remove it's relation to itself on the database, which allows for us
+        keep most of the data in relation to the application intact.
         """
         self.old_application_id = pk
         old_application = get_application(pk)
@@ -402,12 +404,13 @@ class ApplicationCopy(APIView):
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        # deepcopy so new_application is not a pointer to old_application
+        # Deepcopy so new_application is not a pointer to old_application
+        # (if not deepcopied, any changes done on one applies to the other)
         self.new_application = deepcopy(old_application)
-        #  clear references to parent objects, and current application instance object
+        # Clear references to parent objects, and current application instance object
         self.strip_id_for_application_copy()
 
-        # replace the reference and have you been informed (if required) with users answer
+        # Replace the reference and have you been informed (if required) with users answer. Also sets some defaults
         self.new_application.name = request.data["name"]
         self.new_application.have_you_been_informed = request.data.get("have_you_been_informed")
         self.new_application.reference_number_on_information_form = request.data.get(
@@ -416,19 +419,19 @@ class ApplicationCopy(APIView):
         self.new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         self.new_application.copy_of_id = self.old_application_id
 
-        # remove data that should not be copied
+        # Remove data that should not be copied
         self.remove_data_from_application_copy()
 
-        # need to save here to create the pk/id for relationships
+        # Need to save here to create the pk/id for relationships
         self.new_application.save()
 
-        # create new foreign key connection using data from old application (this is for tables pointing to the case)
+        # Create new foreign key connection using data from old application (this is for tables pointing to the case)
         self.create_foreign_relations_for_new_application()
 
-        # get all parties connected to the application and produce a copy (and replace reference for each one)
-        self.update_parties_with_copies()
+        # Get all parties connected to the application and produce a copy (and replace reference for each one)
+        self.duplicate_parties_on_new_application()
 
-        # save
+        # Save
         self.new_application.created_at = now()
         self.new_application.save()
         return JsonResponse(data={"data": self.new_application.id}, status=status.HTTP_201_CREATED)
@@ -455,7 +458,7 @@ class ApplicationCopy(APIView):
         for attribute in set_none:
             setattr(self.new_application, attribute, None)
 
-    def update_parties_with_copies(self):
+    def duplicate_parties_on_new_application(self):
         """
         Generates a copy of each party, and recreates any old application Party relations using the new copied party.
         Deleted parties are not copied over.
@@ -484,12 +487,12 @@ class ApplicationCopy(APIView):
 
     def create_foreign_relations_for_new_application(self):
         """
-        recreates any connections from foreign tables existing on the current application,
+        Recreates any connections from foreign tables existing on the current application,
          we wish to move to the new application.
         """
         # This is the super set of all many to many related objects for ALL application types.
         # The loop below caters for the possibility that any of the relationships are not relevant to the current
-        # application type
+        #  application type
         relationships = [
             GoodOnApplication,
             SiteOnApplication,
