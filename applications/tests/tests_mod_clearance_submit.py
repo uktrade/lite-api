@@ -3,7 +3,13 @@ from parameterized import parameterized_class
 from rest_framework import status
 
 from applications.enums import ApplicationType
-from applications.models import SiteOnApplication, GoodOnApplication
+from applications.models import (
+    SiteOnApplication,
+    GoodOnApplication,
+    ExhibitionClearanceApplication,
+    F680ClearanceApplication,
+    GiftingClearanceApplication,
+)
 from parties.enums import PartyType
 from parties.models import PartyDocument
 from test_helpers.clients import DataTestClient
@@ -59,9 +65,15 @@ class ExhibitionClearanceTests(DataTestClient):
 
     def test_submit_exhibition_clearance_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
+        application = ExhibitionClearanceApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
+        self.assertEqual(ExhibitionClearanceApplication.objects.count(), 1)
+        self.assertIsNotNone(application.third_parties.get())
+        self.assertIsNotNone(application.end_user)
+        self.assertIsNotNone(application.consignee)
+        self.assertIsNotNone(application.goods.get())
 
     def test_submit_exhibition_clearance_without_end_user_failure(self):
         self.draft.delete_party(self.draft.end_user)
@@ -131,9 +143,14 @@ class GiftingClearanceTests(DataTestClient):
 
     def test_submit_gifting_clearance_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
+        application = GiftingClearanceApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
+        self.assertEqual(GiftingClearanceApplication.objects.count(), 1)
+        self.assertIsNotNone(application.third_parties.get())
+        self.assertIsNotNone(application.end_user)
+        self.assertIsNotNone(application.goods.get())
 
     def test_submit_gifting_clearance_without_end_user_failure(self):
         self.draft.delete_party(self.draft.end_user)
@@ -179,9 +196,14 @@ class F680ClearanceTests(DataTestClient):
 
     def test_submit_F680_clearance_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
+        application = F680ClearanceApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
+        self.assertEqual(F680ClearanceApplication.objects.count(), 1)
+        self.assertIsNotNone(application.third_parties.get())
+        self.assertIsNotNone(application.end_user)
+        self.assertIsNotNone(application.goods.get())
 
     def test_submit_F680_with_end_user_and_without_third_party_success(self):
         self.draft.third_parties.all().delete()
