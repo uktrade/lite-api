@@ -7,6 +7,7 @@ from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationViewSerializer,
     GenericApplicationUpdateSerializer,
+    GenericApplicationListSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
@@ -20,7 +21,8 @@ class GiftingClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationV
 
     class Meta:
         model = GiftingClearanceApplication
-        fields = GenericApplicationViewSerializer.Meta.fields + (
+        fields = GenericApplicationListSerializer.Meta.fields + (
+            "case_officer",
             "end_user",
             "third_parties",
             "goods",
