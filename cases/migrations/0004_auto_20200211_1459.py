@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                     ("open", "Open"),
                     ("hmrc", "HMRC"),
                     ("exhibition_clearance", "Exhibition clearance"),
-                    ("eua", "End user advisory"),
+                    ("end_user_advisory", "End user advisory"),
                 ],
                 default="standard",
                 max_length=35,
