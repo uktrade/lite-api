@@ -44,9 +44,9 @@ class CasesSearchView(generics.ListAPIView):
 
         gov_users = [
             {"key": u.lower(), "value": u}
-            for u in GovUser.objects.filter(status=UserStatuses.ACTIVE).annotate(
-                full_name=Concat("first_name", Value(" "), "last_name")
-            ).values_list("full_name", flat=True)
+            for u in GovUser.objects.filter(status=UserStatuses.ACTIVE)
+            .annotate(full_name=Concat("first_name", Value(" "), "last_name"))
+            .values_list("full_name", flat=True)
         ]
 
         return self.get_paginated_response(

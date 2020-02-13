@@ -82,7 +82,7 @@ class GovUserList(generics.ListCreateAPIView):
         if teams:
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 
-        if 'no_page' in request.GET:
+        if "no_page" in request.GET:
             return JsonResponse(data={"results": {"gov_users": GovUserViewSerializer(gov_users_qs, many=True).data}})
 
         page = self.paginate_queryset(gov_users_qs)
