@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from django.db.models import Count, Q, CharField, Value
+from django.db.models import Count, Q, CharField, Value, QuerySet
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
@@ -20,7 +20,7 @@ from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser
+from users.models import ExporterUser, ExporterNotification
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
@@ -144,44 +144,41 @@ class UserMeDetail(APIView):
 class NotificationViewSet(APIView):
     authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated,)
-    queryset = Case.objects.all()
+    queryset = ExporterNotification.objects.all()
 
     def get(self, request):
         """
-        Count the number of application, eua and goods_query exporter user notifications
+        Count the number of application, eua_query and goods_query exporter user notifications
         """
-        queryset = self.queryset.filter(organisation=request.user.organisation)
-
-        applications_queryset = (
-            queryset.filter(case_type__type=CaseTypeTypeEnum.APPLICATION)
-            .annotate(
-                type=Value(CaseTypeTypeEnum.APPLICATION, CharField()),
-                count=Count("basenotification", filter=Q(basenotification__user=request.user)),
-            )
-            .values("type", "count")
+        notification_queryset = self.queryset.filter(user=request.user, organisation=request.user.organisation)
+        application_queryset = self._build_queryset(
+            queryset=notification_queryset,
+            filter=dict(case__case_type__type=CaseTypeTypeEnum.APPLICATION),
+            type=CaseTypeTypeEnum.APPLICATION,
         )
-        eua_queries_queryset = (
-            queryset.filter(case_type__sub_type=CaseTypeSubTypeEnum.EUA)
-            .annotate(
-                type=Value(f"{CaseTypeSubTypeEnum.EUA}_{CaseTypeTypeEnum.QUERY}", CharField()),
-                count=Count("basenotification", filter=Q(basenotification__user=request.user)),
-            )
-            .values("type", "count")
+        eua_query_queryset = self._build_queryset(
+            queryset=notification_queryset,
+            filter=dict(case__case_type__sub_type=CaseTypeSubTypeEnum.EUA),
+            type=CaseTypeSubTypeEnum.EUA,
         )
-        goods_queries_queryset = (
-            queryset.filter(case_type__sub_type=CaseTypeSubTypeEnum.GOODS)
-            .annotate(
-                type=Value(f"{CaseTypeSubTypeEnum.GOODS}_{CaseTypeTypeEnum.QUERY}", CharField()),
-                count=Count("basenotification", filter=Q(basenotification__user=request.user)),
-            )
-            .values("type", "count")
+        goods_query_queryset = self._build_queryset(
+            queryset=notification_queryset,
+            filter=dict(case__case_type__sub_type=CaseTypeSubTypeEnum.GOODS),
+            type=CaseTypeSubTypeEnum.GOODS,
         )
+        notification_queryset = application_queryset.union(eua_query_queryset).union(goods_query_queryset)
 
-        queryset = applications_queryset.union(eua_queries_queryset).union(goods_queries_queryset)
-
-        data = {"notifications": {row["type"]: row["count"] for row in queryset}}
-
+        data = {"notifications": {row["type"]: row["count"] for row in notification_queryset}}
         return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def _build_queryset(queryset: QuerySet, filter: dict, type: str) -> QuerySet:
+        return (
+            queryset.filter(**filter)
+            .values(list(filter)[0])
+            .annotate(type=Value(type, CharField()), count=Count("case"))
+            .values("type", "count")
+        )
 
 
 class AssignSites(UpdateAPIView):
