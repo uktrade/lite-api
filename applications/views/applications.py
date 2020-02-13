@@ -98,7 +98,6 @@ class ApplicationList(ListCreateAPIView):
     def post(self, request, **kwargs):
         """
         Create a new application
-        Types include StandardApplication, OpenApplication and HmrcQuery
         """
         data = request.data
         serializer = get_application_create_serializer(data.get("application_type"))
@@ -134,6 +133,13 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         serializer = get_application_update_serializer(application)
         case = application.get_case()
         serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
+
+        # Prevent minor edits of the goods categories
+        if not application.is_major_editable() and request.data.get("goods_categories"):
+            return JsonResponse(
+                data={"errors": {"goods_categories": ["This isn't possible on a minor edit"]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -232,7 +238,7 @@ class ApplicationSubmission(APIView):
         update_submitted_application_good_statuses_and_flags(application)
 
         # Serialize for the response message
-        serializer = get_application_update_serializer(application)
+        serializer = get_application_view_serializer(application)
         serializer = serializer(application)
 
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
@@ -308,7 +314,9 @@ class ApplicationManageStatus(APIView):
             payload={"status": CaseStatusEnum.get_text(case_status.status)},
         )
 
-        return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(
+            data={"data": get_application_view_serializer(application)(application).data}, status=status.HTTP_200_OK
+        )
 
 
 class ApplicationFinaliseView(APIView):
