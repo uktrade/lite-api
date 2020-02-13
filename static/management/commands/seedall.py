@@ -5,25 +5,25 @@ from static.management.SeedCommand import SeedCommand
 
 SEED_COMMANDS = {
     "Essential": [
+        "seedcasetypes",
+        "seedcasestatuses",
         "seedrolepermissions",
         "seedcontrollistentries",
         "seeddenialreasons",
         "seedcountries",
         "seedlayouts",
         "seedsystemflags",
-        "seedcasetypes",
-        "seedcasestatuses",
     ],
     "Dev": ["seedorgusers", "temporary_give_existing_exporters_superuser_role", "seedgovusers", "seeddemodata"],
     "Tests": [
+        "seedcasetypes",
+        "seedcasestatuses",
         "seedrolepermissions",
         "seeddenialreasons",
         "seedcountries",
         "seedgovusers",
         "seedlayouts",
         "seedsystemflags",
-        "seedcasetypes",
-        "seedcasestatuses",
     ],
 }
 
