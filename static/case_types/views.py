@@ -7,4 +7,4 @@ from cases.enums import CaseTypeEnum
 
 class CaseTypes(APIView):
     def get(self, request):
-        return JsonResponse(data={"case_types": CaseTypeEnum.case_type_list_to_representation()}, status=HTTP_200_OK)
+        return JsonResponse(data={"case_types": CaseTypeEnum.case_types_to_representation()}, status=HTTP_200_OK)

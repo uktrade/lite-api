@@ -32,7 +32,7 @@ class CaseTypeReferenceEnum:
 
     @classmethod
     def as_list(cls):
-        return [{"key": choice[0], "value": choice[0]} for choice in cls.choices]
+        return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
 
 class CaseTypeTypeEnum:
@@ -46,7 +46,7 @@ class CaseTypeTypeEnum:
 
     @classmethod
     def as_list(cls):
-        return [{"key": choice[0], "value": choice[0]} for choice in cls.choices]
+        return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
 
 class CaseTypeSubTypeEnum:
@@ -72,7 +72,7 @@ class CaseTypeSubTypeEnum:
 
     @classmethod
     def as_list(cls):
-        return [{"key": choice[0], "value": choice[0]} for choice in cls.choices]
+        return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
     @classmethod
     def has_parties(cls, application_type):
@@ -162,8 +162,8 @@ class CaseTypeEnum:
     case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA]
 
     @classmethod
-    def case_type_list_to_representation(cls):
-        return [{"key": case_type.reference, "value": case_type.reference.upper()} for case_type in cls.case_type_list]
+    def case_types_to_representation(cls):
+        return CaseTypeReferenceEnum.as_list()
 
     @classmethod
     def reference_to_id(cls, case_type_reference):
