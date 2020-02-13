@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -11,7 +11,7 @@ from conf.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.serializers import OrganisationUserListView
-from users.libraries.get_user import get_users_from_organisation, get_user_by_pk
+from users.libraries.get_user import get_user_by_pk, get_exporter_users
 from users.models import ExporterUser, Role
 from users.serializers import (
     ExporterUserViewSerializer,
@@ -21,20 +21,28 @@ from users.serializers import (
 from users.services import filter_roles_by_user_role
 
 
-class UsersList(APIView):
+class UsersList(generics.ListCreateAPIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, org_pk):
         """
         List all users from the specified organisation
         """
-        organisation = get_organisation_by_pk(org_pk)
+        status = request.GET.get("status")
         if isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
 
-        users = get_users_from_organisation(organisation)
-        view_serializer = OrganisationUserListView(users, many=True, context=org_pk)
-        return JsonResponse(data={"users": view_serializer.data})
+        user_relationships = get_exporter_users(org_pk, status)
+
+        page = self.paginate_queryset(user_relationships)
+
+        for p in page:
+            p.user.status = p.status
+            p.user.role = p.role
+
+        serializer = OrganisationUserListView([p.user for p in page], many=True, context=org_pk)
+
+        return self.get_paginated_response({"users": serializer.data})
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
     def post(self, request, org_pk):

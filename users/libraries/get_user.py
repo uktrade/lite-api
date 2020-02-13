@@ -1,4 +1,5 @@
 from conf.exceptions import NotFoundError
+from users.enums import UserStatuses
 from users.models import ExporterUser, GovUser, UserOrganisationRelationship
 
 
@@ -63,3 +64,11 @@ def get_user_organisation_relationship(user, organisation):
         return user_organisation_relationship
     except UserOrganisationRelationship.DoesNotExist:
         raise NotFoundError({"user_organisation_relationship": "User Organisation Relationship not found"})
+
+
+def get_exporter_users(pk, status=None):
+    user_relationships = UserOrganisationRelationship.objects.filter(organisation=pk)
+    if status:
+        user_relationships = user_relationships.filter(status=UserStatuses.from_string(status))
+
+    return user_relationships

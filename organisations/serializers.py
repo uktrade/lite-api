@@ -232,6 +232,9 @@ class OrganisationUserListView(serializers.ModelSerializer):
         )
 
     def get_role(self, instance):
+        if instance.role:
+            return RoleNameSerializer(instance.role).data
+
         if self.context:
             role = instance.get_role(self.context)
             return RoleNameSerializer(role).data

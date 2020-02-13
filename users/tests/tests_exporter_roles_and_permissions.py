@@ -33,6 +33,8 @@ class RolesAndPermissionsTests(DataTestClient):
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
 
+        print(response_data)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["results"]), initial_roles_count + 1)
 

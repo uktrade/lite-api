@@ -1,3 +1,5 @@
+from django.db.models import Value
+from django.db.models.functions import Concat
 from rest_framework import generics
 
 from cases.models import Case
@@ -6,6 +8,8 @@ from cases.views.search import service
 from cases.views.search.serializers import SearchQueueSerializer
 from conf.authentication import GovAuthentication
 from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, OPEN_CASES_QUEUE_ID
+from users.enums import UserStatuses
+from users.models import GovUser
 
 
 class CasesSearchView(generics.ListAPIView):
@@ -38,11 +42,18 @@ class CasesSearchView(generics.ListAPIView):
         case_types = service.get_case_type_list()
         queue = next(q for q in queues if q["id"] == queue_id)
 
+        gov_users = [
+            {"key": u.lower(), "value": u}
+            for u in GovUser.objects.filter(status=UserStatuses.ACTIVE).annotate(
+                full_name=Concat("first_name", Value(" "), "last_name")
+            ).values_list("full_name", flat=True)
+        ]
+
         return self.get_paginated_response(
             {
                 "queues": queues,
                 "cases": cases,
-                "filters": {"statuses": statuses, "case_types": case_types},
+                "filters": {"statuses": statuses, "case_types": case_types, "gov_users": gov_users},
                 "is_system_queue": context["is_system_queue"],
                 "queue": queue,
             }
