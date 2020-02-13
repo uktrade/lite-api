@@ -11,7 +11,7 @@ from conf.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.serializers import OrganisationUserListView
-from users.libraries.get_user import get_user_by_pk, get_exporter_users
+from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationships
 from users.models import ExporterUser, Role
 from users.serializers import (
     ExporterUserViewSerializer,
@@ -29,11 +29,11 @@ class UsersList(generics.ListCreateAPIView):
         List all users from the specified organisation
         """
         status = request.GET.get("status")
+
         if isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
 
-        user_relationships = get_exporter_users(org_pk, status)
-
+        user_relationships = get_user_organisation_relationships(org_pk, status)
         page = self.paginate_queryset(user_relationships)
 
         for p in page:

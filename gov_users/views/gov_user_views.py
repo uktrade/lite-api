@@ -63,12 +63,6 @@ class AuthenticateGovUser(APIView):
 class GovUserList(generics.ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
 
-    def paginate_queryset(self, queryset):
-        if 'no_page' in self.request.query_params:
-            return queryset
-        else:
-            return self.paginator.paginate_queryset(queryset, self.request, view=self)
-
     def get(self, request):
         """
         Fetches all government users

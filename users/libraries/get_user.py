@@ -66,9 +66,12 @@ def get_user_organisation_relationship(user, organisation):
         raise NotFoundError({"user_organisation_relationship": "User Organisation Relationship not found"})
 
 
-def get_exporter_users(pk, status=None):
-    user_relationships = UserOrganisationRelationship.objects.filter(organisation=pk)
+def get_user_organisation_relationships(pk, status=None):
+    """
+    Returns relationships for an organisation filtered by status.
+    """
+    relationships = UserOrganisationRelationship.objects.filter(organisation=pk)
     if status:
-        user_relationships = user_relationships.filter(status=UserStatuses.from_string(status))
+        relationships = relationships.filter(status=UserStatuses.from_string(status))
 
-    return user_relationships
+    return relationships
