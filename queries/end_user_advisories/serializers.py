@@ -54,11 +54,10 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
         if not isinstance(self.exporter_user, ExporterUser):
             self.fields.pop("exporter_user_notification_count")
-
-        self.initial_data["case_type"] = CaseTypeEnum.EUA.id
 
     def get_status(self, instance):
         if instance.status:
@@ -99,6 +98,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
         validated_data["organisation_id"] = end_user_data["organisation"]
         validated_data["status"] = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         validated_data["submitted_at"] = datetime.now(timezone.utc)
+        validated_data["case_type_id"] = CaseTypeEnum.EUA.id
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(**validated_data, end_user=end_user)
         end_user_advisory_query.save()
 

@@ -2,7 +2,7 @@ from django.http import Http404
 
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
-from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from flags.serializers import FlagSerializer
 from goodstype.models import GoodsType

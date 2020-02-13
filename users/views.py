@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from django.db.models import Count, Q, CharField, Value, QuerySet
+from django.db.models import Count, CharField, Value, QuerySet
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
@@ -10,7 +10,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
-from cases.models import Case
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError

@@ -15,7 +15,6 @@ from users.models import (
     GovUser,
     UserOrganisationRelationship,
     Role,
-    ExporterNotification,
 )
 
 
