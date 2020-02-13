@@ -11,6 +11,18 @@ from goodstype.models import GoodsType
 from parties.models import PartyDocument
 
 
+def _validate_locations(application, errors):
+    """ Site & External location errors """
+    if (
+            not SiteOnApplication.objects.filter(application=application).exists()
+            and not ExternalLocationOnApplication.objects.filter(application=application).exists()
+            and not getattr(application, "have_goods_departed", False)
+    ):
+        errors["location"] = strings.Applications.Generic.NO_LOCATION_SET
+
+    return errors
+
+
 def check_party_document(party, is_mandatory):
     """
     Checks for existence of and status of document (if it is mandatory) and return any errors
@@ -156,6 +168,7 @@ def _validate_has_goods(draft, errors, is_mandatory):
 def _validate_standard_licence(draft, errors):
     """ Checks that a standard licence has all party types & goods """
 
+    errors = _validate_locations(draft, errors)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
@@ -173,6 +186,7 @@ def _validate_exhibition_clearance(draft, errors):
 def _validate_gifting_clearance(draft, errors):
     """ Checks that a gifting clearance has an end_user and goods """
 
+    errors = _validate_locations(draft, errors)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
@@ -208,6 +222,7 @@ def _validate_f680_clearance(draft, errors):
 def _validate_open_licence(draft, errors):
     """ Open licences require countries & goods types """
 
+    errors = _validate_locations(draft, errors)
     errors = _validate_countries(draft, errors, is_mandatory=True)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
 
@@ -217,6 +232,7 @@ def _validate_open_licence(draft, errors):
 def _validate_hmrc_query(draft, errors):
     """ HMRC queries require goods types & an end user """
 
+    errors = _validate_locations(draft, errors)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
 
@@ -225,14 +241,6 @@ def _validate_hmrc_query(draft, errors):
 
 def validate_application_ready_for_submission(application):
     errors = {}
-
-    # Site & External location errors
-    if (
-        not SiteOnApplication.objects.filter(application=application).exists()
-        and not ExternalLocationOnApplication.objects.filter(application=application).exists()
-        and not getattr(application, "have_goods_departed", False)
-    ):
-        errors["location"] = strings.Applications.Generic.NO_LOCATION_SET
 
     # Perform additional validation and append errors if found
     if application.application_type == ApplicationType.STANDARD_LICENCE:
