@@ -39,14 +39,6 @@ class MODClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
 
-    def test_submit_MOD_clearance_without_location_failure(self):
-        SiteOnApplication.objects.get(application=self.draft).delete()
-
-        response = self.client.put(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["location"], strings.Applications.Generic.NO_LOCATION_SET)
-
     def test_submit_MOD_clearance_without_goods_failure(self):
         GoodOnApplication.objects.get(application=self.draft).delete()
 
@@ -133,6 +125,14 @@ class ExhibitionClearanceTests(DataTestClient):
             strings.Applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
         )
 
+    def test_submit_exhibition_clearance_without_location_failure(self):
+        SiteOnApplication.objects.get(application=self.draft).delete()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["location"], strings.Applications.Generic.NO_LOCATION_SET)
+
 
 class GiftingClearanceTests(DataTestClient):
     def setUp(self):
@@ -185,6 +185,14 @@ class GiftingClearanceTests(DataTestClient):
         self.assertEqual(
             response.json()["errors"]["ultimate_end_users"], strings.Applications.Gifting.ULTIMATE_END_USERS
         )
+
+    def test_submit_gifting_clearance_without_location_failure(self):
+        SiteOnApplication.objects.get(application=self.draft).delete()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["location"], strings.Applications.Generic.NO_LOCATION_SET)
 
 
 class F680ClearanceTests(DataTestClient):
@@ -254,3 +262,11 @@ class F680ClearanceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["ultimate_end_users"], strings.Applications.F680.ULTIMATE_END_USERS)
+
+    def test_submit_F680_clearance_with_location_failure(self):
+        SiteOnApplication(site=self.organisation.primary_site, application=self.draft).save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["location"], strings.Applications.F680.LOCATIONS)

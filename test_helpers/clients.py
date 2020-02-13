@@ -573,8 +573,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             application, safe_document, consignee=type == ApplicationType.EXHIBITION_CLEARANCE
         )
 
-        # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
+        if type in [ApplicationType.EXHIBITION_CLEARANCE, ApplicationType.GIFTING_CLEARANCE]:
+            # Add a site to the application
+            SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
 

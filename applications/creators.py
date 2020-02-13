@@ -216,6 +216,9 @@ def _validate_f680_clearance(draft, errors):
     if draft.ultimate_end_users:
         errors["ultimate_end_users"] = strings.Applications.F680.ULTIMATE_END_USERS
 
+    if SiteOnApplication.objects.filter(application=draft).exists():
+        errors["location"] = strings.Applications.F680.LOCATIONS
+
     return errors
 
 
