@@ -38,7 +38,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["case_type"] = CaseTypeEnum.SIEL.id  # TODO: FIND OUT CORRECT TYPE FROM INITIAL QUESTIONS
+        self.initial_data["case_type"] = CaseTypeEnum.SIEL.id  # TODO: LT-874 - GET CORRECT TYPE FROM INITIAL QUESTIONS
 
     class Meta:
         model = StandardApplication
