@@ -186,13 +186,13 @@ class GiftingClearanceTests(DataTestClient):
             response.json()["errors"]["ultimate_end_users"], strings.Applications.Gifting.ULTIMATE_END_USERS
         )
 
-    def test_submit_gifting_clearance_without_location_failure(self):
-        SiteOnApplication.objects.get(application=self.draft).delete()
+    def test_submit_gifting_clearance_with_location_failure(self):
+        SiteOnApplication(site=self.organisation.primary_site, application=self.draft).save()
 
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["location"], strings.Applications.Generic.NO_LOCATION_SET)
+        self.assertEqual(response.json()["errors"]["location"], strings.Applications.Gifting.LOCATIONS)
 
 
 class F680ClearanceTests(DataTestClient):

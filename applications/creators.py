@@ -186,7 +186,6 @@ def _validate_exhibition_clearance(draft, errors):
 def _validate_gifting_clearance(draft, errors):
     """ Checks that a gifting clearance has an end_user and goods """
 
-    errors = _validate_locations(draft, errors)
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
@@ -196,6 +195,9 @@ def _validate_gifting_clearance(draft, errors):
 
     if draft.ultimate_end_users:
         errors["ultimate_end_users"] = strings.Applications.Gifting.ULTIMATE_END_USERS
+
+    if SiteOnApplication.objects.filter(application=draft).exists():
+        errors["location"] = strings.Applications.Gifting.LOCATIONS
 
     return errors
 
