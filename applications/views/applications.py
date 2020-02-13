@@ -240,7 +240,7 @@ class ApplicationManageStatus(APIView):
     @transaction.atomic
     def put(self, request, pk):
         application = get_application(pk)
-        is_licence_application = application.application_type != "exhibition_clearance"
+        is_licence_application = application.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION
 
         data = deepcopy(request.data)
 
@@ -305,7 +305,7 @@ class ApplicationFinaliseView(APIView):
         Finalise an application
         """
         application = get_application(pk)
-        is_licence_application = application.case_type != CaseTypeSubTypeEnum.EXHIBITION
+        is_licence_application = application.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION
         if not can_status_be_set_by_gov_user(
             request.user, application.status.status, CaseStatusEnum.FINALISED, is_licence_application
         ):
