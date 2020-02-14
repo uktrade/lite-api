@@ -65,7 +65,7 @@ class GovUserList(generics.ListCreateAPIView):
 
     def get(self, request):
         """
-        Fetches all government users
+        Fetches government users with optional pagination and filters.
         """
         teams = request.GET.get("teams")
         status = request.GET.get("status")

@@ -40,7 +40,7 @@ class UsersList(generics.ListCreateAPIView):
             p.user.status = p.status
             p.user.role = p.role
 
-        serializer = OrganisationUserListView([p.user for p in page], many=True, context=org_pk)
+        serializer = OrganisationUserListView([p.user for p in page], many=True)
 
         return self.get_paginated_response({"users": serializer.data})
 
