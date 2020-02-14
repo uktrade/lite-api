@@ -45,9 +45,21 @@ class GovUserViewTests(DataTestClient):
         self.url = reverse("gov_users:gov_users") + "?status=active"
 
         response = self.client.get(self.url, **self.gov_headers)
-
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(len(response_data["results"]["gov_users"]), self.gov_user_preexisting_count)
+
+    def test_get_deactivated_users(self):
+        self.user.status = UserStatuses.DEACTIVATED
+        self.user.save()
+
+        self.url = reverse("gov_users:gov_users") + "?status="
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(len(response_data["results"]["gov_users"]), GovUser.objects.count())
