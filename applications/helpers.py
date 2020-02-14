@@ -1,4 +1,14 @@
 from applications.models import BaseApplication
+from applications.serializers.f680_clearance import (
+    F680ClearanceCreateSerializer,
+    F680ClearanceViewSerializer,
+    F680ClearanceUpdateSerializer,
+)
+from applications.serializers.gifting_clearance import (
+    GiftingClearanceCreateSerializer,
+    GiftingClearanceViewSerializer,
+    GiftingClearanceUpdateSerializer,
+)
 from applications.serializers.hmrc_query import (
     HmrcQueryCreateSerializer,
     HmrcQueryViewSerializer,
@@ -33,6 +43,10 @@ def get_application_view_serializer(application: BaseApplication):
         return HmrcQueryViewSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceViewSerializer
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.GIFTING:
+        return GiftingClearanceViewSerializer
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+        return F680ClearanceViewSerializer
     else:
         raise BadRequestError(
             {
@@ -51,6 +65,10 @@ def get_application_create_serializer(application_case_type_sub_type):
         return HmrcQueryCreateSerializer
     elif application_case_type_sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceCreateSerializer
+    elif application_case_type_sub_type == CaseTypeSubTypeEnum.GIFTING:
+        return GiftingClearanceCreateSerializer
+    elif application_case_type_sub_type == CaseTypeSubTypeEnum.F680:
+        return F680ClearanceCreateSerializer
     else:
         raise BadRequestError({"case_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
 
@@ -64,6 +82,10 @@ def get_application_update_serializer(application: BaseApplication):
         return HmrcQueryUpdateSerializer
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceUpdateSerializer
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.GIFTING:
+        return GiftingClearanceUpdateSerializer
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+        return F680ClearanceUpdateSerializer
     else:
         raise BadRequestError(
             {

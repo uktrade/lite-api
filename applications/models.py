@@ -3,7 +3,8 @@ import uuid
 from django.db import models
 from django.utils import timezone
 
-from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
+from separatedvaluesfield.models import SeparatedValuesField
+from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
 from common.models import TimestampableModel
@@ -131,11 +132,15 @@ class BaseApplication(ApplicationPartyMixin, Case):
     objects = BaseApplicationManager()
 
 
+# Export Licence Applications
 class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.TextField(blank=True, null=True)
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50,
+    )
+    goods_categories = SeparatedValuesField(
+        max_length=150, choices=GoodsCategory.choices, blank=True, null=True, default=None
     )
 
 
@@ -143,10 +148,23 @@ class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
 
 
+# MOD Clearances Applications
+# Exhibition includes End User, Consignee, Ultimate end users & Third parties
 class ExhibitionClearanceApplication(BaseApplication):
     pass
 
 
+# Gifting includes End User & Third parties
+class GiftingClearanceApplication(BaseApplication):
+    pass
+
+
+# F680 includes End User & Third parties
+class F680ClearanceApplication(BaseApplication):
+    pass
+
+
+# Queries
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
     reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)

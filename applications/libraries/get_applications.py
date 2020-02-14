@@ -2,6 +2,8 @@ from django.http import Http404
 
 from applications.models import (
     BaseApplication,
+    F680ClearanceApplication,
+    GiftingClearanceApplication,
     OpenApplication,
     StandardApplication,
     HmrcQuery,
@@ -26,6 +28,10 @@ def get_application(pk, organisation_id=None):
             return HmrcQuery.objects.get(pk=pk)
         elif application_case_type_sub_type == CaseTypeSubTypeEnum.EXHIBITION:
             return ExhibitionClearanceApplication.objects.get(pk=pk)
+        elif application_case_type_sub_type == CaseTypeSubTypeEnum.GIFTING:
+            return GiftingClearanceApplication.objects.get(pk=pk)
+        elif application_case_type_sub_type == CaseTypeSubTypeEnum.F680:
+            return F680ClearanceApplication.objects.get(pk=pk)
         else:
             raise NotImplementedError(
                 f"get_application does not support this sub-type for the application's case:"

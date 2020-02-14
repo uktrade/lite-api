@@ -2,7 +2,7 @@ from datetime import datetime
 
 from cases.enums import CaseTypeEnum
 
-SLASH = "/"
+SEPARATOR = "/"
 
 # Applications
 APPLICATION_PREFIX = "GB"
@@ -25,6 +25,8 @@ HMRC_PREFIX = "CRE"
 
 # MOD Clearances
 EXHIBITION_CLEARANCE_PREFIX = "EXHC"
+F680_CLEARANCE_PREFIX = "F680"
+GIFTING_CLEARANCE_PREFIX = "GIFT"
 
 
 def generate_reference_code(case):
@@ -54,13 +56,17 @@ def generate_reference_code(case):
     reference_code = ""
 
     if case.case_type.id == CaseTypeEnum.GOODS.id:
-        reference_code += GOODS_QUERY_PREFIX + SLASH
+        reference_code += GOODS_QUERY_PREFIX + SEPARATOR
     elif case.case_type.id == CaseTypeEnum.EUA.id:
-        reference_code += END_USER_ADVISORY_QUERY_PREFIX + SLASH
+        reference_code += END_USER_ADVISORY_QUERY_PREFIX + SEPARATOR
     elif case.case_type.id == CaseTypeEnum.HMRC.id:
-        reference_code += HMRC_PREFIX + SLASH
+        reference_code += HMRC_PREFIX + SEPARATOR
     elif case.case_type.id == CaseTypeEnum.EXHIBITION.id:
-        reference_code += EXHIBITION_CLEARANCE_PREFIX + SLASH
+        reference_code += EXHIBITION_CLEARANCE_PREFIX + SEPARATOR
+    elif case.case_type.id == CaseTypeEnum.F680.id:
+        reference_code += F680_CLEARANCE_PREFIX + SEPARATOR
+    elif case.case_type.id == CaseTypeEnum.GIFTING.id:
+        reference_code += GIFTING_CLEARANCE_PREFIX + SEPARATOR
     elif case.case_type.type == CaseTypeTypeEnum.APPLICATION:
         # GB
         reference_code += APPLICATION_PREFIX
@@ -73,14 +79,14 @@ def generate_reference_code(case):
 
         # Export, transhipment and trade control
         if case.application_sites.count():
-            reference_code += EXPORT + SLASH
+            reference_code += EXPORT + SEPARATOR
         elif case.external_application_sites.count():
-            reference_code += TRADE_CONTROL + SLASH
+            reference_code += TRADE_CONTROL + SEPARATOR
     else:
         raise BaseException("Unknown case type")
 
     # Year
-    reference_code += str(datetime.now().year) + SLASH
+    reference_code += str(datetime.now().year) + SEPARATOR
 
     # Int
     from cases.models import CaseReferenceCode
@@ -91,6 +97,6 @@ def generate_reference_code(case):
     if case.case_type.type == CaseTypeTypeEnum.APPLICATION:
         # Export type
         if hasattr(case, "export_type"):
-            reference_code += SLASH + case.export_type[0]
+            reference_code += SEPARATOR + case.export_type[0]
 
     return reference_code.upper()

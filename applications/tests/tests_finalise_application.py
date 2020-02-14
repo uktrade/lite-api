@@ -5,7 +5,7 @@ from applications.enums import LicenceDuration
 from applications.libraries.licence import get_default_duration
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
-from cases.enums import AdviceType
+from cases.enums import AdviceType, CaseTypeEnum
 from cases.models import CaseAssignment
 from conf.constants import GovPermissions
 from static.statuses.enums import CaseStatusEnum
@@ -36,7 +36,7 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_gov_user_finalise_clearance_application_success(self):
-        clearance_application = self.create_exhibition_clearance_application(self.organisation)
+        clearance_application = self.create_mod_clearance_application(self.organisation, type=CaseTypeEnum.EXHIBITION)
 
         self.gov_user.role = self.role
         self.gov_user.role.permissions.set(
@@ -59,7 +59,7 @@ class FinaliseApplicationTests(DataTestClient):
         """ Test failure in finalising a clearance application as the gov user does not have the
          permission.
         """
-        clearance_application = self.create_exhibition_clearance_application(self.organisation)
+        clearance_application = self.create_mod_clearance_application(self.organisation, type=CaseTypeEnum.EXHIBITION)
 
         self.gov_user.role = self.role
         self.gov_user.role.permissions.set(
