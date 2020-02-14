@@ -42,7 +42,10 @@ class UsersList(generics.ListCreateAPIView):
 
         serializer = OrganisationUserListView([p.user for p in page], many=True)
 
-        return self.get_paginated_response({"users": serializer.data})
+        return self.get_paginated_response({
+            "users": serializer.data,
+            "filters": {"status": [{"key": "active", "value": "Active"}, {"key": "", "value": "All"}]}
+        })
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
     def post(self, request, org_pk):
