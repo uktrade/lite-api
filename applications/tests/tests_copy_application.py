@@ -291,23 +291,31 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertIsNotNone(self.copied_application.ultimate_end_users)
         ultimate_end_users = self.copied_application.ultimate_end_users.all()
         original_ultimate_end_users = self.original_application.ultimate_end_users.all()
+        self.assertEqual(len(ultimate_end_users), len(original_ultimate_end_users))
+        original_ultimate_end_users_id = list(self.original_application.ultimate_end_users.values("id"))
         for ueu in ultimate_end_users:
             self.assertNotIn(ueu, original_ultimate_end_users)
             original_ueu = Party.objects.get(id=ueu.copy_of_id, application_id=self.original_application.id)
-
+            original_ultimate_end_users_id.remove(ueu.copy_of_id)
             self._validate_party_details(ueu, original_ueu)
+
+        self.assertEqual(len(original_ultimate_end_users_id), 0)
 
     def _validate_third_party(self):
         self.assertIsNotNone(self.copied_application.third_parties)
         third_parties = self.copied_application.ultimate_end_users.all()
         original_third_parties = self.original_application.ultimate_end_users.all()
+        self.assertEqual(len(third_parties), len(original_third_parties))
+        original_third_parties_id = list(self.original_application.ultimate_end_users.values("id"))
         for third_party in third_parties:
             self.assertNotIn(third_party, original_third_parties)
             original_third_party = Party.objects.get(
                 id=third_party.copy_of_id, application_id=self.original_application.id
             )
-
+            original_third_parties_id.remove(third_party.copy_of_id)
             self._validate_party_details(third_party, original_third_party)
+
+        self.assertEqual(len(original_third_parties_id), 0)
 
     def _validate_case_data(self):
         self.assertEqual(list(self.copied_application.case_ecju_query.all()), [])
@@ -340,7 +348,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertIsNotNone(new_goodstype_objects)
 
         for goodstype in new_goodstype_objects:
-            # we seed multiple goodstype with the same data, so testing that there are the same amount of
+            # we seed multiple goodstype with the same data currently, so testing that there are the same amount of
             #  goodstype on both old and new application based on the current goodstype data.
             old_goodsType = len(
                 GoodsType.objects.filter(
