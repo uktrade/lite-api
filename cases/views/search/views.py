@@ -43,8 +43,8 @@ class CasesSearchView(generics.ListAPIView):
         queue = next(q for q in queues if q["id"] == queue_id)
 
         gov_users = [
-            {"key": u.lower(), "value": u}
-            for u in GovUser.objects.filter(status=UserStatuses.ACTIVE)
+            {"key": full_name.lower(), "value": full_name}
+            for full_name in GovUser.objects.filter(status=UserStatuses.ACTIVE)
             .annotate(full_name=Concat("first_name", Value(" "), "last_name"))
             .values_list("full_name", flat=True)
         ]
