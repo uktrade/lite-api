@@ -88,10 +88,12 @@ class GovUserList(generics.ListCreateAPIView):
         page = self.paginate_queryset(gov_users_qs)
         serializer = GovUserViewSerializer(page, many=True)
 
-        return self.get_paginated_response({
-            "gov_users": serializer.data,
-            "filters": {"status": [{"key": "active", "value": "Active"}, {"key": "", "value": "All"}]}
-        })
+        return self.get_paginated_response(
+            {
+                "gov_users": serializer.data,
+                "filters": {"status": [{"key": "active", "value": "Active"}, {"key": "", "value": "All"}]},
+            }
+        )
 
     @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})
     def post(self, request):
