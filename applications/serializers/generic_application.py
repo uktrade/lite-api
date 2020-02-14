@@ -237,7 +237,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
 
 class GenericApplicationCopySerializer(serializers.ModelSerializer):
     """
-    Serializer for copying applications that can handle any type
+    Serializer for copying applications that can handle any application type
 
     This is only used to verify the fields are correct that the user passes in, we then process the rest of the
      copy after validation
