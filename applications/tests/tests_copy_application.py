@@ -45,7 +45,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.copied_application = StandardApplication.objects.get(id=self.response_data)
 
-        self._standard_application_test()
+        self._validate_standard_application()
 
     def test_copy_submitted_standard_application_successful(self):
         """
@@ -69,7 +69,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.copied_application = StandardApplication.objects.get(id=self.response_data)
 
-        self._standard_application_test()
+        self._validate_standard_application()
 
     def test_copy_draft_open_application_successful(self):
         """
@@ -89,7 +89,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.copied_application = OpenApplication.objects.get(id=self.response_data)
 
-        self._open_application_test()
+        self._validate_open_application()
 
     def test_copy_submitted_open_application_successful(self):
         """
@@ -110,7 +110,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.copied_application = OpenApplication.objects.get(id=self.response_data)
 
-        self._open_application_test()
+        self._validate_open_application()
 
     def test_copy_draft_exhibition_application_successful(self):
         """
@@ -131,7 +131,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.copied_application = ExhibitionClearanceApplication.objects.get(id=self.response_data)
 
-        self._exhibition_application_test()
+        self._validate_exhibition_application()
 
     def test_copy_submitted_exhibition_application_successful(self):
         """
@@ -152,7 +152,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.copied_application = ExhibitionClearanceApplication.objects.get(id=self.response_data)
 
-        self._exhibition_application_test()
+        self._validate_exhibition_application()
 
     def test_copy_draft_hmrc_enquiry_successful(self):
         """
@@ -172,7 +172,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.copied_application = HmrcQuery.objects.get(id=self.response_data)
 
-        self._hmrc_enquiry_test()
+        self._validate_hmrc_enquiry()
 
     def test_copy_submitted_hmrc_enquiry_successful(self):
         """
@@ -193,65 +193,65 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.copied_application = HmrcQuery.objects.get(id=self.response_data)
 
-        self._hmrc_enquiry_test()
+        self._validate_hmrc_enquiry()
 
-    def _standard_application_test(self):
-        self._reset_data_test()
+    def _validate_standard_application(self):
+        self._validate_reset_data()
 
-        self._good_on_application_test()
+        self._validate_good_on_application()
 
-        self._end_user_test()
-        self._consignee_test()
-        self._ultimate_end_user_test()
-        self._third_party_test()
+        self._validate_end_user()
+        self._validate_consignee()
+        self._validate_ultimate_end_user()
+        self._validate_third_party()
 
-        self._case_data_test()
+        self._validate_case_data()
 
-    def _open_application_test(self):
-        self._reset_data_test()
+    def _validate_open_application(self):
+        self._validate_reset_data()
 
-        self._goodstype_test()
+        self._validate_goodstype()
 
-        self._site_on_application_test()
+        self._validate_site_on_application()
 
-        self._country_on_application_test()
+        self._validate_country_on_application()
 
-        self._case_data_test()
+        self._validate_case_data()
 
-    def _exhibition_application_test(self):
-        self._reset_data_test()
+    def _validate_exhibition_application(self):
+        self._validate_reset_data()
 
-        self._good_on_application_test()
+        self._validate_good_on_application()
 
-        self._end_user_test()
-        self._consignee_test()
-        self._ultimate_end_user_test()
-        self._third_party_test()
+        self._validate_end_user()
+        self._validate_consignee()
+        self._validate_ultimate_end_user()
+        self._validate_third_party()
 
-        self._case_data_test()
+        self._validate_case_data()
 
-    def _hmrc_enquiry_test(self):
-        self._reset_data_test()
+    def _validate_hmrc_enquiry(self):
+        self._validate_reset_data()
         self.assertEqual(self.original_application.reasoning, self.copied_application.reasoning)
         self.assertEqual(self.original_application.have_goods_departed, self.copied_application.have_goods_departed)
 
-        self._goodstype_test()
+        self._validate_goodstype()
 
-        self._end_user_test()
-        self._consignee_test()
-        self._ultimate_end_user_test()
-        self._third_party_test()
+        self._validate_end_user()
+        self._validate_consignee()
+        self._validate_ultimate_end_user()
+        self._validate_third_party()
 
-        self._case_data_test()
+        self._validate_case_data()
 
-    def _reset_data_test(self):
+    def _validate_reset_data(self):
         self.assertNotEqual(self.copied_application.id, self.original_application.id)
         self.assertEqual(self.copied_application.copy_of.id, self.original_application.id)
         self.assertEqual(self.copied_application.status, get_case_status_by_status(CaseStatusEnum.DRAFT))
         self.assertGreater(self.copied_application.created_at, self.original_application.created_at)
         self.assertGreater(self.copied_application.updated_at, self.original_application.updated_at)
 
-    def _good_on_application_test(self):
+    def _validate_good_on_application(self):
         new_goods_on_app = self.copied_application.goods.all()
         original_goods_on_app = self.original_application.goods.all()
         for good_on_app in original_goods_on_app:
@@ -268,7 +268,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self.assertEqual(len(new_goods_on_app), len(original_goods_on_app))
 
-    def _party_details_test(self, new_party, original_party):
+    def _validate_party_details(self, new_party, original_party):
         self.assertNotEqual(new_party.id, original_party.id)
         self.assertGreater(new_party.created_at, original_party.created_at)
         self.assertGreater(new_party.updated_at, original_party.updated_at)
@@ -279,15 +279,15 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertEqual(new_party.sub_type, original_party.sub_type)
         self.assertEqual(list(PartyDocument.objects.filter(party=new_party).all()), [])
 
-    def _end_user_test(self):
+    def _validate_end_user(self):
         self.assertIsNotNone(self.copied_application.end_user)
-        self._party_details_test(self.copied_application.end_user.party, self.original_application.end_user.party)
+        self._validate_party_details(self.copied_application.end_user.party, self.original_application.end_user.party)
 
-    def _consignee_test(self):
+    def _validate_consignee(self):
         self.assertIsNotNone(self.copied_application.consignee)
-        self._party_details_test(self.copied_application.consignee.party, self.original_application.consignee.party)
+        self._validate_party_details(self.copied_application.consignee.party, self.original_application.consignee.party)
 
-    def _ultimate_end_user_test(self):
+    def _validate_ultimate_end_user(self):
         self.assertIsNotNone(self.copied_application.ultimate_end_users)
         ultimate_end_users = self.copied_application.ultimate_end_users.all()
         original_ultimate_end_users = self.original_application.ultimate_end_users.all()
@@ -295,9 +295,9 @@ class CopyApplicationSuccessTests(DataTestClient):
             self.assertNotIn(ueu, original_ultimate_end_users)
             original_ueu = Party.objects.get(id=ueu.copy_of_id, application_id=self.original_application.id)
 
-            self._party_details_test(ueu, original_ueu)
+            self._validate_party_details(ueu, original_ueu)
 
-    def _third_party_test(self):
+    def _validate_third_party(self):
         self.assertIsNotNone(self.copied_application.third_parties)
         third_parties = self.copied_application.ultimate_end_users.all()
         original_third_parties = self.original_application.ultimate_end_users.all()
@@ -307,9 +307,9 @@ class CopyApplicationSuccessTests(DataTestClient):
                 id=third_party.copy_of_id, application_id=self.original_application.id
             )
 
-            self._party_details_test(third_party, original_third_party)
+            self._validate_party_details(third_party, original_third_party)
 
-    def _case_data_test(self):
+    def _validate_case_data(self):
         self.assertEqual(list(self.copied_application.case_ecju_query.all()), [])
         self.assertEqual(list(self.copied_application.case_note.all()), [])
         self.assertEqual(list(self.copied_application.goodcountrydecision_set.all()), [])
@@ -317,7 +317,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertEqual(list(self.copied_application.applicationdocument_set.all()), [])
         self.assertEqual(list(self.copied_application.casedocument_set.all()), [])
 
-    def _country_on_application_test(self):
+    def _validate_country_on_application(self):
         self.assertIsNotNone(self.copied_application.application_countries)
         new_countries = list(
             CountryOnApplication.objects.filter(application=self.copied_application).values("country").all()
@@ -327,7 +327,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         ):
             self.assertIn(country, new_countries)
 
-    def _site_on_application_test(self):
+    def _validate_site_on_application(self):
         self.assertIsNotNone(self.copied_application.application_sites)
         new_sites = list(SiteOnApplication.objects.filter(application=self.copied_application).values("site").all())
         old_sites = SiteOnApplication.objects.filter(application=self.original_application).values("site").all()
@@ -335,7 +335,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         for site in old_sites:
             self.assertIn(site, new_sites)
 
-    def _goodstype_test(self):
+    def _validate_goodstype(self):
         new_goodstype_objects = GoodsType.objects.filter(application_id=self.copied_application.id)
         self.assertIsNotNone(new_goodstype_objects)
 
