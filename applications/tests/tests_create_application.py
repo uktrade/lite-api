@@ -6,6 +6,7 @@ from applications.enums import (
     ApplicationType,
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
+    GoodsCategory,
 )
 from applications.models import (
     StandardApplication,
@@ -37,9 +38,51 @@ class DraftTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
+        standard_application = StandardApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertEqual(StandardApplication.objects.count(), 1)
+
+    def test_create_draft_standard_application_with_goods_categories_successful(self):
+        """
+        Ensure we can create a new standard application with goods categories draft object
+        """
+        data = {
+            "name": "Test",
+            "application_type": ApplicationType.STANDARD_LICENCE,
+            "export_type": ApplicationExportType.TEMPORARY,
+            "goods_categories": [GoodsCategory.ANTI_PIRACY, GoodsCategory.FIREARMS],
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "123",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
+        standard_application = StandardApplication.objects.get()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["id"], str(standard_application.id))
+        self.assertCountEqual(standard_application.goods_categories, data["goods_categories"])
+
+    def test_create_draft_standard_application_with_invalid_goods_categories_failure(self):
+        """
+        Ensure we cannot create a standard application with invalid goods categories
+        """
+        data = {
+            "name": "Test",
+            "application_type": ApplicationType.STANDARD_LICENCE,
+            "export_type": ApplicationExportType.TEMPORARY,
+            "goods_categories": ["Hard to Find"],
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "123",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(StandardApplication.objects.count(), 0)
 
     def test_create_draft_exhibition_clearance_application_successful(self):
         """
