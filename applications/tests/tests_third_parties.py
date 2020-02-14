@@ -82,11 +82,11 @@ class ThirdPartiesOnDraft(DataTestClient):
                 {},
                 {
                     "errors": {
-                        "name": [Parties.REQUIRED_FIELD],
-                        "address": [Parties.REQUIRED_FIELD],
-                        "country": [Parties.REQUIRED_FIELD],
-                        "sub_type": [Parties.NULL_TYPE],
-                        "type": [Parties.REQUIRED_FIELD],
+                        "name": [Parties.NULL_NAME],
+                        "address": [Parties.NULL_ADDRESS],
+                        "country": [Parties.NULL_COUNTRY],
+                        "sub_type": [Parties.NULL_SUB_TYPE],
+                        "type": [Parties.NULL_TYPE],
                     }
                 },
             ],

@@ -266,7 +266,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(original_party_count, self.draft.ultimate_end_users.count())
-        self.assertEqual(response.json(), {"errors": {"name": [Parties.REQUIRED_FIELD]}})
+        self.assertEqual(response.json(), {"errors": {"name": [Parties.NULL_NAME]}})
 
     def test_ultimate_end_user_copy_of_success(self):
         ultimate_end_user = {
