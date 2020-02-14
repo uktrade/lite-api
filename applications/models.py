@@ -138,6 +138,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
     objects = BaseApplicationManager()
 
 
+# Export Licence Applications
 class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
@@ -153,10 +154,23 @@ class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
 
 
+# MOD Clearances Applications
+# Exhibition includes End User, Consignee, Ultimate end users & Third parties
 class ExhibitionClearanceApplication(BaseApplication):
     pass
 
 
+# Gifting includes End User & Third parties
+class GiftingClearanceApplication(BaseApplication):
+    pass
+
+
+# F680 includes End User & Third parties
+class F680ClearanceApplication(BaseApplication):
+    pass
+
+
+# Queries
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)
     reasoning = models.CharField(default=None, blank=True, null=True, max_length=1000)

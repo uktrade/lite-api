@@ -1,9 +1,15 @@
 from uuid import UUID
+from parameterized import parameterized
 
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import GoodOnApplication, CountryOnApplication, SiteOnApplication
+from applications.enums import ApplicationType
+from applications.models import (
+    GoodOnApplication,
+    CountryOnApplication,
+    SiteOnApplication,
+)
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
@@ -131,9 +137,12 @@ class DraftTests(DataTestClient):
             retrieved_application["third_parties"][0]["id"], str(standard_application.third_parties.get().party.id),
         )
 
-    def test_view_draft_exhibition_clearances_list_as_exporter_success(self):
+    @parameterized.expand(
+        [ApplicationType.EXHIBITION_CLEARANCE, ApplicationType.F680_CLEARANCE, ApplicationType.GIFTING_CLEARANCE]
+    )
+    def test_view_draft_MOD_clearances_list_as_exporter_success(self, type):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        application = self.create_exhibition_clearance_application(self.organisation)
+        application = self.create_mod_clearance_application(self.organisation, type=type)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -150,7 +159,9 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_view_draft_exhibition_clearance_as_exporter_success(self):
-        application = self.create_exhibition_clearance_application(self.organisation)
+        application = self.create_mod_clearance_application(
+            self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
+        )
 
         url = reverse("applications:application", kwargs={"pk": application.id})
 
@@ -172,6 +183,56 @@ class DraftTests(DataTestClient):
         )
         self.assertEqual(
             retrieved_application["consignee"]["id"], str(application.consignee.party.id),
+        )
+        self.assertEqual(
+            retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().party.id),
+        )
+
+    def test_view_draft_gifting_clearance_as_exporter_success(self):
+        application = self.create_mod_clearance_application(self.organisation, type=ApplicationType.GIFTING_CLEARANCE)
+
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        response = self.client.get(url, **self.exporter_headers)
+        retrieved_application = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieved_application["name"], application.name)
+        self.assertEqual(
+            retrieved_application["application_type"]["key"], application.application_type,
+        )
+        self.assertIsNotNone(retrieved_application["created_at"])
+        self.assertIsNotNone(retrieved_application["updated_at"])
+        self.assertIsNone(retrieved_application["submitted_at"])
+        self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
+        self.assertEqual(GoodOnApplication.objects.filter(application__id=application.id).count(), 1)
+        self.assertEqual(
+            retrieved_application["end_user"]["id"], str(application.end_user.party.id),
+        )
+        self.assertEqual(
+            retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().party.id),
+        )
+
+    def test_view_draft_f680_clearance_as_exporter_success(self):
+        application = self.create_mod_clearance_application(self.organisation, type=ApplicationType.F680_CLEARANCE)
+
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        response = self.client.get(url, **self.exporter_headers)
+        retrieved_application = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieved_application["name"], application.name)
+        self.assertEqual(
+            retrieved_application["application_type"]["key"], application.application_type,
+        )
+        self.assertIsNotNone(retrieved_application["created_at"])
+        self.assertIsNotNone(retrieved_application["updated_at"])
+        self.assertIsNone(retrieved_application["submitted_at"])
+        self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
+        self.assertEqual(GoodOnApplication.objects.filter(application__id=application.id).count(), 1)
+        self.assertEqual(
+            retrieved_application["end_user"]["id"], str(application.end_user.party.id),
         )
         self.assertEqual(
             retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().party.id),

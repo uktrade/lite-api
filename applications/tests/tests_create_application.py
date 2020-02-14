@@ -14,6 +14,8 @@ from applications.models import (
     HmrcQuery,
     BaseApplication,
     ExhibitionClearanceApplication,
+    GiftingClearanceApplication,
+    F680ClearanceApplication,
 )
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
@@ -97,6 +99,44 @@ class DraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ExhibitionClearanceApplication.objects.count(), 1)
+
+    def test_create_draft_gifting_clearance_application_successful(self):
+        """
+        Ensure we can create a new Exhibition Clearance draft object
+        """
+        self.assertEqual(GiftingClearanceApplication.objects.count(), 0)
+
+        data = {
+            "name": "Test",
+            "application_type": ApplicationType.GIFTING_CLEARANCE,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        application = GiftingClearanceApplication.objects.get()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(GiftingClearanceApplication.objects.count(), 1)
+        self.assertEqual(application.name, data["name"])
+        self.assertEqual(application.application_type, data["application_type"])
+
+    def test_create_draft_f680_clearance_application_successful(self):
+        """
+        Ensure we can create a new Exhibition Clearance draft object
+        """
+        self.assertEqual(F680ClearanceApplication.objects.count(), 0)
+
+        data = {
+            "name": "Test",
+            "application_type": ApplicationType.F680_CLEARANCE,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        application = F680ClearanceApplication.objects.get()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(F680ClearanceApplication.objects.count(), 1)
+        self.assertEqual(application.name, data["name"])
+        self.assertEqual(application.application_type, data["application_type"])
 
     def test_create_draft_open_application_successful(self):
         """

@@ -1,7 +1,8 @@
 from django.urls import reverse
-from parameterized import parameterized
+from parameterized import parameterized, parameterized_class
 from rest_framework import status
 
+from applications.enums import ApplicationType
 from applications.libraries.case_status_helpers import get_case_statuses
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
@@ -126,10 +127,14 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(audit_qs.first().payload, {"old_ref_number": "no reference"})
 
 
-class EditExhibitionClearanceApplicationTests(DataTestClient):
+@parameterized_class(
+    "application_type",
+    [(ApplicationType.EXHIBITION_CLEARANCE,), (ApplicationType.GIFTING_CLEARANCE,), (ApplicationType.F680_CLEARANCE,),],
+)
+class EditMODClearanceApplicationsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.application = self.create_exhibition_clearance_application(self.organisation)
+        self.application = self.create_mod_clearance_application(self.organisation, type=self.application_type)
         self.url = reverse("applications:application", kwargs={"pk": self.application.id})
         self.data = {"name": "abc"}
 
