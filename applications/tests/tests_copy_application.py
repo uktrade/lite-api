@@ -3,7 +3,7 @@ from uuid import uuid4
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
-from applications.enums import ApplicationExportLicenceOfficialType
+from applications.enums import ApplicationExportLicenceOfficialType, ApplicationType
 from applications.models import (
     StandardApplication,
     OpenApplication,
@@ -12,6 +12,8 @@ from applications.models import (
     CountryOnApplication,
     SiteOnApplication,
     ExhibitionClearanceApplication,
+    GiftingClearanceApplication,
+    F680ClearanceApplication,
 )
 from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
@@ -116,8 +118,9 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an exhibition application that is a draft
         """
-        self.original_application = self.create_exhibition_clearance_application(self.organisation)
-        self.submit_application(self.original_application)
+        self.original_application = self.create_mod_clearance_application(
+            self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
+        )
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -137,7 +140,9 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
-        self.original_application = self.create_exhibition_clearance_application(self.organisation)
+        self.original_application = self.create_mod_clearance_application(
+            self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
+        )
         self.submit_application(self.original_application)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -153,6 +158,96 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.copied_application = ExhibitionClearanceApplication.objects.get(id=self.response_data)
 
         self._validate_exhibition_application()
+
+    def test_copy_draft_gifting_application_successful(self):
+        """
+        Ensure we can copy an exhibition application that is a draft
+        """
+        self.original_application = self.create_mod_clearance_application(
+            self.organisation, type=ApplicationType.GIFTING_CLEARANCE
+        )
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = GiftingClearanceApplication.objects.get(id=self.response_data)
+
+        self._validate_gifting_application()
+
+    def test_copy_submitted_gifting_application_successful(self):
+        """
+        Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
+        """
+        self.original_application = self.create_mod_clearance_application(
+            self.organisation, type=ApplicationType.GIFTING_CLEARANCE
+        )
+        self.submit_application(self.original_application)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = GiftingClearanceApplication.objects.get(id=self.response_data)
+
+        self._validate_gifting_application()
+
+    def test_copy_draft_F680_application_successful(self):
+        """
+        Ensure we can copy an exhibition application that is a draft
+        """
+        self.original_application = self.create_mod_clearance_application(
+            self.organisation, type=ApplicationType.F680_CLEARANCE
+        )
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = F680ClearanceApplication.objects.get(id=self.response_data)
+
+        self._validate_F680_application()
+
+    def test_copy_submitted_F680_application_successful(self):
+        """
+        Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
+        """
+        self.original_application = self.create_mod_clearance_application(
+            self.organisation, type=ApplicationType.F680_CLEARANCE
+        )
+        self.submit_application(self.original_application)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = F680ClearanceApplication.objects.get(id=self.response_data)
+
+        self._validate_F680_application()
 
     def test_copy_draft_hmrc_enquiry_successful(self):
         """
@@ -226,6 +321,26 @@ class CopyApplicationSuccessTests(DataTestClient):
         self._validate_end_user()
         self._validate_consignee()
         self._validate_ultimate_end_user()
+        self._validate_third_party()
+
+        self._validate_case_data()
+
+    def _validate_gifting_application(self):
+        self._validate_reset_data()
+
+        self._validate_good_on_application()
+
+        self._validate_end_user()
+        self._validate_third_party()
+
+        self._validate_case_data()
+
+    def _validate_F680_application(self):
+        self._validate_reset_data()
+
+        self._validate_good_on_application()
+
+        self._validate_end_user()
         self._validate_third_party()
 
         self._validate_case_data()
