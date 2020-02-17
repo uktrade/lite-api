@@ -260,14 +260,3 @@ class GoodQueryManageStatus(APIView):
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-
-class GeneratedDocuments(APIView):
-    authentication_classes = (ExporterAuthentication,)
-    serializer_class = GeneratedCaseDocumentExporterSerializer
-    queryset = GeneratedCaseDocument
-
-    def get(self, request, pk):
-        dataset = self.queryset.objects.filter(case__id=pk)
-        data = self.serializer_class(dataset, many=True).data
-        return JsonResponse(data={"generated_documents": data}, status=status.HTTP_200_OK)
