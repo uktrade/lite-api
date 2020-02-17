@@ -1,4 +1,3 @@
-from typing import List, Dict, AnyStr
 from uuid import UUID
 
 
@@ -32,7 +31,7 @@ class CaseTypeReferenceEnum:
     ]
 
     @classmethod
-    def as_list(cls) -> List[Dict]:
+    def as_list(cls):
         return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
 
@@ -46,7 +45,7 @@ class CaseTypeTypeEnum:
     ]
 
     @classmethod
-    def as_list(cls) -> List[Dict]:
+    def as_list(cls):
         return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
 
@@ -72,7 +71,7 @@ class CaseTypeSubTypeEnum:
     ]
 
     @classmethod
-    def as_list(cls) -> List[Dict]:
+    def as_list(cls):
         return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
     @classmethod
@@ -165,11 +164,11 @@ class CaseTypeEnum:
     case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA]
 
     @classmethod
-    def case_types_to_representation(cls) -> List[Dict]:
+    def case_types_to_representation(cls):
         return CaseTypeReferenceEnum.as_list()
 
     @classmethod
-    def reference_to_id(cls, case_type_reference) -> AnyStr:
+    def reference_to_id(cls, case_type_reference):
         if not case_type_reference:
             return None
         for case_type in cls.case_type_list:
@@ -177,7 +176,7 @@ class CaseTypeEnum:
                 return str(case_type.id)
 
     @classmethod
-    def references_to_ids(cls, case_type_references) -> List[Dict]:
+    def references_to_ids(cls, case_type_references):
         case_type_ids = []
 
         if case_type_references:
