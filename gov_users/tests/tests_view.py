@@ -49,10 +49,7 @@ class GovUserViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(
-            len(response_data["results"]),
-            GovUser.objects.filter(status=UserStatuses.ACTIVE).count()
-        )
+        self.assertEqual(len(response_data["results"]), GovUser.objects.filter(status=UserStatuses.ACTIVE).count())
 
     def test_get_all_users(self):
         self.user.status = UserStatuses.DEACTIVATED
@@ -78,7 +75,4 @@ class GovUserViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(
-            len(response_data["results"]),
-            GovUser.objects.filter(status=UserStatuses.DEACTIVATED).count()
-        )
+        self.assertEqual(len(response_data["results"]), GovUser.objects.filter(status=UserStatuses.DEACTIVATED).count())
