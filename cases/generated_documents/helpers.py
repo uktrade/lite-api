@@ -3,8 +3,11 @@ from collections import namedtuple
 from weasyprint import CSS, HTML
 from weasyprint.fonts import FontConfiguration
 
+from cases.generated_documents.models import GeneratedCaseDocument
+from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case
-from conf.exceptions import NotFoundError
+from cases.models import Case
+from conf.exceptions import NotFoundError, PermissionDeniedError
 from letter_templates.helpers import get_css_location, generate_preview, markdown_to_html
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
@@ -51,3 +54,17 @@ def get_generated_document_data(request_params, pk):
         raise AttributeError(document_html["error"])
 
     return GeneratedDocumentPayload(case=case, template=template, document_html=document_html, text=text)
+
+
+def get_generated_documents_for_exporter(case_pk, user, many=True):
+    case = Case.objects.get(id=case_pk)
+    if case.organisation != user.organisation:
+        raise PermissionDeniedError(detail="You do not have access to that case")
+    if many:
+        documents = GeneratedCaseDocument.objects.filter(case=case)
+        delete_exporter_notifications(
+            user=user, organisation=user.organisation, objects=documents
+        )
+    else:
+        documents = GeneratedCaseDocument.objects.get(case=case)
+    return documents

@@ -7,14 +7,12 @@ from rest_framework.views import APIView
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseDocumentState
-from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
+from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data, \
+    get_generated_documents_for_exporter
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer, \
     GeneratedCaseDocumentExporterSerializer
-from cases.libraries.get_case import get_case
-from cases.models import Case
 from conf.authentication import GovAuthentication, ExporterAuthentication
-from conf.exceptions import PermissionDeniedError
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
 
@@ -24,10 +22,7 @@ class ExporterViewGeneratedDocuments(generics.ListAPIView):
     serializer_class = GeneratedCaseDocumentExporterSerializer
 
     def get_queryset(self):
-        case = Case.objects.get(id=self.kwargs["pk"])
-        if case.organisation != self.request.user.organisation:
-            raise PermissionDeniedError(detail="You do not have access to that case")
-        return GeneratedCaseDocument.objects.filter(case=case)
+        return get_generated_documents_for_exporter(self.kwargs["pk"], self.request.user, many=True)
 
 
 class GeneratedDocument(generics.RetrieveAPIView):
