@@ -151,7 +151,7 @@ UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True
-SUPPRESS_TEST_OUTPUT = env("SUPPRESS_TEST_OUTPUT", False)
+SUPPRESS_TEST_OUTPUT = env("SUPPRESS_TEST_OUTPUT") if env("SUPPRESS_TEST_OUTPUT") else False
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
