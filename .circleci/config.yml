@@ -79,9 +79,9 @@ jobs:
       - store_test_results:
           path: test-results
 
-      - run:
-          name: Run code coverage
-          command: pipenv run ./manage.py coverage --threshold=80 --html=False
+#      - run:
+#          name: Run code coverage
+#          command: pipenv run ./manage.py coverage --threshold=80 --html=False
 
       - run:
           name: Run Bandit tests
