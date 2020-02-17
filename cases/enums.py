@@ -83,6 +83,8 @@ class CaseTypeSubTypeEnum:
             CaseTypeSubTypeEnum.STANDARD,
             CaseTypeSubTypeEnum.HMRC,
             CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.GIFTING,
         ]
 
 

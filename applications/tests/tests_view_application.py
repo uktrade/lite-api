@@ -137,7 +137,7 @@ class DraftTests(DataTestClient):
             retrieved_application["third_parties"][0]["id"], str(standard_application.third_parties.get().party.id),
         )
 
-    @parameterized.expand([CaseTypeEnum.EXHIBITION, CaseTypeEnum.GIFTING, CaseTypeEnum.F680])
+    @parameterized.expand([(CaseTypeEnum.EXHIBITION,), (CaseTypeEnum.GIFTING,), (CaseTypeEnum.F680,)])
     def test_view_draft_MOD_clearances_list_as_exporter_success(self, type):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         application = self.create_mod_clearance_application(self.organisation, case_type=type)
