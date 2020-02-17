@@ -222,10 +222,15 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     Serializes case notes
     """
 
-    text = serializers.CharField(min_length=2, max_length=2200,
-                                 error_messages={"blank": strings.Cases.CaseNotes.BLANK,
-                                                 "min_length": strings.Cases.CaseNotes.MIN_LENGTH,
-                                                 "max_length": strings.Cases.CaseNotes.MAX_LENGTH})
+    text = serializers.CharField(
+        min_length=2,
+        max_length=2200,
+        error_messages={
+            "blank": strings.Cases.CaseNotes.BLANK,
+            "min_length": strings.Cases.CaseNotes.MIN_LENGTH,
+            "max_length": strings.Cases.CaseNotes.MAX_LENGTH,
+        },
+    )
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedSerializerField(queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer)
     created_at = serializers.DateTimeField(read_only=True)
