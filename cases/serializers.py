@@ -25,6 +25,7 @@ from documents.libraries.process_document import process_document
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import Party
 from queries.serializers import QueryViewSerializer
@@ -221,7 +222,15 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     Serializes case notes
     """
 
-    text = serializers.CharField(min_length=2, max_length=2200)
+    text = serializers.CharField(
+        min_length=2,
+        max_length=2200,
+        error_messages={
+            "blank": strings.Cases.CaseNotes.BLANK,
+            "min_length": strings.Cases.CaseNotes.MIN_LENGTH,
+            "max_length": strings.Cases.CaseNotes.MAX_LENGTH,
+        },
+    )
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedSerializerField(queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer)
     created_at = serializers.DateTimeField(read_only=True)
