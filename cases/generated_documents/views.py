@@ -14,6 +14,7 @@ from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerial
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from conf.authentication import GovAuthentication, ExporterAuthentication
+from conf.exceptions import PermissionDeniedError
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
 
@@ -23,7 +24,9 @@ class ExporterViewGeneratedDocuments(generics.ListAPIView):
     serializer_class = GeneratedCaseDocumentExporterSerializer
 
     def get_queryset(self):
-        case = Case.objects.get(id=self.kwargs["pk"], organisation=self.request.user.organisation)
+        case = Case.objects.get(id=self.kwargs["pk"])
+        if case.organisation != self.request.user.organisation:
+            raise PermissionDeniedError(detail="You do not have access to that case")
         return GeneratedCaseDocument.objects.filter(case=case)
 
 
