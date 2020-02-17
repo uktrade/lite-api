@@ -8,6 +8,9 @@ jobs:
     docker:
       - image: circleci/python:3.7
       - image: circleci/postgres:11
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
 
     environment:
       DEBUG: 'True'
