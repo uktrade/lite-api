@@ -435,7 +435,7 @@ class ApplicationCopy(APIView):
 
         # Create new foreign key connection using data from old application (this is for tables pointing to the case)
         self.create_foreign_relations_for_new_application()
-        self.duplicate_goodsTypes_for_new_application()
+        self.duplicate_goodstypes_for_new_application()
 
         # Get all parties connected to the application and produce a copy (and replace reference for each one)
         self.duplicate_parties_on_new_application()
@@ -522,7 +522,7 @@ class ApplicationCopy(APIView):
                     result.created_at = now()
                 result.save()
 
-    def duplicate_goodsTypes_for_new_application(self):
+    def duplicate_goodstypes_for_new_application(self):
         """
         Creates a duplicate GoodsType and attaches it to the new application if applicable.
         """
@@ -530,7 +530,7 @@ class ApplicationCopy(APIView):
         # such as listing the countries on the goodstype, and flags as such it is seperated.
         for good in GoodsType.objects.filter(application_id=self.old_application_id).all():
             old_good_countries = list(good.countries.all())
-            old_good_flags = list(good.countries.all())
+            old_good_flags = list(good.flags.all())
             good.pk = None
             good.id = None
             good.application = self.new_application
