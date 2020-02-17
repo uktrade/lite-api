@@ -164,7 +164,7 @@ class CaseTypeEnum:
     case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA]
 
     @classmethod
-    def case_types_to_representation(cls):
+    def case_types_to_representation(cls) -> list:
         return CaseTypeReferenceEnum.as_list()
 
     @classmethod
@@ -173,13 +173,19 @@ class CaseTypeEnum:
             return None
         for case_type in cls.case_type_list:
             if case_type.reference == case_type_reference:
-                return case_type.id
+                return str(case_type.id)
 
     @classmethod
     def references_to_ids(cls, case_type_references) -> list:
-        if not case_type_references:
-            return []
-        return [str(cls.reference_to_id(case_type_reference)) for case_type_reference in case_type_references]
+        case_type_ids = []
+
+        if case_type_references:
+            for case_type_reference in case_type_references:
+                case_type_id = cls.reference_to_id(case_type_reference)
+                if case_type_id:
+                    case_type_ids.append(case_type_id)
+
+        return case_type_ids
 
 
 class AdviceType:
