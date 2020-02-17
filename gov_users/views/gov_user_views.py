@@ -62,14 +62,12 @@ class AuthenticateGovUser(APIView):
 
 class GovUserList(generics.ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
+    serializer_class = GovUserViewSerializer
 
-    def get(self, request):
-        """
-        Fetches government users with optional pagination and filters.
-        """
-        teams = request.GET.get("teams")
-        status = request.GET.get("status")
-        full_name = request.GET.get("name")
+    def get_queryset(self):
+        teams = self.request.GET.get("teams")
+        status = self.request.GET.get("status")
+        full_name = self.request.GET.get("name")
         gov_users_qs = GovUser.objects.all().order_by("email")
         if status:
             gov_users_qs = gov_users_qs.filter(status=UserStatuses.from_string(status))
@@ -82,18 +80,13 @@ class GovUserList(generics.ListCreateAPIView):
         if teams:
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 
-        if "no_page" in request.GET:
-            return JsonResponse(data={"results": {"gov_users": GovUserViewSerializer(gov_users_qs, many=True).data}})
+        return gov_users_qs
 
-        page = self.paginate_queryset(gov_users_qs)
-        serializer = GovUserViewSerializer(page, many=True)
-
-        return self.get_paginated_response(
-            {
-                "gov_users": serializer.data,
-                "filters": {"status": [{"key": "active", "value": "Active"}, {"key": "", "value": "All"}]},
-            }
-        )
+    def get_paginated_response(self, data):
+        if "no_page" in self.request.GET:
+            return JsonResponse(data={"results": data})
+        else:
+            return super().get_paginated_response(data)
 
     @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})
     def post(self, request):
