@@ -15,12 +15,14 @@ class DeleteApplication(DataTestClient):
             CaseTypeSubTypeEnum.STANDARD: self.create_standard_application(self.organisation),
             CaseTypeSubTypeEnum.HMRC: self.create_hmrc_query(self.organisation),
             CaseTypeSubTypeEnum.EXHIBITION: self.create_mod_clearance_application(
-                self.organisation, type=CaseTypeEnum.EXHIBITION
+                self.organisation, case_type=CaseTypeEnum.EXHIBITION
             ),
             CaseTypeSubTypeEnum.GIFTING: self.create_mod_clearance_application(
-                self.organisation, type=CaseTypeEnum.GIFTING
+                self.organisation, case_type=CaseTypeEnum.GIFTING
             ),
-            CaseTypeSubTypeEnum.F680: self.create_mod_clearance_application(self.organisation, type=CaseTypeEnum.F680),
+            CaseTypeSubTypeEnum.F680: self.create_mod_clearance_application(
+                self.organisation, case_type=CaseTypeEnum.F680
+            ),
         }
         self.users = {"EXPORTER": self.exporter_headers, "GOV": self.gov_headers, "HMRC": self.hmrc_exporter_headers}
 
@@ -51,11 +53,11 @@ class DeleteApplication(DataTestClient):
 
     @parameterized.expand(
         [
-            (CaseTypeSubTypeEnum.STANDARD, "EXPORTER"),
-            (CaseTypeSubTypeEnum.EXHIBITION, "EXPORTER"),
-            (CaseTypeSubTypeEnum.HMRC, "HMRC"),
-            (CaseTypeSubTypeEnum.GIFTING, "EXPORTER"),
-            (CaseTypeSubTypeEnum.F680, "EXPORTER"),
+            (CaseTypeSubTypeEnum.STANDARD, "GOV"),
+            (CaseTypeSubTypeEnum.EXHIBITION, "GOV"),
+            (CaseTypeSubTypeEnum.GIFTING, "GOV"),
+            (CaseTypeSubTypeEnum.F680, "GOV"),
+            (CaseTypeSubTypeEnum.HMRC, "EXPORTER"),
         ]
     )
     def test_delete_draft_application_as_invalid_user_failure(self, application_type, user):

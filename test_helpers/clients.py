@@ -22,9 +22,9 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum
+from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
@@ -56,7 +56,7 @@ from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers import colours
-from test_helpers.helpers import random_name, get_case_type_by_case_type_enum
+from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
@@ -94,8 +94,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.gov_user)}
 
         # Exporter User Setup
-        (self.organisation, self.exporter_user,) = self.create_organisation_with_exporter_user()
-        (self.hmrc_organisation, self.hmrc_exporter_user,) = self.create_organisation_with_exporter_user(
+        (self.organisation, self.exporter_user) = self.create_organisation_with_exporter_user()
+        (self.hmrc_organisation, self.hmrc_exporter_user) = self.create_organisation_with_exporter_user(
             "HMRC org 5843", org_type=OrganisationType.HMRC
         )
 
@@ -528,13 +528,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_mod_clearance_application(
-        self, organisation, type, reference_name="MOD Clearance Draft", safe_document=True,
+        self, organisation, case_type, reference_name="MOD Clearance Draft", safe_document=True,
     ):
-        if type == CaseTypeEnum.F680:
+        if case_type == CaseTypeEnum.F680:
             model = F680ClearanceApplication
-        elif type == CaseTypeEnum.GIFTING:
+        elif case_type == CaseTypeEnum.GIFTING:
             model = GiftingClearanceApplication
-        elif type == CaseTypeEnum.EXHIBITION:
+        elif case_type == CaseTypeEnum.EXHIBITION:
             model = ExhibitionClearanceApplication
         else:
             raise BaseException("Invalid case type when creating test MOD Clearance application")
@@ -544,11 +544,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             activity="Trade",
             usage="Trade",
             organisation=organisation,
-            case_type=get_case_type_by_case_type_enum(type),
+            case_type_id=case_type.id,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
-        if type == CaseTypeEnum.EXHIBITION:
+        if case_type == CaseTypeEnum.EXHIBITION:
             self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
 
         self.create_party("End User", organisation, PartyType.END_USER, application)
@@ -564,9 +564,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
         # Set the application party documents
-        self.add_application_and_party_documents(application, safe_document, consignee=type == CaseTypeEnum.EXHIBITION)
+        self.add_application_and_party_documents(
+            application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION
+        )
 
-        if type == CaseTypeEnum.EXHIBITION:
+        if case_type == CaseTypeEnum.EXHIBITION:
             # Add a site to the application
             SiteOnApplication(site=organisation.primary_site, application=application).save()
 

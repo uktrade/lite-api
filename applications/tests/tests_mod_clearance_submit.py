@@ -28,7 +28,7 @@ class MODClearanceTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, type=self.case_type)
+        self.draft = self.create_mod_clearance_application(self.organisation, case_type=self.case_type)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -50,7 +50,7 @@ class MODClearanceTests(DataTestClient):
 class ExhibitionClearanceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, type=CaseTypeEnum.EXHIBITION)
+        self.draft = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -136,7 +136,7 @@ class ExhibitionClearanceTests(DataTestClient):
 class GiftingClearanceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, type=CaseTypeEnum.GIFTING)
+        self.draft = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -197,7 +197,7 @@ class GiftingClearanceTests(DataTestClient):
 class F680ClearanceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, type=CaseTypeEnum.F680)
+        self.draft = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 

@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from applications.enums import ApplicationExportType, ApplicationType
+from applications.enums import ApplicationExportType
 from applications.models import ExternalLocationOnApplication
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.libraries.reference_code import (
     APPLICATION_PREFIX,
     STANDARD,
@@ -45,7 +46,7 @@ class ReferenceCode(DataTestClient):
 
     def test_exhibition_clearance_reference_code(self):
         exhibition_clearance = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
+            self.organisation, case_type=CaseTypeEnum.EXHIBITION
         )
         exhibition_clearance = self.submit_application(exhibition_clearance)
 
@@ -56,9 +57,7 @@ class ReferenceCode(DataTestClient):
         )
 
     def test_f680_clearance_reference_code(self):
-        exhibition_clearance = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.F680_CLEARANCE
-        )
+        exhibition_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
         exhibition_clearance = self.submit_application(exhibition_clearance)
 
         expected_prefix = F680_CLEARANCE_PREFIX + SEPARATOR
@@ -68,9 +67,7 @@ class ReferenceCode(DataTestClient):
         )
 
     def test_gifting_clearance_reference_code(self):
-        exhibition_clearance = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.GIFTING_CLEARANCE
-        )
+        exhibition_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
         exhibition_clearance = self.submit_application(exhibition_clearance)
 
         expected_prefix = GIFTING_CLEARANCE_PREFIX + SEPARATOR

@@ -133,7 +133,7 @@ class EditStandardApplicationTests(DataTestClient):
 class EditMODClearanceApplicationsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.application = self.create_mod_clearance_application(self.organisation, type=self.case_type)
+        self.application = self.create_mod_clearance_application(self.organisation, case_type=self.case_type)
         self.url = reverse("applications:application", kwargs={"pk": self.application.id})
         self.data = {"name": "abc"}
 

@@ -44,10 +44,3 @@ def create_exporter_users(organisation, quantity=1):
 def is_not_verified_flag_set_on_good(good):
     flags_on_good = [str(id) for id in good.flags.values_list("id", flat=True)]
     return SystemFlags.GOOD_NOT_YET_VERIFIED_ID in flags_on_good
-
-
-def get_case_type_by_case_type_enum(case_type_enum):
-    try:
-        return CaseType.objects.get(reference=case_type_enum.reference)
-    except CaseType.DoesNotExist:
-        raise NotFoundError({"case_status": [f"Case type not found for reference {case_type_enum.reference}"]})
