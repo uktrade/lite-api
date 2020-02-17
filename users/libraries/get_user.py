@@ -70,7 +70,7 @@ def get_user_organisation_relationships(pk, status=None):
     """
     Returns relationships for an organisation filtered by status.
     """
-    relationships = UserOrganisationRelationship.objects.filter(organisation=pk)
+    relationships = UserOrganisationRelationship.objects.filter(organisation=pk).order_by("user__email")
     if status:
         relationships = relationships.filter(status=UserStatuses.from_string(status))
 
