@@ -64,7 +64,7 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(status__status=status)
 
     def is_type(self, case_type):
-        return self.filter(type=case_type)
+        return self.filter(case_type=case_type)
 
     def order_by_status(self, order=""):
         """

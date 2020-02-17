@@ -3,7 +3,6 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationType
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
@@ -13,6 +12,7 @@ from applications.serializers.good import (
 )
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
@@ -40,10 +40,10 @@ class ApplicationGoodsOnApplication(APIView):
 
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE,
-            ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F680_CLEARANCE,
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.F680,
         ]
     )
     @authorised_users(ExporterUser)
@@ -55,10 +55,10 @@ class ApplicationGoodsOnApplication(APIView):
 
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE,
-            ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F680_CLEARANCE,
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.F680,
         ]
     )
     @application_in_major_editable_state()
@@ -146,7 +146,7 @@ class ApplicationGoodsTypes(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
     @authorised_users(ExporterUser)
     def get(self, request, application):
         goods_types = GoodsType.objects.filter(application=application).order_by("created_at")
@@ -154,7 +154,7 @@ class ApplicationGoodsTypes(APIView):
 
         return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
 
-    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -184,7 +184,7 @@ class ApplicationGoodsTypes(APIView):
 class ApplicationGoodsType(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
     @authorised_users(ExporterUser)
     def get(self, request, application, goodstype_pk):
         """
@@ -195,14 +195,14 @@ class ApplicationGoodsType(APIView):
 
         return JsonResponse(data={"good": goods_type_data}, status=status.HTTP_200_OK)
 
-    @allowed_application_types([ApplicationType.OPEN_LICENCE, ApplicationType.HMRC_QUERY])
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
     @authorised_users(ExporterUser)
     def delete(self, request, application, goodstype_pk):
         """
         Deletes a goodstype
         """
         goods_type = get_goods_type(goodstype_pk)
-        if application.application_type == ApplicationType.HMRC_QUERY:
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
             delete_goods_type_document_if_exists(goods_type)
         goods_type.delete()
 
@@ -225,7 +225,7 @@ class ApplicationGoodsTypeCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    @allowed_application_types([ApplicationType.OPEN_LICENCE])
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def put(self, request, application):

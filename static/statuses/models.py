@@ -2,8 +2,6 @@ import uuid
 
 from django.db import models
 
-from cases.enums import CaseTypeEnum
-
 
 class CaseStatus(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -15,7 +13,8 @@ class CaseStatus(models.Model):
 
 class CaseStatusCaseType(models.Model):
     class Meta:
-        unique_together = (("type", "status"),)
+        unique_together = ("case_type", "status")
 
-    type = models.CharField(choices=CaseTypeEnum.choices, null=False, max_length=35)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case_type = models.ForeignKey("cases.CaseType", on_delete=models.DO_NOTHING, null=True, blank=False, default=None)
     status = models.ForeignKey(CaseStatus, on_delete=models.CASCADE, null=False)

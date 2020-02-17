@@ -36,16 +36,15 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
 class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.F680_CLEARANCE
+        self.initial_data["case_type"] = CaseTypeEnum.F680.id
 
     class Meta:
         model = F680ClearanceApplication
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "organisation",
-            "type",
             "status",
         )
 
