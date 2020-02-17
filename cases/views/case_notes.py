@@ -16,6 +16,7 @@ from users.models import ExporterUser
 
 class CaseNoteList(APIView):
     authentication_classes = (SharedAuthentication,)
+    serializer = CaseNoteSerializer
 
     def get(self, request, pk):
         """ Gets all case notes. """
@@ -26,7 +27,7 @@ class CaseNoteList(APIView):
         if isinstance(request.user, ExporterUser):
             delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=case_notes)
 
-        serializer = CaseNoteSerializer(case_notes, many=True)
+        serializer = self.serializer(case_notes, many=True)
         return JsonResponse(data={"case_notes": serializer.data})
 
     def post(self, request, pk):
@@ -43,7 +44,7 @@ class CaseNoteList(APIView):
         data["case"] = str(case.id)
         data["user"] = str(request.user.id)
 
-        serializer = CaseNoteSerializer(data=data)
+        serializer = self.serializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
