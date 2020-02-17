@@ -15,6 +15,8 @@ INDIVIDUAL = "I"
 EXPORT = "E"
 TRADE_CONTROL = "C"
 
+LICENCE = "L"
+
 PERMANENT = "P"
 TEMPORARY = "T"
 
@@ -79,9 +81,11 @@ def generate_reference_code(case):
 
         # Export, transhipment and trade control
         if case.application_sites.count():
-            reference_code += EXPORT + SEPARATOR
+            reference_code += EXPORT
         elif case.external_application_sites.count():
-            reference_code += TRADE_CONTROL + SEPARATOR
+            reference_code += TRADE_CONTROL
+
+        reference_code += LICENCE + SEPARATOR
     else:
         raise BaseException("Unknown case type")
 

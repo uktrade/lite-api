@@ -2,7 +2,7 @@ from datetime import datetime
 
 from applications.enums import ApplicationExportType
 from applications.models import ExternalLocationOnApplication
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.enums import CaseTypeEnum
 from cases.libraries.reference_code import (
     APPLICATION_PREFIX,
     STANDARD,
@@ -19,6 +19,7 @@ from cases.libraries.reference_code import (
     GOODS_QUERY_PREFIX,
     TEMPORARY,
     TRADE_CONTROL,
+    LICENCE,
 )
 from test_helpers.clients import DataTestClient
 
@@ -28,7 +29,7 @@ class ReferenceCode(DataTestClient):
         standard_application = self.create_standard_application(self.organisation)
         standard_application = self.submit_application(standard_application)
 
-        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + EXPORT + SEPARATOR
+        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + EXPORT + LICENCE + SEPARATOR
         expected_postfix = SEPARATOR + "0000001" + SEPARATOR + PERMANENT
         self.assertEquals(
             standard_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
@@ -38,7 +39,7 @@ class ReferenceCode(DataTestClient):
         open_application = self.create_open_application(self.organisation)
         open_application = self.submit_application(open_application)
 
-        expected_prefix = APPLICATION_PREFIX + OPEN + INDIVIDUAL + EXPORT + SEPARATOR
+        expected_prefix = APPLICATION_PREFIX + OPEN + INDIVIDUAL + EXPORT + LICENCE + SEPARATOR
         expected_postfix = SEPARATOR + "0000001" + SEPARATOR + PERMANENT
         self.assertEquals(
             open_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
@@ -105,7 +106,7 @@ class ReferenceCode(DataTestClient):
         standard_application.export_type = ApplicationExportType.TEMPORARY
         self.submit_application(standard_application)
 
-        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + EXPORT + SEPARATOR
+        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + EXPORT + LICENCE + SEPARATOR
         expected_postfix = SEPARATOR + "0000001" + SEPARATOR + TEMPORARY
         self.assertEquals(
             standard_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
@@ -122,7 +123,7 @@ class ReferenceCode(DataTestClient):
         standard_application.external_application_sites.set([external_location_on_app])
         standard_application = self.submit_application(standard_application)
 
-        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + TRADE_CONTROL + SEPARATOR
+        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + TRADE_CONTROL + LICENCE + SEPARATOR
         expected_postfix = SEPARATOR + "0000001" + SEPARATOR + PERMANENT
         self.assertEquals(
             standard_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
