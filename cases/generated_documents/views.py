@@ -9,10 +9,22 @@ from audit_trail.payload import AuditType
 from cases.enums import CaseDocumentState
 from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer
-from conf.authentication import GovAuthentication
+from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer, \
+    GeneratedCaseDocumentExporterSerializer
+from cases.libraries.get_case import get_case
+from cases.models import Case
+from conf.authentication import GovAuthentication, ExporterAuthentication
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
+
+
+class ExporterViewGeneratedDocuments(generics.ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = GeneratedCaseDocumentExporterSerializer
+
+    def get_queryset(self):
+        case = Case.objects.get(id=self.kwargs["pk"], organisation=self.request.user.organisation)
+        return GeneratedCaseDocument.objects.filter(case=case)
 
 
 class GeneratedDocument(generics.RetrieveAPIView):
@@ -21,7 +33,7 @@ class GeneratedDocument(generics.RetrieveAPIView):
     serializer_class = GeneratedCaseDocumentGovSerializer
 
 
-class GeneratedDocuments(APIView):
+class InternalViewGeneratedDocuments(APIView):
     authentication_classes = (GovAuthentication,)
 
     @transaction.atomic
