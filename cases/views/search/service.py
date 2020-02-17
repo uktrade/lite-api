@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from cases.enums import CaseTypeReferenceEnum, CaseTypeTypeEnum, CaseTypeSubTypeEnum
+from cases.enums import CaseTypeTypeEnum
 from cases.views.search.queue import SearchQueue
 from static.statuses.enums import CaseStatusEnum
 
