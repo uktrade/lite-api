@@ -179,7 +179,7 @@ class CaseTypeEnum:
     def references_to_ids(cls, case_type_references) -> list:
         if not case_type_references:
             return []
-        return [cls.reference_to_id(case_type_reference) for case_type_reference in case_type_references]
+        return [str(cls.reference_to_id(case_type_reference)) for case_type_reference in case_type_references]
 
 
 class AdviceType:
