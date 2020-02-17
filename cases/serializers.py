@@ -5,7 +5,13 @@ from rest_framework.exceptions import ValidationError
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from audit_trail.models import Audit
-from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
+from cases.enums import (
+    CaseTypeTypeEnum,
+    AdviceType,
+    CaseDocumentState,
+    CaseTypeSubTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
@@ -43,12 +49,27 @@ from users.serializers import (
 )
 
 
+class CaseTypeSerializer(serializers.ModelSerializer):
+    reference = KeyValueChoiceField(choices=CaseTypeReferenceEnum.choices)
+    type = KeyValueChoiceField(choices=CaseTypeTypeEnum.choices)
+    sub_type = KeyValueChoiceField(choices=CaseTypeSubTypeEnum.choices)
+
+    class Meta:
+        model = CaseType
+        fields = (
+            "id",
+            "reference",
+            "type",
+            "sub_type",
+        )
+
+
 class CaseSerializer(serializers.ModelSerializer):
     """
     Serializes cases
     """
 
-    type = KeyValueChoiceField(choices=CaseTypeEnum.choices)
+    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     application = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
 
@@ -56,7 +77,7 @@ class CaseSerializer(serializers.ModelSerializer):
         model = Case
         fields = (
             "id",
-            "type",
+            "case_type",
             "application",
             "query",
         )
@@ -64,7 +85,7 @@ class CaseSerializer(serializers.ModelSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+        if instance.type in [CaseTypeTypeEnum.APPLICATION]:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
@@ -86,7 +107,7 @@ class TinyCaseSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
-    type = KeyValueChoiceField(choices=CaseTypeEnum.choices)
+    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     queue_names = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
@@ -144,7 +165,7 @@ class CaseDetailSerializer(CaseSerializer):
         model = Case
         fields = (
             "id",
-            "type",
+            "case_type",
             "flags",
             "queues",
             "queue_names",
@@ -167,13 +188,7 @@ class CaseDetailSerializer(CaseSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.type in [
-            CaseTypeEnum.APPLICATION,
-            CaseTypeEnum.HMRC_QUERY,
-            CaseTypeEnum.EXHIBITION_CLEARANCE,
-            CaseTypeEnum.F680_CLEARANCE,
-            CaseTypeEnum.GIFTING_CLEARANCE,
-        ]:
+        if instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
@@ -505,18 +520,6 @@ class GoodCountryDecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodCountryDecision
         fields = "__all__"
-
-
-class CaseTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CaseType
-        fields = (
-            "id",
-            "name",
-        )
-
-    def to_representation(self, instance):
-        return dict(key=instance.id, value=instance.name)
 
 
 class CaseOfficerUpdateSerializer(serializers.ModelSerializer):

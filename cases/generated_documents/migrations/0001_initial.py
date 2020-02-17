@@ -9,8 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("letter_templates", "0001_initial"),
-        ("cases", "0001_initial"),
+        ("cases", "0004_auto_20200211_1459"),
     ]
 
     operations = [
@@ -29,12 +28,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("text", models.TextField(blank=True, default=True)),
-                (
-                    "template",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.DO_NOTHING, to="letter_templates.LetterTemplate"
-                    ),
-                ),
             ],
             options={"abstract": False,},
             bases=("cases.casedocument",),
