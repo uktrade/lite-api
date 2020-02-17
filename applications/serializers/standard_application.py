@@ -51,20 +51,19 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.APPLICATION
+        self.initial_data["case_type"] = CaseTypeEnum.SIEL.id  # TODO: LT-874 - GET CORRECT TYPE FROM INITIAL QUESTIONS
 
     class Meta:
         model = StandardApplication
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
             "goods_categories",
             "organisation",
-            "type",
             "status",
         )
 

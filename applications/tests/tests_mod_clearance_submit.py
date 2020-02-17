@@ -2,7 +2,6 @@ from django.urls import reverse
 from parameterized import parameterized_class
 from rest_framework import status
 
-from applications.enums import ApplicationType
 from applications.models import (
     SiteOnApplication,
     GoodOnApplication,
@@ -10,6 +9,7 @@ from applications.models import (
     F680ClearanceApplication,
     GiftingClearanceApplication,
 )
+from cases.enums import CaseTypeEnum
 from parties.enums import PartyType
 from parties.models import PartyDocument
 from test_helpers.clients import DataTestClient
@@ -17,8 +17,7 @@ from lite_content.lite_api import strings
 
 
 @parameterized_class(
-    "application_type",
-    [(ApplicationType.EXHIBITION_CLEARANCE,), (ApplicationType.GIFTING_CLEARANCE,), (ApplicationType.F680_CLEARANCE,),],
+    "case_type", [(CaseTypeEnum.EXHIBITION,), (CaseTypeEnum.GIFTING,), (CaseTypeEnum.F680,),],
 )
 class MODClearanceTests(DataTestClient):
     """
@@ -29,7 +28,7 @@ class MODClearanceTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, type=self.application_type)
+        self.draft = self.create_mod_clearance_application(self.organisation, case_type=self.case_type)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -51,7 +50,7 @@ class MODClearanceTests(DataTestClient):
 class ExhibitionClearanceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE)
+        self.draft = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -137,7 +136,7 @@ class ExhibitionClearanceTests(DataTestClient):
 class GiftingClearanceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, type=ApplicationType.GIFTING_CLEARANCE)
+        self.draft = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -198,7 +197,7 @@ class GiftingClearanceTests(DataTestClient):
 class F680ClearanceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, type=ApplicationType.F680_CLEARANCE)
+        self.draft = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 

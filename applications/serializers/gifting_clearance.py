@@ -36,16 +36,15 @@ class GiftingClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationV
 class GiftingClearanceCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.GIFTING_CLEARANCE
+        self.initial_data["case_type"] = CaseTypeEnum.GIFTING.id
 
     class Meta:
         model = GiftingClearanceApplication
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "organisation",
-            "type",
             "status",
         )
 

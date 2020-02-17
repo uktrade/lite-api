@@ -2,8 +2,8 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationType
 from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
+from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, allowed_application_types
 from parties.serializers import PartyDocumentSerializer
@@ -19,11 +19,11 @@ class PartyDocumentView(APIView):
 
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE,
-            ApplicationType.HMRC_QUERY,
-            ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F680_CLEARANCE,
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.F680,
         ]
     )
     @authorised_users(ExporterUser)
@@ -35,11 +35,11 @@ class PartyDocumentView(APIView):
     @transaction.atomic
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE,
-            ApplicationType.HMRC_QUERY,
-            ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F680_CLEARANCE,
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.F680,
         ]
     )
     @authorised_users(ExporterUser)
@@ -51,11 +51,11 @@ class PartyDocumentView(APIView):
     @transaction.atomic
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE,
-            ApplicationType.HMRC_QUERY,
-            ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F680_CLEARANCE,
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.F680,
         ]
     )
     @authorised_users(ExporterUser)
