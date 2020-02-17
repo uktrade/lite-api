@@ -19,12 +19,12 @@ class CaseNoteList(APIView):
 
     def get(self, request, pk):
         """ Gets all case notes. """
+        case = get_case(pk, isinstance(request.user, ExporterUser))
+
         if isinstance(request.user, ExporterUser):
-            case = get_case(pk, include_draft=True)
             case_notes = get_case_notes_from_case(case, only_show_notes_visible_to_exporter=True)
             delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=case_notes)
         else:
-            case = get_case(pk)
             case_notes = get_case_notes_from_case(case, only_show_notes_visible_to_exporter=False)
 
         serializer = CaseNoteSerializer(case_notes, many=True)
@@ -32,7 +32,7 @@ class CaseNoteList(APIView):
 
     def post(self, request, pk):
         """ Create a case note on a case. """
-        case = get_case(pk)
+        case = get_case(pk, isinstance(request.user, ExporterUser))
 
         if CaseStatusEnum.is_terminal(case.status.status) and isinstance(request.user, ExporterUser):
             return JsonResponse(
