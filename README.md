@@ -1,4 +1,4 @@
-# lite-api
+![Logo](docs/logo.svg)
 
 [![CircleCI](https://circleci.com/gh/uktrade/lite-api.svg?style=svg)](https://circleci.com/gh/uktrade/lite-api)
 [![Maintainability](https://api.codeclimate.com/v1/badges/48bf94fd5e0e0abd617c/maintainability)](https://codeclimate.com/github/uktrade/lite-api/maintainability)
@@ -29,7 +29,7 @@ Service for handling backend calls in LITE.
 
 
 ## Installing WeasyPrint for document generation
-To produce PDF documents you will also need to install WeasyPrint. 
+To produce PDF documents you will also need to install WeasyPrint.
 Do this after installing the python packages in the Pipfile;
 
 > MacOS: https://weasyprint.readthedocs.io/en/stable/install.html#macos

@@ -16,12 +16,16 @@ class ApplicationType:
     OPEN_LICENCE = "open_licence"
     HMRC_QUERY = "hmrc_query"
     EXHIBITION_CLEARANCE = "exhibition_clearance"
+    GIFTING_CLEARANCE = "gifting_clearance"
+    F680_CLEARANCE = "F680_clearance"
 
     choices = [
         (STANDARD_LICENCE, "Standard Licence"),
         (OPEN_LICENCE, "Open Licence"),
         (HMRC_QUERY, "HMRC Query"),
         (EXHIBITION_CLEARANCE, "MOD Exhibition Clearance"),
+        (GIFTING_CLEARANCE, "Gifting Clearance"),
+        (F680_CLEARANCE, "F680 Clearance"),
     ]
 
     @classmethod
@@ -33,7 +37,29 @@ class ApplicationType:
             ApplicationType.STANDARD_LICENCE,
             ApplicationType.HMRC_QUERY,
             ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
         ]
+
+
+class GoodsCategory:
+    ANTI_PIRACY = "anti_piracy"
+    MARITIME_ANTI_PIRACY = "maritime_anti_piracy"
+    FIREARMS = "firearms"
+    INCORPORATED_GOODS = "incorporated_goods"
+
+    choices = [
+        (ANTI_PIRACY, "Anti-piracy"),
+        (MARITIME_ANTI_PIRACY, "Maritime anti-piracy"),
+        (FIREARMS, "Firearms"),
+        (INCORPORATED_GOODS, "Incorporated goods"),
+    ]
+
+    @classmethod
+    def get_text(cls, choice):
+        for key, value in cls.choices:
+            if key == choice:
+                return value
 
 
 class ApplicationExportLicenceOfficialType:

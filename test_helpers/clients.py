@@ -20,6 +20,8 @@ from applications.models import (
     HmrcQuery,
     ApplicationDocument,
     ExhibitionClearanceApplication,
+    GiftingClearanceApplication,
+    F680ClearanceApplication,
 )
 from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -479,10 +481,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return organisation, exporter_user
 
-    def add_application_and_party_documents(self, application, safe_document):
+    def add_application_and_party_documents(self, application, safe_document, consignee=True):
         # Set the application party documents
         self.create_document_for_party(application.end_user.party, safe=safe_document)
-        self.create_document_for_party(application.consignee.party, safe=safe_document)
+        if consignee:
+            self.create_document_for_party(application.consignee.party, safe=safe_document)
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
         self.create_application_document(application)
 
@@ -526,38 +529,73 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_exhibition_clearance_application(
-        self, organisation: Organisation, reference_name="Exhibition Clearance Draft", safe_document=True,
+    def create_mod_clearance_application(
+        self,
+        organisation: Organisation,
+        type: ApplicationType,
+        reference_name="Exhibition Clearance Draft",
+        safe_document=True,
     ):
-        application = ExhibitionClearanceApplication(
+        if type == ApplicationType.F680_CLEARANCE:
+            model = F680ClearanceApplication
+        elif type == ApplicationType.GIFTING_CLEARANCE:
+            model = GiftingClearanceApplication
+        elif type == ApplicationType.EXHIBITION_CLEARANCE:
+            model = ExhibitionClearanceApplication
+
+        application = model.objects.create(
             name=reference_name,
-            application_type=ApplicationType.EXHIBITION_CLEARANCE,
+            application_type=type,
             activity="Trade",
             usage="Trade",
             organisation=organisation,
-            type=CaseTypeEnum.EXHIBITION_CLEARANCE,
+            type=type,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
-        application.save()
+        if type == ApplicationType.EXHIBITION_CLEARANCE:
+            self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+
+        self.create_party("End User", organisation, PartyType.END_USER, application)
+        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+
         # Add a good to the standard application
-        self.good_on_application = GoodOnApplication(
+        self.good_on_application = GoodOnApplication.objects.create(
             good=self.create_good("a thing", organisation),
             application=application,
             quantity=10,
             unit=Units.NAR,
             value=500,
         )
-        self.good_on_application.save()
 
-        self.create_party("End User", organisation, PartyType.END_USER, application)
-        self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+        # Set the application party documents
+        self.add_application_and_party_documents(
+            application, safe_document, consignee=type == ApplicationType.EXHIBITION_CLEARANCE
+        )
 
-        self.add_application_and_party_documents(application, safe_document)
+        if type == ApplicationType.EXHIBITION_CLEARANCE:
+            # Add a site to the application
+            SiteOnApplication(site=organisation.primary_site, application=application).save()
 
-        # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
+        return application
+
+    def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
+        good = Good.objects.create(
+            is_good_controlled=True,
+            control_code="ML17",
+            organisation=self.organisation,
+            description="a good",
+            part_number="123456",
+        )
+
+        GoodOnApplication.objects.create(
+            good=good, application=application, quantity=17, value=18, is_good_incorporated=True
+        )
+
+        self.ultimate_end_user = self.create_party(
+            "Ultimate End User", organisation, PartyType.ULTIMATE_END_USER, application
+        )
+        self.create_document_for_party(application.ultimate_end_users.first().party, safe=True)
 
         return application
 
@@ -568,7 +606,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application = self.create_standard_application(organisation, reference_name, safe_document)
 
         part_good = Good(
-            is_good_controlled=True,
+            is_good_controlled=GoodControlled.YES,
             control_code="ML17",
             organisation=self.organisation,
             description="a good",
