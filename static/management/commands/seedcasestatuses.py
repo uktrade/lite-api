@@ -19,9 +19,9 @@ class Command(SeedCommand):
     seed_command = "seedcasestatuses"
 
     STATUSES_ON_CASE_TYPES = {
-        "00000000-0000-0000-0000-000000000001": ["application", "hmrc", "goods"],
+        "00000000-0000-0000-0000-000000000001": ["application", "hmrc", "goods", "eua"],
         "00000000-0000-0000-0000-000000000002": {"application"},
-        "00000000-0000-0000-0000-000000000003": ["application", "hmrc", "goods"],
+        "00000000-0000-0000-0000-000000000003": ["application", "hmrc", "goods", "eua"],
         "00000000-0000-0000-0000-000000000004": {"application"},
         "00000000-0000-0000-0000-000000000005": {"application"},
         "00000000-0000-0000-0000-000000000006": {"application"},
@@ -42,7 +42,9 @@ class Command(SeedCommand):
 
             for key, value in self.STATUSES_ON_CASE_TYPES.items():
 
-                if case_type.sub_type in value or case_type.type in value:
+                # IF: sub-type is present in a STATUSES_ON_CASE_TYPE
+                # OR IF: type is present but sub-type is not in a STATUSES_ON_CASE_TYPE (handles HMRC-applications)
+                if case_type.sub_type in value or (case_type.type in value and case_type.sub_type not in value):
                     case_to_status_data = dict(case_type_id=case_type.id, status_id=key)
                     case_status_case_type = CaseStatusCaseType.objects.filter(**case_to_status_data)
 

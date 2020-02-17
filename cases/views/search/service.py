@@ -9,14 +9,6 @@ def get_case_status_list() -> List[Dict]:
     return CaseStatusEnum.as_list()
 
 
-def get_case_type_reference_list() -> List[Dict]:
-    return CaseTypeReferenceEnum.as_list()
-
-
-def get_case_type_sub_type_list() -> List[Dict]:
-    return CaseTypeSubTypeEnum.as_list()
-
-
 def get_case_type_type_list() -> List[Dict]:
     return CaseTypeTypeEnum.as_list()
 
