@@ -157,12 +157,12 @@ class NotificationViewSet(APIView):
         )
         eua_query_queryset = self._build_queryset(
             queryset=notification_queryset,
-            filter=dict(case__case_type__sub_type=CaseTypeSubTypeEnum.EUA),
+            filter=dict(case__application_type=CaseTypeSubTypeEnum.EUA),
             type=CaseTypeSubTypeEnum.EUA,
         )
         goods_query_queryset = self._build_queryset(
             queryset=notification_queryset,
-            filter=dict(case__case_type__sub_type=CaseTypeSubTypeEnum.GOODS),
+            filter=dict(case__application_type=CaseTypeSubTypeEnum.GOODS),
             type=CaseTypeSubTypeEnum.GOODS,
         )
         notification_queryset = application_queryset.union(eua_query_queryset).union(goods_query_queryset)

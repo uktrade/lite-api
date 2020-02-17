@@ -30,7 +30,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "case_type__sub_type": CaseTypeSubTypeEnum.STANDARD,
+            "application_type": CaseTypeSubTypeEnum.STANDARD,
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
@@ -50,7 +50,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "case_type__sub_type": CaseTypeSubTypeEnum.STANDARD,
+            "application_type": CaseTypeSubTypeEnum.STANDARD,
             "export_type": ApplicationExportType.TEMPORARY,
             "goods_categories": [GoodsCategory.ANTI_PIRACY, GoodsCategory.FIREARMS],
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
@@ -71,7 +71,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "case_type__sub_type": CaseTypeSubTypeEnum.STANDARD,
+            "application_type": CaseTypeSubTypeEnum.STANDARD,
             "export_type": ApplicationExportType.TEMPORARY,
             "goods_categories": ["Hard to Find"],
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
@@ -91,7 +91,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "case_type__sub_type": CaseTypeSubTypeEnum.EXHIBITION,
+            "application_type": CaseTypeSubTypeEnum.EXHIBITION,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -107,7 +107,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "case_type__sub_type": CaseTypeSubTypeEnum.GIFTING,
+            "application_type": CaseTypeSubTypeEnum.GIFTING,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -126,7 +126,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "case_type__sub_type": CaseTypeSubTypeEnum.F680,
+            "application_type": CaseTypeSubTypeEnum.F680,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -143,7 +143,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "case_type__sub_type": CaseTypeSubTypeEnum.OPEN,
+            "application_type": CaseTypeSubTypeEnum.OPEN,
             "export_type": ApplicationExportType.TEMPORARY,
         }
 
@@ -157,7 +157,7 @@ class DraftTests(DataTestClient):
         Ensure we can create a new HMRC query draft object
         """
         data = {
-            "case_type__sub_type": CaseTypeSubTypeEnum.HMRC,
+            "application_type": CaseTypeSubTypeEnum.HMRC,
             "organisation": self.organisation.id,
         }
 
@@ -171,7 +171,7 @@ class DraftTests(DataTestClient):
         Ensure that a normal exporter cannot create an HMRC query
         """
         data = {
-            "case_type__sub_type": CaseTypeSubTypeEnum.HMRC,
+            "application_type": CaseTypeSubTypeEnum.HMRC,
             "organisation": self.organisation.id,
         }
 
@@ -183,10 +183,10 @@ class DraftTests(DataTestClient):
     @parameterized.expand(
         [
             [{}],
-            [{"case_type__sub_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY}],
+            [{"application_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY}],
             [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY}],
-            [{"name": "Test", "case_type__sub_type": CaseTypeSubTypeEnum.STANDARD}],
-            [{"case_type__sub_type": CaseTypeSubTypeEnum.EXHIBITION}],
+            [{"name": "Test", "application_type": CaseTypeSubTypeEnum.STANDARD}],
+            [{"application_type": CaseTypeSubTypeEnum.EXHIBITION}],
             [{"name": "Test"}],
         ]
     )

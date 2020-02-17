@@ -47,6 +47,6 @@ def get_application(pk, organisation_id=None):
 
 def _get_application_case_type_sub_type(pk):
     try:
-        return BaseApplication.objects.values_list("case_type__sub_type", flat=True).get(pk=pk)
+        return BaseApplication.objects.values_list("application_type", flat=True).get(pk=pk)
     except BaseApplication.DoesNotExist:
         raise Http404
