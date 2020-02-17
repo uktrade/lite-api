@@ -2,10 +2,10 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationType
 from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
@@ -25,11 +25,11 @@ class ApplicationPartyView(APIView):
 
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE,
-            ApplicationType.HMRC_QUERY,
-            ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F680_CLEARANCE,
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.F680,
         ]
     )
     @authorised_users(ExporterUser)
@@ -85,11 +85,11 @@ class ApplicationPartyView(APIView):
 
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE,
-            ApplicationType.HMRC_QUERY,
-            ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F680_CLEARANCE,
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.F680,
         ]
     )
     @authorised_users(ExporterUser)
@@ -123,11 +123,11 @@ class ApplicationPartyView(APIView):
 
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE,
-            ApplicationType.HMRC_QUERY,
-            ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F680_CLEARANCE,
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.F680,
         ]
     )
     @authorised_users(ExporterUser)
@@ -152,11 +152,11 @@ class CopyPartyView(APIView):
 
     @allowed_application_types(
         [
-            ApplicationType.STANDARD_LICENCE,
-            ApplicationType.HMRC_QUERY,
-            ApplicationType.EXHIBITION_CLEARANCE,
-            ApplicationType.GIFTING_CLEARANCE,
-            ApplicationType.F680_CLEARANCE,
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.F680,
         ]
     )
     @authorised_users(ExporterUser)

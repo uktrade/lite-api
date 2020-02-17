@@ -4,12 +4,12 @@ from parameterized import parameterized
 from django.urls import reverse
 from rest_framework import status
 
-from applications.enums import ApplicationType
 from applications.models import (
     GoodOnApplication,
     CountryOnApplication,
     SiteOnApplication,
 )
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
@@ -35,7 +35,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], standard_application.name)
         self.assertEqual(
-            response_data[0]["application_type"]["key"], standard_application.application_type,
+            response_data[0]["case_type"]["reference"]["key"], standard_application.case_type.reference,
         )
         self.assertEqual(response_data[0]["export_type"]["key"], standard_application.export_type)
         self.assertIsNotNone(response_data[0]["created_at"])
@@ -94,7 +94,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], hmrc_query.name)
-        self.assertEqual(response_data[0]["application_type"]["key"], hmrc_query.application_type)
+        self.assertEqual(response_data[0]["case_type"]["reference"]["key"], hmrc_query.case_type.reference)
         self.assertEqual(response_data[0]["organisation"]["name"], hmrc_query.organisation.name)
         self.assertIsNone(response_data[0]["export_type"])
         self.assertIsNotNone(response_data[0]["created_at"])
@@ -115,7 +115,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(retrieved_application["id"], str(standard_application.id))
         self.assertEqual(retrieved_application["name"], standard_application.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"], standard_application.application_type,
+            retrieved_application["case_type"]["reference"]["key"], standard_application.case_type.reference,
         )
         self.assertEqual(
             retrieved_application["export_type"]["key"], standard_application.export_type,
@@ -137,12 +137,10 @@ class DraftTests(DataTestClient):
             retrieved_application["third_parties"][0]["id"], str(standard_application.third_parties.get().party.id),
         )
 
-    @parameterized.expand(
-        [ApplicationType.EXHIBITION_CLEARANCE, ApplicationType.F680_CLEARANCE, ApplicationType.GIFTING_CLEARANCE]
-    )
+    @parameterized.expand([(CaseTypeEnum.EXHIBITION,), (CaseTypeEnum.GIFTING,), (CaseTypeEnum.F680,)])
     def test_view_draft_MOD_clearances_list_as_exporter_success(self, type):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        application = self.create_mod_clearance_application(self.organisation, type=type)
+        application = self.create_mod_clearance_application(self.organisation, case_type=type)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -151,7 +149,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], application.name)
         self.assertEqual(
-            response_data[0]["application_type"]["key"], application.application_type,
+            response_data[0]["case_type"]["reference"]["key"], application.case_type.reference,
         )
         self.assertIsNotNone(response_data[0]["created_at"])
         self.assertIsNotNone(response_data[0]["updated_at"])
@@ -159,9 +157,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_view_draft_exhibition_clearance_as_exporter_success(self):
-        application = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
-        )
+        application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
 
         url = reverse("applications:application", kwargs={"pk": application.id})
 
@@ -170,9 +166,7 @@ class DraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], application.name)
-        self.assertEqual(
-            retrieved_application["application_type"]["key"], application.application_type,
-        )
+        self.assertEqual(retrieved_application["case_type"]["reference"]["key"], application.case_type.reference)
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["updated_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
@@ -189,7 +183,7 @@ class DraftTests(DataTestClient):
         )
 
     def test_view_draft_gifting_clearance_as_exporter_success(self):
-        application = self.create_mod_clearance_application(self.organisation, type=ApplicationType.GIFTING_CLEARANCE)
+        application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
 
         url = reverse("applications:application", kwargs={"pk": application.id})
 
@@ -199,7 +193,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], application.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"], application.application_type,
+            retrieved_application["case_type"]["reference"]["key"], application.case_type.reference,
         )
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["updated_at"])
@@ -214,7 +208,7 @@ class DraftTests(DataTestClient):
         )
 
     def test_view_draft_f680_clearance_as_exporter_success(self):
-        application = self.create_mod_clearance_application(self.organisation, type=ApplicationType.F680_CLEARANCE)
+        application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
 
         url = reverse("applications:application", kwargs={"pk": application.id})
 
@@ -224,7 +218,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], application.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"], application.application_type,
+            retrieved_application["case_type"]["reference"]["key"], application.case_type.reference,
         )
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["updated_at"])
@@ -250,7 +244,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], open_application.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"], open_application.application_type,
+            retrieved_application["case_type"]["reference"]["key"], open_application.case_type.reference,
         )
         self.assertEqual(retrieved_application["export_type"]["key"], open_application.export_type)
         self.assertIsNotNone(retrieved_application["created_at"])
@@ -278,7 +272,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], hmrc_query.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"], hmrc_query.application_type,
+            retrieved_application["case_type"]["reference"]["key"], hmrc_query.case_type.reference,
         )
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["updated_at"])

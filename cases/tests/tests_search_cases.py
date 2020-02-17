@@ -68,7 +68,7 @@ class FilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = f"{self.url}?case_type={CaseTypeEnum.APPLICATION}"
+        url = f"{self.url}?case_type={CaseTypeEnum.SIEL.reference}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -79,8 +79,8 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(self.application_cases), len(response_data["cases"]))
         # Assert Case Type
         for case in response_data["cases"]:
-            case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, CaseTypeEnum.APPLICATION)
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.SIEL.reference)
 
     def test_get_clc_type_cases(self):
         """
@@ -90,7 +90,7 @@ class FilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = f"{self.url}?case_type={CaseTypeEnum.GOODS_QUERY}"
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -102,8 +102,8 @@ class FilterAndSortTests(DataTestClient):
 
         # Assert Case Type
         for case in response_data["cases"]:
-            case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, CaseTypeEnum.GOODS_QUERY)
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
     def test_get_submitted_status_cases(self):
         """
@@ -113,7 +113,7 @@ class FilterAndSortTests(DataTestClient):
         """
 
         # Arrange
-        url = f"{self.url}?case_type={CaseTypeEnum.GOODS_QUERY}"
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -124,8 +124,8 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(self.clc_cases), len(response_data["cases"]))
         # Assert Case Type
         for case in response_data["cases"]:
-            case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, CaseTypeEnum.GOODS_QUERY)
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
     def test_get_all_cases_queue_submitted_status_and_clc_type_cases(self):
         """
@@ -137,7 +137,7 @@ class FilterAndSortTests(DataTestClient):
         # Arrange
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
-        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS_QUERY}&status={case_status.status}&sort=status'
+        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}&sort=status'
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -148,8 +148,8 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
         # Assert Case Type
         for case in response_data["cases"]:
-            case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, CaseTypeEnum.GOODS_QUERY)
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
     def test_get_cases_filter_by_case_officer(self):
         """
@@ -253,7 +253,7 @@ class FilterAndSortTests(DataTestClient):
         # Arrange
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.status == case_status, self.clc_cases))
-        url = f"{self.url}?case_type={CaseTypeEnum.GOODS_QUERY}&status={case_status.status}"
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -264,8 +264,8 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
         # Assert Case Type
         for case in response_data["cases"]:
-            case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, CaseTypeEnum.GOODS_QUERY)
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
     def test_get_cases_no_filter_sort_by_status_ascending(self):
         """
@@ -309,7 +309,7 @@ class FilterAndSortTests(DataTestClient):
             reverse=True,
         )
 
-        url = f"{self.url}?case_type={CaseTypeEnum.APPLICATION}&sort=-status"
+        url = f"{self.url}?case_type={CaseTypeEnum.SIEL.reference}&sort=-status"
 
         # Act
         response = self.client.get(url, **self.gov_headers)
@@ -320,8 +320,8 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(len(self.application_cases), len(response_data["cases"]))
         for case, expected_case in zip(response_data["cases"], application_cases_sorted):
             # Assert Case Type
-            case_type = Case.objects.filter(pk=case["id"]).values_list("type", flat=True)[0]
-            self.assertEqual(case_type, "application")
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.SIEL.reference)
             # Assert ordering
             self.assertEqual(case["status"]["key"], expected_case["status"])
             self.assertEqual(case["id"], expected_case["id"])

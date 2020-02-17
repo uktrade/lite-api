@@ -2,7 +2,7 @@ from django.http import Http404
 
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from flags.serializers import FlagSerializer
 from goodstype.models import GoodsType
@@ -44,7 +44,7 @@ def get_destination_flags(case):
     for country_on_application in countries_on_application:
         flags += country_on_application.country.flags.all()
 
-    if case.type == CaseTypeEnum.END_USER_ADVISORY_QUERY:
+    if case.case_type.sub_type == CaseTypeSubTypeEnum.EUA:
         query = get_end_user_advisory_by_pk(case.id)
         if query.end_user:
             flags += query.end_user.flags.all()
@@ -62,7 +62,12 @@ def get_ordered_flags(case: Case, team: Team):
     goods_flags = []
     destination_flags = []
 
-    if case.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY, CaseTypeEnum.END_USER_ADVISORY_QUERY]:
+    if case.case_type.sub_type in [
+        CaseTypeSubTypeEnum.STANDARD,
+        CaseTypeSubTypeEnum.OPEN,
+        CaseTypeSubTypeEnum.HMRC,
+        CaseTypeSubTypeEnum.EUA,
+    ]:
         goods_on_application = GoodOnApplication.objects.filter(application=case)
         if goods_on_application.exists():
             goods_on_application = goods_on_application.select_related("good")
