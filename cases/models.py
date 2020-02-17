@@ -35,18 +35,10 @@ from users.models import (
 
 class CaseType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(
-        choices=CaseTypeTypeEnum.choices, default=CaseTypeTypeEnum.APPLICATION, null=False, max_length=35,
-    )
-    sub_type = models.CharField(
-        choices=CaseTypeSubTypeEnum.choices, default=CaseTypeSubTypeEnum.STANDARD, null=False, max_length=35,
-    )
+    type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35,)
+    sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35,)
     reference = models.CharField(
-        choices=CaseTypeReferenceEnum.choices,
-        default=CaseTypeReferenceEnum.SIEL,
-        unique=True,
-        null=False,
-        max_length=5,
+        choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=5,
     )
 
 
@@ -57,7 +49,7 @@ class Case(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, null=True, blank=False, editable=False, default=None)
-    case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=True, blank=False, default=None)
+    case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=False, blank=False)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)

@@ -33,7 +33,6 @@ class Migration(migrations.Migration):
                     ("gqy", "Goods Query"),
                     ("eua", "End User Advisory Query"),
                 ],
-                default="siel",
                 max_length=5,
                 unique=True,
             ),
@@ -52,16 +51,13 @@ class Migration(migrations.Migration):
                     ("gifting_clearance", "MOD Gifting Clearance"),
                     ("f680_clearance", "MOD F680 Clearance"),
                 ],
-                default="standard",
                 max_length=35,
             ),
         ),
         migrations.AddField(
             model_name="casetype",
             name="type",
-            field=models.CharField(
-                choices=[("application", "Application"), ("query", "Query")], default="application", max_length=35
-            ),
+            field=models.CharField(choices=[("application", "Application"), ("query", "Query")], max_length=35),
         ),
         migrations.AddField(
             model_name="casetype",
@@ -71,8 +67,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="case",
             name="case_type",
-            field=models.ForeignKey(
-                default=None, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to="cases.CaseType"
-            ),
+            field=models.ForeignKey(null=False, on_delete=django.db.models.deletion.DO_NOTHING, to="cases.CaseType"),
         ),
     ]
