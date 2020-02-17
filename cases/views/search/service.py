@@ -3,7 +3,7 @@ from typing import List, Dict
 from django.db.models import Value
 from django.db.models.functions import Concat
 
-from cases.enums import CaseTypeTypeEnum
+from cases.enums import CaseTypeEnum
 from cases.views.search.queue import SearchQueue
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
@@ -15,7 +15,7 @@ def get_case_status_list() -> List[Dict]:
 
 
 def get_case_type_type_list() -> List[Dict]:
-    return CaseTypeTypeEnum.as_list()
+    return CaseTypeEnum.case_types_to_representation()
 
 
 def get_search_queues(user):
