@@ -12,7 +12,7 @@ from test_helpers.clients import DataTestClient
 class CaseDocumentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
         self.case = self.submit_application(self.standard_application)
         self.url = reverse("cases:documents", kwargs={"pk": self.case.id})
 
@@ -30,7 +30,7 @@ class CaseDocumentsTests(DataTestClient):
 class CaseDocumentDownloadTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
         self.case = self.submit_application(self.standard_application)
         self.file = self.create_case_document(self.case, self.gov_user, "Test")
         self.path = "cases:document_download"
@@ -50,7 +50,7 @@ class CaseDocumentDownloadTests(DataTestClient):
         # Create an application with a document for a different organisation
         # Our test user shouldn't be able to access this
         other_org, user = self.create_organisation_with_exporter_user()
-        other_application = self.create_standard_application(other_org)
+        other_application = self.create_draft_standard_application(other_org)
         other_case = self.submit_application(other_application)
         other_file = self.create_case_document(other_case, self.gov_user, "Someone else's document")
         url = reverse(self.path, kwargs={"case_pk": other_case.id, "document_pk": other_file.id})

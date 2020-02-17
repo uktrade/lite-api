@@ -15,7 +15,7 @@ from test_helpers.clients import DataTestClient
 class ConsigneeOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_application(self.organisation)
+        self.draft = self.create_draft_standard_application(self.organisation)
         self.url = reverse("applications:parties", kwargs={"pk": self.draft.id})
         self.new_document_data = {
             "name": "document_name.pdf",

@@ -19,7 +19,7 @@ from lite_content.lite_api import strings
 class FinaliseApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
         self.submit_application(self.standard_application)
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
         self.role = Role.objects.create(name="test")

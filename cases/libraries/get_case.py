@@ -3,12 +3,15 @@ from conf.exceptions import NotFoundError
 from lite_content.lite_api import strings
 
 
-def get_case(pk):
+def get_case(pk, include_draft=False):
     """
     Returns a case or returns a 404 on failure
     """
     try:
-        return Case.objects.all().get(pk=pk)
+        if include_draft:
+            return Case.objects.all().get(pk=pk)
+        else:
+            return Case.objects.submitted().get(pk=pk)
     except Case.DoesNotExist:
         raise NotFoundError({"case": strings.Cases.CASE_NOT_FOUND})
 

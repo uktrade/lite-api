@@ -20,7 +20,7 @@ class EditStandardApplicationTests(DataTestClient):
         """ Test edit the application name of an unsubmitted application. An unsubmitted application
         has the 'draft' status.
         """
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
 
         url = reverse("applications:application", kwargs={"pk": application.id})
         updated_at = application.updated_at
@@ -37,7 +37,7 @@ class EditStandardApplicationTests(DataTestClient):
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
         old_name = "Old Name"
-        application = self.create_standard_application(self.organisation, reference_name=old_name)
+        application = self.create_draft_standard_application(self.organisation, reference_name=old_name)
         self.submit_application(application)
         application.status = get_case_status_by_status(editable_status)
         application.save()
@@ -56,7 +56,7 @@ class EditStandardApplicationTests(DataTestClient):
 
     @parameterized.expand(get_case_statuses(read_only=True))
     def test_edit_application_name_in_read_only_status_failure(self, read_only_status):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         self.submit_application(application)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
@@ -69,7 +69,7 @@ class EditStandardApplicationTests(DataTestClient):
         """ Test successful editing of an application's reference number when the application's status
         is non read-only.
         """
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         self.submit_application(application)
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         application.save()

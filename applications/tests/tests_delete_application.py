@@ -12,7 +12,7 @@ class DeleteApplication(DataTestClient):
     def setUp(self):
         super().setUp()
         self.applications = {
-            ApplicationType.STANDARD_LICENCE: self.create_standard_application(self.organisation),
+            ApplicationType.STANDARD_LICENCE: self.create_draft_standard_application(self.organisation),
             ApplicationType.HMRC_QUERY: self.create_hmrc_query(self.organisation),
             ApplicationType.EXHIBITION_CLEARANCE: self.create_mod_clearance_application(
                 self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE

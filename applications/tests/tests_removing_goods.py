@@ -23,7 +23,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         Then the good_on_application is deleted
         And the good status is changed to DRAFT
         """
-        draft = self.create_standard_application(self.organisation)
+        draft = self.create_draft_standard_application(self.organisation)
         self.submit_application(draft)  # This will submit the application and set the good status to SUBMITTED
 
         url = reverse("applications:good_on_application", kwargs={"obj_pk": self.good_on_application.id},)
@@ -43,7 +43,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         Then the good_on_application is deleted
         And the good status is not changed
         """
-        draft = self.create_standard_application(self.organisation)
+        draft = self.create_draft_standard_application(self.organisation)
         self.good_on_application.good.status = GoodStatus.VERIFIED
         self.good_on_application.good.save()
 
@@ -64,11 +64,11 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         Then the good_on_application is deleted
         And the good status is not changed
         """
-        application1 = self.create_standard_application(self.organisation)
+        application1 = self.create_draft_standard_application(self.organisation)
         self.submit_application(application1)
         good_on_application1 = GoodOnApplication.objects.get(application=application1)
 
-        application2 = self.create_standard_application(self.organisation)
+        application2 = self.create_draft_standard_application(self.organisation)
         GoodOnApplication.objects.get(application=application2).delete()
 
         good_on_application2 = GoodOnApplication(
@@ -94,7 +94,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         Then the delete operation returns a not found response
         And no goods are deleted
         """
-        draft = self.create_standard_application(self.organisation)
+        draft = self.create_draft_standard_application(self.organisation)
 
         url = reverse(
             "applications:good_on_application", kwargs={"obj_pk": "7070dc05-0afa-482c-b4f7-ae0a8943e53c"},
@@ -106,7 +106,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 1)
 
     def test_remove_a_good_from_draft_as_gov_user_failure(self):
-        draft = self.create_standard_application(self.organisation)
+        draft = self.create_draft_standard_application(self.organisation)
 
         url = reverse("applications:good_on_application", kwargs={"obj_pk": self.good_on_application.id},)
 
@@ -116,7 +116,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         self.assertEqual(GoodOnApplication.objects.filter(application=draft).count(), 1)
 
     def test_remove_goods_from_application_not_in_users_organisation_failure(self):
-        self.create_standard_application(self.organisation)
+        self.create_draft_standard_application(self.organisation)
         url = reverse("applications:good_on_application", kwargs={"obj_pk": self.good_on_application.id},)
 
         other_organisation, _ = self.create_organisation_with_exporter_user()
@@ -132,7 +132,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
 
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_delete_good_from_application_in_an_editable_status_success(self, editable_status):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
         url = reverse("applications:good_on_application", kwargs={"obj_pk": self.good_on_application.id},)
@@ -144,7 +144,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
 
     @parameterized.expand(get_case_statuses(read_only=True))
     def test_delete_good_from_application_in_read_only_status_failure(self, read_only_status):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
         url = reverse("applications:good_on_application", kwargs={"obj_pk": self.good_on_application.id},)

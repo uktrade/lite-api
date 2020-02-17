@@ -17,7 +17,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
         self.standard_case = self.submit_application(self.standard_application)
 
         self.role = Role(name="team_level")

@@ -16,7 +16,7 @@ from test_helpers.clients import DataTestClient
 class StandardApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_application(self.organisation)
+        self.draft = self.create_draft_standard_application(self.organisation)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -149,7 +149,7 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_status_code_post_with_untested_document_failure(self):
-        draft = self.create_standard_application(self.organisation, safe_document=None)
+        draft = self.create_draft_standard_application(self.organisation, safe_document=None)
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
@@ -161,7 +161,7 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_status_code_post_with_infected_document_failure(self):
-        draft = self.create_standard_application(self.organisation, safe_document=False)
+        draft = self.create_draft_standard_application(self.organisation, safe_document=False)
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
@@ -173,7 +173,7 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self):
-        standard_application = self.create_standard_application(self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
         self.submit_application(standard_application)
         standard_application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         standard_application.save()
@@ -190,7 +190,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
 
     def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self):
-        standard_application = self.create_standard_application(self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
         standard_application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at

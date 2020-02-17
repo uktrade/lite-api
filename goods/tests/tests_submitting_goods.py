@@ -17,7 +17,7 @@ class GoodTests(DataTestClient):
         Test that the good's status is set to submitted and the 'is_not_verified' flag is added
         """
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        draft = self.create_standard_application(self.organisation)
+        draft = self.create_draft_standard_application(self.organisation)
         self.assertEqual(Good.objects.get().status, "draft")
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
@@ -37,7 +37,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good cannot be edited after submission
         """
-        draft = self.create_standard_application(self.organisation)
+        draft = self.create_draft_standard_application(self.organisation)
         self.submit_application(application=draft)
 
         good = Good.objects.get()
@@ -50,7 +50,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good can be edited after submission
         """
-        draft = self.create_standard_application(self.organisation)
+        draft = self.create_draft_standard_application(self.organisation)
         good_on_app = GoodOnApplication.objects.get(application=draft)
         url = reverse("goods:good", kwargs={"pk": good_on_app.good.id})
         data = {"description": "some great good"}
@@ -62,7 +62,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good cannot be deleted after submission
         """
-        draft = self.create_standard_application(self.organisation)
+        draft = self.create_draft_standard_application(self.organisation)
         self.submit_application(draft)
         good = Good.objects.get()
         url = reverse("goods:good", kwargs={"pk": good.id})
@@ -74,7 +74,7 @@ class GoodTests(DataTestClient):
         """
         Tests that the good can be deleted after submission
         """
-        self.create_standard_application(self.organisation)
+        self.create_draft_standard_application(self.organisation)
         good = Good.objects.get()
         url = reverse("goods:good", kwargs={"pk": good.id})
         response = self.client.delete(url, **self.exporter_headers)
@@ -85,7 +85,7 @@ class GoodTests(DataTestClient):
         """
         Tests that goods get deleted from drafts that they were assigned to, after good deletion
         """
-        draft_two = self.create_standard_application(self.organisation)
+        draft_two = self.create_draft_standard_application(self.organisation)
 
         good = Good.objects.get()
         GoodOnApplication(good=good, application=draft_two, quantity=10, unit=Units.NAR, value=500).save()
