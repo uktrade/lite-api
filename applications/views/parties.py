@@ -24,7 +24,13 @@ class ApplicationPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     def post(self, request, application):
@@ -78,7 +84,13 @@ class ApplicationPartyView(APIView):
         return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
@@ -110,7 +122,13 @@ class ApplicationPartyView(APIView):
         return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application):
@@ -133,7 +151,13 @@ class CopyPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types(
-        [ApplicationType.STANDARD_LICENCE, ApplicationType.HMRC_QUERY, ApplicationType.EXHIBITION_CLEARANCE]
+        [
+            ApplicationType.STANDARD_LICENCE,
+            ApplicationType.HMRC_QUERY,
+            ApplicationType.EXHIBITION_CLEARANCE,
+            ApplicationType.GIFTING_CLEARANCE,
+            ApplicationType.F680_CLEARANCE,
+        ]
     )
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
