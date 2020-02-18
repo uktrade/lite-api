@@ -404,6 +404,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=datetime.now(timezone.utc),
         )
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         clc_query.save()
