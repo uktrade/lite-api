@@ -20,10 +20,11 @@ class AuditManager(GFKManager):
         from cases.models import Case
 
         target = kwargs.get("target")
-
         if isinstance(target, Case):
             # Only audit cases if they do not have status set to 'Draft'
-            if not is_case_status_draft(target.status.status):
+            if not is_case_status_draft(target.status.status) or kwargs.get("ignore_case_status", False):
+                if "ignore_case_status" in kwargs:
+                    kwargs.pop("ignore_case_status")
                 audit = super(AuditManager, self).create(*args, **kwargs)
                 actor = kwargs.get("actor")
 

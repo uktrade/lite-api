@@ -122,10 +122,18 @@ class CaseNotesViewTests(DataTestClient):
 
     def test_view_pre_submitted_case_notes_post_submit(self):
         case = self.create_draft_standard_application(self.organisation)
-        case_note = self.create_case_note(case, "This is cool text", self.exporter_user, True)
+        url = reverse("cases:case_notes", kwargs={"pk": case.id})
+        text = "Days of brutalism for case note persistence test"
+        data = {"text": text}
+        response = self.client.post(url, data, **self.exporter_headers)
+        case_note_id = response.json().get("case_note").get("id")
+
         self.submit_application(case)
 
         url = reverse("cases:case_notes", kwargs={"pk": case.id})
         response = self.client.get(url, **self.gov_headers)
 
-        self.assertIn(str(case_note.id), str(response.json()))
+        self.assertIn(case_note_id, str(response.json()))
+
+        response = self.client.get(reverse("cases:activity", kwargs={"pk": case.id}), **self.gov_headers)
+        self.assertIn(text, str(response.json()))
