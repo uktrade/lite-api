@@ -5,6 +5,7 @@ from static.management.SeedCommand import SeedCommand
 
 SEED_COMMANDS = {
     "Essential": [
+        "seedcasetypes",
         "seedcasestatuses",
         "seedrolepermissions",
         "seedcontrollistentries",
@@ -12,10 +13,10 @@ SEED_COMMANDS = {
         "seedcountries",
         "seedlayouts",
         "seedsystemflags",
-        "seedcasetypes",
     ],
     "Dev": ["seedorgusers", "temporary_give_existing_exporters_superuser_role", "seedgovusers", "seeddemodata"],
     "Tests": [
+        "seedcasetypes",
         "seedcasestatuses",
         "seedrolepermissions",
         "seeddenialreasons",
@@ -23,7 +24,6 @@ SEED_COMMANDS = {
         "seedgovusers",
         "seedlayouts",
         "seedsystemflags",
-        "seedcasetypes",
     ],
 }
 

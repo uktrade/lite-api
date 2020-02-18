@@ -4,7 +4,6 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import ApplicationType
 from applications.libraries.document_helpers import (
     upload_application_document,
     delete_application_document,
@@ -16,6 +15,7 @@ from applications.libraries.document_helpers import (
 )
 from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
+from cases.enums import CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentExporterSerializer
 from cases.libraries.delete_notifications import delete_exporter_notifications
@@ -92,7 +92,7 @@ class GoodsTypeDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types([ApplicationType.HMRC_QUERY])
+    @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @authorised_users(ExporterUser)
     def get(self, request, application, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
@@ -100,7 +100,7 @@ class GoodsTypeDocumentView(APIView):
 
     @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.HMRC_QUERY])
+    @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application, goods_type_pk):
@@ -109,7 +109,7 @@ class GoodsTypeDocumentView(APIView):
 
     @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types([ApplicationType.HMRC_QUERY])
+    @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @authorised_users(ExporterUser)
     def delete(self, request, application, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
