@@ -14,7 +14,6 @@ class EndUserAdvisoryQuery(Query):
     end_user = models.ForeignKey(Party, on_delete=models.DO_NOTHING, null=False, related_name="eua_query")
     note = models.TextField(default=None, blank=True, null=True)
     reasoning = models.TextField(default=None, blank=True, null=True)
-    copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.CASCADE)
     nature_of_business = models.TextField(default=None, blank=True, null=True)
     contact_name = models.TextField(default=None, blank=True, null=True)
     contact_email = models.EmailField(default=None, blank=True)

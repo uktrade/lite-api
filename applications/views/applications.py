@@ -3,6 +3,7 @@ from copy import deepcopy
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
+from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
@@ -22,8 +23,19 @@ from applications.libraries.application_helpers import (
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
-from applications.models import BaseApplication, HmrcQuery, SiteOnApplication
-from applications.serializers.generic_application import GenericApplicationListSerializer
+from applications.models import (
+    BaseApplication,
+    HmrcQuery,
+    SiteOnApplication,
+    GoodOnApplication,
+    CountryOnApplication,
+    ExternalLocationOnApplication,
+    PartyOnApplication,
+)
+from applications.serializers.generic_application import (
+    GenericApplicationListSerializer,
+    GenericApplicationCopySerializer,
+)
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
@@ -31,6 +43,7 @@ from conf.authentication import ExporterAuthentication, SharedAuthentication, Go
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
 from conf.permissions import assert_user_has_permission
+from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
@@ -376,3 +389,151 @@ class ApplicationDurationView(APIView):
         duration = get_default_duration(application)
 
         return JsonResponse(data={"licence_duration": duration}, status=status.HTTP_200_OK)
+
+
+class ApplicationCopy(APIView):
+    @transaction.atomic
+    def post(self, request, pk):
+        """
+        Copy an application
+        In this function we get the application and remove it's relation to itself on the database, which allows for us
+        keep most of the data in relation to the application intact.
+        """
+        self.old_application_id = pk
+        old_application = get_application(pk)
+
+        data = request.data
+
+        serializer = GenericApplicationCopySerializer(
+            data=data, context={"application_type": old_application.case_type}
+        )
+
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Deepcopy so new_application is not a pointer to old_application
+        # (if not deepcopied, any changes done on one applies to the other)
+        self.new_application = deepcopy(old_application)
+        # Clear references to parent objects, and current application instance object
+        self.strip_id_for_application_copy()
+
+        # Replace the reference and have you been informed (if required) with users answer. Also sets some defaults
+        self.new_application.name = request.data["name"]
+        self.new_application.have_you_been_informed = request.data.get("have_you_been_informed")
+        self.new_application.reference_number_on_information_form = request.data.get(
+            "reference_number_on_information_form"
+        )
+        self.new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
+        self.new_application.copy_of_id = self.old_application_id
+
+        # Remove data that should not be copied
+        self.remove_data_from_application_copy()
+
+        # Need to save here to create the pk/id for relationships
+        self.new_application.save()
+
+        # Create new foreign key connection using data from old application (this is for tables pointing to the case)
+        self.create_foreign_relations_for_new_application()
+        self.duplicate_goodstypes_for_new_application()
+
+        # Get all parties connected to the application and produce a copy (and replace reference for each one)
+        self.duplicate_parties_on_new_application()
+
+        # Save
+        self.new_application.created_at = now()
+        self.new_application.save()
+        return JsonResponse(data={"data": self.new_application.id}, status=status.HTTP_201_CREATED)
+
+    def strip_id_for_application_copy(self):
+        """
+        The current object id and pk need removed, and the pointers otherwise save() will determine the object exists
+        """
+        self.new_application.pk = None
+        self.new_application.id = None
+        self.new_application.case_ptr = None
+        self.new_application.base_application_ptr = None
+
+    def remove_data_from_application_copy(self):
+        """
+        Removes data of fields that are stored on the case model, and we wish not to copy.
+        """
+        set_none = [
+            "case_officer",
+            "reference_code",
+            "submitted_at",
+            "licence_duration",
+        ]
+        for attribute in set_none:
+            setattr(self.new_application, attribute, None)
+
+    def duplicate_parties_on_new_application(self):
+        """
+        Generates a copy of each party, and recreates any old application Party relations using the new copied party.
+        Deleted parties are not copied over.
+        """
+        party_on_old_application = PartyOnApplication.objects.filter(
+            application_id=self.old_application_id, deleted_at__isnull=True
+        )
+        for old_party_on_app in party_on_old_application:
+            old_party_on_app.pk = None
+            old_party_on_app.id = None
+
+            # copy party
+            old_party_id = old_party_on_app.party.id
+            party = old_party_on_app.party
+            party.id = None
+            party.pk = None
+            if not party.copy_of:
+                party.copy_of_id = old_party_id
+            party.created_at = now()
+            party.save()
+
+            old_party_on_app.party = party
+            old_party_on_app.application = self.new_application
+            old_party_on_app.created_at = now()
+            old_party_on_app.save()
+
+    def create_foreign_relations_for_new_application(self):
+        """
+        Recreates any connections from foreign tables existing on the current application,
+         we wish to move to the new application.
+        """
+        # This is the super set of all many to many related objects for ALL application types.
+        # The loop below caters for the possibility that any of the relationships are not relevant to the current
+        #  application type
+        relationships = [
+            GoodOnApplication,
+            SiteOnApplication,
+            CountryOnApplication,
+            ExternalLocationOnApplication,
+        ]
+
+        for relation in relationships:
+            old_application_relation_results = relation.objects.filter(application_id=self.old_application_id).all()
+
+            for result in old_application_relation_results:
+                result.pk = None
+                result.id = None
+                result.application = self.new_application
+                # Some models listed above are not inheriting timestampable models,
+                # as such we need to ensure created_at exists
+                if getattr(result, "created_at", False):
+                    result.created_at = now()
+                result.save()
+
+    def duplicate_goodstypes_for_new_application(self):
+        """
+        Creates a duplicate GoodsType and attaches it to the new application if applicable.
+        """
+        # GoodsType has more logic than in "create_foreign_relations_for_new_application",
+        # such as listing the countries on the goodstype, and flags as such it is seperated.
+        for good in GoodsType.objects.filter(application_id=self.old_application_id).all():
+            old_good_countries = list(good.countries.all())
+            old_good_flags = list(good.flags.all())
+            good.pk = None
+            good.id = None
+            good.application = self.new_application
+            good.created_at = now()
+            good.save()
+            good.countries.set(old_good_countries)
+            good.flags.set(old_good_flags)
