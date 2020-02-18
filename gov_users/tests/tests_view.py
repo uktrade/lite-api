@@ -19,14 +19,14 @@ class GovUserViewTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["gov_users"]), self.gov_user_preexisting_count + 1)
+        self.assertEqual(len(response_data["results"]), self.gov_user_preexisting_count + 1)
 
     def test_filter_users(self):
         response = self.client.get(reverse("gov_users:gov_users") + "?teams=" + str(self.team.id), **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["gov_users"]), self.gov_user_preexisting_count)
+        self.assertEqual(len(response_data["results"]), self.gov_user_preexisting_count)
 
     def test_filter_users_by_multiple_teams(self):
         response = self.client.get(
@@ -36,18 +36,43 @@ class GovUserViewTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data["gov_users"]), self.gov_user_preexisting_count + 1)
+        self.assertEqual(len(response_data["results"]), self.gov_user_preexisting_count + 1)
 
-    def test_dont_get_deactivated_users(self):
+    def test_get_active_users(self):
         self.user.status = UserStatuses.DEACTIVATED
         self.user.save()
 
-        self.url = reverse("gov_users:gov_users") + "?activated=True"
+        self.url = reverse("gov_users:gov_users") + f"?status={UserStatuses.ACTIVE}"
 
         response = self.client.get(self.url, **self.gov_headers)
-
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(len(response_data["gov_users"]), self.gov_user_preexisting_count)
+        self.assertEqual(len(response_data["results"]), GovUser.objects.filter(status=UserStatuses.ACTIVE).count())
+
+    def test_get_all_users(self):
+        self.user.status = UserStatuses.DEACTIVATED
+        self.user.save()
+
+        self.url = reverse("gov_users:gov_users") + "?status="
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(len(response_data["results"]), GovUser.objects.count())
+
+    def test_get_deactivated_users(self):
+        self.user.status = UserStatuses.DEACTIVATED
+        self.user.save()
+
+        self.url = reverse("gov_users:gov_users") + f"?status={UserStatuses.DEACTIVATED}"
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(len(response_data["results"]), GovUser.objects.filter(status=UserStatuses.DEACTIVATED).count())
