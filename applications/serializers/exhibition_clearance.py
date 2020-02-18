@@ -30,16 +30,15 @@ class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicati
 class ExhibitionClearanceCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.EXHIBITION_CLEARANCE
+        self.initial_data["case_type"] = CaseTypeEnum.EXHIBITION.id
 
     class Meta:
         model = ExhibitionClearanceApplication
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "organisation",
-            "type",
             "status",
         )
 

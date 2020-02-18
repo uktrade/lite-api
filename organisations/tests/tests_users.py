@@ -22,7 +22,7 @@ class OrganisationUsersViewTests(DataTestClient):
         self.create_organisation_with_exporter_user("New Org")
 
         response = self.client.get(self.url, **self.exporter_headers)
-        response_data = response.json()["users"]
+        response_data = response.json()["results"]["users"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
