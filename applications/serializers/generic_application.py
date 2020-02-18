@@ -12,6 +12,7 @@ from applications.enums import (
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import CaseType
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
@@ -238,3 +239,41 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return data
+
+
+class GenericApplicationCopySerializer(serializers.ModelSerializer):
+    """
+    Serializer for copying applications that can handle any application type
+
+    This is only used to verify the fields are correct that the user passes in, we then process the rest of the
+     copy after validation
+    """
+
+    name = serializers.CharField(allow_null=False, allow_blank=False)
+    have_you_been_informed = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    reference_number_on_information_form = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=255
+    )
+
+    class Meta:
+        model = BaseApplication
+        fields = (
+            "name",
+            "have_you_been_informed",
+            "reference_number_on_information_form",
+        )
+
+    def __init__(self, context=None, *args, **kwargs):
+
+        if context and context.get("application_type").sub_type == CaseTypeSubTypeEnum.STANDARD:
+            self.fields["have_you_been_informed"] = KeyValueChoiceField(
+                required=True,
+                choices=ApplicationExportLicenceOfficialType.choices,
+                error_messages={"required": strings.Goods.INFORMED},
+            )
+            if kwargs.get("data").get("have_you_been_informed") == ApplicationExportLicenceOfficialType.YES:
+                self.fields["reference_number_on_information_form"] = serializers.CharField(
+                    required=True, allow_blank=True, max_length=255
+                )
+
+        super().__init__(*args, **kwargs)
