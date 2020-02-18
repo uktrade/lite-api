@@ -7,8 +7,6 @@ from applications.libraries.application_helpers import can_status_be_set_by_gov_
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
-from cases.generated_documents.models import GeneratedCaseDocument
-from cases.generated_documents.serializers import GeneratedCaseDocumentExporterSerializer
 from conf import constants
 from conf.authentication import ExporterAuthentication, GovAuthentication
 from conf.helpers import str_to_bool

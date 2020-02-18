@@ -11,14 +11,10 @@ from applications.libraries.document_helpers import (
     upload_goods_type_document,
     delete_goods_type_document,
     get_goods_type_document,
-    get_generated_case_document,
 )
 from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from cases.enums import CaseTypeSubTypeEnum
-from cases.generated_documents.models import GeneratedCaseDocument
-from cases.generated_documents.serializers import GeneratedCaseDocumentExporterSerializer
-from cases.libraries.delete_notifications import delete_exporter_notifications
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_users,
