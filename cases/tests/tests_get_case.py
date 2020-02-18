@@ -8,7 +8,7 @@ from test_helpers.clients import DataTestClient
 class CaseGetTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
 
     def test_case_returns_expected_third_party(self):
         """

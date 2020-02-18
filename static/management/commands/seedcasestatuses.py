@@ -1,6 +1,7 @@
 from django.db import transaction
 
 from cases.enums import CaseTypeEnum
+from conf import settings
 from static.management.SeedCommand import SeedCommand
 
 from static.statuses.models import CaseStatus, CaseStatusCaseType
@@ -50,4 +51,5 @@ class Command(SeedCommand):
 
                     if not case_status_case_type.exists():
                         CaseStatusCaseType.objects.create(**case_to_status_data)
-                        print(f"CREATED {CaseStatusCaseType.__name__}: {case_to_status_data}")
+                        if not settings.SUPPRESS_TEST_OUTPUT:
+                            print(f"CREATED {CaseStatusCaseType.__name__}: {case_to_status_data}")

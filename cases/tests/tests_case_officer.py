@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 class CaseOfficerTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
         self.case = self.submit_application(self.standard_application)
         self.user = self.create_gov_user("new_user@their.email.com", self.team)
         self.url = reverse("cases:case_officer", kwargs={"pk": self.case.id})

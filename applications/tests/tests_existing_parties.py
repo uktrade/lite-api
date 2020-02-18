@@ -11,7 +11,7 @@ from test_helpers.clients import DataTestClient
 class GetExistingPartiesTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_application(self.organisation)
+        self.draft = self.create_draft_standard_application(self.organisation)
         self.url = reverse("applications:existing_parties", kwargs={"pk": self.draft.id})
         self.country = Country.objects.first()
         self.parties = [
