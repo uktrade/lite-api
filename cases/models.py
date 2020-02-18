@@ -4,7 +4,13 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
 
-from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
+from cases.enums import (
+    AdviceType,
+    CaseDocumentState,
+    CaseTypeTypeEnum,
+    CaseTypeSubTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager
 from common.models import TimestampableModel
@@ -27,6 +33,15 @@ from users.models import (
 )
 
 
+class CaseType(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35,)
+    sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35,)
+    reference = models.CharField(
+        choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=5,
+    )
+
+
 class Case(TimestampableModel):
     """
     Base model for applications and queries
@@ -34,7 +49,7 @@ class Case(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, null=True, blank=False, editable=False, default=None)
-    type = models.CharField(choices=CaseTypeEnum.choices, max_length=35)
+    case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=False, blank=False)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
@@ -43,6 +58,7 @@ class Case(TimestampableModel):
         CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
     )
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
+    copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
 
     objects = CaseManager()
 
@@ -296,8 +312,3 @@ class GoodCountryDecision(TimestampableModel):
         GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
-
-
-class CaseType(models.Model):
-    id = models.CharField(primary_key=True, editable=False, max_length=30)
-    name = models.CharField(choices=CaseTypeEnum.choices, null=False, max_length=35)

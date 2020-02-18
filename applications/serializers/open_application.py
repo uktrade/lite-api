@@ -43,17 +43,16 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.APPLICATION
+        self.initial_data["case_type"] = CaseTypeEnum.OIEL.id  # TODO: LT-874 - GET CORRECT TYPE FROM INITIAL QUESTIONS
 
     class Meta:
         model = OpenApplication
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "export_type",
             "organisation",
-            "type",
             "status",
         )
 

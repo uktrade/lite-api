@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from rest_framework import serializers
 
-from applications.enums import ApplicationType
+from cases.enums import CaseTypeSubTypeEnum
 from parties.enums import PartyType
 from parties.serializers import PartySerializer
 
@@ -45,7 +45,7 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
                 self.__cache[party["type"]].append(party)
 
     def __parties(self, instance, party_type):
-        if not ApplicationType.has_parties(instance.application_type):
+        if not CaseTypeSubTypeEnum.has_parties(instance.case_type.sub_type):
             return
 
         if self.__cache and isinstance(self.__cache, defaultdict):

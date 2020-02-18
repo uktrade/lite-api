@@ -5,7 +5,6 @@ from rest_framework.fields import CharField
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import (
-    ApplicationType,
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     LicenceDuration,
@@ -13,6 +12,8 @@ from applications.enums import (
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
+from cases.enums import CaseTypeSubTypeEnum
+from cases.models import CaseType
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import GovUserSimpleSerializer
@@ -42,7 +43,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         allow_null=False,
         error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
-    application_type = KeyValueChoiceField(choices=ApplicationType.choices)
+    case_type = serializers.SerializerMethodField()
     export_type = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     organisation = OrganisationDetailSerializer()
@@ -57,7 +58,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "organisation",
-            "application_type",
+            "case_type",
             "export_type",
             "created_at",
             "updated_at",
@@ -91,6 +92,11 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
         return None
+
+    def get_case_type(self, instance):
+        from cases.serializers import CaseTypeSerializer
+
+        return CaseTypeSerializer(instance.case_type).data
 
     def get_case(self, instance):
         return instance.pk
@@ -160,8 +166,8 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         allow_null=False,
         error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
-    application_type = KeyValueChoiceField(
-        choices=ApplicationType.choices, error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
+    case_type = PrimaryKeyRelatedField(
+        queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
     )
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
@@ -177,7 +183,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
@@ -233,3 +239,41 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return data
+
+
+class GenericApplicationCopySerializer(serializers.ModelSerializer):
+    """
+    Serializer for copying applications that can handle any application type
+
+    This is only used to verify the fields are correct that the user passes in, we then process the rest of the
+     copy after validation
+    """
+
+    name = serializers.CharField(allow_null=False, allow_blank=False)
+    have_you_been_informed = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    reference_number_on_information_form = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=255
+    )
+
+    class Meta:
+        model = BaseApplication
+        fields = (
+            "name",
+            "have_you_been_informed",
+            "reference_number_on_information_form",
+        )
+
+    def __init__(self, context=None, *args, **kwargs):
+
+        if context and context.get("application_type").sub_type == CaseTypeSubTypeEnum.STANDARD:
+            self.fields["have_you_been_informed"] = KeyValueChoiceField(
+                required=True,
+                choices=ApplicationExportLicenceOfficialType.choices,
+                error_messages={"required": strings.Goods.INFORMED},
+            )
+            if kwargs.get("data").get("have_you_been_informed") == ApplicationExportLicenceOfficialType.YES:
+                self.fields["reference_number_on_information_form"] = serializers.CharField(
+                    required=True, allow_blank=True, max_length=255
+                )
+
+        super().__init__(*args, **kwargs)

@@ -1,11 +1,11 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.enums import ApplicationType, LicenceDuration
+from applications.enums import LicenceDuration
 from applications.libraries.licence import get_default_duration
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
-from cases.enums import AdviceType
+from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.models import CaseAssignment
 from conf.constants import GovPermissions
 from static.statuses.enums import CaseStatusEnum
@@ -37,7 +37,7 @@ class FinaliseApplicationTests(DataTestClient):
 
     def test_gov_user_finalise_clearance_application_success(self):
         clearance_application = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
+            self.organisation, case_type=CaseTypeEnum.EXHIBITION
         )
 
         self.gov_user.role = self.role
@@ -62,7 +62,7 @@ class FinaliseApplicationTests(DataTestClient):
          permission.
         """
         clearance_application = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
+            self.organisation, case_type=CaseTypeEnum.EXHIBITION
         )
 
         self.gov_user.role = self.role

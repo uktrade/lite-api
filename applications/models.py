@@ -2,14 +2,9 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
-from separatedvaluesfield.models import SeparatedValuesField
 
-from applications.enums import (
-    ApplicationType,
-    ApplicationExportType,
-    ApplicationExportLicenceOfficialType,
-    GoodsCategory,
-)
+from separatedvaluesfield.models import SeparatedValuesField
+from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
 from common.models import TimestampableModel
@@ -130,7 +125,6 @@ class ApplicationPartyMixin:
 
 class BaseApplication(ApplicationPartyMixin, Case):
     name = models.TextField(default=None, blank=True, null=True)
-    application_type = models.CharField(choices=ApplicationType.choices, default=None, max_length=50)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
     licence_duration = models.IntegerField(default=None, null=True, help_text="Set when application finalised")
@@ -141,7 +135,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
 # Export Licence Applications
 class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
-    reference_number_on_information_form = models.TextField(blank=True, null=True)
+    reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50,
     )
