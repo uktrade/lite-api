@@ -58,7 +58,7 @@ class Case(TimestampableModel):
         CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
     )
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
-    copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.CASCADE)
+    copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
 
     objects = CaseManager()
 
