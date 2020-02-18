@@ -9,6 +9,7 @@ from letter_templates.helpers import get_css_location, generate_preview, markdow
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 
+
 font_config = FontConfiguration()
 GeneratedDocumentPayload = namedtuple("GeneratedDocumentPayload", "case template document_html text")
 
