@@ -54,7 +54,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy a standard application that has been submitted (ongoing or not)
         """
-        self.original_application = self.create_draft_standard_application_case(self.organisation)
+        self.original_application = self.create_standard_application_case(self.organisation)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
