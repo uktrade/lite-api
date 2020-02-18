@@ -7,22 +7,22 @@ from rest_framework.views import APIView
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseDocumentState
-from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data, \
-    get_generated_documents_for_exporter
+from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer, \
     GeneratedCaseDocumentExporterSerializer
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.models import Case
-from conf.authentication import GovAuthentication, ExporterAuthentication, SharedAuthentication
-from conf.exceptions import PermissionDeniedError
+from conf.authentication import GovAuthentication, SharedAuthentication
+from conf.decorators import authorised_users
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
 from users.enums import UserType
+from users.models import GovUser
 
 
 class GeneratedDocument(generics.RetrieveAPIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     queryset = GeneratedCaseDocument.objects.all()
     serializer_class = GeneratedCaseDocumentGovSerializer
 
@@ -34,8 +34,6 @@ class GeneratedDocuments(generics.ListAPIView):
     def get_queryset(self):
         case = Case.objects.get(id=self.kwargs["pk"])
         user = self.request.user
-        if case.organisation != user.organisation:
-            raise PermissionDeniedError(detail="You do not have access to that case")
 
         documents = GeneratedCaseDocument.objects.filter(case=case)
         if user.type == UserType.EXPORTER:
@@ -45,13 +43,11 @@ class GeneratedDocuments(generics.ListAPIView):
         return documents
 
     @transaction.atomic
+    @authorised_users(GovUser)
     def post(self, request, pk):
         """
         Create a generated document
         """
-        if request.user.type != UserType.INTERNAL:
-            raise PermissionDeniedError("Only internal users can create generated documents")
-
         try:
             document = get_generated_document_data(request.data, pk)
         except AttributeError as e:
