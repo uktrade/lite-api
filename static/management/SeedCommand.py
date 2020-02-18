@@ -7,6 +7,8 @@ from django.db import transaction, models, IntegrityError
 from django.db.models import QuerySet
 from django.test import TestCase
 
+from conf import settings
+
 
 class SeedCommand(ABC, BaseCommand):
     """
@@ -28,15 +30,17 @@ class SeedCommand(ABC, BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        self.stdout.write(
-            self.style.WARNING(f"\n=============================\n{self.info}\n=============================\n")
-        )
+        if not settings.SUPPRESS_TEST_OUTPUT:
+            self.stdout.write(
+                self.style.WARNING(f"\n=============================\n{self.info}\n=============================\n")
+            )
         try:
             self.operation(*args, **options)
         except Exception as error:  # noqa
             self.stdout.write(self.style.ERROR(error.message if hasattr(error, "message") else error))
             exit(1)
-        self.stdout.write(self.style.SUCCESS(f"\n{self.success}\n"))
+        if not settings.SUPPRESS_TEST_OUTPUT:
+            self.stdout.write(self.style.SUCCESS(f"\n{self.success}\n"))
 
     @staticmethod
     def read_csv(filename: str):
@@ -66,7 +70,8 @@ class SeedCommand(ABC, BaseCommand):
             obj = model.objects.filter(id=obj_id)
             if not obj.exists():
                 model.objects.create(**row)
-                print(f"CREATED {model.__name__}: {dict(row)}")
+                if not settings.SUPPRESS_TEST_OUTPUT:
+                    print(f"CREATED {model.__name__}: {dict(row)}")
             else:
                 SeedCommand.update_if_not_equal(obj, row)
 
@@ -78,7 +83,8 @@ class SeedCommand(ABC, BaseCommand):
         obj = obj.exclude(**attributes)
         if obj.exists():
             obj.update(**attributes)
-            print(f"UPDATED {obj.model.__name__}: {dict(row)}")
+            if not settings.SUPPRESS_TEST_OUTPUT:
+                print(f"UPDATED {obj.model.__name__}: {dict(row)}")
 
     @staticmethod
     def delete_unused_objects(model: models.Model, rows: list):
@@ -94,9 +100,11 @@ class SeedCommand(ABC, BaseCommand):
             if id not in ids:
                 try:
                     obj.delete()
-                    print(f"Unused object deleted {id} from {model.__name__}")
+                    if not settings.SUPPRESS_TEST_OUTPUT:
+                        print(f"Unused object deleted {id} from {model.__name__}")
                 except IntegrityError:
-                    print(f"Object {id} could not be deleted due to foreign key constraint")
+                    if not settings.SUPPRESS_TEST_OUTPUT:
+                        print(f"Object {id} could not be deleted due to foreign key constraint")
 
 
 class SeedCommandTest(TestCase):
@@ -107,4 +115,5 @@ class SeedCommandTest(TestCase):
     def seed_command(self, seed_class):
         out = StringIO()
         call_command(seed_class.seed_command, stdout=out)
-        self.assertIn(seed_class.success, out.getvalue())
+        if not settings.SUPPRESS_TEST_OUTPUT:
+            self.assertIn(seed_class.success, out.getvalue())
