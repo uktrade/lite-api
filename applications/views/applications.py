@@ -405,7 +405,7 @@ class ApplicationCopy(APIView):
         data = request.data
 
         serializer = GenericApplicationCopySerializer(
-            data=data, context={"application_type": old_application.application_type}
+            data=data, context={"application_type": old_application.case_type}
         )
 
         if not serializer.is_valid():

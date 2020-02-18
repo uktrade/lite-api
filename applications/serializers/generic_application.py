@@ -12,6 +12,7 @@ from applications.enums import (
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import CaseType
 from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
@@ -264,7 +265,7 @@ class GenericApplicationCopySerializer(serializers.ModelSerializer):
 
     def __init__(self, context=None, *args, **kwargs):
 
-        if context and context.get("application_type") == ApplicationType.STANDARD_LICENCE:
+        if context and context.get("application_type") == CaseTypeSubTypeEnum.STANDARD:
             self.fields["have_you_been_informed"] = KeyValueChoiceField(
                 required=True,
                 choices=ApplicationExportLicenceOfficialType.choices,

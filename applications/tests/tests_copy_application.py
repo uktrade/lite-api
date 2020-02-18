@@ -3,7 +3,7 @@ from uuid import uuid4
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
-from applications.enums import ApplicationExportLicenceOfficialType, ApplicationType
+from applications.enums import ApplicationExportLicenceOfficialType
 from applications.models import (
     StandardApplication,
     OpenApplication,
@@ -15,6 +15,7 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
+from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
 from static.statuses.enums import CaseStatusEnum
@@ -119,7 +120,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an exhibition application that is a draft
         """
         self.original_application = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
+            self.organisation, CaseTypeEnum.EXHIBITION
         )
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -141,7 +142,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
         self.original_application = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.EXHIBITION_CLEARANCE
+            self.organisation, CaseTypeEnum.EXHIBITION
         )
         self.submit_application(self.original_application)
 
@@ -164,7 +165,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an exhibition application that is a draft
         """
         self.original_application = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.GIFTING_CLEARANCE
+            self.organisation, CaseTypeEnum.GIFTING
         )
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -186,7 +187,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
         self.original_application = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.GIFTING_CLEARANCE
+            self.organisation, CaseTypeEnum.GIFTING
         )
         self.submit_application(self.original_application)
 
@@ -209,7 +210,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an exhibition application that is a draft
         """
         self.original_application = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.F680_CLEARANCE
+            self.organisation, CaseTypeEnum.F680
         )
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -231,7 +232,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
         self.original_application = self.create_mod_clearance_application(
-            self.organisation, type=ApplicationType.F680_CLEARANCE
+            self.organisation, CaseTypeEnum.F680
         )
         self.submit_application(self.original_application)
 
