@@ -1,7 +1,7 @@
 import logging
 import time
 import uuid
-
+from django.db import connection
 
 class LoggingMiddleware:
     def __init__(self, get_response=None):
@@ -22,6 +22,32 @@ class LoggingMiddleware:
                 "method": request.method,
                 "url": request.path,
                 "elapsed_time": time.time() - start,
+            }
+        )
+
+        return response
+
+
+class DBLoggingMiddleware:
+    def __init__(self, get_response=None):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        correlation = None
+        start = time.time()
+        initial_queries = connection.queries
+        response = self.get_response(request)
+        final_queries = connection.queries
+
+        logging.info(
+            {
+                "message": "liteolog api",
+                "corrID": request.correlation,
+                "type": "db details",
+                "elapsed_time": time.time() - start,
+                "initial query count": len(initial_queries),
+                "final query count": len(final_queries),
+
             }
         )
 
