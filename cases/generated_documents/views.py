@@ -23,8 +23,10 @@ from users.models import GovUser
 
 class GeneratedDocument(generics.RetrieveAPIView):
     authentication_classes = (GovAuthentication,)
-    queryset = GeneratedCaseDocument.objects.all()
     serializer_class = GeneratedCaseDocumentGovSerializer
+
+    def get_object(self):
+        return GeneratedCaseDocument.objects.get(id=self.kwargs["dpk"], case=self.kwargs["pk"])
 
 
 class GeneratedDocuments(generics.ListAPIView):
