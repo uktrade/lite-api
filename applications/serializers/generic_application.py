@@ -265,7 +265,7 @@ class GenericApplicationCopySerializer(serializers.ModelSerializer):
 
     def __init__(self, context=None, *args, **kwargs):
 
-        if context and context.get("application_type") == CaseTypeSubTypeEnum.STANDARD:
+        if context and context.get("application_type").sub_type == CaseTypeSubTypeEnum.STANDARD:
             self.fields["have_you_been_informed"] = KeyValueChoiceField(
                 required=True,
                 choices=ApplicationExportLicenceOfficialType.choices,
