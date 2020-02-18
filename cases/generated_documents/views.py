@@ -9,8 +9,10 @@ from audit_trail.payload import AuditType
 from cases.enums import CaseDocumentState
 from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer, \
-    GeneratedCaseDocumentExporterSerializer
+from cases.generated_documents.serializers import (
+    GeneratedCaseDocumentGovSerializer,
+    GeneratedCaseDocumentExporterSerializer,
+)
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.models import Case
 from conf.authentication import GovAuthentication, SharedAuthentication
@@ -39,9 +41,7 @@ class GeneratedDocuments(generics.ListAPIView):
 
         documents = GeneratedCaseDocument.objects.filter(case=case)
         if user.type == UserType.EXPORTER:
-            delete_exporter_notifications(
-                user=user, organisation=user.organisation, objects=documents
-            )
+            delete_exporter_notifications(user=user, organisation=user.organisation, objects=documents)
         return documents
 
     @transaction.atomic
