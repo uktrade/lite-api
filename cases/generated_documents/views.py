@@ -12,17 +12,11 @@ from cases.generated_documents.helpers import html_to_pdf, get_generated_documen
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer, \
     GeneratedCaseDocumentExporterSerializer
-from conf.authentication import GovAuthentication, ExporterAuthentication
+from conf.authentication import GovAuthentication, ExporterAuthentication, SharedAuthentication
+from conf.exceptions import PermissionDeniedError
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
-
-
-class ExporterViewGeneratedDocuments(generics.ListAPIView):
-    authentication_classes = (ExporterAuthentication,)
-    serializer_class = GeneratedCaseDocumentExporterSerializer
-
-    def get_queryset(self):
-        return get_generated_documents_for_exporter(self.kwargs["pk"], self.request.user, many=True)
+from users.enums import UserType
 
 
 class GeneratedDocument(generics.RetrieveAPIView):
@@ -31,14 +25,21 @@ class GeneratedDocument(generics.RetrieveAPIView):
     serializer_class = GeneratedCaseDocumentGovSerializer
 
 
-class InternalViewGeneratedDocuments(APIView):
-    authentication_classes = (GovAuthentication,)
+class GeneratedDocuments(generics.ListAPIView):
+    authentication_classes = (SharedAuthentication,)
+    serializer_class = GeneratedCaseDocumentExporterSerializer
+
+    def get_queryset(self):
+        return get_generated_documents_for_exporter(self.kwargs["pk"], self.request.user, many=True)
 
     @transaction.atomic
     def post(self, request, pk):
         """
         Create a generated document
         """
+        if request.user.type != UserType.INTERNAL:
+            raise PermissionDeniedError("Only internal users can create generated documents")
+
         try:
             document = get_generated_document_data(request.data, pk)
         except AttributeError as e:
