@@ -22,7 +22,7 @@ from users.models import GovUser
 
 
 class GeneratedDocument(generics.RetrieveAPIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (GovAuthentication,)
     queryset = GeneratedCaseDocument.objects.all()
     serializer_class = GeneratedCaseDocumentGovSerializer
 
