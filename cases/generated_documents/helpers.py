@@ -11,7 +11,7 @@ from conf.exceptions import NotFoundError, PermissionDeniedError
 from letter_templates.helpers import get_css_location, generate_preview, markdown_to_html
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
-
+from users.enums import UserType
 
 font_config = FontConfiguration()
 GeneratedDocumentPayload = namedtuple("GeneratedDocumentPayload", "case template document_html text")
@@ -62,9 +62,10 @@ def get_generated_documents_for_exporter(case_pk, user, many=True):
         raise PermissionDeniedError(detail="You do not have access to that case")
     if many:
         documents = GeneratedCaseDocument.objects.filter(case=case)
-        delete_exporter_notifications(
-            user=user, organisation=user.organisation, objects=documents
-        )
+        if user.type == UserType.EXPORTER:
+            delete_exporter_notifications(
+                user=user, organisation=user.organisation, objects=documents
+            )
     else:
         documents = GeneratedCaseDocument.objects.get(case=case)
     return documents
