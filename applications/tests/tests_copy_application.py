@@ -119,9 +119,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an exhibition application that is a draft
         """
-        self.original_application = self.create_mod_clearance_application(
-            self.organisation, CaseTypeEnum.EXHIBITION
-        )
+        self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -141,9 +139,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
-        self.original_application = self.create_mod_clearance_application(
-            self.organisation, CaseTypeEnum.EXHIBITION
-        )
+        self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(self.original_application)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -164,9 +160,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an exhibition application that is a draft
         """
-        self.original_application = self.create_mod_clearance_application(
-            self.organisation, CaseTypeEnum.GIFTING
-        )
+        self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.GIFTING)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -186,9 +180,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
-        self.original_application = self.create_mod_clearance_application(
-            self.organisation, CaseTypeEnum.GIFTING
-        )
+        self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.GIFTING)
         self.submit_application(self.original_application)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -209,9 +201,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an exhibition application that is a draft
         """
-        self.original_application = self.create_mod_clearance_application(
-            self.organisation, CaseTypeEnum.F680
-        )
+        self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -231,9 +221,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
-        self.original_application = self.create_mod_clearance_application(
-            self.organisation, CaseTypeEnum.F680
-        )
+        self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
         self.submit_application(self.original_application)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
