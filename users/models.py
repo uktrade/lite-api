@@ -16,7 +16,7 @@ from users.managers import InternalManager, ExporterManager
 
 
 class Permission(models.Model):
-    id = models.CharField(primary_key=True, editable=False, max_length=30)
+    id = models.CharField(primary_key=True, editable=False, max_length=35)
     name = models.CharField(default="permission - FIX", max_length=80)
     # For convenience using UserType as a proxy for Permission Type
     type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
@@ -105,7 +105,7 @@ class BaseNotification(models.Model):
     # All notifications are currently linked to a case
     case = models.ForeignKey("cases.Case", on_delete=models.CASCADE, null=False)
 
-    # Generic Foriegn Key Fields
+    # Generic Foreign Key Fields (case notes, ecju queries, generated documents)
     content_type = models.ForeignKey(ContentType, default=None, on_delete=models.CASCADE)
     object_id = models.UUIDField(default=uuid.uuid4)
     content_object = GenericForeignKey("content_type", "object_id")

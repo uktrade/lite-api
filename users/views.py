@@ -1,8 +1,6 @@
-from functools import reduce
-from operator import or_
 from uuid import UUID
 
-from django.db.models import Count, Q
+from django.db.models import Count, CharField, Value, QuerySet
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
@@ -11,10 +9,10 @@ from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
+from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
-from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
@@ -25,7 +23,6 @@ from users.models import ExporterUser, ExporterNotification
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
-    ExporterNotificationSerializer,
 )
 
 
@@ -147,31 +144,46 @@ class NotificationViewSet(APIView):
     authentication_classes = (ExporterAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = ExporterNotification.objects.all()
-    serializer_class = ExporterNotificationSerializer
 
     def get(self, request):
-        data = {}
-        queryset = ExporterNotification.objects.filter(user=request.user, organisation=request.user.organisation)
+        """
+        Count the number of application, eua_query and goods_query exporter user notifications
+        """
+        notification_queryset = self.queryset.filter(user=request.user, organisation=request.user.organisation)
+        application_queryset = self._build_queryset(
+            queryset=notification_queryset,
+            filter=dict(case__case_type__type=CaseTypeTypeEnum.APPLICATION),
+            type=CaseTypeTypeEnum.APPLICATION,
+        )
+        eua_query_queryset = self._build_queryset(
+            queryset=notification_queryset,
+            filter=dict(case__case_type__sub_type=CaseTypeSubTypeEnum.EUA),
+            type=CaseTypeSubTypeEnum.EUA,
+        )
+        goods_query_queryset = self._build_queryset(
+            queryset=notification_queryset,
+            filter=dict(case__case_type__sub_type=CaseTypeSubTypeEnum.GOODS),
+            type=CaseTypeSubTypeEnum.GOODS,
+        )
+        notification_queryset = application_queryset.union(eua_query_queryset).union(goods_query_queryset)
 
-        # Iterate through the case types and build an 'OR' queryset
-        # to get notifications matching different case types
-        case_types = request.GET.getlist("case_type")
-        if case_types:
-            queries = [Q(case__type=case_type) for case_type in case_types]
-            # Collapses the queries list into a usable filter
-            queryset = queryset.filter(reduce(or_, queries))
-
-        # Count the number of notifications for each type
-        count_queryset = queryset.values("case__type").annotate(total=Count("case__type"))
-        data["notification_count"] = {
-            content_type["case__type"]: content_type["total"] for content_type in count_queryset
-        }
-
-        # Serialize notifications
-        if not str_to_bool(request.GET.get("count_only")):
-            data["notifications"] = ExporterNotificationSerializer(queryset, many=True).data
-
+        data = {"notifications": {row["type"]: row["count"] for row in notification_queryset}}
         return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def _build_queryset(queryset: QuerySet, filter: dict, type: str) -> QuerySet:
+        """
+        :param queryset: An ExporterNotification QuerySet
+        :param filter: Additional filter containing 1 key-value pair
+        :param type: An annotated static field in the queryset
+        :return: An ExporterNotification QuerySet containing only the type and count of rows found matching the filter
+        """
+        return (
+            queryset.filter(**filter)
+            .values(list(filter)[0])
+            .annotate(type=Value(type, CharField()), count=Count("case"))
+            .values("type", "count")
+        )
 
 
 class AssignSites(UpdateAPIView):

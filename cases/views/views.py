@@ -9,10 +9,10 @@ from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases import service
 from cases.helpers import create_grouped_advice
+from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
-from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -44,7 +44,7 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents
-from parties.serializers import PartyWithFlagsSerializer
+from parties.serializers import PartySerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -303,7 +303,7 @@ class CaseFinalAdvice(APIView):
         Concatenates all advice for a case and returns it or just returns if team advice already exists
         """
         if len(self.final_advice) == 0:
-            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
             create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
 
@@ -322,14 +322,14 @@ class CaseFinalAdvice(APIView):
         """
         Creates advice for a case
         """
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         return post_advice(request, self.case, self.serializer_object, team=True)
 
     def delete(self, request, pk):
         """
         Clears team level advice and reopens the advice for user level for that team
         """
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         self.final_advice.delete()
         audit_trail_service.create(
             actor=request.user, verb=AuditType.CLEARED_FINAL_ADVICE, target=self.case,
@@ -426,14 +426,14 @@ class GoodsCountriesDecisions(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         goods_countries = GoodCountryDecision.objects.filter(case=pk)
         serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
 
         return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         data = JSONParser().parse(request).get("good_countries")
 
         serializer = GoodCountryDecisionSerializer(data=data, many=True)
@@ -458,7 +458,7 @@ class Destination(APIView):
         if isinstance(destination, Country):
             serializer = CountryWithFlagsSerializer(destination)
         else:
-            serializer = PartyWithFlagsSerializer(destination)
+            serializer = PartySerializer(destination)
 
         return JsonResponse(data={"destination": serializer.data}, status=status.HTTP_200_OK)
 

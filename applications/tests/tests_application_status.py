@@ -14,7 +14,7 @@ from users.libraries.user_to_token import user_to_token
 class ApplicationManageStatusTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
         self.submit_application(self.standard_application)
         self.url = reverse("applications:manage_status", kwargs={"pk": self.standard_application.id})
 
@@ -150,7 +150,10 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["status"], str(surrendered_status.pk))
+        self.assertEqual(
+            response_data["status"],
+            {"key": surrendered_status.status, "value": CaseStatusEnum.get_text(surrendered_status.status)},
+        )
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SURRENDERED))
 
     def test_exporter_set_application_status_surrendered_no_licence_failure(self):
@@ -185,7 +188,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.json(), {"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]})
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
-    def test_status_cannot_be_set_to_finalised(self):
+    def test_exporter_cannot_set_status_to_finalised(self):
         data = {"status": CaseStatusEnum.FINALISED}
         response = self.client.put(self.url, data=data, **self.exporter_headers)
 

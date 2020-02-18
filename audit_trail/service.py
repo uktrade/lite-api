@@ -8,12 +8,17 @@ from users.models import ExporterUser, GovUser
 
 
 @validate_kwargs
-def create(actor, verb, action_object=None, target=None, payload=None):
+def create(actor, verb, action_object=None, target=None, payload=None, ignore_case_status=False):
     if not payload:
         payload = {}
 
     Audit.objects.create(
-        actor=actor, verb=verb.value, action_object=action_object, target=target, payload=payload,
+        actor=actor,
+        verb=verb.value,
+        action_object=action_object,
+        target=target,
+        payload=payload,
+        ignore_case_status=ignore_case_status,
     )
 
 
@@ -32,7 +37,6 @@ def get_user_obj_trail_qs(user, obj):
     if isinstance(user, ExporterUser):
         # Show exporter-only audit trail.
         audit_trail_qs = audit_trail_qs.filter(actor_content_type=ContentType.objects.get_for_model(ExporterUser))
-
     obj_content_type = ContentType.objects.get_for_model(obj)
 
     obj_as_action_filter = Q(action_object_object_id=obj.id, action_object_content_type=obj_content_type)

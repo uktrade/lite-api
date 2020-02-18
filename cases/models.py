@@ -4,14 +4,19 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
 
-from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
+from cases.enums import (
+    AdviceType,
+    CaseDocumentState,
+    CaseTypeTypeEnum,
+    CaseTypeSubTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager
 from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
 from organisations.models import Organisation
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -28,6 +33,15 @@ from users.models import (
 )
 
 
+class CaseType(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35,)
+    sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35,)
+    reference = models.CharField(
+        choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=5,
+    )
+
+
 class Case(TimestampableModel):
     """
     Base model for applications and queries
@@ -35,7 +49,7 @@ class Case(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, null=True, blank=False, editable=False, default=None)
-    type = models.CharField(choices=CaseTypeEnum.choices, max_length=35)
+    case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=False, blank=False)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
@@ -44,6 +58,7 @@ class Case(TimestampableModel):
         CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
     )
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
+    copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
 
     objects = CaseManager()
 
@@ -163,12 +178,12 @@ class Advice(TimestampableModel):
     good = models.ForeignKey("goods.Good", on_delete=models.CASCADE, null=True)
     goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE, null=True)
     country = models.ForeignKey("countries.Country", on_delete=models.CASCADE, null=True)
-    end_user = models.ForeignKey(EndUser, on_delete=models.CASCADE, null=True)
+    end_user = models.ForeignKey("parties.Party", on_delete=models.CASCADE, null=True)
     ultimate_end_user = models.ForeignKey(
-        UltimateEndUser, on_delete=models.CASCADE, related_name="ultimate_end_user", null=True,
+        "parties.Party", on_delete=models.CASCADE, related_name="ultimate_end_user", null=True
     )
-    consignee = models.ForeignKey(Consignee, on_delete=models.CASCADE, related_name="consignee", null=True)
-    third_party = models.ForeignKey(ThirdParty, on_delete=models.CASCADE, related_name="third_party", null=True)
+    consignee = models.ForeignKey("parties.Party", on_delete=models.CASCADE, related_name="consignee", null=True)
+    third_party = models.ForeignKey("parties.Party", on_delete=models.CASCADE, related_name="third_party", null=True)
 
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
@@ -297,8 +312,3 @@ class GoodCountryDecision(TimestampableModel):
         GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
-
-
-class CaseType(models.Model):
-    id = models.CharField(primary_key=True, editable=False, max_length=30)
-    name = models.CharField(choices=CaseTypeEnum.choices, null=False, max_length=35)

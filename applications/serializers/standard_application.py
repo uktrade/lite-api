@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
+from applications.enums import GoodsCategory
+from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import StandardApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -10,56 +12,58 @@ from applications.serializers.generic_application import (
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
-from parties.serializers import (
-    EndUserWithFlagsSerializer,
-    UltimateEndUserWithFlagsSerializer,
-    ThirdPartyWithFlagsSerializer,
-    ConsigneeWithFlagsSerializer,
-)
 
 
-class StandardApplicationViewSerializer(GenericApplicationViewSerializer):
-    end_user = EndUserWithFlagsSerializer()
-    ultimate_end_users = UltimateEndUserWithFlagsSerializer(many=True)
-    third_parties = ThirdPartyWithFlagsSerializer(many=True)
-    consignee = ConsigneeWithFlagsSerializer()
+class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
+    goods_categories = serializers.SerializerMethodField()
+
+    def get_goods_categories(self, instance):
+        # Return a formatted key, value format of GoodsCategories
+        # Order according to the choices in GoodsCategory
+        return_value = [{"key": x, "value": GoodsCategory.get_text(x)} for x in instance.goods_categories or []]
+        return sorted(return_value, key=lambda i: [x[0] for x in GoodsCategory.choices].index(i["key"]))
 
     class Meta:
         model = StandardApplication
-        fields = GenericApplicationViewSerializer.Meta.fields + (
-            "end_user",
-            "ultimate_end_users",
-            "third_parties",
-            "consignee",
-            "goods",
-            "have_you_been_informed",
-            "reference_number_on_information_form",
-            "activity",
-            "usage",
-            "destinations",
-            "additional_documents",
+        fields = (
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + (
+                "goods",
+                "have_you_been_informed",
+                "reference_number_on_information_form",
+                "goods_categories",
+                "activity",
+                "usage",
+                "destinations",
+                "additional_documents",
+            )
         )
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    goods_categories = serializers.MultipleChoiceField(
+        choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
+    )
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.APPLICATION
+        self.initial_data["case_type"] = CaseTypeEnum.SIEL.id  # TODO: LT-874 - GET CORRECT TYPE FROM INITIAL QUESTIONS
 
     class Meta:
         model = StandardApplication
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
+            "goods_categories",
             "organisation",
-            "type",
             "status",
         )
 
@@ -73,15 +77,21 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+    goods_categories = serializers.MultipleChoiceField(
+        choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
+    )
 
     class Meta:
         model = StandardApplication
         fields = GenericApplicationUpdateSerializer.Meta.fields + (
             "have_you_been_informed",
             "reference_number_on_information_form",
+            "goods_categories",
         )
 
     def update(self, instance, validated_data):
+        if "goods_categories" in validated_data:
+            instance.goods_categories = validated_data["goods_categories"]
         instance.have_you_been_informed = validated_data.get("have_you_been_informed", instance.have_you_been_informed)
         if instance.have_you_been_informed == "yes":
             instance.reference_number_on_information_form = validated_data.get(

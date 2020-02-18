@@ -5,7 +5,6 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import (
-    ApplicationType,
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
 )
@@ -20,8 +19,10 @@ from applications.models import (
     HmrcQuery,
     ApplicationDocument,
     ExhibitionClearanceApplication,
+    GiftingClearanceApplication,
+    F680ClearanceApplication,
 )
-from cases.enums import AdviceType, CaseTypeEnum, CaseDocumentState
+from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
 from conf import settings
@@ -29,20 +30,20 @@ from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodStatus, GoodPvGraded
+from goods.enums import GoodControlled, GoodPvGraded
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site, ExternalLocation
+from parties.enums import SubType, PartyType, PartyRole
+from parties.models import Party
 from parties.models import PartyDocument
-from parties.enums import SubType, PartyType, ThirdPartyRole
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty, Party
 from picklists.enums import PickListStatus, PicklistType
 from picklists.models import PicklistItem
-from queries.goods_query.models import GoodsQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
+from queries.goods_query.models import GoodsQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
@@ -93,8 +94,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(self.gov_user)}
 
         # Exporter User Setup
-        (self.organisation, self.exporter_user,) = self.create_organisation_with_exporter_user()
-        (self.hmrc_organisation, self.hmrc_exporter_user,) = self.create_organisation_with_exporter_user(
+        (self.organisation, self.exporter_user) = self.create_organisation_with_exporter_user()
+        (self.hmrc_organisation, self.hmrc_exporter_user) = self.create_organisation_with_exporter_user(
             "HMRC org 5843", org_type=OrganisationType.HMRC
         )
 
@@ -126,7 +127,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Print output time for tests if settings.TIME_TESTS is set to True
         """
-        if settings.TIME_TESTS:
+        if settings.SUPPRESS_TEST_OUTPUT:
+            pass
+        elif settings.TIME_TESTS:
             self.tock = datetime.now()
 
             diff = self.tock - self.tick
@@ -196,61 +199,31 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return external_location
 
     @staticmethod
-    def create_end_user(name, organisation):
-        end_user = EndUser(
-            name=name,
-            organisation=organisation,
-            address="42 Road, London, Buckinghamshire",
-            website="www." + name + ".com",
-            sub_type=SubType.GOVERNMENT,
-            type=PartyType.END,
-            country=get_country("GB"),
-        )
-        end_user.save()
-        return end_user
+    def create_party(name, organisation, party_type, application=None, pk=None):
+        if not pk:
+            pk = uuid.uuid4()
 
-    @staticmethod
-    def create_ultimate_end_user(name, organisation):
-        ultimate_end_user = UltimateEndUser(
-            name=name,
-            organisation=organisation,
-            address="42 Road, London, Buckinghamshire",
-            website="www." + name + ".com",
-            sub_type=SubType.GOVERNMENT,
-            type=PartyType.ULTIMATE,
-            country=get_country("GB"),
-        )
-        ultimate_end_user.save()
-        return ultimate_end_user
+        data = {
+            "id": pk,
+            "name": name,
+            "organisation": organisation,
+            "address": "42 Road, London, Buckinghamshire",
+            "website": "www." + name + ".com",
+            "sub_type": SubType.GOVERNMENT,
+            "type": party_type,
+            "country": get_country("GB"),
+        }
+        # print(f'Creating {data}')
+        if party_type == PartyType.THIRD_PARTY:
+            data["role"] = PartyRole.AGENT
 
-    @staticmethod
-    def create_consignee(name, organisation):
-        consignee = Consignee(
-            name=name,
-            organisation=organisation,
-            address="42 Road, London, Buckinghamshire",
-            website="www." + name + ".com",
-            sub_type=SubType.GOVERNMENT,
-            type=PartyType.CONSIGNEE,
-            country=get_country("GB"),
-        )
-        consignee.save()
-        return consignee
+        party = Party(**data)
+        party.save()
 
-    @staticmethod
-    def create_third_party(name, organisation):
-        third_party = ThirdParty(
-            name=name,
-            organisation=organisation,
-            address="42 Road, London, Buckinghamshire",
-            website="www." + name + ".com",
-            sub_type=SubType.GOVERNMENT,
-            role=ThirdPartyRole.AGENT,
-            type=PartyType.THIRD,
-            country=get_country("GB"),
-        )
-        third_party.save()
-        return third_party
+        if application:
+            # Attach party to application
+            application.add_party(party)
+        return party
 
     @staticmethod
     def create_case_note(
@@ -431,7 +404,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             clc_raised_reasons="this is a test text",
             good=good,
             organisation=organisation,
-            type=CaseTypeEnum.GOODS_QUERY,
+            case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
@@ -449,7 +422,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             pv_grading_raised_reasons="this is a test text",
             good=good,
             organisation=organisation,
-            type=CaseTypeEnum.GOODS_QUERY,
+            case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         pv_grading_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
@@ -466,7 +439,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         advice.save()
 
         if advice_field == "end_user":
-            advice.end_user = StandardApplication.objects.get(pk=case.id).end_user
+            advice.end_user = StandardApplication.objects.get(pk=case.id).end_user.party
 
         if advice_field == "good":
             advice.good = GoodOnApplication.objects.get(application=case).good
@@ -509,33 +482,30 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return organisation, exporter_user
 
-    def add_application_and_party_documents(self, application, safe_document):
+    def add_application_and_party_documents(self, application, safe_document, consignee=True):
         # Set the application party documents
-        self.create_document_for_party(application.end_user, safe=safe_document)
-        self.create_document_for_party(application.consignee, safe=safe_document)
-        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+        self.create_document_for_party(application.end_user.party, safe=safe_document)
+        if consignee:
+            self.create_document_for_party(application.consignee.party, safe=safe_document)
+        self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
         self.create_application_document(application)
 
-    def create_standard_application(
+    def create_draft_standard_application(
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
         application = StandardApplication(
             name=reference_name,
-            application_type=ApplicationType.STANDARD_LICENCE,
             export_type=ApplicationExportType.PERMANENT,
+            case_type_id=CaseTypeEnum.SIEL.id,
             have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
             reference_number_on_information_form="",
             activity="Trade",
             usage="Trade",
             organisation=organisation,
-            end_user=self.create_end_user("End User", organisation),
-            consignee=self.create_consignee("Consignee", organisation),
-            type=CaseTypeEnum.APPLICATION,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
         application.save()
-        application.third_parties.set([self.create_third_party("Third party", self.organisation)])
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication(
@@ -545,7 +515,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             unit=Units.NAR,
             value=500,
         )
+
         self.good_on_application.save()
+        self.create_party("End User", organisation, PartyType.END_USER, application)
+        self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+        # Set the application party documents
 
         self.add_application_and_party_documents(application, safe_document)
 
@@ -554,27 +529,35 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_exhibition_clearance_application(
-        self, organisation: Organisation, reference_name="Exhibition Clearance Draft", safe_document=True,
+    def create_mod_clearance_application(
+        self, organisation, case_type, reference_name="MOD Clearance Draft", safe_document=True,
     ):
-        application = ExhibitionClearanceApplication(
+        if case_type == CaseTypeEnum.F680:
+            model = F680ClearanceApplication
+        elif case_type == CaseTypeEnum.GIFTING:
+            model = GiftingClearanceApplication
+        elif case_type == CaseTypeEnum.EXHIBITION:
+            model = ExhibitionClearanceApplication
+        else:
+            raise BaseException("Invalid case type when creating test MOD Clearance application")
+
+        application = model.objects.create(
             name=reference_name,
-            application_type=ApplicationType.EXHIBITION_CLEARANCE,
             activity="Trade",
             usage="Trade",
             organisation=organisation,
-            end_user=self.create_end_user("End User", organisation),
-            consignee=self.create_consignee("Consignee", organisation),
-            type=CaseTypeEnum.EXHIBITION_CLEARANCE,
+            case_type_id=case_type.id,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
-        application.save()
-        application.third_parties.set([self.create_third_party("Third party", self.organisation)])
-        application.save()
+        if case_type == CaseTypeEnum.EXHIBITION:
+            self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+
+        self.create_party("End User", organisation, PartyType.END_USER, application)
+        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
 
         # Add a good to the standard application
-        self.good_on_application = GoodOnApplication(
+        self.good_on_application = GoodOnApplication.objects.create(
             good=self.create_good("a thing", organisation),
             application=application,
             quantity=10,
@@ -582,13 +565,34 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             value=500,
         )
 
-        self.good_on_application.save()
-
         # Set the application party documents
-        self.add_application_and_party_documents(application, safe_document)
+        self.add_application_and_party_documents(
+            application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION
+        )
 
-        # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
+        if case_type == CaseTypeEnum.EXHIBITION:
+            # Add a site to the application
+            SiteOnApplication(site=organisation.primary_site, application=application).save()
+
+        return application
+
+    def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
+        good = Good.objects.create(
+            is_good_controlled=True,
+            control_code="ML17",
+            organisation=self.organisation,
+            description="a good",
+            part_number="123456",
+        )
+
+        GoodOnApplication.objects.create(
+            good=good, application=application, quantity=17, value=18, is_good_incorporated=True
+        )
+
+        self.ultimate_end_user = self.create_party(
+            "Ultimate End User", organisation, PartyType.ULTIMATE_END_USER, application
+        )
+        self.create_document_for_party(application.ultimate_end_users.first().party, safe=True)
 
         return application
 
@@ -596,10 +600,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
 
-        application = self.create_standard_application(organisation, reference_name, safe_document)
+        application = self.create_draft_standard_application(organisation, reference_name, safe_document)
 
         part_good = Good(
-            is_good_controlled=True,
+            is_good_controlled=GoodControlled.YES,
             control_code="ML17",
             organisation=self.organisation,
             description="a good",
@@ -611,20 +615,21 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             good=part_good, application=application, quantity=17, value=18, is_good_incorporated=True
         ).save()
 
-        application.ultimate_end_users.set([self.create_ultimate_end_user("Ultimate End User", self.organisation)])
-        self.create_document_for_party(application.ultimate_end_users.first(), safe=safe_document)
+        self.ultimate_end_user = self.create_party(
+            "Ultimate End User", organisation, PartyType.ULTIMATE_END_USER, application
+        )
+        self.create_document_for_party(application.ultimate_end_users.first().party, safe=safe_document)
 
         return application
 
     def create_open_application(self, organisation: Organisation, reference_name="Open Draft"):
         application = OpenApplication(
             name=reference_name,
-            application_type=ApplicationType.OPEN_LICENCE,
+            case_type_id=CaseTypeEnum.OIEL.id,
             export_type=ApplicationExportType.PERMANENT,
             activity="Trade",
             usage="Trade",
             organisation=organisation,
-            type=CaseTypeEnum.APPLICATION,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
 
@@ -647,28 +652,30 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     ):
         application = HmrcQuery(
             name=reference_name,
-            application_type=ApplicationType.HMRC_QUERY,
+            case_type_id=CaseTypeEnum.HMRC.id,
             activity="Trade",
             usage="Trade",
             organisation=organisation,
             hmrc_organisation=self.hmrc_organisation,
-            end_user=self.create_end_user("End User", organisation),
-            consignee=self.create_consignee("Consignee", organisation),
             reasoning="I Am Easy to Find",
-            type=CaseTypeEnum.HMRC_QUERY,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
         )
-
         application.save()
 
-        application.third_parties.set([self.create_third_party("Third party", self.organisation)])
+        end_user = self.create_party("End User", organisation, PartyType.END_USER, application)
+        consignee = self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+        third_party = self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+
+        self.assertEqual(end_user, application.end_user.party)
+        self.assertEqual(consignee, application.consignee.party)
+        self.assertEqual(third_party, application.third_parties.get().party)
 
         goods_type = self.create_goods_type(application)
 
         # Set the application party documents
-        self.create_document_for_party(application.end_user, safe=safe_document)
-        self.create_document_for_party(application.consignee, safe=safe_document)
-        self.create_document_for_party(application.third_parties.first(), safe=safe_document)
+        self.create_document_for_party(application.end_user.party, safe=safe_document)
+        self.create_document_for_party(application.consignee.party, safe=safe_document)
+        self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
 
         self.create_document_for_goods_type(goods_type)
 
@@ -681,12 +688,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates a complete standard application case
         """
-        draft = self.create_standard_application(organisation, reference_name)
+        draft = self.create_draft_standard_application(organisation, reference_name)
 
         return self.submit_application(draft)
 
     def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
-        end_user = self.create_end_user("name", self.organisation)
+        end_user = self.create_party("name", self.organisation, PartyType.END_USER)
         end_user_advisory_query = EndUserAdvisoryQuery.objects.create(
             end_user=end_user,
             note=note,
@@ -698,7 +705,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             contact_job_title="director",
             nature_of_business="guns",
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
-            type=CaseTypeEnum.END_USER_ADVISORY_QUERY,
+            case_type_id=CaseTypeEnum.EUA.id,
         )
         end_user_advisory_query.save()
         return end_user_advisory_query
@@ -720,7 +727,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         generated_case_doc.save()
         return generated_case_doc
 
-    def create_letter_template(self, name=None, case_type=CaseTypeEnum.APPLICATION):
+    def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id):
         if not name:
             name = str(uuid.uuid4())[0:35]
 

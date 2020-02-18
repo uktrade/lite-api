@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
+from applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
@@ -74,7 +74,7 @@ class GoodsQueriesCreate(APIView):
             pv_grading_raised_reasons=data.get("pv_grading_raised_reasons"),
             good=good,
             organisation=data["organisation"],
-            type=CaseTypeEnum.GOODS_QUERY,
+            case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
 
@@ -242,7 +242,9 @@ class GoodQueryManageStatus(APIView):
         query = get_exporter_query(pk)
         new_status = request.data.get("status")
 
-        if not can_status_can_be_set_by_gov_user(request.user, query.status.status, new_status):
+        if not can_status_be_set_by_gov_user(
+            request.user, query.status.status, new_status, is_licence_application=False
+        ):
             return JsonResponse(
                 data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
             )

@@ -2,6 +2,7 @@ import json
 
 from django.db import transaction
 
+from conf import settings
 from conf.settings import env
 from static.management.SeedCommand import SeedCommand
 from teams.models import Team
@@ -47,5 +48,5 @@ class Command(SeedCommand):
         for email in json.loads(env("SEED_USERS")):
             gov_user_data = dict(email=email, team=team, role=super_user_role)
             _, created = GovUser.objects.get_or_create(email__iexact=email, defaults=gov_user_data)
-            if created:
+            if created and not settings.SUPPRESS_TEST_OUTPUT:
                 print(f"CREATED GovUser: {gov_user_data}")

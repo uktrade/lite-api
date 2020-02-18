@@ -5,43 +5,30 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.models import HmrcQuery, ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationViewSerializer
+from applications.mixins.serializers import PartiesSerializerMixin
 from cases.enums import CaseTypeEnum
+from cases.models import CaseType
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
+from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
-from parties.serializers import (
-    EndUserSerializer,
-    UltimateEndUserSerializer,
-    ThirdPartySerializer,
-    ConsigneeSerializer,
-)
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class HmrcQueryViewSerializer(GenericApplicationViewSerializer):
+class HmrcQueryViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
-    end_user = EndUserSerializer()
-    ultimate_end_users = UltimateEndUserSerializer(many=True)
-    third_parties = ThirdPartySerializer(many=True)
-    consignee = ConsigneeSerializer()
     hmrc_organisation = TinyOrganisationViewSerializer()
     supporting_documentation = serializers.SerializerMethodField()
 
     class Meta:
         model = HmrcQuery
-        fields = GenericApplicationViewSerializer.Meta.fields + (
-            "goods_types",
-            "end_user",
-            "ultimate_end_users",
-            "third_parties",
-            "consignee",
-            "hmrc_organisation",
-            "reasoning",
-            "supporting_documentation",
-            "have_goods_departed",
+        fields = (
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + ("goods_types", "hmrc_organisation", "reasoning", "supporting_documentation", "have_goods_departed",)
         )
 
     def get_goods_types(self, instance):
@@ -56,6 +43,9 @@ class HmrcQueryViewSerializer(GenericApplicationViewSerializer):
 class HmrcQueryCreateSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     hmrc_organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    case_type = PrimaryKeyRelatedField(
+        queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -64,17 +54,16 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
             raise exceptions.PermissionDenied("User does not belong to an HMRC organisation")
 
         self.initial_data["hmrc_organisation"] = self.context.id
-        self.initial_data["type"] = CaseTypeEnum.HMRC_QUERY
+        self.initial_data["case_type"] = CaseTypeEnum.HMRC.id
         self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     class Meta:
         model = HmrcQuery
         fields = (
             "reasoning",
-            "application_type",
+            "case_type",
             "organisation",
             "hmrc_organisation",
-            "type",
             "status",
         )
 

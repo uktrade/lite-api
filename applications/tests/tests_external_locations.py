@@ -11,7 +11,7 @@ from test_helpers.clients import DataTestClient
 class ExternalLocationsOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.application = self.create_standard_application(self.organisation)
+        self.application = self.create_draft_standard_application(self.organisation)
         self.external_location = self.create_external_location("storage facility", self.organisation)
         self.url = reverse("applications:application_external_locations", kwargs={"pk": self.application.id},)
 
@@ -135,7 +135,7 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
         """ Test success in removing an external location from an application in an editable status that has
         more than one external location added.
         """
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
 
@@ -157,7 +157,7 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
     def test_add_external_locations_to_application_in_editable_status_success(self, editable_status):
         data = {"external_locations": [self.external_location.id]}
 
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
         SiteOnApplication.objects.filter(application=application).delete()
@@ -172,7 +172,7 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
     def test_add_external_locations_to_application_in_read_only_status_failure(self, read_only_status):
         data = {"external_locations": [self.external_location.id]}
 
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
 

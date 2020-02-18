@@ -5,7 +5,13 @@ from rest_framework.exceptions import ValidationError
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from audit_trail.models import Audit
-from cases.enums import CaseTypeEnum, AdviceType, CaseDocumentState
+from cases.enums import (
+    CaseTypeTypeEnum,
+    AdviceType,
+    CaseDocumentState,
+    CaseTypeSubTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
@@ -25,7 +31,9 @@ from documents.libraries.process_document import process_document
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
-from parties.models import EndUser, UltimateEndUser, Consignee, ThirdParty
+from lite_content.lite_api import strings
+from parties.enums import PartyType
+from parties.models import Party
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
@@ -42,12 +50,27 @@ from users.serializers import (
 )
 
 
+class CaseTypeSerializer(serializers.ModelSerializer):
+    reference = KeyValueChoiceField(choices=CaseTypeReferenceEnum.choices)
+    type = KeyValueChoiceField(choices=CaseTypeTypeEnum.choices)
+    sub_type = KeyValueChoiceField(choices=CaseTypeSubTypeEnum.choices)
+
+    class Meta:
+        model = CaseType
+        fields = (
+            "id",
+            "reference",
+            "type",
+            "sub_type",
+        )
+
+
 class CaseSerializer(serializers.ModelSerializer):
     """
     Serializes cases
     """
 
-    type = KeyValueChoiceField(choices=CaseTypeEnum.choices)
+    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     application = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
 
@@ -55,7 +78,7 @@ class CaseSerializer(serializers.ModelSerializer):
         model = Case
         fields = (
             "id",
-            "type",
+            "case_type",
             "application",
             "query",
         )
@@ -63,7 +86,7 @@ class CaseSerializer(serializers.ModelSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY]:
+        if instance.type in [CaseTypeTypeEnum.APPLICATION]:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
@@ -85,7 +108,7 @@ class TinyCaseSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
-    type = KeyValueChoiceField(choices=CaseTypeEnum.choices)
+    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     queue_names = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
@@ -117,6 +140,15 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
 
 
+class CaseCopyOfSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = (
+            "id",
+            "reference_code",
+        )
+
+
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
@@ -127,13 +159,14 @@ class CaseDetailSerializer(CaseSerializer):
     application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer(read_only=True)
+    copy_of = serializers.SerializerMethodField()
     audit_notification = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
         fields = (
             "id",
-            "type",
+            "case_type",
             "flags",
             "queues",
             "queue_names",
@@ -145,6 +178,7 @@ class CaseDetailSerializer(CaseSerializer):
             "case_officer",
             "audit_notification",
             "reference_code",
+            "copy_of",
         )
 
     def __init__(self, *args, **kwargs):
@@ -155,7 +189,7 @@ class CaseDetailSerializer(CaseSerializer):
     def get_application(self, instance):
         # The case has a reference to a BaseApplication but
         # we need the full details of the application it points to
-        if instance.type in [CaseTypeEnum.APPLICATION, CaseTypeEnum.HMRC_QUERY, CaseTypeEnum.EXHIBITION_CLEARANCE]:
+        if instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
@@ -208,13 +242,25 @@ class CaseDetailSerializer(CaseSerializer):
 
         return None
 
+    def get_copy_of(self, instance):
+        if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
+            return CaseCopyOfSerializer(instance.copy_of).data
+
 
 class CaseNoteSerializer(serializers.ModelSerializer):
     """
     Serializes case notes
     """
 
-    text = serializers.CharField(min_length=2, max_length=2200)
+    text = serializers.CharField(
+        min_length=2,
+        max_length=2200,
+        error_messages={
+            "blank": strings.Cases.CaseNotes.BLANK,
+            "min_length": strings.Cases.CaseNotes.MIN_LENGTH,
+            "max_length": strings.Cases.CaseNotes.MAX_LENGTH,
+        },
+    )
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedSerializerField(queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer)
     created_at = serializers.DateTimeField(read_only=True)
@@ -303,10 +349,18 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
-    end_user = serializers.PrimaryKeyRelatedField(queryset=EndUser.objects.all(), required=False)
-    ultimate_end_user = serializers.PrimaryKeyRelatedField(queryset=UltimateEndUser.objects.all(), required=False)
-    consignee = serializers.PrimaryKeyRelatedField(queryset=Consignee.objects.all(), required=False)
-    third_party = serializers.PrimaryKeyRelatedField(queryset=ThirdParty.objects.all(), required=False)
+    end_user = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.END_USER), required=False
+    )
+    ultimate_end_user = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.ULTIMATE_END_USER), required=False
+    )
+    consignee = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.CONSIGNEE), required=False
+    )
+    third_party = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
+    )
 
     class Meta:
         model = Advice
@@ -475,18 +529,6 @@ class GoodCountryDecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodCountryDecision
         fields = "__all__"
-
-
-class CaseTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CaseType
-        fields = (
-            "id",
-            "name",
-        )
-
-    def to_representation(self, instance):
-        return dict(key=instance.id, value=instance.name)
 
 
 class CaseOfficerUpdateSerializer(serializers.ModelSerializer):

@@ -218,7 +218,7 @@ class ExternalLocationSerializer(serializers.ModelSerializer):
 
 class OrganisationUserListView(serializers.ModelSerializer):
     status = serializers.CharField()
-    role = serializers.SerializerMethodField()
+    role = RoleNameSerializer()
 
     class Meta:
         model = ExporterUser
@@ -230,8 +230,3 @@ class OrganisationUserListView(serializers.ModelSerializer):
             "role",
             "status",
         )
-
-    def get_role(self, instance):
-        if self.context:
-            role = instance.get_role(self.context)
-            return RoleNameSerializer(role).data

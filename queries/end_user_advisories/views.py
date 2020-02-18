@@ -5,12 +5,13 @@ from rest_framework import status, serializers
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.libraries.application_helpers import can_status_can_be_set_by_gov_user
+from applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
+from parties.enums import PartyType
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisoryListSerializer, EndUserAdvisoryViewSerializer
@@ -36,12 +37,11 @@ class EndUserAdvisoriesList(APIView):
         Create a new End User Advisory Enquiry query case instance
         """
         data = JSONParser().parse(request)
-
         if not data.get("end_user"):
             data["end_user"] = {}
-
         data["organisation"] = request.user.organisation.id
         data["end_user"]["organisation"] = request.user.organisation.id
+        data["end_user"]["type"] = PartyType.END_USER
 
         serializer = EndUserAdvisoryListSerializer(data=data)
 
@@ -81,10 +81,12 @@ class EndUserAdvisoryDetail(APIView):
 
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         if data.get("status") == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_FINAL_ADVICE)
+            assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         new_status = data.get("status")
-        if not can_status_can_be_set_by_gov_user(request.user, end_user_advisory.status.status, new_status):
+        if not can_status_be_set_by_gov_user(
+            request.user, end_user_advisory.status.status, new_status, is_licence_application=False
+        ):
             return JsonResponse(
                 data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
             )

@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
@@ -25,7 +25,7 @@ class HmrcQueryTests(DataTestClient):
         self.assertEqual(case.id, self.hmrc_query.id)
         self.assertIsNotNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
-        self.assertEqual(case.type, CaseTypeEnum.HMRC_QUERY)
+        self.assertEqual(case.case_type.sub_type, CaseTypeSubTypeEnum.HMRC)
 
     def test_submit_hmrc_query_with_goods_departed_success(self):
         SiteOnApplication.objects.get(application=self.hmrc_query).delete()
@@ -47,8 +47,8 @@ class HmrcQueryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_submit_hmrc_query_without_end_user_failure(self):
-        self.hmrc_query.end_user = None
-        self.hmrc_query.save()
+        self.hmrc_query.end_user.delete()
+
         url = reverse("applications:application_submit", kwargs={"pk": self.hmrc_query.id})
 
         response = self.client.put(url, **self.hmrc_exporter_headers)
@@ -58,7 +58,7 @@ class HmrcQueryTests(DataTestClient):
         )
 
     def test_submit_hmrc_query_without_end_user_document_failure(self):
-        PartyDocument.objects.filter(party=self.hmrc_query.end_user).delete()
+        PartyDocument.objects.filter(party=self.hmrc_query.end_user.party).delete()
         url = reverse("applications:application_submit", kwargs={"pk": self.hmrc_query.id})
 
         response = self.client.put(url, **self.hmrc_exporter_headers)

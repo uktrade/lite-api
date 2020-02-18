@@ -3,9 +3,9 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from applications.enums import (
-    ApplicationType,
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
+    GoodsCategory,
 )
 from applications.models import (
     StandardApplication,
@@ -13,13 +13,15 @@ from applications.models import (
     HmrcQuery,
     BaseApplication,
     ExhibitionClearanceApplication,
+    GiftingClearanceApplication,
+    F680ClearanceApplication,
 )
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
 
 class DraftTests(DataTestClient):
-
     url = reverse("applications:applications")
 
     def test_create_draft_standard_application_successful(self):
@@ -28,16 +30,58 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "application_type": ApplicationType.STANDARD_LICENCE,
+            "application_type": CaseTypeSubTypeEnum.STANDARD,
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
+        standard_application = StandardApplication.objects.get()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertEqual(StandardApplication.objects.count(), 1)
+
+    def test_create_draft_standard_application_with_goods_categories_successful(self):
+        """
+        Ensure we can create a new standard application with goods categories draft object
+        """
+        data = {
+            "name": "Test",
+            "application_type": CaseTypeSubTypeEnum.STANDARD,
+            "export_type": ApplicationExportType.TEMPORARY,
+            "goods_categories": [GoodsCategory.ANTI_PIRACY, GoodsCategory.FIREARMS],
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "123",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        response_data = response.json()
+        standard_application = StandardApplication.objects.get()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["id"], str(standard_application.id))
+        self.assertCountEqual(standard_application.goods_categories, data["goods_categories"])
+
+    def test_create_draft_standard_application_with_invalid_goods_categories_failure(self):
+        """
+        Ensure we cannot create a standard application with invalid goods categories
+        """
+        data = {
+            "name": "Test",
+            "application_type": CaseTypeSubTypeEnum.STANDARD,
+            "export_type": ApplicationExportType.TEMPORARY,
+            "goods_categories": ["Hard to Find"],
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "123",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(StandardApplication.objects.count(), 0)
 
     def test_create_draft_exhibition_clearance_application_successful(self):
         """
@@ -47,7 +91,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "application_type": ApplicationType.EXHIBITION_CLEARANCE,
+            "application_type": CaseTypeSubTypeEnum.EXHIBITION,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -55,13 +99,51 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ExhibitionClearanceApplication.objects.count(), 1)
 
+    def test_create_draft_gifting_clearance_application_successful(self):
+        """
+        Ensure we can create a new Exhibition Clearance draft object
+        """
+        self.assertEqual(GiftingClearanceApplication.objects.count(), 0)
+
+        data = {
+            "name": "Test",
+            "application_type": CaseTypeSubTypeEnum.GIFTING,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        application = GiftingClearanceApplication.objects.get()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(GiftingClearanceApplication.objects.count(), 1)
+        self.assertEqual(application.name, data["name"])
+        self.assertEqual(application.case_type.id, CaseTypeEnum.GIFTING.id)
+
+    def test_create_draft_f680_clearance_application_successful(self):
+        """
+        Ensure we can create a new Exhibition Clearance draft object
+        """
+        self.assertEqual(F680ClearanceApplication.objects.count(), 0)
+
+        data = {
+            "name": "Test",
+            "application_type": CaseTypeSubTypeEnum.F680,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        application = F680ClearanceApplication.objects.get()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(F680ClearanceApplication.objects.count(), 1)
+        self.assertEqual(application.name, data["name"])
+        self.assertEqual(application.case_type.id, CaseTypeEnum.F680.id)
+
     def test_create_draft_open_application_successful(self):
         """
         Ensure we can create a new open application draft object
         """
         data = {
             "name": "Test",
-            "application_type": ApplicationType.OPEN_LICENCE,
+            "application_type": CaseTypeSubTypeEnum.OPEN,
             "export_type": ApplicationExportType.TEMPORARY,
         }
 
@@ -75,7 +157,7 @@ class DraftTests(DataTestClient):
         Ensure we can create a new HMRC query draft object
         """
         data = {
-            "application_type": ApplicationType.HMRC_QUERY,
+            "application_type": CaseTypeSubTypeEnum.HMRC,
             "organisation": self.organisation.id,
         }
 
@@ -89,7 +171,7 @@ class DraftTests(DataTestClient):
         Ensure that a normal exporter cannot create an HMRC query
         """
         data = {
-            "application_type": "hmrc_query",
+            "application_type": CaseTypeSubTypeEnum.HMRC,
             "organisation": self.organisation.id,
         }
 
@@ -101,11 +183,11 @@ class DraftTests(DataTestClient):
     @parameterized.expand(
         [
             [{}],
-            [{"application_type": ApplicationType.STANDARD_LICENCE, "export_type": ApplicationExportType.TEMPORARY,}],
-            [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY,}],
-            [{"name": "Test", "application_type": ApplicationType.STANDARD_LICENCE,}],
-            [{"application_type": ApplicationType.EXHIBITION_CLEARANCE,}],
-            [{"name": "Test",}],
+            [{"application_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY}],
+            [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY}],
+            [{"name": "Test", "application_type": CaseTypeSubTypeEnum.STANDARD}],
+            [{"application_type": CaseTypeSubTypeEnum.EXHIBITION}],
+            [{"name": "Test"}],
         ]
     )
     def test_create_draft_failure(self, data):
@@ -130,4 +212,4 @@ class DraftTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["application_type"][0], strings.Applications.SELECT_A_LICENCE_TYPE)
+        self.assertEqual(response.json()["errors"]["case_type"][0], strings.Applications.SELECT_A_LICENCE_TYPE)

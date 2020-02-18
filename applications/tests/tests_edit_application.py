@@ -1,10 +1,11 @@
 from django.urls import reverse
-from parameterized import parameterized
+from parameterized import parameterized, parameterized_class
 from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeEnum
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -19,7 +20,7 @@ class EditStandardApplicationTests(DataTestClient):
         """ Test edit the application name of an unsubmitted application. An unsubmitted application
         has the 'draft' status.
         """
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
 
         url = reverse("applications:application", kwargs={"pk": application.id})
         updated_at = application.updated_at
@@ -36,7 +37,7 @@ class EditStandardApplicationTests(DataTestClient):
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
         old_name = "Old Name"
-        application = self.create_standard_application(self.organisation, reference_name=old_name)
+        application = self.create_draft_standard_application(self.organisation, reference_name=old_name)
         self.submit_application(application)
         application.status = get_case_status_by_status(editable_status)
         application.save()
@@ -55,7 +56,7 @@ class EditStandardApplicationTests(DataTestClient):
 
     @parameterized.expand(get_case_statuses(read_only=True))
     def test_edit_application_name_in_read_only_status_failure(self, read_only_status):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         self.submit_application(application)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
@@ -68,7 +69,7 @@ class EditStandardApplicationTests(DataTestClient):
         """ Test successful editing of an application's reference number when the application's status
         is non read-only.
         """
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         self.submit_application(application)
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         application.save()
@@ -126,10 +127,13 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(audit_qs.first().payload, {"old_ref_number": "no reference"})
 
 
-class EditExhibitionClearanceApplicationTests(DataTestClient):
+@parameterized_class(
+    "case_type", [(CaseTypeEnum.EXHIBITION,), (CaseTypeEnum.GIFTING,), (CaseTypeEnum.F680,),],
+)
+class EditMODClearanceApplicationsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.application = self.create_exhibition_clearance_application(self.organisation)
+        self.application = self.create_mod_clearance_application(self.organisation, case_type=self.case_type)
         self.url = reverse("applications:application", kwargs={"pk": self.application.id})
         self.data = {"name": "abc"}
 

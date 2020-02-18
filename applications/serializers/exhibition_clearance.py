@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
+from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import ExhibitionClearanceApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -10,51 +11,34 @@ from applications.serializers.generic_application import (
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
-from parties.serializers import (
-    EndUserWithFlagsSerializer,
-    UltimateEndUserWithFlagsSerializer,
-    ThirdPartyWithFlagsSerializer,
-    ConsigneeWithFlagsSerializer,
-)
 
 
-class ExhibitionClearanceViewSerializer(GenericApplicationViewSerializer):
-    end_user = EndUserWithFlagsSerializer()
-    ultimate_end_users = UltimateEndUserWithFlagsSerializer(many=True)
-    third_parties = ThirdPartyWithFlagsSerializer(many=True)
-    consignee = ConsigneeWithFlagsSerializer()
+class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
 
     class Meta:
         model = ExhibitionClearanceApplication
-        fields = GenericApplicationViewSerializer.Meta.fields + (
-            "end_user",
-            "ultimate_end_users",
-            "third_parties",
-            "consignee",
-            "goods",
-            "activity",
-            "usage",
-            "destinations",
-            "additional_documents",
+        fields = (
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + ("goods", "activity", "usage", "destinations", "additional_documents",)
         )
 
 
 class ExhibitionClearanceCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["type"] = CaseTypeEnum.EXHIBITION_CLEARANCE
+        self.initial_data["case_type"] = CaseTypeEnum.EXHIBITION.id
 
     class Meta:
         model = ExhibitionClearanceApplication
         fields = (
             "id",
             "name",
-            "application_type",
+            "case_type",
             "organisation",
-            "type",
             "status",
         )
 

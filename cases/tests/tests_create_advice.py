@@ -13,7 +13,7 @@ from test_helpers.clients import DataTestClient
 class CreateCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.application = self.create_standard_application(self.organisation)
+        self.application = self.create_draft_standard_application(self.organisation)
         self.case = self.submit_application(self.application)
 
         self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.case.id})
@@ -36,7 +36,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": advice_type,
-            "end_user": str(self.application.end_user.id),
+            "end_user": str(self.application.end_user.party.id),
         }
 
         if advice_type == AdviceType.PROVISO:
@@ -97,7 +97,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
-            "end_user": str(self.application.end_user.id),
+            "end_user": str(self.application.end_user.party.id),
             "good": str(self.application.goods.first().id),
         }
 
@@ -114,7 +114,7 @@ class CreateCaseAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "type": AdviceType.APPROVE,
-            "end_user": str(self.application.end_user.id),
+            "end_user": str(self.application.end_user.party.id),
             "good": str(self.application.goods.first().id),
         }
 

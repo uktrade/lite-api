@@ -9,7 +9,7 @@ from users.models import Role
 class CaseFinalDecisionTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
         self.case = self.submit_application(self.standard_application)
         self.url = reverse("cases:activity", kwargs={"pk": self.case.id})
 
@@ -32,7 +32,9 @@ class CaseFinalDecisionTests(DataTestClient):
         finalise application.
         """
         role = Role(name="some")
-        role.permissions.set([GovPermissions.MANAGE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name])
+        role.permissions.set(
+            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
+        )
         role.save()
         self.gov_user.role = role
         self.gov_user.save()

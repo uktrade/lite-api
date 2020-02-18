@@ -11,7 +11,13 @@ ENV_FILE = os.path.join(BASE_DIR, ".env")
 if os.path.exists(ENV_FILE):
     Env.read_env(ENV_FILE)
 
-env = Env(ALLOWED_HOSTS=(str, ""), DEBUG=(bool, False), LOG_LEVEL=(str, "INFO"), BACKGROUND_TASK_ENABLED=(bool, False))
+env = Env(
+    ALLOWED_HOSTS=(str, ""),
+    DEBUG=(bool, False),
+    LOG_LEVEL=(str, "INFO"),
+    BACKGROUND_TASK_ENABLED=(bool, False),
+    SUPPRESS_TEST_OUTPUT=(bool, False),
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -151,6 +157,7 @@ UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True
+SUPPRESS_TEST_OUTPUT = env("SUPPRESS_TEST_OUTPUT")
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/

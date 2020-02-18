@@ -1,4 +1,5 @@
 from uuid import UUID
+from parameterized import parameterized
 
 from django.urls import reverse
 from rest_framework import status
@@ -8,6 +9,7 @@ from applications.models import (
     CountryOnApplication,
     SiteOnApplication,
 )
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
@@ -15,14 +17,16 @@ from users.libraries.get_user import get_user_organisation_relationship
 
 
 class DraftTests(DataTestClient):
-    url = reverse("applications:applications") + "?submitted=false"
+    def setUp(self):
+        super().setUp()
+        self.url = reverse("applications:applications") + "?submitted=false"
 
     def test_view_draft_standard_application_list_as_exporter_success(self):
         """
         Ensure we can get a list of drafts.
         """
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        standard_application = self.create_standard_application(self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -31,7 +35,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], standard_application.name)
         self.assertEqual(
-            response_data[0]["application_type"]["key"], standard_application.application_type,
+            response_data[0]["case_type"]["reference"]["key"], standard_application.case_type.reference,
         )
         self.assertEqual(response_data[0]["export_type"]["key"], standard_application.export_type)
         self.assertIsNotNone(response_data[0]["created_at"])
@@ -43,7 +47,7 @@ class DraftTests(DataTestClient):
         """
         Ensure that the exporter cannot see applications with sites that they don't have access to.
         """
-        self.create_standard_application(self.organisation)
+        self.create_draft_standard_application(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -59,7 +63,7 @@ class DraftTests(DataTestClient):
         relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
         relationship.sites.set([self.organisation.primary_site])
         site_2, _ = self.create_site("Site #2", self.organisation)
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         SiteOnApplication(site=site_2, application=application).save()
 
         response = self.client.get(self.url, **self.exporter_headers)
@@ -90,7 +94,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], hmrc_query.name)
-        self.assertEqual(response_data[0]["application_type"]["key"], hmrc_query.application_type)
+        self.assertEqual(response_data[0]["case_type"]["reference"]["key"], hmrc_query.case_type.reference)
         self.assertEqual(response_data[0]["organisation"]["name"], hmrc_query.organisation.name)
         self.assertIsNone(response_data[0]["export_type"])
         self.assertIsNotNone(response_data[0]["created_at"])
@@ -99,7 +103,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_view_draft_standard_application_as_exporter_success(self):
-        standard_application = self.create_standard_application(self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
 
         url = reverse("applications:application", kwargs={"pk": standard_application.id})
 
@@ -108,9 +112,10 @@ class DraftTests(DataTestClient):
         retrieved_application = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieved_application["id"], str(standard_application.id))
         self.assertEqual(retrieved_application["name"], standard_application.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"], standard_application.application_type,
+            retrieved_application["case_type"]["reference"]["key"], standard_application.case_type.reference,
         )
         self.assertEqual(
             retrieved_application["export_type"]["key"], standard_application.export_type,
@@ -123,18 +128,19 @@ class DraftTests(DataTestClient):
             GoodOnApplication.objects.filter(application__id=standard_application.id).count(), 1,
         )
         self.assertEqual(
-            retrieved_application["end_user"]["id"], str(standard_application.end_user.id),
+            retrieved_application["end_user"]["id"], str(standard_application.end_user.party.id),
         )
         self.assertEqual(
-            retrieved_application["consignee"]["id"], str(standard_application.consignee.id),
+            retrieved_application["consignee"]["id"], str(standard_application.consignee.party.id),
         )
         self.assertEqual(
-            retrieved_application["third_parties"][0]["id"], str(standard_application.third_parties.get().id),
+            retrieved_application["third_parties"][0]["id"], str(standard_application.third_parties.get().party.id),
         )
 
-    def test_view_draft_exhibition_clearances_list_as_exporter_success(self):
+    @parameterized.expand([(CaseTypeEnum.EXHIBITION,), (CaseTypeEnum.GIFTING,), (CaseTypeEnum.F680,)])
+    def test_view_draft_MOD_clearances_list_as_exporter_success(self, type):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        application = self.create_exhibition_clearance_application(self.organisation)
+        application = self.create_mod_clearance_application(self.organisation, case_type=type)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -143,7 +149,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], application.name)
         self.assertEqual(
-            response_data[0]["application_type"]["key"], application.application_type,
+            response_data[0]["case_type"]["reference"]["key"], application.case_type.reference,
         )
         self.assertIsNotNone(response_data[0]["created_at"])
         self.assertIsNotNone(response_data[0]["updated_at"])
@@ -151,7 +157,33 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_view_draft_exhibition_clearance_as_exporter_success(self):
-        application = self.create_exhibition_clearance_application(self.organisation)
+        application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
+
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        response = self.client.get(url, **self.exporter_headers)
+        retrieved_application = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieved_application["name"], application.name)
+        self.assertEqual(retrieved_application["case_type"]["reference"]["key"], application.case_type.reference)
+        self.assertIsNotNone(retrieved_application["created_at"])
+        self.assertIsNotNone(retrieved_application["updated_at"])
+        self.assertIsNone(retrieved_application["submitted_at"])
+        self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
+        self.assertEqual(GoodOnApplication.objects.filter(application__id=application.id).count(), 1)
+        self.assertEqual(
+            retrieved_application["end_user"]["id"], str(application.end_user.party.id),
+        )
+        self.assertEqual(
+            retrieved_application["consignee"]["id"], str(application.consignee.party.id),
+        )
+        self.assertEqual(
+            retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().party.id),
+        )
+
+    def test_view_draft_gifting_clearance_as_exporter_success(self):
+        application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
 
         url = reverse("applications:application", kwargs={"pk": application.id})
 
@@ -161,7 +193,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], application.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"], application.application_type,
+            retrieved_application["case_type"]["reference"]["key"], application.case_type.reference,
         )
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["updated_at"])
@@ -169,13 +201,35 @@ class DraftTests(DataTestClient):
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEqual(GoodOnApplication.objects.filter(application__id=application.id).count(), 1)
         self.assertEqual(
-            retrieved_application["end_user"]["id"], str(application.end_user.id),
+            retrieved_application["end_user"]["id"], str(application.end_user.party.id),
         )
         self.assertEqual(
-            retrieved_application["consignee"]["id"], str(application.consignee.id),
+            retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().party.id),
+        )
+
+    def test_view_draft_f680_clearance_as_exporter_success(self):
+        application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
+
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        response = self.client.get(url, **self.exporter_headers)
+        retrieved_application = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieved_application["name"], application.name)
+        self.assertEqual(
+            retrieved_application["case_type"]["reference"]["key"], application.case_type.reference,
+        )
+        self.assertIsNotNone(retrieved_application["created_at"])
+        self.assertIsNotNone(retrieved_application["updated_at"])
+        self.assertIsNone(retrieved_application["submitted_at"])
+        self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
+        self.assertEqual(GoodOnApplication.objects.filter(application__id=application.id).count(), 1)
+        self.assertEqual(
+            retrieved_application["end_user"]["id"], str(application.end_user.party.id),
         )
         self.assertEqual(
-            retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().id),
+            retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().party.id),
         )
 
     def test_view_draft_open_application_as_exporter_success(self):
@@ -190,7 +244,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], open_application.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"], open_application.application_type,
+            retrieved_application["case_type"]["reference"]["key"], open_application.case_type.reference,
         )
         self.assertEqual(retrieved_application["export_type"]["key"], open_application.export_type)
         self.assertIsNotNone(retrieved_application["created_at"])
@@ -218,7 +272,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieved_application["name"], hmrc_query.name)
         self.assertEqual(
-            retrieved_application["application_type"]["key"], hmrc_query.application_type,
+            retrieved_application["case_type"]["reference"]["key"], hmrc_query.case_type.reference,
         )
         self.assertIsNotNone(retrieved_application["created_at"])
         self.assertIsNotNone(retrieved_application["updated_at"])
@@ -229,10 +283,10 @@ class DraftTests(DataTestClient):
             retrieved_application["hmrc_organisation"]["id"], str(hmrc_query.hmrc_organisation.id),
         )
         self.assertIsNotNone(GoodsType.objects.get(application__id=hmrc_query.id))
-        self.assertEqual(retrieved_application["end_user"]["id"], str(hmrc_query.end_user.id))
-        self.assertEqual(retrieved_application["consignee"]["id"], str(hmrc_query.consignee.id))
+        self.assertEqual(retrieved_application["end_user"]["id"], str(hmrc_query.end_user.party.id))
+        self.assertEqual(retrieved_application["consignee"]["id"], str(hmrc_query.consignee.party.id))
         self.assertEqual(
-            retrieved_application["third_parties"][0]["id"], str(hmrc_query.third_parties.get().id),
+            retrieved_application["third_parties"][0]["id"], str(hmrc_query.third_parties.get().party.id),
         )
 
     def test_view_nonexisting_draft_failure(self):
@@ -245,7 +299,7 @@ class DraftTests(DataTestClient):
 
     def test_user_only_sees_their_organisations_drafts_in_list(self):
         organisation_2, _ = self.create_organisation_with_exporter_user()
-        self.create_standard_application(organisation_2)
+        self.create_draft_standard_application(organisation_2)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
@@ -255,7 +309,7 @@ class DraftTests(DataTestClient):
 
     def test_user_cannot_see_details_of_another_organisations_draft(self):
         organisation_2, _ = self.create_organisation_with_exporter_user()
-        draft = self.create_standard_application(organisation_2)
+        draft = self.create_draft_standard_application(organisation_2)
 
         url = reverse("applications:application", kwargs={"pk": draft.id}) + "?submitted=false"
 

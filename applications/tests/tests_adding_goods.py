@@ -16,12 +16,12 @@ from test_helpers.decorators import none_param_tester
 class AddingGoodsOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_standard_application(self.organisation)
+        self.draft = self.create_draft_standard_application(self.organisation)
         self.good = self.create_good("A good", self.organisation)
 
     def test_add_a_good_to_a_draft(self):
         good_name = "A good"
-        self.create_standard_application(self.organisation)
+        self.create_draft_standard_application(self.organisation)
         self.create_good(good_name, self.organisation)
 
         self.create_good_document(
@@ -129,7 +129,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         self.assertEqual(audit_qs.count(), 0)
 
     def test_add_a_good_to_a_submitted_application_failure(self):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         self.submit_application(application)
         self.create_good_document(
             self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
@@ -172,7 +172,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         ]
     )
     def test_adding_good_validate_only(self, data):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         url = reverse("applications:application_goods", kwargs={"pk": application.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
@@ -216,7 +216,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         """
         Ensure all params have to be sent otherwise fail
         """
-        self.create_standard_application(self.organisation)
+        self.create_draft_standard_application(self.organisation)
         self.create_good("A good", self.organisation)
         self.create_good_document(
             self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",

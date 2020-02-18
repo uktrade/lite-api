@@ -16,7 +16,7 @@ class SitesOnDraftTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.primary_site = self.organisation.primary_site
-        self.application = self.create_standard_application(self.organisation)
+        self.application = self.create_draft_standard_application(self.organisation)
 
         self.url = reverse("applications:application_sites", kwargs={"pk": self.application.id})
 
@@ -143,7 +143,7 @@ class SitesOnDraftTests(DataTestClient):
     def test_add_site_to_application_in_read_only_status_failure(self, read_only_status):
         data = {"sites": [self.primary_site.id]}
 
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
 
@@ -157,7 +157,7 @@ class SitesOnDraftTests(DataTestClient):
     def test_add_site_to_application_in_editable_status_success(self, editable_status):
         data = {"sites": [self.primary_site.id]}
 
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
 

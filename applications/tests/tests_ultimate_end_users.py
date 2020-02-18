@@ -1,26 +1,25 @@
 from unittest import mock
 
 from django.urls import reverse
-from parameterized import parameterized
 from rest_framework import status
 
-from applications.libraries.case_status_helpers import get_case_statuses
-from parties.models import PartyDocument
-from parties.models import UltimateEndUser
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from test_helpers.clients import DataTestClient
+from applications.models import PartyOnApplication
 from lite_content.lite_api.strings import Parties
+from parties.enums import PartyType
+from parties.models import Party
+from parties.models import PartyDocument
+from test_helpers.clients import DataTestClient
 
 
 class UltimateEndUsersOnDraft(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_standard_application_with_incorporated_good(self.organisation)
-        self.url = reverse("applications:ultimate_end_users", kwargs={"pk": self.draft.id})
+        self.url = reverse("applications:parties", kwargs={"pk": self.draft.id})
 
         self.document_url = reverse(
-            "applications:ultimate_end_user_document",
-            kwargs={"pk": self.draft.id, "ueu_pk": self.draft.ultimate_end_users.first().id,},
+            "applications:party_document",
+            kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
         self.new_document_data = {
             "name": "document_name.pdf",
@@ -29,7 +28,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         }
 
     def test_set_multiple_ultimate_end_users_on_draft_successful(self):
-        self.draft.ultimate_end_users.set([])
+        PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
 
         data = [
             {
@@ -38,6 +37,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
                 "country": "GB",
                 "sub_type": "commercial",
                 "website": "https://www.gov.uk",
+                "type": PartyType.ULTIMATE_END_USER,
             },
             {
                 "name": "French Government",
@@ -45,6 +45,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
                 "country": "FR",
                 "sub_type": "government",
                 "website": "https://www.gov.fr",
+                "type": PartyType.ULTIMATE_END_USER,
             },
         ]
 
@@ -59,6 +60,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
             "address": "Westminster, London SW1A 0AA",
             "country": "GB",
             "website": "https://www.gov.uk",
+            "type": PartyType.ULTIMATE_END_USER,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -68,14 +70,13 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response_data, {"errors": {"sub_type": [Parties.NULL_TYPE]}})
 
     def test_get_ultimate_end_users(self):
-        self.draft.ultimate_end_users.set([])
+        PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
 
-        ultimate_end_user = self.create_ultimate_end_user("ultimate end user", self.organisation)
-        ultimate_end_user.save()
-        self.draft.ultimate_end_users.add(ultimate_end_user)
-        self.draft.save()
+        ultimate_end_user = self.create_party(
+            "ultimate end user", self.organisation, PartyType.ULTIMATE_END_USER, self.draft
+        )
 
-        response = self.client.get(self.url, **self.exporter_headers)
+        response = self.client.get(f"{self.url}?type={PartyType.ULTIMATE_END_USER}", **self.exporter_headers)
         ultimate_end_users = response.json()["ultimate_end_users"]
 
         self.assertEqual(len(ultimate_end_users), 1)
@@ -98,22 +99,23 @@ class UltimateEndUsersOnDraft(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no ultimate end users have been added
         """
-        pre_test_ueu_count = UltimateEndUser.objects.all().count()
+        pre_test_ueu_count = Party.objects.filter(type=PartyType.ULTIMATE_END_USER).count()
         data = {
             "name": "UK Government",
             "address": "Westminster, London SW1A 0AA",
             "country": "GB",
             "sub_type": "commercial",
             "website": "https://www.gov.uk",
+            "type": PartyType.ULTIMATE_END_USER,
         }
 
         open_draft = self.create_open_application(self.organisation)
-        url = reverse("applications:ultimate_end_users", kwargs={"pk": open_draft.id})
+        url = reverse("applications:parties", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(UltimateEndUser.objects.all().count(), pre_test_ueu_count)
+        self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE_END_USER).count(), pre_test_ueu_count)
 
     def test_delete_ueu_on_standard_application_when_application_has_no_ueu_failure(self,):
         """
@@ -121,11 +123,9 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When I try to delete an ultimate end user from the application
         Then a 404 NOT FOUND is returned
         """
-        ultimate_end_user = self.draft.ultimate_end_users.first()
-        self.draft.ultimate_end_users.set([])
-        url = reverse(
-            "applications:remove_ultimate_end_user", kwargs={"pk": self.draft.id, "ueu_pk": ultimate_end_user.id},
-        )
+        ultimate_end_user = self.draft.ultimate_end_users.first().party
+        PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
+        url = reverse("applications:party", kwargs={"pk": self.draft.id, "party_pk": ultimate_end_user.id},)
 
         response = self.client.delete(url, **self.exporter_headers)
 
@@ -140,7 +140,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When a document is submitted
         Then a 201 CREATED is returned
         """
-        PartyDocument.objects.filter(party=self.draft.ultimate_end_users.first()).delete()
+        PartyDocument.objects.filter(party=self.draft.ultimate_end_users.first().party).delete()
 
         response = self.client.post(self.document_url, data=self.new_document_data, **self.exporter_headers)
 
@@ -188,51 +188,36 @@ class UltimateEndUsersOnDraft(DataTestClient):
         When there is an attempt to delete the document
         Then 200 OK
         """
-        remove_ueu_url = reverse(
-            "applications:remove_ultimate_end_user",
-            kwargs={"pk": self.draft.id, "ueu_pk": self.draft.ultimate_end_users.first().id,},
+        url = reverse(
+            "applications:party",
+            kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
 
-        response = self.client.delete(remove_ueu_url, **self.exporter_headers)
+        response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(UltimateEndUser.objects.all().count(), 0)
-        delete_s3_function.assert_called_once()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            PartyOnApplication.objects.filter(
+                application=self.draft, party__type=PartyType.ULTIMATE_END_USER, deleted_at__isnull=False,
+            ).count(),
+            1,
+        )
+        delete_s3_function.assert_not_called()
 
-    @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch("documents.tasks.prepare_document.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_ultimate_end_user_when_application_editable_success(
-        self, editable_status, delete_s3_function, prepare_document_function
-    ):
-        application = self.create_standard_application_with_incorporated_good(self.organisation)
-        application.status = get_case_status_by_status(editable_status)
-        application.save()
+    def test_delete_ultimate_end_user_success(self, delete_s3_function, prepare_document_function):
+        self.assertEqual(self.draft.ultimate_end_users.count(), 1)
+
         url = reverse(
-            "applications:remove_ultimate_end_user",
-            kwargs={"pk": application.id, "ueu_pk": application.ultimate_end_users.first().id,},
+            "applications:party",
+            kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
 
         response = self.client.delete(url, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(application.ultimate_end_users.count(), 0)
-
-    @parameterized.expand(get_case_statuses(read_only=True))
-    def test_delete_ultimate_end_user_when_application_read_only_failure(self, read_only_status):
-        application = self.create_standard_application_with_incorporated_good(self.organisation)
-        application.status = get_case_status_by_status(read_only_status)
-        application.save()
-
-        url = reverse(
-            "applications:remove_ultimate_end_user",
-            kwargs={"pk": application.id, "ueu_pk": application.ultimate_end_users.first().id,},
-        )
-
-        response = self.client.delete(url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(application.ultimate_end_users.count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.draft.ultimate_end_users.count(), 0)
 
     def test_ultimate_end_user_validate_only_success(self):
         """
@@ -248,6 +233,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
             "role": "agent",
             "website": "https://www.gov.uk",
             "validate_only": True,
+            "type": PartyType.ULTIMATE_END_USER,
         }
 
         original_party_count = self.draft.ultimate_end_users.count()
@@ -270,6 +256,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": True,
+            "type": PartyType.ULTIMATE_END_USER,
         }
 
         original_party_count = self.draft.ultimate_end_users.count()
@@ -279,7 +266,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(original_party_count, self.draft.ultimate_end_users.count())
-        self.assertEqual(response.json(), {"errors": {"name": [Parties.REQUIRED_FIELD]}})
+        self.assertEqual(response.json(), {"errors": {"name": [Parties.NULL_NAME]}})
 
     def test_ultimate_end_user_copy_of_success(self):
         ultimate_end_user = {
@@ -289,18 +276,18 @@ class UltimateEndUsersOnDraft(DataTestClient):
             "sub_type": "government",
             "website": "https://www.gov.uk",
             "validate_only": False,
-            "copy_of": self.draft.end_user.id,
+            "copy_of": self.draft.end_user.party.id,
+            "type": PartyType.ULTIMATE_END_USER,
         }
 
         # Delete existing ultimate end user to enable easy assertion of copied ultimate end user
         delete_url = reverse(
-            "applications:remove_ultimate_end_user",
-            kwargs={"pk": self.draft.id, "ueu_pk": self.draft.ultimate_end_users.first().id},
+            "applications:party",
+            kwargs={"pk": self.draft.id, "party_pk": self.draft.ultimate_end_users.first().party.id},
         )
         self.client.delete(delete_url, **self.exporter_headers)
 
         response = self.client.post(self.url, ultimate_end_user, **self.exporter_headers)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(self.draft.end_user.id, self.draft.ultimate_end_users.first().copy_of.id)
+        self.assertEqual(self.draft.end_user.party.id, self.draft.ultimate_end_users.first().party.copy_of.id)
         self.assertEqual(response.json()["ultimate_end_user"]["copy_of"], str(ultimate_end_user["copy_of"]))

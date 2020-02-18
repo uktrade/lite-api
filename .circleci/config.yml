@@ -8,6 +8,9 @@ jobs:
     docker:
       - image: circleci/python:3.7
       - image: circleci/postgres:11
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
 
     environment:
       DEBUG: 'True'
@@ -75,10 +78,6 @@ jobs:
           command: pipenv run ./manage.py test --parallel --exclude-tag=seeding
       - store_test_results:
           path: test-results
-
-      - run:
-          name: Run code coverage
-          command: pipenv run ./manage.py coverage --threshold=80 --html=False
 
       - run:
           name: Run Bandit tests
