@@ -712,7 +712,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.create_end_user_advisory(note, reasoning, organisation)
 
     def create_generated_case_document(self, case, template, document_name="Generated Doc"):
-        generated_case_doc = GeneratedCaseDocument(
+        generated_case_doc = GeneratedCaseDocument.objects.create(
             name=document_name,
             user=self.gov_user,
             s3_key=uuid.uuid4(),
@@ -721,8 +721,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             type=CaseDocumentState.GENERATED,
             case=case,
             template=template,
+            text="Here is some text",
         )
-        generated_case_doc.save()
         return generated_case_doc
 
     def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id):
