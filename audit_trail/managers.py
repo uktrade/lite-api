@@ -36,5 +36,6 @@ class AuditManager(GFKManager):
                 return audit
 
             return None
-
+        if "ignore_case_status" in kwargs:
+            kwargs.pop("ignore_case_status")
         return super(AuditManager, self).create(*args, **kwargs)
