@@ -72,8 +72,9 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             self.fields["quantity"].required = False
             self.fields["unit"].required = False
             self.fields["is_good_incorporated"].required = False
-            if not self.initial_data["item_type"] == ItemType.OTHER:
-                self.initial_data["other_item_type"] = None
+            if self.initial_data.get("item_type") and not self.initial_data["item_type"] == ItemType.OTHER:
+                if self.initial_data.get("other_item_type"):
+                    del self.initial_data["other_item_type"]
                 self.fields["other_item_type"].required = False
         else:
             self.fields["item_type"].required = False
