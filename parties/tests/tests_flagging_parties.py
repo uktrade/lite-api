@@ -12,7 +12,7 @@ class PartyFlagsManagementTests(DataTestClient):
         # Destinations
         name = "a name"
         organisation = self.organisation
-        application = self.create_standard_application(organisation=organisation)
+        application = self.create_draft_standard_application(organisation=organisation)
         self.end_user = self.create_party(name, organisation, PartyType.END_USER, application)
         self.ultimate_end_user = self.create_party(name, organisation, PartyType.ULTIMATE_END_USER, application)
         self.consignee = self.create_party(name, organisation, PartyType.CONSIGNEE, application)

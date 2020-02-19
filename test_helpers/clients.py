@@ -127,7 +127,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Print output time for tests if settings.TIME_TESTS is set to True
         """
-        if settings.TIME_TESTS:
+        if settings.SUPPRESS_TEST_OUTPUT:
+            pass
+        elif settings.TIME_TESTS:
             self.tock = datetime.now()
 
             diff = self.tock - self.tick
@@ -488,7 +490,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
         self.create_application_document(application)
 
-    def create_standard_application(
+    def create_draft_standard_application(
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
         application = StandardApplication(
@@ -598,7 +600,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
 
-        application = self.create_standard_application(organisation, reference_name, safe_document)
+        application = self.create_draft_standard_application(organisation, reference_name, safe_document)
 
         part_good = Good(
             is_good_controlled=GoodControlled.YES,
@@ -686,7 +688,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates a complete standard application case
         """
-        draft = self.create_standard_application(organisation, reference_name)
+        draft = self.create_draft_standard_application(organisation, reference_name)
 
         return self.submit_application(draft)
 

@@ -12,7 +12,7 @@ class DeleteApplication(DataTestClient):
     def setUp(self):
         super().setUp()
         self.applications = {
-            CaseTypeSubTypeEnum.STANDARD: self.create_standard_application(self.organisation),
+            CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
             CaseTypeSubTypeEnum.HMRC: self.create_hmrc_query(self.organisation),
             CaseTypeSubTypeEnum.EXHIBITION: self.create_mod_clearance_application(
                 self.organisation, case_type=CaseTypeEnum.EXHIBITION

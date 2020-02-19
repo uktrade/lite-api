@@ -1,10 +1,12 @@
 import uuid
 
+from conf import settings
 from static.control_list_entries.models import ControlListEntry
 
 
 def parse_list_into_control_list_entries(worksheet):
-    print(f"Seeding {worksheet.title}...")
+    if not settings.SUPPRESS_TEST_OUTPUT:
+        print(f"Seeding {worksheet.title}...")
 
     parents_at_depth = [None, None, None, None, None, None, None, None, None, None]
     current_depth = 1
