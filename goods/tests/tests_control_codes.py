@@ -32,7 +32,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        self.application = self.create_standard_application(organisation=self.organisation)
+        self.application = self.create_draft_standard_application(organisation=self.organisation)
         GoodOnApplication(good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
         GoodOnApplication(good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
         self.case = self.submit_application(self.application)

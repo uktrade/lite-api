@@ -26,7 +26,7 @@ class DraftTests(DataTestClient):
         Ensure we can get a list of drafts.
         """
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        standard_application = self.create_standard_application(self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -47,7 +47,7 @@ class DraftTests(DataTestClient):
         """
         Ensure that the exporter cannot see applications with sites that they don't have access to.
         """
-        self.create_standard_application(self.organisation)
+        self.create_draft_standard_application(self.organisation)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -63,7 +63,7 @@ class DraftTests(DataTestClient):
         relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
         relationship.sites.set([self.organisation.primary_site])
         site_2, _ = self.create_site("Site #2", self.organisation)
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         SiteOnApplication(site=site_2, application=application).save()
 
         response = self.client.get(self.url, **self.exporter_headers)
@@ -103,7 +103,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_view_draft_standard_application_as_exporter_success(self):
-        standard_application = self.create_standard_application(self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
 
         url = reverse("applications:application", kwargs={"pk": standard_application.id})
 
@@ -299,7 +299,7 @@ class DraftTests(DataTestClient):
 
     def test_user_only_sees_their_organisations_drafts_in_list(self):
         organisation_2, _ = self.create_organisation_with_exporter_user()
-        self.create_standard_application(organisation_2)
+        self.create_draft_standard_application(organisation_2)
 
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()
@@ -309,7 +309,7 @@ class DraftTests(DataTestClient):
 
     def test_user_cannot_see_details_of_another_organisations_draft(self):
         organisation_2, _ = self.create_organisation_with_exporter_user()
-        draft = self.create_standard_application(organisation_2)
+        draft = self.create_draft_standard_application(organisation_2)
 
         url = reverse("applications:application", kwargs={"pk": draft.id}) + "?submitted=false"
 
