@@ -11,6 +11,7 @@ from conf import constants
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
+from letter_templates.enums import Decisions
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
@@ -85,11 +86,14 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         old_layout_id = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
         old_name = template_object.name
+        old_decisions = template_object.decisions
 
         data = request.data
         new_case_types = data.get("case_types")
         if new_case_types:
             data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
+
+        new_decisions = Decisions.to_representation(data.get("decisions"))
 
         serializer = self.get_serializer(template_object, data=data, partial=True)
 
@@ -111,6 +115,15 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                         verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
                         target=serializer.instance,
                         payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types)},
+                    )
+
+            if request.data.get("decisions"):
+                if new_decisions != old_decisions:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
+                        target=serializer.instance,
+                        payload={"old_decisions": sorted(old_decisions), "new_decisions": sorted(new_decisions)},
                     )
 
             if request.data.get("letter_paragraphs"):

@@ -56,3 +56,8 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         if not attrs:
             raise serializers.ValidationError(strings.LetterTemplates.NEED_AT_LEAST_ONE_PARAGRAPH)
         return attrs
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["decisions"] = Decisions.to_representation(instance.decisions)
+        return data

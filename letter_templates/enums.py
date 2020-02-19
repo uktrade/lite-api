@@ -16,3 +16,7 @@ class Decisions:
         for key, value in cls.choices:
             if key == choice:
                 return value
+
+    @classmethod
+    def to_representation(cls, decisions):
+        return [{"key": decision, "value": cls.get_text(decision)} for decision in decisions or []]
