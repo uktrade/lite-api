@@ -54,16 +54,16 @@ class DBLoggingMiddleware:
             }
         )
 
-        for query in final_queries:
-            logging.info(
-                {
-                    "message": "liteolog db",
-                    "corrID": request.correlation,
-                    "type": "db details",
-                    "elapsed_time": query["time"],
-                    "method": "DB-QUERY",
-                    "url": query["sql"],
-                }
-            )
+        # for query in final_queries:
+        #     logging.info(
+        #         {
+        #             "message": "liteolog db",
+        #             "corrID": request.correlation,
+        #             "type": "db details",
+        #             "elapsed_time": query["time"],
+        #             "method": "DB-QUERY",
+        #             "url": query["sql"],
+        #         }
+        #     )
 
         return response
