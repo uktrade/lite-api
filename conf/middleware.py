@@ -41,13 +41,14 @@ class DBLoggingMiddleware:
 
         logging.info(
             {
-                "message": "liteolog api",
+                "message": "liteolog db",
                 "corrID": request.correlation,
                 "type": "db details",
                 "elapsed_time": time.time() - start,
                 "initial query count": len(initial_queries),
                 "final query count": len(final_queries),
-
+                "method": "DBQUERY",
+                "url": "database//",
             }
         )
 
