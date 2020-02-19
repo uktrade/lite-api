@@ -23,18 +23,18 @@ class FilterAndSortTests(DataTestClient):
         self.url = reverse("cases:search")
 
         self.application_cases = []
-        for app_status in CaseStatusEnum.choices:
+        statuses = [CaseStatusEnum.SUBMITTED, CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN]
+        for app_status in statuses:
             case = self.create_standard_application_case(self.organisation, "Example Application")
-            case.status = get_case_status_by_status(app_status[0])
+            case.status = get_case_status_by_status(app_status)
             case.save()
             self.queue.cases.add(case)
             self.queue.save()
             self.application_cases.append(case)
 
         # CLC applicable case statuses
-        clc_statuses = [CaseStatusEnum.SUBMITTED, CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN]
         self.clc_cases = []
-        for clc_status in clc_statuses:
+        for clc_status in statuses:
             clc_query = self.create_clc_query("Example CLC Query", self.organisation)
             clc_query.status = get_case_status_by_status(clc_status)
             clc_query.save()
@@ -56,7 +56,6 @@ class FilterAndSortTests(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["results"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(all_cases), len(response_data["cases"]))
 

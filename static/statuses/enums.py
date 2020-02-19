@@ -7,11 +7,12 @@ class CaseStatusEnum:
     CHANGE_UNDER_REVIEW = "change_under_review"
     CLOSED = "closed"
     DEREGISTERED = "deregistered"
-    DRAFT = "draft"
+    DRAFT = "draft"  # System status only
     FINALISED = "finalised"
     INITIAL_CHECKS = "initial_checks"
     REGISTERED = "registered"
     REOPENED_FOR_CHANGES = "reopened_for_changes"
+    REOPENED_DUE_TO_ORG_CHANGES = "reopened_due_to_org_changes"
     RESUBMITTED = "resubmitted"
     REVOKED = "revoked"
     SUBMITTED = "submitted"
@@ -34,6 +35,7 @@ class CaseStatusEnum:
         DEREGISTERED,
         FINALISED,
         REGISTERED,
+        REOPENED_DUE_TO_ORG_CHANGES,
         UNDER_REVIEW,
         UNDER_ECJU_REVIEW,
         UNDER_FINAL_REVIEW,
@@ -58,6 +60,7 @@ class CaseStatusEnum:
         (INITIAL_CHECKS, "Initial checks"),
         (REGISTERED, "Registered"),
         (REOPENED_FOR_CHANGES, "Re-opened for changes"),
+        (REOPENED_DUE_TO_ORG_CHANGES, "Re-opened due to org changes"),
         (RESUBMITTED, "Resubmitted"),
         (REVOKED, "Revoked"),
         (SUBMITTED, "Submitted"),
@@ -85,14 +88,15 @@ class CaseStatusEnum:
         APPEAL_REVIEW: 12,
         APPEAL_FINAL_REVIEW: 13,
         REOPENED_FOR_CHANGES: 14,
-        CHANGE_INTIAL_REVIEW: 15,
-        CHANGE_UNDER_REVIEW: 16,
-        CHANGE_UNDER_FINAL_REVIEW: 17,
-        UNDER_ECJU_REVIEW: 18,
-        REVOKED: 19,
-        SUSPENDED: 20,
-        SURRENDERED: 21,
-        DEREGISTERED: 22,
+        REOPENED_DUE_TO_ORG_CHANGES: 15,
+        CHANGE_INTIAL_REVIEW: 16,
+        CHANGE_UNDER_REVIEW: 17,
+        CHANGE_UNDER_FINAL_REVIEW: 18,
+        UNDER_ECJU_REVIEW: 19,
+        REVOKED: 20,
+        SUSPENDED: 21,
+        SURRENDERED: 22,
+        DEREGISTERED: 23,
     }
 
     @classmethod
