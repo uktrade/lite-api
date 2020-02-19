@@ -49,8 +49,8 @@ class DBLoggingMiddleware:
                 "elapsed_time": elapsed_time,
                 "initial query count": len(initial_queries),
                 "final query count": len(final_queries),
+                "query set": final_queries,
                 "method": "DB-QUERY-SET",
-                "url": "database//",
             }
         )
 
