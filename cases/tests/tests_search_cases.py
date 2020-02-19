@@ -422,7 +422,6 @@ class FilterQueueUserAssignedAsCaseOfficerTests(DataTestClient):
 
 
 class TestQueueOrdering(DataTestClient):
-
     def test_all_cases_queue_returns_cases_in_expected_order(self):
         url = reverse("cases:search")
         """Test All cases queue returns cases in expected order (newest first). """
@@ -438,7 +437,7 @@ class TestQueueOrdering(DataTestClient):
 
         response = self.client.get(url, **self.gov_headers)
 
-        case_ids = [case['id'] for case in response.json()["results"]['cases']]
+        case_ids = [case["id"] for case in response.json()["results"]["cases"]]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(case_ids, expected_case_ids)
