@@ -117,14 +117,14 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                         payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types)},
                     )
 
-            if request.data.get("decisions"):
-                if new_decisions != old_decisions:
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
-                        target=serializer.instance,
-                        payload={"old_decisions": sorted(old_decisions), "new_decisions": sorted(new_decisions)},
-                    )
+            # if request.data.get("decisions"):
+            #     if new_decisions != old_decisions:
+            #         audit_trail_service.create(
+            #             actor=request.user,
+            #             verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
+            #             target=serializer.instance,
+            #             payload={"old_decisions": sorted(old_decisions), "new_decisions": sorted(new_decisions)},
+            #         )
 
             if request.data.get("letter_paragraphs"):
                 new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list("id", "name"))
