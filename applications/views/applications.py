@@ -146,7 +146,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
             serializer.save()
-
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
@@ -161,6 +160,10 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 target=case,
                 payload={"old_name": old_name, "new_name": serializer.data.get("name")},
             )
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        if request.data.get("clearance_level"):
+            serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block

@@ -9,6 +9,7 @@ from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
 from common.models import TimestampableModel
 from documents.models import Document
+from goods.enums import PvGrading
 from goods.models import Good
 from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation, Site, ExternalLocation
@@ -128,6 +129,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
     licence_duration = models.IntegerField(default=None, null=True, help_text="Set when application finalised")
+    clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
     objects = BaseApplicationManager()
 
@@ -232,6 +234,7 @@ class PartyOnApplication(TimestampableModel):
     )
     party = models.ForeignKey(Party, on_delete=models.PROTECT)
     deleted_at = models.DateTimeField(null=True, default=None)
+    clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
     objects = models.Manager()
 

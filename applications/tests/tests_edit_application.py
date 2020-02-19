@@ -6,6 +6,7 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
+from goods.enums import PvGrading
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -176,3 +177,30 @@ class EditMODClearanceApplicationsTests(DataTestClient):
 
         response = self.client.put(self.url, self.data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class EditF680ApplicationsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
+        self.url = reverse("applications:application", kwargs={"pk": self.application.id})
+
+    @parameterized.expand(["", "1", "2", "clearance"])
+    def test_add_clearance_level_invalid_inputs(self, level):
+        data = {"clearance_level": level}
+
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @parameterized.expand([p[0] for p in PvGrading.choices])
+    def test_add_clearance_level_success(self, level):
+        data = {"clearance_level": level}
+
+        self.assertNotEqual(self.application.clearance_level, level)
+
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+        self.application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.application.clearance_level, level)
