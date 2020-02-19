@@ -238,7 +238,7 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
         self.draft = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.good = self.create_good("A good", self.organisation)
 
-    def test_add_a_good_to_a_draft(self):
+    def test_add_a_good_to_a_exhibition_draft_choice(self):
         self.create_good_document(
             self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
         )
@@ -259,3 +259,63 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
         self.assertEqual(len(response_data["goods"]), 2)
         # No audit created for drafts.
         self.assertEqual(audit_qs.count(), 0)
+
+    def test_add_a_good_to_a_exhibition_other(self):
+        self.create_good_document(
+            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+        )
+
+        data = {"good_id": self.good.id, "item_type": ItemType.OTHER, "other_item_type": "abcde"}
+
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()
+        audit_qs = Audit.objects.all()
+
+        # The standard draft comes with one good pre-added, plus the good added in this test makes 2
+        self.assertEqual(len(response_data["goods"]), 2)
+        # No audit created for drafts.
+        self.assertEqual(audit_qs.count(), 0)
+
+    def test_add_a_good_to_a_exhibition_other_blank_failure(self):
+        self.create_good_document(
+            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+        )
+
+        data = {"good_id": self.good.id, "item_type": ItemType.OTHER, "other_item_type": ""}
+
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()
+
+        # Still one good as test failed
+        self.assertEqual(len(response_data["goods"]), 1)
+
+    def test_add_a_good_to_a_exhibition_no_data_failure(self):
+        self.create_good_document(
+            self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
+        )
+
+        data = {"good_id": self.good.id}
+
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()
+
+        # Still one good as test failed
+        self.assertEqual(len(response_data["goods"]), 1)
