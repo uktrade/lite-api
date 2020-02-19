@@ -3,6 +3,7 @@ import time
 import uuid
 from django.db import connection
 
+
 class LoggingMiddleware:
     def __init__(self, get_response=None):
         self.get_response = get_response
@@ -39,17 +40,30 @@ class DBLoggingMiddleware:
         response = self.get_response(request)
         final_queries = connection.queries
 
+        elapsed_time = time.time() - start
         logging.info(
             {
                 "message": "liteolog db",
                 "corrID": request.correlation,
                 "type": "db details",
-                "elapsed_time": time.time() - start,
+                "elapsed_time": elapsed_time,
                 "initial query count": len(initial_queries),
                 "final query count": len(final_queries),
-                "method": "DBQUERY",
+                "method": "DB-QUERY-SET",
                 "url": "database//",
             }
         )
+
+        for query in final_queries:
+            logging.info(
+                {
+                    "message": "liteolog db",
+                    "corrID": request.correlation,
+                    "type": "db details",
+                    "elapsed_time": query["time"],
+                    "method": "DB-QUERY",
+                    "url": query["sql"],
+                }
+            )
 
         return response
