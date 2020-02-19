@@ -152,7 +152,7 @@ class OpenApplication(BaseApplication):
 # MOD Clearances Applications
 # Exhibition includes End User, Consignee, Ultimate end users & Third parties
 class ExhibitionClearanceApplication(BaseApplication):
-    exhibition_title = models.CharField(blank=False, null=True)
+    exhibition_title = models.CharField(blank=False, null=True, max_length=255)
     first_exhibition_date = models.DateField(blank=False, null=True)
     required_by_date = models.DateField(blank=False, null=True)
     reason_for_clearance = models.TextField(default=None, blank=True, null=True, max_length=2000)

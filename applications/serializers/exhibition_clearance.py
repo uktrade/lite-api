@@ -44,10 +44,10 @@ class ExhibitionClearanceCreateSerializer(GenericApplicationCreateSerializer):
 
 
 class ExhibitionClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
-    exhibition_title = serializers.CharField(blank=False, null=True)
-    first_exhibition_date = serializers.DateField(blank=False, null=True)
-    required_by_date = serializers.DateField(blank=False, null=True)
-    reason_for_clearance = serializers.CharField(default=None, blank=True, null=True, max_length=2000)
+    exhibition_title = serializers.CharField(required=True, max_length=255)
+    first_exhibition_date = serializers.DateField(required=True)
+    required_by_date = serializers.DateField(required=True)
+    reason_for_clearance = serializers.CharField(max_length=2000)
 
     class Meta:
         model = ExhibitionClearanceApplication
