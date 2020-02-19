@@ -1,17 +1,6 @@
-from datetime import datetime, time
-
-from background_task import background
-
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.models import CaseAssignment
-
-SLA_UPDATE_TASK_HOUR = 18
-
-
-@background(schedule=datetime.combine(datetime.now(), time(SLA_UPDATE_TASK_HOUR, 0, 0)))
-def update_cases_sla():
-    print("abc")
 
 
 def update_case_queues(user, case, queues):

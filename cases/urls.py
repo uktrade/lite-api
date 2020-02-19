@@ -1,7 +1,7 @@
 from background_task.models import Task
 from django.urls import path, include
 
-from cases.service import update_cases_sla
+from cases.sla import update_cases_sla
 from cases.views import views, activity, case_notes
 from cases.views.search import views as search_views
 
