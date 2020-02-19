@@ -8,7 +8,7 @@ from cases.views.search import views as search_views
 app_name = "cases"
 
 # Background tasks
-update_cases_sla(repeat=Task.DAILY, repeat_until=None)
+update_cases_sla(repeat=Task.DAILY, repeat_until=None)  # noqa
 
 urlpatterns = [
     path("", search_views.CasesSearchView.as_view(), name="search"),

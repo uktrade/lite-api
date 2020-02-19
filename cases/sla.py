@@ -2,7 +2,7 @@ from datetime import datetime, time
 
 from background_task import background
 
-SLA_UPDATE_TASK_HOUR = 18
+SLA_UPDATE_TASK_HOUR = 24
 
 
 @background(schedule=datetime.combine(datetime.now(), time(SLA_UPDATE_TASK_HOUR, 0, 0)))
