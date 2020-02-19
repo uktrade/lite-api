@@ -4,6 +4,7 @@ from rest_framework.validators import UniqueValidator
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField
+from letter_templates.enums import Decisions
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from picklists.models import PicklistItem
@@ -34,6 +35,10 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         queryset=LetterLayout.objects.all(),
         serializer=LetterLayoutSerializer,
         error_messages={"required": strings.LetterTemplates.SELECT_THE_LAYOUT},
+    )
+
+    decisions = serializers.MultipleChoiceField(
+        choices=Decisions.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
     )
 
     class Meta:
