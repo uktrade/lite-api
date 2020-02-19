@@ -216,7 +216,8 @@ class GoodOnApplication(TimestampableModel):
     value = models.DecimalField(max_digits=256, decimal_places=2, null=True, blank=True, default=None)
     is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
     # Exhibition Details
-    item_type = models.CharField(choices=ItemType.choices, max_length=100, null=True, blank=True, default=None)
+    item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
+    other_item_type = models.CharField(max_length=100, null=True, blank=True, default=None)
 
     class Meta:
         ordering = ["created_at"]
