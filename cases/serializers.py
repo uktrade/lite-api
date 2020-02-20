@@ -117,7 +117,7 @@ class TinyCaseSerializer(serializers.Serializer):
     flags = serializers.SerializerMethodField()
     submitted_at = serializers.CharField()
     sla_days = serializers.IntegerField()
-    sla_remaining_days = serializers.IntegerField()
+    sla_percentage = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -140,6 +140,9 @@ class TinyCaseSerializer(serializers.Serializer):
 
     def get_users(self, instance):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
+
+    def get_sla_percentage(self, instance):
+        return instance.sla_days / instance.sla_remaining_days
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
@@ -164,7 +167,7 @@ class CaseDetailSerializer(CaseSerializer):
     copy_of = serializers.SerializerMethodField()
     audit_notification = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
-    sla_remaining_days = serializers.IntegerField()
+    sla_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -252,6 +255,8 @@ class CaseDetailSerializer(CaseSerializer):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
 
+    def get_sla_percentage(self, instance):
+        return instance.sla_days / instance.sla_remaining_days
 
 class CaseNoteSerializer(serializers.ModelSerializer):
     """
