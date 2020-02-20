@@ -36,8 +36,10 @@ def is_weekend(date):
 
 def get_bank_holidays():
     """
-    Uses the GOV bank holidays API (or a local backup if the service is unavailable).
-    Returns whether the list of bank holidays
+    Uses the GOV bank holidays API.
+    If it can connect to the API, it extracts the list of bank holidays,
+    saves a backup of this list as a CSV and returns the list.
+    If it cannot connect to the service it will use the CSV backup and returns the list.
     """
     r = requests.get(BANK_HOLIDAY_API)
     if r.status_code != 200:
