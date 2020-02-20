@@ -50,4 +50,5 @@ class ExhibitionClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
 
     class Meta:
         model = ExhibitionClearanceApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields
+        fields = GenericApplicationUpdateSerializer.Meta.fields \
+                 + ("exhibition_title", "first_exhibition_date", "required_by_date", "reason_for_clearance")
