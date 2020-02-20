@@ -12,6 +12,24 @@ class GoodStatus:
     ]
 
 
+class ItemType:
+    EQUIPMENT = "equipment"
+    MODEL = "model"
+    DATASHEET = "datasheet"
+    BROCHURE = "brochure"
+    VIDEO = "video"
+    OTHER = "other"
+
+    choices = [
+        (EQUIPMENT, "Equipment"),
+        (MODEL, "Model"),
+        (DATASHEET, "Datasheet"),
+        (BROCHURE, "Brochure"),
+        (VIDEO, "Video"),
+        (OTHER, "Other"),
+    ]
+
+
 class GoodControlled:
     YES = "yes"
     NO = "no"

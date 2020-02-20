@@ -179,8 +179,12 @@ def _validate_standard_licence(draft, errors):
 
 
 def _validate_exhibition_clearance(draft, errors):
-    # Temp as exhibition clearance is currently the same as standard but will change
-    return _validate_standard_licence(draft, errors)
+    """ Checks that an exhibition clearance has goods and locations """
+
+    errors = _validate_locations(draft, errors)
+    errors = _validate_has_goods(draft, errors, is_mandatory=True)
+
+    return errors
 
 
 def _validate_gifting_clearance(draft, errors):

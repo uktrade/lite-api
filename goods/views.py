@@ -18,7 +18,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemType
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
@@ -240,6 +240,11 @@ class GoodDetail(APIView):
 
         good.delete()
         return JsonResponse(data={"status": "Good Deleted"}, status=status.HTTP_200_OK)
+
+
+class GoodItemTypes(APIView):
+    def get(self, request):
+        return JsonResponse(data={"item_types": {choice[0]: choice[1] for choice in ItemType.choices}})
 
 
 class GoodDocuments(APIView):

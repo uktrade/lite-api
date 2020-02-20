@@ -22,7 +22,6 @@ class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicati
         model = ExhibitionClearanceApplication
         fields = (
             GenericApplicationViewSerializer.Meta.fields
-            + PartiesSerializerMixin.Meta.fields
             + ("goods", "activity", "usage", "destinations", "additional_documents",)
         )
 
@@ -44,14 +43,12 @@ class ExhibitionClearanceCreateSerializer(GenericApplicationCreateSerializer):
 
 
 class ExhibitionClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
-    name = CharField(
-        max_length=100,
-        required=True,
-        allow_blank=False,
-        allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
-    )
+    exhibition_title = serializers.CharField(required=True, max_length=255)
+    first_exhibition_date = serializers.DateField(required=True)
+    required_by_date = serializers.DateField(required=True)
+    reason_for_clearance = serializers.CharField(max_length=2000)
 
     class Meta:
         model = ExhibitionClearanceApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields
+        fields = GenericApplicationUpdateSerializer.Meta.fields \
+                 + ("exhibition_title", "first_exhibition_date", "required_by_date", "reason_for_clearance")
