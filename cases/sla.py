@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, time
 import requests
 
@@ -57,17 +58,23 @@ def is_bank_holiday(date):
 
 @background(schedule=datetime.combine(datetime.now(), SLA_UPDATE_TASK_TIME))
 def update_cases_sla():
+    logging.info("SLA Update Started")
     date = datetime.now()
     if not is_bank_holiday(date) and not is_weekend(date):
         # Get cases submitted before the cutoff time today, where they have never been closed
         # and where the cases SLA haven't been updated today (to avoid running twice in a single day)
-        cases = Case.objects.filter(
-            submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME), first_closed_at__isnull=True
-        ).exclude(sla_updated_at__day=date.day)
-        for case in cases:
-            case.sla_days += 1
-            if case.sla_remaining_days != 0:
-                case.sla_remaining_days -= 1
-            case.save()
+        try:
+            cases = Case.objects.filter(
+                submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME), first_closed_at__isnull=True
+            ).exclude(sla_updated_at__day=date.day)
+            for case in cases:
+                case.sla_days += 1
+                if case.sla_remaining_days != 0:
+                    case.sla_remaining_days -= 1
+                case.save()
+        except Exception as e:
+            logging.error(e)
+        logging.info(f"SLA Update Successful: {len(cases)} cases updated")
         return True
+    logging.info("SLA Update Ignored: Non-working day")
     return False
