@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 
 from applications.mixins.serializers import PartiesSerializerMixin
@@ -82,3 +84,13 @@ class ExhibitionClearanceDetailSerializer(serializers.ModelSerializer):
             "required_by_date",
             "reason_for_clearance",
         )
+
+    def validate_first_exhibition_date(self, value):
+        if value <= datetime.date.today():
+            raise serializers.ValidationError("The first exhibition date must be in the future")
+        return value
+
+    def validate_required_by_date(self, value):
+        if value <= datetime.date.today():
+            raise serializers.ValidationError("The required by date must be in the future")
+        return value
