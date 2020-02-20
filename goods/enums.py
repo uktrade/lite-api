@@ -16,9 +16,9 @@ class ItemType:
     EQUIPMENT = "equipment"
     MODEL = "model"
     DATASHEET = "datasheet"
-    BROCHURE = "Brochure"
-    VIDEO = "Video"
-    OTHER = "Other"
+    BROCHURE = "brochure"
+    VIDEO = "video"
+    OTHER = "other"
 
     choices = [
         (EQUIPMENT, "Equipment"),

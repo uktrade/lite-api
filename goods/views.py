@@ -244,7 +244,7 @@ class GoodDetail(APIView):
 
 class GoodItemTypes(APIView):
     def get(self, request):
-        return JsonResponse(data={"item_types": [{choice[0]: choice[1]} for choice in ItemType.choices]})
+        return JsonResponse(data={"item_types": {choice[0]: choice[1] for choice in ItemType.choices}})
 
 
 class GoodDocuments(APIView):
