@@ -58,5 +58,14 @@ def is_bank_holiday(date):
 def update_cases_sla():
     date = datetime.now()
     if not is_bank_holiday(date) and not is_weekend(date):
-        cases = Case.objects.filter(submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME))
-        return cases
+        # Get cases submitted before the cutoff time today, where they have never been closed
+        # and where the cases SLA haven't been updated today (to avoid running twice in a single day)
+        cases = Case.objects.filter(
+            submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME), first_closed_at__isnull=True
+        ).exclude(sla_updated_at__day=date.day)
+        for case in cases:
+            case.sla_days += 1
+            case.sla_remaining_days -= 1
+            case.save()
+        return True
+    return False
