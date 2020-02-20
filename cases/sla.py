@@ -65,7 +65,7 @@ def update_cases_sla():
         # and where the cases SLA haven't been updated today (to avoid running twice in a single day)
         try:
             cases = Case.objects.filter(
-                submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME), first_closed_at__isnull=True
+                submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME), last_closed_at__isnull=True
             ).exclude(sla_updated_at__day=date.day)
             for case in cases:
                 case.sla_days += 1
