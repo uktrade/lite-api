@@ -24,6 +24,10 @@ class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicati
             "usage",
             "destinations",
             "additional_documents",
+            "title",
+            "first_exhibition_date",
+            "required_by_date",
+            "reason_for_clearance",
         )
 
 
@@ -61,9 +65,14 @@ class ExhibitionClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
 
 class ExhibitionClearanceDetailSerializer(serializers.ModelSerializer):
     title = serializers.CharField(required=True, max_length=255)
-    first_exhibition_date = serializers.DateField(required=True)
-    required_by_date = serializers.DateField(required=True)
-    reason_for_clearance = serializers.CharField(max_length=2000)
+    first_exhibition_date = serializers.DateField(
+        allow_null=False,
+        error_messages={"invalid": "Enter the first exhibition's date and include a day, month, year."},
+    )
+    required_by_date = serializers.DateField(
+        allow_null=False, error_messages={"invalid": "Enter the required by date and include a day, month, year."},
+    )
+    reason_for_clearance = serializers.CharField(required=False, max_length=2000)
 
     class Meta:
         model = ExhibitionClearanceApplication
