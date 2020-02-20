@@ -233,6 +233,7 @@ class ApplicationSubmission(APIView):
 
         application.submitted_at = timezone.now()
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
+        application.sla_days = 0
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
