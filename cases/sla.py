@@ -84,6 +84,7 @@ def update_cases_sla():
                 case.sla_days += 1
                 if case.sla_remaining_days > 0:
                     case.sla_remaining_days -= 1
+                case.sla_updated_at = date
                 case.save()
         except Exception as e:
             logging.error(e)
