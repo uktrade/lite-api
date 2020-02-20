@@ -172,15 +172,6 @@ class DraftTests(DataTestClient):
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEqual(GoodOnApplication.objects.filter(application__id=application.id).count(), 1)
-        self.assertEqual(
-            retrieved_application["end_user"]["id"], str(application.end_user.party.id),
-        )
-        self.assertEqual(
-            retrieved_application["consignee"]["id"], str(application.consignee.party.id),
-        )
-        self.assertEqual(
-            retrieved_application["third_parties"][0]["id"], str(application.third_parties.get().party.id),
-        )
 
     def test_view_draft_gifting_clearance_as_exporter_success(self):
         application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)

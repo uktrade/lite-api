@@ -32,6 +32,7 @@ from applications.models import (
     ExternalLocationOnApplication,
     PartyOnApplication,
 )
+from applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
@@ -537,3 +538,18 @@ class ApplicationCopy(APIView):
             good.save()
             good.countries.set(old_good_countries)
             good.flags.set(old_good_flags)
+
+
+class ExhibitionDetails(APIView):
+    def get(self, request, pk):
+        application = get_application(pk)
+        serializer = ExhibitionClearanceDetailSerializer(instance=application)
+        return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
+
+    def post(self, request, pk):
+        application = get_application(pk)
+        serializer = ExhibitionClearanceDetailSerializer(instance=application, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

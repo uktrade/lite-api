@@ -66,64 +66,6 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertIsNotNone(application.consignee)
         self.assertIsNotNone(application.goods.get())
 
-    def test_submit_exhibition_clearance_without_end_user_failure(self):
-        self.draft.delete_party(self.draft.end_user)
-        self.draft.save()
-
-        response = self.client.put(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_SET)
-
-    def test_submit_exhibition_clearance_without_end_user_document_failure(self):
-        PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
-
-        response = self.client.put(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_DOCUMENT_SET)
-
-    def test_submit_exhibition_clearance_without_consignee_failure(self):
-        self.draft.delete_party(self.draft.consignee)
-
-        response = self.client.put(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["consignee"], strings.Applications.Standard.NO_CONSIGNEE_SET)
-
-    def test_submit_exhibition_clearance_without_consignee_document_failure(self):
-        PartyDocument.objects.filter(party=self.draft.consignee.party).delete()
-
-        response = self.client.put(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"]["consignee"], strings.Applications.Standard.NO_CONSIGNEE_DOCUMENT_SET
-        )
-
-    def test_submit_exhibition_clearance_with_incorporated_good_and_without_ultimate_end_users_failure(self):
-        self.create_incorporated_good_and_ultimate_end_user_on_application(self.organisation, self.draft)
-        self.draft.ultimate_end_users.all().delete()
-
-        response = self.client.put(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"]["ultimate_end_users"], strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET
-        )
-
-    def test_submit_exhibition_clearance_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self):
-        self.create_incorporated_good_and_ultimate_end_user_on_application(self.organisation, self.draft)
-        PartyDocument.objects.filter(party__in=self.draft.ultimate_end_users.all().values("party")).delete()
-
-        response = self.client.put(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"]["ultimate_end_user_documents"],
-            strings.Applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
-        )
-
     def test_submit_exhibition_clearance_without_location_failure(self):
         SiteOnApplication.objects.get(application=self.draft).delete()
 

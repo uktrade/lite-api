@@ -3,7 +3,10 @@ from rest_framework.fields import DecimalField, ChoiceField, BooleanField
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import BaseApplication, GoodOnApplication
+from cases.enums import CaseTypeEnum
+from cases.models import Case
 from conf.serializers import KeyValueChoiceField
+from goods.enums import ItemType
 from goods.models import Good
 from goods.serializers import GoodSerializer
 from lite_content.lite_api import strings
@@ -26,6 +29,8 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "value",
             "is_good_incorporated",
             "flags",
+            "item_type",
+            "other_item_type",
         )
 
     def get_flags(self, instance):
@@ -44,6 +49,8 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         error_messages={"required": strings.Goods.REQUIRED_UNIT, "invalid_choice": strings.Goods.REQUIRED_UNIT},
     )
     is_good_incorporated = BooleanField(required=True, error_messages={"required": strings.Goods.INCORPORATED_ERROR})
+    item_type = serializers.ChoiceField(choices=ItemType.choices)
+    other_item_type = serializers.CharField(max_length=100)
 
     class Meta:
         model = GoodOnApplication
@@ -55,4 +62,22 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             "quantity",
             "unit",
             "is_good_incorporated",
+            "item_type",
+            "other_item_type",
         )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        case_type = Case.objects.get(id=self.initial_data["application"]).case_type
+        if case_type.id == CaseTypeEnum.EXHIBITION.id:
+            self.fields["value"].required = False
+            self.fields["quantity"].required = False
+            self.fields["unit"].required = False
+            self.fields["is_good_incorporated"].required = False
+            if self.initial_data.get("item_type") and not self.initial_data["item_type"] == ItemType.OTHER:
+                if isinstance(self.initial_data.get("other_item_type"), str):
+                    del self.initial_data["other_item_type"]
+                self.fields["other_item_type"].required = False
+        else:
+            self.fields["item_type"].required = False
+            self.fields["other_item_type"].required = False
