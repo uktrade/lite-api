@@ -1,14 +1,9 @@
-from background_task.models import Task
 from django.urls import path, include
 
-from cases.sla import update_cases_sla
 from cases.views import views, activity, case_notes
 from cases.views.search import views as search_views
 
 app_name = "cases"
-
-# Background tasks
-update_cases_sla(repeat=Task.DAILY, repeat_until=None)  # noqa
 
 urlpatterns = [
     path("", search_views.CasesSearchView.as_view(), name="search"),
