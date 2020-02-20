@@ -429,6 +429,12 @@ class ApplicationCopy(APIView):
         self.new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         self.new_application.copy_of_id = self.old_application_id
 
+        # Remove SLA data
+        self.new_application.sla_days = 0
+        self.new_application.sla_remaining_days = get_application_target_sla(self.new_application.case_type.sub_type)
+        self.new_application.last_closed_at = None
+        self.new_application.sla_updated_at = None
+
         # Remove data that should not be copied
         self.remove_data_from_application_copy()
 
