@@ -1,3 +1,5 @@
+import django.utils.timezone
+
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -74,6 +76,7 @@ class GoodsQueriesCreate(APIView):
             organisation=data["organisation"],
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=django.utils.timezone.now(),
         )
 
         # attach flags based on what's required
