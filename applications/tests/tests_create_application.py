@@ -16,7 +16,7 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -24,13 +24,13 @@ from test_helpers.clients import DataTestClient
 class DraftTests(DataTestClient):
     url = reverse("applications:applications")
 
-    def test_create_draft_standard_application_successful(self):
+    def test_create_draft_standard_individual_export_application_successful(self):
         """
-        Ensure we can create a new standard application draft object
+        Ensure we can create a new standard individual export application draft
         """
         data = {
             "name": "Test",
-            "application_type": CaseTypeSubTypeEnum.STANDARD,
+            "application_type": CaseTypeReferenceEnum.SIEL,
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
