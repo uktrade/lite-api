@@ -20,9 +20,12 @@ class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicati
 
     class Meta:
         model = ExhibitionClearanceApplication
-        fields = (
-            GenericApplicationViewSerializer.Meta.fields
-            + ("goods", "activity", "usage", "destinations", "additional_documents",)
+        fields = GenericApplicationViewSerializer.Meta.fields + (
+            "goods",
+            "activity",
+            "usage",
+            "destinations",
+            "additional_documents",
         )
 
 
@@ -50,5 +53,9 @@ class ExhibitionClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
 
     class Meta:
         model = ExhibitionClearanceApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields \
-                 + ("exhibition_title", "first_exhibition_date", "required_by_date", "reason_for_clearance")
+        fields = GenericApplicationUpdateSerializer.Meta.fields + (
+            "exhibition_title",
+            "first_exhibition_date",
+            "required_by_date",
+            "reason_for_clearance",
+        )
