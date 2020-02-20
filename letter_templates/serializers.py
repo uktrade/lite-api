@@ -72,7 +72,7 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {
                         "case_types": strings.LetterTemplates.DECISIONS_NON_APPLICATION_CASE_TYPES_ERROR
-                        + ",".join(errors)
+                        + ", ".join(sorted(errors))
                     }
                 )
 

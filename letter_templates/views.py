@@ -11,7 +11,6 @@ from conf import constants
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
-from letter_templates.enums import Decisions
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
@@ -122,7 +121,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     actor=request.user,
                     verb=AuditType.UPDATED_LETTER_TEMPLATE_DECISIONS,
                     target=serializer.instance,
-                    payload={"old_decisions": old_decisions, "new_decisions": new_decisions},
+                    payload={"old_decisions": sorted(old_decisions), "new_decisions": sorted(new_decisions)},
                 )
 
             if new_layout != old_layout:
