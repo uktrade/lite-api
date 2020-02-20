@@ -1,6 +1,7 @@
-from datetime import date, time, datetime
+from datetime import date, time
 from unittest import mock
 
+from django.utils.timezone import datetime, now
 from parameterized import parameterized
 
 from cases.enums import CaseTypeEnum
@@ -25,7 +26,7 @@ class SlaTests(DataTestClient):
 
     @staticmethod
     def _set_case_time(case, submit_time):
-        case.submitted_at = datetime.combine(datetime.now(), submit_time)
+        case.submitted_at = datetime.combine(now(), submit_time)
         case.save()
 
     def test_sla_update_standard_application(self):
@@ -82,7 +83,7 @@ class SlaTests(DataTestClient):
     def test_sla_ignores_previously_finalised_cases(self):
         application = self.create_draft_standard_application(self.organisation)
         case = self.submit_application(application)
-        case.last_closed_at = datetime.now()
+        case.last_closed_at = now()
         self._set_case_time(case, self.hour_before_cutoff)
 
         update_cases_sla.now()
@@ -93,7 +94,7 @@ class SlaTests(DataTestClient):
     def test_sla_does_not_apply_sla_twice_in_one_day(self):
         application = self.create_draft_standard_application(self.organisation)
         case = self.submit_application(application)
-        case.sla_updated_at = datetime.now()
+        case.sla_updated_at = now()
         self._set_case_time(case, self.hour_before_cutoff)
 
         update_cases_sla.now()

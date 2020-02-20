@@ -3,6 +3,7 @@ from datetime import datetime, time
 import requests
 
 from background_task import background
+from django.utils.timezone import now, make_aware
 
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
@@ -68,16 +69,16 @@ def is_bank_holiday(date):
     return formatted_date in get_bank_holidays()
 
 
-@background(schedule=datetime.combine(datetime.now(), SLA_UPDATE_TASK_TIME))
+@background(schedule=make_aware(datetime.combine(now(), SLA_UPDATE_TASK_TIME)))
 def update_cases_sla():
     logging.info("SLA Update Started")
-    date = datetime.now()
+    date = now()
     if not is_bank_holiday(date) and not is_weekend(date):
         # Get cases submitted before the cutoff time today, where they have never been closed
         # and where the cases SLA haven't been updated today (to avoid running twice in a single day)
         try:
             cases = Case.objects.filter(
-                submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME), last_closed_at__isnull=True
+                submitted_at__lt=make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)), last_closed_at__isnull=True
             ).exclude(sla_updated_at__day=date.day)
             for case in cases:
                 case.sla_days += 1
