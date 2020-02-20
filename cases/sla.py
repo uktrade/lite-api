@@ -53,7 +53,7 @@ def get_bank_holidays():
     else:
         try:
             dates = r.json()["england-and-wales"]["events"]
-            data = [event["date"] for event in data]
+            data = [event["date"] for event in dates]
             with open(BACKUP_FILE_NAME, "w") as backup_file:
                 backup_file.write(",".join(data))
             logging.info("Fetched GOV Bank Holiday list successfully")
