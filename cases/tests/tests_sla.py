@@ -1,18 +1,61 @@
-from datetime import date, time
+from datetime import date, time, datetime
 from unittest import mock
 
 from parameterized import parameterized
 
-from cases.sla import update_cases_sla, is_weekend, is_bank_holiday
+from cases.enums import CaseTypeEnum
+from cases.sla import (
+    update_cases_sla,
+    is_weekend,
+    is_bank_holiday,
+    STANDARD_APPLICATION_TARGET,
+    OPEN_APPLICATION_TARGET,
+    MOD_CLEARANCE_TARGET,
+)
 from test_helpers.clients import DataTestClient
+
+
+class SlaTests(DataTestClient):
+    def test_sla_update_standard_application(self):
+        application = self.create_draft_standard_application(self.organisation)
+        case = self.submit_application(application)
+        case.submitted_at = datetime.combine(datetime.now(), time(12, 0, 0))
+
+        update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, STANDARD_APPLICATION_TARGET - 1)
+
+    def test_sla_update_open_application(self):
+        application = self.create_open_application(self.organisation)
+        case = self.submit_application(application)
+        case.submitted_at = datetime.combine(datetime.now(), time(12, 0, 0))
+
+        update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, OPEN_APPLICATION_TARGET - 1)
+
+    def test_sla_update_mod_application(self):
+        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
+        case = self.submit_application(application)
+        case.submitted_at = datetime.combine(datetime.now(), time(12, 0, 0))
+
+        update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, MOD_CLEARANCE_TARGET - 1)
 
 
 class WorkingDayTests(DataTestClient):
     @mock.patch("cases.sla.is_weekend")
     @mock.patch("cases.sla.is_bank_holiday")
-    def test_weekends_ignored(self, is_weekend, is_bank_holiday):
-        is_weekend.return_value = True
-        is_bank_holiday.return_value = False
+    def test_weekends_ignored(self, weekend_func, bank_holiday_func):
+        weekend_func.return_value = True
+        bank_holiday_func.return_value = False
 
         result = update_cases_sla.now()
 
@@ -20,9 +63,9 @@ class WorkingDayTests(DataTestClient):
 
     @mock.patch("cases.sla.is_weekend")
     @mock.patch("cases.sla.is_bank_holiday")
-    def test_bank_holidays_ignored(self, is_weekend, is_bank_holiday):
-        is_weekend.return_value = False
-        is_bank_holiday.return_value = True
+    def test_bank_holidays_ignored(self, weekend_func, bank_holiday_func):
+        weekend_func.return_value = False
+        bank_holiday_func.return_value = True
 
         result = update_cases_sla.now()
 
@@ -30,9 +73,9 @@ class WorkingDayTests(DataTestClient):
 
     @mock.patch("cases.sla.is_weekend")
     @mock.patch("cases.sla.is_bank_holiday")
-    def test_bank_holiday_weekend_ignored(self, is_weekend, is_bank_holiday):
-        is_weekend.return_value = False
-        is_bank_holiday.return_value = False
+    def test_bank_holiday_weekend_ignored(self, weekend_func, bank_holiday_func):
+        weekend_func.return_value = False
+        bank_holiday_func.return_value = False
 
         result = update_cases_sla.now()
 

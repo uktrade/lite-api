@@ -25,6 +25,7 @@ from applications.models import (
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
+from cases.sla import get_application_target_sla
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
@@ -254,6 +255,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def submit_application(application: BaseApplication):
         application.submitted_at = datetime.now(timezone.utc)
+        application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
