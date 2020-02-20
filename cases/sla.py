@@ -41,16 +41,26 @@ def get_bank_holidays():
     saves a backup of this list as a CSV and returns the list.
     If it cannot connect to the service it will use the CSV backup and returns the list.
     """
+    data = []
     r = requests.get(BANK_HOLIDAY_API)
     if r.status_code != 200:
-        with open(BACKUP_FILE_NAME, "r") as backup_file:
-            return backup_file.read().split(",")
+        logging.warning("Cannot connect to the GOV Bank Holiday API. Using local backup")
+        try:
+            with open(BACKUP_FILE_NAME, "r") as backup_file:
+                data = backup_file.read().split(",")
+        except FileNotFoundError:
+            logging.error(f"No local bank holiday backup found; {BACKUP_FILE_NAME}")
     else:
-        data = r.json()["england-and-wales"]["events"]
-        data = [event["date"] for event in data]
-        with open(BACKUP_FILE_NAME, "w") as backup_file:
-            backup_file.write(",".join(data))
-        return data
+        try:
+            dates = r.json()["england-and-wales"]["events"]
+            data = [event["date"] for event in data]
+            with open(BACKUP_FILE_NAME, "w") as backup_file:
+                backup_file.write(",".join(data))
+            logging.info("Fetched GOV Bank Holiday list successfully")
+        except Exception as e:
+            logging.error(e)
+
+    return data
 
 
 def is_bank_holiday(date):
