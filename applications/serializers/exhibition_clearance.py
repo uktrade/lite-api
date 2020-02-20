@@ -22,7 +22,6 @@ class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicati
         model = ExhibitionClearanceApplication
         fields = (
             GenericApplicationViewSerializer.Meta.fields
-            + PartiesSerializerMixin.Meta.fields
             + ("goods", "activity", "usage", "destinations", "additional_documents",)
         )
 
