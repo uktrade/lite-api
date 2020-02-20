@@ -37,7 +37,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         data = request.data
         data["case_types"] = CaseTypeEnum.references_to_ids(data["case_types"])
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=data)
 
         if serializer.is_valid():
             serializer.save()
