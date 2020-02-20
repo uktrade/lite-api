@@ -71,6 +71,13 @@ def is_bank_holiday(date):
 
 @background(schedule=make_aware(datetime.combine(now(), SLA_UPDATE_TASK_TIME)))
 def update_cases_sla():
+    """
+    Updates all applicable cases SLA.
+    Runs as a background task daily at a given time.
+    Doesn't run on non-working days (bank-holidays & weekends)
+    :return: Whether or not SLA updating was ran
+    """
+
     logging.info("SLA Update Started")
     date = now()
     if not is_bank_holiday(date) and not is_weekend(date):
