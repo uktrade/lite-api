@@ -72,7 +72,7 @@ class ExhibitionClearanceDetailSerializer(serializers.ModelSerializer):
     required_by_date = serializers.DateField(
         allow_null=False, error_messages={"invalid": "Enter the required by date and include a day, month, year."},
     )
-    reason_for_clearance = serializers.CharField(required=False, max_length=2000)
+    reason_for_clearance = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
     class Meta:
         model = ExhibitionClearanceApplication
