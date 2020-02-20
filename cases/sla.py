@@ -86,9 +86,11 @@ def update_cases_sla():
                     case.sla_remaining_days -= 1
                 case.sla_updated_at = date
                 case.save()
+            logging.info(f"SLA Update Successful: {len(cases)} cases updated")
+            return True
         except Exception as e:
             logging.error(e)
-        logging.info(f"SLA Update Successful: {len(cases)} cases updated")
-        return True
+            return False
+
     logging.info("SLA Update Ignored: Non-working day")
     return False
