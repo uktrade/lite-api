@@ -88,12 +88,14 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         new_case_types = set(request.data.get("case_types", old_case_types))
         request.data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
 
-        old_decisions = set(template_object.decisions)
+        old_decisions = set(template_object.decisions or [])
         new_decisions = set(request.data.get("decisions", old_decisions))
 
         old_layout = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
         new_layout = request.data.get("layout", old_layout)
+
+        old_paragraphs = list(template_object.letter_paragraphs.values_list("id", "name"))
 
         serializer = self.get_serializer(template_object, data=request.data, partial=True)
 
@@ -133,7 +135,6 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                 )
 
             if request.data.get("letter_paragraphs"):
-                old_paragraphs = list(template_object.letter_paragraphs.values_list("id", "name"))
                 new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list("id", "name"))
 
                 if set(new_paragraphs) != set(old_paragraphs):
