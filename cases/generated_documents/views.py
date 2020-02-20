@@ -9,22 +9,43 @@ from audit_trail.payload import AuditType
 from cases.enums import CaseDocumentState
 from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.generated_documents.serializers import GeneratedCaseDocumentGovSerializer
-from conf.authentication import GovAuthentication
+from cases.generated_documents.serializers import (
+    GeneratedCaseDocumentGovSerializer,
+    GeneratedCaseDocumentExporterSerializer,
+)
+from cases.libraries.delete_notifications import delete_exporter_notifications
+from cases.models import Case
+from conf.authentication import GovAuthentication, SharedAuthentication
+from conf.decorators import authorised_users
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
+from users.enums import UserType
+from users.models import GovUser
 
 
 class GeneratedDocument(generics.RetrieveAPIView):
     authentication_classes = (GovAuthentication,)
-    queryset = GeneratedCaseDocument.objects.all()
     serializer_class = GeneratedCaseDocumentGovSerializer
 
+    def get_object(self):
+        return GeneratedCaseDocument.objects.get(id=self.kwargs["dpk"], case=self.kwargs["pk"])
 
-class GeneratedDocuments(APIView):
-    authentication_classes = (GovAuthentication,)
+
+class GeneratedDocuments(generics.ListAPIView):
+    authentication_classes = (SharedAuthentication,)
+    serializer_class = GeneratedCaseDocumentExporterSerializer
+
+    def get_queryset(self):
+        case = Case.objects.get(id=self.kwargs["pk"])
+        user = self.request.user
+
+        documents = GeneratedCaseDocument.objects.filter(case=case)
+        if user.type == UserType.EXPORTER:
+            delete_exporter_notifications(user=user, organisation=user.organisation, objects=documents)
+        return documents
 
     @transaction.atomic
+    @authorised_users(GovUser)
     def post(self, request, pk):
         """
         Create a generated document
