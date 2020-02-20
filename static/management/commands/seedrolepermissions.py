@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from conf import settings
 from conf.constants import GovPermissions, ExporterPermissions
 from static.management.SeedCommand import SeedCommand
 from static.statuses.models import CaseStatus
@@ -19,7 +20,8 @@ def _create_role_and_output(id, type, name):
     role, created = Role.objects.get_or_create(id=id, type=type, name=name)
     if created:
         role = dict(id=role.id, type=role.type, name=role.name)
-        print(f"CREATED Role: {role}")
+        if not settings.SUPPRESS_TEST_OUTPUT:
+            print(f"CREATED Role: {role}")
 
 
 class Command(SeedCommand):
@@ -39,19 +41,21 @@ class Command(SeedCommand):
             _, created = Permission.objects.update_or_create(
                 id=permission.name, defaults={"name": permission.value, "type": UserType.INTERNAL}
             )
-            if created:
-                print(f"CREATED Permission: {{'name': {permission.value}, 'type': {UserType.INTERNAL}}}")
-            else:
-                print(f"UPDATED Permission: {{'name': {permission.value}, 'type': {UserType.INTERNAL}}}")
+            if not settings.SUPPRESS_TEST_OUTPUT:
+                if created:
+                    print(f"CREATED Permission: {{'name': {permission.value}, 'type': {UserType.INTERNAL}}}")
+                else:
+                    print(f"UPDATED Permission: {{'name': {permission.value}, 'type': {UserType.INTERNAL}}}")
 
         for permission in ExporterPermissions:
             _, created = Permission.objects.update_or_create(
                 id=permission.name, defaults={"name": permission.value, "type": UserType.EXPORTER}
             )
-            if created:
-                print(f"CREATED Permission: {{'name': {permission.value}, 'type': {UserType.EXPORTER}}}")
-            else:
-                print(f"UPDATED Permission: {{'name': {permission.value}, 'type': {UserType.EXPORTER}}}")
+            if not settings.SUPPRESS_TEST_OUTPUT:
+                if created:
+                    print(f"CREATED Permission: {{'name': {permission.value}, 'type': {UserType.EXPORTER}}}")
+                else:
+                    print(f"UPDATED Permission: {{'name': {permission.value}, 'type': {UserType.EXPORTER}}}")
 
         self.delete_unused_objects(
             Permission, [{"id": x.name} for x in GovPermissions] + [{"id": x.name} for x in ExporterPermissions]

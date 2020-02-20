@@ -31,6 +31,7 @@ from documents.libraries.process_document import process_document
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import Party
 from queries.serializers import QueryViewSerializer
@@ -139,6 +140,15 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
 
 
+class CaseCopyOfSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = (
+            "id",
+            "reference_code",
+        )
+
+
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
@@ -149,6 +159,7 @@ class CaseDetailSerializer(CaseSerializer):
     application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer(read_only=True)
+    copy_of = serializers.SerializerMethodField()
     audit_notification = serializers.SerializerMethodField()
 
     class Meta:
@@ -167,6 +178,7 @@ class CaseDetailSerializer(CaseSerializer):
             "case_officer",
             "audit_notification",
             "reference_code",
+            "copy_of",
         )
 
     def __init__(self, *args, **kwargs):
@@ -230,13 +242,25 @@ class CaseDetailSerializer(CaseSerializer):
 
         return None
 
+    def get_copy_of(self, instance):
+        if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
+            return CaseCopyOfSerializer(instance.copy_of).data
+
 
 class CaseNoteSerializer(serializers.ModelSerializer):
     """
     Serializes case notes
     """
 
-    text = serializers.CharField(min_length=2, max_length=2200)
+    text = serializers.CharField(
+        min_length=2,
+        max_length=2200,
+        error_messages={
+            "blank": strings.Cases.CaseNotes.BLANK,
+            "min_length": strings.Cases.CaseNotes.MIN_LENGTH,
+            "max_length": strings.Cases.CaseNotes.MAX_LENGTH,
+        },
+    )
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedSerializerField(queryset=BaseUser.objects.all(), serializer=BaseUserViewSerializer)
     created_at = serializers.DateTimeField(read_only=True)

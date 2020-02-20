@@ -26,7 +26,7 @@ from test_helpers.clients import DataTestClient
 
 class ReferenceCode(DataTestClient):
     def test_standard_application_reference_code(self):
-        standard_application = self.create_standard_application(self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
         standard_application = self.submit_application(standard_application)
 
         expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + EXPORT + LICENCE + SEPARATOR
@@ -102,7 +102,7 @@ class ReferenceCode(DataTestClient):
         self.assertEquals(clc_query.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix)
 
     def test_temporary_application_reference_code(self):
-        standard_application = self.create_standard_application(self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
         standard_application.export_type = ApplicationExportType.TEMPORARY
         self.submit_application(standard_application)
 
@@ -113,7 +113,7 @@ class ReferenceCode(DataTestClient):
         )
 
     def test_trade_control_application_reference_code(self):
-        standard_application = self.create_standard_application(self.organisation)
+        standard_application = self.create_draft_standard_application(self.organisation)
         standard_application.application_sites.all().delete()
         external_location = self.create_external_location("storage facility", self.organisation)
         external_location_on_app = ExternalLocationOnApplication(
@@ -130,7 +130,7 @@ class ReferenceCode(DataTestClient):
         )
 
     def test_draft_applications_dont_have_reference_codes(self):
-        draft = self.create_standard_application(self.organisation)
+        draft = self.create_draft_standard_application(self.organisation)
 
         self.assertIsNone(draft.reference_code)
 

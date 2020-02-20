@@ -78,7 +78,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_goodstype_on_standard_application_as_exporter_user_failure(self):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         url = reverse("applications:application_goodstypes", kwargs={"pk": application.id})
 
         data = {

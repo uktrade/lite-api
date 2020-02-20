@@ -57,7 +57,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         )
 
     def test_add_countries_to_a_draft_standard_application_failure(self):
-        std_draft = self.create_standard_application(self.organisation)
+        std_draft = self.create_draft_standard_application(self.organisation)
         pre_test_country_count = CountryOnApplication.objects.all().count()
 
         url = reverse("applications:countries", kwargs={"pk": std_draft.id})

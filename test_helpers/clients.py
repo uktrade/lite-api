@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
+import django.utils.timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -127,7 +128,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Print output time for tests if settings.TIME_TESTS is set to True
         """
-        if settings.TIME_TESTS:
+        if settings.SUPPRESS_TEST_OUTPUT:
+            pass
+        elif settings.TIME_TESTS:
             self.tock = datetime.now()
 
             diff = self.tock - self.tick
@@ -404,6 +407,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=django.utils.timezone.now(),
         )
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         clc_query.save()
@@ -488,7 +492,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
         self.create_application_document(application)
 
-    def create_standard_application(
+    def create_draft_standard_application(
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
         application = StandardApplication(
@@ -598,7 +602,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
 
-        application = self.create_standard_application(organisation, reference_name, safe_document)
+        application = self.create_draft_standard_application(organisation, reference_name, safe_document)
 
         part_good = Good(
             is_good_controlled=GoodControlled.YES,
@@ -686,7 +690,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates a complete standard application case
         """
-        draft = self.create_standard_application(organisation, reference_name)
+        draft = self.create_draft_standard_application(organisation, reference_name)
 
         return self.submit_application(draft)
 
@@ -712,7 +716,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.create_end_user_advisory(note, reasoning, organisation)
 
     def create_generated_case_document(self, case, template, document_name="Generated Doc"):
-        generated_case_doc = GeneratedCaseDocument(
+        generated_case_doc = GeneratedCaseDocument.objects.create(
             name=document_name,
             user=self.gov_user,
             s3_key=uuid.uuid4(),
@@ -721,8 +725,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             type=CaseDocumentState.GENERATED,
             case=case,
             template=template,
+            text="Here is some text",
         )
-        generated_case_doc.save()
         return generated_case_doc
 
     def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id):

@@ -22,6 +22,7 @@ urlpatterns = [
     path("<uuid:pk>/finalise/", applications.ApplicationFinaliseView.as_view(), name="finalise"),
     path("<uuid:pk>/duration/", applications.ApplicationDurationView.as_view(), name="duration"),
     path("<uuid:pk>/status/", applications.ApplicationManageStatus.as_view(), name="manage_status",),
+    path("<uuid:pk>/copy/", applications.ApplicationCopy.as_view(), name="copy",),
     # Goods
     path("<uuid:pk>/goods/", goods.ApplicationGoodsOnApplication.as_view(), name="application_goods",),
     path(
@@ -70,17 +71,6 @@ urlpatterns = [
         "<uuid:pk>/documents/<uuid:doc_pk>/",
         documents.ApplicationDocumentDetailView.as_view(),
         name="application_document",
-    ),
-    # Case-related information
-    path(
-        "<uuid:pk>/generated-documents/",
-        documents.GeneratedDocuments.as_view(),
-        name="application_generated_documents",
-    ),
-    path(
-        "<uuid:pk>/generated-documents/<uuid:gcd_pk>/",
-        documents.GeneratedDocument.as_view(),
-        name="application_generated_document",
     ),
     # Existing parties
     path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties",),

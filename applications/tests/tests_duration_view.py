@@ -8,7 +8,7 @@ from test_helpers.clients import DataTestClient
 class DurationViewTest(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_standard_application(self.organisation)
+        self.standard_application = self.create_draft_standard_application(self.organisation)
         self.open_application = self.create_open_application(self.organisation)
         self.submit_application(self.standard_application)
         self.submit_application(self.open_application)

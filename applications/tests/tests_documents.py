@@ -14,7 +14,7 @@ class DraftDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.draft = self.create_standard_application(self.organisation, "Draft")
+        self.draft = self.create_draft_standard_application(self.organisation, "Draft")
         self.url_draft = reverse("applications:application_documents", kwargs={"pk": self.draft.id})
         self.test_filename = "dog.jpg"
 
@@ -109,7 +109,7 @@ class DraftDocumentTests(DataTestClient):
     @parameterized.expand(get_case_statuses(read_only=False))
     @mock.patch("documents.tasks.prepare_document.now")
     def test_add_document_when_application_in_editable_state_success(self, editable_status, mock_prepare_doc):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
 
@@ -125,7 +125,7 @@ class DraftDocumentTests(DataTestClient):
     def test_delete_document_when_application_in_editable_state_success(
         self, editable_status, mock_delete_s3, mock_prepare_doc
     ):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
 
@@ -141,7 +141,7 @@ class DraftDocumentTests(DataTestClient):
 
     @parameterized.expand(get_case_statuses(read_only=True))
     def test_add_document_when_application_in_read_only_state_failure(self, read_only_status):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
 
@@ -157,7 +157,7 @@ class DraftDocumentTests(DataTestClient):
     def test_delete_document_when_application_in_read_only_state_failure(
         self, read_only_status, mock_delete_s3, mock_prepare_doc
     ):
-        application = self.create_standard_application(self.organisation)
+        application = self.create_draft_standard_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
 
