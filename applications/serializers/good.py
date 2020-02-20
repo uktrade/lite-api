@@ -29,6 +29,8 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "value",
             "is_good_incorporated",
             "flags",
+            "item_type",
+            "other_item_type",
         )
 
     def get_flags(self, instance):
@@ -73,7 +75,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             self.fields["unit"].required = False
             self.fields["is_good_incorporated"].required = False
             if self.initial_data.get("item_type") and not self.initial_data["item_type"] == ItemType.OTHER:
-                if self.initial_data.get("other_item_type"):
+                if isinstance(self.initial_data.get("other_item_type"), str):
                     del self.initial_data["other_item_type"]
                 self.fields["other_item_type"].required = False
         else:
