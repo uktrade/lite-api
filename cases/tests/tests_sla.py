@@ -20,8 +20,8 @@ from test_helpers.clients import DataTestClient
 class SlaTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.hour_before_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour-1, 0, 0)
-        self.hour_after_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour+1, 0, 0)
+        self.hour_before_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour - 1, 0, 0)
+        self.hour_after_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour + 1, 0, 0)
 
     @staticmethod
     def _set_case_time(case, submit_time):
@@ -78,6 +78,28 @@ class SlaTests(DataTestClient):
         self.assertEqual(cases[0].sla_days, 1)
         self.assertEqual(cases[1].sla_days, 0)
         self.assertEqual(cases[2].sla_days, 0)
+
+    def test_sla_ignores_previously_finalised_cases(self):
+        application = self.create_draft_standard_application(self.organisation)
+        case = self.submit_application(application)
+        case.last_closed_at = datetime.now()
+        self._set_case_time(case, self.hour_before_cutoff)
+
+        update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(case.sla_days, 0)
+
+    def test_sla_does_not_apply_sla_twice_in_one_day(self):
+        application = self.create_draft_standard_application(self.organisation)
+        case = self.submit_application(application)
+        case.sla_updated_at = datetime.now()
+        self._set_case_time(case, self.hour_before_cutoff)
+
+        update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(case.sla_days, 0)
 
 
 class WorkingDayTests(DataTestClient):

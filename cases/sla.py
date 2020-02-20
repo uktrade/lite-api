@@ -69,7 +69,7 @@ def update_cases_sla():
             ).exclude(sla_updated_at__day=date.day)
             for case in cases:
                 case.sla_days += 1
-                if case.sla_remaining_days != 0:
+                if case.sla_remaining_days > 0:
                     case.sla_remaining_days -= 1
                 case.save()
         except Exception as e:
