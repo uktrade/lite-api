@@ -24,7 +24,8 @@ def get_application_target_sla(type):
     elif type in [CaseTypeSubTypeEnum.EXHIBITION, CaseTypeSubTypeEnum.F680, CaseTypeSubTypeEnum.GIFTING]:
         return MOD_CLEARANCE_TARGET
     else:
-        return 0
+        # TODO Update for HMRC queries in story LT-1097
+        return STANDARD_APPLICATION_TARGET
 
 
 def is_weekend(date):
