@@ -4,6 +4,7 @@ from unittest import mock
 from parameterized import parameterized
 
 from cases.enums import CaseTypeEnum
+from cases.models import Case
 from cases.sla import (
     update_cases_sla,
     is_weekend,
@@ -11,15 +12,26 @@ from cases.sla import (
     STANDARD_APPLICATION_TARGET,
     OPEN_APPLICATION_TARGET,
     MOD_CLEARANCE_TARGET,
+    SLA_UPDATE_CUTOFF_TIME,
 )
 from test_helpers.clients import DataTestClient
 
 
 class SlaTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.hour_before_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour-1, 0, 0)
+        self.hour_after_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour+1, 0, 0)
+
+    @staticmethod
+    def _set_case_time(case, submit_time):
+        case.submitted_at = datetime.combine(datetime.now(), submit_time)
+        case.save()
+
     def test_sla_update_standard_application(self):
         application = self.create_draft_standard_application(self.organisation)
         case = self.submit_application(application)
-        case.submitted_at = datetime.combine(datetime.now(), time(12, 0, 0))
+        self._set_case_time(case, self.hour_before_cutoff)
 
         update_cases_sla.now()
         case.refresh_from_db()
@@ -30,7 +42,7 @@ class SlaTests(DataTestClient):
     def test_sla_update_open_application(self):
         application = self.create_open_application(self.organisation)
         case = self.submit_application(application)
-        case.submitted_at = datetime.combine(datetime.now(), time(12, 0, 0))
+        self._set_case_time(case, self.hour_before_cutoff)
 
         update_cases_sla.now()
         case.refresh_from_db()
@@ -41,13 +53,31 @@ class SlaTests(DataTestClient):
     def test_sla_update_mod_application(self):
         application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
         case = self.submit_application(application)
-        case.submitted_at = datetime.combine(datetime.now(), time(12, 0, 0))
+        self._set_case_time(case, self.hour_before_cutoff)
 
         update_cases_sla.now()
         case.refresh_from_db()
 
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, MOD_CLEARANCE_TARGET - 1)
+
+    def test_sla_cutoff_window(self):
+        times = [
+            self.hour_before_cutoff,
+            SLA_UPDATE_CUTOFF_TIME,
+            self.hour_after_cutoff,
+        ]
+        for submit_time in times:
+            application = self.create_draft_standard_application(self.organisation)
+            case = self.submit_application(application)
+            self._set_case_time(case, submit_time)
+
+        update_cases_sla.now()
+        cases = Case.objects.all().order_by("submitted_at")
+
+        self.assertEqual(cases[0].sla_days, 1)
+        self.assertEqual(cases[1].sla_days, 0)
+        self.assertEqual(cases[2].sla_days, 0)
 
 
 class WorkingDayTests(DataTestClient):
