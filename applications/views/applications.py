@@ -39,6 +39,7 @@ from applications.serializers.generic_application import (
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
@@ -231,6 +232,7 @@ class ApplicationSubmission(APIView):
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         application.submitted_at = timezone.now()
+        application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 

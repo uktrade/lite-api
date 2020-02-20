@@ -3,12 +3,28 @@ import requests
 
 from background_task import background
 
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 
 SLA_UPDATE_TASK_TIME = time(0, 0, 0)
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
 BANK_HOLIDAY_API = "https://www.gov.uk/bank-holidays.json"
 BACKUP_FILE_NAME = "bank-holidays.csv"
+
+STANDARD_APPLICATION_TARGET = 20
+OPEN_APPLICATION_TARGET = 60
+MOD_CLEARANCE_TARGET = 30
+
+
+def get_application_target_sla(type):
+    if type == CaseTypeSubTypeEnum.STANDARD:
+        return STANDARD_APPLICATION_TARGET
+    elif type == CaseTypeSubTypeEnum.OPEN:
+        return OPEN_APPLICATION_TARGET
+    elif type in [CaseTypeSubTypeEnum.EXHIBITION, CaseTypeSubTypeEnum.F680, CaseTypeSubTypeEnum.GIFTING]:
+        return MOD_CLEARANCE_TARGET
+    else:
+        return 0
 
 
 def is_weekend(date):
