@@ -66,29 +66,6 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertIsNotNone(application.consignee)
         self.assertIsNotNone(application.goods.get())
 
-    def test_submit_exhibition_clearance_with_incorporated_good_and_without_ultimate_end_users_failure(self):
-        self.create_incorporated_good_and_ultimate_end_user_on_application(self.organisation, self.draft)
-        self.draft.ultimate_end_users.all().delete()
-
-        response = self.client.put(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"]["ultimate_end_users"], strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET
-        )
-
-    def test_submit_exhibition_clearance_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self):
-        self.create_incorporated_good_and_ultimate_end_user_on_application(self.organisation, self.draft)
-        PartyDocument.objects.filter(party__in=self.draft.ultimate_end_users.all().values("party")).delete()
-
-        response = self.client.put(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"]["ultimate_end_user_documents"],
-            strings.Applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
-        )
-
     def test_submit_exhibition_clearance_without_location_failure(self):
         SiteOnApplication.objects.get(application=self.draft).delete()
 
