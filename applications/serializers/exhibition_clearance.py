@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.fields import CharField
 
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import ExhibitionClearanceApplication
@@ -10,7 +9,6 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
-from lite_content.lite_api import strings
 
 
 class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
