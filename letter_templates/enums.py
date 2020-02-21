@@ -1,6 +1,3 @@
-from conf.serializers import KeyValueChoiceField
-
-
 class Decisions:
     APPROVE = "approve"
     PROVISO = "proviso"
