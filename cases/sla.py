@@ -58,7 +58,7 @@ def get_bank_holidays():
             with open(BACKUP_FILE_NAME, "w") as backup_file:
                 backup_file.write(",".join(data))
             logging.info("Fetched GOV Bank Holiday list successfully")
-        except Exception as e:
+        except Exception as e:  # noqa
             logging.error(e)
 
     return data
@@ -95,7 +95,7 @@ def update_cases_sla():
                 case.save()
             logging.info(f"SLA Update Successful: {len(cases)} cases updated")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa
             logging.error(e)
             return False
 
