@@ -28,6 +28,10 @@ Service for handling backend calls in LITE.
 * Go to the index page (e.g. `http://localhost:8100`)
 
 
+## Running Background tasks
+`pipenv run ./manage.py process_tasks` will run all background tasks
+
+
 ## Installing WeasyPrint for document generation
 To produce PDF documents you will also need to install WeasyPrint.
 Do this after installing the python packages in the Pipfile;
