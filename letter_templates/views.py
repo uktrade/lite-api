@@ -89,7 +89,10 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         request.data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
 
         old_decisions = set(template_object.decisions or ["no decisions"])
-        new_decisions = set(request.data.get("decisions") or ["no decisions"])
+        new_decisions = request.data.get("decisions")
+        new_decisions = set(
+            old_decisions if new_decisions is None else ["no decisions"] if new_decisions == [] else new_decisions
+        )
 
         old_layout = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
