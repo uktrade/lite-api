@@ -165,6 +165,15 @@ def _validate_has_goods(draft, errors, is_mandatory):
     return errors
 
 
+def _validate_exhibition_details(draft, errors):
+    """ Checks that an exhibition clearance has details """
+
+    if not all(getattr(draft, attribute) for attribute in ["title", "first_exhibition_date", "required_by_date"]):
+        errors["details"] = strings.Applications.Exhibition.NO_EXHIBITION_DETAILS
+
+    return errors
+
+
 def _validate_standard_licence(draft, errors):
     """ Checks that a standard licence has all party types & goods """
 
@@ -179,10 +188,11 @@ def _validate_standard_licence(draft, errors):
 
 
 def _validate_exhibition_clearance(draft, errors):
-    """ Checks that an exhibition clearance has goods and locations """
+    """ Checks that an exhibition clearance has goods, locations and details """
 
-    errors = _validate_locations(draft, errors)
+    errors = _validate_exhibition_details(draft, errors)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_locations(draft, errors)
 
     return errors
 
