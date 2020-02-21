@@ -80,5 +80,7 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data["decisions"] = Decisions.to_representation(instance.decisions)
+        decisions = data.get("decisions")
+        if decisions:
+            data["decisions"] = [{"key": decision, "value": Decisions.get_text(decision)} for decision in decisions]
         return data

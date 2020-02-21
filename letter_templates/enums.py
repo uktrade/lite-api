@@ -1,3 +1,6 @@
+from conf.serializers import KeyValueChoiceField
+
+
 class Decisions:
     APPROVE = "approve"
     PROVISO = "proviso"
@@ -18,5 +21,5 @@ class Decisions:
                 return value
 
     @classmethod
-    def to_representation(cls, decisions):
-        return [{"key": decision, "value": cls.get_text(decision)} for decision in decisions or []]
+    def to_representation(cls):
+        return [{"key": decision[0], "value": decision[1]} for decision in cls.choices]
