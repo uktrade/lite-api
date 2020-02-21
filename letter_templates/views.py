@@ -119,6 +119,8 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                 )
 
             if new_decisions != old_decisions:
+                old_decisions = old_decisions or "No decisions"
+                new_decisions = new_decisions or "No decisions"
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPDATED_LETTER_TEMPLATE_DECISIONS,
