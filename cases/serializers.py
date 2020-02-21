@@ -188,7 +188,7 @@ class CaseDetailSerializer(CaseSerializer):
             "reference_code",
             "copy_of",
             "sla_days",
-            "sla_remaining_days",
+            "sla_percentage",
         )
 
     def __init__(self, *args, **kwargs):
