@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
+import django.utils.timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -406,6 +407,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=django.utils.timezone.now(),
         )
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         clc_query.save()
@@ -714,7 +716,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.create_end_user_advisory(note, reasoning, organisation)
 
     def create_generated_case_document(self, case, template, document_name="Generated Doc"):
-        generated_case_doc = GeneratedCaseDocument(
+        generated_case_doc = GeneratedCaseDocument.objects.create(
             name=document_name,
             user=self.gov_user,
             s3_key=uuid.uuid4(),
@@ -723,8 +725,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             type=CaseDocumentState.GENERATED,
             case=case,
             template=template,
+            text="Here is some text",
         )
-        generated_case_doc.save()
         return generated_case_doc
 
     def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id):

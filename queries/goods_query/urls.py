@@ -11,5 +11,4 @@ urlpatterns = [
         "<uuid:pk>/pv-grading-response/", views.GoodQueryPVGradingResponse.as_view(), name="pv_grading_query_response",
     ),
     path("<uuid:pk>/status/", views.GoodQueryManageStatus.as_view(), name="manage_status",),
-    path("<uuid:pk>/generated-documents/", views.GeneratedDocuments.as_view(), name="generated_documents",),
 ]

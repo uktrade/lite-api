@@ -9,7 +9,7 @@ from users.models import UserOrganisationRelationship
 
 class GeneratedCaseDocument(CaseDocument):
     template = models.ForeignKey(LetterTemplate, on_delete=models.DO_NOTHING)
-    text = models.TextField(default=True, blank=True)
+    text = models.TextField(blank=True)
 
     notifications = GenericRelation(ExporterNotification, related_query_name="generated_case_document",)
 
