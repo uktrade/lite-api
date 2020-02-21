@@ -1,3 +1,4 @@
+from __future__ import division
 import logging
 from datetime import datetime, time
 import requests
@@ -16,6 +17,13 @@ BACKUP_FILE_NAME = "bank-holidays.csv"
 STANDARD_APPLICATION_TARGET = 20
 OPEN_APPLICATION_TARGET = 60
 MOD_CLEARANCE_TARGET = 30
+
+
+def calculate_sla_percentage(days, remaining_days):
+    if remaining_days <= 0:
+        return 1
+    else:
+        return days / (remaining_days + days)
 
 
 def get_application_target_sla(type):

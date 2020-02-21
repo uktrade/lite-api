@@ -1,4 +1,3 @@
-from __future__ import division
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -26,6 +25,7 @@ from cases.models import (
     GoodCountryDecision,
     CaseType,
 )
+from cases.sla import calculate_sla_percentage
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
@@ -143,10 +143,7 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
 
     def get_sla_percentage(self, instance):
-        if instance.sla_remaining_days <= 0:
-            return 1
-        else:
-            return instance.sla_days / (instance.sla_remaining_days + instance.sla_days)
+        calculate_sla_percentage(instance.sla_days, instance.sla_remaining_days)
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
@@ -260,10 +257,7 @@ class CaseDetailSerializer(CaseSerializer):
             return CaseCopyOfSerializer(instance.copy_of).data
 
     def get_sla_percentage(self, instance):
-        if instance.sla_remaining_days <= 0:
-            return 1
-        else:
-            return instance.sla_days / (instance.sla_remaining_days + instance.sla_days)
+        calculate_sla_percentage(instance.sla_days, instance.sla_remaining_days)
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
