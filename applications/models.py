@@ -4,7 +4,12 @@ from django.db import models
 from django.utils import timezone
 
 from separatedvaluesfield.models import SeparatedValuesField
-from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory, F680ClearanceTypeEnum
+from applications.enums import (
+    ApplicationExportType,
+    ApplicationExportLicenceOfficialType,
+    GoodsCategory,
+    F680ClearanceTypeEnum,
+)
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
 from common.models import TimestampableModel

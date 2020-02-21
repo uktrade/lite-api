@@ -11,6 +11,7 @@ class Command(SeedCommand):
     """
     pipenv run ./manage.py seedf680clearancetypes
     """
+
     help = "Creates F680 clearance types"
     info = "Seeding F680 clearance types"
     success = "Successfully seeded F680 clearance types"

@@ -13,7 +13,7 @@ SEED_COMMANDS = {
         "seedcountries",
         "seedlayouts",
         "seedsystemflags",
-        "seedf680clearancetypes"
+        "seedf680clearancetypes",
     ],
     "Dev": ["seedorgusers", "temporary_give_existing_exporters_superuser_role", "seedgovusers", "seeddemodata"],
     "Tests": [
@@ -25,7 +25,7 @@ SEED_COMMANDS = {
         "seedgovusers",
         "seedlayouts",
         "seedsystemflags",
-        "seedf680clearancetypes"
+        "seedf680clearancetypes",
     ],
 }
 
