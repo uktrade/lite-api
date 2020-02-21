@@ -4,7 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 from separatedvaluesfield.models import SeparatedValuesField
-from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory
+from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory, F680ClearanceTypeEnum
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
 from common.models import TimestampableModel
@@ -159,9 +159,14 @@ class GiftingClearanceApplication(BaseApplication):
     pass
 
 
+class F680ClearanceType(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = SeparatedValuesField(choices=F680ClearanceTypeEnum.choices, null=False, blank=False, max_length=35)
+
+
 # F680 includes End User & Third parties
 class F680ClearanceApplication(BaseApplication):
-    pass
+    f680_clearance_types = models.ManyToManyField(F680ClearanceType, related_name="f680_clearance_type_application")
 
 
 # Queries
