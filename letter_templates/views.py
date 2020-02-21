@@ -88,8 +88,8 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         new_case_types = set(request.data.get("case_types", old_case_types))
         request.data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
 
-        old_decisions = set(template_object.decisions or [])
-        new_decisions = set(request.data.get("decisions", old_decisions))
+        old_decisions = set(template_object.decisions or ["no decisions"])
+        new_decisions = set(request.data.get("decisions") or ["no decisions"])
 
         old_layout = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
@@ -119,8 +119,6 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                 )
 
             if new_decisions != old_decisions:
-                old_decisions = old_decisions or "No decisions"
-                new_decisions = new_decisions or "No decisions"
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPDATED_LETTER_TEMPLATE_DECISIONS,
