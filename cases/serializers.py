@@ -143,7 +143,7 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
 
     def get_sla_percentage(self, instance):
-        calculate_sla_percentage(instance.sla_days, instance.sla_remaining_days)
+        return calculate_sla_percentage(instance.sla_days, instance.sla_remaining_days)
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
@@ -257,7 +257,7 @@ class CaseDetailSerializer(CaseSerializer):
             return CaseCopyOfSerializer(instance.copy_of).data
 
     def get_sla_percentage(self, instance):
-        calculate_sla_percentage(instance.sla_days, instance.sla_remaining_days)
+        return calculate_sla_percentage(instance.sla_days, instance.sla_remaining_days)
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
