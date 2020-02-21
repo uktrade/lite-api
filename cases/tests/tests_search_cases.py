@@ -22,10 +22,15 @@ class FilterAndSortTests(DataTestClient):
         super().setUp()
         self.url = reverse("cases:search")
 
+        app_statuses = [
+            app_status[0]
+            for app_status in CaseStatusEnum.choices
+            if app_status[0] not in [CaseStatusEnum.CLC, CaseStatusEnum.PV]
+        ]
         self.application_cases = []
-        for app_status in CaseStatusEnum.choices:
+        for app_status in app_statuses:
             case = self.create_standard_application_case(self.organisation, "Example Application")
-            case.status = get_case_status_by_status(app_status[0])
+            case.status = get_case_status_by_status(app_status)
             case.save()
             self.queue.cases.add(case)
             self.queue.save()
