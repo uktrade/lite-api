@@ -25,9 +25,6 @@ def calculate_sla_percentage(days, remaining_days):
             return 1
         else:
             return days / (remaining_days + days)
-    else:
-        # SLA Not applicable for queries
-        return 0
 
 
 def get_application_target_sla(type):
@@ -37,9 +34,6 @@ def get_application_target_sla(type):
         return OPEN_APPLICATION_TARGET
     elif type in [CaseTypeSubTypeEnum.EXHIBITION, CaseTypeSubTypeEnum.F680, CaseTypeSubTypeEnum.GIFTING]:
         return MOD_CLEARANCE_TARGET
-    else:
-        # TODO Update for HMRC queries in story LT-1097
-        return STANDARD_APPLICATION_TARGET
 
 
 def is_weekend(date):
