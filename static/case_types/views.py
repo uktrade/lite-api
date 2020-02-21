@@ -12,6 +12,7 @@ class CaseTypes(APIView):
     def get(self, request):
         type_only = request.GET.get("type_only", "True")
 
+        # If type_only is True, return only the case_type_reference key-value pairs
         if str_to_bool(type_only):
             case_types = CaseTypeEnum.case_types_to_representation()
         else:

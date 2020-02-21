@@ -61,6 +61,7 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         validated_data = super().validate(data)
 
+        # Prevent decisions from being set on Application case-type templates
         if validated_data.get("decisions"):
             case_types = validated_data.get("case_types")
             errors = []

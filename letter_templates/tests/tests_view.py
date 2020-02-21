@@ -69,6 +69,7 @@ class LetterTemplatesListTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 1)
+        self.assertEqual((response.json()["results"][0]["id"]), str(self.letter_template.id))
 
     def test_get_letter_template_success(self):
         url = reverse("letter_templates:letter_template", kwargs={"pk": str(self.letter_template.id)})
