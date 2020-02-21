@@ -34,7 +34,6 @@ class DBLoggingMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        correlation = None
         start = time.time()
         initial_queries = connection.queries
         response = self.get_response(request)
@@ -53,17 +52,5 @@ class DBLoggingMiddleware:
                 "method": "DB-QUERY-SET",
             }
         )
-
-        # for query in final_queries:
-        #     logging.info(
-        #         {
-        #             "message": "liteolog db",
-        #             "corrID": request.correlation,
-        #             "type": "db details",
-        #             "elapsed_time": query["time"],
-        #             "method": "DB-QUERY",
-        #             "url": query["sql"],
-        #         }
-        #     )
 
         return response
