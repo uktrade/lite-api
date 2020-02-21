@@ -22,6 +22,8 @@ class CaseStatusEnum:
     UNDER_FINAL_REVIEW = "under_final_review"
     UNDER_REVIEW = "under_review"
     WITHDRAWN = "withdrawn"
+    CLC = "clc_review"
+    PV = "pv_review"
 
     _system_status = [DRAFT]
 
@@ -68,6 +70,8 @@ class CaseStatusEnum:
         (UNDER_FINAL_REVIEW, "Under final review"),
         (UNDER_REVIEW, "Under review"),
         (WITHDRAWN, "Withdrawn"),
+        (CLC, "CLC review"),
+        (PV, "PV grading review"),
     ]
 
     priority = {
@@ -78,21 +82,23 @@ class CaseStatusEnum:
         UNDER_REVIEW: 5,
         UNDER_FINAL_REVIEW: 6,
         FINALISED: 7,
-        WITHDRAWN: 8,
-        CLOSED: 9,
-        REGISTERED: 10,
-        UNDER_APPEAL: 11,
-        APPEAL_REVIEW: 12,
-        APPEAL_FINAL_REVIEW: 13,
-        REOPENED_FOR_CHANGES: 14,
-        CHANGE_INTIAL_REVIEW: 15,
-        CHANGE_UNDER_REVIEW: 16,
-        CHANGE_UNDER_FINAL_REVIEW: 17,
-        UNDER_ECJU_REVIEW: 18,
-        REVOKED: 19,
-        SUSPENDED: 20,
-        SURRENDERED: 21,
-        DEREGISTERED: 22,
+        CLC: 8,
+        PV: 9,
+        WITHDRAWN: 10,
+        CLOSED: 11,
+        REGISTERED: 12,
+        UNDER_APPEAL: 13,
+        APPEAL_REVIEW: 14,
+        APPEAL_FINAL_REVIEW: 15,
+        REOPENED_FOR_CHANGES: 16,
+        CHANGE_INTIAL_REVIEW: 17,
+        CHANGE_UNDER_REVIEW: 18,
+        CHANGE_UNDER_FINAL_REVIEW: 19,
+        UNDER_ECJU_REVIEW: 20,
+        REVOKED: 21,
+        SUSPENDED: 22,
+        SURRENDERED: 23,
+        DEREGISTERED: 24,
     }
 
     @classmethod

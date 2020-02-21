@@ -14,15 +14,16 @@ class EndUserAdvisoryUpdate(DataTestClient):
         )
         self.url = reverse("queries:end_user_advisories:end_user_advisory", kwargs={"pk": self.end_user_advisory.id},)
 
-    def test_update_end_user_advisory_status_to_withdrawn_success(self):
-        """
-        When a case is set to a the withdrawn status, its assigned users, case officer and queues should be removed
-        """
         self.end_user_advisory.case_officer = self.gov_user
         self.end_user_advisory.save()
         self.end_user_advisory.queues.set([self.queue])
         case_assignment = CaseAssignment.objects.create(case=self.end_user_advisory, queue=self.queue)
         case_assignment.users.set([self.gov_user])
+
+    def test_update_end_user_advisory_status_to_withdrawn_success(self):
+        """
+        When a case is set to a the withdrawn status, its assigned users, case officer and queues should be removed
+        """
         data = {"status": CaseStatusEnum.WITHDRAWN}
 
         response = self.client.put(self.url, data, **self.gov_headers)
@@ -33,3 +34,17 @@ class EndUserAdvisoryUpdate(DataTestClient):
         self.assertEqual(self.end_user_advisory.queues.count(), 0)
         self.assertEqual(self.end_user_advisory.case_officer, None)
         self.assertEqual(CaseAssignment.objects.filter(case=self.end_user_advisory).count(), 0)
+
+    def test_update_end_user_advisory_status_to_clc_success(self):
+        """
+        When we set a case to the CLC status, the assigned case officers and queues should be preserved.
+        """
+        data = {"status": CaseStatusEnum.CLC}
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.end_user_advisory.refresh_from_db()
+        self.assertIsNotNone(self.end_user_advisory.case_officer)
+        self.assertIsNot(self.end_user_advisory.queues.count(), 0)
+        self.assertEqual(self.end_user_advisory.status.status, CaseStatusEnum.CLC)
