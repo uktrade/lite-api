@@ -1,10 +1,9 @@
 from django.db import transaction
-
-from applications.enums import F680ClearanceTypeEnum
-from applications.models import F680ClearanceType
 from conf import settings
 
 from static.management.SeedCommand import SeedCommand
+from static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from static.f680_clearance_types.models import F680ClearanceType
 
 
 class Command(SeedCommand):

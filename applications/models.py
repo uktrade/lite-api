@@ -8,7 +8,6 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsCategory,
-    F680ClearanceTypeEnum,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
@@ -21,6 +20,7 @@ from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from static.f680_clearance_types.models import F680ClearanceType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.units.enums import Units
@@ -162,11 +162,6 @@ class ExhibitionClearanceApplication(BaseApplication):
 # Gifting includes End User & Third parties
 class GiftingClearanceApplication(BaseApplication):
     pass
-
-
-class F680ClearanceType(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = SeparatedValuesField(choices=F680ClearanceTypeEnum.choices, null=False, blank=False, max_length=35)
 
 
 # F680 includes End User & Third parties

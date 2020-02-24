@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "static.private_venture_gradings",
     "static.countries",
     "static.denial_reasons",
+    "static.f680_clearance_types",
     "static.letter_layouts",
     "static.statuses",
     "static.units",
