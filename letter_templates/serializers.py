@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseTypeReferenceEnum
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField
+from letter_templates.enums import Decisions
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from picklists.models import PicklistItem
@@ -36,6 +38,10 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         error_messages={"required": strings.LetterTemplates.SELECT_THE_LAYOUT},
     )
 
+    decisions = serializers.MultipleChoiceField(
+        choices=Decisions.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
+    )
+
     class Meta:
         model = LetterTemplate
         fields = "__all__"
@@ -51,3 +57,31 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         if not attrs:
             raise serializers.ValidationError(strings.LetterTemplates.NEED_AT_LEAST_ONE_PARAGRAPH)
         return attrs
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+
+        # Prevent decisions from being set on Application case-type templates
+        if validated_data.get("decisions"):
+            case_types = validated_data.get("case_types")
+            errors = []
+            for case_type in case_types:
+                if case_type.type != CaseTypeTypeEnum.APPLICATION or case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
+                    errors.append(CaseTypeReferenceEnum.get_text(case_type.reference))
+
+            if errors:
+                raise serializers.ValidationError(
+                    {
+                        "case_types": strings.LetterTemplates.DECISIONS_NON_APPLICATION_CASE_TYPES_ERROR
+                        + ", ".join(sorted(errors))
+                    }
+                )
+
+        return validated_data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        decisions = data.get("decisions")
+        if decisions:
+            data["decisions"] = [{"key": decision, "value": Decisions.get_text(decision)} for decision in decisions]
+        return data

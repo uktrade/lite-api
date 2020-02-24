@@ -35,8 +35,8 @@ from users.models import (
 
 class CaseType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35,)
-    sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35,)
+    type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35)
+    sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35)
     reference = models.CharField(
         choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=5,
     )
