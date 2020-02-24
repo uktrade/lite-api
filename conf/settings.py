@@ -154,8 +154,12 @@ AV_SERVICE_URL = env("AV_SERVICE_URL")
 AV_SERVICE_USERNAME = env("AV_SERVICE_USERNAME")
 AV_SERVICE_PASSWORD = env("AV_SERVICE_PASSWORD")
 
+# Background tasks
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
 UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
+# Max number of seconds before re-running task if not complete
+MAX_RUN_TIME = 180
+BACKGROUND_TASK_RUN_ASYNC = True
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True
