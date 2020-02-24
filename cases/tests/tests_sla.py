@@ -34,9 +34,10 @@ class SlaTests(DataTestClient):
         case = self.submit_application(application)
         self._set_case_time(case, self.hour_before_cutoff)
 
-        update_cases_sla.now()
+        results = update_cases_sla.now()
         case.refresh_from_db()
 
+        self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, STANDARD_APPLICATION_TARGET - 1)
 
@@ -45,9 +46,10 @@ class SlaTests(DataTestClient):
         case = self.submit_application(application)
         self._set_case_time(case, self.hour_before_cutoff)
 
-        update_cases_sla.now()
+        results = update_cases_sla.now()
         case.refresh_from_db()
 
+        self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, OPEN_APPLICATION_TARGET - 1)
 
@@ -56,9 +58,10 @@ class SlaTests(DataTestClient):
         case = self.submit_application(application)
         self._set_case_time(case, self.hour_before_cutoff)
 
-        update_cases_sla.now()
+        results = update_cases_sla.now()
         case.refresh_from_db()
 
+        self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, MOD_CLEARANCE_TARGET - 1)
 
@@ -73,9 +76,10 @@ class SlaTests(DataTestClient):
             case = self.submit_application(application)
             self._set_case_time(case, submit_time)
 
-        update_cases_sla.now()
+        results = update_cases_sla.now()
         cases = Case.objects.all().order_by("submitted_at")
 
+        self.assertEqual(results, 1)
         self.assertEqual(cases[0].sla_days, 1)
         self.assertEqual(cases[1].sla_days, 0)
         self.assertEqual(cases[2].sla_days, 0)
@@ -86,9 +90,10 @@ class SlaTests(DataTestClient):
         case.last_closed_at = now()
         self._set_case_time(case, self.hour_before_cutoff)
 
-        update_cases_sla.now()
+        results = update_cases_sla.now()
         case.refresh_from_db()
 
+        self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
 
     def test_sla_does_not_apply_sla_twice_in_one_day(self):
@@ -97,9 +102,10 @@ class SlaTests(DataTestClient):
         case.sla_updated_at = now()
         self._set_case_time(case, self.hour_before_cutoff)
 
-        update_cases_sla.now()
+        results = update_cases_sla.now()
         case.refresh_from_db()
 
+        self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
 
 
