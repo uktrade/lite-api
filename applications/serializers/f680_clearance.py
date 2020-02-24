@@ -11,6 +11,7 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
+from conf.serializers import KeyValueChoiceField
 from goods.enums import PvGrading
 from lite_content.lite_api import strings
 
@@ -19,6 +20,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
+    clearance_level = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, required=False, allow_blank=True)
 
     class Meta:
         model = F680ClearanceApplication

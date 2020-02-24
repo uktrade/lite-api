@@ -60,9 +60,9 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, user=request.user, team=request.user.team)
+        serializer = CaseDetailSerializer(case, user=request.user, team=request.user.team).data
 
-        return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"case": serializer}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={400: 'Input error, "queues" should be an array with at least one existing queue'})
     @transaction.atomic

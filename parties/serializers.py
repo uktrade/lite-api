@@ -4,6 +4,7 @@ from rest_framework import serializers, relations
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
 from flags.serializers import FlagSerializer
+from goods.enums import PvGrading
 from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation
 from parties.enums import PartyType, SubType, PartyRole
@@ -24,6 +25,8 @@ class PartySerializer(serializers.ModelSerializer):
         choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}, required=False
     )
     flags = FlagSerializer(many=True, required=False)
+    clearance_level = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, required=False, allow_blank=True)
+    descriptors = serializers.CharField(allow_null=True, required=False, allow_blank=True)
     copy_of = relations.PrimaryKeyRelatedField(queryset=Party.objects.all(), allow_null=True, required=False)
     deleted_at = serializers.DateTimeField(allow_null=True, required=False)
 
@@ -43,14 +46,21 @@ class PartySerializer(serializers.ModelSerializer):
             "flags",
             "copy_of",
             "deleted_at",
+            "clearance_level",
+            "descriptors",
         )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, required_fields=None, *args, **kwargs):
         super(PartySerializer, self).__init__(*args, **kwargs)
         party_type = kwargs.get("data", {}).get("type")
         if party_type == PartyType.THIRD_PARTY:
             for field, serializer_instance in self.fields.items():
                 if field == "role":
+                    serializer_instance.required = True
+
+        if isinstance(required_fields, list):
+            for field, serializer_instance in self.fields.items():
+                if field in required_fields:
                     serializer_instance.required = True
 
     @staticmethod

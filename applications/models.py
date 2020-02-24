@@ -6,6 +6,7 @@ from django.utils import timezone
 from separatedvaluesfield.models import SeparatedValuesField
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory
 from applications.managers import BaseApplicationManager, HmrcQueryManager
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from common.models import TimestampableModel
 from documents.models import Document
@@ -15,6 +16,7 @@ from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
 from parties.models import Party
+from parties.serializers import PartySerializer
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
@@ -30,6 +32,11 @@ class ApplicationException(Exception):
 
 class ApplicationPartyMixin:
     def add_party(self, party):
+        if isinstance(party, dict):
+            if self.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+                party = PartySerializer(party, required_fields=["clearance_level"])
+                party.save()
+
         old_poa = None
 
         # Alternate behaviour of adding a party depending on party type
@@ -234,7 +241,6 @@ class PartyOnApplication(TimestampableModel):
     )
     party = models.ForeignKey(Party, on_delete=models.PROTECT)
     deleted_at = models.DateTimeField(null=True, default=None)
-    clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
     objects = models.Manager()
 
