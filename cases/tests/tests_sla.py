@@ -132,7 +132,8 @@ class WorkingDayTests(DataTestClient):
 
         result = update_cases_sla.now()
 
-        self.assertTrue(result)
+        # Expecting update_cases_sla to be ran, but no cases found
+        self.assertEqual(result, 0)
 
     @parameterized.expand(
         [

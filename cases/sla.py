@@ -73,7 +73,7 @@ def update_cases_sla():
     Updates all applicable cases SLA.
     Runs as a background task daily at a given time.
     Doesn't run on non-working days (bank-holidays & weekends)
-    :return: Whether or not SLA updating was ran
+    :return: How many cases the SLA was updated for or False if error / not ran
     """
 
     logging.info("SLA Update Started")
@@ -95,7 +95,7 @@ def update_cases_sla():
                 .update(sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date)
             )
             logging.info(f"SLA Update Successful: Updated {results} cases")
-            return True
+            return results
         except Exception as e:  # noqa
             logging.error(e)
             return False
