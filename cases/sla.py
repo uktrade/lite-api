@@ -3,6 +3,7 @@ from datetime import datetime, time
 import requests
 
 from background_task import background
+from django.db.models import F
 from django.utils.timezone import now, make_aware
 
 from cases.enums import CaseTypeSubTypeEnum
@@ -78,20 +79,18 @@ def update_cases_sla():
     logging.info("SLA Update Started")
     date = now()
     if not is_bank_holiday(date) and not is_weekend(date):
-        # Get cases submitted before the cutoff time today, where they have never been closed
-        # and where the cases SLA haven't been updated today (to avoid running twice in a single day)
         try:
-            cases = Case.objects.filter(
+            # Get cases submitted before the cutoff time today, where they have never been closed
+            # and where the cases SLA haven't been updated today (to avoid running twice in a single day).
+            # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
+            results = Case.objects.filter(
                 submitted_at__lt=make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
                 last_closed_at__isnull=True,
                 sla_remaining_days__isnull=False,
-            ).exclude(sla_updated_at__day=date.day)
-            for case in cases:
-                case.sla_days += 1
-                case.sla_remaining_days -= 1
-                case.sla_updated_at = date
-                case.save()
-            logging.info(f"SLA Update Successful: {len(cases)} cases updated")
+            ).exclude(sla_updated_at__day=date.day).update(
+                sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
+            )
+            logging.info(f"SLA Update Successful: Updated {results} cases")
             return True
         except Exception as e:  # noqa
             logging.error(e)
