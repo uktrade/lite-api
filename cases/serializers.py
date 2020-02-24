@@ -25,7 +25,6 @@ from cases.models import (
     GoodCountryDecision,
     CaseType,
 )
-from cases.sla import calculate_sla_percentage
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document

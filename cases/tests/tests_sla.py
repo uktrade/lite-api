@@ -162,7 +162,16 @@ class WorkingDayTests(DataTestClient):
 
 class CalculateSlaTests(DataTestClient):
     @parameterized.expand(
-        [(0, 100, 0), (1, 19, 0.05), (10, 10, 0.5), (15, 5, 0.75), (20, 0, 1), (100, -50, 1), (0, -1, 1), (0, None, None),]
+        [
+            (0, 100, 0),
+            (1, 19, 0.05),
+            (10, 10, 0.5),
+            (15, 5, 0.75),
+            (20, 0, 1),
+            (100, -50, 1),
+            (0, -1, 1),
+            (0, None, None),
+        ]
     )
     def test_sla_percentages(self, sla_days, sla_remaining_days, expected_result):
         self.assertEqual(calculate_sla_percentage(sla_days, sla_remaining_days), expected_result)
