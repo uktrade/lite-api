@@ -11,6 +11,7 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
+from lite_content.lite_api import strings
 
 
 class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -87,10 +88,16 @@ class ExhibitionClearanceDetailSerializer(serializers.ModelSerializer):
 
     def validate_first_exhibition_date(self, value):
         if value <= datetime.date.today():
-            raise serializers.ValidationError("The first exhibition date must be in the future")
+            raise serializers.ValidationError(strings.Applications.Exhibition.Error.FIRST_EXHIBITION_DATE_FUTURE)
+        elif (
+            value < datetime.datetime.strptime(self.initial_data["required_by_date"].replace("-", ""), "%Y%m%d").date()
+        ):
+            raise serializers.ValidationError(
+                strings.Applications.Exhibition.Error.REQUIRED_BY_BEFORE_FIRST_EXHIBITION_DATE
+            )
         return value
 
     def validate_required_by_date(self, value):
         if value <= datetime.date.today():
-            raise serializers.ValidationError("The required by date must be in the future")
+            raise serializers.ValidationError(strings.Applications.Exhibition.Error.REQUIRED_BY_DATE_FUTURE)
         return value

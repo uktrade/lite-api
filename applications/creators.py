@@ -169,7 +169,7 @@ def _validate_exhibition_details(draft, errors):
     """ Checks that an exhibition clearance has details """
 
     if not all(getattr(draft, attribute) for attribute in ["title", "first_exhibition_date", "required_by_date"]):
-        errors["details"] = strings.Applications.Exhibition.NO_EXHIBITION_DETAILS
+        errors["details"] = strings.Applications.Exhibition.Error.NO_DETAILS
 
     return errors
 
