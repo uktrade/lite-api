@@ -5,7 +5,7 @@ from letter_templates.enums import Decisions
 from test_helpers.clients import DataTestClient
 
 
-class CaseTypesTests(DataTestClient):
+class DecisionsTests(DataTestClient):
     def test_get_decisions_success(self):
         url = reverse("static:decisions:decisions")
 
