@@ -22,6 +22,7 @@ class FilterAndSortTests(DataTestClient):
         super().setUp()
         self.url = reverse("cases:search")
 
+        # Excluding CLC and PV statuses, only applicable to goods queries
         app_statuses = [
             app_status[0]
             for app_status in CaseStatusEnum.choices
