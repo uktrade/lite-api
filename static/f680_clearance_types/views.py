@@ -9,4 +9,4 @@ class F680ClearanceTypesView(APIView):
     def get(self, request):
         f680_clearance_types = F680ClearanceType.objects.all()
         serializer = F680ClearanceTypeSerializer(f680_clearance_types, many=True)
-        return JsonResponse(data={"f680_clearance_types_temp": serializer.data})
+        return JsonResponse(data={"f680_clearance_types": serializer.data})
