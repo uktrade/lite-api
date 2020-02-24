@@ -7,6 +7,7 @@ from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
 from goods.enums import PvGrading
+from parties.enums import PartyType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -204,3 +205,38 @@ class EditF680ApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.application.clearance_level, level)
+
+    def test_add_party_to_f380_success(self):
+        party = {
+            "type": PartyType.THIRD_PARTY,
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
+            "role": "agent",
+            "clearance_level": PvGrading.UK_OFFICIAL,
+        }
+        url = reverse("applications:parties", kwargs={"pk": self.application.id})
+        response = self.client.post(url, data=party, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_add_party_no_clearance_to_f380_failure(self):
+        party = {
+            "type": PartyType.THIRD_PARTY,
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
+            "role": "agent",
+        }
+        url = reverse("applications:parties", kwargs={"pk": self.application.id})
+        response = self.client.post(url, data=party, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {'clearance_level': ['This field is required.']})
