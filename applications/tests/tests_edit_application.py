@@ -198,8 +198,6 @@ class EditF680ApplicationsTests(DataTestClient):
     def test_add_clearance_level_success(self, level):
         data = {"clearance_level": level}
 
-        self.assertNotEqual(self.application.clearance_level, level)
-
         response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.application.refresh_from_db()
 
