@@ -82,8 +82,9 @@ def update_cases_sla():
         try:
             # Get cases submitted before the cutoff time today, where they have never been closed
             # and where the cases SLA haven't been updated today (to avoid running twice in a single day).
+            # Lock with select_for_update()
             # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
-            results = Case.objects.filter(
+            results = Case.objects.select_for_update().filter(
                 submitted_at__lt=make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
                 last_closed_at__isnull=True,
                 sla_remaining_days__isnull=False,
