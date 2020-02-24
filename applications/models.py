@@ -32,11 +32,6 @@ class ApplicationException(Exception):
 
 class ApplicationPartyMixin:
     def add_party(self, party):
-        if isinstance(party, dict):
-            if self.case_type.sub_type == CaseTypeSubTypeEnum.F680:
-                party = PartySerializer(party, required_fields=["clearance_level"])
-                party.save()
-
         old_poa = None
 
         # Alternate behaviour of adding a party depending on party type

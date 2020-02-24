@@ -51,10 +51,7 @@ class ApplicationPartyView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
-            serializer = PartySerializer(data=data, required_fields=["clearance_level"])
-        else:
-            serializer = PartySerializer(data=data)
+        serializer = PartySerializer(data=data, application_type=application.case_type.sub_type)
 
         # Validate data
         if not serializer.is_valid():
