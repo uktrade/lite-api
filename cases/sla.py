@@ -1,4 +1,3 @@
-from __future__ import division
 import logging
 from datetime import datetime, time
 import requests
