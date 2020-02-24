@@ -34,6 +34,12 @@ class CaseTypeReferenceEnum:
     def as_list(cls):
         return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
 
+    @classmethod
+    def get_text(cls, status):
+        for k, v in cls.choices:
+            if status == k:
+                return v
+
 
 class CaseTypeTypeEnum:
     APPLICATION = "application"
