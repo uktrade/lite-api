@@ -14,7 +14,6 @@ from cases.sla import (
     OPEN_APPLICATION_TARGET,
     MOD_CLEARANCE_TARGET,
     SLA_UPDATE_CUTOFF_TIME,
-    calculate_sla_percentage,
 )
 from test_helpers.clients import DataTestClient
 
