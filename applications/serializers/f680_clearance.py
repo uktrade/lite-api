@@ -33,7 +33,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
             "usage",
             "destinations",
             "additional_documents",
-            "clearance_level"
+            "clearance_level",
         )
 
 
