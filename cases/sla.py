@@ -19,14 +19,6 @@ OPEN_APPLICATION_TARGET = 60
 MOD_CLEARANCE_TARGET = 30
 
 
-def calculate_sla_percentage(days, remaining_days):
-    if remaining_days is not None:
-        if remaining_days <= 0:
-            return 1
-        else:
-            return days / (remaining_days + days)
-
-
 def get_application_target_sla(type):
     if type == CaseTypeSubTypeEnum.STANDARD:
         return STANDARD_APPLICATION_TARGET
