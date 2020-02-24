@@ -2,11 +2,10 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
-
 from separatedvaluesfield.models import SeparatedValuesField
+
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory
 from applications.managers import BaseApplicationManager, HmrcQueryManager
-from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from common.models import TimestampableModel
 from documents.models import Document
@@ -16,7 +15,6 @@ from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
 from parties.models import Party
-from parties.serializers import PartySerializer
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
