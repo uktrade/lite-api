@@ -26,7 +26,7 @@ class FilterAndSortTests(DataTestClient):
         app_statuses = [
             app_status[0]
             for app_status in CaseStatusEnum.choices
-            if app_status[0] not in [CaseStatusEnum.CLC, CaseStatusEnum.PV]
+            if app_status[0] not in CaseStatusEnum.goods_query_statuses
         ]
         self.application_cases = []
         for app_status in app_statuses:
@@ -37,10 +37,8 @@ class FilterAndSortTests(DataTestClient):
             self.queue.save()
             self.application_cases.append(case)
 
-        # CLC applicable case statuses
-        clc_statuses = [CaseStatusEnum.SUBMITTED, CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN]
         self.clc_cases = []
-        for clc_status in clc_statuses:
+        for clc_status in CaseStatusEnum.clc_statuses:
             clc_query = self.create_clc_query("Example CLC Query", self.organisation)
             clc_query.status = get_case_status_by_status(clc_status)
             clc_query.save()

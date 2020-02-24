@@ -47,6 +47,10 @@ class CaseStatusEnum:
 
     _terminal_statuses = [CLOSED, DEREGISTERED, FINALISED, REGISTERED, REVOKED, SURRENDERED, WITHDRAWN]
 
+    goods_query_statuses = [CLC, PV]
+
+    clc_statuses = [SUBMITTED, CLOSED, WITHDRAWN]
+
     choices = [
         (APPEAL_FINAL_REVIEW, "Appeal final review"),
         (APPEAL_REVIEW, "Appeal review"),
