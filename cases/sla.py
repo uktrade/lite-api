@@ -82,12 +82,13 @@ def update_cases_sla():
         # and where the cases SLA haven't been updated today (to avoid running twice in a single day)
         try:
             cases = Case.objects.filter(
-                submitted_at__lt=make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)), last_closed_at__isnull=True
+                submitted_at__lt=make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
+                last_closed_at__isnull=True,
+                sla_remaining_days__isnull=False,
             ).exclude(sla_updated_at__day=date.day)
             for case in cases:
                 case.sla_days += 1
-                if case.sla_remaining_days:
-                    case.sla_remaining_days -= 1
+                case.sla_remaining_days -= 1
                 case.sla_updated_at = date
                 case.save()
             logging.info(f"SLA Update Successful: {len(cases)} cases updated")
