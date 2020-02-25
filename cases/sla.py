@@ -46,7 +46,9 @@ def get_bank_holidays():
     data = []
     r = requests.get(BANK_HOLIDAY_API)
     if r.status_code != status.HTTP_200_OK:
-        logging.warning(f"{LOG_PREFIX} Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup")
+        logging.warning(
+            f"{LOG_PREFIX} Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup"
+        )
         try:
             with open(BACKUP_FILE_NAME, "r") as backup_file:
                 data = backup_file.read().split(",")
