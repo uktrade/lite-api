@@ -552,7 +552,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             case_type_id=case_type.id,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
-            clearance_level=PvGrading.UK_UNCLASSIFIED if case_type == CaseTypeEnum.F680 else None
+            clearance_level=PvGrading.UK_UNCLASSIFIED if case_type == CaseTypeEnum.F680 else None,
         )
 
         if case_type == CaseTypeEnum.EXHIBITION:

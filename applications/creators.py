@@ -166,7 +166,7 @@ def _validate_has_goods(draft, errors, is_mandatory):
 
 
 def _validate_has_clearance_level(draft, errors, is_mandatory):
-    """ Checks draft has Goods """
+    """ Checks draft has clearance level """
 
     if is_mandatory:
         if not draft.clearance_level:
