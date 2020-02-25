@@ -59,11 +59,11 @@ class Case(TimestampableModel):
     )
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
     copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
-    last_closed_at = models.DateTimeField(blank=True, null=True)
+    last_closed_at = models.DateTimeField(null=True)
 
     sla_days = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
-    sla_remaining_days = models.SmallIntegerField(null=True, blank=True)
-    sla_updated_at = models.DateTimeField(blank=True, null=True)
+    sla_remaining_days = models.SmallIntegerField(null=True)
+    sla_updated_at = models.DateTimeField(null=True)
 
     objects = CaseManager()
 
