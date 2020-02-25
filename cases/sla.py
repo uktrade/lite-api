@@ -45,19 +45,19 @@ def get_bank_holidays():
     data = []
     r = requests.get(BANK_HOLIDAY_API)
     if r.status_code != status.HTTP_200_OK:
-        logging.warning("Cannot connect to the GOV Bank Holiday API. Using local backup")
+        logging.warning(f"update_cases_sla: Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup")
         try:
             with open(BACKUP_FILE_NAME, "r") as backup_file:
                 data = backup_file.read().split(",")
         except FileNotFoundError:
-            logging.error(f"No local bank holiday backup found; {BACKUP_FILE_NAME}")
+            logging.error(f"update_cases_sla: No local bank holiday backup found; {BACKUP_FILE_NAME}")
     else:
         try:
             dates = r.json()["england-and-wales"]["events"]
             data = [event["date"] for event in dates]
             with open(BACKUP_FILE_NAME, "w") as backup_file:
                 backup_file.write(",".join(data))
-            logging.info("Fetched GOV Bank Holiday list successfully")
+            logging.info("update_cases_sla: Fetched GOV Bank Holiday list successfully")
         except Exception as e:  # noqa
             logging.error(e)
 
@@ -99,11 +99,11 @@ def update_cases_sla():
                         sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
                     )
                 )
-                logging.info(f"SLA Update Successful: Updated {results} cases")
+                logging.info(f"update_cases_sla: SLA Update Successful. Updated {results} cases")
                 return results
         except Exception as e:  # noqa
             logging.error(e)
             return False
 
-    logging.info("SLA Update Not Performed: Non-working day")
+    logging.info("update_cases_sla: SLA Update Not Performed. Non-working day")
     return False
