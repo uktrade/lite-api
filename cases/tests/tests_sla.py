@@ -10,9 +10,9 @@ from cases.sla import (
     update_cases_sla,
     is_weekend,
     is_bank_holiday,
-    STANDARD_APPLICATION_TARGET,
-    OPEN_APPLICATION_TARGET,
-    MOD_CLEARANCE_TARGET,
+    STANDARD_APPLICATION_TARGET_DAYS,
+    OPEN_APPLICATION_TARGET_DAYS,
+    MOD_CLEARANCE_TARGET_DAYS,
     SLA_UPDATE_CUTOFF_TIME,
 )
 from test_helpers.clients import DataTestClient
@@ -41,11 +41,11 @@ class SlaCaseTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (CaseTypeSubTypeEnum.STANDARD, STANDARD_APPLICATION_TARGET),
-            (CaseTypeSubTypeEnum.OPEN, OPEN_APPLICATION_TARGET),
-            (CaseTypeSubTypeEnum.EXHIBITION, MOD_CLEARANCE_TARGET),
-            (CaseTypeSubTypeEnum.F680, MOD_CLEARANCE_TARGET),
-            (CaseTypeSubTypeEnum.GIFTING, MOD_CLEARANCE_TARGET),
+            (CaseTypeSubTypeEnum.STANDARD, STANDARD_APPLICATION_TARGET_DAYS),
+            (CaseTypeSubTypeEnum.OPEN, OPEN_APPLICATION_TARGET_DAYS),
+            (CaseTypeSubTypeEnum.EXHIBITION, MOD_CLEARANCE_TARGET_DAYS),
+            (CaseTypeSubTypeEnum.F680, MOD_CLEARANCE_TARGET_DAYS),
+            (CaseTypeSubTypeEnum.GIFTING, MOD_CLEARANCE_TARGET_DAYS),
         ]
     )
     def test_sla_update_application(self, application_type, target):
