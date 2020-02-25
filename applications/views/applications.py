@@ -144,7 +144,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         # Prevent minor edits of the clearance level
         if not application.is_major_editable() and request.data.get("clearance_level"):
             return JsonResponse(
-                data={"errors": {"goods_categories": ["This isn't possible on a minor edit"]}},
+                data={"errors": {"clearance_level": ["This isn't possible on a minor edit"]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
