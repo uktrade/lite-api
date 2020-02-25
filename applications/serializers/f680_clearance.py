@@ -50,6 +50,7 @@ class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
             "case_type",
             "organisation",
             "status",
+            "clearance_level",
         )
 
 
