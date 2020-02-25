@@ -208,7 +208,7 @@ class EditF680ApplicationsTests(DataTestClient):
         """ Test successful editing of an application's reference number when the application's status
         is non read-only.
         """
-        application = self.create_draft_standard_application(self.organisation)
+        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
         url = reverse("applications:application", kwargs={"pk": application.id})
         self.submit_application(application)
 
@@ -223,7 +223,7 @@ class EditF680ApplicationsTests(DataTestClient):
         """ Test successful editing of an application's reference number when the application's status
         is non read-only.
         """
-        application = self.create_draft_standard_application(self.organisation)
+        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
         url = reverse("applications:application", kwargs={"pk": application.id})
         self.submit_application(application)
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
@@ -232,7 +232,7 @@ class EditF680ApplicationsTests(DataTestClient):
         data = {"clearance_level": PvGrading.NATO_CONFIDENTIAL}
 
         response = self.client.put(url, data=data, **self.exporter_headers)
-        self.application.refresh_from_db()
+        application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.clearance_level, data["clearance_level"])
 
