@@ -15,6 +15,7 @@ SLA_UPDATE_TASK_TIME = time(0, 0, 0)
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
 BANK_HOLIDAY_API = "https://www.gov.uk/bank-holidays.json"
 BACKUP_FILE_NAME = "bank-holidays.csv"
+LOG_PREFIX = "update_cases_sla background task:"
 
 STANDARD_APPLICATION_TARGET_DAYS = 20
 OPEN_APPLICATION_TARGET_DAYS = 60
@@ -45,19 +46,19 @@ def get_bank_holidays():
     data = []
     r = requests.get(BANK_HOLIDAY_API)
     if r.status_code != status.HTTP_200_OK:
-        logging.warning(f"update_cases_sla: Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup")
+        logging.warning(f"{LOG_PREFIX} Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup")
         try:
             with open(BACKUP_FILE_NAME, "r") as backup_file:
                 data = backup_file.read().split(",")
         except FileNotFoundError:
-            logging.error(f"update_cases_sla: No local bank holiday backup found; {BACKUP_FILE_NAME}")
+            logging.error(f"{LOG_PREFIX} No local bank holiday backup found; {BACKUP_FILE_NAME}")
     else:
         try:
             dates = r.json()["england-and-wales"]["events"]
             data = [event["date"] for event in dates]
             with open(BACKUP_FILE_NAME, "w") as backup_file:
                 backup_file.write(",".join(data))
-            logging.info("update_cases_sla: Fetched GOV Bank Holiday list successfully")
+            logging.info(f"{LOG_PREFIX} Fetched GOV Bank Holiday list successfully")
         except Exception as e:  # noqa
             logging.error(e)
 
@@ -78,7 +79,7 @@ def update_cases_sla():
     :return: How many cases the SLA was updated for or False if error / not ran
     """
 
-    logging.info("SLA Update Started")
+    logging.info(f"{LOG_PREFIX} SLA Update Started")
     date = now()
     if not is_bank_holiday(date) and not is_weekend(date):
         try:
@@ -99,11 +100,11 @@ def update_cases_sla():
                         sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
                     )
                 )
-                logging.info(f"update_cases_sla: SLA Update Successful. Updated {results} cases")
+                logging.info(f"{LOG_PREFIX} SLA Update Successful. Updated {results} cases")
                 return results
         except Exception as e:  # noqa
             logging.error(e)
             return False
 
-    logging.info("update_cases_sla: SLA Update Not Performed. Non-working day")
+    logging.info(f"{LOG_PREFIX} SLA Update Not Performed. Non-working day")
     return False
