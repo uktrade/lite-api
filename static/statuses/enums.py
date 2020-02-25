@@ -5,11 +5,13 @@ class CaseStatusEnum:
     CHANGE_INTIAL_REVIEW = "change_initial_review"
     CHANGE_UNDER_FINAL_REVIEW = "change_under_final_review"
     CHANGE_UNDER_REVIEW = "change_under_review"
+    CLC = "clc_review"
     CLOSED = "closed"
     DEREGISTERED = "deregistered"
     DRAFT = "draft"  # System status only
     FINALISED = "finalised"
     INITIAL_CHECKS = "initial_checks"
+    PV = "pv_review"
     REGISTERED = "registered"
     REOPENED_FOR_CHANGES = "reopened_for_changes"
     REOPENED_DUE_TO_ORG_CHANGES = "reopened_due_to_org_changes"
@@ -47,6 +49,10 @@ class CaseStatusEnum:
 
     _terminal_statuses = [CLOSED, DEREGISTERED, FINALISED, REGISTERED, REVOKED, SURRENDERED, WITHDRAWN]
 
+    goods_query_statuses = [CLC, PV]
+
+    clc_statuses = [SUBMITTED, CLOSED, WITHDRAWN]
+
     choices = [
         (APPEAL_FINAL_REVIEW, "Appeal final review"),
         (APPEAL_REVIEW, "Appeal review"),
@@ -54,10 +60,12 @@ class CaseStatusEnum:
         (CHANGE_INTIAL_REVIEW, "Change initial review"),
         (CHANGE_UNDER_FINAL_REVIEW, "Change under final review"),
         (CHANGE_UNDER_REVIEW, "Change under review"),
+        (CLC, "CLC review"),
         (CLOSED, "Closed"),
         (DEREGISTERED, "De-registered"),
         (FINALISED, "Finalised"),
         (INITIAL_CHECKS, "Initial checks"),
+        (PV, "PV grading review"),
         (REGISTERED, "Registered"),
         (REOPENED_FOR_CHANGES, "Re-opened for changes"),
         (REOPENED_DUE_TO_ORG_CHANGES, "Re-opened due to org changes"),
@@ -81,22 +89,24 @@ class CaseStatusEnum:
         UNDER_REVIEW: 5,
         UNDER_FINAL_REVIEW: 6,
         FINALISED: 7,
-        WITHDRAWN: 8,
-        CLOSED: 9,
-        REGISTERED: 10,
-        UNDER_APPEAL: 11,
-        APPEAL_REVIEW: 12,
-        APPEAL_FINAL_REVIEW: 13,
-        REOPENED_FOR_CHANGES: 14,
-        REOPENED_DUE_TO_ORG_CHANGES: 15,
-        CHANGE_INTIAL_REVIEW: 16,
-        CHANGE_UNDER_REVIEW: 17,
-        CHANGE_UNDER_FINAL_REVIEW: 18,
-        UNDER_ECJU_REVIEW: 19,
-        REVOKED: 20,
-        SUSPENDED: 21,
-        SURRENDERED: 22,
-        DEREGISTERED: 23,
+        CLC: 8,
+        PV: 9,
+        WITHDRAWN: 10,
+        CLOSED: 11,
+        REGISTERED: 12,
+        UNDER_APPEAL: 13,
+        APPEAL_REVIEW: 14,
+        APPEAL_FINAL_REVIEW: 15,
+        REOPENED_FOR_CHANGES: 16,
+        REOPENED_DUE_TO_ORG_CHANGES: 17,
+        CHANGE_INTIAL_REVIEW: 18,
+        CHANGE_UNDER_REVIEW: 19,
+        CHANGE_UNDER_FINAL_REVIEW: 20,
+        UNDER_ECJU_REVIEW: 21,
+        REVOKED: 22,
+        SUSPENDED: 23,
+        SURRENDERED: 24,
+        DEREGISTERED: 25,
     }
 
     @classmethod

@@ -22,9 +22,11 @@ class GenerateDocumentTests(DataTestClient):
             "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
         )
         self.letter_layout = LetterLayout.objects.first()
-        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
+
+        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
         self.letter_template.case_types.add(CaseTypeEnum.SIEL.id)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
+
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id), "text": "sample"}
         self.content_type = ContentType.objects.get_for_model(GeneratedCaseDocument)
@@ -38,8 +40,8 @@ class GenerateDocumentTests(DataTestClient):
         url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
-        upload_bytes_file_func.assert_called_once()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        upload_bytes_file_func.assert_called_once()
         self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
         self.assertTrue(
             ExporterNotification.objects.filter(
@@ -47,6 +49,22 @@ class GenerateDocumentTests(DataTestClient):
             ).count()
             == 1
         )
+
+    @mock.patch("cases.generated_documents.views.html_to_pdf")
+    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
+    def test_generate_document_when_template_has_decisions_failure(self, upload_bytes_file_func, html_to_pdf_func):
+        self.letter_template.decisions = ["deny"]
+        self.letter_template.save()
+        html_to_pdf_func.return_value = None
+        upload_bytes_file_func.return_value = None
+
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+        response = self.client.post(url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.json()["errors"], {"letter_template": strings.Cases.LETTER_TEMPLATE_NOT_FOUND})
+        upload_bytes_file_func.assert_not_called()
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -148,3 +166,46 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(body["errors"], ["Failed to get preview"])
         html_to_pdf_func.assert_not_called()
         upload_bytes_file_func.assert_not_called()
+
+
+class GetGeneratedDocumentsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.letter_layout = LetterLayout.objects.first()
+        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
+        self.letter_template.case_types.add(CaseTypeEnum.SIEL.id)
+        self.case = self.create_standard_application_case(self.organisation)
+        self.generated_case_document = self.create_generated_case_document(self.case, template=self.letter_template)
+        self.url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)},)
+
+    def test_get_generated_document_gov_user_success(self):
+        url = reverse(
+            "cases:generated_documents:generated_document",
+            kwargs={"pk": str(self.case.pk), "dpk": str(self.generated_case_document.id)},
+        )
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["template"], str(self.letter_template.id))
+        self.assertEqual(response.json()["text"], self.generated_case_document.text)
+
+    @mock.patch("cases.generated_documents.views.delete_exporter_notifications")
+    def test_get_generated_documents_exporter_user_success(self, mock_delete):
+        response = self.client.get(self.url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.generated_case_document.id))
+        self.assertEqual(response_data[0]["name"], self.generated_case_document.name)
+        mock_delete.assert_called_once()
+
+    def test_get_generated_documents_gov_user_success(self):
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.generated_case_document.id))
+        self.assertEqual(response_data[0]["name"], self.generated_case_document.name)

@@ -3,9 +3,11 @@ from itertools import permutations
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from audit_trail.models import Audit
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, CaseTypeReferenceEnum
 from conf import constants
 from letter_templates.models import LetterTemplate
+from lite_content.lite_api import strings
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
@@ -127,3 +129,43 @@ class LetterTemplateCreateTests(DataTestClient):
             letter_paragraphs = letter_template.letter_paragraphs.all()
             self.assertEqual(letter_paragraphs[0].id, picklist_items[0].id)
             self.assertEqual(letter_paragraphs[1].id, picklist_items[1].id)
+
+    def test_create_letter_template_with_decisions_success(self):
+        case_type_references = [CaseTypeEnum.SIEL.reference, CaseTypeEnum.OGEL.reference]
+        data = {
+            "name": "Letter Template",
+            "case_types": case_type_references,
+            "layout": self.letter_layout.id,
+            "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
+            "decisions": ["proviso", "approve"],
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_decisions = response.json()["decisions"]
+        self.assertEqual(len(response_decisions), len(data["decisions"]))
+        for decision in data["decisions"]:
+            self.assertIn(decision, [response_decision["key"] for response_decision in response_decisions])
+
+    def test_create_letter_template_with_decisions_on_non_application_case_types_failure(self):
+        case_type_references = [CaseTypeEnum.EUA.reference, CaseTypeEnum.GOODS.reference]
+        case_type_reference_values = [CaseTypeReferenceEnum.get_text(reference) for reference in case_type_references]
+        data = {
+            "name": "Letter Template",
+            "case_types": case_type_references,
+            "layout": self.letter_layout.id,
+            "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
+            "decisions": ["proviso", "approve"],
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["case_types"],
+            [
+                strings.LetterTemplates.DECISIONS_NON_APPLICATION_CASE_TYPES_ERROR
+                + ", ".join(case_type_reference_values)
+            ],
+        )

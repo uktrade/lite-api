@@ -48,11 +48,8 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view all Cases with no filter
         Then all Cases are returned
         """
-
-        # Arrange
         all_cases = self.application_cases + self.clc_cases
 
-        # Act
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["results"]
 
@@ -65,15 +62,11 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view all Cases of type 'Licence application'
         Then only Cases of that type are returned
         """
-
-        # Arrange
         url = f"{self.url}?case_type={CaseTypeEnum.SIEL.reference}"
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(self.application_cases), len(response_data["cases"]))
         # Assert Case Type
@@ -87,15 +80,11 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view all Cases of type 'CLC query'
         Then only Cases of that type are returned
         """
-
-        # Arrange
         url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(self.clc_cases), len(response_data["cases"]))
 
@@ -110,15 +99,11 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view all Cases of type 'CLC query'
         Then only Cases of that type are returned
         """
-
-        # Arrange
         url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(self.clc_cases), len(response_data["cases"]))
         # Assert Case Type
@@ -132,17 +117,13 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases of type 'CLC query'
         Then only cases of that type are returned
         """
-
-        # Arrange
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
         url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}&sort=status'
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
         # Assert Case Type
@@ -156,17 +137,13 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases when the case officer is set to themselves
         Then only cases of that type are returned
         """
-
-        # Arrange
         self.application_cases[0].case_officer = self.gov_user
         self.application_cases[0].save()
         url = f'{reverse("cases:search")}?case_officer={self.gov_user.id}'
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
@@ -177,18 +154,14 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases with no assigned case officer
         Then only cases without an assigned case officer are returned
         """
-
-        # Arrange
         all_cases = self.application_cases + self.clc_cases
         self.application_cases[0].case_officer = self.gov_user
         self.application_cases[0].save()
         url = f'{reverse("cases:search")}?case_officer=not_assigned'
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(all_cases) - 1)
         assigned_case = str(self.application_cases[0].id)
@@ -201,18 +174,14 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases when the assigned user is set to themselves
         Then only cases with that assigned user are returned
         """
-
-        # Arrange
         case_assignment = CaseAssignment(queue=self.queue, case=self.application_cases[0])
         case_assignment.users.set([self.gov_user])
         case_assignment.save()
         url = f'{reverse("cases:search")}?assigned_user={self.gov_user.id}'
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
@@ -223,19 +192,15 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases which have no assigned users
         Then only cases with no assigned users are returned
         """
-
-        # Arrange
         all_cases = self.application_cases + self.clc_cases
         case_assignment = CaseAssignment(queue=self.queue, case=self.application_cases[0])
         case_assignment.users.set([self.gov_user])
         case_assignment.save()
         url = f'{reverse("cases:search")}?assigned_user=not_assigned'
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]["cases"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(all_cases) - 1)
         assigned_case = str(self.application_cases[0].id)
@@ -248,17 +213,13 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view Cases of type 'CLC query'
         Then only Cases of that type are returned
         """
-
-        # Arrange
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda case: case.status == case_status, self.clc_cases))
         url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}"
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
         # Assert Case Type
@@ -272,18 +233,14 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view all Cases sorted by case_type
         Then all Cases are sorted in ascending order and returned
         """
-
-        # Arrange
         all_cases = self.application_cases + self.clc_cases
         all_cases = [{"status": case.status.status, "status_ordering": case.status.priority,} for case in all_cases]
         all_cases_sorted = sorted(all_cases, key=lambda k: k["status_ordering"])
         url = f"{self.url}?sort=status"
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(all_cases), len(response_data["cases"]))
 
@@ -297,8 +254,6 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view all Cases sorted by case_type
         Then all Cases are sorted in descending order and returned
         """
-
-        # Arrange
         application_cases_sorted = sorted(
             [
                 {"status": case.status.status, "status_ordering": case.status.priority, "id": str(case.id),}
@@ -310,11 +265,9 @@ class FilterAndSortTests(DataTestClient):
 
         url = f"{self.url}?case_type={CaseTypeEnum.SIEL.reference}&sort=-status"
 
-        # Act
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
 
-        # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(self.application_cases), len(response_data["cases"]))
         for case, expected_case in zip(response_data["cases"], application_cases_sorted):
@@ -466,3 +419,25 @@ class FilterQueueUserAssignedAsCaseOfficerTests(DataTestClient):
         response_data = response.json()["results"]["cases"]
         self.assertEqual(len(response_data), 1)
         self.assertNotEqual(response_data[0]["id"], str(case_officer_case.id))
+
+
+class TestQueueOrdering(DataTestClient):
+    def test_all_cases_queue_returns_cases_in_expected_order(self):
+        url = reverse("cases:search")
+        """Test All cases queue returns cases in expected order (newest first). """
+        clc_query = self.create_clc_query("Example CLC Query", self.organisation)
+        standard_app = self.create_standard_application_case(self.organisation, "Example Application")
+        clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
+        expected_case_ids = [str(clc_query_2.id), str(standard_app.id), str(clc_query.id)]
+
+        self.queue.cases.add(clc_query)
+        self.queue.cases.add(standard_app)
+        self.queue.cases.add(clc_query_2)
+        self.queue.save()
+
+        response = self.client.get(url, **self.gov_headers)
+
+        case_ids = [case["id"] for case in response.json()["results"]["cases"]]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(case_ids, expected_case_ids)
