@@ -74,6 +74,23 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["location"], strings.Applications.Generic.NO_LOCATION_SET)
 
+    def test_submit_exhibition_clearance_without_details_failure(self):
+        self.draft.title, self.draft.first_exhibition_date, self.draft.required_by_date = None, None, None
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["details"], strings.Applications.Exhibition.Error.NO_DETAILS)
+
+    def test_submit_exhibition_clearance_without_goods_failure(self):
+        GoodOnApplication.objects.get(application=self.draft).delete()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["goods"], strings.Applications.Standard.NO_GOODS_SET)
+
 
 class GiftingClearanceTests(DataTestClient):
     def setUp(self):
