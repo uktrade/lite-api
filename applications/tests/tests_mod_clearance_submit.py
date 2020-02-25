@@ -10,10 +10,10 @@ from applications.models import (
     GiftingClearanceApplication,
 )
 from cases.enums import CaseTypeEnum
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import PartyDocument
 from test_helpers.clients import DataTestClient
-from lite_content.lite_api import strings
 
 
 @parameterized_class(

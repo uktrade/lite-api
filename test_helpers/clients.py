@@ -554,6 +554,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if case_type == CaseTypeEnum.EXHIBITION:
             self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+            application.title = "title"
+            application.required_by_date = "2021-07-20"
+            application.first_exhibition_date = "2022-08-19"
+            application.save()
 
         self.create_party("End User", organisation, PartyType.END_USER, application)
         self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
