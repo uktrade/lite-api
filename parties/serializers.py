@@ -60,6 +60,11 @@ class PartySerializer(serializers.ModelSerializer):
             for field, serializer_instance in self.fields.items():
                 if field == "role":
                     serializer_instance.required = True
+                if self.initial_data.get("sub_type") == "other":
+                    if field == "descriptors" and application_type != CaseTypeSubTypeEnum.F680:
+                        serializer_instance.required = True
+                        serializer_instance.allow_blank = False
+
         if application_type == CaseTypeSubTypeEnum.F680:
             for field, serializer_instance in self.fields.items():
                 if field == "clearance_level":
