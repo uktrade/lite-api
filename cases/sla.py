@@ -94,7 +94,9 @@ def update_cases_sla():
                         sla_remaining_days__isnull=False,
                     )
                     .exclude(sla_updated_at__day=date.day)
-                    .update(sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date)
+                    .update(
+                        sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
+                    )
                 )
                 logging.info(f"SLA Update Successful: Updated {results} cases")
                 return results
