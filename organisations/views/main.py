@@ -8,6 +8,10 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 
 from conf.authentication import SharedAuthentication
+from conf.constants import GovPermissions
+from conf.helpers import str_to_bool
+from conf.permissions import assert_user_has_permission
+from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer, OrganisationCreateSerializer
 
@@ -51,3 +55,29 @@ class OrganisationsDetail(generics.RetrieveAPIView):
     authentication_classes = (SharedAuthentication,)
     queryset = Organisation.objects.all()
     serializer_class = OrganisationDetailSerializer
+
+    def put(self, request, pk):
+        """ Edit details of an organisation. """
+        organisation = get_organisation_by_pk(pk)
+
+        if "name" in request.data and request.data["name"] != organisation.name:
+            if (
+                request.data["name"]
+                and not assert_user_has_permission(request.user, GovPermissions.REOPEN_CLOSED_CASES)
+                and not assert_user_has_permission(request.user, GovPermissions.MANAGE_ORGANISATIONS)
+            ):
+                return JsonResponse(
+                    data={"errors": "You do not have permission to change the organisations name."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        serializer = OrganisationCreateSerializer(instance=organisation, data=request.data, partial=True)
+
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        if str_to_bool(request.data.get("validate_only", False)):
+            return JsonResponse(data={"organisation": serializer.validated_data}, status=status.HTTP_200_OK)
+
+        serializer.save()
+        return JsonResponse(data={"organisation": serializer.validated_data}, status=status.HTTP_201_CREATED)
