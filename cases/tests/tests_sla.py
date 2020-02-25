@@ -18,23 +18,24 @@ from cases.sla import (
 from test_helpers.clients import DataTestClient
 
 
-class SlaTests(DataTestClient):
+def _set_case_time(case, submit_time):
+    case.submitted_at = datetime.combine(now(), submit_time)
+    case.save()
+
+
+class SlaCaseTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.hour_before_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour - 1, 0, 0)
-        self.hour_after_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour + 1, 0, 0)
         self.case_types = {
             CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
             CaseTypeSubTypeEnum.OPEN: self.create_open_application(self.organisation),
             CaseTypeSubTypeEnum.EXHIBITION: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION),
             CaseTypeSubTypeEnum.F680: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680),
             CaseTypeSubTypeEnum.GIFTING: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.GIFTING),
+            CaseTypeSubTypeEnum.GOODS: self.create_clc_query("abc", self.organisation),
+            CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
-
-    @staticmethod
-    def _set_case_time(case, submit_time):
-        case.submitted_at = datetime.combine(now(), submit_time)
-        case.save()
 
     @parameterized.expand(
         [
@@ -48,7 +49,7 @@ class SlaTests(DataTestClient):
     def test_sla_update_application(self, application_type, target):
         application = self.case_types[application_type]
         case = self.submit_application(application)
-        self._set_case_time(case, self.hour_before_cutoff)
+        _set_case_time(case, self.hour_before_cutoff)
 
         results = update_cases_sla.now()
         case.refresh_from_db()
@@ -56,6 +57,31 @@ class SlaTests(DataTestClient):
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @parameterized.expand(
+        [
+            (CaseTypeSubTypeEnum.GOODS,),
+            (CaseTypeSubTypeEnum.EUA,),
+        ]
+    )
+    def test_sla_doesnt_update_queries(self, query_type):
+        query = self.case_types[query_type]
+        case = self.submit_application(query)
+        _set_case_time(case, self.hour_before_cutoff)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 0)
+        self.assertEqual(case.sla_days, 0)
+        self.assertEqual(case.sla_remaining_days, None)
+
+
+class SlaRulesTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.hour_before_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour - 1, 0, 0)
+        self.hour_after_cutoff = time(SLA_UPDATE_CUTOFF_TIME.hour + 1, 0, 0)
 
     def test_sla_cutoff_window(self):
         times = [
@@ -66,7 +92,7 @@ class SlaTests(DataTestClient):
         for submit_time in times:
             application = self.create_draft_standard_application(self.organisation)
             case = self.submit_application(application)
-            self._set_case_time(case, submit_time)
+            _set_case_time(case, submit_time)
 
         results = update_cases_sla.now()
         cases = Case.objects.all().order_by("submitted_at")
@@ -80,7 +106,7 @@ class SlaTests(DataTestClient):
         application = self.create_draft_standard_application(self.organisation)
         case = self.submit_application(application)
         case.last_closed_at = now()
-        self._set_case_time(case, self.hour_before_cutoff)
+        _set_case_time(case, self.hour_before_cutoff)
 
         results = update_cases_sla.now()
         case.refresh_from_db()
@@ -92,7 +118,7 @@ class SlaTests(DataTestClient):
         application = self.create_draft_standard_application(self.organisation)
         case = self.submit_application(application)
         case.sla_updated_at = now()
-        self._set_case_time(case, self.hour_before_cutoff)
+        _set_case_time(case, self.hour_before_cutoff)
 
         results = update_cases_sla.now()
         case.refresh_from_db()
