@@ -6,6 +6,7 @@ from background_task import background
 from django.db import transaction
 from django.db.models import F
 from django.utils.timezone import now, make_aware
+from rest_framework import status
 
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
@@ -43,7 +44,7 @@ def get_bank_holidays():
     """
     data = []
     r = requests.get(BANK_HOLIDAY_API)
-    if r.status_code != 200:
+    if r.status_code != status.HTTP_200_OK:
         logging.warning("Cannot connect to the GOV Bank Holiday API. Using local backup")
         try:
             with open(BACKUP_FILE_NAME, "r") as backup_file:
