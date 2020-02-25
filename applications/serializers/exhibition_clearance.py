@@ -1,6 +1,8 @@
 import datetime
 
+from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import ExhibitionClearanceApplication
@@ -86,18 +88,27 @@ class ExhibitionClearanceDetailSerializer(serializers.ModelSerializer):
             "reason_for_clearance",
         )
 
-    def validate_first_exhibition_date(self, value):
-        if value <= datetime.date.today():
-            raise serializers.ValidationError(strings.Applications.Exhibition.Error.FIRST_EXHIBITION_DATE_FUTURE)
-        elif (
-            value < datetime.datetime.strptime(self.initial_data["required_by_date"].replace("-", ""), "%Y%m%d").date()
-        ):
-            raise serializers.ValidationError(
+    def validate(self, data):
+        required_by_date_errors = []
+        first_exhibition_date_errors = []
+
+        today = timezone.now().date()
+        if data["required_by_date"] < today:
+            required_by_date_errors.append(strings.Applications.Exhibition.Error.REQUIRED_BY_DATE_FUTURE)
+        if data["first_exhibition_date"] < today:
+            first_exhibition_date_errors.append(strings.Applications.Exhibition.Error.FIRST_EXHIBITION_DATE_FUTURE)
+
+        if not first_exhibition_date_errors and data["required_by_date"] > data["first_exhibition_date"]:
+            first_exhibition_date_errors.append(
                 strings.Applications.Exhibition.Error.REQUIRED_BY_BEFORE_FIRST_EXHIBITION_DATE
             )
-        return value
 
-    def validate_required_by_date(self, value):
-        if value <= datetime.date.today():
-            raise serializers.ValidationError(strings.Applications.Exhibition.Error.REQUIRED_BY_DATE_FUTURE)
-        return value
+        errors = {}
+        if first_exhibition_date_errors:
+            errors.update({"first_exhibition_date": first_exhibition_date_errors})
+        if required_by_date_errors:
+            errors.update({"required_by_date": required_by_date_errors})
+        if errors:
+            raise ValidationError(errors)
+
+        return data
