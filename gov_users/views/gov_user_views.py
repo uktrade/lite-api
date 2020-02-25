@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
-from conf.helpers import replace_default_string_for_form_select
+from conf.helpers import replace_default_string_for_form_select, str_to_bool
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.enums import UserStatuses
@@ -69,7 +69,8 @@ class GovUserList(generics.ListCreateAPIView):
         activated = self.request.GET.get("activated")
         full_name = self.request.GET.get("name")
         gov_users_qs = GovUser.objects.all().order_by("email")
-        if activated is not None:
+        if activated is not None and activated != "":
+            activated = str_to_bool(activated)
             if activated:
                 status = UserStatuses.ACTIVE
             else:
