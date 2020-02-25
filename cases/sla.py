@@ -105,5 +105,5 @@ def update_cases_sla():
             logging.error(e)
             return False
 
-    logging.info("SLA Update Ignored: Non-working day")
+    logging.info("SLA Update Not Performed: Non-working day")
     return False
