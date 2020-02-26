@@ -141,12 +141,18 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Prevent minor edits of the clearance level
+        if not application.is_major_editable() and request.data.get("clearance_level"):
+            return JsonResponse(
+                data={"errors": {"clearance_level": ["This isn't possible on a minor edit"]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
             serializer.save()
-
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
@@ -161,6 +167,10 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 target=case,
                 payload={"old_name": old_name, "new_name": serializer.data.get("name")},
             )
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        if request.data.get("clearance_level"):
+            serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
