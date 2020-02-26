@@ -484,7 +484,9 @@ class CaseOfficer(APIView):
         gov_user_pk = request.data.get("gov_user_pk")
 
         if not gov_user_pk:
-            return JsonResponse(data={"errors": {"user": [Cases.CaseOfficerPage.NONE]}}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(
+                data={"errors": {"user": [Cases.CaseOfficerPage.NONE]}}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         data = {"case_officer": gov_user_pk}
 
