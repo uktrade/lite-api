@@ -222,6 +222,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get("name", instance.name)
         instance.status = validated_data.get("status", instance.status)
         instance.licence_duration = validated_data.get("licence_duration", instance.licence_duration)
+        instance.clearance_level = validated_data.get("clearance_level", instance.clearance_level)
 
         # Remove any previous denial reasons
         if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):

@@ -2,15 +2,17 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
-
 from separatedvaluesfield.models import SeparatedValuesField
+
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.models import Case
 from common.models import TimestampableModel
 from documents.models import Document
 from goods.enums import ItemType
+from goods.enums import PvGrading
 from goods.models import Good
+
 from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
@@ -129,6 +131,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
     licence_duration = models.IntegerField(default=None, null=True, help_text="Set when application finalised")
+    clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
     objects = BaseApplicationManager()
 

@@ -1,7 +1,7 @@
 from uuid import UUID
-from parameterized import parameterized
 
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import (
@@ -9,7 +9,7 @@ from applications.models import (
     CountryOnApplication,
     SiteOnApplication,
 )
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient

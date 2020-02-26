@@ -23,7 +23,7 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
+from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
 from cases.sla import get_application_target_sla
@@ -32,7 +32,7 @@ from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodPvGraded
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
@@ -552,6 +552,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             case_type_id=case_type.id,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            clearance_level=PvGrading.UK_UNCLASSIFIED if case_type == CaseTypeEnum.F680 else None,
         )
 
         if case_type == CaseTypeEnum.EXHIBITION:
