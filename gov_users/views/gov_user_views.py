@@ -87,6 +87,12 @@ class GovUserList(generics.ListCreateAPIView):
 
         return gov_users_qs
 
+    def paginate_queryset(self, queryset):
+        if "no_page" in self.request.GET:
+            return queryset
+        else:
+            return super().paginate_queryset(queryset)
+
     def get_paginated_response(self, data):
         if "no_page" in self.request.GET:
             return JsonResponse(data={"results": data})
