@@ -67,13 +67,15 @@ class ExhibitionClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
 
 
 class ExhibitionClearanceDetailSerializer(serializers.ModelSerializer):
-    title = serializers.CharField(required=True, max_length=255)
+    title = serializers.CharField(
+        max_length=255, allow_null=False, error_messages={"blank": "Enter the exhibition name"},
+    )
     first_exhibition_date = serializers.DateField(
-        allow_null=False,
-        error_messages={"invalid": "Enter the first exhibition's date and include a day, month, year."},
+        allow_null=False, error_messages={"invalid": "Exhibition start date must include a day, a month and a year"},
     )
     required_by_date = serializers.DateField(
-        allow_null=False, error_messages={"invalid": "Enter the required by date and include a day, month, year."},
+        allow_null=False,
+        error_messages={"invalid": "Date the clearance is needed must include a day, a month and a year"},
     )
     reason_for_clearance = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
