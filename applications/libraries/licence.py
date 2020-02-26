@@ -9,7 +9,8 @@ def get_default_duration(application):
 
     Rules defined in: https://uktrade.atlassian.net/browse/LT-1586
     """
-    if application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
+    # MOD clearance application do not have an export type
+    if CaseTypeSubTypeEnum.is_mod_clearance(application.case_type.sub_type):
         return DefaultDuration.TEMPORARY.value
 
     elif application.export_type == ApplicationExportType.TEMPORARY:
