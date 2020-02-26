@@ -116,6 +116,8 @@ class TinyCaseSerializer(serializers.Serializer):
     query = QueryViewSerializer()
     flags = serializers.SerializerMethodField()
     submitted_at = serializers.CharField()
+    sla_days = serializers.IntegerField()
+    sla_remaining_days = serializers.IntegerField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -161,6 +163,8 @@ class CaseDetailSerializer(CaseSerializer):
     case_officer = GovUserSimpleSerializer(read_only=True)
     copy_of = serializers.SerializerMethodField()
     audit_notification = serializers.SerializerMethodField()
+    sla_days = serializers.IntegerField()
+    sla_remaining_days = serializers.IntegerField()
 
     class Meta:
         model = Case
@@ -179,6 +183,8 @@ class CaseDetailSerializer(CaseSerializer):
             "audit_notification",
             "reference_code",
             "copy_of",
+            "sla_days",
+            "sla_remaining_days",
         )
 
     def __init__(self, *args, **kwargs):

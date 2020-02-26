@@ -40,6 +40,7 @@ from applications.serializers.generic_application import (
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
@@ -232,6 +233,8 @@ class ApplicationSubmission(APIView):
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         application.submitted_at = timezone.now()
+        application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
+        application.sla_days = 0
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
@@ -426,6 +429,12 @@ class ApplicationCopy(APIView):
         )
         self.new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         self.new_application.copy_of_id = self.old_application_id
+
+        # Remove SLA data
+        self.new_application.sla_days = 0
+        self.new_application.sla_remaining_days = get_application_target_sla(self.new_application.case_type.sub_type)
+        self.new_application.last_closed_at = None
+        self.new_application.sla_updated_at = None
 
         # Remove data that should not be copied
         self.remove_data_from_application_copy()
