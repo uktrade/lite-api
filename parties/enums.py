@@ -49,6 +49,7 @@ class PartyRole:
     CONSULTANT = "consultant"
     CONTACT = "contact"
     EXPORTER = "exporter"
+    CUSTOMER = "customer"
     OTHER = "other"
 
     choices = [
@@ -59,5 +60,6 @@ class PartyRole:
         (CONSULTANT, "Consultant"),
         (CONTACT, "Contact"),
         (EXPORTER, "Exporter"),
+        (CUSTOMER, "Customer"),
         (OTHER, "Other"),
     ]

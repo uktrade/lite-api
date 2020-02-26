@@ -11,6 +11,8 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
+from conf.serializers import KeyValueChoiceField
+from goods.enums import PvGrading
 from lite_content.lite_api import strings
 
 
@@ -18,6 +20,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
+    clearance_level = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, required=False, allow_blank=True)
 
     class Meta:
         model = F680ClearanceApplication
@@ -30,6 +33,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
             "usage",
             "destinations",
             "additional_documents",
+            "clearance_level",
         )
 
 
@@ -46,6 +50,7 @@ class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
             "case_type",
             "organisation",
             "status",
+            "clearance_level",
         )
 
 
@@ -57,7 +62,8 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         allow_null=False,
         error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
+    clearance_level = serializers.ChoiceField(choices=PvGrading.choices, allow_null=True)
 
     class Meta:
         model = F680ClearanceApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields
+        fields = GenericApplicationUpdateSerializer.Meta.fields + ("clearance_level",)

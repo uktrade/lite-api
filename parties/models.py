@@ -5,6 +5,7 @@ from django.db import models
 from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
+from goods.enums import PvGrading
 from organisations.models import Organisation
 from parties.enums import PartyType, SubType, PartyRole
 from static.countries.models import Country
@@ -15,11 +16,8 @@ class PartyManager(models.Manager):
         """
         Copies the details of a party.
         """
-        values = dict(
-            self.values("name", "address", "country", "website", "type", "organisation", "sub_type", "copy_of").get(
-                pk=pk
-            )
-        )
+        qs = self.values("name", "address", "country", "website", "type", "organisation", "sub_type", "copy_of")
+        values = dict(qs.get(pk=pk))
         if not values["copy_of"]:
             values["copy_of"] = str(pk)
         values["organisation"] = str(values.get("organisation", ""))
@@ -42,6 +40,10 @@ class Party(TimestampableModel):
     role = models.CharField(
         choices=PartyRole.choices, default=PartyRole.OTHER, max_length=22, null=True, help_text="Third party type only"
     )
+    clearance_level = models.CharField(
+        choices=PvGrading.choices, max_length=30, null=True, help_text="Only relevant to F680 applications"
+    )
+    descriptors = models.CharField(max_length=256, null=True, help_text="Clearance descriptors, caveats and codewords")
     # FK is self referencing
     copy_of = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
 

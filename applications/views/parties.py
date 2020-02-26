@@ -51,8 +51,9 @@ class ApplicationPartyView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        serializer = PartySerializer(data=data, application_type=application.case_type.sub_type)
+
         # Validate data
-        serializer = PartySerializer(data=data)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
