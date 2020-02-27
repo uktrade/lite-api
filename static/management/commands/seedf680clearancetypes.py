@@ -20,9 +20,7 @@ class Command(SeedCommand):
     def operation(self, *args, **options):
 
         for f680_clearance_type in F680ClearanceTypeEnum.choices:
-            _, created = F680ClearanceType.objects.update_or_create(
-                id=F680ClearanceTypeEnum.ids[f680_clearance_type[0]], defaults={"name": [f680_clearance_type[0]]}
-            )
+            _, created = F680ClearanceType.objects.update_or_create(id=f680_clearance_type[0])
             if not settings.SUPPRESS_TEST_OUTPUT:
                 if created:
                     print(f"CREATED F680ClearanceType: {{'name': {f680_clearance_type[1]}}}")

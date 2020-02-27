@@ -12,12 +12,23 @@ from applications.serializers.generic_application import (
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
+from static.f680_clearance_types.models import F680ClearanceType
+
+
+class F680ClearanceTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = F680ClearanceType
+        fields = ("id",)
 
 
 class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
+    f680_clearance_types = F680ClearanceTypeSerializer(
+        read_only=True, many=True
+    )
+
 
     class Meta:
         model = F680ClearanceApplication
@@ -30,7 +41,9 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
             "usage",
             "destinations",
             "additional_documents",
+            "f680_clearance_types",
         )
+
 
 
 class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
@@ -57,7 +70,10 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         allow_null=False,
         error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
+    f680_clearance_types = F680ClearanceTypeSerializer(
+        read_only=True, many=True
+    )
 
     class Meta:
         model = F680ClearanceApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields
+        fields = GenericApplicationUpdateSerializer.Meta.fields+("f680_clearance_types",)
