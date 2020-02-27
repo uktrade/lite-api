@@ -68,7 +68,7 @@ class GovUserViewTests(DataTestClient):
             self.assertTrue(user.email in [user["email"] for user in response_data])
 
     def test_get_all_user_statuses(self):
-        response = self.client.get(reverse("gov_users:gov_users") + f"?activated=", **self.gov_headers)
+        response = self.client.get(reverse("gov_users:gov_users") + f"?status=", **self.gov_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
