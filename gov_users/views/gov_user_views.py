@@ -69,12 +69,11 @@ class GovUserList(generics.ListCreateAPIView):
         activated = self.request.GET.get("activated")
         full_name = self.request.GET.get("name")
         gov_users_qs = GovUser.objects.all().order_by("email")
-        if activated is not None and activated not in ["", "None"]:
-            activated = str_to_bool(activated)
-            if activated:
-                status = UserStatuses.ACTIVE
-            else:
+        if activated != "All":
+            if activated == "False":
                 status = UserStatuses.DEACTIVATED
+            else:
+                status = UserStatuses.ACTIVE
             gov_users_qs = gov_users_qs.filter(status=status)
 
         if full_name:
