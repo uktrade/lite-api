@@ -93,6 +93,18 @@ class CaseTypeSubTypeEnum:
             CaseTypeSubTypeEnum.GIFTING,
         ]
 
+    @classmethod
+    def is_mod_clearance(cls, application_type):
+        """
+        Check if the application type does not use an export type
+        Useful for licence duration
+        """
+        return application_type in [
+            CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.EXHIBITION,
+            CaseTypeSubTypeEnum.GIFTING,
+        ]
+
 
 class CaseTypeEnum:
     class OIEL:

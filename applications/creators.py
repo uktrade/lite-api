@@ -165,6 +165,16 @@ def _validate_has_goods(draft, errors, is_mandatory):
     return errors
 
 
+def _validate_has_clearance_level(draft, errors, is_mandatory):
+    """ Checks draft has clearance level """
+
+    if is_mandatory:
+        if not draft.clearance_level:
+            errors["clearance_level"] = strings.Applications.Standard.NO_CLEARANCE_LEVEL
+
+    return errors
+
+
 def _validate_standard_licence(draft, errors):
     """ Checks that a standard licence has all party types & goods """
 
@@ -205,6 +215,7 @@ def _validate_gifting_clearance(draft, errors):
 def _validate_f680_clearance(draft, errors):
     """ F680 require goods and at least 1 end user or third party """
 
+    errors = _validate_has_clearance_level(draft, errors, is_mandatory=True)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
