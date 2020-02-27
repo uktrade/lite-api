@@ -46,12 +46,13 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
         queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, case_type_id, **kwargs):
         super().__init__(**kwargs)
 
         if self.context.type != OrganisationType.HMRC:
             raise exceptions.PermissionDenied("User does not belong to an HMRC organisation")
 
+        self.initial_data["case_type"] = case_type_id
         self.initial_data["hmrc_organisation"] = self.context.id
         self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
