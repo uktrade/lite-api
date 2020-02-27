@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from gov_users.enums import GovUserStatuses
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 from users.models import GovUser
@@ -74,7 +75,8 @@ class GovUserViewTests(DataTestClient):
         self.assertEqual(len(response_data), GovUser.objects.all().count())
 
     def test_get_active_users(self):
-        response = self.client.get(reverse("gov_users:gov_users") + "?activated=True", **self.gov_headers)
+        url = reverse("gov_users:gov_users") + "?status=" + GovUserStatuses.ACTIVE
+        response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
         ids = [user["id"] for user in response_data]
 
@@ -84,7 +86,8 @@ class GovUserViewTests(DataTestClient):
         self.assertFalse(str(self.user_1.id) in ids)
 
     def test_get_deactivated_users(self):
-        response = self.client.get(reverse("gov_users:gov_users") + "?activated=False", **self.gov_headers)
+        url = reverse("gov_users:gov_users") + "?status=" + GovUserStatuses.DEACTIVATED
+        response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
         ids = [user["id"] for user in response_data]
 
