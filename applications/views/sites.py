@@ -8,6 +8,7 @@ from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import SiteOnApplicationCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeReferenceEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
 from organisations.libraries.get_external_location import has_previous_locations
@@ -122,6 +123,13 @@ class ApplicationSites(APIView):
         response_data = []
         for new_site in new_sites:
             serializer = SiteOnApplicationCreateSerializer(data={"site": new_site.id, "application": application.id})
+
+            if application.case_type.reference == CaseTypeReferenceEnum.SITL:
+                if new_site.address.country.id == "GB":
+                    return JsonResponse(
+                        data={"errors": {"sites": ["YOU CANT SET GB COUNTRY ON TRANSHIPMENT"]}},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)

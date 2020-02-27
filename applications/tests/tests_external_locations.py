@@ -4,6 +4,7 @@ from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
+from cases.enums import CaseTypeEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -181,3 +182,20 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(application.external_application_sites.count(), 0)
+
+    def test_add_gb_external_locations_to_transhipment_failure(self):
+        """
+        Assert that it isn't possible to add external locations based in GB to transhipment applications
+        """
+        external_location = self.create_external_location("Hard to Find", self.organisation, "GB")
+        transhipment = self.create_draft_standard_application(
+            organisation=self.organisation, case_type_id=CaseTypeEnum.SITL.id
+        )
+
+        url = reverse("applications:application_external_locations", kwargs={"pk": transhipment.id})
+        data = {"external_locations": [external_location.id]}
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(transhipment.application_sites.count(), 1)
+        self.assertEqual(response.json()["errors"]["external_locations"][0], "YOU CANT SET GB COUNTRY ON TRANSHIPMENT")

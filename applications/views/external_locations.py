@@ -127,6 +127,12 @@ class ApplicationExternalLocations(APIView):
                 data={"external_location": new_location.id, "application": application.id,}
             )
 
+            if new_location.country.id == "GB":
+                return JsonResponse(
+                    data={"errors": {"external_locations": ["YOU CANT SET GB COUNTRY ON TRANSHIPMENT"]}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             if serializer.is_valid():
                 serializer.save()
                 response_data.append(serializer.data)
