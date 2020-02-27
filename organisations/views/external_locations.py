@@ -16,7 +16,9 @@ class ExternalLocationList(APIView):
     """
 
     def get(self, request, org_pk):
-        external_locations = ExternalLocation.objects.filter(organisation=org_pk).exclude(country__id__in=request.GET.getlist("exclude"))
+        external_locations = ExternalLocation.objects.filter(organisation=org_pk).exclude(
+            country__id__in=request.GET.getlist("exclude")
+        )
         serializer = ExternalLocationSerializer(external_locations, many=True)
         return JsonResponse(data={"external_locations": serializer.data})
 

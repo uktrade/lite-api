@@ -10,7 +10,6 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 
 

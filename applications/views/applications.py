@@ -102,9 +102,9 @@ class ApplicationList(ListCreateAPIView):
         data = request.data
         case_type = data.pop("application_type", None)
         serializer = get_application_create_serializer(case_type)
-        serializer = serializer(data=data,
-                                case_type_id=CaseTypeEnum.reference_to_id(case_type),
-                                context=request.user.organisation)
+        serializer = serializer(
+            data=data, case_type_id=CaseTypeEnum.reference_to_id(case_type), context=request.user.organisation
+        )
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

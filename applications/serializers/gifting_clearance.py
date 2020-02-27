@@ -10,7 +10,6 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 
 
@@ -34,9 +33,9 @@ class GiftingClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationV
 
 
 class GiftingClearanceCreateSerializer(GenericApplicationCreateSerializer):
-    def __init__(self, **kwargs):
+    def __init__(self, case_type_id, **kwargs):
         super().__init__(**kwargs)
-        self.initial_data["case_type"] = CaseTypeEnum.GIFTING.id
+        self.initial_data["case_type"] = case_type_id
 
     class Meta:
         model = GiftingClearanceApplication
