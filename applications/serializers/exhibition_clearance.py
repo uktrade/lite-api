@@ -76,8 +76,7 @@ class ExhibitionClearanceDetailSerializer(serializers.ModelSerializer):
         allow_null=False, error_messages={"invalid": strings.Applications.Exhibition.Error.NO_EXHIBITION_START_DATE},
     )
     required_by_date = serializers.DateField(
-        allow_null=False,
-        error_messages={"invalid": strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE},
+        allow_null=False, error_messages={"invalid": strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE},
     )
     reason_for_clearance = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
