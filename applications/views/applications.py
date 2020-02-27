@@ -39,6 +39,7 @@ from applications.serializers.generic_application import (
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
@@ -143,12 +144,18 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Prevent minor edits of the clearance level
+        if not application.is_major_editable() and request.data.get("clearance_level"):
+            return JsonResponse(
+                data={"errors": {"clearance_level": ["This isn't possible on a minor edit"]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
             serializer.save()
-
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
@@ -163,6 +170,10 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 target=case,
                 payload={"old_name": old_name, "new_name": serializer.data.get("name")},
             )
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        if request.data.get("clearance_level"):
+            serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
@@ -234,6 +245,8 @@ class ApplicationSubmission(APIView):
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         application.submitted_at = timezone.now()
+        application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
+        application.sla_days = 0
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
@@ -428,6 +441,12 @@ class ApplicationCopy(APIView):
         )
         self.new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         self.new_application.copy_of_id = self.old_application_id
+
+        # Remove SLA data
+        self.new_application.sla_days = 0
+        self.new_application.sla_remaining_days = get_application_target_sla(self.new_application.case_type.sub_type)
+        self.new_application.last_closed_at = None
+        self.new_application.sla_updated_at = None
 
         # Remove data that should not be copied
         self.remove_data_from_application_copy()

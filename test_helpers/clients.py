@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
+import django.utils.timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -22,15 +23,16 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
+from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
+from cases.sla import get_application_target_sla
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.enums import SystemFlags
 from flags.models import Flag
-from goods.enums import GoodControlled, GoodPvGraded
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
@@ -254,6 +256,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def submit_application(application: BaseApplication):
         application.submitted_at = datetime.now(timezone.utc)
+        application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
@@ -406,6 +409,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=django.utils.timezone.now(),
         )
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         clc_query.save()
@@ -548,6 +552,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation=organisation,
             case_type_id=case_type.id,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            clearance_level=PvGrading.UK_UNCLASSIFIED if case_type == CaseTypeEnum.F680 else None,
         )
 
         if case_type == CaseTypeEnum.EXHIBITION:
@@ -714,7 +719,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.create_end_user_advisory(note, reasoning, organisation)
 
     def create_generated_case_document(self, case, template, document_name="Generated Doc"):
-        generated_case_doc = GeneratedCaseDocument(
+        generated_case_doc = GeneratedCaseDocument.objects.create(
             name=document_name,
             user=self.gov_user,
             s3_key=uuid.uuid4(),
@@ -723,8 +728,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             type=CaseDocumentState.GENERATED,
             case=case,
             template=template,
+            text="Here is some text",
         )
-        generated_case_doc.save()
         return generated_case_doc
 
     def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id):

@@ -35,8 +35,8 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         data = request.data
-        data["case_types"] = CaseTypeEnum.references_to_ids(data["case_types"])
-        serializer = self.serializer_class(data=request.data)
+        data["case_types"] = CaseTypeEnum.references_to_ids(data.get("case_types"))
+        serializer = self.serializer_class(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -80,41 +80,69 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         template_object = self.get_object()
+
+        old_template_name = template_object.name
+        new_template_name = request.data.get("name", old_template_name)
+
         old_case_types = set(template_object.case_types.values_list("reference", flat=True))
-        old_paragraphs = list(template_object.letter_paragraphs.values_list("id", "name"))
-        old_layout_id = str(template_object.layout.id)
+        new_case_types = set(request.data.get("case_types", old_case_types))
+        request.data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
+
+        old_decisions = set(template_object.decisions or ["no decisions"])
+        new_decisions = request.data.get("decisions")
+        if new_decisions is None:
+            new_decisions = old_decisions
+        elif new_decisions == []:
+            new_decisions = {"no decisions"}
+        else:
+            new_decisions = set(new_decisions)
+
+        old_layout = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
-        old_name = template_object.name
+        new_layout = request.data.get("layout", old_layout)
 
-        data = request.data
-        new_case_types = data.get("case_types")
-        if new_case_types:
-            data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
+        old_paragraphs = list(template_object.letter_paragraphs.values_list("id", "name"))
 
-        serializer = self.get_serializer(template_object, data=data, partial=True)
+        serializer = self.get_serializer(template_object, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
-            if request.data.get("name"):
-                if old_name != request.data.get("name"):
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATED_LETTER_TEMPLATE_NAME,
-                        target=serializer.instance,
-                        payload={"old_name": old_name, "new_name": serializer.instance.name,},
-                    )
 
-            if request.data.get("case_types"):
-                if new_case_types != old_case_types:
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
-                        target=serializer.instance,
-                        payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types)},
-                    )
+            if new_template_name != old_template_name:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_NAME,
+                    target=serializer.instance,
+                    payload={"old_name": old_template_name, "new_name": serializer.instance.name},
+                )
+
+            if new_case_types != old_case_types:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
+                    target=serializer.instance,
+                    payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types)},
+                )
+
+            if new_decisions != old_decisions:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_DECISIONS,
+                    target=serializer.instance,
+                    payload={"old_decisions": sorted(old_decisions), "new_decisions": sorted(new_decisions)},
+                )
+
+            if new_layout != old_layout:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_LAYOUT,
+                    target=serializer.instance,
+                    payload={"old_layout": old_layout_name, "new_layout": serializer.instance.layout.name},
+                )
 
             if request.data.get("letter_paragraphs"):
                 new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list("id", "name"))
+
                 if set(new_paragraphs) != set(old_paragraphs):
                     audit_trail_service.create(
                         actor=request.user,
@@ -135,23 +163,12 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                             )
                             break
 
-            if request.data.get("layout"):
-                new_layout = request.data.get("layout")
-                if new_layout != old_layout_id:
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATED_LETTER_TEMPLATE_LAYOUT,
-                        target=serializer.instance,
-                        payload={"old_layout": old_layout_name, "new_layout": serializer.instance.layout.name},
-                    )
-
-            return JsonResponse(serializer.data)
+            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TemplatePreview(generics.RetrieveAPIView):
-
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, **kwargs):

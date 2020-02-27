@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     "applications.apps.ApplicationsConfig",
     "audit_trail",
     "background_task",
-    "cases",
+    "cases.app.CasesConfig",
     "cases.generated_documents",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -63,10 +63,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "static",
     "static.control_list_entries",
-    "static.private_venture_gradings",
     "static.countries",
+    "static.decisions",
     "static.denial_reasons",
     "static.letter_layouts",
+    "static.private_venture_gradings",
     "static.statuses",
     "static.units",
     "static.upload_document_for_tests",
@@ -82,6 +83,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "conf.middleware.LoggingMiddleware",
+    "conf.middleware.DBLoggingMiddleware",
 ]
 
 ROOT_URLCONF = "conf.urls"
@@ -152,8 +154,12 @@ AV_SERVICE_URL = env("AV_SERVICE_URL")
 AV_SERVICE_USERNAME = env("AV_SERVICE_USERNAME")
 AV_SERVICE_PASSWORD = env("AV_SERVICE_PASSWORD")
 
+# Background tasks
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
 UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
+# Max number of seconds before re-running task if not complete
+MAX_RUN_TIME = 180
+BACKGROUND_TASK_RUN_ASYNC = True
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True

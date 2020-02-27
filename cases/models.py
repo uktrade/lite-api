@@ -35,8 +35,8 @@ from users.models import (
 
 class CaseType(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35,)
-    sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35,)
+    type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35)
+    sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35)
     reference = models.CharField(
         choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=5,
     )
@@ -59,6 +59,11 @@ class Case(TimestampableModel):
     )
     case_officer = models.ForeignKey(GovUser, null=True, on_delete=models.DO_NOTHING)
     copy_of = models.ForeignKey("self", default=None, null=True, on_delete=models.DO_NOTHING)
+    last_closed_at = models.DateTimeField(null=True)
+
+    sla_days = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
+    sla_remaining_days = models.SmallIntegerField(null=True)
+    sla_updated_at = models.DateTimeField(null=True)
 
     objects = CaseManager()
 
