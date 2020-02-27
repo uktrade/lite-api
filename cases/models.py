@@ -16,6 +16,7 @@ from cases.managers import CaseManager, CaseReferenceCodeManager
 from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
+from goods.enums import PvGrading
 from organisations.models import Organisation
 from queues.models import Queue
 from static.countries.models import Country
@@ -193,6 +194,7 @@ class Advice(TimestampableModel):
     # Optional depending on type of advice
     proviso = models.TextField(default=None, blank=True, null=True)
     denial_reasons = models.ManyToManyField(DenialReason)
+    pv_grading = models.CharField(choices=PvGrading.choices, null=True, max_length=30)
 
     def save(self, *args, **kwargs):
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:

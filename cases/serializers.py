@@ -28,6 +28,7 @@ from cases.models import (
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
+from goods.enums import PvGrading
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
@@ -365,6 +366,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     third_party = serializers.PrimaryKeyRelatedField(
         queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
     )
+    pv_grading = KeyValueChoiceField(choices=PvGrading.choices, required=False)
 
     class Meta:
         model = Advice
@@ -384,6 +386,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
             "created_at",
             "consignee",
             "third_party",
+            "pv_grading",
         )
 
     def validate_denial_reasons(self, value):

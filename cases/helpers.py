@@ -33,10 +33,11 @@ def filter_out_duplicates(advice_list):
 
 
 def construct_coalesced_advice_values(
-    filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user,
+    filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user, pv_grading
 ):
     break_text = "\n-------\n"
     for advice in filtered_items:
+        print(advice)
         if text:
             text += break_text + advice.text
         else:
@@ -62,7 +63,9 @@ def construct_coalesced_advice_values(
         else:
             advice_type = advice.type
 
-    advice = advice_class(text=text, case=case, note=note, proviso=proviso, user=user, type=advice_type)
+        pv_grading = advice.pv_grading
+
+    advice = advice_class(text=text, case=case, note=note, proviso=proviso, user=user, type=advice_type, pv_grading=pv_grading)
 
     return advice
 
@@ -87,17 +90,20 @@ def assign_field(application_field, advice, key):
 
 
 def collate_advice(application_field, collection, case, user, advice_class):
+    print("COLLATING ADVICE")
+    print(collection)
     for key, value in collection:
         text = None
         note = None
         proviso = None
         denial_reasons = []
         advice_type = None
+        pv_grading = None
 
         filtered_items = filter_out_duplicates(value)
 
         advice = construct_coalesced_advice_values(
-            filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user,
+            filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user, pv_grading
         )
 
         # Set outside the constructor so it can apply only when necessary

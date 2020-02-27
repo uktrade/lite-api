@@ -1,3 +1,4 @@
+from cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
 from django.http import JsonResponse
 from rest_framework import status
@@ -52,6 +53,12 @@ def post_advice(request, case, serializer_object, team=False):
         )
 
     data = request.data
+    #
+    # if CaseTypeSubTypeEnum.is_mod_clearance(case.case_type.sub_type) and not data.get("pv_grading"):
+    #     return JsonResponse(
+    #         data={"errors": ["NO PV GRADING PLS ADD PLS I BEG"]},
+    #         status=status.HTTP_400_BAD_REQUEST,
+    #     )
 
     # Update the case and user in each piece of advice
     refusal_error = False
