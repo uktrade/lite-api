@@ -27,10 +27,6 @@ class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicati
 
 
 class ExhibitionClearanceCreateSerializer(GenericApplicationCreateSerializer):
-    def __init__(self, case_type_id, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_data["case_type"] = case_type_id
-
     class Meta:
         model = ExhibitionClearanceApplication
         fields = (

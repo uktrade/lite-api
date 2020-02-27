@@ -48,10 +48,6 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
         choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
     )
 
-    def __init__(self, case_type_id, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_data["case_type"] = case_type_id
-
     class Meta:
         model = StandardApplication
         fields = (

@@ -37,10 +37,6 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
 
 
 class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
-    def __init__(self, case_type_id, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_data["case_type"] = case_type_id
-
     class Meta:
         model = F680ClearanceApplication
         fields = (
