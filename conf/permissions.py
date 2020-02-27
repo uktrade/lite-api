@@ -14,3 +14,16 @@ def assert_user_has_permission(user, permission, organisation: Organisation = No
             return True
         else:
             raise PermissionDeniedError()
+
+
+def check_user_has_permission(user, permission, organisation: Organisation = None):
+    if isinstance(user, GovUser):
+        if user.has_permission(permission):
+            return True
+        else:
+            return False
+    else:
+        if user.has_permission(permission, organisation):
+            return True
+        else:
+            return False
