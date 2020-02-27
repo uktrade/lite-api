@@ -66,15 +66,11 @@ class GovUserList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         teams = self.request.GET.get("teams")
-        activated = self.request.GET.get("activated")
+        status = self.request.GET.get("status")
         full_name = self.request.GET.get("name")
         gov_users_qs = GovUser.objects.all().order_by("email")
-        if activated != "All":
-            if activated == "False":
-                status = UserStatuses.DEACTIVATED
-            else:
-                status = UserStatuses.ACTIVE
-            gov_users_qs = gov_users_qs.filter(status=status)
+        if status:
+            gov_users_qs = gov_users_qs.filter(status=UserStatuses.from_string(status))
 
         if full_name:
             gov_users_qs = gov_users_qs.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
