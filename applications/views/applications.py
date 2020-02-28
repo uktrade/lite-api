@@ -169,7 +169,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             )
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if request.data.get("clearance_level"):
+        if request.data.get("clearance_level") or request.data.get("f680_clearance_types"):
             serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 

@@ -11,13 +11,16 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from cases.enums import CaseTypeEnum
-from conf.serializers import KeyValueChoiceField
+from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from goods.enums import PvGrading
 from lite_content.lite_api import strings
+from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.f680_clearance_types.models import F680ClearanceType
 
 
 class F680ClearanceTypeSerializer(serializers.ModelSerializer):
+    id = KeyValueChoiceField(choices=F680ClearanceTypeEnum.choices)
+
     class Meta:
         model = F680ClearanceType
         fields = ("id",)
@@ -27,9 +30,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
-    f680_clearance_types = F680ClearanceTypeSerializer(
-        read_only=True, many=True
-    )
+    f680_clearance_types = F680ClearanceTypeSerializer(read_only=True, many=True)
 
     clearance_level = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, required=False, allow_blank=True)
 
@@ -49,7 +50,6 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
         )
 
 
-
 class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -64,6 +64,7 @@ class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
             "organisation",
             "status",
             "clearance_level",
+            "f680_clearance_types",
         )
 
 
@@ -75,11 +76,22 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         allow_null=False,
         error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
-    f680_clearance_types = F680ClearanceTypeSerializer(
-        read_only=True, many=True
+    f680_clearance_types = PrimaryKeyRelatedSerializerField(
+        queryset=F680ClearanceType.objects.all(),
+        serializer=F680ClearanceTypeSerializer,
+        error_messages={"required": "BAD ERROR"},
+        many=True,
     )
     clearance_level = serializers.ChoiceField(choices=PvGrading.choices, allow_null=True)
 
     class Meta:
         model = F680ClearanceApplication
         fields = GenericApplicationUpdateSerializer.Meta.fields + ("f680_clearance_types", "clearance_level",)
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.f680_clearance_types.set(
+            validated_data.get("f680_clearance_types", list(instance.f680_clearance_types.values_list("id", flat=True)))
+        )
+        instance.save()
+        return instance
