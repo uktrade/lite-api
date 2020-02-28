@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import ExternalLocationOnApplicationSerializer
@@ -130,7 +131,7 @@ class ApplicationExternalLocations(APIView):
             )
 
             if application.case_type.reference == CaseTypeReferenceEnum.SITL:
-                if new_location.country.id == "GB":
+                if new_location.country.id in TRANSHIPMENT_BANNED_COUNTRIES:
                     return JsonResponse(
                         data={"errors": {"external_locations": [ExternalLocations.Errors.TRANSHIPMENT_GB]}},
                         status=status.HTTP_400_BAD_REQUEST,
