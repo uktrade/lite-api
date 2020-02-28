@@ -12,18 +12,19 @@ SEED_COMMANDS = {
         "seeddenialreasons",
         "seedcountries",
         "seedlayouts",
-        "seedsystemflags",
+        "seedteams",
+        "seedflags",
     ],
-    "Dev": ["seedorgusers", "temporary_give_existing_exporters_superuser_role", "seedgovusers", "seeddemodata"],
+    "Dev": ["seeddemodata", "seedusers"],
     "Tests": [
         "seedcasetypes",
         "seedcasestatuses",
         "seedrolepermissions",
         "seeddenialreasons",
         "seedcountries",
-        "seedgovusers",
         "seedlayouts",
-        "seedsystemflags",
+        "seedteams",
+        "seedflags",
     ],
 }
 

@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from cases.enums import CaseTypeEnum
-from conf import settings
+from cases.models import CaseType
 from static.management.SeedCommand import SeedCommand
 
 from static.statuses.models import CaseStatus, CaseStatusCaseType
@@ -32,6 +32,8 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
+        assert CaseType.objects.count(), "Case Types must be seeded first!"
+
         status_csv = self.read_csv(STATUSES_FILE)
         self.update_or_create(CaseStatus, status_csv)
         self.delete_unused_objects(CaseStatus, status_csv)
@@ -46,10 +48,9 @@ class Command(SeedCommand):
                 # IF: sub-type is present in a STATUSES_ON_CASE_TYPE
                 # OR IF: type is present but sub-type is not in a STATUSES_ON_CASE_TYPE (handles HMRC-applications)
                 if case_type.sub_type in value or (case_type.type in value and case_type.sub_type not in value):
-                    case_to_status_data = dict(case_type_id=case_type.id, status_id=key)
+                    case_to_status_data = dict(case_type_id=str(case_type.id), status_id=key)
                     case_status_case_type = CaseStatusCaseType.objects.filter(**case_to_status_data)
 
                     if not case_status_case_type.exists():
                         CaseStatusCaseType.objects.create(**case_to_status_data)
-                        if not settings.SUPPRESS_TEST_OUTPUT:
-                            print(f"CREATED {CaseStatusCaseType.__name__}: {case_to_status_data}")
+                        self.print_created_or_updated(CaseStatusCaseType, case_to_status_data, is_created=True)

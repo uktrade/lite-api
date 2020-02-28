@@ -106,6 +106,12 @@ class SeedCommand(ABC, BaseCommand):
                     if not settings.SUPPRESS_TEST_OUTPUT:
                         print(f"Object {id} could not be deleted due to foreign key constraint")
 
+    @staticmethod
+    def print_created_or_updated(obj, data, is_created: bool):
+        if not settings.SUPPRESS_TEST_OUTPUT:
+            created_or_updated = "CREATED" if is_created else "UPDATED"
+            print(f"{created_or_updated} {obj.__name__}: {dict(data)}")
+
 
 class SeedCommandTest(TestCase):
     """

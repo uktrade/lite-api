@@ -18,9 +18,6 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        """
-        pipenv run ./manage.py seedlayouts
-        """
         csv = self.read_csv(LAYOUTS_FILE)
         self.update_or_create(LetterLayout, csv)
         self.delete_unused_objects(LetterLayout, csv)
