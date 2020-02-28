@@ -43,7 +43,7 @@ from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
-from lite_content.lite_api.strings import Documents
+from lite_content.lite_api.strings import Documents, Cases
 from parties.serializers import PartySerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -482,6 +482,12 @@ class CaseOfficer(APIView):
         """
         case = get_case(pk)
         gov_user_pk = request.data.get("gov_user_pk")
+
+        if not gov_user_pk:
+            return JsonResponse(
+                data={"errors": {"user": [Cases.CaseOfficerPage.NONE]}}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         data = {"case_officer": gov_user_pk}
 
         serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
