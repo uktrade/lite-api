@@ -569,8 +569,7 @@ class ExhibitionDetails(APIView):
 
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
-    def post(self, request, pk):
-        application = get_application(pk)
+    def post(self, request, application):
         serializer = ExhibitionClearanceDetailSerializer(instance=application, data=request.data)
         if serializer.is_valid():
             old_title = application.title
