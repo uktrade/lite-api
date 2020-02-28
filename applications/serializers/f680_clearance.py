@@ -19,11 +19,11 @@ from static.f680_clearance_types.models import F680ClearanceType
 
 
 class F680ClearanceTypeSerializer(serializers.ModelSerializer):
-    id = KeyValueChoiceField(choices=F680ClearanceTypeEnum.choices)
+    name = KeyValueChoiceField(choices=F680ClearanceTypeEnum.choices)
 
     class Meta:
         model = F680ClearanceType
-        fields = ("id",)
+        fields = ("name",)
 
 
 class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -31,7 +31,6 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     f680_clearance_types = F680ClearanceTypeSerializer(read_only=True, many=True)
-
     clearance_level = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, required=False, allow_blank=True)
 
     class Meta:
@@ -86,6 +85,14 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
     class Meta:
         model = F680ClearanceApplication
         fields = GenericApplicationUpdateSerializer.Meta.fields + ("f680_clearance_types", "clearance_level",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.initial_data["f680_clearance_types"] = [
+            F680ClearanceTypeEnum.ids.get(clearance_type)
+            for clearance_type in self.initial_data["f680_clearance_types"]
+        ]
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
