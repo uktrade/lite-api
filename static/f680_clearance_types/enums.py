@@ -14,4 +14,3 @@ class F680ClearanceTypeEnum:
         (TRAINING, "Training"),
         (THROUGH_LIFE_SUPPORT, "Through life support"),
     ]
-
