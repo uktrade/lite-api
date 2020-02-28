@@ -560,15 +560,68 @@ class ApplicationCopy(APIView):
 
 
 class ExhibitionDetails(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
     def get(self, request, pk):
         application = get_application(pk)
         serializer = ExhibitionClearanceDetailSerializer(instance=application)
         return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
 
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
     def post(self, request, pk):
         application = get_application(pk)
         serializer = ExhibitionClearanceDetailSerializer(instance=application, data=request.data)
         if serializer.is_valid():
+            old_title = application.title
+            old_first_exhibition_date = application.first_exhibition_date
+            old_required_by_date = application.required_by_date
+            old_reason_for_clearance = application.reason_for_clearance
+            case = application.get_case()
             serializer.save()
+            data = serializer.validated_data
+
+            if data["title"] != old_title:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_TITLE,
+                    target=case,
+                    payload={"old_title": old_title, "new_title": data["title"],},
+                )
+
+            if data["first_exhibition_date"] != old_first_exhibition_date:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_START_DATE,
+                    target=application.get_case(),
+                    payload={
+                        "old_first_exhibition_date": old_first_exhibition_date,
+                        "new_first_exhibition_date": data["first_exhibition_date"],
+                    },
+                )
+
+            if data["required_by_date"] != old_required_by_date:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE,
+                    target=application.get_case(),
+                    payload={
+                        "old_required_by_date": old_required_by_date,
+                        "new_required_by_date": data["required_by_date"],
+                    },
+                )
+
+            if data["reason_for_clearance"] != old_reason_for_clearance:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE,
+                    target=application.get_case(),
+                    payload={
+                        "old_reason_for_clearance": old_reason_for_clearance,
+                        "new_reason_for_clearance": data["reason_for_clearance"],
+                    },
+                )
+
             return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
+
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
