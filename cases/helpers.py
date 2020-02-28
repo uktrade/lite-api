@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from cases.enums import AdviceType
+from goods.enums import PvGrading
 from goods.models import Good
 from static.countries.models import Country
 from users.models import GovUser, GovNotification
@@ -11,29 +12,24 @@ def filter_out_duplicates(advice_list):
     This examines each piece of data in a set of advice for an object
     and if there are any exact duplicates it only returns one of them.
     """
-    matches = False
     filtered_items = []
     for advice in advice_list:
-        for item in filtered_items:
-            # Compare each piece of unique advice against the new piece of advice being introduced
-            if (
-                advice.type == item.type
-                and advice.text == item.text
-                and advice.note == item.note
-                and advice.proviso == item.proviso
-                and [x for x in advice.denial_reasons.values_list()] == [x for x in item.denial_reasons.values_list()]
-            ):
-                matches = True
-            else:
-                matches = False
-        if matches is False:
+        if advice not in filtered_items:
             filtered_items.append(advice)
-
     return filtered_items
 
 
 def construct_coalesced_advice_values(
-    filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user, pv_grading
+    filtered_items,
+    case,
+    advice_class,
+    user,
+    pv_grading=None,
+    text=None,
+    note=None,
+    proviso=None,
+    denial_reasons=None,
+    advice_type=None,
 ):
     break_text = "\n-------\n"
     for advice in filtered_items:
@@ -54,6 +50,13 @@ def construct_coalesced_advice_values(
             else:
                 proviso = advice.proviso
 
+        if advice.pv_grading:
+            found_elem = [grading[1] for grading in PvGrading.choices if grading[0] == advice.pv_grading][0]
+            if pv_grading:
+                pv_grading += break_text + found_elem
+            else:
+                pv_grading = found_elem
+
         for denial_reason in advice.denial_reasons.values_list("id", flat=True):
             denial_reasons.append(denial_reason)
 
@@ -63,9 +66,9 @@ def construct_coalesced_advice_values(
         else:
             advice_type = advice.type
 
-        pv_grading = advice.pv_grading
-
-    advice = advice_class(text=text, case=case, note=note, proviso=proviso, user=user, type=advice_type, pv_grading=pv_grading)
+    advice = advice_class(
+        text=text, case=case, note=note, proviso=proviso, user=user, type=advice_type, conflicting_pv_grading=pv_grading
+    )
 
     return advice
 
@@ -90,20 +93,12 @@ def assign_field(application_field, advice, key):
 
 
 def collate_advice(application_field, collection, case, user, advice_class):
-    print("COLLATING ADVICE")
-    print(collection)
-    for key, value in collection:
-        text = None
-        note = None
-        proviso = None
+    for key, value in collection.items():
         denial_reasons = []
-        advice_type = None
-        pv_grading = None
-
         filtered_items = filter_out_duplicates(value)
 
         advice = construct_coalesced_advice_values(
-            filtered_items, text, note, proviso, denial_reasons, advice_type, case, advice_class, user, pv_grading
+            filtered_items, case, advice_class, user, denial_reasons=denial_reasons
         )
 
         # Set outside the constructor so it can apply only when necessary
@@ -143,13 +138,13 @@ def create_grouped_advice(case, request, advice, level):
         elif advice.third_party:
             third_parties[advice.third_party].append(advice)
 
-    collate_advice("end_user", end_users.items(), case, request.user, level)
-    collate_advice("good", goods.items(), case, request.user, level)
-    collate_advice("country", countries.items(), case, request.user, level)
-    collate_advice("ultimate_end_user", ultimate_end_users.items(), case, request.user, level)
-    collate_advice("goods_type", goods_types.items(), case, request.user, level)
-    collate_advice("consignee", consignees.items(), case, request.user, level)
-    collate_advice("third_party", third_parties.items(), case, request.user, level)
+    collate_advice("end_user", end_users, case, request.user, level)
+    collate_advice("good", goods, case, request.user, level)
+    collate_advice("country", countries, case, request.user, level)
+    collate_advice("ultimate_end_user", ultimate_end_users, case, request.user, level)
+    collate_advice("goods_type", goods_types, case, request.user, level)
+    collate_advice("consignee", consignees, case, request.user, level)
+    collate_advice("third_party", third_parties, case, request.user, level)
 
 
 def get_assigned_to_user_case_ids(user: GovUser):
@@ -159,7 +154,6 @@ def get_assigned_to_user_case_ids(user: GovUser):
 
 
 def get_users_assigned_to_case(case_assignments):
-
     users = []
 
     for case_assignment in case_assignments:

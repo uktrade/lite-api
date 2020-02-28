@@ -279,7 +279,6 @@ class ViewFinalAdvice(APIView):
         final_advice = FinalAdvice.objects.filter(case=case)
 
         serializer = CaseFinalAdviceSerializer(final_advice, many=True)
-
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
 

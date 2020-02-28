@@ -195,6 +195,8 @@ class Advice(TimestampableModel):
     proviso = models.TextField(default=None, blank=True, null=True)
     denial_reasons = models.ManyToManyField(DenialReason)
     pv_grading = models.CharField(choices=PvGrading.choices, null=True, max_length=30)
+    # This is to store the conflicting security gradings for display purposes
+    conflicting_pv_grading = models.CharField(null=True, max_length=60)
 
     def save(self, *args, **kwargs):
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
@@ -217,6 +219,17 @@ class Advice(TimestampableModel):
             pass
 
         super(Advice, self).save(*args, **kwargs)
+
+    def equals(self, other):
+        return all(
+            [
+                self.text == other.text,
+                self.note == other.note,
+                self.proviso == other.proviso,
+                self.pv_grading == other.pv_grading,
+                [x for x in self.denial_reasons.values_list()] == [x for x in other.denial_reasons.values_list()],
+            ]
+        )
 
 
 class TeamAdvice(Advice):
