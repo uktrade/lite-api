@@ -220,6 +220,7 @@ class Advice(TimestampableModel):
 
         super(Advice, self).save(*args, **kwargs)
 
+    # TODO investigate failing coalesced advice test behaviour when this is extracted
     def equals(self, other):
         return all(
             [

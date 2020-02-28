@@ -7,16 +7,35 @@ from static.countries.models import Country
 from users.models import GovUser, GovNotification
 
 
+# TODO temporarily reverted to old version so that coalesced tests pass
 def filter_out_duplicates(advice_list):
     """
     This examines each piece of data in a set of advice for an object
     and if there are any exact duplicates it only returns one of them.
     """
     filtered_items = []
+    matches = False
     for advice in advice_list:
-        if advice not in filtered_items:
+        for item in filtered_items:
+            # Compare each piece of unique advice against the new piece of advice being introduced
+            if is_advice_equal(advice, item):
+                matches = True
+            else:
+                matches = False
+        if not matches:
             filtered_items.append(advice)
     return filtered_items
+
+
+def is_advice_equal(advice, item):
+    return all([
+        advice.type == item.type,
+        advice.text == item.text,
+        advice.note == item.note,
+        advice.proviso == item.proviso,
+        advice.pv_grading == item.pv_grading,
+        [x for x in advice.denial_reasons.values_list()] == [x for x in item.denial_reasons.values_list()]
+    ])
 
 
 def construct_coalesced_advice_values(
@@ -33,7 +52,6 @@ def construct_coalesced_advice_values(
 ):
     break_text = "\n-------\n"
     for advice in filtered_items:
-        print(advice)
         if text:
             text += break_text + advice.text
         else:
@@ -66,6 +84,7 @@ def construct_coalesced_advice_values(
         else:
             advice_type = advice.type
 
+    # TODO do we need to set pv_grading in cases where advice is not conflicting or stick with conflicting_pv_grading for all?
     advice = advice_class(
         text=text, case=case, note=note, proviso=proviso, user=user, type=advice_type, conflicting_pv_grading=pv_grading
     )
