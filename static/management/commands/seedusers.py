@@ -37,9 +37,11 @@ class Command(SeedCommand):
 
     @classmethod
     def seed_gov_user(cls, user_data):
-        gov_data = user_data.get("internal")
+        has_gov_data = "internal" in user_data and user_data["internal"] != "False"
 
-        if gov_data:
+        if has_gov_data:
+            gov_data = user_data["internal"] if isinstance(user_data["internal"], dict) else {}
+
             team = Team.objects.get(name=gov_data.get("team", ADMIN_TEAM_NAME))
             role = Role.objects.get(name=gov_data.get("role", ROLE_SUPER_USER_NAME), type=UserType.INTERNAL)
 
@@ -57,9 +59,10 @@ class Command(SeedCommand):
 
     @classmethod
     def seed_exporter_user(cls, user_data):
-        exporter_data = user_data.get("exporter")
+        has_exporter_data = "exporter" in user_data and user_data["exporter"] != "False"
 
-        if exporter_data:
+        if has_exporter_data:
+            exporter_data = user_data["exporter"] if isinstance(user_data["exporter"], dict) else {}
             default_data = dict(email=user_data["email"])
 
             exporter_user, created = ExporterUser.objects.get_or_create(
