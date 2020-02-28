@@ -5,6 +5,7 @@ from rest_framework import status
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from cases.enums import CaseTypeEnum
+from lite_content.lite_api.strings import ExternalLocations
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -198,4 +199,4 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(transhipment.application_sites.count(), 1)
-        self.assertEqual(response.json()["errors"]["external_locations"][0], "YOU CANT SET GB COUNTRY ON TRANSHIPMENT")
+        self.assertEqual(response.json()["errors"]["external_locations"][0], ExternalLocations.Errors.TRANSHIPMENT_GB)

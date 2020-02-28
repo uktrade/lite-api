@@ -11,6 +11,7 @@ from audit_trail.payload import AuditType
 from cases.enums import CaseTypeReferenceEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, application_in_non_readonly_state
+from lite_content.lite_api.strings import ExternalLocations
 from organisations.libraries.get_external_location import get_location
 from organisations.libraries.get_site import has_previous_sites
 from organisations.models import ExternalLocation
@@ -131,7 +132,7 @@ class ApplicationExternalLocations(APIView):
             if application.case_type.reference == CaseTypeReferenceEnum.SITL:
                 if new_location.country.id == "GB":
                     return JsonResponse(
-                        data={"errors": {"external_locations": ["YOU CANT SET GB COUNTRY ON TRANSHIPMENT"]}},
+                        data={"errors": {"external_locations": [ExternalLocations.Errors.TRANSHIPMENT_GB]}},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
