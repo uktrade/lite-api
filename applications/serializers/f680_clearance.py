@@ -77,7 +77,7 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
     f680_clearance_types = PrimaryKeyRelatedSerializerField(
         queryset=F680ClearanceType.objects.all(),
         serializer=F680ClearanceTypeSerializer,
-        error_messages={"required": "BAD ERROR"},
+        error_messages={"required": strings.Applications.F680.NO_CLEARANCE_TYPE},
         many=True,
     )
     clearance_level = serializers.ChoiceField(choices=PvGrading.choices, allow_null=True)
@@ -89,11 +89,19 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        f680_clearance_types = self.initial_data.get("f680_clearance_types")
-        if f680_clearance_types:
+        if "f680_clearance_types" in self.initial_data:
             self.initial_data["f680_clearance_types"] = [
-                F680ClearanceTypeEnum.ids.get(clearance_type) for clearance_type in f680_clearance_types
+                F680ClearanceTypeEnum.ids.get(clearance_type)
+                for clearance_type in self.initial_data.get("f680_clearance_types", [])
             ]
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+
+        if "f680_clearance_types" in self.initial_data and not validated_data.get("f680_clearance_types"):
+            raise serializers.ValidationError({"f680_clearance_types": strings.Applications.F680.NO_CLEARANCE_TYPE})
+
+        return validated_data
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
