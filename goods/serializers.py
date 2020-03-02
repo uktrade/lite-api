@@ -7,6 +7,7 @@ from common.libraries import (
 )
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
+from documents.serializers import DocumentSerializer
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
 from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument, PvGradingDetails
@@ -278,7 +279,7 @@ class GoodMissingDocumentSerializer(serializers.ModelSerializer):
         )
 
 
-class GoodDocumentCreateSerializer(serializers.ModelSerializer):
+class GoodDocumentCreateSerializer(DocumentSerializer):
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -295,37 +296,15 @@ class GoodDocumentCreateSerializer(serializers.ModelSerializer):
             "description",
         )
 
-    def create(self, validated_data):
-        good_document = super(GoodDocumentCreateSerializer, self).create(validated_data)
-        good_document.save()
-        process_document(good_document)
-        return good_document
 
-
-class GoodDocumentViewSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(read_only=True)
+class GoodDocumentSerializer(DocumentSerializer):
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
     user = ExporterUserSimpleSerializer()
     organisation = OrganisationDetailSerializer()
-    s3_key = serializers.SerializerMethodField()
-
-    def get_s3_key(self, instance):
-        return instance.s3_key if instance.safe else "File not ready"
 
     class Meta:
         model = GoodDocument
-        fields = (
-            "id",
-            "name",
-            "s3_key",
-            "user",
-            "organisation",
-            "size",
-            "good",
-            "created_at",
-            "safe",
-            "description",
-        )
+        fields = DocumentSerializer.Meta.fields + ("user", "organisation", "good",)
 
 
 class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):

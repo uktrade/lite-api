@@ -161,9 +161,6 @@ class CaseAssignment(TimestampableModel):
 class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
-    type = models.CharField(
-        choices=CaseDocumentState.choices, default=CaseDocumentState.UPLOADED, max_length=100, null=False
-    )
 
 
 class Advice(TimestampableModel):

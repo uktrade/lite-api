@@ -28,6 +28,7 @@ from cases.models import (
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
+from documents.serializers import DocumentSerializer
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
@@ -286,7 +287,7 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
         )
 
 
-class CaseDocumentCreateSerializer(serializers.ModelSerializer):
+class CaseDocumentCreateSerializer(DocumentSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all())
 
@@ -301,19 +302,11 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
             "description",
         )
 
-    def create(self, validated_data):
-        case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
-        case_document.save()
-        process_document(case_document)
-        return case_document
 
-
-class CaseDocumentViewSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(read_only=True)
+class CaseDocumentSerializer(DocumentSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = GovUserSimpleSerializer()
     metadata_id = serializers.SerializerMethodField()
-    type = KeyValueChoiceField(choices=CaseDocumentState.choices)
 
     def get_metadata_id(self, instance):
         return instance.id if instance.safe else "File not ready"

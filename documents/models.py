@@ -3,6 +3,7 @@ import uuid
 
 from django.db import models
 
+from cases.enums import CaseDocumentState
 from common.models import TimestampableModel
 from documents.libraries import s3_operations
 
@@ -14,6 +15,9 @@ class Document(TimestampableModel):
     size = models.IntegerField(null=True, blank=True)
     virus_scanned_at = models.DateTimeField(null=True, blank=True)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
+    type = models.CharField(
+        choices=CaseDocumentState.choices, default=CaseDocumentState.UPLOADED, max_length=100, null=False
+    )
     safe = models.NullBooleanField()
 
     def __str__(self):

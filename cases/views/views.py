@@ -22,7 +22,7 @@ from cases.libraries.post_advice import (
 )
 from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision
 from cases.serializers import (
-    CaseDocumentViewSerializer,
+    CaseDocumentSerializer,
     CaseDocumentCreateSerializer,
     EcjuQueryCreateSerializer,
     CaseDetailSerializer,
@@ -92,7 +92,7 @@ class CaseDocuments(APIView):
         """
         case = get_case(pk)
         case_documents = CaseDocument.objects.filter(case=case).order_by("-created_at")
-        serializer = CaseDocumentViewSerializer(case_documents, many=True)
+        serializer = CaseDocumentSerializer(case_documents, many=True)
 
         return JsonResponse(data={"documents": serializer.data}, status=status.HTTP_200_OK)
 
@@ -137,7 +137,7 @@ class CaseDocumentDetail(APIView):
         """
         case = get_case(pk)
         case_document = get_case_document(case, s3_key)
-        serializer = CaseDocumentViewSerializer(case_document)
+        serializer = CaseDocumentSerializer(case_document)
         return JsonResponse(data={"document": serializer.data}, status=status.HTTP_200_OK)
 
 

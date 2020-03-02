@@ -4,6 +4,7 @@ from rest_framework import serializers, relations
 from cases.enums import CaseTypeSubTypeEnum
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
+from documents.serializers import DocumentSerializer
 from flags.serializers import FlagSerializer
 from goods.enums import PvGrading
 from lite_content.lite_api.strings import Parties
@@ -96,7 +97,7 @@ class PartySerializer(serializers.ModelSerializer):
         return docs.values()[0] if docs.exists() else None
 
 
-class PartyDocumentSerializer(serializers.ModelSerializer):
+class PartyDocumentSerializer(DocumentSerializer):
     party = serializers.PrimaryKeyRelatedField(queryset=Party.objects.all())
 
     class Meta:
@@ -104,14 +105,9 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "description",
             "s3_key",
             "size",
             "party",
             "safe",
         )
-
-    def create(self, validated_data):
-        document = super(PartyDocumentSerializer, self).create(validated_data)
-        document.save()
-        process_document(document)
-        return document
