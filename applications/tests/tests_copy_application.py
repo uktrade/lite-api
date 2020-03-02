@@ -120,6 +120,8 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an exhibition application that is a draft
         """
         self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
+        # original application must be refreshed to convert to date time field
+        self.original_application.refresh_from_db()
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -140,6 +142,8 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
         """
         self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
+        # original application must be refreshed to convert to date time field
+        self.original_application.refresh_from_db()
         self.submit_application(self.original_application)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -304,6 +308,11 @@ class CopyApplicationSuccessTests(DataTestClient):
 
     def _validate_exhibition_application(self):
         self._validate_reset_data()
+
+        self.assertEqual(self.original_application.title, self.copied_application.title)
+        self.assertEqual(self.original_application.first_exhibition_date, self.copied_application.first_exhibition_date)
+        self.assertEqual(self.original_application.required_by_date, self.copied_application.required_by_date)
+        self.assertEqual(self.original_application.reason_for_clearance, self.copied_application.reason_for_clearance)
 
         self._validate_good_on_application()
 

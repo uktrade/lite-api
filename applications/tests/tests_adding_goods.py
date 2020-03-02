@@ -346,7 +346,6 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEqual(errors["item_type"][0], strings.Goods.ITEM_TYPE)
-        self.assertEqual(errors["other_item_type"][0], strings.Goods.OTHER_ITEM_TYPE)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})

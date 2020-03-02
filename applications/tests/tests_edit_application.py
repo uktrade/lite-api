@@ -7,6 +7,7 @@ from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
 from goods.enums import PvGrading
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -32,7 +33,7 @@ class EditStandardApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.name, self.data["name"])
-        self.assertNotEqual(application.updated_at, updated_at)
+        self.assertGreater(application.updated_at, updated_at)
         # Unsubmitted (draft) applications should not create audit entries when edited
         self.assertEqual(Audit.objects.all().count(), 0)
 
@@ -270,3 +271,212 @@ class EditF680ApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"], {"clearance_level": ["This field is required."]})
+
+
+class EditExhibitionApplicationsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
+        self.exhibition_url = reverse("applications:exhibition", kwargs={"pk": self.application.id})
+
+    def test_edit_exhibition_title_in_draft_success(self):
+        data = {
+            "title": "new_title",
+            "required_by_date": self.application.required_by_date,
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["application"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["title"], data["title"])
+
+    def test_edit_exhibition_title_in_draft_failure_blank(self):
+        data = {
+            "title": "",
+            "required_by_date": self.application.required_by_date,
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data["title"][0], strings.Applications.Exhibition.Error.NO_EXHIBITION_NAME)
+
+    def test_edit_exhibition_title_in_draft_failure_none(self):
+        data = {
+            "title": None,
+            "required_by_date": self.application.required_by_date,
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data["title"][0], strings.Applications.Exhibition.Error.NO_EXHIBITION_NAME)
+
+    def test_edit_exhibition_title_in_draft_failure_not_given(self):
+        data = {
+            "required_by_date": self.application.required_by_date,
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data["title"][0], strings.Applications.Exhibition.Error.NO_EXHIBITION_NAME)
+
+    def test_edit_exhibition_required_by_date_draft_success(self):
+        data = {
+            "title": self.application.title,
+            "required_by_date": "2020-05-15",
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["application"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["required_by_date"], data["required_by_date"])
+
+    def test_edit_exhibition_required_by_date_later_than_first_exhibition_date_draft_failure(self):
+        data = {
+            "title": self.application.title,
+            "required_by_date": "2220-05-15",
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data["first_exhibition_date"][0],
+            strings.Applications.Exhibition.Error.REQUIRED_BY_BEFORE_FIRST_EXHIBITION_DATE,
+        )
+
+    def test_edit_exhibition_required_by_date_draft_failure_blank(self):
+        data = {
+            "title": self.application.title,
+            "required_by_date": "",
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data["required_by_date"][0], strings.Applications.Exhibition.Error.BLANK_REQUIRED_BY_DATE,
+        )
+
+    def test_edit_exhibition_required_by_date_draft_failure_not_given(self):
+        data = {
+            "title": self.application.title,
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data["required_by_date"][0], strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
+        )
+
+    def test_edit_exhibition_required_by_date_draft_failure_not_given(self):
+        data = {
+            "title": self.application.title,
+            "first_exhibition_date": self.application.first_exhibition_date,
+            "required_by_date": None,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data["required_by_date"][0], strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
+        )
+
+    def test_edit_exhibition_first_exhibition_date_draft_success(self):
+        data = {
+            "title": self.application.title,
+            "required_by_date": self.application.required_by_date,
+            "first_exhibition_date": "2022-05-03",
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["application"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["first_exhibition_date"], data["first_exhibition_date"])
+
+    def test_edit_exhibition_first_exhibition_date_draft_failure_before_today(self):
+        data = {
+            "title": self.application.title,
+            "required_by_date": self.application.required_by_date,
+            "first_exhibition_date": "2018-05-03",
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data["first_exhibition_date"][0],
+            strings.Applications.Exhibition.Error.FIRST_EXHIBITION_DATE_FUTURE,
+        )
+
+    def test_can_not_edit_exhibition_details_in_minor_edit(self):
+        self.submit_application(self.application)
+        # same data as success
+        data = {
+            "title": "new_title",
+            "required_by_date": self.application.required_by_date,
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["errors"]
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data[0],
+            f"You can only perform this operation when the application is in a `draft` or "
+            f"`{CaseStatusEnum.APPLICANT_EDITING}` state",
+        )
+
+    def test_can_edit_exhibition_details_in_major_edit(self):
+        self.submit_application(self.application)
+        self.application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        self.application.save()
+        # same data as success
+        data = {
+            "title": "new_title",
+            "required_by_date": self.application.required_by_date,
+            "first_exhibition_date": self.application.first_exhibition_date,
+        }
+
+        response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
+
+        response_data = response.json()["application"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["title"], data["title"])
