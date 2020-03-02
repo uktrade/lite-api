@@ -1,5 +1,9 @@
 from uuid import UUID
 
+from rest_framework.exceptions import ValidationError
+
+from lite_content.lite_api import strings
+
 
 class CaseTypeReferenceEnum:
     OIEL = "oiel"
@@ -184,6 +188,15 @@ class CaseTypeEnum:
     @classmethod
     def case_types_to_representation(cls):
         return CaseTypeReferenceEnum.as_list()
+
+    @classmethod
+    def reference_to_class(cls, case_type_reference):
+        if not case_type_reference:
+            raise ValidationError({"errors": {"case_type": [strings.Applications.SELECT_A_LICENCE_TYPE]}})
+
+        for case_type in cls.case_type_list:
+            if case_type.reference == case_type_reference:
+                return case_type
 
     @classmethod
     def reference_to_id(cls, case_type_reference):
