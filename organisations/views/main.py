@@ -61,16 +61,12 @@ class OrganisationsDetail(generics.RetrieveAPIView):
         organisation = get_organisation_by_pk(pk)
 
         if not check_user_has_permission(request.user, GovPermissions.MANAGE_ORGANISATIONS):
-            return JsonResponse(
-                data={"errors": Organisations.NO_PERM_TO_EDIT},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST,)
 
         if request.data["name"] != organisation.name:
             if request.data["name"] and not check_user_has_permission(request.user, GovPermissions.REOPEN_CLOSED_CASES):
                 return JsonResponse(
-                    data={"errors": Organisations.NO_PERM_TO_EDIT_NAME},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    data={"errors": Organisations.NO_PERM_TO_EDIT_NAME}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
         serializer = OrganisationCreateSerializer(instance=organisation, data=request.data, partial=True)
