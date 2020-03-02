@@ -10,7 +10,6 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeEnum
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from goods.enums import PvGrading
 from lite_content.lite_api import strings
@@ -50,10 +49,6 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
 
 
 class F680ClearanceCreateSerializer(GenericApplicationCreateSerializer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_data["case_type"] = CaseTypeEnum.F680.id
-
     class Meta:
         model = F680ClearanceApplication
         fields = (

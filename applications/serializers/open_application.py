@@ -7,7 +7,6 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from lite_content.lite_api import strings
@@ -41,10 +40,6 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_data["case_type"] = CaseTypeEnum.OIEL.id  # TODO: LT-874 - GET CORRECT TYPE FROM INITIAL QUESTIONS
-
     class Meta:
         model = OpenApplication
         fields = (

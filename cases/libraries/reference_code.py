@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 
 SEPARATOR = "/"
 
@@ -19,6 +19,8 @@ LICENCE = "L"
 
 PERMANENT = "P"
 TEMPORARY = "T"
+
+TRANSHIPMENT = "T"
 
 # Queries
 GOODS_QUERY_PREFIX = "GQY"
@@ -80,10 +82,13 @@ def generate_reference_code(case):
         reference_code += INDIVIDUAL
 
         # Export, transhipment and trade control
-        if case.application_sites.count():
-            reference_code += EXPORT
-        elif case.external_application_sites.count():
-            reference_code += TRADE_CONTROL
+        if case.case_type.reference == CaseTypeReferenceEnum.SITL:
+            reference_code += TRANSHIPMENT
+        else:
+            if case.application_sites.count():
+                reference_code += EXPORT
+            elif case.external_application_sites.count():
+                reference_code += TRADE_CONTROL
 
         reference_code += LICENCE + SEPARATOR
     else:

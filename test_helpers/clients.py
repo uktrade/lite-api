@@ -190,7 +190,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         address.save()
         site = Site(name=name, organisation=org, address=address)
         site.save()
-        return site, address
+        return site
 
     @staticmethod
     def create_external_location(name, org, country="GB"):
@@ -477,7 +477,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation.type = org_type
         organisation.save()
 
-        site, address = self.create_site("HQ", organisation)
+        site = self.create_site("HQ", organisation)
 
         organisation.primary_site = site
         organisation.save()
@@ -495,12 +495,16 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_application_document(application)
 
     def create_draft_standard_application(
-        self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
+        self,
+        organisation: Organisation,
+        reference_name="Standard Draft",
+        safe_document=True,
+        case_type_id=CaseTypeEnum.SIEL.id,
     ):
         application = StandardApplication(
             name=reference_name,
             export_type=ApplicationExportType.PERMANENT,
-            case_type_id=CaseTypeEnum.SIEL.id,
+            case_type_id=case_type_id,
             have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
             reference_number_on_information_form="",
             activity="Trade",
