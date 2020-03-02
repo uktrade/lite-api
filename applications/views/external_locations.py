@@ -56,8 +56,9 @@ class ApplicationExternalLocations(APIView):
             for previous_location_id in previous_locations.values_list("external_location__id", flat=True)
         ]
 
-        new_locations, errors = self._get_new_locations(application, request.user.organisation, location_ids,
-                                                        previous_locations, previous_location_ids)
+        new_locations, errors = self._get_new_locations(
+            application, request.user.organisation, location_ids, previous_locations, previous_location_ids
+        )
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -65,16 +66,23 @@ class ApplicationExternalLocations(APIView):
         application.activity = self.BROKERING
         application.save()
 
-        external_locations, errors = self._set_locations_and_sites(data.get("method"), previous_location_ids,
-                                                              location_ids, previous_locations, new_locations,
-                                                              application, request.user)
+        external_locations, errors = self._set_locations_and_sites(
+            data.get("method"),
+            previous_location_ids,
+            location_ids,
+            previous_locations,
+            new_locations,
+            application,
+            request.user,
+        )
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"external_locations": external_locations}, status=status.HTTP_201_CREATED)
 
-    def _set_locations_and_sites(self, method, previous_location_ids, location_ids, previous_locations,
-                                 new_locations, application, user):
+    def _set_locations_and_sites(
+        self, method, previous_location_ids, location_ids, previous_locations, new_locations, application, user
+    ):
         # Get locations to be removed
         removed_locations = []
         if method != "append_location":
@@ -144,13 +152,14 @@ class ApplicationExternalLocations(APIView):
         if not location_ids:
             return {"external_locations": ["You have to pick at least one external location"]}
 
-    def _get_new_locations(self, application, user_organisation, location_ids, previous_locations,
-                           previous_location_ids):
+    def _get_new_locations(
+        self, application, user_organisation, location_ids, previous_locations, previous_location_ids
+    ):
         new_locations = []
 
         if (
-                is_case_status_draft(application.status.status)
-                or application.status.status == CaseStatusEnum.APPLICANT_EDITING
+            is_case_status_draft(application.status.status)
+            or application.status.status == CaseStatusEnum.APPLICANT_EDITING
         ):
             new_locations = [
                 get_location(location_id, user_organisation)
@@ -159,10 +168,15 @@ class ApplicationExternalLocations(APIView):
             ]
         else:
             if has_previous_sites(application):
-                return None, {"external_locations": [
-                    "Go back and change your answer from ‘Change a site, or delete a good, third party or "
-                    "country’ to ’Change something else’."]
-                }
+                return (
+                    None,
+                    {
+                        "external_locations": [
+                            "Go back and change your answer from ‘Change a site, or delete a good, third party or "
+                            "country’ to ’Change something else’."
+                        ]
+                    },
+                )
 
             previous_location_countries = list(
                 previous_locations.values_list("external_location__country__id", flat=True)
@@ -172,10 +186,15 @@ class ApplicationExternalLocations(APIView):
                 new_location = get_location(location_id, user_organisation)
 
                 if previous_location_countries and new_location.country.id not in previous_location_countries:
-                    return None, {"external_locations": [
-                        "Go back and change your answer from ‘Change a site, or delete a good, "
-                        "third party or country’ to ’Change something else’."]
-                    }
+                    return (
+                        None,
+                        {
+                            "external_locations": [
+                                "Go back and change your answer from ‘Change a site, or delete a good, "
+                                "third party or country’ to ’Change something else’."
+                            ]
+                        },
+                    )
                 elif str(new_location.id) not in previous_location_ids:
                     new_locations.append(new_location)
 
@@ -188,7 +207,7 @@ class ApplicationRemoveExternalLocation(APIView):
     @authorised_users(ExporterUser)
     def delete(self, request, application, ext_loc_pk):
         if not is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
-                read_only=True
+            read_only=True
         ):
             return JsonResponse(
                 data={"error": f"Application status {application.status.status} is read-only."},
@@ -196,15 +215,18 @@ class ApplicationRemoveExternalLocation(APIView):
             )
 
         if (
-                not is_case_status_draft(application.status.status)
-                and application.status.status != CaseStatusEnum.APPLICANT_EDITING
+            not is_case_status_draft(application.status.status)
+            and application.status.status != CaseStatusEnum.APPLICANT_EDITING
         ):
             if ExternalLocationOnApplication.objects.filter(application=application).count() == 1:
                 return JsonResponse(
                     data={
-                        "errors": {"external_locations": [
-                            "Go back and change your answer from ‘Change a site, or delete a good, "
-                            "third party or country’ to ’Change something else’."]}
+                        "errors": {
+                            "external_locations": [
+                                "Go back and change your answer from ‘Change a site, or delete a good, "
+                                "third party or country’ to ’Change something else’."
+                            ]
+                        }
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
