@@ -249,7 +249,21 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
 
         response = self.client.post(url, data, **self.exporter_headers)
 
+        response_data = response.json()["good"]
+
+        self.assertIsNone(response_data["value"])
+        self.assertIsNone(response_data["quantity"])
+        self.assertIsNone(response_data["unit"])
+        self.assertIsNone(response_data["is_good_incorporated"])
+
+        self.assertEqual(response_data["good"], str(self.good.id))
+        self.assertEqual(response_data["item_type"], str(ItemType.VIDEO))
+        # we expect other item type to be None as it should not be set unless ItemType is Other
+        self.assertIsNone(response_data["other_item_type"])
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # check application
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
@@ -264,14 +278,27 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
         self.create_good_document(
             self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",
         )
-
-        data = {"good_id": self.good.id, "item_type": ItemType.OTHER, "other_item_type": "abcde"}
+        other_value = "abcde"
+        data = {"good_id": self.good.id, "item_type": ItemType.OTHER, "other_item_type": other_value}
 
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
+        response_data = response.json()["good"]
+
+        self.assertIsNone(response_data["value"])
+        self.assertIsNone(response_data["quantity"])
+        self.assertIsNone(response_data["unit"])
+        self.assertIsNone(response_data["is_good_incorporated"])
+
+        self.assertEqual(response_data["good"], str(self.good.id))
+        self.assertEqual(response_data["item_type"], str(ItemType.OTHER))
+        self.assertEqual(response_data["other_item_type"], other_value)
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # check application
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
@@ -293,6 +320,10 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
 
         response = self.client.post(url, data, **self.exporter_headers)
 
+        errors = response.json()["errors"]
+
+        self.assertEqual(errors["other_item_type"][0], strings.Goods.OTHER_ITEM_TYPE)
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
         response = self.client.get(url, **self.exporter_headers)
@@ -311,6 +342,11 @@ class AddingGoodsOnApplicationExhibitionTests(DataTestClient):
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
+
+        errors = response.json()["errors"]
+
+        self.assertEqual(errors["item_type"][0], strings.Goods.ITEM_TYPE)
+        self.assertEqual(errors["other_item_type"][0], strings.Goods.OTHER_ITEM_TYPE)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         url = reverse("applications:application_goods", kwargs={"pk": self.draft.id})

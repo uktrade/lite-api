@@ -49,8 +49,11 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
         error_messages={"required": strings.Goods.REQUIRED_UNIT, "invalid_choice": strings.Goods.REQUIRED_UNIT},
     )
     is_good_incorporated = BooleanField(required=True, error_messages={"required": strings.Goods.INCORPORATED_ERROR})
-    item_type = serializers.ChoiceField(choices=ItemType.choices)
-    other_item_type = serializers.CharField(max_length=100)
+    item_type = serializers.ChoiceField(choices=ItemType.choices, error_messages={"required": strings.Goods.ITEM_TYPE})
+    other_item_type = serializers.CharField(
+        max_length=100,
+        error_messages={"required": strings.Goods.OTHER_ITEM_TYPE, "blank": strings.Goods.OTHER_ITEM_TYPE},
+    )
 
     class Meta:
         model = GoodOnApplication
@@ -69,11 +72,14 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         case_type = Case.objects.get(id=self.initial_data["application"]).case_type
+        # Exbition queries do not have the typical data for goods on applications that other goods do
+        #  as a result, we have to set them as false when not required and vice versa for other applications
         if case_type.id == CaseTypeEnum.EXHIBITION.id:
             self.fields["value"].required = False
             self.fields["quantity"].required = False
             self.fields["unit"].required = False
             self.fields["is_good_incorporated"].required = False
+            # If the user passes item_type forward as anything but other, we do not want to store "other_item_type"
             if self.initial_data.get("item_type") and not self.initial_data["item_type"] == ItemType.OTHER:
                 if isinstance(self.initial_data.get("other_item_type"), str):
                     del self.initial_data["other_item_type"]

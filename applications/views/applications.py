@@ -559,18 +559,15 @@ class ApplicationCopy(APIView):
             good.flags.set(old_good_flags)
 
 
-class ExhibitionDetails(APIView):
+class ExhibitionDetails(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
-
-    def get(self, request, pk):
-        application = get_application(pk)
-        serializer = ExhibitionClearanceDetailSerializer(instance=application)
-        return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
+    queryset = BaseApplication.objects.all()
+    serializer = ExhibitionClearanceDetailSerializer
 
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
-        serializer = ExhibitionClearanceDetailSerializer(instance=application, data=request.data)
+        serializer = self.serializer(instance=application, data=request.data)
         if serializer.is_valid():
             old_title = application.title
             old_first_exhibition_date = application.first_exhibition_date
