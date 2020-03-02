@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
-from conf.helpers import replace_default_string_for_form_select
+from conf.helpers import replace_default_string_for_form_select, str_to_bool
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.enums import UserStatuses
@@ -82,8 +82,14 @@ class GovUserList(generics.ListCreateAPIView):
 
         return gov_users_qs
 
+    def paginate_queryset(self, queryset):
+        if str_to_bool(self.request.GET.get("disable_pagination")):
+            return queryset
+        else:
+            return super().paginate_queryset(queryset)
+
     def get_paginated_response(self, data):
-        if "no_page" in self.request.GET:
+        if str_to_bool(self.request.GET.get("disable_pagination")):
             return JsonResponse(data={"results": data})
         else:
             return super().get_paginated_response(data)
