@@ -610,7 +610,7 @@ class ExhibitionDetails(APIView):
                     },
                 )
 
-            if data["reason_for_clearance"] != old_reason_for_clearance:
+            if data.get("reason_for_clearance") != old_reason_for_clearance:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE,
