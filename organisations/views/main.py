@@ -93,4 +93,5 @@ class OrganisationsDetail(generics.RetrieveAPIView):
         reopened_due_to_org_changes_status = CaseStatus.objects.get(status="reopened_due_to_org_changes")
 
         BaseApplication.objects.filter(organisation=organisation, licence_duration__isnull=False).update(
-            status_id=reopened_due_to_org_changes_status)
+            status_id=reopened_due_to_org_changes_status
+        )
