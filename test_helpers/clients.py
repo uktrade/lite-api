@@ -561,6 +561,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             application.required_by_date = "2021-07-20"
             application.first_exhibition_date = "2022-08-19"
             application.save()
+            # must be refreshed to return data in same format as database call
+            application.refresh_from_db()
 
         self.create_party("End User", organisation, PartyType.END_USER, application)
         self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
