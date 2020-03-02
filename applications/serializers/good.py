@@ -80,7 +80,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             self.fields["unit"].required = False
             self.fields["is_good_incorporated"].required = False
             # If the user passes item_type forward as anything but other, we do not want to store "other_item_type"
-            if self.initial_data.get("item_type") and not self.initial_data["item_type"] == ItemType.OTHER:
+            if not self.initial_data.get("item_type") == ItemType.OTHER:
                 if isinstance(self.initial_data.get("other_item_type"), str):
                     del self.initial_data["other_item_type"]
                 self.fields["other_item_type"].required = False

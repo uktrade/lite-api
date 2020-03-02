@@ -70,13 +70,27 @@ class ExhibitionClearanceDetailSerializer(serializers.ModelSerializer):
     title = serializers.CharField(
         max_length=255,
         allow_null=False,
-        error_messages={"blank": strings.Applications.Exhibition.Error.NO_EXHIBITION_NAME},
+        error_messages={
+            "blank": strings.Applications.Exhibition.Error.NO_EXHIBITION_NAME,
+            "required": strings.Applications.Exhibition.Error.NO_EXHIBITION_NAME,
+            "null": strings.Applications.Exhibition.Error.NO_EXHIBITION_NAME,
+        },
     )
     first_exhibition_date = serializers.DateField(
-        allow_null=False, error_messages={"invalid": strings.Applications.Exhibition.Error.NO_EXHIBITION_START_DATE},
+        allow_null=False,
+        error_messages={
+            "invalid": strings.Applications.Exhibition.Error.BLANK_EXHIBITION_START_DATE,
+            "required": strings.Applications.Exhibition.Error.NO_EXHIBITION_START_DATE,
+            "null": strings.Applications.Exhibition.Error.NO_EXHIBITION_START_DATE,
+        },
     )
     required_by_date = serializers.DateField(
-        allow_null=False, error_messages={"invalid": strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE},
+        allow_null=False,
+        error_messages={
+            "invalid": strings.Applications.Exhibition.Error.BLANK_REQUIRED_BY_DATE,
+            "required": strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
+            "null": strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
+        },
     )
     reason_for_clearance = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
