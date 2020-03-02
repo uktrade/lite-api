@@ -31,6 +31,7 @@ from applications.models import (
     CountryOnApplication,
     ExternalLocationOnApplication,
     PartyOnApplication,
+    F680ClearanceApplication,
 )
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
@@ -483,6 +484,9 @@ class ApplicationCopy(APIView):
         # Get all parties connected to the application and produce a copy (and replace reference for each one)
         self.duplicate_parties_on_new_application()
 
+        # Get all f680 clearance types
+        self.duplicate_f680_clearance_types()
+
         # Save
         self.new_application.created_at = now()
         self.new_application.save()
@@ -550,7 +554,6 @@ class ApplicationCopy(APIView):
             SiteOnApplication,
             CountryOnApplication,
             ExternalLocationOnApplication,
-            F680ClearanceType,
         ]
 
         for relation in relationships:
@@ -582,3 +585,11 @@ class ApplicationCopy(APIView):
             good.save()
             good.countries.set(old_good_countries)
             good.flags.set(old_good_flags)
+
+    def duplicate_f680_clearance_types(self):
+        if self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+            self.new_application.types.set(
+                list(
+                    F680ClearanceApplication.objects.get(id=self.old_application_id).types.values_list("id", flat=True)
+                )
+            )
