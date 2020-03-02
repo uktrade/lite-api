@@ -148,6 +148,13 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Prevent minor edits of the f680 clearance types
+        if not application.is_major_editable() and request.data.get("f680_clearance_types"):
+            return JsonResponse(
+                data={"errors": {"f680_clearance_types": ["This isn't possible on a minor edit"]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
