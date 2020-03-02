@@ -89,10 +89,11 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.initial_data["f680_clearance_types"] = [
-            F680ClearanceTypeEnum.ids.get(clearance_type)
-            for clearance_type in self.initial_data["f680_clearance_types"]
-        ]
+        f680_clearance_types = self.initial_data.get("f680_clearance_types")
+        if f680_clearance_types:
+            self.initial_data["f680_clearance_types"] = [
+                F680ClearanceTypeEnum.ids.get(clearance_type) for clearance_type in f680_clearance_types
+            ]
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
