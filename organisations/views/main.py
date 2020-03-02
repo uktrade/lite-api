@@ -8,7 +8,6 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 
 from applications.models import BaseApplication
-from cases.models import Case
 from conf.authentication import SharedAuthentication
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
@@ -59,12 +58,14 @@ class OrganisationsDetail(generics.RetrieveAPIView):
     def put(self, request, pk):
         """ Edit details of an organisation. """
         organisation = get_organisation_by_pk(pk)
+        org_name_changed = False
 
         if not check_user_has_permission(request.user, GovPermissions.MANAGE_ORGANISATIONS):
             return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST,)
 
         if request.data["name"] != organisation.name:
-            if request.data["name"] and not check_user_has_permission(request.user, GovPermissions.REOPEN_CLOSED_CASES):
+            org_name_changed = True
+            if not check_user_has_permission(request.user, GovPermissions.REOPEN_CLOSED_CASES):
                 return JsonResponse(
                     data={"errors": Organisations.NO_PERM_TO_EDIT_NAME}, status=status.HTTP_400_BAD_REQUEST,
                 )
@@ -78,24 +79,18 @@ class OrganisationsDetail(generics.RetrieveAPIView):
             return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
 
         serializer.save()
-        self.reopen_closed_cases_for_organisation(organisation)
+        if org_name_changed:
+            self.reopen_closed_cases_for_organisation(organisation)
 
         return JsonResponse(data={"organisation": serializer.validated_data}, status=status.HTTP_201_CREATED)
 
     @staticmethod
     def reopen_closed_cases_for_organisation(organisation):
-        """ Set the case status to 'Reopened due to org changes' for any cases in the organisation that have
-        been granted a licence.
-
         """
-        organisations_case_ids = Case.objects.filter(organisation=organisation.id).values_list("id", flat=True)
-        finalised_application_case_ids = (
-            BaseApplication.objects.filter(pk__in=organisations_case_ids)
-            .filter(licence_duration__isnull=False)
-            .values_list("case_ptr_id", flat=True)
-        )
-
+        Set the case status to 'Reopened due to org changes' for any cases in the organisation that have
+        been granted a licence.
+        """
         reopened_due_to_org_changes_status = CaseStatus.objects.get(status="reopened_due_to_org_changes")
 
-        # Set the status of cases for the organisation who had a licence to 'Reopened due to org changes'
-        Case.objects.filter(id__in=finalised_application_case_ids).update(status_id=reopened_due_to_org_changes_status)
+        BaseApplication.objects.filter(organisation=organisation, licence_duration__isnull=False).update(
+            status_id=reopened_due_to_org_changes_status)
