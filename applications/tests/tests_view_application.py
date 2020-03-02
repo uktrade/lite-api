@@ -171,8 +171,8 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(retrieved_application["updated_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["title"], application.title)
-        self.assertEqual(retrieved_application["first_exhibition_date"], application.first_exhibition_date)
-        self.assertEqual(retrieved_application["required_by_date"], application.required_by_date)
+        self.assertEqual(retrieved_application["first_exhibition_date"], str(application.first_exhibition_date))
+        self.assertEqual(retrieved_application["required_by_date"], str(application.required_by_date))
         self.assertEqual(retrieved_application["reason_for_clearance"], application.reason_for_clearance)
 
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
