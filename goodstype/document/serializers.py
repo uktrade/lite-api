@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
 from documents.libraries.process_document import process_document
-from documents.serializers import DocumentSerializer
+from documents.serializers import DocumentViewSerializer
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 
 
-class GoodsTypeDocumentSerializer(DocumentSerializer):
+class GoodsTypeDocumentViewSerializer(DocumentViewSerializer):
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all())
 
     class Meta:

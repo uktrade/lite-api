@@ -2,14 +2,14 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 
 from applications.models import ApplicationDocument
-from applications.serializers.document import ApplicationDocumentSerializer
+from applications.serializers.document import ApplicationDocumentViewSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.generated_documents.models import GeneratedCaseDocument
 from goodstype.document.models import GoodsTypeDocument
-from goodstype.document.serializers import GoodsTypeDocumentSerializer
+from goodstype.document.serializers import GoodsTypeDocumentViewSerializer
 from parties.models import PartyDocument
-from parties.serializers import PartyDocumentSerializer
+from parties.serializers import PartyDocumentViewSerializer
 
 
 def _get_document(documents):
@@ -39,7 +39,7 @@ def get_application_document(doc_pk):
 def upload_application_document(application, data, user):
     data["application"] = application.id
 
-    serializer = ApplicationDocumentSerializer(data=data)
+    serializer = ApplicationDocumentViewSerializer(data=data)
 
     if not serializer.is_valid():
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -82,7 +82,7 @@ def upload_party_document(party, data, application, user):
         return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST,)
 
     data["party"] = party.id
-    serializer = PartyDocumentSerializer(data=data)
+    serializer = PartyDocumentViewSerializer(data=data)
 
     if not serializer.is_valid():
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -136,7 +136,7 @@ def upload_goods_type_document(goods_type, data):
         return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST,)
 
     data["goods_type"] = goods_type.id
-    serializer = GoodsTypeDocumentSerializer(data=data)
+    serializer = GoodsTypeDocumentViewSerializer(data=data)
 
     if not serializer.is_valid():
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

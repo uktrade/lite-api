@@ -6,7 +6,7 @@ from applications.libraries.document_helpers import upload_party_document, delet
 from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, allowed_application_types
-from parties.serializers import PartyDocumentSerializer
+from parties.serializers import PartyDocumentViewSerializer
 from users.models import ExporterUser
 
 
@@ -31,7 +31,7 @@ class PartyDocumentView(APIView):
         party = application.get_party(party_pk)
         return get_party_document(party)
 
-    @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=PartyDocumentViewSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
         [
@@ -47,7 +47,7 @@ class PartyDocumentView(APIView):
         party = application.get_party(party_pk)
         return upload_party_document(party, request.data, application, request.user)
 
-    @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=PartyDocumentViewSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types(
         [

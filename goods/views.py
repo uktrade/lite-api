@@ -25,7 +25,7 @@ from goods.libraries.save_good import create_or_update_good
 from goods.models import Good, GoodDocument
 from goods.serializers import (
     GoodSerializer,
-    GoodDocumentSerializer,
+    GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
     ClcControlGoodSerializer,
     GoodListSerializer,
@@ -251,7 +251,7 @@ class GoodDocuments(APIView):
         """
         good = get_good(pk)
         good_documents = GoodDocument.objects.filter(good=good).order_by("-created_at")
-        serializer = GoodDocumentSerializer(good_documents, many=True)
+        serializer = GoodDocumentViewSerializer(good_documents, many=True)
 
         return JsonResponse({"documents": serializer.data})
 
@@ -310,7 +310,7 @@ class GoodDocumentDetail(APIView):
             )
 
         good_document = get_good_document(good, doc_pk)
-        serializer = GoodDocumentSerializer(good_document)
+        serializer = GoodDocumentViewSerializer(good_document)
         return JsonResponse({"document": serializer.data})
 
     @transaction.atomic

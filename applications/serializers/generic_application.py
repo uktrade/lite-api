@@ -11,7 +11,7 @@ from applications.enums import (
 )
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
-from applications.serializers.document import ApplicationDocumentSerializer
+from applications.serializers.document import ApplicationDocumentViewSerializer
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import CaseType
 from conf.helpers import get_value_from_enum
@@ -150,7 +150,7 @@ class GenericApplicationViewSerializer(GenericApplicationListSerializer):
 
     def get_additional_documents(self, instance):
         documents = ApplicationDocument.objects.filter(application=instance)
-        return ApplicationDocumentSerializer(documents, many=True).data
+        return ApplicationDocumentViewSerializer(documents, many=True).data
 
 
 class GenericApplicationCreateSerializer(serializers.ModelSerializer):

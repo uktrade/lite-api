@@ -28,7 +28,7 @@ from cases.models import (
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
-from documents.serializers import DocumentSerializer
+from documents.serializers import DocumentViewSerializer
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
@@ -287,7 +287,7 @@ class CaseAssignmentSerializer(serializers.ModelSerializer):
         )
 
 
-class CaseDocumentCreateSerializer(DocumentSerializer):
+class CaseDocumentCreateViewSerializer(DocumentViewSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all())
 
@@ -303,7 +303,7 @@ class CaseDocumentCreateSerializer(DocumentSerializer):
         )
 
 
-class CaseDocumentSerializer(DocumentSerializer):
+class CaseDocumentViewSerializer(DocumentViewSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = GovUserSimpleSerializer()
     metadata_id = serializers.SerializerMethodField()

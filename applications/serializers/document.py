@@ -1,8 +1,8 @@
 from applications.models import ApplicationDocument
-from documents.serializers import DocumentSerializer
+from documents.serializers import DocumentViewSerializer
 
 
-class ApplicationDocumentSerializer(DocumentSerializer):
+class ApplicationDocumentViewSerializer(DocumentViewSerializer):
     class Meta:
         model = ApplicationDocument
-        fields = DocumentSerializer.Meta.fields + ("application",)
+        fields = DocumentViewSerializer.Meta.fields + ("application",)

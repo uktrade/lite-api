@@ -22,8 +22,8 @@ from cases.libraries.post_advice import (
 )
 from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision
 from cases.serializers import (
-    CaseDocumentSerializer,
-    CaseDocumentCreateSerializer,
+    CaseDocumentViewSerializer,
+    CaseDocumentCreateViewSerializer,
     EcjuQueryCreateSerializer,
     CaseDetailSerializer,
     CaseAdviceSerializer,
@@ -92,11 +92,11 @@ class CaseDocuments(APIView):
         """
         case = get_case(pk)
         case_documents = CaseDocument.objects.filter(case=case).order_by("-created_at")
-        serializer = CaseDocumentSerializer(case_documents, many=True)
+        serializer = CaseDocumentViewSerializer(case_documents, many=True)
 
         return JsonResponse(data={"documents": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseDocumentCreateSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=CaseDocumentCreateViewSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     def post(self, request, pk):
         """
@@ -110,7 +110,7 @@ class CaseDocuments(APIView):
             document["case"] = case_id
             document["user"] = request.user.id
 
-        serializer = CaseDocumentCreateSerializer(data=data, many=True)
+        serializer = CaseDocumentCreateViewSerializer(data=data, many=True)
         if serializer.is_valid():
             serializer.save()
 
@@ -137,7 +137,7 @@ class CaseDocumentDetail(APIView):
         """
         case = get_case(pk)
         case_document = get_case_document(case, s3_key)
-        serializer = CaseDocumentSerializer(case_document)
+        serializer = CaseDocumentViewSerializer(case_document)
         return JsonResponse(data={"document": serializer.data}, status=status.HTTP_200_OK)
 
 
