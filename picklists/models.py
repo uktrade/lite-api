@@ -12,7 +12,7 @@ class PicklistItem(TimestampableModel):
     team = models.ForeignKey(Team, related_name="organisation_team", on_delete=models.CASCADE, blank=False)
     name = models.TextField(blank=False)
     text = models.TextField(blank=False, max_length=5000)
-    type = models.CharField(choices=PicklistType.choices, max_length=50)
+    type = models.CharField(choices=PicklistType.choices, max_length=50, null=False, blank=False)
     status = models.CharField(choices=PickListStatus.choices, default=PickListStatus.ACTIVE, max_length=50)
 
     class Meta:

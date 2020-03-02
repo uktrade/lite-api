@@ -8,6 +8,8 @@ from applications.models import (
     SiteOnApplication,
     ExternalLocationOnApplication,
 )
+from cases.enums import CaseTypeEnum
+from lite_content.lite_api.strings import ExternalLocations
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -34,7 +36,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(len(response["sites"]), 1)
 
     def test_add_multiple_sites_to_a_draft(self):
-        site2, _ = self.create_site("site2", self.organisation)
+        site2 = self.create_site("site2", self.organisation)
 
         data = {"sites": [self.primary_site.id, site2.id]}
 
@@ -74,7 +76,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(len(response["sites"]), 1)
 
         # Post a new site to the draft, with the expectation that the existing site is deleted
-        data = {"sites": [str(self.create_site("New Site", self.organisation)[0].id)]}
+        data = {"sites": [str(self.create_site("New Site", self.organisation).id)]}
 
         url = reverse("applications:application_sites", kwargs={"pk": self.application.id})
         response = self.client.post(url, data, **self.exporter_headers)
@@ -98,7 +100,7 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(ExternalLocationOnApplication.objects.filter(application=draft).count(), 0)
 
     def test_add_site_to_a_submitted_application_success(self):
-        site_to_add, _ = self.create_site("site 2", self.organisation)
+        site_to_add = self.create_site("site 2", self.organisation)
         data = {"sites": [self.primary_site.id, site_to_add.id]}
         self.submit_application(self.application)
 
@@ -113,7 +115,7 @@ class SitesOnDraftTests(DataTestClient):
         Cannot add additional site to a submitted application unless the additional site
         is located in a country that is already on the application
         """
-        site_to_add, _ = self.create_site("site 2", self.organisation, "US")
+        site_to_add = self.create_site("site 2", self.organisation, "US")
         data = {"sites": [self.primary_site.id, site_to_add.id]}
         self.submit_application(self.application)
 
@@ -166,3 +168,21 @@ class SitesOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(application.application_sites.count(), 1)
+
+    def test_add_gb_site_to_transhipment_failure(self):
+        """
+        Assert that it isn't possible to add sites based in GB to transhipment applications
+        """
+        site = self.create_site("Hard to Find", self.organisation, "GB")
+        transhipment = self.create_draft_standard_application(
+            organisation=self.organisation, case_type_id=CaseTypeEnum.SITL.id
+        )
+
+        url = reverse("applications:application_sites", kwargs={"pk": transhipment.id})
+        data = {"sites": [site.id]}
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(transhipment.application_sites.count(), 1)
+        self.assertEqual(response.json()["errors"]["sites"][0], ExternalLocations.Errors.TRANSHIPMENT_GB)
+        self.assertNotEqual(transhipment.application_sites.get().site.name, site.name)

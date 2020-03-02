@@ -20,6 +20,7 @@ from cases.libraries.reference_code import (
     TEMPORARY,
     TRADE_CONTROL,
     LICENCE,
+    TRANSHIPMENT,
 )
 from test_helpers.clients import DataTestClient
 
@@ -30,6 +31,18 @@ class ReferenceCode(DataTestClient):
         standard_application = self.submit_application(standard_application)
 
         expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + EXPORT + LICENCE + SEPARATOR
+        expected_postfix = SEPARATOR + "0000001" + SEPARATOR + PERMANENT
+        self.assertEquals(
+            standard_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
+        )
+
+    def test_standard_individual_transhipment_application_reference_code(self):
+        standard_application = self.create_draft_standard_application(
+            self.organisation, case_type_id=CaseTypeEnum.SITL.id,
+        )
+        standard_application = self.submit_application(standard_application)
+
+        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + TRANSHIPMENT + LICENCE + SEPARATOR
         expected_postfix = SEPARATOR + "0000001" + SEPARATOR + PERMANENT
         self.assertEquals(
             standard_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix

@@ -3,13 +3,16 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import SiteOnApplicationCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeReferenceEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
+from lite_content.lite_api.strings import ExternalLocations
 from organisations.libraries.get_external_location import has_previous_locations
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
@@ -122,6 +125,13 @@ class ApplicationSites(APIView):
         response_data = []
         for new_site in new_sites:
             serializer = SiteOnApplicationCreateSerializer(data={"site": new_site.id, "application": application.id})
+
+            if application.case_type.reference == CaseTypeReferenceEnum.SITL:
+                if new_site.address.country.id in TRANSHIPMENT_BANNED_COUNTRIES:
+                    return JsonResponse(
+                        data={"errors": {"sites": [ExternalLocations.Errors.TRANSHIPMENT_GB]}},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)

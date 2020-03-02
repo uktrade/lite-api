@@ -29,7 +29,7 @@ from applications.serializers.exhibition_clearance import (
     ExhibitionClearanceViewSerializer,
     ExhibitionClearanceUpdateSerializer,
 )
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from conf.exceptions import BadRequestError
 from lite_content.lite_api import strings
 
@@ -56,21 +56,23 @@ def get_application_view_serializer(application: BaseApplication):
         )
 
 
-def get_application_create_serializer(application_type):
-    if application_type == CaseTypeSubTypeEnum.STANDARD:
+def get_application_create_serializer(case_type):
+    sub_type = CaseTypeEnum.reference_to_class(case_type).sub_type
+
+    if sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationCreateSerializer
-    elif application_type == CaseTypeSubTypeEnum.OPEN:
+    elif sub_type == CaseTypeSubTypeEnum.OPEN:
         return OpenApplicationCreateSerializer
-    elif application_type == CaseTypeSubTypeEnum.HMRC:
+    elif sub_type == CaseTypeSubTypeEnum.HMRC:
         return HmrcQueryCreateSerializer
-    elif application_type == CaseTypeSubTypeEnum.EXHIBITION:
+    elif sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceCreateSerializer
-    elif application_type == CaseTypeSubTypeEnum.GIFTING:
+    elif sub_type == CaseTypeSubTypeEnum.GIFTING:
         return GiftingClearanceCreateSerializer
-    elif application_type == CaseTypeSubTypeEnum.F680:
+    elif sub_type == CaseTypeSubTypeEnum.F680:
         return F680ClearanceCreateSerializer
     else:
-        raise BadRequestError({"case_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
+        raise BadRequestError({"application_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
 
 
 def get_application_update_serializer(application: BaseApplication):
