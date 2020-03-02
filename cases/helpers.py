@@ -7,39 +7,25 @@ from static.countries.models import Country
 from users.models import GovUser, GovNotification
 
 
-# TODO temporarily reverted to old version so that coalesced tests pass
-def filter_out_duplicates(advice_list):
+def deduplicate_advice(advice_list):
     """
     This examines each piece of data in a set of advice for an object
     and if there are any exact duplicates it only returns one of them.
     """
-    filtered_items = []
+    deduplicated = []
     matches = False
     for advice in advice_list:
-        for item in filtered_items:
+        for item in deduplicated:
             # Compare each piece of unique advice against the new piece of advice being introduced
-            if is_advice_equal(advice, item):
-                matches = True
-            else:
-                matches = False
+            matches = advice.equals(item)
+            break
         if not matches:
-            filtered_items.append(advice)
-    return filtered_items
-
-
-def is_advice_equal(advice, item):
-    return all([
-        advice.type == item.type,
-        advice.text == item.text,
-        advice.note == item.note,
-        advice.proviso == item.proviso,
-        advice.pv_grading == item.pv_grading,
-        [x for x in advice.denial_reasons.values_list()] == [x for x in item.denial_reasons.values_list()]
-    ])
+            deduplicated.append(advice)
+    return deduplicated
 
 
 def construct_coalesced_advice_values(
-    filtered_items,
+    deduplicated_advice,
     case,
     advice_class,
     user,
@@ -50,17 +36,23 @@ def construct_coalesced_advice_values(
     denial_reasons=None,
     advice_type=None,
 ):
-    break_text = "\n-------\n"
-    for advice in filtered_items:
-        if text:
-            text += break_text + advice.text
-        else:
-            text = advice.text
+    fields = {'text': set(), 'note': set(), "pv_grading": set()}
+    for advice in deduplicated_advice:
+        for field in fields:
+            if getattr(advice, field):
+                fields[field].add(getattr(advice, field))
 
-        if note:
-            note += break_text + advice.note
-        else:
-            note = advice.note
+    break_text = "\n-------\n"
+    for advice in deduplicated_advice:
+        # if text:
+        #     text += break_text + advice.text
+        # else:
+        #     text = advice.text
+        #
+        # if note:
+        #     note += break_text + advice.note
+        # else:
+        #     note = advice.note
 
         if advice.proviso:
             if proviso:
@@ -68,12 +60,12 @@ def construct_coalesced_advice_values(
             else:
                 proviso = advice.proviso
 
-        if advice.pv_grading:
-            found_elem = [grading[1] for grading in PvGrading.choices if grading[0] == advice.pv_grading][0]
-            if pv_grading:
-                pv_grading += break_text + found_elem
-            else:
-                pv_grading = found_elem
+        # if advice.pv_grading:
+        #     found_elem = PvGrading.to_str(advice.pv_grading)
+        #     if pv_grading:
+        #         pv_grading += break_text + found_elem
+        #     else:
+        #         pv_grading = found_elem
 
         for denial_reason in advice.denial_reasons.values_list("id", flat=True):
             denial_reasons.append(denial_reason)
@@ -86,7 +78,13 @@ def construct_coalesced_advice_values(
 
     # TODO do we need to set pv_grading in cases where advice is not conflicting or stick with conflicting_pv_grading for all?
     advice = advice_class(
-        text=text, case=case, note=note, proviso=proviso, user=user, type=advice_type, conflicting_pv_grading=pv_grading
+        text=break_text.join(fields["text"]),
+        case=case,
+        note=break_text.join(fields["note"]),
+        proviso=proviso,
+        user=user,
+        type=advice_type,
+        conflicting_pv_grading=break_text.join([PvGrading.to_str(corona) for corona in fields['pv_grading']])
     )
 
     return advice
@@ -114,7 +112,7 @@ def assign_field(application_field, advice, key):
 def collate_advice(application_field, collection, case, user, advice_class):
     for key, value in collection.items():
         denial_reasons = []
-        filtered_items = filter_out_duplicates(value)
+        filtered_items = deduplicate_advice(value)
 
         advice = construct_coalesced_advice_values(
             filtered_items, case, advice_class, user, denial_reasons=denial_reasons

@@ -66,3 +66,7 @@ class PvGrading:
         (UK_SECRET, "UK secret"),
         (UK_TOP_SECRET, "UK top secret"),
     ]
+
+    @classmethod
+    def to_str(cls, obj):
+        return [grading[1] for grading in PvGrading.choices if grading[0] == obj][0]
