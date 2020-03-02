@@ -183,7 +183,6 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
     primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
     type = KeyValueChoiceField(OrganisationType.choices)
     flags = serializers.SerializerMethodField()
-    admin_users = serializers.SerializerMethodField()
 
     def get_flags(self, instance):
         # TODO remove try block when other end points adopt generics
@@ -192,9 +191,6 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
                 return list(instance.flags.values("id", "name"))
         except AttributeError:
             return list(instance.flags.values("id", "name"))
-
-    def get_admin_users(self, instance):
-        return UserOrganisationRelationship.objects.filter(organisation_id=instance.id).values('user__email').values_list("user__email", flat=True)
 
     class Meta:
         model = Organisation
