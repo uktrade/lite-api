@@ -232,8 +232,8 @@ def _validate_f680_clearance(draft, errors):
     if SiteOnApplication.objects.filter(application=draft).exists():
         errors["location"] = strings.Applications.F680.LOCATIONS
 
-    if not draft.f680_clearance_types.exists():
-        errors["f680_clearance_types"] = "Cannot create an application without F680 details"
+    if not draft.types.exists():
+        errors["types"] = "Cannot create an application without F680 details"
 
     return errors
 

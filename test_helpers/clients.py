@@ -563,7 +563,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if case_type == CaseTypeEnum.EXHIBITION:
             self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
         elif case_type == CaseTypeEnum.F680:
-            application.f680_clearance_types.add(F680ClearanceType.objects.first())
+            application.types.add(F680ClearanceType.objects.first())
 
         self.create_party("End User", organisation, PartyType.END_USER, application)
         self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)

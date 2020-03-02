@@ -242,11 +242,11 @@ class EditF680ApplicationsTests(DataTestClient):
         url = reverse("applications:application", kwargs={"pk": application.id})
         self.submit_application(application)
 
-        data = {"f680_clearance_types": [F680ClearanceTypeEnum.MARKET_SURVEY]}
+        data = {"types": [F680ClearanceTypeEnum.MARKET_SURVEY]}
         response = self.client.put(url, data=data, **self.exporter_headers)
 
         self.application.refresh_from_db()
-        self.assertEqual(response.json()["errors"], {"f680_clearance_types": ["This isn't possible on a minor edit"]})
+        self.assertEqual(response.json()["errors"], {"types": ["This isn't possible on a minor edit"]})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_edit_submitted_application_clearance_type_major_success(self):
@@ -256,12 +256,12 @@ class EditF680ApplicationsTests(DataTestClient):
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         application.save()
 
-        data = {"f680_clearance_types": [F680ClearanceTypeEnum.MARKET_SURVEY]}
+        data = {"types": [F680ClearanceTypeEnum.MARKET_SURVEY]}
         response = self.client.put(url, data=data, **self.exporter_headers)
 
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(application.f680_clearance_types.get().name, F680ClearanceTypeEnum.MARKET_SURVEY)
+        self.assertEqual(application.types.get().name, F680ClearanceTypeEnum.MARKET_SURVEY)
 
     def test_edit_submitted_application_clearance_type_no_data_failure(self):
         application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
@@ -270,13 +270,12 @@ class EditF680ApplicationsTests(DataTestClient):
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         application.save()
 
-        data = {"f680_clearance_types": []}
+        data = {"types": []}
         response = self.client.put(url, data=data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"],
-            {"f680_clearance_types": ["Cannot create an application without a clearance type"]},
+            response.json()["errors"], {"types": ["Cannot create an application without a clearance type"]},
         )
 
     def test_add_party_to_f680_success(self):

@@ -164,7 +164,7 @@ class GiftingClearanceApplication(BaseApplication):
 
 # F680 includes End User & Third parties
 class F680ClearanceApplication(BaseApplication):
-    f680_clearance_types = models.ManyToManyField(F680ClearanceType, related_name="f680_clearance_type_application")
+    types = models.ManyToManyField(F680ClearanceType, related_name="f680_clearance_application")
 
 
 # Queries

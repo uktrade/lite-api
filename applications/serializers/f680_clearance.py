@@ -29,7 +29,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
-    f680_clearance_types = F680ClearanceTypeSerializer(read_only=True, many=True)
+    types = F680ClearanceTypeSerializer(read_only=True, many=True)
     clearance_level = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, required=False, allow_blank=True)
 
     class Meta:
@@ -43,7 +43,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
             "usage",
             "destinations",
             "additional_documents",
-            "f680_clearance_types",
+            "types",
             "clearance_level",
         )
 
@@ -69,7 +69,7 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         allow_null=False,
         error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
     )
-    f680_clearance_types = PrimaryKeyRelatedSerializerField(
+    types = PrimaryKeyRelatedSerializerField(
         queryset=F680ClearanceType.objects.all(),
         serializer=F680ClearanceTypeSerializer,
         error_messages={"required": strings.Applications.F680.NO_CLEARANCE_TYPE},
@@ -79,29 +79,26 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
 
     class Meta:
         model = F680ClearanceApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields + ("f680_clearance_types", "clearance_level",)
+        fields = GenericApplicationUpdateSerializer.Meta.fields + ("types", "clearance_level",)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if "f680_clearance_types" in self.initial_data:
-            self.initial_data["f680_clearance_types"] = [
-                F680ClearanceTypeEnum.ids.get(clearance_type)
-                for clearance_type in self.initial_data.get("f680_clearance_types", [])
+        if "types" in self.initial_data:
+            self.initial_data["types"] = [
+                F680ClearanceTypeEnum.ids.get(clearance_type) for clearance_type in self.initial_data.get("types", [])
             ]
 
     def validate(self, data):
         validated_data = super().validate(data)
 
-        if "f680_clearance_types" in self.initial_data and not validated_data.get("f680_clearance_types"):
-            raise serializers.ValidationError({"f680_clearance_types": strings.Applications.F680.NO_CLEARANCE_TYPE})
+        if "types" in self.initial_data and not validated_data.get("types"):
+            raise serializers.ValidationError({"types": strings.Applications.F680.NO_CLEARANCE_TYPE})
 
         return validated_data
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
-        instance.f680_clearance_types.set(
-            validated_data.get("f680_clearance_types", list(instance.f680_clearance_types.values_list("id", flat=True)))
-        )
+        instance.types.set(validated_data.get("types", list(instance.types.values_list("id", flat=True))))
         instance.save()
         return instance
