@@ -1,4 +1,3 @@
-from cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
 from django.http import JsonResponse
 from rest_framework import status
