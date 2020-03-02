@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from conf.constants import Roles, GovPermissions
+from lite_content.lite_api.strings import Organisations
 from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -278,7 +279,7 @@ class EditOrganisationTests(DataTestClient):
         response_data = response.json()['errors']
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, "You do not have permission to edit the organisation.")
+        self.assertEqual(response_data, Organisations.NO_PERM_TO_EDIT)
 
     def test_can_edit_all_org_details_with_manage_and_reopen_permissions(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name])
@@ -326,7 +327,7 @@ class EditOrganisationTests(DataTestClient):
         response_data = response.json()['errors']
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, "You do not have permission to edit the organisations name.")
+        self.assertEqual(response_data, Organisations.NO_PERM_TO_EDIT_NAME)
 
     def test_when_validate_only_org_is_not_edited(self):
         self.gov_user.role.permissions.set(

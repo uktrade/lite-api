@@ -13,6 +13,7 @@ from conf.authentication import SharedAuthentication
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission
+from lite_content.lite_api.strings import Organisations
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer, OrganisationCreateSerializer
@@ -61,14 +62,14 @@ class OrganisationsDetail(generics.RetrieveAPIView):
 
         if not check_user_has_permission(request.user, GovPermissions.MANAGE_ORGANISATIONS):
             return JsonResponse(
-                data={"errors": "You do not have permission to edit the organisation."},
+                data={"errors": Organisations.NO_PERM_TO_EDIT},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if request.data["name"] != organisation.name:
             if request.data["name"] and not check_user_has_permission(request.user, GovPermissions.REOPEN_CLOSED_CASES):
                 return JsonResponse(
-                    data={"errors": "You do not have permission to edit the organisations name."},
+                    data={"errors": Organisations.NO_PERM_TO_EDIT_NAME},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
