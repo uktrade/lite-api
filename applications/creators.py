@@ -233,7 +233,7 @@ def _validate_f680_clearance(draft, errors):
         errors["location"] = strings.Applications.F680.LOCATIONS
 
     if not draft.f680_clearance_types.exists():
-        errors["f680-details"] = "Cannot create an application without F680 details"
+        errors["f680_clearance_types"] = "Cannot create an application without F680 details"
 
     return errors
 

@@ -260,7 +260,7 @@ class EditF680ApplicationsTests(DataTestClient):
         response = self.client.put(url, data=data, **self.exporter_headers)
 
         application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.f680_clearance_types.get().name, F680ClearanceTypeEnum.MARKET_SURVEY)
 
     def test_edit_submitted_application_clearance_type_no_data_failure(self):
@@ -274,7 +274,10 @@ class EditF680ApplicationsTests(DataTestClient):
         response = self.client.put(url, data=data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"f680_clearance_types": ["Cannot create an application without a clearance type"]})
+        self.assertEqual(
+            response.json()["errors"],
+            {"f680_clearance_types": ["Cannot create an application without a clearance type"]},
+        )
 
     def test_add_party_to_f680_success(self):
         party = {
