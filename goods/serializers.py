@@ -7,7 +7,7 @@ from common.libraries import (
 )
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from documents.serializers import DocumentViewSerializer, DocumentCreateSerializer
+from documents.serializers import DocumentSerializer
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
 from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument, PvGradingDetails
@@ -279,7 +279,7 @@ class GoodMissingDocumentSerializer(serializers.ModelSerializer):
         )
 
 
-class GoodDocumentCreateSerializer(DocumentCreateSerializer):
+class GoodDocumentCreateSerializer(DocumentSerializer):
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
     user = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all())
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
@@ -297,14 +297,14 @@ class GoodDocumentCreateSerializer(DocumentCreateSerializer):
         )
 
 
-class GoodDocumentViewSerializer(DocumentViewSerializer):
+class GoodDocumentSerializer(DocumentSerializer):
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
     user = ExporterUserSimpleSerializer()
     organisation = OrganisationDetailSerializer()
 
     class Meta:
         model = GoodDocument
-        fields = DocumentViewSerializer.Meta.fields + ("user", "organisation", "good",)
+        fields = DocumentSerializer.Meta.fields + ("user", "organisation", "good",)
 
 
 class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):

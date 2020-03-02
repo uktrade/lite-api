@@ -13,7 +13,7 @@ from applications.libraries.document_helpers import (
     get_goods_type_document,
 )
 from applications.models import ApplicationDocument
-from applications.serializers.document import ApplicationDocumentViewSerializer
+from applications.serializers.document import ApplicationDocumentSerializer
 from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
@@ -22,7 +22,7 @@ from conf.decorators import (
     application_in_major_editable_state,
     application_in_editable_state,
 )
-from goodstype.document.serializers import GoodsTypeDocumentViewSerializer
+from goodstype.document.serializers import GoodsTypeDocumentSerializer
 from goodstype.helpers import get_goods_type
 from users.models import ExporterUser
 
@@ -39,13 +39,13 @@ class ApplicationDocumentView(APIView):
         """
         View all additional documents on an application
         """
-        documents = ApplicationDocumentViewSerializer(
+        documents = ApplicationDocumentSerializer(
             ApplicationDocument.objects.filter(application=application), many=True
         ).data
 
         return JsonResponse({"documents": documents, "editable": application.is_major_editable()})
 
-    @swagger_auto_schema(request_body=ApplicationDocumentViewSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @authorised_users(ExporterUser)
     @application_in_editable_state()
@@ -70,7 +70,7 @@ class ApplicationDocumentDetailView(APIView):
         """
         return get_application_document(doc_pk)
 
-    @swagger_auto_schema(request_body=ApplicationDocumentViewSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @authorised_users(ExporterUser)
     @application_in_editable_state()
@@ -94,7 +94,7 @@ class GoodsTypeDocumentView(APIView):
         goods_type = get_goods_type(goods_type_pk)
         return get_goods_type_document(goods_type)
 
-    @swagger_auto_schema(request_body=GoodsTypeDocumentViewSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @application_in_major_editable_state()
@@ -103,7 +103,7 @@ class GoodsTypeDocumentView(APIView):
         goods_type = get_goods_type(goods_type_pk)
         return upload_goods_type_document(goods_type, request.data)
 
-    @swagger_auto_schema(request_body=GoodsTypeDocumentViewSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @authorised_users(ExporterUser)

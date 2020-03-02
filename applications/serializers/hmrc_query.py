@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import HmrcQuery, ApplicationDocument
-from applications.serializers.document import ApplicationDocumentViewSerializer
+from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationViewSerializer
 from applications.mixins.serializers import PartiesSerializerMixin
 from cases.enums import CaseTypeEnum
@@ -37,7 +37,7 @@ class HmrcQueryViewSerializer(PartiesSerializerMixin, GenericApplicationViewSeri
 
     def get_supporting_documentation(self, application):
         documents = ApplicationDocument.objects.filter(application=application)
-        return ApplicationDocumentViewSerializer(documents, many=True).data
+        return ApplicationDocumentSerializer(documents, many=True).data
 
 
 class HmrcQueryCreateSerializer(serializers.ModelSerializer):

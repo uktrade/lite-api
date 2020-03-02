@@ -4,7 +4,7 @@ from rest_framework import serializers, relations
 from cases.enums import CaseTypeSubTypeEnum
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
-from documents.serializers import DocumentViewSerializer
+from documents.serializers import DocumentSerializer
 from flags.serializers import FlagSerializer
 from goods.enums import PvGrading
 from lite_content.lite_api.strings import Parties
@@ -97,7 +97,7 @@ class PartySerializer(serializers.ModelSerializer):
         return docs.values()[0] if docs.exists() else None
 
 
-class PartyDocumentViewSerializer(DocumentViewSerializer):
+class PartyDocumentSerializer(DocumentSerializer):
     party = serializers.PrimaryKeyRelatedField(queryset=Party.objects.all())
 
     class Meta:
