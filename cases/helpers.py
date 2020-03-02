@@ -25,48 +25,17 @@ def deduplicate_advice(advice_list):
 
 
 def construct_coalesced_advice_values(
-    deduplicated_advice,
-    case,
-    advice_class,
-    user,
-    pv_grading=None,
-    text=None,
-    note=None,
-    proviso=None,
-    denial_reasons=None,
-    advice_type=None,
+    deduplicated_advice, case, advice_class, user, denial_reasons, advice_type=None,
 ):
-    fields = {'text': set(), 'note': set(), "pv_grading": set()}
-    for advice in deduplicated_advice:
-        for field in fields:
-            if getattr(advice, field):
-                fields[field].add(getattr(advice, field))
-
+    fields = {
+        "text": set(),
+        "note": set(),
+        "pv_grading": set(),
+        "proviso": set(),
+        "collated_pv_grading": set(),
+    }
     break_text = "\n-------\n"
     for advice in deduplicated_advice:
-        # if text:
-        #     text += break_text + advice.text
-        # else:
-        #     text = advice.text
-        #
-        # if note:
-        #     note += break_text + advice.note
-        # else:
-        #     note = advice.note
-
-        if advice.proviso:
-            if proviso:
-                proviso += break_text + advice.proviso
-            else:
-                proviso = advice.proviso
-
-        # if advice.pv_grading:
-        #     found_elem = PvGrading.to_str(advice.pv_grading)
-        #     if pv_grading:
-        #         pv_grading += break_text + found_elem
-        #     else:
-        #         pv_grading = found_elem
-
         for denial_reason in advice.denial_reasons.values_list("id", flat=True):
             denial_reasons.append(denial_reason)
 
@@ -76,18 +45,27 @@ def construct_coalesced_advice_values(
         else:
             advice_type = advice.type
 
-    # TODO do we need to set pv_grading in cases where advice is not conflicting or stick with conflicting_pv_grading for all?
-    advice = advice_class(
+        for field in fields:
+            if getattr(advice, field):
+                fields[field].add(getattr(advice, field))
+
+    pv_grading = (
+        break_text.join([PvGrading.to_str(pv_grading) for pv_grading in fields["pv_grading"]])
+        if fields["pv_grading"]
+        else list(fields["collated_pv_grading"])[0]
+        if fields["collated_pv_grading"]
+        else None
+    )
+
+    return advice_class(
         text=break_text.join(fields["text"]),
         case=case,
         note=break_text.join(fields["note"]),
-        proviso=proviso,
+        proviso=break_text.join(fields["proviso"]),
         user=user,
         type=advice_type,
-        conflicting_pv_grading=break_text.join([PvGrading.to_str(corona) for corona in fields['pv_grading']])
+        collated_pv_grading=pv_grading,
     )
-
-    return advice
 
 
 def assign_field(application_field, advice, key):
@@ -110,12 +88,11 @@ def assign_field(application_field, advice, key):
 
 
 def collate_advice(application_field, collection, case, user, advice_class):
-    for key, value in collection.items():
+    for key, advice_list in collection.items():
         denial_reasons = []
-        filtered_items = deduplicate_advice(value)
 
         advice = construct_coalesced_advice_values(
-            filtered_items, case, advice_class, user, denial_reasons=denial_reasons
+            deduplicate_advice(advice_list), case, advice_class, user, denial_reasons=denial_reasons
         )
 
         # Set outside the constructor so it can apply only when necessary

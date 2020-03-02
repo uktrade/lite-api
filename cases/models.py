@@ -195,8 +195,8 @@ class Advice(TimestampableModel):
     proviso = models.TextField(default=None, blank=True, null=True)
     denial_reasons = models.ManyToManyField(DenialReason)
     pv_grading = models.CharField(choices=PvGrading.choices, null=True, max_length=30)
-    # This is to store the conflicting security gradings for display purposes
-    conflicting_pv_grading = models.CharField(null=True, max_length=60)
+    # This is to store the collated security grading(s) for display purposes
+    collated_pv_grading = models.TextField(default=None, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
@@ -285,7 +285,6 @@ class FinalAdvice(Advice):
             existing_object.delete()
         except FinalAdvice.DoesNotExist:
             pass
-
         # We override the parent class save() method so we only delete existing final level objects
         super(Advice, self).save(*args, **kwargs)
 

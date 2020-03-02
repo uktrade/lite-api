@@ -367,6 +367,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
     )
     pv_grading = KeyValueChoiceField(choices=PvGrading.choices, required=False)
+    collated_pv_grading = serializers.CharField(default=None, allow_blank=True, allow_null=True, max_length=120)
 
     class Meta:
         model = Advice
@@ -387,6 +388,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
             "consignee",
             "third_party",
             "pv_grading",
+            "collated_pv_grading",
         )
 
     def validate_denial_reasons(self, value):

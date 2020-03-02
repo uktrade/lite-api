@@ -291,12 +291,11 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
 
-    def test_coalesce_merges_duplicate_advice_same_pv_grading(self):
+    def test_merge_user_advice_same_advice_type_same_pv_gradings(self):
         """
-        Makes sure we strip out duplicates of advice on the same object
+        Same advice type, same pv grading
         """
         pv_grading = PvGrading.UK_OFFICIAL
-        pv_grading_2 = PvGrading.UK_OFFICIAL_SENSITIVE
         self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, Advice, pv_grading)
         self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.APPROVE, Advice, pv_grading)
 
@@ -304,13 +303,11 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        print(response_data[0]["conflicting_pv_grading"])
-        print(response_data[0]["pv_grading"])
-        self.assertNotIn("\n-------\n", response_data[0]["conflicting_pv_grading"])
+        self.assertEquals(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
 
-    def test_coalesce_merges_duplicate_advice_different_pv_grading(self):
+    def test_merge_user_advice_same_advice_type_different_pv_gradings(self):
         """
-        Makes sure we strip out duplicates of advice on the same object
+        Same advice types, different pv gradings
         """
         pv_grading = PvGrading.UK_OFFICIAL
         pv_grading_2 = PvGrading.UK_OFFICIAL_SENSITIVE
@@ -321,13 +318,11 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        print(response_data[0]["conflicting_pv_grading"])
-        print(response_data[0]["pv_grading"])
-        self.assertIn("\n-------\n", response_data[0]["conflicting_pv_grading"])
+        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
 
-    def test_coalesce_merges_different_advice_different_pv_grading(self):
+    def test_merge_user_advice_different_advice_type_different_pv_gradings(self):
         """
-        Makes sure we strip out duplicates of advice on the same object
+        Different advice type, different pv gradings
         """
         pv_grading = PvGrading.UK_OFFICIAL
         pv_grading_2 = PvGrading.UK_OFFICIAL_SENSITIVE
@@ -338,16 +333,13 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        print(response_data[0]["conflicting_pv_grading"])
-        print(response_data[0]["pv_grading"])
-        self.assertIn("\n-------\n", response_data[0]["conflicting_pv_grading"])
+        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
 
-    def test_coalesce_merges_different_advice_same_pv_grading(self):
+    def test_merge_user_advice_different_advice_type_same_pv_gradings(self):
         """
-        Makes sure we strip out duplicates of advice on the same object
+        Different advice type, same pv gradings
         """
         pv_grading = PvGrading.UK_OFFICIAL
-        pv_grading_2 = PvGrading.UK_OFFICIAL_SENSITIVE
         self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, Advice, pv_grading)
         self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice, pv_grading)
 
@@ -355,9 +347,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        print(response_data[0]["conflicting_pv_grading"])
-        print(response_data[0]["pv_grading"])
-        self.assertNotIn("\n-------\n", response_data[0]["conflicting_pv_grading"])
+        self.assertEquals(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
 
     def test_when_user_advice_exists_combine_team_advice_with_confirm_own_advice_success(self,):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])

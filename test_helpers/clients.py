@@ -437,7 +437,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_advice(user, case, advice_field, advice_type, advice_level, pv_grading=None):
         advice = advice_level(
-            user=user, case=case, type=advice_type, note="This is a note to the exporter", text="This is some text", pv_grading=pv_grading
+            user=user,
+            case=case,
+            type=advice_type,
+            note="This is a note to the exporter",
+            text="This is some text",
+            pv_grading=pv_grading,
         )
 
         advice.team = user.team
