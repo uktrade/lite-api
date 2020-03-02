@@ -256,12 +256,22 @@ class EditF680ApplicationsTests(DataTestClient):
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         application.save()
 
-        data = {"types": [F680ClearanceTypeEnum.MARKET_SURVEY]}
+        data = {"types": [F680ClearanceTypeEnum.DEMONSTRATION_IN_THE_UK_TO_OVERSEAS_CUSTOMERS]}
         response = self.client.put(url, data=data, **self.exporter_headers)
 
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(application.types.get().name, F680ClearanceTypeEnum.MARKET_SURVEY)
+        self.assertEqual(
+            application.types.get().name, F680ClearanceTypeEnum.DEMONSTRATION_IN_THE_UK_TO_OVERSEAS_CUSTOMERS
+        )
+
+        # Check add audit
+        self.assertEqual(Audit.objects.all().count(), 1)
+        audit = Audit.objects.all().first()
+        self.assertEqual(AuditType(audit.verb), AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES)
+        self.assertEqual(
+            audit.payload, {"old_types": [F680ClearanceTypeEnum.MARKET_SURVEY], "new_types": data["types"]}
+        )
 
     def test_edit_submitted_application_clearance_type_no_data_failure(self):
         application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)

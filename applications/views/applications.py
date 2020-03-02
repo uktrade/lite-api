@@ -48,6 +48,7 @@ from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
+from static.f680_clearance_types.models import F680ClearanceType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -135,7 +136,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         serializer = get_application_update_serializer(application)
         case = application.get_case()
-        serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
+        data = request.data.copy()
+        serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
         # Prevent minor edits of the goods categories
         if not application.is_major_editable() and request.data.get("goods_categories"):
@@ -179,7 +181,21 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         if request.data.get("clearance_level") or request.data.get("types"):
-            serializer.save()
+            # Audit block
+            if application.case_type.sub_type == CaseTypeSubTypeEnum.F680 and request.data.get("types"):
+                old_types = list(application.types.values_list("name", flat=True))
+                new_types = request.data.get("types")
+                serializer.save()
+
+                if set(old_types) != set(new_types):
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
+                        target=case,
+                        payload={"old_types": old_types, "new_types": new_types},
+                    )
+            else:
+                serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
@@ -534,6 +550,7 @@ class ApplicationCopy(APIView):
             SiteOnApplication,
             CountryOnApplication,
             ExternalLocationOnApplication,
+            F680ClearanceType,
         ]
 
         for relation in relationships:

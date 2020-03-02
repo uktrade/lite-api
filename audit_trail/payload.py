@@ -30,7 +30,8 @@ class AuditType(Enum):
     ECJU_QUERY = " added an ECJU Query: {ecju_query}"
     UPDATED_STATUS = "updated the status to: {status}"
     UPDATED_APPLICATION_NAME = 'updated the application name from "{old_name}" to "{new_name}"'
-    UPDATE_APPLICATION_LETTER_REFERENCE = "updated the letter reference from " "{old_ref_number} to {new_ref_number}"
+    UPDATE_APPLICATION_LETTER_REFERENCE = 'updated the letter reference from "{old_ref_number}" to "{new_ref_number}"'
+    UPDATE_APPLICATION_F680_CLEARANCE_TYPES = 'updated the clearance types from "{old_types}" to "{new_types}"'
     ADDED_APPLICATION_LETTER_REFERENCE = "added the letter reference: {new_ref_number}"
     REMOVED_APPLICATION_LETTER_REFERENCE = "removed the letter reference: {old_ref_number}"
     ASSIGNED_COUNTRIES_TO_GOOD = "added the destinations {countries} to '{good_type_name}'"
