@@ -18,7 +18,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemType
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
