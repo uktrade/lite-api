@@ -29,9 +29,9 @@ class Command(SeedCommand):
     pipenv run ./manage.py seeddemodata
     """
 
-    help = "Seeds Teams, Queues, Flags and Organisations for the purpose of demoing"
-    info = "Seeding demo data"
-    success = "Successfully seeded demo data"
+    help = "Seeds demo teams, queues, flags and organisations"
+    info = "Seeding demo teams, queues, flags and organisation"
+    success = "Successfully seeded demo teams, queues, flags and organisation"
     seed_command = "seeddemodata"
 
     @transaction.atomic

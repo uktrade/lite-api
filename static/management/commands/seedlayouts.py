@@ -12,8 +12,8 @@ class Command(SeedCommand):
     """
 
     help = "Creates template layouts"
-    info = "Seeding layouts"
-    success = "Successfully seeded layouts"
+    info = "Seeding template layouts"
+    success = "Successfully seeded template layouts"
     seed_command = "seedlayouts"
 
     @transaction.atomic

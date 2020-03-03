@@ -195,8 +195,6 @@ if "test" not in sys.argv:
 else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}
 
-ADMIN_TEAM_ID = "00000000-0000-0000-0000-000000000001"
-
 
 # Security settings
 
