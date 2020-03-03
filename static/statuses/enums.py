@@ -5,13 +5,16 @@ class CaseStatusEnum:
     CHANGE_INTIAL_REVIEW = "change_initial_review"
     CHANGE_UNDER_FINAL_REVIEW = "change_under_final_review"
     CHANGE_UNDER_REVIEW = "change_under_review"
+    CLC = "clc_review"
     CLOSED = "closed"
     DEREGISTERED = "deregistered"
-    DRAFT = "draft"
+    DRAFT = "draft"  # System status only
     FINALISED = "finalised"
     INITIAL_CHECKS = "initial_checks"
+    PV = "pv_review"
     REGISTERED = "registered"
     REOPENED_FOR_CHANGES = "reopened_for_changes"
+    REOPENED_DUE_TO_ORG_CHANGES = "reopened_due_to_org_changes"
     RESUBMITTED = "resubmitted"
     REVOKED = "revoked"
     SUBMITTED = "submitted"
@@ -22,8 +25,6 @@ class CaseStatusEnum:
     UNDER_FINAL_REVIEW = "under_final_review"
     UNDER_REVIEW = "under_review"
     WITHDRAWN = "withdrawn"
-    CLC = "clc_review"
-    PV = "pv_review"
 
     _system_status = [DRAFT]
 
@@ -36,6 +37,7 @@ class CaseStatusEnum:
         DEREGISTERED,
         FINALISED,
         REGISTERED,
+        REOPENED_DUE_TO_ORG_CHANGES,
         UNDER_REVIEW,
         UNDER_ECJU_REVIEW,
         UNDER_FINAL_REVIEW,
@@ -58,12 +60,15 @@ class CaseStatusEnum:
         (CHANGE_INTIAL_REVIEW, "Change initial review"),
         (CHANGE_UNDER_FINAL_REVIEW, "Change under final review"),
         (CHANGE_UNDER_REVIEW, "Change under review"),
+        (CLC, "CLC review"),
         (CLOSED, "Closed"),
         (DEREGISTERED, "De-registered"),
         (FINALISED, "Finalised"),
         (INITIAL_CHECKS, "Initial checks"),
+        (PV, "PV grading review"),
         (REGISTERED, "Registered"),
         (REOPENED_FOR_CHANGES, "Re-opened for changes"),
+        (REOPENED_DUE_TO_ORG_CHANGES, "Re-opened due to org changes"),
         (RESUBMITTED, "Resubmitted"),
         (REVOKED, "Revoked"),
         (SUBMITTED, "Submitted"),
@@ -74,8 +79,6 @@ class CaseStatusEnum:
         (UNDER_FINAL_REVIEW, "Under final review"),
         (UNDER_REVIEW, "Under review"),
         (WITHDRAWN, "Withdrawn"),
-        (CLC, "CLC review"),
-        (PV, "PV grading review"),
     ]
 
     priority = {
@@ -95,14 +98,15 @@ class CaseStatusEnum:
         APPEAL_REVIEW: 14,
         APPEAL_FINAL_REVIEW: 15,
         REOPENED_FOR_CHANGES: 16,
-        CHANGE_INTIAL_REVIEW: 17,
-        CHANGE_UNDER_REVIEW: 18,
-        CHANGE_UNDER_FINAL_REVIEW: 19,
-        UNDER_ECJU_REVIEW: 20,
-        REVOKED: 21,
-        SUSPENDED: 22,
-        SURRENDERED: 23,
-        DEREGISTERED: 24,
+        REOPENED_DUE_TO_ORG_CHANGES: 17,
+        CHANGE_INTIAL_REVIEW: 18,
+        CHANGE_UNDER_REVIEW: 19,
+        CHANGE_UNDER_FINAL_REVIEW: 20,
+        UNDER_ECJU_REVIEW: 21,
+        REVOKED: 22,
+        SUSPENDED: 23,
+        SURRENDERED: 24,
+        DEREGISTERED: 25,
     }
 
     @classmethod

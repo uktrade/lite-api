@@ -224,11 +224,12 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(case_status))
 
-    def test_gov_set_status_when_they_have_do_not_permission_to_reopen_closed_cases_failure(self):
+    @parameterized.expand([CaseStatusEnum.REOPENED_FOR_CHANGES, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES])
+    def test_gov_set_status_when_they_have_do_not_permission_to_reopen_closed_cases_failure(self, reopened_status):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
         self.standard_application.save()
 
-        data = {"status": CaseStatusEnum.REOPENED_FOR_CHANGES}
+        data = {"status": reopened_status}
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.standard_application.refresh_from_db()
