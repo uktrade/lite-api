@@ -27,9 +27,12 @@ class Command(SeedCommand):
         assert Team.objects.count(), "Teams must be seeded first!"
         assert Role.objects.count(), "Role permissions must be seeded first!"
 
-        users = serialize(env("DEMO_USERS"))
+        demo_users = env("DEMO_USERS")
+        demo_users = demo_users.replace("=>", ":")
+        demo_users = serialize(demo_users)
+        print(demo_users)
 
-        for user in users:
+        for user in demo_users:
             self.seed_gov_user(user)
             self.seed_exporter_user(user)
 
