@@ -7,7 +7,6 @@ app_name = "goods"
 urlpatterns = [
     path("", views.GoodList.as_view(), name="goods"),
     path("<uuid:pk>/", views.GoodDetail.as_view(), name="good"),
-    path("item-types/", views.GoodItemTypes.as_view(), name="item_types"),
     path(
         "<uuid:pk>/document-sensitivity/", views.GoodDocumentCriteriaCheck.as_view(), name="good_document_sensitivity"
     ),

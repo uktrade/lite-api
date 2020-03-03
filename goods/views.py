@@ -242,11 +242,6 @@ class GoodDetail(APIView):
         return JsonResponse(data={"status": "Good Deleted"}, status=status.HTTP_200_OK)
 
 
-class GoodItemTypes(APIView):
-    def get(self, request):
-        return JsonResponse(data={"item_types": {choice[0]: choice[1] for choice in ItemType.choices}})
-
-
 class GoodDocuments(APIView):
     authentication_classes = (ExporterAuthentication,)
 
