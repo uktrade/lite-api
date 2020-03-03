@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
@@ -28,6 +28,7 @@ from cases.models import (
     GoodCountryDecision,
     CaseType,
 )
+from conf import settings
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
@@ -146,7 +147,11 @@ class CaseListSerializer(serializers.Serializer):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
 
     def get_is_recently_updated(self, instance):
-        return get_case_object_trail(instance).filter(created_at__range=[datetime.now() - timedelta(days=5), datetime.now()]).exists()
+        submitted_at = instance.submitted_at
+        trail = get_case_object_trail(instance).filter(
+            created_at__range=[datetime.now() - timedelta(days=settings.RECENTLY_UPDATED_DAYS), datetime.now()]
+        )
+        return (submitted_at - datetime.now(timezone.utc)).days > settings.RECENTLY_UPDATED_DAYS and not trail.exists()
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
