@@ -312,11 +312,6 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self._validate_good_on_application()
 
-        self._validate_end_user()
-        self._validate_consignee()
-        self._validate_ultimate_end_user()
-        self._validate_third_party()
-
         self._validate_case_data()
 
     def _validate_gifting_application(self):

@@ -61,9 +61,9 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
         self.assertEqual(ExhibitionClearanceApplication.objects.count(), 1)
-        self.assertIsNotNone(application.third_parties.get())
-        self.assertIsNotNone(application.end_user)
-        self.assertIsNotNone(application.consignee)
+        self.assertEqual(list(application.third_parties.all()), [])
+        self.assertIsNone(application.end_user)
+        self.assertIsNone(application.consignee)
         self.assertIsNotNone(application.goods.get())
 
     def test_submit_exhibition_clearance_without_location_failure(self):

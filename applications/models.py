@@ -6,6 +6,7 @@ from separatedvaluesfield.models import SeparatedValuesField
 
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory
 from applications.managers import BaseApplicationManager, HmrcQueryManager
+from cases.enums import CaseTypeEnum
 from cases.models import Case
 from common.models import TimestampableModel
 from documents.models import Document
@@ -32,6 +33,10 @@ class ApplicationException(Exception):
 
 class ApplicationPartyMixin:
     def add_party(self, party):
+
+        if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
+            raise ApplicationException({"errors": {"bad_request": Parties.BAD_CASE_TYPE}})
+
         old_poa = None
 
         # Alternate behaviour of adding a party depending on party type
