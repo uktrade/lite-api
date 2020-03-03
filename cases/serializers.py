@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -5,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from audit_trail.models import Audit
+from audit_trail.service import get_case_object_trail
 from cases.enums import (
     CaseTypeTypeEnum,
     AdviceType,
@@ -118,6 +121,7 @@ class TinyCaseSerializer(serializers.Serializer):
     submitted_at = serializers.CharField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
+    is_recently_updated = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -140,6 +144,10 @@ class TinyCaseSerializer(serializers.Serializer):
 
     def get_users(self, instance):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
+
+    def get_is_recently_updated(self, instance):
+        from datetime import datetime
+        return get_case_object_trail(instance).filter(created_at__range=[datetime.now() - timedelta(days=5), datetime.now()]).exists()
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):

@@ -45,3 +45,10 @@ def get_user_obj_trail_qs(user, obj):
     audit_trail_qs = audit_trail_qs.filter(obj_as_action_filter | obj_as_target_filter)
 
     return audit_trail_qs
+
+
+def get_case_object_trail(case):
+    return Audit.objects.filter(
+        target_content_type=ContentType.objects.get_for_model(case),
+        target_object_id=case.id,
+    ).order_by('-created_at')
