@@ -198,7 +198,7 @@ else:
 
 RECENTLY_UPDATED_DAYS = env(
     "RECENTLY_UPDATED_DAYS"
-)  # Days that must have past until we indicate a case has not been updated recently
+)  # Days that must have passed until we indicate a case has not been updated recently
 
 # Security settings
 

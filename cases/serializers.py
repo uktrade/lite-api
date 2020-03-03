@@ -148,12 +148,11 @@ class CaseListSerializer(serializers.Serializer):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
 
     def get_is_recently_updated(self, instance):
-        submitted_at = instance.submitted_at
         trail = get_case_object_trail(instance).filter(
             created_at__gt=timezone.now() - timedelta(days=settings.RECENTLY_UPDATED_DAYS)
         )
 
-        return (timezone.now() - submitted_at).days < settings.RECENTLY_UPDATED_DAYS or trail.exists()
+        return (timezone.now() - instance.submitted_at).days < settings.RECENTLY_UPDATED_DAYS or trail.exists()
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
