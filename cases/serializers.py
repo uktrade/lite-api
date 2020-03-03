@@ -457,6 +457,19 @@ class CaseFinalAdviceSerializer(CaseAdviceSerializer):
         fields = "__all__"
 
 
+class CaseFinalAdviceDocumentsSerializer(serializers.ModelSerializer):
+    type = KeyValueChoiceField(choices=AdviceType.choices)
+    document = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FinalAdvice
+        fields = ("id", "type", "document",)
+
+    def get_document(self, instance):
+        # TODO: Add document to decision & remove this
+        return None
+
+
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
     raised_by_user_name = serializers.SerializerMethodField()
     responded_by_user_name = serializers.SerializerMethodField()
