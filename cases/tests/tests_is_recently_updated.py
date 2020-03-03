@@ -36,7 +36,23 @@ class TestIsRecentlyUpdated(DataTestClient):
 
         self.assertEqual(response_data["is_recently_updated"], True)
 
-    def test_recently_updated_only_if_case_is_older_than_five_days(self):
+    def test_exporter_user_cannot_trigger_recently_updated(self):
+        case = self.create_standard_application_case(self.organisation)
+        case.submitted_at = self.past_date
+        case.save()
+
+        # Exporter user updates the case (changes the status of it)
+        data = {"status": CaseStatusEnum.APPLICANT_EDITING}
+        self.client.put(
+            reverse("applications:manage_status", kwargs={"pk": case.id}), data=data, **self.exporter_headers
+        )
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"][0]
+
+        self.assertEqual(response_data["is_recently_updated"], False)
+
+    def test_recently_updated_if_case_is_younger_than_five_days(self):
         self.create_standard_application_case(self.organisation)
 
         response = self.client.get(self.url, **self.gov_headers)
