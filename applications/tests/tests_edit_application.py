@@ -270,7 +270,11 @@ class EditF680ApplicationsTests(DataTestClient):
         audit = Audit.objects.all().first()
         self.assertEqual(AuditType(audit.verb), AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES)
         self.assertEqual(
-            audit.payload, {"old_types": [F680ClearanceTypeEnum.MARKET_SURVEY], "new_types": data["types"]}
+            audit.payload,
+            {
+                "old_types": [F680ClearanceTypeEnum.get_text(F680ClearanceTypeEnum.MARKET_SURVEY)],
+                "new_types": [F680ClearanceTypeEnum.get_text(type) for type in data["types"]],
+            },
         )
 
     def test_edit_submitted_application_clearance_type_no_data_failure(self):
