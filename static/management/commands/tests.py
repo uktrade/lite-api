@@ -4,7 +4,7 @@ from django.test import tag
 
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
-from conf.constants import GovPermissions, ExporterPermissions
+from conf.constants import GovPermissions, ExporterPermissions, Teams
 from conf.settings import BASE_DIR
 from flags.models import Flag
 from organisations.models import Organisation
@@ -90,7 +90,7 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_teams(self):
         self.seed_command(seedteams.Command)
-        self.assertTrue(Team.objects.filter(id=seedteams.ADMIN_TEAM_ID).exists())
+        self.assertTrue(Team.objects.filter(id=Teams.ADMIN_TEAM_ID).exists())
 
     def test_seed_demo_data(self):
         self.seed_command(seedcountries.Command)
