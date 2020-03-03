@@ -30,7 +30,6 @@ class Command(SeedCommand):
         demo_users = env("DEMO_USERS")
         demo_users = demo_users.replace("=>", ":")
         demo_users = serialize(demo_users)
-        print(demo_users)
 
         for user in demo_users:
             self.seed_gov_user(user)
