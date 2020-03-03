@@ -26,3 +26,9 @@ class F680ClearanceTypeEnum:
         TRAINING: UUID("00000000-0000-0000-0000-000000000005"),
         THROUGH_LIFE_SUPPORT: UUID("00000000-0000-0000-0000-000000000006"),
     }
+
+    @classmethod
+    def get_text(cls, status):
+        for k, v in cls.choices:
+            if status == k:
+                return v

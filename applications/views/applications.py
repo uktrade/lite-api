@@ -49,6 +49,7 @@ from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
+from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -183,8 +184,10 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         if request.data.get("clearance_level") or request.data.get("types"):
             # Audit block
             if application.case_type.sub_type == CaseTypeSubTypeEnum.F680 and request.data.get("types"):
-                old_types = list(application.types.values_list("name", flat=True))
-                new_types = request.data.get("types")
+                old_types = [
+                    F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
+                ]
+                new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
                 serializer.save()
 
                 if set(old_types) != set(new_types):
