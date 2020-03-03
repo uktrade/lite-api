@@ -575,46 +575,46 @@ class ExhibitionDetails(ListCreateAPIView):
             old_reason_for_clearance = application.reason_for_clearance
             case = application.get_case()
             serializer.save()
-            data = serializer.validated_data
+            validated_data = serializer.validated_data
 
-            if data["title"] != old_title:
+            if validated_data["title"] != old_title:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_TITLE,
                     target=case,
-                    payload={"old_title": old_title, "new_title": data["title"],},
+                    payload={"old_title": old_title, "new_title": validated_data["title"],},
                 )
 
-            if data["first_exhibition_date"] != old_first_exhibition_date:
+            if validated_data["first_exhibition_date"] != old_first_exhibition_date:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_START_DATE,
                     target=application.get_case(),
                     payload={
-                        "old_first_exhibition_date": old_first_exhibition_date,
-                        "new_first_exhibition_date": data["first_exhibition_date"],
+                        "old_first_exhibition_date": str(old_first_exhibition_date),
+                        "new_first_exhibition_date": str(validated_data["first_exhibition_date"]),
                     },
                 )
 
-            if data["required_by_date"] != old_required_by_date:
+            if validated_data["required_by_date"] != old_required_by_date:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE,
                     target=application.get_case(),
                     payload={
-                        "old_required_by_date": old_required_by_date,
-                        "new_required_by_date": data["required_by_date"],
+                        "old_required_by_date": str(old_required_by_date),
+                        "new_required_by_date": str(validated_data["required_by_date"]),
                     },
                 )
 
-            if data.get("reason_for_clearance") != old_reason_for_clearance:
+            if validated_data.get("reason_for_clearance") != old_reason_for_clearance:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE,
                     target=application.get_case(),
                     payload={
                         "old_reason_for_clearance": old_reason_for_clearance,
-                        "new_reason_for_clearance": data["reason_for_clearance"],
+                        "new_reason_for_clearance": validated_data["reason_for_clearance"],
                     },
                 )
 
