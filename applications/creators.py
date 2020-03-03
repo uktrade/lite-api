@@ -232,6 +232,9 @@ def _validate_f680_clearance(draft, errors):
     if SiteOnApplication.objects.filter(application=draft).exists():
         errors["location"] = strings.Applications.F680.LOCATIONS
 
+    if not draft.types.exists():
+        errors["types"] = strings.Applications.F680.NO_CLEARANCE_TYPE
+
     return errors
 
 

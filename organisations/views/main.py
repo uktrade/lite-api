@@ -7,9 +7,16 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 
+from applications.models import BaseApplication
 from conf.authentication import SharedAuthentication
+from conf.constants import GovPermissions
+from conf.helpers import str_to_bool
+from conf.permissions import check_user_has_permission
+from lite_content.lite_api.strings import Organisations
+from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer, OrganisationCreateSerializer
+from static.statuses.models import CaseStatus
 
 
 class OrganisationsList(generics.ListCreateAPIView):
@@ -17,9 +24,7 @@ class OrganisationsList(generics.ListCreateAPIView):
     serializer_class = OrganisationDetailSerializer
 
     def get_queryset(self):
-        """
-        List all organisations
-        """
+        """ List all organisations. """
         org_types = self.request.query_params.getlist("org_type", [])
         search_term = self.request.query_params.get("search_term", "")
 
@@ -35,9 +40,7 @@ class OrganisationsList(generics.ListCreateAPIView):
     @transaction.atomic
     @swagger_auto_schema(request_body=OrganisationCreateSerializer, responses={400: "JSON parse error"})
     def post(self, request):
-        """
-        Create a new organisation
-        """
+        """ Create a new organisation. """
         serializer = OrganisationCreateSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -51,3 +54,44 @@ class OrganisationsDetail(generics.RetrieveAPIView):
     authentication_classes = (SharedAuthentication,)
     queryset = Organisation.objects.all()
     serializer_class = OrganisationDetailSerializer
+
+    def put(self, request, pk):
+        """ Edit details of an organisation. """
+        organisation = get_organisation_by_pk(pk)
+        org_name_changed = False
+
+        if not check_user_has_permission(request.user, GovPermissions.MANAGE_ORGANISATIONS):
+            return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST,)
+
+        if request.data["name"] != organisation.name:
+            org_name_changed = True
+            if not check_user_has_permission(request.user, GovPermissions.REOPEN_CLOSED_CASES):
+                return JsonResponse(
+                    data={"errors": Organisations.NO_PERM_TO_EDIT_NAME}, status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        serializer = OrganisationCreateSerializer(instance=organisation, data=request.data, partial=True)
+
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        if str_to_bool(request.data.get("validate_only", False)):
+            return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
+
+        serializer.save()
+        if org_name_changed:
+            self.reopen_closed_cases_for_organisation(organisation)
+
+        return JsonResponse(data={"organisation": serializer.validated_data}, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def reopen_closed_cases_for_organisation(organisation):
+        """
+        Set the case status to 'Reopened due to org changes' for any cases in the organisation that have
+        been granted a licence.
+        """
+        reopened_due_to_org_changes_status = CaseStatus.objects.get(status="reopened_due_to_org_changes")
+
+        BaseApplication.objects.filter(organisation=organisation, licence_duration__isnull=False).update(
+            status_id=reopened_due_to_org_changes_status
+        )
