@@ -1,4 +1,7 @@
+import datetime
 import re
+
+from django.templatetags.tz import do_timezone
 
 
 def str_to_bool(v, invert_none=False):
@@ -40,3 +43,8 @@ def get_value_from_enum(enum, value):
     for choice in enum.choices:
         if choice[0] == value:
             return choice[1]
+
+
+def convert_date_to_string(value):
+    return_value = do_timezone(datetime.datetime.strptime(str(value), "%Y-%m-%d"), "Europe/London")
+    return return_value.strftime("%d %B " "%Y")

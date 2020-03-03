@@ -67,9 +67,11 @@ class AuditType(Enum):
     REACTIVATE_PICKLIST = "reactivated the picklist item"
 
     UPDATED_EXHIBITION_DETAILS_TITLE = 'updated exhibition title from "{old_title}" to "{new_title}"'
-    UPDATED_EXHIBITION_DETAILS_START_DATE = 'updated exhibition start date to "{first_exhibition_date}"'
-    UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE = 'updated exhibition start date to "{required_by_date}"'
-    UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE = 'updated exhibition start date to "{reason_for_clearance}"'
+    UPDATED_EXHIBITION_DETAILS_START_DATE = 'updated exhibition start date to "{new_first_exhibition_date}"'
+    UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE = 'updated required by date to "{new_required_by_date}"'
+    UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE = (
+        'updated exhibition reason for clearance to "{new_reason_for_clearance}"'
+    )
 
     def format(self, payload):
         text = self.value.format(**payload)

@@ -45,6 +45,7 @@ from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
+from conf.helpers import convert_date_to_string
 from conf.permissions import assert_user_has_permission
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
@@ -630,8 +631,8 @@ class ExhibitionDetails(ListCreateAPIView):
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_START_DATE,
                     target=application.get_case(),
                     payload={
-                        "old_first_exhibition_date": str(old_first_exhibition_date),
-                        "new_first_exhibition_date": str(validated_data["first_exhibition_date"]),
+                        "old_first_exhibition_date": convert_date_to_string(old_first_exhibition_date),
+                        "new_first_exhibition_date": convert_date_to_string(validated_data["first_exhibition_date"]),
                     },
                 )
 
@@ -641,8 +642,8 @@ class ExhibitionDetails(ListCreateAPIView):
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE,
                     target=application.get_case(),
                     payload={
-                        "old_required_by_date": str(old_required_by_date),
-                        "new_required_by_date": str(validated_data["required_by_date"]),
+                        "old_required_by_date": convert_date_to_string(old_required_by_date),
+                        "new_required_by_date": convert_date_to_string(validated_data["required_by_date"]),
                     },
                 )
 
