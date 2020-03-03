@@ -89,6 +89,28 @@ def yesterday(date=None):
     return day
 
 
+def get_case_ids_with_active_ecju_queries(date):
+    # ECJU Query SLA exclusion criteria
+    # 1. Still open & created before cutoff time today
+    # 2. Responded to in the last working day before cutoff time today
+    return (
+        EcjuQuery.objects.filter(
+            Q(
+                responded_at__isnull=True,
+                created_at__lt=timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
+            )
+            | Q(
+                responded_at__range=[
+                    timezone.make_aware(datetime.combine(yesterday(), SLA_UPDATE_CUTOFF_TIME)),
+                    timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
+                ],
+            )
+        )
+        .values("case")
+        .distinct()
+    )
+
+
 @background(schedule=timezone.make_aware(datetime.combine(timezone.now(), SLA_UPDATE_TASK_TIME)))
 def update_cases_sla():
     """
@@ -107,25 +129,7 @@ def update_cases_sla():
             # Lock with select_for_update()
             # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
             with transaction.atomic():
-                # ECJU Query SLA exclusion criteria
-                # 1. Still open & created before cutoff time today
-                # 2. Responded to in the last working day before cutoff time today
-                active_ecju_query_cases = (
-                    EcjuQuery.objects.filter(
-                        Q(
-                            responded_at__isnull=True,
-                            created_at__lt=timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
-                        )
-                        | Q(
-                            responded_at__range=[
-                                timezone.make_aware(datetime.combine(yesterday(), SLA_UPDATE_CUTOFF_TIME)),
-                                timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
-                            ],
-                        )
-                    )
-                    .values("case")
-                    .distinct()
-                )
+                active_ecju_query_cases = get_case_ids_with_active_ecju_queries(date)
                 results = (
                     Case.objects.select_for_update()
                     .filter(
@@ -133,7 +137,7 @@ def update_cases_sla():
                         last_closed_at__isnull=True,
                         sla_remaining_days__isnull=False,
                     )
-                    .exclude(sla_updated_at__day=date.day, id__in=active_ecju_query_cases)
+                    .exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
                     .update(
                         sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
                     )
