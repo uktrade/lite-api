@@ -11,6 +11,7 @@ from rest_framework import status
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case, EcjuQuery
 
+# DST safe version of midnight
 SLA_UPDATE_TASK_TIME = time(22, 30, 0)
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
 BANK_HOLIDAY_API = "https://www.gov.uk/bank-holidays.json"
