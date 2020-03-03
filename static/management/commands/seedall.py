@@ -24,6 +24,8 @@ SEED_COMMANDS = {
         "seeddenialreasons",
         "seedcountries",
         "seedlayouts",
+        "seedteams",
+        "seedflags",
         "seedf680clearancetypes",
     ],
 }
