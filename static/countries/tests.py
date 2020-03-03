@@ -1,5 +1,3 @@
-import csv
-
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -9,9 +7,6 @@ from test_helpers.clients import DataTestClient
 
 class CountriesTests(DataTestClient):
     url = reverse("static:countries:countries")
-
-    def setUp(self):
-        super().setUp()
 
     def test_get_countries(self):
         response = self.client.get(self.url)
@@ -34,4 +29,3 @@ class CountriesTests(DataTestClient):
         self.assertEqual(Country.objects.count() - 2, len(countries))
         self.assertNotIn(country_one.name, country_names)
         self.assertNotIn(country_two.name, country_names)
-
