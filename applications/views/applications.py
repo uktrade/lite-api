@@ -631,7 +631,9 @@ class ExhibitionDetails(ListCreateAPIView):
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_START_DATE,
                     target=application.get_case(),
                     payload={
-                        "old_first_exhibition_date": convert_date_to_string(old_first_exhibition_date),
+                        "old_first_exhibition_date": convert_date_to_string(old_first_exhibition_date)
+                        if old_first_exhibition_date
+                        else "",
                         "new_first_exhibition_date": convert_date_to_string(validated_data["first_exhibition_date"]),
                     },
                 )
@@ -642,7 +644,9 @@ class ExhibitionDetails(ListCreateAPIView):
                     verb=AuditType.UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE,
                     target=application.get_case(),
                     payload={
-                        "old_required_by_date": convert_date_to_string(old_required_by_date),
+                        "old_required_by_date": convert_date_to_string(old_required_by_date)
+                        if old_required_by_date
+                        else "",
                         "new_required_by_date": convert_date_to_string(validated_data["required_by_date"]),
                     },
                 )
