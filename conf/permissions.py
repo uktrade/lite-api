@@ -21,4 +21,3 @@ def check_user_has_permission(user, permission, organisation: Organisation = Non
         return user.has_permission(permission)
     else:
         return user.has_permission(permission, organisation)
-
