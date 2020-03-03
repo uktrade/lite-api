@@ -31,6 +31,7 @@ from applications.models import (
     CountryOnApplication,
     ExternalLocationOnApplication,
     PartyOnApplication,
+    F680ClearanceApplication,
 )
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
@@ -48,6 +49,7 @@ from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Site
+from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -100,8 +102,11 @@ class ApplicationList(ListCreateAPIView):
         Create a new application
         """
         data = request.data
-        serializer = get_application_create_serializer(data.pop("application_type", None))
-        serializer = serializer(data=data, context=request.user.organisation)
+        case_type = data.pop("application_type", None)
+        serializer = get_application_create_serializer(case_type)
+        serializer = serializer(
+            data=data, case_type_id=CaseTypeEnum.reference_to_id(case_type), context=request.user.organisation
+        )
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -132,7 +137,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         serializer = get_application_update_serializer(application)
         case = application.get_case()
-        serializer = serializer(application, data=request.data, context=request.user.organisation, partial=True)
+        data = request.data.copy()
+        serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
         # Prevent minor edits of the goods categories
         if not application.is_major_editable() and request.data.get("goods_categories"):
@@ -146,6 +152,12 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             return JsonResponse(
                 data={"errors": {"clearance_level": ["This isn't possible on a minor edit"]}},
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Prevent minor edits of the f680 clearance types
+        if not application.is_major_editable() and request.data.get("types"):
+            return JsonResponse(
+                data={"errors": {"types": ["This isn't possible on a minor edit"]}}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         if not serializer.is_valid():
@@ -169,8 +181,24 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             )
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if request.data.get("clearance_level"):
-            serializer.save()
+        if request.data.get("clearance_level") or request.data.get("types"):
+            # Audit block
+            if application.case_type.sub_type == CaseTypeSubTypeEnum.F680 and request.data.get("types"):
+                old_types = [
+                    F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
+                ]
+                new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
+                serializer.save()
+
+                if set(old_types) != set(new_types):
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
+                        target=case,
+                        payload={"old_types": old_types, "new_types": new_types},
+                    )
+            else:
+                serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
@@ -458,6 +486,9 @@ class ApplicationCopy(APIView):
         # Get all parties connected to the application and produce a copy (and replace reference for each one)
         self.duplicate_parties_on_new_application()
 
+        # Get all f680 clearance types
+        self.duplicate_f680_clearance_types()
+
         # Save
         self.new_application.created_at = now()
         self.new_application.save()
@@ -556,3 +587,11 @@ class ApplicationCopy(APIView):
             good.save()
             good.countries.set(old_good_countries)
             good.flags.set(old_good_flags)
+
+    def duplicate_f680_clearance_types(self):
+        if self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+            self.new_application.types.set(
+                list(
+                    F680ClearanceApplication.objects.get(id=self.old_application_id).types.values_list("id", flat=True)
+                )
+            )

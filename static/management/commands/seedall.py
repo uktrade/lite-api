@@ -14,6 +14,7 @@ SEED_COMMANDS = {
         "seedlayouts",
         "seedteams",
         "seedflags",
+        "seedf680clearancetypes",
     ],
     "Dev": ["seeddemodata", "seedusers"],
     "Tests": [
@@ -23,8 +24,7 @@ SEED_COMMANDS = {
         "seeddenialreasons",
         "seedcountries",
         "seedlayouts",
-        "seedteams",
-        "seedflags",
+        "seedf680clearancetypes",
     ],
 }
 
