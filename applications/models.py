@@ -17,6 +17,7 @@ from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from static.f680_clearance_types.models import F680ClearanceType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.units.enums import Units
@@ -163,7 +164,7 @@ class GiftingClearanceApplication(BaseApplication):
 
 # F680 includes End User & Third parties
 class F680ClearanceApplication(BaseApplication):
-    pass
+    types = models.ManyToManyField(F680ClearanceType, related_name="f680_clearance_application")
 
 
 # Queries
