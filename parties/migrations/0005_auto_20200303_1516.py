@@ -6,13 +6,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parties', '0004_auto_20200226_1218'),
+        ("parties", "0004_auto_20200226_1218"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='party',
-            name='clearance_level',
-            field=models.CharField(choices=[('uk_unclassified', 'UK UNCLASSIFIED'), ('uk_official', 'UK OFFICIAL'), ('uk_official_sensitive', 'UK OFFICIAL - SENSITIVE'), ('uk_secret', 'UK SECRET'), ('uk_top_secret', 'UK TOP SECRET'), ('nato_unclassified', 'NATO UNCLASSIFIED'), ('nato_confidential', 'NATO CONFIDENTIAL'), ('nato_restricted', 'NATO RESTRICTED'), ('nato_secret', 'NATO SECRET'), ('occar_unclassified', 'OCCAR UNCLASSIFIED'), ('occar_confidential', 'OCCAR CONFIDENTIAL'), ('occar_restricted', 'OCCAR RESTRICTED'), ('occar_secret', 'OCCAR SECRET')], help_text='Only relevant to F680 applications', max_length=30, null=True),
+            model_name="party",
+            name="clearance_level",
+            field=models.CharField(
+                choices=[
+                    ("uk_unclassified", "UK UNCLASSIFIED"),
+                    ("uk_official", "UK OFFICIAL"),
+                    ("uk_official_sensitive", "UK OFFICIAL - SENSITIVE"),
+                    ("uk_secret", "UK SECRET"),
+                    ("uk_top_secret", "UK TOP SECRET"),
+                    ("nato_unclassified", "NATO UNCLASSIFIED"),
+                    ("nato_confidential", "NATO CONFIDENTIAL"),
+                    ("nato_restricted", "NATO RESTRICTED"),
+                    ("nato_secret", "NATO SECRET"),
+                    ("occar_unclassified", "OCCAR UNCLASSIFIED"),
+                    ("occar_confidential", "OCCAR CONFIDENTIAL"),
+                    ("occar_restricted", "OCCAR RESTRICTED"),
+                    ("occar_secret", "OCCAR SECRET"),
+                ],
+                help_text="Only relevant to F680 applications",
+                max_length=30,
+                null=True,
+            ),
         ),
     ]
