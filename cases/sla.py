@@ -4,12 +4,12 @@ import requests
 
 from background_task import background
 from django.db import transaction
-from django.db.models import F
-from django.utils.timezone import now, make_aware
+from django.db.models import F, Q
+from django.utils import timezone
 from rest_framework import status
 
 from cases.enums import CaseTypeSubTypeEnum
-from cases.models import Case
+from cases.models import Case, EcjuQuery
 
 SLA_UPDATE_TASK_TIME = time(0, 0, 0)
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
@@ -72,7 +72,7 @@ def is_bank_holiday(date):
     return formatted_date in get_bank_holidays()
 
 
-@background(schedule=make_aware(datetime.combine(now(), SLA_UPDATE_TASK_TIME)))
+@background(schedule=timezone.make_aware(datetime.combine(timezone.now(), SLA_UPDATE_TASK_TIME)))
 def update_cases_sla():
     """
     Updates all applicable cases SLA.
@@ -82,7 +82,7 @@ def update_cases_sla():
     """
 
     logging.info(f"{LOG_PREFIX} SLA Update Started")
-    date = now()
+    date = timezone.now()
     if not is_bank_holiday(date) and not is_weekend(date):
         try:
             # Get cases submitted before the cutoff time today, where they have never been closed
@@ -90,14 +90,35 @@ def update_cases_sla():
             # Lock with select_for_update()
             # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
             with transaction.atomic():
+                # ECJU Query SLA exclusion criteria
+                # 1. Still open & created before cutoff time today
+                # 2. Responded to in the last working day before cutoff time today
+                active_ecju_query_cases = (
+                    EcjuQuery.objects.filter(
+                        Q(
+                            responded_at__isnull=True,
+                            created_at__lt=timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
+                        )
+                        | Q(
+                            responded_at__range=[
+                                timezone.make_aware(
+                                    datetime.combine(date - timezone.timedelta(days=1), SLA_UPDATE_CUTOFF_TIME)
+                                ),
+                                timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
+                            ],
+                        )
+                    )
+                    .values("case")
+                    .distinct()
+                )
                 results = (
                     Case.objects.select_for_update()
                     .filter(
-                        submitted_at__lt=make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
+                        submitted_at__lt=timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
                         last_closed_at__isnull=True,
                         sla_remaining_days__isnull=False,
                     )
-                    .exclude(sla_updated_at__day=date.day)
+                    .exclude(sla_updated_at__day=date.day, id__in=active_ecju_query_cases)
                     .update(
                         sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
                     )
