@@ -18,12 +18,7 @@ def assert_user_has_permission(user, permission, organisation: Organisation = No
 
 def check_user_has_permission(user, permission, organisation: Organisation = None):
     if isinstance(user, GovUser):
-        if user.has_permission(permission):
-            return True
-        else:
-            return False
+        return user.has_permission(permission)
     else:
-        if user.has_permission(permission, organisation):
-            return True
-        else:
-            return False
+        return user.has_permission(permission, organisation)
+
