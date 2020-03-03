@@ -72,6 +72,13 @@ def is_bank_holiday(date):
     return formatted_date in get_bank_holidays()
 
 
+def yesterday():
+    day = timezone.now() - timezone.timedelta(days=1)
+    while is_bank_holiday(day) or is_weekend(day):
+        day - timezone.timedelta(days=1)
+    return day
+
+
 @background(schedule=timezone.make_aware(datetime.combine(timezone.now(), SLA_UPDATE_TASK_TIME)))
 def update_cases_sla():
     """
@@ -104,7 +111,7 @@ def update_cases_sla():
                                 timezone.make_aware(
                                     datetime.combine(date - timezone.timedelta(days=1), SLA_UPDATE_CUTOFF_TIME)
                                 ),
-                                timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
+                                timezone.make_aware(datetime.combine(yesterday(), SLA_UPDATE_CUTOFF_TIME)),
                             ],
                         )
                     )
