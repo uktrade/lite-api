@@ -237,7 +237,7 @@ class EditF680ApplicationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.clearance_level, data["clearance_level"])
 
-    def test_add_party_to_f380_success(self):
+    def test_add_party_to_f680_success(self):
         party = {
             "type": PartyType.THIRD_PARTY,
             "name": "Government of Paraguay",
@@ -254,7 +254,7 @@ class EditF680ApplicationsTests(DataTestClient):
         self.application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_add_party_no_clearance_to_f380_failure(self):
+    def test_add_party_no_clearance_to_f680_failure(self):
         party = {
             "type": PartyType.THIRD_PARTY,
             "name": "Government of Paraguay",
@@ -396,7 +396,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
             response_data["required_by_date"][0], strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
         )
 
-    def test_edit_exhibition_required_by_date_draft_failure_not_given(self):
+    def test_edit_exhibition_required_by_date_draft_failure_none(self):
         data = {
             "title": self.application.title,
             "first_exhibition_date": self.application.first_exhibition_date,
@@ -480,3 +480,75 @@ class EditExhibitionApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["title"], data["title"])
+
+    def test_add_third_party_exhibition_clearance_failure(self):
+        party = {
+            "type": PartyType.THIRD_PARTY,
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
+            "role": "agent",
+        }
+        url = reverse("applications:parties", kwargs={"pk": self.application.id})
+        response = self.client.post(url, data=party, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+
+    def test_add_consignee_exhibition_clearance_failure(self):
+        party = {
+            "type": PartyType.CONSIGNEE,
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
+            "role": "agent",
+        }
+        url = reverse("applications:parties", kwargs={"pk": self.application.id})
+        response = self.client.post(url, data=party, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+
+    def test_add_end_user_exhibition_clearance_failure(self):
+        party = {
+            "type": PartyType.END_USER,
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
+            "role": "agent",
+        }
+        url = reverse("applications:parties", kwargs={"pk": self.application.id})
+        response = self.client.post(url, data=party, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+
+    def test_add_ultimate_end_user_exhibition_clearance_failure(self):
+        party = {
+            "type": PartyType.ULTIMATE_END_USER,
+            "name": "Government of Paraguay",
+            "address": "Asuncion",
+            "country": "PY",
+            "sub_type": "government",
+            "website": "https://www.gov.py",
+            "role": "agent",
+        }
+        url = reverse("applications:parties", kwargs={"pk": self.application.id})
+        response = self.client.post(url, data=party, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
