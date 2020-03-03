@@ -16,7 +16,7 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -24,13 +24,13 @@ from test_helpers.clients import DataTestClient
 class DraftTests(DataTestClient):
     url = reverse("applications:applications")
 
-    def test_create_draft_standard_application_successful(self):
+    def test_create_draft_standard_individual_export_application_successful(self):
         """
-        Ensure we can create a new standard application draft object
+        Ensure we can create a new standard individual export application draft
         """
         data = {
             "name": "Test",
-            "application_type": CaseTypeSubTypeEnum.STANDARD,
+            "application_type": CaseTypeReferenceEnum.SIEL,
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
@@ -50,7 +50,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "application_type": CaseTypeSubTypeEnum.STANDARD,
+            "application_type": CaseTypeReferenceEnum.SIEL,
             "export_type": ApplicationExportType.TEMPORARY,
             "goods_categories": [GoodsCategory.ANTI_PIRACY, GoodsCategory.FIREARMS],
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
@@ -71,7 +71,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "application_type": CaseTypeSubTypeEnum.STANDARD,
+            "application_type": CaseTypeReferenceEnum.SIEL,
             "export_type": ApplicationExportType.TEMPORARY,
             "goods_categories": ["Hard to Find"],
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
@@ -91,7 +91,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "application_type": CaseTypeSubTypeEnum.EXHIBITION,
+            "application_type": CaseTypeReferenceEnum.EXHC,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -107,7 +107,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "application_type": CaseTypeSubTypeEnum.GIFTING,
+            "application_type": CaseTypeReferenceEnum.GIFT,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -126,7 +126,7 @@ class DraftTests(DataTestClient):
 
         data = {
             "name": "Test",
-            "application_type": CaseTypeSubTypeEnum.F680,
+            "application_type": CaseTypeReferenceEnum.F680,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -143,7 +143,7 @@ class DraftTests(DataTestClient):
         """
         data = {
             "name": "Test",
-            "application_type": CaseTypeSubTypeEnum.OPEN,
+            "application_type": CaseTypeReferenceEnum.OIEL,
             "export_type": ApplicationExportType.TEMPORARY,
         }
 
@@ -157,7 +157,7 @@ class DraftTests(DataTestClient):
         Ensure we can create a new HMRC query draft object
         """
         data = {
-            "application_type": CaseTypeSubTypeEnum.HMRC,
+            "application_type": CaseTypeReferenceEnum.CRE,
             "organisation": self.organisation.id,
         }
 
@@ -171,7 +171,7 @@ class DraftTests(DataTestClient):
         Ensure that a normal exporter cannot create an HMRC query
         """
         data = {
-            "application_type": CaseTypeSubTypeEnum.HMRC,
+            "application_type": CaseTypeReferenceEnum.CRE,
             "organisation": self.organisation.id,
         }
 
@@ -183,10 +183,10 @@ class DraftTests(DataTestClient):
     @parameterized.expand(
         [
             [{}],
-            [{"application_type": CaseTypeSubTypeEnum.STANDARD, "export_type": ApplicationExportType.TEMPORARY}],
+            [{"application_type": CaseTypeReferenceEnum.SIEL, "export_type": ApplicationExportType.TEMPORARY}],
             [{"name": "Test", "export_type": ApplicationExportType.TEMPORARY}],
-            [{"name": "Test", "application_type": CaseTypeSubTypeEnum.STANDARD}],
-            [{"application_type": CaseTypeSubTypeEnum.EXHIBITION}],
+            [{"name": "Test", "application_type": CaseTypeReferenceEnum.SIEL}],
+            [{"application_type": CaseTypeReferenceEnum.EXHC}],
             [{"name": "Test"}],
         ]
     )
@@ -205,7 +205,7 @@ class DraftTests(DataTestClient):
     def test_create_no_application_type_failure(self):
         """
         Ensure that we cannot create a new application without
-        providing a licence type.
+        providing a application_type.
         """
         data = {}
 

@@ -9,11 +9,11 @@ from users.libraries.get_user import get_user_organisation_relationship
 class AssignSitesTest(DataTestClient):
     def setUp(self):
         super(AssignSitesTest, self).setUp()
-        self.site_1, _ = self.create_site("HQ 2", self.organisation)
-        self.site_2, _ = self.create_site("HQ 3", self.organisation)
-        self.site_3, _ = self.create_site("HQ 4", self.organisation)
-        self.site_4, _ = self.create_site("HQ 5", self.organisation)
-        self.site_5, _ = self.create_site("HQ 6", self.organisation)
+        self.site_1 = self.create_site("HQ 2", self.organisation)
+        self.site_2 = self.create_site("HQ 3", self.organisation)
+        self.site_3 = self.create_site("HQ 4", self.organisation)
+        self.site_4 = self.create_site("HQ 5", self.organisation)
+        self.site_5 = self.create_site("HQ 6", self.organisation)
 
         # Add default sites to the initial user
         user_organisation_relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)

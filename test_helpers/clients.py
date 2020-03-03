@@ -49,6 +49,7 @@ from queries.goods_query.models import GoodsQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
+from static.f680_clearance_types.models import F680ClearanceType
 from static.letter_layouts.models import LetterLayout
 from static.management.commands import seedall
 from static.management.commands.seedall import SEED_COMMANDS
@@ -190,7 +191,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         address.save()
         site = Site(name=name, organisation=org, address=address)
         site.save()
-        return site, address
+        return site
 
     @staticmethod
     def create_external_location(name, org, country="GB"):
@@ -477,7 +478,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             organisation.type = org_type
         organisation.save()
 
-        site, address = self.create_site("HQ", organisation)
+        site = self.create_site("HQ", organisation)
 
         organisation.primary_site = site
         organisation.save()
@@ -494,12 +495,16 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
 
     def create_draft_standard_application(
-        self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
+        self,
+        organisation: Organisation,
+        reference_name="Standard Draft",
+        safe_document=True,
+        case_type_id=CaseTypeEnum.SIEL.id,
     ):
         application = StandardApplication(
             name=reference_name,
             export_type=ApplicationExportType.PERMANENT,
-            case_type_id=CaseTypeEnum.SIEL.id,
+            case_type_id=case_type_id,
             have_you_been_informed=ApplicationExportLicenceOfficialType.YES,
             reference_number_on_information_form="",
             activity="Trade",
@@ -563,6 +568,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             application.save()
             # must be refreshed to return data in same format as database call
             application.refresh_from_db()
+        elif case_type == CaseTypeEnum.F680:
+            application.types.add(F680ClearanceType.objects.first())
+            self.create_party("End User", organisation, PartyType.END_USER, application)
+            self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+            self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
         else:
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)

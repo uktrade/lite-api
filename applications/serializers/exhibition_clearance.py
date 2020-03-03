@@ -10,7 +10,6 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 
 
@@ -35,10 +34,6 @@ class ExhibitionClearanceViewSerializer(PartiesSerializerMixin, GenericApplicati
 
 
 class ExhibitionClearanceCreateSerializer(GenericApplicationCreateSerializer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_data["case_type"] = CaseTypeEnum.EXHIBITION.id
-
     class Meta:
         model = ExhibitionClearanceApplication
         fields = (

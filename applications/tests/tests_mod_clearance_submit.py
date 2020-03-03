@@ -228,3 +228,11 @@ class F680ClearanceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["location"], strings.Applications.F680.LOCATIONS)
+
+    def test_submit_F680_clearance_without_details_failure(self):
+        self.draft.types.clear()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["types"], strings.Applications.F680.NO_CLEARANCE_TYPE)

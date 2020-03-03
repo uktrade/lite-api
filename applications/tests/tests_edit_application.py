@@ -10,6 +10,7 @@ from goods.enums import PvGrading
 from lite_content.lite_api import strings
 from parties.enums import PartyType
 from static.statuses.enums import CaseStatusEnum
+from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -236,6 +237,61 @@ class EditF680ApplicationsTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.clearance_level, data["clearance_level"])
+
+    def test_edit_submitted_application_clearance_type_minor_fail(self):
+        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
+        url = reverse("applications:application", kwargs={"pk": application.id})
+        self.submit_application(application)
+
+        data = {"types": [F680ClearanceTypeEnum.MARKET_SURVEY]}
+        response = self.client.put(url, data=data, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+        self.assertEqual(response.json()["errors"], {"types": ["This isn't possible on a minor edit"]})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_edit_submitted_application_clearance_type_major_success(self):
+        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
+        url = reverse("applications:application", kwargs={"pk": application.id})
+        self.submit_application(application)
+        application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        application.save()
+
+        data = {"types": [F680ClearanceTypeEnum.DEMONSTRATION_IN_THE_UK_TO_OVERSEAS_CUSTOMERS]}
+        response = self.client.put(url, data=data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            application.types.get().name, F680ClearanceTypeEnum.DEMONSTRATION_IN_THE_UK_TO_OVERSEAS_CUSTOMERS
+        )
+
+        # Check add audit
+        self.assertEqual(Audit.objects.all().count(), 1)
+        audit = Audit.objects.all().first()
+        self.assertEqual(AuditType(audit.verb), AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES)
+        self.assertEqual(
+            audit.payload,
+            {
+                "old_types": [F680ClearanceTypeEnum.get_text(F680ClearanceTypeEnum.MARKET_SURVEY)],
+                "new_types": [F680ClearanceTypeEnum.get_text(type) for type in data["types"]],
+            },
+        )
+
+    def test_edit_submitted_application_clearance_type_no_data_failure(self):
+        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
+        url = reverse("applications:application", kwargs={"pk": application.id})
+        self.submit_application(application)
+        application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        application.save()
+
+        data = {"types": []}
+        response = self.client.put(url, data=data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"], {"types": ["Cannot create an application without a clearance type"]},
+        )
 
     def test_add_party_to_f680_success(self):
         party = {

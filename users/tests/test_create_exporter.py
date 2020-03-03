@@ -11,7 +11,7 @@ from users.models import ExporterUser
 class CreateExporterUser(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.site, _ = self.create_site("HQ", self.organisation)
+        self.site = self.create_site("HQ", self.organisation)
 
         self.data = {
             "email": "email@email.com",

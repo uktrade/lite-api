@@ -62,7 +62,7 @@ class DraftTests(DataTestClient):
         """
         relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
         relationship.sites.set([self.organisation.primary_site])
-        site_2, _ = self.create_site("Site #2", self.organisation)
+        site_2 = self.create_site("Site #2", self.organisation)
         application = self.create_draft_standard_application(self.organisation)
         SiteOnApplication(site=site_2, application=application).save()
 

@@ -10,7 +10,6 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 
 
@@ -48,10 +47,6 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     goods_categories = serializers.MultipleChoiceField(
         choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
     )
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_data["case_type"] = CaseTypeEnum.SIEL.id  # TODO: LT-874 - GET CORRECT TYPE FROM INITIAL QUESTIONS
 
     class Meta:
         model = StandardApplication
