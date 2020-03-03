@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
@@ -107,7 +107,7 @@ class CaseSerializer(serializers.ModelSerializer):
         return repr_dict
 
 
-class TinyCaseSerializer(serializers.Serializer):
+class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
@@ -146,7 +146,6 @@ class TinyCaseSerializer(serializers.Serializer):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
 
     def get_is_recently_updated(self, instance):
-        from datetime import datetime
         return get_case_object_trail(instance).filter(created_at__range=[datetime.now() - timedelta(days=5), datetime.now()]).exists()
 
 
