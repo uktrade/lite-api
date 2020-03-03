@@ -11,7 +11,7 @@ from rest_framework import status
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case, EcjuQuery
 
-SLA_UPDATE_TASK_TIME = time(0, 0, 0)
+SLA_UPDATE_TASK_TIME = time(22, 30, 0)
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
 BANK_HOLIDAY_API = "https://www.gov.uk/bank-holidays.json"
 BACKUP_FILE_NAME = "bank-holidays.csv"

@@ -15,6 +15,7 @@ from cases.sla import (
     OPEN_APPLICATION_TARGET_DAYS,
     MOD_CLEARANCE_TARGET_DAYS,
     SLA_UPDATE_CUTOFF_TIME,
+    yesterday,
 )
 from test_helpers.clients import DataTestClient
 
@@ -153,7 +154,7 @@ class SlaRulesTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         _set_case_time(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_case_time(query, self.hour_before_cutoff, date=timezone.now() - timezone.timedelta(days=1))
+        _set_case_time(query, self.hour_before_cutoff, date=yesterday())
 
         results = update_cases_sla.now()
 
@@ -165,7 +166,7 @@ class SlaRulesTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         _set_case_time(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_case_time(query, self.hour_after_cutoff, date=timezone.now() - timezone.timedelta(days=1))
+        _set_case_time(query, self.hour_after_cutoff, date=yesterday())
 
         results = update_cases_sla.now()
 
@@ -217,7 +218,7 @@ class SlaRulesTests(DataTestClient):
         _set_case_time(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
         _set_case_time(query, self.hour_before_cutoff, date=timezone.now() - timezone.timedelta(days=2))
-        _set_response_time(query, self.hour_before_cutoff, date=timezone.now() - timezone.timedelta(days=1))
+        _set_response_time(query, self.hour_before_cutoff, date=yesterday())
 
         results = update_cases_sla.now()
 
@@ -230,7 +231,7 @@ class SlaRulesTests(DataTestClient):
         _set_case_time(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
         _set_case_time(query, self.hour_before_cutoff, date=timezone.now() - timezone.timedelta(days=2))
-        _set_response_time(query, self.hour_after_cutoff, date=timezone.now() - timezone.timedelta(days=1))
+        _set_response_time(query, self.hour_after_cutoff, date=yesterday())
 
         results = update_cases_sla.now()
 
