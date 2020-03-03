@@ -37,7 +37,7 @@ def is_weekend(date):
     return date.weekday() > 4
 
 
-def get_bank_holidays():
+def get_bank_holidays(call_api=True):
     """
     Uses the GOV bank holidays API.
     If it can connect to the API, it extracts the list of bank holidays,
@@ -45,26 +45,32 @@ def get_bank_holidays():
     If it cannot connect to the service it will use the CSV backup and returns the list.
     """
     data = []
-    r = requests.get(BANK_HOLIDAY_API)
-    if r.status_code != status.HTTP_200_OK:
-        logging.warning(
-            f"{LOG_PREFIX} Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup"
-        )
+    if call_api:
+        r = requests.get(BANK_HOLIDAY_API)
+        if r.status_code != status.HTTP_200_OK:
+            logging.warning(
+                f"{LOG_PREFIX} Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup"
+            )
+            try:
+                with open(BACKUP_FILE_NAME, "r") as backup_file:
+                    data = backup_file.read().split(",")
+            except FileNotFoundError:
+                logging.error(f"{LOG_PREFIX} No local bank holiday backup found; {BACKUP_FILE_NAME}")
+        else:
+            try:
+                dates = r.json()["england-and-wales"]["events"]
+                data = [event["date"] for event in dates]
+                with open(BACKUP_FILE_NAME, "w") as backup_file:
+                    backup_file.write(",".join(data))
+                logging.info(f"{LOG_PREFIX} Fetched GOV Bank Holiday list successfully")
+            except Exception as e:  # noqa
+                logging.error(e)
+    else:
         try:
             with open(BACKUP_FILE_NAME, "r") as backup_file:
                 data = backup_file.read().split(",")
         except FileNotFoundError:
             logging.error(f"{LOG_PREFIX} No local bank holiday backup found; {BACKUP_FILE_NAME}")
-    else:
-        try:
-            dates = r.json()["england-and-wales"]["events"]
-            data = [event["date"] for event in dates]
-            with open(BACKUP_FILE_NAME, "w") as backup_file:
-                backup_file.write(",".join(data))
-            logging.info(f"{LOG_PREFIX} Fetched GOV Bank Holiday list successfully")
-        except Exception as e:  # noqa
-            logging.error(e)
-
     return data
 
 
