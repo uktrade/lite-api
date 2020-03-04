@@ -37,6 +37,14 @@ def is_weekend(date):
     return date.weekday() > 4
 
 
+def get_backup_bank_holidays():
+    try:
+        with open(BACKUP_FILE_NAME, "r") as backup_file:
+            return backup_file.read().split(",")
+    except FileNotFoundError:
+        logging.error(f"{LOG_PREFIX} No local bank holiday backup found; {BACKUP_FILE_NAME}")
+
+
 def get_bank_holidays(call_api=True):
     """
     Uses the GOV bank holidays API.
@@ -46,22 +54,14 @@ def get_bank_holidays(call_api=True):
     """
     data = []
     if not call_api:
-        try:
-            with open(BACKUP_FILE_NAME, "r") as backup_file:
-                return backup_file.read().split(",")
-        except FileNotFoundError:
-            logging.error(f"{LOG_PREFIX} No local bank holiday backup found; {BACKUP_FILE_NAME}")
+        return get_backup_bank_holidays()
 
     r = requests.get(BANK_HOLIDAY_API)
     if r.status_code != status.HTTP_200_OK:
         logging.warning(
             f"{LOG_PREFIX} Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup"
         )
-        try:
-            with open(BACKUP_FILE_NAME, "r") as backup_file:
-                data = backup_file.read().split(",")
-        except FileNotFoundError:
-            logging.error(f"{LOG_PREFIX} No local bank holiday backup found; {BACKUP_FILE_NAME}")
+        return get_backup_bank_holidays()
     else:
         try:
             dates = r.json()["england-and-wales"]["events"]
