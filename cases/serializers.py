@@ -130,7 +130,7 @@ class CaseListSerializer(serializers.Serializer):
         return get_ordered_flags(instance, self.team)
 
     def get_submitted_at(self, instance):
-        return instance.submitted_at
+        return instance.submitted_at  # Return the DateTime value
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))

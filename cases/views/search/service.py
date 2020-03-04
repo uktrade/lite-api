@@ -11,7 +11,7 @@ from django.utils import timezone
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from cases.sla import working_days_in_range, number_of_days_since
+from common.dates import working_days_in_range, number_of_days_since
 from cases.views.search.queue import SearchQueue
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
