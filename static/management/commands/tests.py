@@ -22,6 +22,7 @@ from static.management.commands import (
     seedcountries,
     seeddenialreasons,
     seedrolepermissions,
+    seedadminusers,
     seedflags,
     seeddemodata,
 )
@@ -82,7 +83,8 @@ class SeedingTests(SeedCommandTest):
         self.assertTrue(Permission.objects.count() >= len(GovPermissions) + len(ExporterPermissions))
 
     def test_seed_flags(self):
-        self.seed_command(seedteams.Command)
+        self.seed_command(seedrolepermissions.Command)
+        seedadminusers.Command.seed_admin_team()
         self.seed_command(seedflags.Command)
         for flag in seedlayouts.Command.read_csv(seedflags.FLAGS_FILE):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())
