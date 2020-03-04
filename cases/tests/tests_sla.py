@@ -183,7 +183,6 @@ class WorkingDayTests(DataTestClient):
 
         self.assertTrue(result)
 
-
     @parameterized.expand(
         [
             (date(2020, 2, 10), 1, 1),
