@@ -1,9 +1,17 @@
+from datetime import timedelta
 from typing import List, Dict
 
+from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count
 from django.db.models import Value
 from django.db.models.functions import Concat
+from django.utils import timezone
 
+from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
+from cases.models import Case
+from common.dates import working_days_in_range, number_of_days_since
 from cases.views.search.queue import SearchQueue
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
@@ -29,3 +37,36 @@ def get_gov_users_list():
         .annotate(full_name=Concat("first_name", Value(" "), "last_name"))
         .values_list("full_name", flat=True)
     ]
+
+
+def populate_is_recently_updated(cases: Dict):
+    """
+    Given a dictionary of cases, annotate each one with the field "is_recently_updated"
+    If the case was submitted less than settings.RECENTLY_UPDATED_WORKING_DAYS ago, set the field to True
+    If the case was not, check that it has audit activity less than settings.RECENTLY_UPDATED_WORKING_DAYS
+    ago and return True, else return False
+    """
+    now = timezone.now()
+
+    recent_audits = (
+        Audit.objects.filter(
+            target_content_type=ContentType.objects.get_for_model(Case),
+            target_object_id__in=[
+                case["id"]
+                for case in cases
+                if working_days_in_range(case["submitted_at"], now) > settings.RECENTLY_UPDATED_WORKING_DAYS
+            ],
+            actor_content_type=ContentType.objects.get_for_model(GovUser),
+            created_at__gt=now - timedelta(days=number_of_days_since(now, settings.RECENTLY_UPDATED_WORKING_DAYS)),
+        )
+        .values("target_object_id")
+        .annotate(Count("target_object_id"))
+    )
+
+    audit_dict = {audit["target_object_id"]: audit["target_object_id__count"] for audit in recent_audits}
+
+    for case in cases:
+        case["is_recently_updated"] = bool(
+            working_days_in_range(case["submitted_at"], now) < settings.RECENTLY_UPDATED_WORKING_DAYS
+            or audit_dict.get(case["id"])
+        )

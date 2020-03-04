@@ -105,7 +105,7 @@ class CaseSerializer(serializers.ModelSerializer):
         return repr_dict
 
 
-class TinyCaseSerializer(serializers.Serializer):
+class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
@@ -116,7 +116,7 @@ class TinyCaseSerializer(serializers.Serializer):
     status = serializers.SerializerMethodField()
     query = QueryViewSerializer()
     flags = serializers.SerializerMethodField()
-    submitted_at = serializers.CharField()
+    submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
 
@@ -129,6 +129,11 @@ class TinyCaseSerializer(serializers.Serializer):
         Gets flags for a case and returns in sorted order by team.
         """
         return get_ordered_flags(instance, self.team)
+
+    def get_submitted_at(self, instance):
+        # Return the DateTime value manually as otherwise
+        # it'll return a string representation which isn't suitable for filtering
+        return instance.submitted_at
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))
