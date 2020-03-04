@@ -105,7 +105,7 @@ def get_case_ids_with_active_ecju_queries(date):
             Q(responded_at__isnull=True, created_at__lt=today(time=SLA_UPDATE_CUTOFF_TIME),)
             | Q(responded_at__gt=yesterday(time=SLA_UPDATE_CUTOFF_TIME))
         )
-        .values("case")
+        .values("case_id")
         .distinct()
     )
 
