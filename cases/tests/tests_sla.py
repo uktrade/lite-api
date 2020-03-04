@@ -8,7 +8,7 @@ from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.models import Case
 from cases.sla import (
     update_cases_sla,
-    num_days_since,
+    number_of_days_since,
     is_weekend,
     is_bank_holiday,
     STANDARD_APPLICATION_TARGET_DAYS,
@@ -195,6 +195,6 @@ class WorkingDayTests(DataTestClient):
         ]
     )
     def test_num_working_days_since(self, test_date, num_working_days, expected_result):
-        result = num_days_since(test_date, num_working_days)
+        result = number_of_days_since(test_date, num_working_days)
 
         self.assertEqual(result, expected_result)

@@ -11,7 +11,7 @@ from django.utils import timezone
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from cases.sla import working_days_in_range, num_days_since
+from cases.sla import working_days_in_range, number_of_days_since
 from cases.views.search.queue import SearchQueue
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
@@ -53,7 +53,7 @@ def populate_is_recently_updated(cases: Dict):
             target_content_type=ContentType.objects.get_for_model(Case),
             target_object_id__in=[case["id"] for case in cases],
             actor_content_type=ContentType.objects.get_for_model(GovUser),
-            created_at__gt=now - timedelta(days=num_days_since(now, settings.RECENTLY_UPDATED_WORKING_DAYS)),
+            created_at__gt=now - timedelta(days=number_of_days_since(now, settings.RECENTLY_UPDATED_WORKING_DAYS)),
         )
         .values("target_object_id")
         .annotate(Count("target_object_id"))

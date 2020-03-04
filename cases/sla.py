@@ -77,7 +77,13 @@ def is_bank_holiday(date):
     return formatted_date in get_bank_holidays()
 
 
-def num_days_since(date, num_working_days):
+def number_of_days_since(date, num_working_days):
+    """
+    Given a date, return the amount of days since then
+    including the number of working days
+    For example, given Wednesday and 5 working days, this
+    function will return 7 (due to weekends)
+    """
     days = 0
     while num_working_days > 0:
         days += 1
