@@ -1,10 +1,8 @@
-from datetime import datetime
-from datetime import time
+from datetime import time, datetime
 from unittest import mock
 from unittest.mock import patch
 
 from django.utils import timezone
-from django.utils.datetime_safe import datetime
 from parameterized import parameterized
 
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
