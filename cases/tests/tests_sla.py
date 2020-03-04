@@ -8,6 +8,7 @@ from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.models import Case
 from cases.sla import (
     update_cases_sla,
+    num_days_since,
     is_weekend,
     is_bank_holiday,
     STANDARD_APPLICATION_TARGET_DAYS,
@@ -181,3 +182,20 @@ class WorkingDayTests(DataTestClient):
         result = is_bank_holiday(test_date)
 
         self.assertTrue(result)
+
+
+    @parameterized.expand(
+        [
+            (date(2020, 2, 10), 1, 1),
+            (date(2020, 2, 11), 2, 2),
+            (date(2020, 2, 12), 3, 3),
+            (date(2020, 2, 13), 4, 4),
+            (date(2020, 2, 14), 5, 5),
+            (date(2020, 2, 15), 9, 6),
+            (date(2020, 2, 16), 11, 7),
+        ]
+    )
+    def test_num_working_days_since(self, test_date, num_working_days, expected_result):
+        result = num_days_since(test_date, num_working_days)
+
+        self.assertEqual(result, expected_result)

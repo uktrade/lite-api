@@ -77,6 +77,19 @@ def is_bank_holiday(date):
     return formatted_date in get_bank_holidays()
 
 
+def num_days_since(date, num_working_days):
+    days = 0
+    while num_working_days > 0:
+        days += 1
+        if is_bank_holiday(date) or is_weekend(date):
+            date = date - timedelta(days=1)
+            continue
+        num_working_days -= 1
+        date = date - timedelta(days=1)
+
+    return days
+
+
 @background(schedule=make_aware(datetime.combine(now(), SLA_UPDATE_TASK_TIME)))
 def update_cases_sla():
     """
