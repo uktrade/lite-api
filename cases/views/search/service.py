@@ -51,7 +51,11 @@ def populate_is_recently_updated(cases: Dict):
     recent_audits = (
         Audit.objects.filter(
             target_content_type=ContentType.objects.get_for_model(Case),
-            target_object_id__in=[case["id"] for case in cases],
+            target_object_id__in=[
+                case["id"]
+                for case in cases
+                if working_days_in_range(case["submitted_at"], now) > settings.RECENTLY_UPDATED_WORKING_DAYS
+            ],
             actor_content_type=ContentType.objects.get_for_model(GovUser),
             created_at__gt=now - timedelta(days=number_of_days_since(now, settings.RECENTLY_UPDATED_WORKING_DAYS)),
         )
