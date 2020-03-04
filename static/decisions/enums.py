@@ -1,7 +1,7 @@
 from uuid import UUID
 
 
-class Decisions:
+class DecisionsEnum:
     APPROVE = "approve"
     PROVISO = "proviso"
     DENY = "deny"
@@ -14,7 +14,7 @@ class Decisions:
         (NLR, "No Licence Required"),
     ]
 
-    data = {
+    ids = {
         APPROVE: UUID("00000000-0000-0000-0000-000000000001"),
         PROVISO: UUID("00000000-0000-0000-0000-000000000002"),
         DENY: UUID("00000000-0000-0000-0000-000000000003"),

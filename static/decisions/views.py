@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.status import HTTP_200_OK
 
-from static.decisions.enums import Decisions as DecisionsEnum
+from static.decisions.enums import DecisionsEnum as DecisionsEnum
 
 
 class Decisions(APIView):

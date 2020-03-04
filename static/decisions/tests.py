@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from static.decisions.enums import Decisions
+from static.decisions.enums import DecisionsEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -13,6 +13,6 @@ class DecisionsTests(DataTestClient):
         response_data = response.json()["decisions"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), len(Decisions.choices))
-        for decision in Decisions.choices:
+        self.assertEqual(len(response_data), len(DecisionsEnum.choices))
+        for decision in DecisionsEnum.choices:
             self.assertIn(decision[0], str(response_data))

@@ -7,7 +7,7 @@ from sortedm2m.fields import SortedManyToManyField
 
 from cases.models import CaseType
 from common.models import TimestampableModel
-from static.decisions.enums import Decisions
+from static.decisions.enums import DecisionsEnum
 from picklists.models import PicklistItem
 from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout

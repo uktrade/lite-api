@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from conf import settings
-from static.decisions.enums import Decisions
+from static.decisions.enums import DecisionsEnum
 from static.decisions.models import Decision
 from static.management.SeedCommand import SeedCommand
 
@@ -18,7 +18,7 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        for name, id in Decisions.data.items():
+        for name, id in DecisionsEnum.ids.items():
             _, created = Decision.objects.get_or_create(id=id, name=name)
             if not settings.SUPPRESS_TEST_OUTPUT:
                 if created:
