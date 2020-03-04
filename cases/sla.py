@@ -101,9 +101,7 @@ def get_case_ids_with_active_ecju_queries(date):
                 responded_at__isnull=True,
                 created_at__lt=timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
             )
-            | Q(
-                responded_at__gt=timezone.make_aware(datetime.combine(yesterday(), SLA_UPDATE_CUTOFF_TIME)),
-            )
+            | Q(responded_at__gt=timezone.make_aware(datetime.combine(yesterday(), SLA_UPDATE_CUTOFF_TIME)),)
         )
         .values("case")
         .distinct()
