@@ -33,7 +33,8 @@ from cases.serializers import (
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
-    CaseFinalAdviceDocumentsSerializer)
+    CaseFinalAdviceDocumentsSerializer,
+)
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.exceptions import NotFoundError
