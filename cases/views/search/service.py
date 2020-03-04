@@ -11,7 +11,7 @@ from django.utils import timezone
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from cases.sla import working_days_in_range
+from cases.sla import working_days_in_range, num_days_since
 from cases.views.search.queue import SearchQueue
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
@@ -42,8 +42,8 @@ def get_gov_users_list():
 def populate_is_recently_updated(cases: Dict):
     """
     Given a dictionary of cases, annotate each one with the field "is_recently_updated"
-    If the case was submitted less than settings.RECENTLY_UPDATED_DAYS ago, set the field to True
-    If the case was not, check that it has audit activity less than settings.RECENTLY_UPDATED_DAYS
+    If the case was submitted less than settings.RECENTLY_UPDATED_WORKING_DAYS ago, set the field to True
+    If the case was not, check that it has audit activity less than settings.RECENTLY_UPDATED_WORKING_DAYS
     ago and return True, else return False
     """
     now = timezone.now()
@@ -53,7 +53,7 @@ def populate_is_recently_updated(cases: Dict):
             target_content_type=ContentType.objects.get_for_model(Case),
             target_object_id__in=[case["id"] for case in cases],
             actor_content_type=ContentType.objects.get_for_model(GovUser),
-            created_at__gt=now - timedelta(days=settings.RECENTLY_UPDATED_DAYS),
+            created_at__gt=now - timedelta(days=num_days_since(now, settings.RECENTLY_UPDATED_WORKING_DAYS)),
         )
         .values("target_object_id")
         .annotate(Count("target_object_id"))
@@ -63,6 +63,6 @@ def populate_is_recently_updated(cases: Dict):
 
     for case in cases:
         case["is_recently_updated"] = bool(
-            working_days_in_range(case["submitted_at"], now) < settings.RECENTLY_UPDATED_DAYS
+            working_days_in_range(case["submitted_at"], now) < settings.RECENTLY_UPDATED_WORKING_DAYS
             or audit_dict.get(case["id"])
         )

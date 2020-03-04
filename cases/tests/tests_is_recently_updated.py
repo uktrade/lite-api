@@ -8,7 +8,7 @@ from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 
-@override_settings(RECENTLY_UPDATED_DAYS=5)
+@override_settings(RECENTLY_UPDATED_WORKING_DAYS=5)
 class TestIsRecentlyUpdated(DataTestClient):
 
     url = reverse("cases:search")

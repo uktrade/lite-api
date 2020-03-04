@@ -17,7 +17,7 @@ env = Env(
     LOG_LEVEL=(str, "INFO"),
     BACKGROUND_TASK_ENABLED=(bool, False),
     SUPPRESS_TEST_OUTPUT=(bool, False),
-    RECENTLY_UPDATED_DAYS=(int, 5),
+    RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -196,8 +196,8 @@ if "test" not in sys.argv:
 else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}
 
-RECENTLY_UPDATED_DAYS = env(
-    "RECENTLY_UPDATED_DAYS"
+RECENTLY_UPDATED_WORKING_DAYS = env(
+    "RECENTLY_UPDATED_WORKING_DAYS"
 )  # Days that must have passed until we indicate a case has not been updated recently
 
 # Security settings
