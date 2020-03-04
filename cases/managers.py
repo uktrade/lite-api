@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 
+from compat import get_model
 from django.db import models
 
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
@@ -113,8 +114,9 @@ class CaseManager(models.Manager):
         """
         case_qs = self.submitted().prefetch_related("queues", "status", "organisation__flags",)
         team_id = user.team.id
+
         if not include_hidden:
-            from cases.models import EcjuQuery
+            EcjuQuery = get_model("cases", "ecjuquery")
 
             case_qs = case_qs.exclude(
                 id__in=EcjuQuery.objects.filter(raised_by_user__team_id=team_id, responded_at__isnull=True)

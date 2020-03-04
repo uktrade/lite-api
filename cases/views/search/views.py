@@ -39,7 +39,6 @@ class CasesSearchView(generics.ListAPIView):
                 sort=request.GET.get("sort"),
                 date_order=order,
                 include_hidden=include_hidden,
-                team_id=request.user.team.id,
             )
         )
         queues = SearchQueueSerializer(service.get_search_queues(user=request.user), many=True).data

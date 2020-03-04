@@ -49,7 +49,7 @@ class SearchQueue:
                 id=queues.MY_TEAMS_QUEUES_CASES_ID,
                 name=queues.MY_TEAMS_QUEUES_CASES_NAME,
                 team=Team.objects.get(name="Admin"),
-                case_count=case_qs.in_team(team=user.team).count(),
+                case_count=case_qs.in_team(team_id=user.team.id).count(),
             ),
             cls(
                 id=queues.MY_ASSIGNED_CASES_QUEUE_ID,
