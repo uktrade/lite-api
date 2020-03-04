@@ -125,7 +125,7 @@ def update_cases_sla():
 
     logging.info(f"{LOG_PREFIX} SLA Update Started")
     date = timezone.now()
-    if not is_bank_holiday(date) and not is_weekend(date):
+    if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
         try:
             # Get cases submitted before the cutoff time today, where they have never been closed
             # and where the cases SLA haven't been updated today (to avoid running twice in a single day).
