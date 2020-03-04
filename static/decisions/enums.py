@@ -1,3 +1,6 @@
+from uuid import UUID
+
+
 class Decisions:
     APPROVE = "approve"
     PROVISO = "proviso"
@@ -10,6 +13,13 @@ class Decisions:
         (DENY, "Deny"),
         (NLR, "No Licence Required"),
     ]
+
+    data = {
+        UUID("00000000-0000-0000-0000-000000000001"): APPROVE,
+        UUID("00000000-0000-0000-0000-000000000002"): PROVISO,
+        UUID("00000000-0000-0000-0000-000000000003"): DENY,
+        UUID("00000000-0000-0000-0000-000000000004"): NLR,
+    }
 
     @classmethod
     def get_text(cls, choice):
