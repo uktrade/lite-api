@@ -18,7 +18,7 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        for id, name in Decisions.data.items():
+        for name, id in Decisions.data.items():
             _, created = Decision.objects.get_or_create(id=id, name=name)
             if not settings.SUPPRESS_TEST_OUTPUT:
                 if created:
