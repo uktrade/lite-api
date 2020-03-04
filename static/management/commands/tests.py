@@ -23,7 +23,6 @@ from static.management.commands import (
     seeddenialreasons,
     seedrolepermissions,
     seedflags,
-    seedteams,
     seeddemodata,
 )
 from static.statuses.models import CaseStatus, CaseStatusCaseType

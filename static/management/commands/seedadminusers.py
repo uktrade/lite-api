@@ -28,9 +28,7 @@ class Command(SeedCommand):
 
     @classmethod
     def seed_admin_team(cls):
-        admin_team, created = Team.objects.get_or_create(
-            id=Teams.ADMIN_TEAM_ID, defaults={"name": Teams.ADMIN_TEAM_NAME}
-        )
+        _, created = Team.objects.get_or_create(id=Teams.ADMIN_TEAM_ID, defaults={"name": Teams.ADMIN_TEAM_NAME})
 
         if created:
             cls.print_created_or_updated(
