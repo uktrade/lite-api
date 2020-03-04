@@ -58,9 +58,7 @@ def populate_is_recently_updated(cases: Dict):
         .annotate(Count("target_object_id"))
     )
 
-    audit_dict = {}
-    for a in recent_audits:
-        audit_dict[a["target_object_id"]] = a["target_object_id__count"]
+    audit_dict = {a["target_object_id"]: a["target_object_id__count"] for a in recent_audits}
 
     for case in cases:
         case["is_recently_updated"] = (
