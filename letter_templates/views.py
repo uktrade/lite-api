@@ -7,6 +7,7 @@ from audit_trail.serializers import AuditSerializer
 from cases.enums import CaseTypeEnum
 from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
+from cases.models import FinalAdvice
 from conf import constants
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
@@ -16,6 +17,8 @@ from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 from picklists.enums import PicklistType
 from picklists.models import PicklistItem
+from static.decisions.enums import DecisionsEnum
+from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout
 
 
@@ -30,12 +33,22 @@ class LetterTemplatesList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         case = self.request.GET.get("case")
-        return get_letter_templates_for_case(get_case(pk=case)) if case else self.queryset
+        decision = self.request.GET.get("decision")
+        if decision:
+            decision = FinalAdvice.objects.get(id=decision)
+            # TODO: Link FinalAdvice to decision model
+            decision_type = Decision.objects.get(name=decision.type)
+            return LetterTemplate.objects.filter(decisions=decision_type)
+        if case:
+            return get_letter_templates_for_case(get_case(pk=case))
+        else:
+            return self.queryset
 
     def post(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         data = request.data
         data["case_types"] = CaseTypeEnum.references_to_ids(data.get("case_types"))
+        data["decisions"] = [DecisionsEnum.ids[decision] for decision in data.get("decisions", [])]
         serializer = self.serializer_class(data=data)
 
         if serializer.is_valid():
