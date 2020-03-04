@@ -75,20 +75,24 @@ def get_bank_holidays(call_api=True):
     return data
 
 
-def is_bank_holiday(date, call_api=True):
+def is_bank_holiday(date, call_api: bool = True):
     formatted_date = date.strftime("%Y-%m-%d")
     return formatted_date in get_bank_holidays(call_api)
 
 
 def today(time=timezone.now().time()):
+    """
+    returns today's date with the provided time
+    """
     return timezone.make_aware(datetime.combine(timezone.now(), time))
 
 
-def yesterday(date=None, time=None):
-    if date:
-        day = date - timezone.timedelta(days=1)
-    else:
-        day = timezone.now() - timezone.timedelta(days=1)
+def yesterday(date=timezone.now(), time=None):
+    """
+    returns the previous working day from the date provided (defaults to now) at the time provided (defaults to now)
+    """
+    day = date - timezone.timedelta(days=1)
+
     while is_bank_holiday(day, call_api=False) or is_weekend(day):
         day = day - timezone.timedelta(days=1)
     if time:
