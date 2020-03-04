@@ -43,6 +43,7 @@ def get_backup_bank_holidays():
             return backup_file.read().split(",")
     except FileNotFoundError:
         logging.error(f"{LOG_PREFIX} No local bank holiday backup found; {BACKUP_FILE_NAME}")
+        return []
 
 
 def get_bank_holidays(call_api=True):
