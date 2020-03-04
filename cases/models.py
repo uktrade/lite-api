@@ -248,6 +248,8 @@ class TeamAdvice(Advice):
 
 
 class FinalAdvice(Advice):
+    document = models.ForeignKey("generated_documents.GeneratedCaseDocument", on_delete=models.DO_NOTHING, null=True)
+
     # pylint: disable=W0221
     # pylint: disable=E1003
     def save(self, *args, **kwargs):
