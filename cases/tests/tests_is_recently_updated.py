@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -7,6 +8,7 @@ from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 
+@override_settings(RECENTLY_UPDATED_DAYS=5)
 class TestIsRecentlyUpdated(DataTestClient):
 
     url = reverse("cases:search")
@@ -52,7 +54,7 @@ class TestIsRecentlyUpdated(DataTestClient):
 
         self.assertEqual(response_data["is_recently_updated"], False)
 
-    def test_recently_updated_if_case_is_younger_than_five_days(self):
+    def test_recently_submitted_cases_are_flagged_as_updated(self):
         self.create_standard_application_case(self.organisation)
 
         response = self.client.get(self.url, **self.gov_headers)

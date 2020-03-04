@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import requests
 
 from background_task import background
@@ -34,6 +34,11 @@ def get_application_target_sla(type):
 def is_weekend(date):
     # Weekdays are 0 indexed so Saturday is 5 and Sunday is 6
     return date.weekday() > 4
+
+
+def working_days_in_range(start_date, end_date):
+    dates_in_range = [start_date + timedelta(n) for n in range((end_date - start_date).days)]
+    return len([date for date in dates_in_range if not is_bank_holiday(date) or not is_weekend(date)])
 
 
 def get_bank_holidays():

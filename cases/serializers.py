@@ -1,14 +1,10 @@
-from datetime import timedelta
-
 from django.contrib.contenttypes.models import ContentType
-from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from audit_trail.models import Audit
-from audit_trail.service import get_case_object_trail
 from cases.enums import (
     CaseTypeTypeEnum,
     AdviceType,
@@ -29,7 +25,6 @@ from cases.models import (
     GoodCountryDecision,
     CaseType,
 )
-from conf import settings
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
@@ -120,10 +115,9 @@ class CaseListSerializer(serializers.Serializer):
     status = serializers.SerializerMethodField()
     query = QueryViewSerializer()
     flags = serializers.SerializerMethodField()
-    submitted_at = serializers.CharField()
+    submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    is_recently_updated = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -134,6 +128,9 @@ class CaseListSerializer(serializers.Serializer):
         Gets flags for a case and returns in sorted order by team.
         """
         return get_ordered_flags(instance, self.team)
+
+    def get_submitted_at(self, instance):
+        return instance.submitted_at
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))
@@ -146,13 +143,6 @@ class CaseListSerializer(serializers.Serializer):
 
     def get_users(self, instance):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
-
-    def get_is_recently_updated(self, instance):
-        trail = get_case_object_trail(instance).filter(
-            created_at__gt=timezone.now() - timedelta(days=settings.RECENTLY_UPDATED_DAYS)
-        )
-
-        return (timezone.now() - instance.submitted_at).days < settings.RECENTLY_UPDATED_DAYS or trail.exists()
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):

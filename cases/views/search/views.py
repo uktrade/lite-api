@@ -35,6 +35,9 @@ class CasesSearchView(generics.ListAPIView):
         )
         queues = SearchQueueSerializer(service.get_search_queues(user=request.user), many=True).data
         cases = CaseListSerializer(page, context=context, team=request.user.team, many=True).data
+
+        service.populate_is_recently_updated(cases)
+
         queue = next(q for q in queues if q["id"] == queue_id)
 
         statuses = service.get_case_status_list()
