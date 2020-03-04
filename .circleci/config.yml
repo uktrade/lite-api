@@ -17,6 +17,7 @@ jobs:
       INTERNAL_ADMIN_USERS: '[{"email": "test-internal-user@email.com"}]'
       EXPORTER_USERS: '[{"email": "test-exporter-user@email.com"}]'
       PIPENV_VENV_IN_PROJECT: 'enabled'
+      SUPPRESS_TEST_OUTPUT: 'True'
 
     working_directory: ~/lite-api
 

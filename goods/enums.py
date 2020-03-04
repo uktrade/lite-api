@@ -46,7 +46,7 @@ class PvGrading:
     choices = [
         (UK_UNCLASSIFIED, "UK UNCLASSIFIED"),
         (UK_OFFICIAL, "UK OFFICIAL"),
-        (UK_OFFICIAL_SENSITIVE, "UK OFFICAL - SENSITIVE"),
+        (UK_OFFICIAL_SENSITIVE, "UK OFFICIAL - SENSITIVE"),
         (UK_SECRET, "UK SECRET"),
         (UK_TOP_SECRET, "UK TOP SECRET"),
         (NATO_UNCLASSIFIED, "NATO UNCLASSIFIED"),
@@ -66,3 +66,7 @@ class PvGrading:
         (UK_SECRET, "UK secret"),
         (UK_TOP_SECRET, "UK top secret"),
     ]
+
+    @classmethod
+    def to_str(cls, obj):
+        return [grading[1] for grading in PvGrading.choices if grading[0] == obj][0]
