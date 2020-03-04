@@ -88,10 +88,6 @@ class SeedingTests(SeedCommandTest):
         for flag in seedlayouts.Command.read_csv(seedflags.FLAGS_FILE):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())
 
-    def test_seed_teams(self):
-        self.seed_command(seedteams.Command)
-        self.assertTrue(Team.objects.filter(id=Teams.ADMIN_TEAM_ID).exists())
-
     def test_seed_demo_data(self):
         self.seed_command(seedcountries.Command)
         self.seed_command(seeddemodata.Command)

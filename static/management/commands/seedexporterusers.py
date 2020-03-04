@@ -1,71 +1,58 @@
 from json import loads as serialize
 from django.db import transaction
 
-from conf.constants import Teams, Roles
+from conf.constants import Roles
 from conf.settings import env
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from static.management.SeedCommand import SeedCommand
 from static.management.commands.seeddemodata import DEFAULT_DEMO_HMRC_ORG_NAME, DEFAULT_DEMO_ORG_NAME
-from teams.models import Team
 from users.enums import UserType
-from users.models import ExporterUser, UserOrganisationRelationship, Role, GovUser
+from users.models import ExporterUser, UserOrganisationRelationship, Role
 
 
 class Command(SeedCommand):
     """
-    pipenv run ./manage.py seeddemousers
+    pipenv run ./manage.py seedexporterusers
     """
 
-    help = "Seeds demo gov and exporter users"
-    info = "Seeding demo gov and exporter users"
-    success = "Successfully seeded demo gov and exporter users"
-    seed_command = "seeddemousers"
+    help = "Seeds exporter users"
+    info = "Seeding exporter users"
+    success = "Successfully seeded exporter users"
+    seed_command = "seedexporterusers"
 
     @transaction.atomic
     def operation(self, *args, **options):
-        assert Team.objects.count(), "Teams must be seeded first!"
+        assert (
+            Organisation.objects.filter(name=DEFAULT_DEMO_ORG_NAME).exists()
+            and Organisation.objects.filter(name=DEFAULT_DEMO_HMRC_ORG_NAME).exists()
+        ), "Demo organisations must be seeded first!"
         assert Role.objects.count(), "Role permissions must be seeded first!"
 
-        demo_users = env("DEMO_USERS")
-        demo_users = demo_users.replace("=>", ":")
-        demo_users = serialize(demo_users)
-
-        for user in demo_users:
-            self.seed_gov_user(user)
-            self.seed_exporter_user(user)
+        # Seed admin users first, as they could be re-defined with a role in the exporter users environment variable
+        self.seed_exporter_users(self._get_admin_users())
+        self.seed_exporter_users(self._get_exporter_users())
 
     @classmethod
-    def seed_gov_user(cls, user_data):
-        has_gov_data = "internal" in user_data and user_data["internal"] != "False"
-
-        if has_gov_data:
-            gov_data = user_data["internal"] if isinstance(user_data["internal"], dict) else {}
-
-            team = Team.objects.get(name=gov_data.get("team", Teams.ADMIN_TEAM_NAME))
-            role = Role.objects.get(
-                name=gov_data.get("role", Roles.INTERNAL_SUPER_USER_ROLE_NAME), type=UserType.INTERNAL
-            )
-
-            gov_user, created = GovUser.objects.get_or_create(
-                email__iexact=user_data["email"], defaults={"email": user_data["email"], "team": team, "role": role}
-            )
-
-            if created or gov_user.role != role or gov_user.team != team:
-                gov_user.team = team
-                gov_user.role = role
-                gov_user.save()
-
-                user_data = dict(email=user_data["email"], team=team.name, role=role.name)
-                cls.print_created_or_updated(GovUser, user_data, is_created=created)
+    def _get_exporter_users(cls):
+        exporter_users = env("EXPORTER_USERS")
+        exporter_users = exporter_users.replace("=>", ":")
+        return serialize(exporter_users)
 
     @classmethod
-    def seed_exporter_user(cls, user_data):
-        has_exporter_data = "exporter" in user_data and user_data["exporter"] != "False"
+    def _get_admin_users(cls):
+        admin_users = env("INTERNAL_ADMIN_USERS")
+        admin_users = admin_users.replace("=>", ":")
+        admin_users = serialize(admin_users)
+        # seed admin users as an exporter super-user
+        for user in admin_users:
+            user["role"] = Roles.EXPORTER_SUPER_USER_ROLE_NAME
+        return admin_users
 
-        if has_exporter_data:
-            exporter_data = user_data["exporter"] if isinstance(user_data["exporter"], dict) else {}
-            default_data = dict(email=user_data["email"])
+    @classmethod
+    def seed_exporter_users(cls, users):
+        for user in users:
+            default_data = dict(email=user["email"])
 
             exporter_user, created = ExporterUser.objects.get_or_create(
                 email__iexact=default_data["email"], defaults=default_data
@@ -74,7 +61,7 @@ class Command(SeedCommand):
             if created:
                 cls.print_created_or_updated(ExporterUser, default_data, is_created=True)
 
-            cls._add_exporter_to_organisation(exporter_data, exporter_user)
+            cls._add_exporter_to_organisation(user, exporter_user)
             cls._add_exporter_to_default_hmrc_organisation(exporter_user)
 
     @classmethod

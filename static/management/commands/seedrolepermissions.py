@@ -71,7 +71,7 @@ class Command(SeedCommand):
 
     @classmethod
     def _create_role_and_output(cls, id, type, name):
-        data = dict(id=id, type=type, name=name)
+        data = dict(id=str(id), type=type, name=name)
         _, created = Role.objects.get_or_create(**data)
 
         if created:
