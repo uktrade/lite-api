@@ -20,3 +20,12 @@ class GeneratedCaseDocumentGovSerializer(serializers.ModelSerializer):
             "template",
             "text",
         )
+
+
+class GeneratedFinalAdviceDocumentGovSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeneratedCaseDocument
+        fields = (
+            "user",
+            "created_at"
+        )

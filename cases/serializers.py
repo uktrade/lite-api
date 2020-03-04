@@ -12,6 +12,7 @@ from cases.enums import (
     CaseTypeSubTypeEnum,
     CaseTypeReferenceEnum,
 )
+from cases.generated_documents.serializers import GeneratedFinalAdviceDocumentGovSerializer
 from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
@@ -459,15 +460,15 @@ class CaseFinalAdviceSerializer(CaseAdviceSerializer):
 
 class CaseFinalAdviceDocumentsSerializer(serializers.ModelSerializer):
     type = KeyValueChoiceField(choices=AdviceType.choices)
-    document = serializers.SerializerMethodField()
+    document = GeneratedFinalAdviceDocumentGovSerializer(read_only=True)
 
     class Meta:
         model = FinalAdvice
-        fields = ("id", "type", "document",)
-
-    def get_document(self, instance):
-        # TODO: Add document to decision & remove this
-        return None
+        fields = (
+            "id",
+            "type",
+            "document",
+        )
 
 
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
