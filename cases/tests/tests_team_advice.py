@@ -6,6 +6,7 @@ from cases.enums import AdviceType
 from cases.models import Advice, TeamAdvice
 from conf import constants
 from conf.helpers import convert_queryset_to_str
+from goods.enums import PvGrading
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
@@ -289,6 +290,64 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
+
+    def test_merge_user_advice_same_advice_type_same_pv_gradings(self):
+        """
+        Same advice type, same pv grading
+        """
+        pv_grading = PvGrading.UK_OFFICIAL
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, Advice, pv_grading)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.APPROVE, Advice, pv_grading)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()["advice"]
+
+        self.assertNotIn("\n-------\n", response_data[0]["text"])
+        self.assertEquals(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+
+    def test_merge_user_advice_same_advice_type_different_pv_gradings(self):
+        """
+        Same advice types, different pv gradings
+        """
+        pv_grading = PvGrading.UK_OFFICIAL
+        pv_grading_2 = PvGrading.UK_OFFICIAL_SENSITIVE
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, Advice, pv_grading)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.APPROVE, Advice, pv_grading_2)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()["advice"]
+
+        self.assertNotIn("\n-------\n", response_data[0]["text"])
+        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+
+    def test_merge_user_advice_different_advice_type_different_pv_gradings(self):
+        """
+        Different advice type, different pv gradings
+        """
+        pv_grading = PvGrading.UK_OFFICIAL
+        pv_grading_2 = PvGrading.UK_OFFICIAL_SENSITIVE
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, Advice, pv_grading)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice, pv_grading_2)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()["advice"]
+
+        self.assertNotIn("\n-------\n", response_data[0]["text"])
+        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+
+    def test_merge_user_advice_different_advice_type_same_pv_gradings(self):
+        """
+        Different advice type, same pv gradings
+        """
+        pv_grading = PvGrading.UK_OFFICIAL
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, Advice, pv_grading)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice, pv_grading)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()["advice"]
+
+        self.assertNotIn("\n-------\n", response_data[0]["text"])
+        self.assertEquals(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
 
     def test_when_user_advice_exists_combine_team_advice_with_confirm_own_advice_success(self,):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
