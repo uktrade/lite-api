@@ -4,13 +4,16 @@ from datetime import datetime, time
 from background_task import background
 from django.db import transaction
 from django.db.models import F
-from django.utils.timezone import now, make_aware
+from django.db.models import Q
+from django.utils import timezone
 
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
+from cases.models import EcjuQuery
 from common.dates import is_weekend, is_bank_holiday
 
-SLA_UPDATE_TASK_TIME = time(0, 0, 0)
+# DST safe version of midnight
+SLA_UPDATE_TASK_TIME = time(22, 30, 0)
 SLA_UPDATE_CUTOFF_TIME = time(18, 0, 0)
 LOG_PREFIX = "update_cases_sla background task:"
 
@@ -28,7 +31,41 @@ def get_application_target_sla(_type):
         return MOD_CLEARANCE_TARGET_DAYS
 
 
-@background(schedule=make_aware(datetime.combine(now(), SLA_UPDATE_TASK_TIME)))
+def today(time=timezone.now().time()):
+    """
+    returns today's date with the provided time
+    """
+    return datetime.combine(timezone.now(), time, tzinfo=timezone.utc)
+
+
+def yesterday(date=timezone.now(), time=None):
+    """
+    returns the previous working day from the date provided (defaults to now) at the time provided (defaults to now)
+    """
+    day = date - timezone.timedelta(days=1)
+
+    while is_bank_holiday(day, call_api=False) or is_weekend(day):
+        day = day - timezone.timedelta(days=1)
+    if time:
+        day = datetime.combine(day.date(), time, tzinfo=timezone.utc)
+    return day
+
+
+def get_case_ids_with_active_ecju_queries(date):
+    # ECJU Query SLA exclusion criteria
+    # 1. Still open & created before cutoff time today
+    # 2. Responded to in the last working day before cutoff time today
+    return (
+        EcjuQuery.objects.filter(
+            Q(responded_at__isnull=True, created_at__lt=today(time=SLA_UPDATE_CUTOFF_TIME),)
+            | Q(responded_at__gt=yesterday(time=SLA_UPDATE_CUTOFF_TIME))
+        )
+        .values("case_id")
+        .distinct()
+    )
+
+
+@background(schedule=datetime.combine(timezone.now(), SLA_UPDATE_TASK_TIME, tzinfo=timezone.utc))
 def update_cases_sla():
     """
     Updates all applicable cases SLA.
@@ -38,22 +75,23 @@ def update_cases_sla():
     """
 
     logging.info(f"{LOG_PREFIX} SLA Update Started")
-    date = now()
-    if not is_bank_holiday(date) and not is_weekend(date):
+    date = timezone.now()
+    if not is_bank_holiday(date, call_api=True) and not is_weekend(date):
         try:
             # Get cases submitted before the cutoff time today, where they have never been closed
             # and where the cases SLA haven't been updated today (to avoid running twice in a single day).
             # Lock with select_for_update()
             # Increment the sla_days, decrement the sla_remaining_days & update sla_updated_at
             with transaction.atomic():
+                active_ecju_query_cases = get_case_ids_with_active_ecju_queries(date)
                 results = (
                     Case.objects.select_for_update()
                     .filter(
-                        submitted_at__lt=make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
+                        submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
                         last_closed_at__isnull=True,
                         sla_remaining_days__isnull=False,
                     )
-                    .exclude(sla_updated_at__day=date.day)
+                    .exclude(Q(sla_updated_at__day=date.day) | Q(id__in=active_ecju_query_cases))
                     .update(
                         sla_days=F("sla_days") + 1, sla_remaining_days=F("sla_remaining_days") - 1, sla_updated_at=date
                     )

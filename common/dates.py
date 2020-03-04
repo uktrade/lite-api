@@ -21,7 +21,16 @@ def working_days_in_range(start_date, end_date):
     return len([date for date in dates_in_range if not is_bank_holiday(date) or not is_weekend(date)])
 
 
-def get_bank_holidays(data=BANK_HOLIDAYS_CACHE):  # noqa
+def get_backup_bank_holidays():
+    try:
+        with open(BACKUP_FILE_NAME, "r") as backup_file:
+            return backup_file.read().split(",")
+    except FileNotFoundError:
+        logging.error(f"{LOG_PREFIX} No local bank holiday backup found; {BACKUP_FILE_NAME}")
+        return []
+
+
+def get_bank_holidays(call_api=True, data=BANK_HOLIDAYS_CACHE):  # noqa
     """
     :param data: mutable default for cache behaviour
 
@@ -34,16 +43,15 @@ def get_bank_holidays(data=BANK_HOLIDAYS_CACHE):  # noqa
     if data and isinstance(data, list):
         return data
 
+    if not call_api:
+        return get_backup_bank_holidays()
+
     r = requests.get(BANK_HOLIDAY_API)
     if r.status_code != status.HTTP_200_OK:
         logging.warning(
             f"{LOG_PREFIX} Cannot connect to the GOV Bank Holiday API ({BANK_HOLIDAY_API}). Using local backup"
         )
-        try:
-            with open(BACKUP_FILE_NAME, "r") as backup_file:
-                data = backup_file.read().split(",")
-        except FileNotFoundError:
-            logging.error(f"{LOG_PREFIX} No local bank holiday backup found; {BACKUP_FILE_NAME}")
+        return get_backup_bank_holidays()
     else:
         try:
             dates = r.json()["england-and-wales"]["events"]
@@ -57,9 +65,9 @@ def get_bank_holidays(data=BANK_HOLIDAYS_CACHE):  # noqa
     return data
 
 
-def is_bank_holiday(date):
+def is_bank_holiday(date, call_api=True):
     formatted_date = date.strftime("%Y-%m-%d")
-    return formatted_date in get_bank_holidays()
+    return formatted_date in get_bank_holidays(call_api)
 
 
 def number_of_days_since(date, num_working_days):

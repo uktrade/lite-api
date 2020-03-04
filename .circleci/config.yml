@@ -15,6 +15,7 @@ jobs:
     environment:
       DEBUG: 'True'
       PIPENV_VENV_IN_PROJECT: 'enabled'
+      SUPPRESS_TEST_OUTPUT: 'True'
 
     working_directory: ~/lite-api
 
