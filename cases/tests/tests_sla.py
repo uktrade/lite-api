@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, time, datetime
 from unittest import mock
 from unittest.mock import patch
 
@@ -16,6 +16,7 @@ from cases.sla import (
     MOD_CLEARANCE_TARGET_DAYS,
     SLA_UPDATE_CUTOFF_TIME,
     yesterday,
+    today,
 )
 from test_helpers.clients import DataTestClient
 
@@ -24,18 +25,13 @@ HOUR_AFTER_CUTOFF = time(SLA_UPDATE_CUTOFF_TIME.hour + 1, 0, 0)
 
 
 def _set_submitted_at(case, time, date=timezone.now()):
-    case.submitted_at = timezone.datetime.combine(date, time)
+    case.submitted_at = timezone.make_aware(datetime.combine(date, time))
     case.save()
-
-
-def _today(time=timezone.now().time()):
-    return timezone.datetime.combine(timezone.now(), time)
 
 
 class SlaCaseTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        HOUR_BEFORE_CUTOFF = time(SLA_UPDATE_CUTOFF_TIME.hour - 1, 0, 0)
         self.case_types = {
             CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
             CaseTypeSubTypeEnum.OPEN: self.create_open_application(self.organisation),
@@ -131,8 +127,8 @@ class SlaRulesTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (_today(time=HOUR_BEFORE_CUTOFF), 0),
-            (_today(time=HOUR_AFTER_CUTOFF), 1),
+            (today(time=HOUR_BEFORE_CUTOFF), 0),
+            (today(time=HOUR_AFTER_CUTOFF), 1),
             (yesterday(time=HOUR_BEFORE_CUTOFF), 0),
             (yesterday(time=HOUR_AFTER_CUTOFF), 0),
         ]
@@ -151,8 +147,8 @@ class SlaRulesTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (_today(time=HOUR_BEFORE_CUTOFF), 0),
-            (_today(time=HOUR_AFTER_CUTOFF), 0),
+            (today(time=HOUR_BEFORE_CUTOFF), 0),
+            (today(time=HOUR_AFTER_CUTOFF), 0),
             (yesterday(time=HOUR_BEFORE_CUTOFF), 1),
             (yesterday(time=HOUR_AFTER_CUTOFF), 0),
         ]
