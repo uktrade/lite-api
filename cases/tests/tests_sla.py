@@ -1,12 +1,14 @@
+from contextlib import contextmanager
 from datetime import date, time
 from unittest import mock
+from unittest.mock import patch
 
-from django.test import tag
+from django.test import testcases
 from django.utils import timezone
 from parameterized import parameterized
 
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
-from cases.models import Case
+from cases.models import Case, EcjuQuery
 from cases.sla import (
     update_cases_sla,
     is_weekend,
@@ -25,14 +27,8 @@ def _set_submitted_at(case, time, date=timezone.now()):
     case.save()
 
 
-def _set_created_at(case, time, date=timezone.now()):
-    case.created_at = timezone.datetime.combine(date, time)
-    case.save()
-
-
-def _set_responded_at(case, time, date=timezone.now()):
-    case.responded_at = timezone.datetime.combine(date, time)
-    case.save()
+def today(time=timezone.now().time()):
+    return timezone.datetime.combine(timezone.now(), time)
 
 
 class SlaCaseTests(DataTestClient):
@@ -138,14 +134,14 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(case.sla_days, 0)
 
     # OPEN ECJU QUERY CUTOFF TESTS
-
     def test_unanswered_ecju_query_opened_before_cutoff_today_excluded(self):
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_created_at(query, self.hour_before_cutoff)
+        EcjuQuery.objects.all().update(created_at=today(time=self.hour_before_cutoff))
 
         results = update_cases_sla.now()
+        case.refresh_from_db()
 
         self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
@@ -154,9 +150,10 @@ class SlaRulesTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_created_at(query, self.hour_before_cutoff, date=yesterday())
+        EcjuQuery.objects.all().update(created_at=yesterday(time=self.hour_before_cutoff))
 
         results = update_cases_sla.now()
+        case.refresh_from_db()
 
         self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
@@ -165,9 +162,10 @@ class SlaRulesTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_created_at(query, self.hour_after_cutoff, date=yesterday())
+        EcjuQuery.objects.all().update(created_at=yesterday(time=self.hour_after_cutoff))
 
         results = update_cases_sla.now()
+        case.refresh_from_db()
 
         self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
@@ -176,9 +174,10 @@ class SlaRulesTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_created_at(query, self.hour_after_cutoff)
+        EcjuQuery.objects.all().update(created_at=today(self.hour_after_cutoff))
 
         results = update_cases_sla.now()
+        case.refresh_from_db()
 
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
@@ -188,10 +187,11 @@ class SlaRulesTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_created_at(query, self.hour_before_cutoff, date=yesterday(yesterday()))
-        _set_responded_at(query, self.hour_before_cutoff)
+        with patch('django.utils.timezone.now', return_value=today(self.hour_before_cutoff)):
+            query.save()
 
         results = update_cases_sla.now()
+        case.refresh_from_db()
 
         self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
@@ -200,10 +200,11 @@ class SlaRulesTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_created_at(query, self.hour_before_cutoff, date=yesterday(yesterday()))
-        _set_responded_at(query, self.hour_after_cutoff)
+        with patch('django.utils.timezone.now', return_value=today(self.hour_after_cutoff)):
+            query.save()
 
         results = update_cases_sla.now()
+        case.refresh_from_db()
 
         self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
@@ -212,10 +213,11 @@ class SlaRulesTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_created_at(query, self.hour_before_cutoff, date=yesterday(yesterday()))
-        _set_responded_at(query, self.hour_before_cutoff, date=yesterday())
+        with patch('django.utils.timezone.now', return_value=yesterday(time=self.hour_before_cutoff)):
+            query.save()
 
         results = update_cases_sla.now()
+        case.refresh_from_db()
 
         self.assertEqual(results, 1)
         self.assertEqual(case.sla_days, 1)
@@ -224,10 +226,11 @@ class SlaRulesTests(DataTestClient):
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, self.hour_before_cutoff)
         query = self.create_ecju_query(case)
-        _set_created_at(query, self.hour_before_cutoff, date=yesterday(yesterday()))
-        _set_responded_at(query, self.hour_after_cutoff, date=yesterday())
+        with patch('django.utils.timezone.now', return_value=yesterday(time=self.hour_after_cutoff)):
+            query.save()
 
         results = update_cases_sla.now()
+        case.refresh_from_db()
 
         self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)

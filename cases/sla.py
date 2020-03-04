@@ -79,13 +79,15 @@ def is_bank_holiday(date):
     return formatted_date in get_bank_holidays()
 
 
-def yesterday(date=None):
+def yesterday(date=None, time=None):
     if date:
         day = date - timezone.timedelta(days=1)
     else:
         day = timezone.now() - timezone.timedelta(days=1)
     while is_bank_holiday(day) or is_weekend(day):
         day = day - timezone.timedelta(days=1)
+    if time:
+        day = timezone.datetime.combine(day.date(), time)
     return day
 
 
@@ -100,10 +102,7 @@ def get_case_ids_with_active_ecju_queries(date):
                 created_at__lt=timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
             )
             | Q(
-                responded_at__range=[
-                    timezone.make_aware(datetime.combine(yesterday(), SLA_UPDATE_CUTOFF_TIME)),
-                    timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
-                ],
+                responded_at__gt=timezone.make_aware(datetime.combine(yesterday(), SLA_UPDATE_CUTOFF_TIME)),
             )
         )
         .values("case")
