@@ -21,13 +21,15 @@ STANDARD_APPLICATION_TARGET_DAYS = 20
 OPEN_APPLICATION_TARGET_DAYS = 60
 MOD_CLEARANCE_TARGET_DAYS = 30
 
+BANK_HOLIDAYS_CACHE = []
 
-def get_application_target_sla(type):
-    if type == CaseTypeSubTypeEnum.STANDARD:
+
+def get_application_target_sla(_type):
+    if _type == CaseTypeSubTypeEnum.STANDARD:
         return STANDARD_APPLICATION_TARGET_DAYS
-    elif type == CaseTypeSubTypeEnum.OPEN:
+    elif _type == CaseTypeSubTypeEnum.OPEN:
         return OPEN_APPLICATION_TARGET_DAYS
-    elif type in [CaseTypeSubTypeEnum.EXHIBITION, CaseTypeSubTypeEnum.F680, CaseTypeSubTypeEnum.GIFTING]:
+    elif _type in [CaseTypeSubTypeEnum.EXHIBITION, CaseTypeSubTypeEnum.F680, CaseTypeSubTypeEnum.GIFTING]:
         return MOD_CLEARANCE_TARGET_DAYS
 
 
@@ -41,14 +43,16 @@ def working_days_in_range(start_date, end_date):
     return len([date for date in dates_in_range if not is_bank_holiday(date) or not is_weekend(date)])
 
 
-def get_bank_holidays():
+def get_bank_holidays(data=BANK_HOLIDAYS_CACHE):
     """
     Uses the GOV bank holidays API.
     If it can connect to the API, it extracts the list of bank holidays,
     saves a backup of this list as a CSV and returns the list.
     If it cannot connect to the service it will use the CSV backup and returns the list.
     """
-    data = []
+    if data and isinstance(data, list):
+        return data
+
     r = requests.get(BANK_HOLIDAY_API)
     if r.status_code != status.HTTP_200_OK:
         logging.warning(
