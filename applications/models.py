@@ -164,7 +164,7 @@ class ExhibitionClearanceApplication(BaseApplication):
     title = models.CharField(blank=False, null=True, max_length=255)
     first_exhibition_date = models.DateField(blank=False, null=True)
     required_by_date = models.DateField(blank=False, null=True)
-    reason_for_clearance = models.TextField(default=None, blank=True, null=True, max_length=2000)
+    reason_for_clearance = models.TextField(default=None, blank=True, null=True, max_length=100)
 
 
 # Gifting includes End User & Third parties

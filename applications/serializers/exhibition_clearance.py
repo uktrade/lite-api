@@ -87,7 +87,7 @@ class ExhibitionClearanceDetailSerializer(serializers.ModelSerializer):
             "null": strings.Applications.Exhibition.Error.NO_REQUIRED_BY_DATE,
         },
     )
-    reason_for_clearance = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
+    reason_for_clearance = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=100)
 
     class Meta:
         model = ExhibitionClearanceApplication
