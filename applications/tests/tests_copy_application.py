@@ -18,13 +18,13 @@ from applications.models import (
 from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
+from static.f680_clearance_types.models import F680ClearanceType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
 class CopyApplicationSuccessTests(DataTestClient):
-
     # standard application
     def test_copy_draft_standard_application_successful(self):
         """
@@ -327,6 +327,8 @@ class CopyApplicationSuccessTests(DataTestClient):
     def _validate_F680_application(self):
         self._validate_reset_data()
 
+        self._validate_f680_clearance_types()
+
         self._validate_good_on_application()
 
         self._validate_end_user()
@@ -371,6 +373,12 @@ class CopyApplicationSuccessTests(DataTestClient):
             self.assertEqual(good_on_app.unit, new_good_on_app.unit)
 
         self.assertEqual(len(new_goods_on_app), len(original_goods_on_app))
+
+    def _validate_f680_clearance_types(self):
+        new_types_app = self.copied_application.types.all()
+        original_types_on_app = self.original_application.types.all()
+        for type in original_types_on_app:
+            self.assertIn(type, new_types_app)
 
     def _validate_party_details(self, new_party, original_party):
         self.assertNotEqual(new_party.id, original_party.id)

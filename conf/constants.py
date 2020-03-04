@@ -13,6 +13,7 @@ class GovPermissions(Enum):
     CONFIGURE_TEMPLATES = "Create and edit templates"
     REOPEN_CLOSED_CASES = "Can re-open closed cases"
     MANAGE_LICENCE_DURATION = "Can edit licence duration"
+    MANAGE_ORGANISATIONS = "Manage organisations"
 
 
 class ExporterPermissions(Enum):

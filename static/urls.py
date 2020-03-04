@@ -7,6 +7,7 @@ urlpatterns = [
     path("control-list-entries/", include("static.control_list_entries.urls")),
     path("private-venture-gradings/", include("static.private_venture_gradings.urls")),
     path("countries/", include("static.countries.urls")),
+    path("f680-clearance-types/", include("static.f680_clearance_types.urls")),
     path("decisions/", include("static.decisions.urls")),
     path("letter-layouts/", include("static.letter_layouts.urls")),
     path("denial-reasons/", include("static.denial_reasons.urls")),
