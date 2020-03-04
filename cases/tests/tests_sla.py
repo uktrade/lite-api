@@ -1,7 +1,8 @@
-from datetime import date, time
+from datetime import time
 from unittest import mock
 
-from django.utils.timezone import datetime, now
+from django.utils.datetime_safe import date, datetime
+from django.utils.timezone import now
 from parameterized import parameterized
 
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
@@ -190,8 +191,8 @@ class WorkingDayTests(DataTestClient):
             (date(2020, 2, 12), 3, 3),
             (date(2020, 2, 13), 4, 4),
             (date(2020, 2, 14), 5, 5),
-            (date(2020, 2, 15), 9, 6),
-            (date(2020, 2, 16), 11, 7),
+            (date(2020, 2, 15), 6, 9),
+            (date(2020, 2, 16), 7, 11),
         ]
     )
     def test_num_working_days_since(self, test_date, num_working_days, expected_result):
