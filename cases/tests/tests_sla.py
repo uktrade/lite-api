@@ -25,7 +25,7 @@ HOUR_AFTER_CUTOFF = time(SLA_UPDATE_CUTOFF_TIME.hour + 1, 0, 0)
 
 
 def _set_submitted_at(case, time, date=timezone.now()):
-    case.submitted_at = timezone.make_aware(datetime.combine(date, time))
+    case.submitted_at = datetime.combine(date, time, tzinfo=timezone.utc)
     case.save()
 
 

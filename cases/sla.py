@@ -84,7 +84,7 @@ def today(time=timezone.now().time()):
     """
     returns today's date with the provided time
     """
-    return timezone.make_aware(datetime.combine(timezone.now(), time))
+    return datetime.combine(timezone.now(), time, tzinfo=timezone.utc)
 
 
 def yesterday(date=timezone.now(), time=None):
@@ -96,7 +96,7 @@ def yesterday(date=timezone.now(), time=None):
     while is_bank_holiday(day, call_api=False) or is_weekend(day):
         day = day - timezone.timedelta(days=1)
     if time:
-        day = timezone.make_aware(datetime.combine(day.date(), time))
+        day = datetime.combine(day.date(), time, tzinfo=timezone.utc)
     return day
 
 
@@ -114,7 +114,7 @@ def get_case_ids_with_active_ecju_queries(date):
     )
 
 
-@background(schedule=timezone.make_aware(datetime.combine(timezone.now(), SLA_UPDATE_TASK_TIME)))
+@background(schedule=datetime.combine(timezone.now(), SLA_UPDATE_TASK_TIME, tzinfo=timezone.utc))
 def update_cases_sla():
     """
     Updates all applicable cases SLA.
@@ -136,7 +136,7 @@ def update_cases_sla():
                 results = (
                     Case.objects.select_for_update()
                     .filter(
-                        submitted_at__lt=timezone.make_aware(datetime.combine(date, SLA_UPDATE_CUTOFF_TIME)),
+                        submitted_at__lt=datetime.combine(date, SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
                         last_closed_at__isnull=True,
                         sla_remaining_days__isnull=False,
                     )
