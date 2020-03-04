@@ -75,9 +75,9 @@ def get_bank_holidays(call_api=True):
     return data
 
 
-def is_bank_holiday(date):
+def is_bank_holiday(date, call_api=True):
     formatted_date = date.strftime("%Y-%m-%d")
-    return formatted_date in get_bank_holidays()
+    return formatted_date in get_bank_holidays(call_api)
 
 
 def today(time=timezone.now().time()):
@@ -89,7 +89,7 @@ def yesterday(date=None, time=None):
         day = date - timezone.timedelta(days=1)
     else:
         day = timezone.now() - timezone.timedelta(days=1)
-    while is_bank_holiday(day) or is_weekend(day):
+    while is_bank_holiday(day, call_api=False) or is_weekend(day):
         day = day - timezone.timedelta(days=1)
     if time:
         day = timezone.make_aware(datetime.combine(day.date(), time))
