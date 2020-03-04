@@ -65,9 +65,9 @@ def get_bank_holidays(call_api=True, data=BANK_HOLIDAYS_CACHE):  # noqa
     return data
 
 
-def is_bank_holiday(date):
+def is_bank_holiday(date, call_api=True):
     formatted_date = date.strftime("%Y-%m-%d")
-    return formatted_date in get_bank_holidays()
+    return formatted_date in get_bank_holidays(call_api)
 
 
 def number_of_days_since(date, num_working_days):
