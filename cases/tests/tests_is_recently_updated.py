@@ -4,6 +4,7 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from conf import settings
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
@@ -12,7 +13,8 @@ from test_helpers.clients import DataTestClient
 class TestIsRecentlyUpdated(DataTestClient):
 
     url = reverse("cases:search")
-    past_date = timezone.now() - timedelta(days=10)
+    # Assume 10 + RECENTLY_UPDATED_WORKING_DAYS will contain 5 working days
+    past_date = timezone.now() - timedelta(days=settings.RECENTLY_UPDATED_WORKING_DAYS + 10)
 
     def test_not_recently_updated(self):
         case = self.create_standard_application_case(self.organisation)
