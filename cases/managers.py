@@ -36,8 +36,8 @@ class CaseQuerySet(models.QuerySet):
     def in_queue(self, queue_id):
         return self.filter(queues__in=[queue_id])
 
-    def in_team(self, team):
-        return self.filter(queues__team=team).distinct()
+    def in_team(self, team_id):
+        return self.filter(queues__team_id=team_id).distinct()
 
     def is_updated(self, user):
         """
@@ -106,14 +106,24 @@ class CaseManager(models.Manager):
         assigned_user=None,
         case_officer=None,
         date_order=None,
+        include_hidden=None,
     ):
         """
         Search for a user's available cases given a set of search parameters.
         """
         case_qs = self.submitted().prefetch_related("queues", "status", "organisation__flags",)
+        team_id = user.team.id
+        if not include_hidden:
+            from cases.models import EcjuQuery
+
+            case_qs = case_qs.exclude(
+                id__in=EcjuQuery.objects.filter(raised_by_user__team_id=team_id, responded_at__isnull=True)
+                .values("case_id")
+                .distinct()
+            )
 
         if queue_id == MY_TEAMS_QUEUES_CASES_ID:
-            case_qs = case_qs.in_team(team=user.team)
+            case_qs = case_qs.in_team(team_id=team_id)
         elif queue_id == OPEN_CASES_QUEUE_ID:
             case_qs = case_qs.is_open()
         elif queue_id == UPDATED_CASES_QUEUE_ID:

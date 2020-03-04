@@ -6,7 +6,8 @@ from cases.serializers import TinyCaseSerializer
 from cases.views.search import service
 from cases.views.search.serializers import SearchQueueSerializer
 from conf.authentication import GovAuthentication
-from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, OPEN_CASES_QUEUE_ID
+from conf.helpers import str_to_bool
+from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, OPEN_CASES_QUEUE_ID, NON_WORK_QUEUES
 
 
 class CasesSearchView(generics.ListAPIView):
@@ -18,8 +19,14 @@ class CasesSearchView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
-        context = {"is_system_queue": queue_id in SYSTEM_QUEUES, "queue_id": queue_id}
-        order = "-" if queue_id == ALL_CASES_QUEUE_ID or queue_id == OPEN_CASES_QUEUE_ID else ""
+        context = {
+            "is_system_queue": queue_id in SYSTEM_QUEUES,
+            "queue_id": queue_id,
+            "is_work_queue": queue_id not in NON_WORK_QUEUES,
+        }
+        order = "-" if not context["is_work_queue"] else ""
+
+        include_hidden = context["is_work_queue"] and str_to_bool(request.GET.get("hidden"))
 
         page = self.paginate_queryset(
             Case.objects.search(
@@ -31,6 +38,8 @@ class CasesSearchView(generics.ListAPIView):
                 case_officer=request.GET.get("case_officer"),
                 sort=request.GET.get("sort"),
                 date_order=order,
+                include_hidden=include_hidden,
+                team_id=request.user.team.id,
             )
         )
         queues = SearchQueueSerializer(service.get_search_queues(user=request.user), many=True).data
@@ -47,6 +56,7 @@ class CasesSearchView(generics.ListAPIView):
                 "cases": cases,
                 "filters": {"statuses": statuses, "case_types": case_types, "gov_users": gov_users},
                 "is_system_queue": context["is_system_queue"],
+                "is_work_queue": context["is_work_queue"],
                 "queue": queue,
             }
         )

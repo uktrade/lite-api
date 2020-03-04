@@ -164,3 +164,4 @@ fabric.properties
 
 test-results
 bank-holidays.csv
+/ignore.py
