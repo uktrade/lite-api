@@ -6,6 +6,7 @@ from cases.enums import AdviceType
 from cases.models import TeamAdvice, FinalAdvice, Advice
 from conf import constants
 from conf.helpers import convert_queryset_to_str
+from goods.enums import PvGrading
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
@@ -79,6 +80,84 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         self.assertEqual(response_data.get("type").get("key"), "conflicting")
         self.assertEqual(response_data.get("proviso"), "I am easy to proviso")
         self.assertCountEqual(["1a", "1b", "1c"], response_data["denial_reasons"])
+
+    def test_create_final_advice_same_advice_type_different_pv_gradings(self):
+        """
+        Same advice types, different pv gradings
+        """
+        inputs = [
+            (self.gov_user, PvGrading.UK_OFFICIAL),
+            (self.gov_user_2, PvGrading.UK_OFFICIAL_SENSITIVE),
+            (self.gov_user_3, PvGrading.NATO_CONFIDENTIAL),
+        ]
+        for user, pv_grading in inputs:
+            self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice, pv_grading)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()["advice"]
+
+        self.assertEqual(response_data[0].get("type").get("key"), "proviso")
+        self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
+        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        for _, pv_grading in inputs:
+            self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+
+    def test_create_final_advice_same_advice_type_same_pv_gradings(self):
+        """
+        Same advice types, same pv gradings
+        """
+        pv_grading = PvGrading.OCCAR_CONFIDENTIAL
+        inputs = [self.gov_user, self.gov_user_2, self.gov_user_3]
+        for user in inputs:
+            self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice, pv_grading)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()["advice"]
+
+        self.assertEqual(response_data[0].get("type").get("key"), "proviso")
+        self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
+        self.assertNotIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+
+    def test_create_conflicting_final_advice_different_advice_type_same_pv_gradings(self):
+        """
+        Different advice types, same pv gradings
+        """
+        pv_grading = PvGrading.UK_OFFICIAL
+        inputs = [
+            (self.gov_user, AdviceType.PROVISO),
+            (self.gov_user_2, AdviceType.REFUSE),
+            (self.gov_user_3, AdviceType.APPROVE),
+        ]
+        for user, advice_type in inputs:
+            self.create_advice(user, self.standard_case, "good", advice_type, TeamAdvice, pv_grading)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()["advice"]
+
+        self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
+        self.assertNotIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+
+    def test_create_conflicting_final_advice_different_advice_type_different_pv_gradings(self):
+        """
+        Different advice types, different pv gradings
+        """
+        inputs = [
+            (self.gov_user, AdviceType.PROVISO, PvGrading.UK_OFFICIAL),
+            (self.gov_user_2, AdviceType.REFUSE, PvGrading.UK_OFFICIAL_SENSITIVE),
+            (self.gov_user_3, AdviceType.APPROVE, PvGrading.NATO_CONFIDENTIAL),
+        ]
+        for user, advice_type, pv_grading in inputs:
+            self.create_advice(user, self.standard_case, "good", advice_type, TeamAdvice, pv_grading)
+
+        response = self.client.get(self.standard_case_url, **self.gov_headers)
+        response_data = response.json()["advice"]
+
+        self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
+        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        for _, _, pv_grading in inputs:
+            self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
 
     # Normal restrictions on team advice items
     @parameterized.expand(

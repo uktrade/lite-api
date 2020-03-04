@@ -1,16 +1,16 @@
-from datetime import date, time, datetime
+from datetime import datetime
+from datetime import time
 from unittest import mock
 from unittest.mock import patch
 
 from django.utils import timezone
+from django.utils.datetime_safe import datetime
 from parameterized import parameterized
 
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.models import Case, EcjuQuery
 from cases.sla import (
     update_cases_sla,
-    is_weekend,
-    is_bank_holiday,
     STANDARD_APPLICATION_TARGET_DAYS,
     OPEN_APPLICATION_TARGET_DAYS,
     MOD_CLEARANCE_TARGET_DAYS,
@@ -198,27 +198,3 @@ class WorkingDayTests(DataTestClient):
 
         # Expecting update_cases_sla to be ran, but no cases found
         self.assertEqual(result, 0)
-
-    @parameterized.expand(
-        [
-            (date(2020, 2, 10), False),
-            (date(2020, 2, 11), False),
-            (date(2020, 2, 12), False),
-            (date(2020, 2, 13), False),
-            (date(2020, 2, 14), False),
-            (date(2020, 2, 15), True),
-            (date(2020, 2, 16), True),
-        ]
-    )
-    def test_is_weekend(self, test_date, expected_result):
-        result = is_weekend(test_date)
-
-        self.assertEqual(result, expected_result)
-
-    def test_is_bank_holiday(self):
-        # Assumes Christmas is a bank holiday
-        test_date = date(date.today().year, 12, 25)
-
-        result = is_bank_holiday(test_date)
-
-        self.assertTrue(result)
