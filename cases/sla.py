@@ -43,8 +43,11 @@ def working_days_in_range(start_date, end_date):
     return len([date for date in dates_in_range if not is_bank_holiday(date) or not is_weekend(date)])
 
 
-def get_bank_holidays(data=BANK_HOLIDAYS_CACHE):
+def get_bank_holidays(data=BANK_HOLIDAYS_CACHE):  # noqa
     """
+    :param data: mutable default for cache behaviour
+
+
     Uses the GOV bank holidays API.
     If it can connect to the API, it extracts the list of bank holidays,
     saves a backup of this list as a CSV and returns the list.
