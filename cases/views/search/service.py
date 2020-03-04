@@ -47,6 +47,7 @@ def populate_is_recently_updated(cases: Dict):
     ago and return True, else return False
     """
     now = timezone.now()
+    
     recent_audits = (
         Audit.objects.filter(
             target_content_type=ContentType.objects.get_for_model(Case),
