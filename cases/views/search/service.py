@@ -58,10 +58,10 @@ def populate_is_recently_updated(cases: Dict):
         .annotate(Count("target_object_id"))
     )
 
-    audit_dict = {a["target_object_id"]: a["target_object_id__count"] for a in recent_audits}
+    audit_dict = {audit["target_object_id"]: audit["target_object_id__count"] for audit in recent_audits}
 
     for case in cases:
-        case["is_recently_updated"] = (
+        case["is_recently_updated"] = bool(
             working_days_in_range(case["submitted_at"], now) < settings.RECENTLY_UPDATED_DAYS
-            or audit_dict.get(case["id"], 0) > 0
+            or audit_dict.get(case["id"])
         )
