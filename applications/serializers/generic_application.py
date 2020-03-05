@@ -236,11 +236,12 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         """
         Check that the start is before the stop.
         """
-        if data.get("licence_duration") is not None and (
-            data["licence_duration"] > LicenceDuration.MAX.value or data["licence_duration"] < LicenceDuration.MIN.value
+        validated_data = super().validate(data)
+        if validated_data.get("licence_duration") is not None and (
+            validated_data["licence_duration"] > LicenceDuration.MAX.value or validated_data["licence_duration"] < LicenceDuration.MIN.value
         ):
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
-        return data
+        return validated_data
 
 
 class GenericApplicationCopySerializer(serializers.ModelSerializer):

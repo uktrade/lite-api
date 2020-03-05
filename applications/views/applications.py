@@ -140,6 +140,11 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         data = request.data.copy()
         serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
+        #
+        end_use_details_error = self.edit_end_use_details(application, request)
+        if end_use_details_error:
+            return end_use_details_error
+
         # Prevent minor edits of the goods categories
         if not application.is_major_editable() and request.data.get("goods_categories"):
             return JsonResponse(
@@ -234,6 +239,30 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                     )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+    @classmethod
+    def edit_end_use_details(cls, application, request):
+        end_use_fields = ["is_military_end_use_controls",
+                          "military_end_use_controls_ref",
+                          "is_informed_wmd",
+                          "informed_wmd_ref",
+                          "is_suspected_wmd",
+                          "suspected_wmd_ref",
+                          "is_eu_military"]
+
+        if not application.is_major_editable():
+            for field in end_use_fields:
+                response_error = cls.end_use_helper(request, field)
+                if response_error:
+                    return response_error
+
+    @classmethod
+    def end_use_helper(cls, request, field):
+        if request.data.get(field):
+            return JsonResponse(
+                data={"errors": {field: ["This isn't possible on a minor edit"]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @authorised_users(ExporterUser)
     def delete(self, request, application):

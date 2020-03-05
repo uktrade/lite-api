@@ -1,12 +1,14 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
+from applications.enums import YesNoChoiceType
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
+from conf.serializers import KeyValueChoiceField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from lite_content.lite_api import strings
@@ -53,14 +55,43 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
-    name = CharField(
-        max_length=100,
-        required=True,
-        allow_blank=False,
-        allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+    is_military_end_use_controls = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
+    is_informed_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
+    is_suspected_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
+    is_eu_military = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_na_choices, allow_blank=True, allow_null=True)
+
+    military_end_use_controls_ref = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, max_length=2000
     )
+    informed_wmd_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
+    suspected_wmd_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields
+        fields = GenericApplicationUpdateSerializer.Meta.fields + (
+            "is_military_end_use_controls",
+            "military_end_use_controls_ref",
+            "is_informed_wmd",
+            "informed_wmd_ref",
+            "is_suspected_wmd",
+            "suspected_wmd_ref",
+            "is_eu_military",
+        )
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+        self._validate_dependent_ref_field(
+            validated_data, "is_military_end_use_controls", "military_end_use_controls_ref"
+        )
+        self._validate_dependent_ref_field(validated_data, "is_informed_wmd", "informed_wmd_ref")
+        self._validate_dependent_ref_field(validated_data, "is_suspected_wmd", "suspected_wmd_ref")
+        return validated_data
+
+    @staticmethod
+    def _validate_dependent_ref_field(validated_data, yes_no_field, ref_field):
+        yes_no_field_val = validated_data.get(yes_no_field)
+        if not yes_no_field_val:
+            raise serializers.ValidationError({yes_no_field: "Required!"})
+        if yes_no_field_val == YesNoChoiceType.YES:
+            if not validated_data.get(ref_field):
+                raise serializers.ValidationError({ref_field: "Very bad"})
