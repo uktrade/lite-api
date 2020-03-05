@@ -7,7 +7,7 @@ from cases.views.search import service
 from cases.views.search.serializers import SearchQueueSerializer
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
-from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, OPEN_CASES_QUEUE_ID, NON_WORK_QUEUES
+from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, NON_WORK_QUEUES
 
 
 class CasesSearchView(generics.ListAPIView):
