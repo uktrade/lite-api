@@ -11,7 +11,6 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from conf.serializers import KeyValueChoiceField
-from lite_content.lite_api import strings
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):

@@ -141,7 +141,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
         # Prevent minor edits of the end use details
-        end_use_details_error = self.edit_end_use_details(application, request)
+        end_use_details_error = self._edit_end_use_details(application, request)
         if end_use_details_error:
             return end_use_details_error
 
@@ -186,24 +186,30 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             )
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if request.data.get("clearance_level") or request.data.get("types"):
-            # Audit block
-            if application.case_type.sub_type == CaseTypeSubTypeEnum.F680 and request.data.get("types"):
-                old_types = [
-                    F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
-                ]
-                new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
-                serializer.save()
+        if request.data.get("clearance_level"):
+            serializer.save()
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-                if set(old_types) != set(new_types):
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
-                        target=case,
-                        payload={"old_types": old_types, "new_types": new_types},
-                    )
-            else:
-                serializer.save()
+        # Audit block
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680 and request.data.get("types"):
+            old_types = [
+                F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
+            ]
+            new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
+            serializer.save()
+
+            if set(old_types) != set(new_types):
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
+                    target=case,
+                    payload={"old_types": old_types, "new_types": new_types},
+                )
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            serializer.save()
+            # TODO: Audit block
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
@@ -241,7 +247,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @classmethod
-    def edit_end_use_details(cls, application, request):
+    def _edit_end_use_details(cls, application, request):
         end_use_fields = [
             "is_military_end_use_controls",
             "military_end_use_controls_ref",
@@ -254,12 +260,12 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         if not application.is_major_editable():
             for field in end_use_fields:
-                response_error = cls.end_use_helper(request, field)
+                response_error = cls._end_use_helper(request, field)
                 if response_error:
                     return response_error
 
     @classmethod
-    def end_use_helper(cls, request, field):
+    def _end_use_helper(cls, request, field):
         if request.data.get(field):
             return JsonResponse(
                 data={"errors": {field: ["This isn't possible on a minor edit"]}}, status=status.HTTP_400_BAD_REQUEST,
