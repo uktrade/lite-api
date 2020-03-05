@@ -129,9 +129,6 @@ class TinyCaseSerializer(serializers.Serializer):
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))
 
-    def get_organisation(self, instance):
-        return instance.organisation.name
-
     def get_status(self, instance):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
 
