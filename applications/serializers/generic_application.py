@@ -229,7 +229,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
             ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
 
-        instance.save()
+        instance = super().update(instance, validated_data)
         return instance
 
     def validate(self, data):
