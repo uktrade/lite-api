@@ -21,7 +21,7 @@ class SearchQueue:
     @classmethod
     def from_queue(cls, queue, case_qs=None) -> "SearchQueue":
         if not case_qs:
-            case_qs = Case.objects.all()
+            case_qs = Case.objects.submitted()
 
         return cls(
             id=queue.id, name=queue.name, team=queue.team, case_count=case_qs.in_queue(queue_id=queue.id).count()
@@ -30,7 +30,7 @@ class SearchQueue:
     @classmethod
     def system(cls, user, case_qs=None) -> List["SearchQueue"]:
         if not case_qs:
-            case_qs = Case.objects.all()
+            case_qs = Case.objects.submitted()
 
         return [
             cls(
