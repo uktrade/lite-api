@@ -559,3 +559,15 @@ class CaseOfficer(APIView):
             return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LicenceView(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        incomplete_final_decisions = FinalAdvice.objects.filter(document__isnull=True).exists()
+        if incomplete_final_decisions:
+            return JsonResponse(
+                data={"errors": "Not all final decisions have generated documents"}, status=status.HTTP_400_BAD_REQUEST
+            )
