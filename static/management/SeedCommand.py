@@ -37,7 +37,7 @@ class SeedCommand(ABC, BaseCommand):
         try:
             self.operation(*args, **options)
         except Exception as error:  # noqa
-            self.stdout.write(self.style.ERROR(error.message if hasattr(error, "message") else error))
+            self.stdout.write(self.style.ERROR(str(error)))
             exit(1)
         if not settings.SUPPRESS_TEST_OUTPUT:
             self.stdout.write(self.style.SUCCESS(f"\n{self.success}\n"))
@@ -105,6 +105,12 @@ class SeedCommand(ABC, BaseCommand):
                 except IntegrityError:
                     if not settings.SUPPRESS_TEST_OUTPUT:
                         print(f"Object {id} could not be deleted due to foreign key constraint")
+
+    @staticmethod
+    def print_created_or_updated(obj, data, is_created: bool):
+        if not settings.SUPPRESS_TEST_OUTPUT:
+            created_or_updated = "CREATED" if is_created else "UPDATED"
+            print(f"{created_or_updated} {obj.__name__}: {dict(data)}")
 
 
 class SeedCommandTest(TestCase):

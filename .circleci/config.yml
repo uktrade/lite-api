@@ -14,6 +14,8 @@ jobs:
 
     environment:
       DEBUG: 'True'
+      INTERNAL_ADMIN_TEAM_USERS: '[{"email": "test-internal-user@email.com"}]'
+      EXPORTER_USERS: '[{"email": "test-exporter-user@email.com"}]'
       PIPENV_VENV_IN_PROJECT: 'enabled'
       SUPPRESS_TEST_OUTPUT: 'True'
 

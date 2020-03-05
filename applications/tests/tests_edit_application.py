@@ -7,6 +7,7 @@ from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
 from goods.enums import PvGrading
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from static.statuses.enums import CaseStatusEnum
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
@@ -289,7 +290,7 @@ class EditF680ApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"types": ["Cannot create an application without a clearance type"]},
+            response.json()["errors"], {"types": [strings.Applications.F680.NO_CLEARANCE_TYPE]},
         )
 
     def test_add_party_to_f680_success(self):

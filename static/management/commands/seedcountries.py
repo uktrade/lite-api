@@ -11,7 +11,7 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedcountries
     """
 
-    help = "Seeds all countries"
+    help = "Seeds countries"
     info = "Seeding countries"
     success = "Successfully seeded countries"
     seed_command = "seedcountries"
