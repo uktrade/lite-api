@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -8,6 +9,7 @@ from rest_framework.views import APIView
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases import service
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.helpers import create_grouped_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
@@ -339,6 +341,25 @@ class CaseFinalAdvice(APIView):
             actor=request.user, verb=AuditType.CLEARED_FINAL_ADVICE, target=self.case,
         )
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
+
+
+class FinalAdviceGenerateDocument(APIView):
+    def post(self, request, pk):
+        generated_document_pk = request.data.get("generated_document")
+        try:
+            generated_document = GeneratedCaseDocument.objects.get(id=generated_document_pk)
+        except ObjectDoesNotExist as e:
+            raise NotFoundError({"generated_document": f"Generated document not found: {generated_document_pk}"})
+
+        decision_pk = request.data.get("decision")
+        try:
+            decision = FinalAdvice.objects.get(id=decision_pk, case=pk)
+        except ObjectDoesNotExist as e:
+            raise NotFoundError({"decision": f"Final Advice decision not found: {decision_pk}"})
+
+        decision.document = generated_document
+        decision.save()
+        return JsonResponse(data={"decision": decision_pk}, status=status.HTTP_200_OK)
 
 
 class CaseEcjuQueries(APIView):
