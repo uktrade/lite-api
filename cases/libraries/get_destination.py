@@ -56,6 +56,7 @@ def get_destination_flags(case):
 
     return flags
 
+
 def get_goods_flags(case):
     goods_flags = []
     case_type = case.case_type.sub_type

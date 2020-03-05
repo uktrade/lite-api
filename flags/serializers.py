@@ -53,7 +53,6 @@ class FlagAssignmentSerializer(serializers.Serializer):
 
 
 class CaseListFlagSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Flag
         fields = (
