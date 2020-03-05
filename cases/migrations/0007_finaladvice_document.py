@@ -7,14 +7,18 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('generated_documents', '0003_auto_20200218_1203'),
-        ('cases', '0006_auto_20200225_1128'),
+        ("generated_documents", "0003_auto_20200218_1203"),
+        ("cases", "0006_auto_20200225_1128"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='finaladvice',
-            name='document',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='generated_documents.GeneratedCaseDocument'),
+            model_name="finaladvice",
+            name="document",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                to="generated_documents.GeneratedCaseDocument",
+            ),
         ),
     ]

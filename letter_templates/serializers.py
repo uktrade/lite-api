@@ -41,10 +41,7 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
     )
 
     decisions = PrimaryKeyRelatedSerializerField(
-        queryset=Decision.objects.all(),
-        serializer=DecisionSerializer,
-        required=False,
-        many=True
+        queryset=Decision.objects.all(), serializer=DecisionSerializer, required=False, many=True
     )
 
     class Meta:

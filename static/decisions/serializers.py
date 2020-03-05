@@ -10,4 +10,7 @@ class DecisionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Decision
-        fields = ("id", "name",)
+        fields = (
+            "id",
+            "name",
+        )
