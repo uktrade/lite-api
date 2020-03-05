@@ -48,7 +48,6 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
-    licence = serializers.SlugRelatedField(many=False, read_only=True, slug_field="licence")
     is_major_editable = serializers.SerializerMethodField(required=False)
 
     class Meta:
@@ -65,7 +64,6 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "status",
             "case",
             "exporter_user_notification_count",
-            "licence",
             "reference_code",
             "is_major_editable",
         )

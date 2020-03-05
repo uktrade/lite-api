@@ -576,7 +576,7 @@ class LicenceView(APIView):
                 data={"errors": "Not all final decisions have generated documents"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        licence = Licence.objects.get(case=case)
+        licence = Licence.objects.get(application=case)
         licence.finalised = True
         licence.save()
 
@@ -590,4 +590,4 @@ class LicenceView(APIView):
             payload={"licence_duration": licence.licence_duration},
         )
 
-        return HttpResponse(status=status.HTTP_201_CREATED)
+        return JsonResponse({"licence": licence.id}, status=status.HTTP_201_CREATED)
