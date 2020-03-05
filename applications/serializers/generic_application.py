@@ -7,7 +7,6 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
-    LicenceDuration,
 )
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
@@ -49,7 +48,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
-    licence_duration = serializers.IntegerField(allow_null=True)
+    licence = serializers.SlugRelatedField(many=False, read_only=True, slug_field="licence")
     is_major_editable = serializers.SerializerMethodField(required=False)
 
     class Meta:
@@ -66,7 +65,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "status",
             "case",
             "exporter_user_notification_count",
-            "licence_duration",
+            "licence",
             "reference_code",
             "is_major_editable",
         )
@@ -204,7 +203,6 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
-    licence_duration = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = BaseApplication
@@ -213,7 +211,6 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
             "status",
             "reasons",
             "reason_details",
-            "licence_duration",
         )
 
     def update(self, instance, validated_data):
@@ -222,7 +219,6 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         """
         instance.name = validated_data.get("name", instance.name)
         instance.status = validated_data.get("status", instance.status)
-        instance.licence_duration = validated_data.get("licence_duration", instance.licence_duration)
         instance.clearance_level = validated_data.get("clearance_level", instance.clearance_level)
 
         # Remove any previous denial reasons
@@ -231,16 +227,6 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-
-    def validate(self, data):
-        """
-        Check that the start is before the stop.
-        """
-        if data.get("licence_duration") is not None and (
-            data["licence_duration"] > LicenceDuration.MAX.value or data["licence_duration"] < LicenceDuration.MIN.value
-        ):
-            raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
-        return data
 
 
 class GenericApplicationCopySerializer(serializers.ModelSerializer):

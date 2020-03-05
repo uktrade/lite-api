@@ -253,7 +253,7 @@ class PartyOnApplication(TimestampableModel):
 
 
 class Licence(TimestampableModel):
-    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, null=True)
+    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, null=True, related_name="licence")
     start_date = models.DateField(blank=False, null=False)
     licence_duration = models.PositiveSmallIntegerField(blank=False, null=False)
     finalised = models.BooleanField(default=False, null=False)
