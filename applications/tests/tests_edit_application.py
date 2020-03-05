@@ -164,6 +164,85 @@ class EditStandardApplicationTests(DataTestClient):
         # Unsubmitted (draft) applications should not create audit entries when edited
         self.assertEqual(Audit.objects.all().count(), 0)
 
+    @parameterized.expand(
+        [
+            [{"key": "military_end_use_controls", "value": "yes", "reference_number": ""}],
+            [{"key": "informed_wmd", "value": "yes", "reference_number": ""}],
+            [{"key": "suspected_wmd", "value": "yes", "reference_number": ""}],
+        ]
+    )
+    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_empty(self, attributes):
+        application = self.create_draft_standard_application(self.organisation)
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        key = "is_" + attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+
+        reference_key = attributes["key"] + "_ref"
+        data[reference_key] = attributes["reference_number"]
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(response.json()["errors"][reference_key], ["Very bad"])
+
+        attribute = getattr(application, key)
+        self.assertEqual(attribute, None)
+
+
+    @parameterized.expand(
+        [
+            [{"key": "military_end_use_controls", "value": "yes"}],
+            [{"key": "informed_wmd", "value": "yes"}],
+            [{"key": "suspected_wmd", "value": "yes"}],
+        ]
+    )
+    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_is_none(self, attributes):
+        application = self.create_draft_standard_application(self.organisation)
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        key = "is_" + attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+        reference_key = attributes["key"] + "_ref"
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual((response.json()["errors"][reference_key]), ["Very bad"])
+
+        attribute = getattr(application, key)
+        self.assertEqual(attribute, None)
+
+    @parameterized.expand(
+        [
+            [{"key": "military_end_use_controls", "value": ""}],
+            [{"key": "informed_wmd", "value": ""}],
+            [{"key": "suspected_wmd", "value": ""}],
+        ]
+    )
+    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_field_is_none(self, attributes):
+        application = self.create_draft_standard_application(self.organisation)
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        key = "is_" + attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(response.json()["errors"][key], ["Required!"])
+
+        attribute = getattr(application, key)
+        self.assertEqual(attribute, None)
 
 @parameterized_class(
     "case_type", [(CaseTypeEnum.EXHIBITION,), (CaseTypeEnum.GIFTING,), (CaseTypeEnum.F680,),],
