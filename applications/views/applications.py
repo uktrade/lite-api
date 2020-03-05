@@ -394,10 +394,6 @@ class ApplicationFinaliseView(APIView):
         elif action == AdviceType.APPROVE:
             data["licence_duration"] = data.get("licence_duration", default_licence_duration)
 
-        # status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        # application.status = status
-        # application.save()
-
         start_date = timezone.datetime(year=int(data["year"]), month=int(data["month"]), day=int(data["day"]))
         data["start_date"] = start_date.strftime("%Y-%m-%d")
         data["application"] = application
@@ -412,13 +408,6 @@ class ApplicationFinaliseView(APIView):
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
             )
-        # elif action == AdviceType.APPROVE:
-        #     audit_trail_service.create(
-        #         actor=request.user,
-        #         verb=AuditType.GRANTED_APPLICATION,
-        #         target=application.get_case(),
-        #         payload={"licence_duration": serializer.validated_data["licence_duration"]},
-        #     )
 
         return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 

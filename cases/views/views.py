@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.models import Licence
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases import service
@@ -52,6 +53,8 @@ from parties.serializers import PartySerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
 
@@ -566,8 +569,25 @@ class LicenceView(APIView):
 
     @transaction.atomic
     def put(self, request, pk):
-        incomplete_final_decisions = FinalAdvice.objects.filter(document__isnull=True).exists()
+        case = get_case(pk)
+        incomplete_final_decisions = FinalAdvice.objects.filter(document__isnull=True, case=case).exists()
         if incomplete_final_decisions:
             return JsonResponse(
                 data={"errors": "Not all final decisions have generated documents"}, status=status.HTTP_400_BAD_REQUEST
             )
+
+        licence = Licence.objects.get(case=case)
+        licence.finalised = True
+        licence.save()
+
+        case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        case.save()
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.GRANTED_APPLICATION,
+            target=case,
+            payload={"licence_duration": licence.licence_duration},
+        )
+
+        return HttpResponse(status=status.HTTP_201_CREATED)
