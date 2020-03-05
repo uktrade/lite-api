@@ -4,7 +4,7 @@ from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
-from flags.serializers import FlagSerializer
+from flags.serializers import CaseListFlagSerializer
 from goodstype.models import GoodsType
 from parties.enums import PartyType
 from parties.models import Party
@@ -81,10 +81,10 @@ def get_ordered_flags(case: Case, team: Team):
         destination_flags = get_destination_flags(case)
 
     flag_data = (
-        sort_flags_by_team_and_name(FlagSerializer(set(goods_flags), many=True).data, team)
-        + sort_flags_by_team_and_name(FlagSerializer(set(destination_flags), many=True).data, team)
-        + sort_flags_by_team_and_name(FlagSerializer(case_flags, many=True).data, team)
-        + sort_flags_by_team_and_name(FlagSerializer(org_flags, many=True).data, team)
+        sort_flags_by_team_and_name(CaseListFlagSerializer(set(goods_flags), many=True).data, team)
+        + sort_flags_by_team_and_name(CaseListFlagSerializer(set(destination_flags), many=True).data, team)
+        + sort_flags_by_team_and_name(CaseListFlagSerializer(case_flags, many=True).data, team)
+        + sort_flags_by_team_and_name(CaseListFlagSerializer(org_flags, many=True).data, team)
     )
     return flag_data
 
@@ -98,6 +98,6 @@ def sort_flags_by_team_and_name(flag_data, team):
     # Group flags by user's team.
     team_flags, non_team_flags = [], []
     for flag in flag_data:
-        team_flags.append(flag) if flag["team"]["id"] == str(team.id) else non_team_flags.append(flag)
+        team_flags.append(flag) if flag["team"] == str(team.id) else non_team_flags.append(flag)
 
     return team_flags + non_team_flags
