@@ -42,6 +42,9 @@ class UsersList(generics.ListCreateAPIView):
 
         serializer = OrganisationUserListView([p.user for p in page], many=True)
 
+        if self.request.GET.get("disable_pagination"):
+            return JsonResponse(data={"users": serializer.data})
+
         return self.get_paginated_response({"users": serializer.data})
 
     @swagger_auto_schema(responses={400: "JSON parse error"})

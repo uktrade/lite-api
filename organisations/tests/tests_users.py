@@ -63,6 +63,14 @@ class OrganisationUsersViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_view_all_users_belonging_to_organisation_without_pagination(self):
+        response = self.client.get(self.url + "?disable_pagination=True", **self.exporter_headers)
+        response_data = response.json()["users"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["status"], UserStatuses.ACTIVE)
+
 
 class OrganisationUsersCreateTests(DataTestClient):
     def setUp(self):
