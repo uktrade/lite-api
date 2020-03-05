@@ -319,9 +319,3 @@ class GoodCountryDecision(TimestampableModel):
         GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
-
-
-class Licence(TimestampableModel):
-    start_date = models.DateField(blank=False, null=False)
-    licence_duration = models.PositiveSmallIntegerField(blank=False, null=False)
-    finalised = models.BooleanField(default=False, null=False)
