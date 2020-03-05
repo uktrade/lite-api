@@ -90,6 +90,7 @@ class SeedingTests(SeedCommandTest):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())
 
     def test_seed_demo_data(self):
+        seedinternaladminusers.Command.seed_admin_team()
         self.seed_command(seedcountries.Command)
         self.seed_command(seeddemodata.Command)
         for team in seeddemodata.Command.read_csv(seeddemodata.TEAMS_FILE):

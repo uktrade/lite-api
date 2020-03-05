@@ -100,14 +100,19 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     def update(self, instance, validated_data):
         if "goods_categories" in validated_data:
-            instance.goods_categories = validated_data["goods_categories"]
-        instance.have_you_been_informed = validated_data.get("have_you_been_informed", instance.have_you_been_informed)
+            instance.goods_categories = validated_data.pop("goods_categories")
+
+        instance.have_you_been_informed = validated_data.pop("have_you_been_informed", instance.have_you_been_informed)
+
+        reference_number_on_information_form = validated_data.pop(
+            "reference_number_on_information_form", instance.reference_number_on_information_form,
+        )
+
         if instance.have_you_been_informed == "yes":
-            instance.reference_number_on_information_form = validated_data.get(
-                "reference_number_on_information_form", instance.reference_number_on_information_form,
-            )
+            instance.reference_number_on_information_form = reference_number_on_information_form
         else:
             instance.reference_number_on_information_form = None
+
         instance = super().update(instance, validated_data)
         return instance
 
@@ -126,8 +131,10 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
         if is_yes_no_field_present:
             yes_no_field_val = validated_data.get(yes_no_field)
+
             if not yes_no_field_val:
                 raise serializers.ValidationError({yes_no_field: "Required!"})
+
             if yes_no_field_val == YesNoChoiceType.YES:
                 if not validated_data.get(ref_field):
                     raise serializers.ValidationError({ref_field: "Very bad"})

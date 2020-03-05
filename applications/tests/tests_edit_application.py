@@ -192,7 +192,6 @@ class EditStandardApplicationTests(DataTestClient):
         attribute = getattr(application, key)
         self.assertEqual(attribute, None)
 
-
     @parameterized.expand(
         [
             [{"key": "military_end_use_controls", "value": "yes"}],
@@ -243,6 +242,115 @@ class EditStandardApplicationTests(DataTestClient):
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, None)
+
+
+class EditOpenApplicationTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_draft_open_application(self.organisation)
+        self.url = reverse("applications:application", kwargs={"pk": self.application.id})
+
+    @parameterized.expand(
+        [
+            [{"key": "military_end_use_controls", "value": "yes", "reference_number": "48953745ref"}],
+            [{"key": "informed_wmd", "value": "yes", "reference_number": "48953745ref"}],
+            [{"key": "suspected_wmd", "value": "yes", "reference_number": "48953745ref"}],
+            [{"key": "eu_military", "value": "yes"}],
+        ]
+    )
+    def test_edit_unsubmitted_standard_application_end_use_details(self, attributes):
+        key = "is_" + attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+
+        if "reference_number" in attributes:
+            reference_key = attributes["key"] + "_ref"
+            data[reference_key] = attributes["reference_number"]
+
+        updated_at = self.application.updated_at
+
+        response = self.client.put(self.url, data, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        attribute = getattr(self.application, key)
+        self.assertEqual(attribute, value)
+
+        self.assertNotEqual(self.application.updated_at, updated_at)
+        # Unsubmitted (draft) applications should not create audit entries when edited
+        self.assertEqual(Audit.objects.all().count(), 0)
+
+    @parameterized.expand(
+        [
+            [{"key": "military_end_use_controls", "value": "yes", "reference_number": ""}],
+            [{"key": "informed_wmd", "value": "yes", "reference_number": ""}],
+            [{"key": "suspected_wmd", "value": "yes", "reference_number": ""}],
+        ]
+    )
+    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_empty(self, attributes):
+        key = "is_" + attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+
+        reference_key = attributes["key"] + "_ref"
+        data[reference_key] = attributes["reference_number"]
+
+        response = self.client.put(self.url, data, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(response.json()["errors"][reference_key], ["Very bad"])
+
+        attribute = getattr(self.application, key)
+        self.assertEqual(attribute, None)
+
+    @parameterized.expand(
+        [
+            [{"key": "military_end_use_controls", "value": "yes"}],
+            [{"key": "informed_wmd", "value": "yes"}],
+            [{"key": "suspected_wmd", "value": "yes"}],
+        ]
+    )
+    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_is_none(self, attributes):
+        key = "is_" + attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+        reference_key = attributes["key"] + "_ref"
+
+        response = self.client.put(self.url, data, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual((response.json()["errors"][reference_key]), ["Very bad"])
+
+        attribute = getattr(self.application, key)
+        self.assertEqual(attribute, None)
+
+    @parameterized.expand(
+        [
+            [{"key": "military_end_use_controls", "value": ""}],
+            [{"key": "informed_wmd", "value": ""}],
+            [{"key": "suspected_wmd", "value": ""}],
+        ]
+    )
+    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_field_is_none(self, attributes):
+        key = "is_" + attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+
+        response = self.client.put(self.url, data, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(response.json()["errors"][key], ["Required!"])
+
+        attribute = getattr(self.application, key)
+        self.assertEqual(attribute, None)
+
 
 @parameterized_class(
     "case_type", [(CaseTypeEnum.EXHIBITION,), (CaseTypeEnum.GIFTING,), (CaseTypeEnum.F680,),],

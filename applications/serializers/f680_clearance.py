@@ -98,7 +98,8 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         return validated_data
 
     def update(self, instance, validated_data):
+        if "types" in validated_data:
+            validated_data["types"] = validated_data.get("types")
+
         instance = super().update(instance, validated_data)
-        instance.types.set(validated_data.get("types", list(instance.types.values_list("id", flat=True))))
-        instance.save()
         return instance

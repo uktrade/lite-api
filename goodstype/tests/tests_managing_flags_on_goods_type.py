@@ -8,7 +8,7 @@ from test_helpers.clients import DataTestClient
 class GoodTypeFlagsManagementTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.open_application = self.create_open_application(self.organisation)
+        self.open_application = self.create_draft_open_application(self.organisation)
 
         self.goods_types = GoodsType.objects.filter(application=self.open_application)
         self.goods_type = self.goods_types[0]

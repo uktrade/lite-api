@@ -11,7 +11,7 @@ from test_helpers.clients import DataTestClient
 class GoodsTypeOnApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.open_application = self.create_open_application(self.organisation)
+        self.open_application = self.create_draft_open_application(self.organisation)
         self.url = reverse("applications:application_goodstypes", kwargs={"pk": self.open_application.id},)
         self.data = {
             "description": "Widget",
@@ -93,7 +93,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_remove_goodstype_from_open_application_as_exporter_user_success(self):
-        self.create_open_application(self.organisation)
+        self.create_draft_open_application(self.organisation)
         all_goods_types = GoodsType.objects.all()
         goods_type_id = all_goods_types.first().id
         initial_goods_types_count = all_goods_types.count()

@@ -233,7 +233,7 @@ class DraftTests(DataTestClient):
         )
 
     def test_view_draft_open_application_as_exporter_success(self):
-        open_application = self.create_open_application(self.organisation)
+        open_application = self.create_draft_open_application(self.organisation)
 
         url = reverse("applications:application", kwargs={"pk": open_application.id})
 

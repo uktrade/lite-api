@@ -78,7 +78,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an open application that is a draft
         """
-        self.original_application = self.create_open_application(self.organisation)
+        self.original_application = self.create_draft_open_application(self.organisation)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -98,7 +98,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an open application that is submitted (ongoing or otherwise)
         """
-        self.original_application = self.create_open_application(self.organisation)
+        self.original_application = self.create_draft_open_application(self.organisation)
         self.submit_application(self.original_application)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})

@@ -152,7 +152,7 @@ class ThirdPartiesOnDraft(DataTestClient):
             "website": "https://www.gov.uk",
             "type": PartyType.THIRD_PARTY,
         }
-        open_draft = self.create_open_application(self.organisation)
+        open_draft = self.create_draft_open_application(self.organisation)
         url = reverse("applications:parties", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)

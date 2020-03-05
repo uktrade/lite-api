@@ -93,8 +93,10 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
         if is_yes_no_field_present:
             yes_no_field_val = validated_data.get(yes_no_field)
+
             if not yes_no_field_val:
                 raise serializers.ValidationError({yes_no_field: "Required!"})
+
             if yes_no_field_val == YesNoChoiceType.YES:
                 if not validated_data.get(ref_field):
                     raise serializers.ValidationError({ref_field: "Very bad"})

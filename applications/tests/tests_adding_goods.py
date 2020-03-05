@@ -106,7 +106,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         And no goods have been added
         """
         good_name = "A good"
-        draft = self.create_open_application(self.organisation)
+        draft = self.create_draft_open_application(self.organisation)
         pre_test_good_count = GoodOnApplication.objects.all().count()
         self.create_good(good_name, self.organisation)
         self.create_good_document(

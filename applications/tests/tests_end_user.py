@@ -72,7 +72,7 @@ class EndUserOnDraftTests(DataTestClient):
         pre_test_end_user_count = PartyOnApplication.objects.filter(
             application=self.draft, deleted_at__isnull=True, party__type=PartyType.END_USER
         ).count()
-        draft_open_application = self.create_open_application(organisation=self.organisation)
+        draft_open_application = self.create_draft_open_application(organisation=self.organisation)
         data = {
             "name": "Government",
             "address": "Westminster, London SW1A 0AA",
@@ -161,7 +161,7 @@ class EndUserOnDraftTests(DataTestClient):
             "type": PartyType.END_USER,
         }
 
-        open_draft = self.create_open_application(self.organisation)
+        open_draft = self.create_draft_open_application(self.organisation)
         url = reverse("applications:parties", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)

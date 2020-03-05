@@ -639,7 +639,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_open_application(self, organisation: Organisation, reference_name="Open Draft"):
+    def create_draft_open_application(self, organisation: Organisation, reference_name="Open Draft"):
         application = OpenApplication(
             name=reference_name,
             case_type_id=CaseTypeEnum.OIEL.id,
