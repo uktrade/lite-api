@@ -39,7 +39,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
             # TODO: Link FinalAdvice to decision model
             decision_type = Decision.objects.get(name=decision.type)
             return LetterTemplate.objects.filter(decisions=decision_type)
-        if case:
+        elif case:
             return get_letter_templates_for_case(get_case(pk=case))
         else:
             return self.queryset
