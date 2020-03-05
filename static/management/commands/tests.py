@@ -4,9 +4,11 @@ from django.test import tag
 
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
-from conf.constants import GovPermissions, ExporterPermissions
+from conf.constants import GovPermissions, ExporterPermissions, Teams
 from conf.settings import BASE_DIR
 from flags.models import Flag
+from organisations.models import Organisation
+from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -20,9 +22,12 @@ from static.management.commands import (
     seedcountries,
     seeddenialreasons,
     seedrolepermissions,
-    seedsystemflags,
+    seedinternaladminusers,
+    seedflags,
+    seeddemodata,
 )
 from static.statuses.models import CaseStatus, CaseStatusCaseType
+from teams.models import Team
 from users.models import Permission
 
 
@@ -49,7 +54,7 @@ class SeedingTests(SeedCommandTest):
                 if case_type.sub_type in value or case_type.type in value:
                     counter += 1
 
-        self.assertEqual(counter, CaseStatusCaseType.objects.all().count())
+        self.assertEqual(CaseStatusCaseType.objects.all().count(), counter)
 
     def test_seed_control_list_entries(self):
         self.seed_command(seedcontrollistentries.Command)
@@ -77,6 +82,21 @@ class SeedingTests(SeedCommandTest):
         self.seed_command(seedrolepermissions.Command)
         self.assertTrue(Permission.objects.count() >= len(GovPermissions) + len(ExporterPermissions))
 
-    def test_seed_system_flags(self):
-        self.seed_command(seedsystemflags.Command)
-        self.assertTrue(Flag.objects.count(), len(seedlayouts.Command.read_csv(seedsystemflags.SYSTEM_FLAGS_FILE)))
+    def test_seed_flags(self):
+        self.seed_command(seedrolepermissions.Command)
+        seedinternaladminusers.Command.seed_admin_team()
+        self.seed_command(seedflags.Command)
+        for flag in seedlayouts.Command.read_csv(seedflags.FLAGS_FILE):
+            self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())
+
+    def test_seed_demo_data(self):
+        self.seed_command(seedcountries.Command)
+        self.seed_command(seeddemodata.Command)
+        for team in seeddemodata.Command.read_csv(seeddemodata.TEAMS_FILE):
+            self.assertTrue(Team.objects.filter(name=team["name"]).exists())
+        for queue in seeddemodata.Command.read_csv(seeddemodata.QUEUES_FILE):
+            self.assertTrue(Queue.objects.filter(name=queue["name"]).exists())
+        for flag in seeddemodata.Command.read_csv(seeddemodata.FLAGS_FILE):
+            self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())
+        for organisation in seeddemodata.ORGANISATIONS:
+            self.assertTrue(Organisation.objects.filter(name=organisation["name"]).exists())
