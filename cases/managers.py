@@ -99,6 +99,8 @@ class CaseQuerySet(models.QuerySet):
         elif queue_id is not None and queue_id != ALL_CASES_QUEUE_ID:
             return self.in_queue(queue_id=queue_id)
 
+        return self
+
 
 class CaseManager(models.Manager):
     """
