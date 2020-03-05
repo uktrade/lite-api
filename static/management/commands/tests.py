@@ -22,7 +22,7 @@ from static.management.commands import (
     seedcountries,
     seeddenialreasons,
     seedrolepermissions,
-    seedadminusers,
+    seedinternaladminusers,
     seedflags,
     seeddemodata,
 )
@@ -84,7 +84,7 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_flags(self):
         self.seed_command(seedrolepermissions.Command)
-        seedadminusers.Command.seed_admin_team()
+        seedinternaladminusers.Command.seed_admin_team()
         self.seed_command(seedflags.Command)
         for flag in seedlayouts.Command.read_csv(seedflags.FLAGS_FILE):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())

@@ -29,25 +29,38 @@ class Command(SeedCommand):
         ), "Demo organisations must be seeded first!"
         assert Role.objects.count(), "Role permissions must be seeded first!"
 
-        # Seed admin users first, as they could be re-defined with a role in the exporter users environment variable
+        # Seed admin users first, as they could be re-defined with a role in the EXPORTER_USERS environment variable
         self.seed_exporter_users(self._get_admin_users())
         self.seed_exporter_users(self._get_exporter_users())
 
     @classmethod
     def _get_exporter_users(cls):
-        exporter_users = env("EXPORTER_USERS")
-        exporter_users = exporter_users.replace("=>", ":")
-        return serialize(exporter_users)
+        return cls._get_users_list("EXPORTER_USERS")
 
     @classmethod
     def _get_admin_users(cls):
-        admin_users = env("INTERNAL_ADMIN_USERS")
-        admin_users = admin_users.replace("=>", ":")
-        admin_users = serialize(admin_users)
+        admin_users = cls._get_users_list("INTERNAL_ADMIN_TEAM_USERS")
         # seed admin users as an exporter super-user
         for user in admin_users:
             user["role"] = Roles.EXPORTER_SUPER_USER_ROLE_NAME
         return admin_users
+
+    @classmethod
+    def _get_users_list(cls, env_variable):
+        users = env(env_variable)
+        # The JSON representation of the variable is different on environments, so it needs to be parsed first
+        parsed_users = users.replace("=>", ":")
+
+        try:
+            serialized_users = serialize(parsed_users)
+        except ValueError:
+            raise ValueError(
+                f"{env_variable} has incorrect format;"
+                f"\nexpected format: [{{'email': '', 'role': ''}}]"
+                f"\nbut got: {users}"
+            )
+
+        return serialized_users
 
     @classmethod
     def seed_exporter_users(cls, users):
