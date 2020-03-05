@@ -242,13 +242,15 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
     @classmethod
     def edit_end_use_details(cls, application, request):
-        end_use_fields = ["is_military_end_use_controls",
-                          "military_end_use_controls_ref",
-                          "is_informed_wmd",
-                          "informed_wmd_ref",
-                          "is_suspected_wmd",
-                          "suspected_wmd_ref",
-                          "is_eu_military"]
+        end_use_fields = [
+            "is_military_end_use_controls",
+            "military_end_use_controls_ref",
+            "is_informed_wmd",
+            "informed_wmd_ref",
+            "is_suspected_wmd",
+            "suspected_wmd_ref",
+            "is_eu_military",
+        ]
 
         if not application.is_major_editable():
             for field in end_use_fields:
@@ -260,8 +262,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
     def end_use_helper(cls, request, field):
         if request.data.get(field):
             return JsonResponse(
-                data={"errors": {field: ["This isn't possible on a minor edit"]}},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": {field: ["This isn't possible on a minor edit"]}}, status=status.HTTP_400_BAD_REQUEST,
             )
 
     @authorised_users(ExporterUser)

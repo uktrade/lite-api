@@ -55,7 +55,9 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
-    is_military_end_use_controls = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
+    is_military_end_use_controls = KeyValueChoiceField(
+        choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True
+    )
     is_informed_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
     is_suspected_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
     is_eu_military = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_na_choices, allow_blank=True, allow_null=True)

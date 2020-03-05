@@ -74,7 +74,6 @@ urlpatterns = [
     ),
     # Existing parties
     path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties"),
-
     # End use details
-    path("<uuid:pk>/end-use-details/", existing_parties.ExistingParties.as_view(), name="existing_parties")
+    path("<uuid:pk>/end-use-details/", existing_parties.ExistingParties.as_view(), name="existing_parties"),
 ]

@@ -238,7 +238,8 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         """
         validated_data = super().validate(data)
         if validated_data.get("licence_duration") is not None and (
-            validated_data["licence_duration"] > LicenceDuration.MAX.value or validated_data["licence_duration"] < LicenceDuration.MIN.value
+            validated_data["licence_duration"] > LicenceDuration.MAX.value
+            or validated_data["licence_duration"] < LicenceDuration.MIN.value
         ):
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return validated_data
