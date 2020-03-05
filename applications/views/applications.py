@@ -140,7 +140,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         data = request.data.copy()
         serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
-        #
+        # Prevent minor edits of the end use details
         end_use_details_error = self.edit_end_use_details(application, request)
         if end_use_details_error:
             return end_use_details_error

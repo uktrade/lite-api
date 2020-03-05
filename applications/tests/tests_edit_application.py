@@ -181,6 +181,34 @@ class EditMODClearanceApplicationsTests(DataTestClient):
         response = self.client.put(self.url, self.data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @parameterized.expand(
+        [
+            [{"key": "military_end_use_controls", "value": "Yes", "reference_number": "48953745ref"}],
+            [{"informed_wmd": "Yes", "reference_number": "48953745ref"}],
+            [{"suspected_wmd": "Yes", "reference_number": "48953745ref"}],
+            [{"eu_military": "Yes"}],
+        ]
+    )
+    def test_edit_unsubmitted_standard_application_end_use_details(self, attributes):
+        data = {"is_" + attributes["key"]: attributes["value"]}
+
+        if "reference_number" in attributes:
+            data[attributes["key"] + "_ref"] = attributes["reference_number"]
+
+        updated_at = self.application.updated_at
+
+        response = self.client.put(self.url, data, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        attribute = getattr(self.application, "is_" + attributes["key"])
+        self.assertEqual(attribute, attributes["value"])
+
+        self.assertNotEqual(self.application.updated_at, updated_at)
+        # Unsubmitted (draft) applications should not create audit entries when edited
+        self.assertEqual(Audit.objects.all().count(), 0)
+
 
 class EditF680ApplicationsTests(DataTestClient):
     def setUp(self):

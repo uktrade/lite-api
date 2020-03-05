@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.fields import CharField
 
 from applications.enums import YesNoChoiceType
 from applications.models import OpenApplication
@@ -11,7 +10,6 @@ from applications.serializers.generic_application import (
 from conf.serializers import KeyValueChoiceField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
-from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
 
