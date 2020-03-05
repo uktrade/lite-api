@@ -17,6 +17,7 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.models import Case
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.decorators import authorised_users
+from conf.helpers import str_to_bool
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
 from users.enums import UserType
@@ -67,6 +68,8 @@ class GeneratedDocuments(generics.ListAPIView):
         # base the document name on the template name and a portion of the UUID generated for the s3 key
         document_name = f"{s3_key[:len(document.template.name) + 6]}.pdf"
 
+        visible_to_exporter = str_to_bool(request.data.get("visible_to_exporter"))
+
         try:
             with transaction.atomic():
                 generated_doc = GeneratedCaseDocument.objects.create(
@@ -79,7 +82,7 @@ class GeneratedDocuments(generics.ListAPIView):
                     case=document.case,
                     template=document.template,
                     text=document.text,
-                    visible_to_exporter=True,
+                    visible_to_exporter=visible_to_exporter,
                 )
 
                 audit_trail_service.create(
