@@ -26,7 +26,9 @@ class CasesSearchView(generics.ListAPIView):
         }
         order = "-" if not context["is_work_queue"] else ""
 
-        include_hidden = context["is_work_queue"] and str_to_bool(request.GET.get("hidden"))
+        # we include hidden cases in non work queues (all cases, all open cases)
+        #  and if the flag to include hidden is added
+        include_hidden = not context["is_work_queue"] or str_to_bool(request.GET.get("hidden"))
 
         page = self.paginate_queryset(
             Case.objects.search(
