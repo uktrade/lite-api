@@ -34,6 +34,15 @@ class UsersList(generics.ListCreateAPIView):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
 
         user_relationships = get_user_organisation_relationships(org_pk, status)
+
+        if self.request.GET.get("disable_pagination"):
+            for relationship in user_relationships:
+                relationship.user.status = relationship.status
+                relationship.user.role = relationship.role
+            users = [relationship.user for relationship in user_relationships]
+            serializer = OrganisationUserListView(users, many=True)
+            return JsonResponse(data={"users": serializer.data})
+
         page = self.paginate_queryset(user_relationships)
 
         for p in page:
@@ -41,9 +50,6 @@ class UsersList(generics.ListCreateAPIView):
             p.user.role = p.role
 
         serializer = OrganisationUserListView([p.user for p in page], many=True)
-
-        if self.request.GET.get("disable_pagination"):
-            return JsonResponse(data={"users": serializer.data})
 
         return self.get_paginated_response({"users": serializer.data})
 
