@@ -39,9 +39,12 @@ class GeneratedDocuments(generics.ListAPIView):
         case = Case.objects.get(id=self.kwargs["pk"])
         user = self.request.user
 
-        documents = GeneratedCaseDocument.objects.filter(case=case)
         if user.type == UserType.EXPORTER:
+            documents = GeneratedCaseDocument.objects.filter(case=case, visible_to_exporter=True)
             delete_exporter_notifications(user=user, organisation=user.organisation, objects=documents)
+        else:
+            documents = GeneratedCaseDocument.objects.filter(case=case)
+
         return documents
 
     @transaction.atomic
@@ -76,6 +79,7 @@ class GeneratedDocuments(generics.ListAPIView):
                     case=document.case,
                     template=document.template,
                     text=document.text,
+                    visible_to_exporter=True,
                 )
 
                 audit_trail_service.create(

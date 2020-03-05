@@ -165,6 +165,7 @@ class CaseDocument(Document):
     type = models.CharField(
         choices=CaseDocumentState.choices, default=CaseDocumentState.UPLOADED, max_length=100, null=False
     )
+    visible_to_exporter = models.BooleanField(blank=False, null=False)
 
 
 class Advice(TimestampableModel):
