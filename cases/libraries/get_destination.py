@@ -79,7 +79,8 @@ def get_goods_flags(case):
         goods_types = GoodsType.objects.filter(application=case)
         for goods_type in goods_types:
             goods_flags += goods_type.flags.all()
-
+    elif case_type == CaseTypeSubTypeEnum.GOODS:
+        goods_flags += GoodsQuery.objects.get(id=case.id).good.flags.all()
 
     return goods_flags
 

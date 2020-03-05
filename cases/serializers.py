@@ -110,12 +110,9 @@ class TinyCaseSerializer(serializers.Serializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     queue_names = serializers.SerializerMethodField()
-    organisation = serializers.SerializerMethodField()
     users = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    query = QueryViewSerializer()
     flags = serializers.SerializerMethodField()
-    submitted_at = serializers.CharField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
 
