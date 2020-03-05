@@ -129,7 +129,6 @@ class BaseApplication(ApplicationPartyMixin, Case):
     name = models.TextField(default=None, blank=True, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
-    licence = models.ForeignKey("applications.Licence", on_delete=models.CASCADE, null=True)
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
     objects = BaseApplicationManager()
@@ -254,6 +253,7 @@ class PartyOnApplication(TimestampableModel):
 
 
 class Licence(TimestampableModel):
+    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, null=True)
     start_date = models.DateField(blank=False, null=False)
     licence_duration = models.PositiveSmallIntegerField(blank=False, null=False)
     finalised = models.BooleanField(default=False, null=False)
