@@ -91,9 +91,12 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     @staticmethod
     def _validate_dependent_ref_field(validated_data, yes_no_field, ref_field):
-        yes_no_field_val = validated_data.get(yes_no_field)
-        if not yes_no_field_val:
-            raise serializers.ValidationError({yes_no_field: "Required!"})
-        if yes_no_field_val == YesNoChoiceType.YES:
-            if not validated_data.get(ref_field):
-                raise serializers.ValidationError({ref_field: "Very bad"})
+        is_yes_no_field_present = yes_no_field in validated_data
+
+        if is_yes_no_field_present:
+            yes_no_field_val = validated_data.get(yes_no_field)
+            if not yes_no_field_val:
+                raise serializers.ValidationError({yes_no_field: "Required!"})
+            if yes_no_field_val == YesNoChoiceType.YES:
+                if not validated_data.get(ref_field):
+                    raise serializers.ValidationError({ref_field: "Very bad"})
