@@ -44,7 +44,9 @@ class CasesSearchView(generics.ListAPIView):
             )
         )
         queues = SearchQueueSerializer(service.get_search_queues(user=request.user), many=True).data
-        cases = CaseListSerializer(page, context=context, team=request.user.team, many=True).data
+        cases = CaseListSerializer(
+            page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
+        ).data
 
         service.populate_is_recently_updated(cases)
 

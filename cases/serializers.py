@@ -117,9 +117,11 @@ class CaseListSerializer(serializers.Serializer):
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
+    open_team_ecju_queries = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
+        self.include_hidden = kwargs.pop("include_hidden", None)
         super().__init__(*args, **kwargs)
 
     def get_flags(self, instance):
@@ -141,6 +143,14 @@ class CaseListSerializer(serializers.Serializer):
 
     def get_users(self, instance):
         return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
+
+    def get_open_team_ecju_queries(self, instance):
+        if self.include_hidden:
+            return (
+                EcjuQuery.objects.select_related("raised_by_user__team_id")
+                .filter(raised_by_user__team_id=self.team, responded_at__isnull=True)
+                .exists()
+            )
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
