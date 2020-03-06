@@ -148,7 +148,7 @@ class CaseListSerializer(serializers.Serializer):
         if self.include_hidden:
             return (
                 EcjuQuery.objects.select_related("raised_by_user__team_id")
-                .filter(raised_by_user__team_id=self.team, responded_at__isnull=True)
+                .filter(case_id=instance.id, raised_by_user__team_id=self.team, responded_at__isnull=True)
                 .exists()
             )
 
