@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from django.http import Http404
 
 from applications.libraries.get_applications import get_application
@@ -68,20 +69,18 @@ def get_goods_flags(case):
         CaseTypeSubTypeEnum.GIFTING,
         CaseTypeSubTypeEnum.F680,
     ]:
-        goods_on_application = GoodOnApplication.objects.filter(application=case)
-        if goods_on_application.exists():
-            goods_on_application = goods_on_application.select_related("good")
-            for good_on_application in goods_on_application:
-                goods_flags += good_on_application.good.flags.all()
+        goods_on_application = GoodOnApplication.objects.select_related("good").filter(application_id=case.id)
+        for good_on_application in goods_on_application:
+            goods_flags += good_on_application.good.flags.all()
     elif case_type in [
         CaseTypeSubTypeEnum.OPEN,
         CaseTypeSubTypeEnum.HMRC,
     ]:
-        goods_types = GoodsType.objects.filter(application=case)
+        goods_types = GoodsType.objects.filter(application_id=case.id)
         for goods_type in goods_types:
             goods_flags += goods_type.flags.all()
     elif case_type == CaseTypeSubTypeEnum.GOODS:
-        goods_flags += GoodsQuery.objects.get(id=case.id).good.flags.all()
+        goods_flags += GoodsQuery.objects.select_related("good").get(id=case.id).good.flags.all()
 
     return goods_flags
 
