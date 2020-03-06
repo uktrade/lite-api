@@ -2,7 +2,7 @@ from rest_framework import generics
 
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from cases.serializers import TinyCaseSerializer
+from cases.serializers import CaseListSerializer
 from cases.views.search import service
 from cases.views.search.serializers import SearchQueueSerializer
 from conf.authentication import GovAuthentication
@@ -34,7 +34,10 @@ class CasesSearchView(generics.ListAPIView):
             )
         )
         queues = SearchQueueSerializer(service.get_search_queues(user=request.user), many=True).data
-        cases = TinyCaseSerializer(page, context=context, team=request.user.team, many=True).data
+        cases = CaseListSerializer(page, context=context, team=request.user.team, many=True).data
+
+        service.populate_is_recently_updated(cases)
+
         queue = next(q for q in queues if q["id"] == queue_id)
 
         statuses = service.get_case_status_list()

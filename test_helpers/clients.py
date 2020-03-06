@@ -435,9 +435,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return pv_grading_query
 
     @staticmethod
-    def create_advice(user, case, advice_field, advice_type, advice_level):
+    def create_advice(user, case, advice_field, advice_type, advice_level, pv_grading=None):
         advice = advice_level(
-            user=user, case=case, type=advice_type, note="This is a note to the exporter", text="This is some text",
+            user=user,
+            case=case,
+            type=advice_type,
+            note="This is a note to the exporter",
+            text="This is some text",
+            pv_grading=pv_grading,
         )
 
         advice.team = user.team

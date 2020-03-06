@@ -37,7 +37,8 @@ class Command(BaseCommand):
         threshold = options["threshold"] if options["threshold"] else self.DEFAULT_THRESHOLD
         self._show_report(report_type, threshold)
 
-    def _gather_coverage(self, module_to_run_coverage_on, tests_to_run):
+    @classmethod
+    def _gather_coverage(cls, module_to_run_coverage_on, tests_to_run):
         gather_coverage_command = (
             "pipenv run coverage run --source=./"
             + (module_to_run_coverage_on if module_to_run_coverage_on else "")
@@ -50,7 +51,8 @@ class Command(BaseCommand):
         print("\n`" + gather_coverage_command + "`\n")
         execute_bash_command(gather_coverage_command, shell=True)
 
-    def _show_report(self, report_type, threshold):
+    @classmethod
+    def _show_report(cls, report_type, threshold):
         report_coverage_command = "pipenv run coverage " + report_type + " --fail-under=" + threshold
         print("\n`" + report_coverage_command + "`\n")
 
