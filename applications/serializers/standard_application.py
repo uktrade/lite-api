@@ -19,6 +19,11 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     additional_documents = serializers.SerializerMethodField()
     goods_categories = serializers.SerializerMethodField()
 
+    is_military_end_use_controls = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices)
+    is_informed_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices)
+    is_suspected_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices)
+    is_eu_military = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_na_choices)
+
     def get_goods_categories(self, instance):
         # Return a formatted key, value format of GoodsCategories
         # Order according to the choices in GoodsCategory
@@ -39,6 +44,13 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "usage",
                 "destinations",
                 "additional_documents",
+                "is_military_end_use_controls",
+                "military_end_use_controls_ref",
+                "is_informed_wmd",
+                "informed_wmd_ref",
+                "is_suspected_wmd",
+                "suspected_wmd_ref",
+                "is_eu_military",
             )
         )
 
