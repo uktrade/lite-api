@@ -344,25 +344,6 @@ class CaseFinalAdvice(APIView):
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
 
-class FinalAdviceGenerateDocument(APIView):
-    def post(self, request, pk):
-        generated_document_pk = request.data.get("generated_document")
-        try:
-            generated_document = GeneratedCaseDocument.objects.get(id=generated_document_pk)
-        except ObjectDoesNotExist:
-            raise NotFoundError({"generated_document": f"Generated document not found: {generated_document_pk}"})
-
-        decision_pk = request.data.get("decision")
-        try:
-            decision = FinalAdvice.objects.get(id=decision_pk, case=pk)
-        except ObjectDoesNotExist:
-            raise NotFoundError({"decision": f"Final Advice decision not found: {decision_pk}"})
-
-        decision.document = generated_document
-        decision.save()
-        return JsonResponse(data={"decision": decision_pk}, status=status.HTTP_200_OK)
-
-
 class CaseEcjuQueries(APIView):
     authentication_classes = (SharedAuthentication,)
 

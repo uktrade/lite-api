@@ -23,11 +23,6 @@ urlpatterns = [
     path("<uuid:pk>/team-advice/", views.CaseTeamAdvice.as_view(), name="case_team_advice",),
     path("<uuid:pk>/view-team-advice/<uuid:team_pk>/", views.ViewTeamAdvice.as_view(), name="view_team_advice",),
     path("<uuid:pk>/final-advice/", views.CaseFinalAdvice.as_view(), name="case_final_advice",),
-    path(
-        "<uuid:pk>/final-advice/generate-document/",
-        views.FinalAdviceGenerateDocument.as_view(),
-        name="case_final_advice_generate_document",
-    ),
     path("<uuid:pk>/view-final-advice/", views.ViewFinalAdvice.as_view(), name="view_final_advice",),
     path(
         "<uuid:pk>/goods-countries-decisions/",
