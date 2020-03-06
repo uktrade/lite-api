@@ -12,6 +12,8 @@ from cases.enums import (
     CaseTypeSubTypeEnum,
     CaseTypeReferenceEnum,
 )
+from cases.generated_documents.models import GeneratedCaseDocument
+from cases.generated_documents.serializers import GeneratedFinalAdviceDocumentGovSerializer
 from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
@@ -455,6 +457,14 @@ class CaseFinalAdviceSerializer(CaseAdviceSerializer):
     class Meta:
         model = FinalAdvice
         fields = "__all__"
+
+
+class AdviceDocumentTypeSerializer(serializers.ModelSerializer):
+    type = KeyValueChoiceField(choices=AdviceType.choices)
+
+    class Meta:
+        model = FinalAdvice
+        fields = ("type",)
 
 
 class EcjuQueryGovSerializer(serializers.ModelSerializer):

@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -13,6 +12,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases import service
 from cases.generated_documents.models import GeneratedCaseDocument
+from cases.generated_documents.serializers import GeneratedFinalAdviceDocumentGovSerializer
 from cases.helpers import create_grouped_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
@@ -38,11 +38,10 @@ from cases.serializers import (
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
-)
+    AdviceDocumentTypeSerializer)
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.exceptions import NotFoundError
-from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
@@ -279,6 +278,20 @@ class CaseTeamAdvice(APIView):
         case_advice_contains_refusal(pk)
         audit_trail_service.create(actor=request.user, verb=AuditType.CLEARED_TEAM_ADVICE, target=self.case)
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
+
+
+class FinalAdviceDocuments(APIView):
+    def get(self, request, pk):
+        case = get_case(pk)
+        decision_documents = AdviceDocumentTypeSerializer(FinalAdvice.objects.filter(case=case).distinct("type"), many=True).data
+        # TODO Figure out a smarter way of doing this
+        for decision in decision_documents:
+            document = GeneratedCaseDocument.objects.filter(advice_type=decision, case=case).first()
+            if document:
+                decision["document"] = GeneratedFinalAdviceDocumentGovSerializer(document)
+            else:
+                decision["document"] = None
+        return JsonResponse(data={"documents": decision_documents}, status=status.HTTP_200_OK)
 
 
 class ViewFinalAdvice(APIView):
