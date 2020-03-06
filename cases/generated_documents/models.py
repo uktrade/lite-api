@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
+from cases.enums import AdviceType
 from cases.models import CaseDocument
 from users.models import ExporterNotification
 from letter_templates.models import LetterTemplate
@@ -12,6 +13,7 @@ class GeneratedCaseDocument(CaseDocument):
     text = models.TextField(blank=True)
 
     notifications = GenericRelation(ExporterNotification, related_query_name="generated_case_document",)
+    advice_type = models.CharField(choices=AdviceType.choices, max_length=30, null=True, blank=False)
 
     def save(self, *args, **kwargs):
         creating = self._state.adding
