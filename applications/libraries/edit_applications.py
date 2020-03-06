@@ -35,12 +35,14 @@ def get_old_end_use_details_fields(application):
 
 
 def get_new_end_use_details_fields(validated_data):
-    return {end_use_field: validated_data.get(end_use_field) for end_use_field in END_USE_FIELDS}
+    new_end_use_details = {}
+    for end_use_field in END_USE_FIELDS:
+        if end_use_field in validated_data:
+            new_end_use_details[end_use_field] = validated_data[end_use_field]
+    return new_end_use_details
 
 
-def audit_end_use_details(user, case, old_end_use_details_fields, validated_data):
-    new_end_use_details_fields = get_new_end_use_details_fields(validated_data)
-
+def audit_end_use_details(user, case, old_end_use_details_fields, new_end_use_details_fields):
     for key, new_end_use_value in new_end_use_details_fields.items():
         old_end_use_value = old_end_use_details_fields[key]
         if new_end_use_value != old_end_use_value:
@@ -54,3 +56,50 @@ def audit_end_use_details(user, case, old_end_use_details_fields, validated_data
                     "new_end_use_detail": new_end_use_value,
                 },
             )
+
+
+def save_and_audit_end_use_details(request, application, serializer):
+    old_end_use_details_fields = get_old_end_use_details_fields(application)
+    new_end_use_details_fields = get_new_end_use_details_fields(serializer.validated_data)
+    if new_end_use_details_fields:
+        serializer.save()
+        audit_end_use_details(
+            request.user, application.get_case(), old_end_use_details_fields, new_end_use_details_fields
+        )
+        return True
+
+
+def save_and_audit_have_you_been_informed_ref(request, application, serializer):
+    old_have_you_been_informed = application.have_you_been_informed == "yes"
+    have_you_been_informed = request.data.get("have_you_been_informed")
+
+    if have_you_been_informed:
+        old_ref_number = application.reference_number_on_information_form or "no reference"
+
+        serializer.save()
+
+        new_ref_number = application.reference_number_on_information_form or "no reference"
+
+        if old_have_you_been_informed and not have_you_been_informed == "yes":
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                target=application.get_case(),
+                payload={"old_ref_number": old_ref_number},
+            )
+        else:
+            if old_have_you_been_informed:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
+                    target=application.get_case(),
+                    payload={"old_ref_number": old_ref_number, "new_ref_number": new_ref_number},
+                )
+            else:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
+                    target=application.get_case(),
+                    payload={"new_ref_number": new_ref_number},
+                )
+        return True

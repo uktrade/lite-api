@@ -9,8 +9,8 @@ from cases.enums import CaseTypeEnum
 from goods.enums import PvGrading
 from lite_content.lite_api import strings
 from parties.enums import PartyType
-from static.statuses.enums import CaseStatusEnum
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -403,6 +403,34 @@ class EditOpenApplicationTests(DataTestClient):
 
         attribute = getattr(self.application, key)
         self.assertEqual(attribute, None)
+
+    @parameterized.expand(
+        [
+            [{"key": "is_military_end_use_controls", "value": "no"}],
+            [{"key": "is_informed_wmd", "value": "no"}],
+            [{"key": "is_suspected_wmd", "value": "no"}],
+            [{"key": "is_eu_military", "value": "no"}],
+        ]
+    )
+    def test_edit_submitted_open_application_end_use_details_minor_editable(self, attributes):
+        application = self.create_draft_open_application(self.organisation)
+        self.submit_application(application)
+        application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        application.save()
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        key = attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        attribute = getattr(application, key)
+        self.assertEqual(attribute, value)
+        self.assertEqual(Audit.objects.all().count(), 1)
 
     @parameterized.expand(
         [
