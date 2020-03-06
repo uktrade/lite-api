@@ -15,4 +15,5 @@ urlpatterns = [
     path("statuses/", include("static.statuses.urls")),
     path("upload-document-for-tests/", include("static.upload_document_for_tests.urls")),
     path("missing-document-reasons/", include("static.missing_document_reasons.urls")),
+    path("item-types/", include("static.good_item_types.urls")),
 ]
