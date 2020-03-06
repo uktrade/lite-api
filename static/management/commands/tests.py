@@ -90,7 +90,7 @@ class SeedingTests(SeedCommandTest):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())
 
     def test_seed_demo_data(self):
-        self.seed_command(seedcountries.Command)
+        seedinternaladminusers.Command.seed_admin_team()
         self.seed_command(seeddemodata.Command)
         for team in seeddemodata.Command.read_csv(seeddemodata.TEAMS_FILE):
             self.assertTrue(Team.objects.filter(name=team["name"]).exists())
@@ -98,5 +98,3 @@ class SeedingTests(SeedCommandTest):
             self.assertTrue(Queue.objects.filter(name=queue["name"]).exists())
         for flag in seeddemodata.Command.read_csv(seeddemodata.FLAGS_FILE):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())
-        for organisation in seeddemodata.ORGANISATIONS:
-            self.assertTrue(Organisation.objects.filter(name=organisation["name"]).exists())
