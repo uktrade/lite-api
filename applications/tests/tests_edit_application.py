@@ -178,6 +178,7 @@ class EditStandardApplicationTests(DataTestClient):
         key = "is_" + attributes["key"]
         value = attributes["value"]
         data = {key: value}
+        old_attribute = getattr(application, key)
 
         reference_key = attributes["key"] + "_ref"
         data[reference_key] = attributes["reference_number"]
@@ -190,7 +191,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.json()["errors"][reference_key], ["Very bad"])
 
         attribute = getattr(application, key)
-        self.assertEqual(attribute, None)
+        self.assertEqual(attribute, old_attribute)
 
     @parameterized.expand(
         [
@@ -207,6 +208,7 @@ class EditStandardApplicationTests(DataTestClient):
         value = attributes["value"]
         data = {key: value}
         reference_key = attributes["key"] + "_ref"
+        old_attribute = getattr(application, key)
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -216,7 +218,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual((response.json()["errors"][reference_key]), ["Very bad"])
 
         attribute = getattr(application, key)
-        self.assertEqual(attribute, None)
+        self.assertEqual(attribute, old_attribute)
 
     @parameterized.expand(
         [
@@ -232,6 +234,7 @@ class EditStandardApplicationTests(DataTestClient):
         key = "is_" + attributes["key"]
         value = attributes["value"]
         data = {key: value}
+        old_attribute = getattr(application, key)
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -241,14 +244,13 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.json()["errors"][key], ["Required!"])
 
         attribute = getattr(application, key)
-        self.assertEqual(attribute, None)
+        self.assertEqual(attribute, old_attribute)
 
     @parameterized.expand(
         [
-            [{"key": "is_military_end_use_controls", "value": "no"}],
-            [{"key": "is_informed_wmd", "value": "no"}],
-            [{"key": "is_suspected_wmd", "value": "no"}],
-            [{"key": "is_eu_military", "value": "no"}],
+            [{"key": "military_end_use_controls", "value": "yes", "reference_number": "hadd"}],
+            [{"key": "informed_wmd", "value": "yes", "reference_number": "kjjdnsk"}],
+            [{"key": "suspected_wmd", "value": "yes", "reference_number": "kjndskhjds"}],
         ]
     )
     def test_edit_submitted_standard_application_end_use_details_minor_editable(self, attributes):
@@ -257,9 +259,12 @@ class EditStandardApplicationTests(DataTestClient):
         application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})
 
-        key = attributes["key"]
+        key = "is_" + attributes["key"]
         value = attributes["value"]
-        data = {key: value}
+        reference_key = attributes["key"] + "_ref"
+        reference_value = attributes["reference_number"]
+
+        data = {key: value, reference_key: reference_value}
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -268,7 +273,7 @@ class EditStandardApplicationTests(DataTestClient):
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, value)
-        self.assertEqual(Audit.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.all().count(), 2)
 
     @parameterized.expand(
         [
@@ -285,6 +290,7 @@ class EditStandardApplicationTests(DataTestClient):
         key = attributes["key"]
         value = attributes["value"]
         data = {key: value}
+        old_attribute = getattr(application, key)
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -294,7 +300,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.json()["errors"][key], ["This isn't possible on a minor edit"])
 
         attribute = getattr(application, key)
-        self.assertEqual(attribute, None)
+        self.assertEqual(attribute, old_attribute)
 
 
 class EditOpenApplicationTests(DataTestClient):
@@ -308,7 +314,6 @@ class EditOpenApplicationTests(DataTestClient):
             [{"key": "military_end_use_controls", "value": "yes", "reference_number": "48953745ref"}],
             [{"key": "informed_wmd", "value": "yes", "reference_number": "48953745ref"}],
             [{"key": "suspected_wmd", "value": "yes", "reference_number": "48953745ref"}],
-            [{"key": "eu_military", "value": "yes"}],
         ]
     )
     def test_edit_unsubmitted_open_application_end_use_details(self, attributes):
@@ -343,6 +348,7 @@ class EditOpenApplicationTests(DataTestClient):
     )
     def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_empty(self, attributes):
         key = "is_" + attributes["key"]
+        old_attribute = getattr(self.application, key)
         value = attributes["value"]
         data = {key: value}
 
@@ -357,7 +363,7 @@ class EditOpenApplicationTests(DataTestClient):
         self.assertEqual(response.json()["errors"][reference_key], ["Very bad"])
 
         attribute = getattr(self.application, key)
-        self.assertEqual(attribute, None)
+        self.assertEqual(attribute, old_attribute)
 
     @parameterized.expand(
         [
@@ -368,6 +374,7 @@ class EditOpenApplicationTests(DataTestClient):
     )
     def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_is_none(self, attributes):
         key = "is_" + attributes["key"]
+        old_attribute = getattr(self.application, key)
         value = attributes["value"]
         data = {key: value}
         reference_key = attributes["key"] + "_ref"
@@ -380,7 +387,7 @@ class EditOpenApplicationTests(DataTestClient):
         self.assertEqual((response.json()["errors"][reference_key]), ["Very bad"])
 
         attribute = getattr(self.application, key)
-        self.assertEqual(attribute, None)
+        self.assertEqual(attribute, old_attribute)
 
     @parameterized.expand(
         [
@@ -391,6 +398,7 @@ class EditOpenApplicationTests(DataTestClient):
     )
     def test_edit_unsubmitted_open_application_end_use_details_mandatory_field_is_none(self, attributes):
         key = "is_" + attributes["key"]
+        old_attribute = getattr(self.application, key)
         value = attributes["value"]
         data = {key: value}
 
@@ -402,14 +410,13 @@ class EditOpenApplicationTests(DataTestClient):
         self.assertEqual(response.json()["errors"][key], ["Required!"])
 
         attribute = getattr(self.application, key)
-        self.assertEqual(attribute, None)
+        self.assertEqual(attribute, old_attribute)
 
     @parameterized.expand(
         [
-            [{"key": "is_military_end_use_controls", "value": "no"}],
-            [{"key": "is_informed_wmd", "value": "no"}],
-            [{"key": "is_suspected_wmd", "value": "no"}],
-            [{"key": "is_eu_military", "value": "no"}],
+            [{"key": "military_end_use_controls", "value": "yes", "reference_number": "hadd"}],
+            [{"key": "informed_wmd", "value": "yes", "reference_number": "kjjdnsk"}],
+            [{"key": "suspected_wmd", "value": "yes", "reference_number": "kjndskhjds"}],
         ]
     )
     def test_edit_submitted_open_application_end_use_details_minor_editable(self, attributes):
@@ -419,9 +426,12 @@ class EditOpenApplicationTests(DataTestClient):
         application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})
 
-        key = attributes["key"]
+        key = "is_" + attributes["key"]
         value = attributes["value"]
-        data = {key: value}
+        reference_key = attributes["key"] + "_ref"
+        reference_value = attributes["reference_number"]
+
+        data = {key: value, reference_key: reference_value}
 
         response = self.client.put(url, data, **self.exporter_headers)
 
@@ -430,14 +440,13 @@ class EditOpenApplicationTests(DataTestClient):
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, value)
-        self.assertEqual(Audit.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.all().count(), 2)
 
     @parameterized.expand(
         [
             [{"key": "is_military_end_use_controls", "value": "no"}],
             [{"key": "is_informed_wmd", "value": "no"}],
             [{"key": "is_suspected_wmd", "value": "no"}],
-            [{"key": "is_eu_military", "value": "no"}],
         ]
     )
     def test_edit_submitted_open_application_end_use_details_not_major_editable(self, attributes):
@@ -446,6 +455,7 @@ class EditOpenApplicationTests(DataTestClient):
         url = reverse("applications:application", kwargs={"pk": application.id})
 
         key = attributes["key"]
+        old_attribute = getattr(self.application, key)
         value = attributes["value"]
         data = {key: value}
 
@@ -457,7 +467,7 @@ class EditOpenApplicationTests(DataTestClient):
         self.assertEqual(response.json()["errors"][key], ["This isn't possible on a minor edit"])
 
         attribute = getattr(application, key)
-        self.assertEqual(attribute, None)
+        self.assertEqual(attribute, old_attribute)
 
 
 @parameterized_class(

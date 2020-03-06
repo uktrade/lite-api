@@ -58,7 +58,6 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     )
     is_informed_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
     is_suspected_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
-    is_eu_military = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_na_choices, allow_blank=True, allow_null=True)
 
     military_end_use_controls_ref = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2000
@@ -75,7 +74,6 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "informed_wmd_ref",
             "is_suspected_wmd",
             "suspected_wmd_ref",
-            "is_eu_military",
         )
 
     def validate(self, data):

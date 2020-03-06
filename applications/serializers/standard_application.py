@@ -117,6 +117,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     def validate(self, data):
         validated_data = super().validate(data)
+        self._validate_yes_no_field_present(validated_data, "is_eu_military")
         self._validate_dependent_ref_field(
             validated_data, "is_military_end_use_controls", "military_end_use_controls_ref"
         )
@@ -124,8 +125,8 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         self._validate_dependent_ref_field(validated_data, "is_suspected_wmd", "suspected_wmd_ref")
         return validated_data
 
-    @staticmethod
-    def _validate_dependent_ref_field(validated_data, yes_no_field, ref_field):
+    @classmethod
+    def _validate_yes_no_field_present(cls, validated_data, yes_no_field):
         is_yes_no_field_present = yes_no_field in validated_data
 
         if is_yes_no_field_present:
@@ -134,6 +135,12 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             if not yes_no_field_val:
                 raise serializers.ValidationError({yes_no_field: "Required!"})
 
-            if yes_no_field_val == YesNoChoiceType.YES:
-                if not validated_data.get(ref_field):
-                    raise serializers.ValidationError({ref_field: "Very bad"})
+            return yes_no_field_val
+
+    @classmethod
+    def _validate_dependent_ref_field(cls, validated_data, yes_no_field, ref_field):
+        yes_no_field_val = cls._validate_yes_no_field_present(validated_data, yes_no_field)
+
+        if yes_no_field_val == YesNoChoiceType.YES:
+            if not validated_data.get(ref_field):
+                raise serializers.ValidationError({ref_field: "Very bad"})
