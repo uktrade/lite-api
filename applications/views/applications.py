@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ErrorDetail
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 
@@ -104,6 +104,17 @@ class ApplicationList(ListCreateAPIView):
         Create a new application
         """
         data = request.data
+        if not data.get("application_type"):
+            return JsonResponse(
+                data={
+                    "errors": {
+                        "application_type": [
+                            ErrorDetail(string=strings.Applications.SELECT_A_LICENCE_TYPE, code="invalid")
+                        ]
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         case_type = data.pop("application_type", None)
         serializer = get_application_create_serializer(case_type)
         serializer = serializer(
