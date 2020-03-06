@@ -20,6 +20,12 @@ from applications.libraries.application_helpers import (
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
 )
+from applications.libraries.edit_applications import (
+    edit_end_use_details,
+    get_old_end_use_details_fields,
+    get_new_end_use_details_fields,
+    audit_end_use_details,
+)
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
@@ -141,7 +147,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
         # Prevent minor edits of the end use details
-        end_use_details_error = self._edit_end_use_details(application, request)
+        end_use_details_error = edit_end_use_details(application, request)
         if end_use_details_error:
             return end_use_details_error
 
@@ -208,68 +214,50 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            old_end_use_details_fields = get_old_end_use_details_fields(application)
+
             serializer.save()
-            # TODO: Audit block
+
+            audit_end_use_details(request.user, case, old_end_use_details_fields, serializer.validated_data)
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             old_have_you_been_informed = application.have_you_been_informed == "yes"
             have_you_been_informed = request.data.get("have_you_been_informed") == "yes"
-
+            old_end_use_details_fields = get_old_end_use_details_fields(application)
             old_ref_number = application.reference_number_on_information_form or "no reference"
-            serializer.save()
-            new_ref_number = application.reference_number_on_information_form or "no reference"
 
-            if old_have_you_been_informed and not have_you_been_informed:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
-                    target=case,
-                    payload={"old_ref_number": old_ref_number},
-                )
-            else:
-                if old_have_you_been_informed:
+            serializer.save()
+
+            new_ref_number = application.reference_number_on_information_form or "no reference"
+            audit_end_use_details(request.user, case, old_end_use_details_fields, serializer.validated_data)
+
+            if request.data.get("have_you_been_informed"):
+                if old_have_you_been_informed and not have_you_been_informed:
                     audit_trail_service.create(
                         actor=request.user,
-                        verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
+                        verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
                         target=case,
-                        payload={"old_ref_number": old_ref_number, "new_ref_number": new_ref_number},
+                        payload={"old_ref_number": old_ref_number},
                     )
                 else:
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
-                        target=case,
-                        payload={"new_ref_number": new_ref_number},
-                    )
+                    if old_have_you_been_informed:
+                        audit_trail_service.create(
+                            actor=request.user,
+                            verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
+                            target=case,
+                            payload={"old_ref_number": old_ref_number, "new_ref_number": new_ref_number},
+                        )
+                    else:
+                        audit_trail_service.create(
+                            actor=request.user,
+                            verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
+                            target=case,
+                            payload={"new_ref_number": new_ref_number},
+                        )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-    @classmethod
-    def _edit_end_use_details(cls, application, request):
-        end_use_fields = [
-            "is_military_end_use_controls",
-            "military_end_use_controls_ref",
-            "is_informed_wmd",
-            "informed_wmd_ref",
-            "is_suspected_wmd",
-            "suspected_wmd_ref",
-            "is_eu_military",
-        ]
-
-        if not application.is_major_editable():
-            for field in end_use_fields:
-                response_error = cls._end_use_helper(request, field)
-                if response_error:
-                    return response_error
-
-    @classmethod
-    def _end_use_helper(cls, request, field):
-        if request.data.get(field):
-            return JsonResponse(
-                data={"errors": {field: ["This isn't possible on a minor edit"]}}, status=status.HTTP_400_BAD_REQUEST,
-            )
 
     @authorised_users(ExporterUser)
     def delete(self, request, application):

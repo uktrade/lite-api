@@ -243,6 +243,59 @@ class EditStandardApplicationTests(DataTestClient):
         attribute = getattr(application, key)
         self.assertEqual(attribute, None)
 
+    @parameterized.expand(
+        [
+            [{"key": "is_military_end_use_controls", "value": "no"}],
+            [{"key": "is_informed_wmd", "value": "no"}],
+            [{"key": "is_suspected_wmd", "value": "no"}],
+            [{"key": "is_eu_military", "value": "no"}],
+        ]
+    )
+    def test_edit_submitted_standard_application_end_use_details_minor_editable(self, attributes):
+        application = self.create_standard_application_case(self.organisation)
+        application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        application.save()
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        key = attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        attribute = getattr(application, key)
+        self.assertEqual(attribute, value)
+        self.assertEqual(Audit.objects.all().count(), 1)
+
+    @parameterized.expand(
+        [
+            [{"key": "is_military_end_use_controls", "value": "no"}],
+            [{"key": "is_informed_wmd", "value": "no"}],
+            [{"key": "is_suspected_wmd", "value": "no"}],
+            [{"key": "is_eu_military", "value": "no"}],
+        ]
+    )
+    def test_edit_submitted_standard_application_end_use_details_not_major_editable(self, attributes):
+        application = self.create_standard_application_case(self.organisation)
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        key = attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(response.json()["errors"][key], ["This isn't possible on a minor edit"])
+
+        attribute = getattr(application, key)
+        self.assertEqual(attribute, None)
+
 
 class EditOpenApplicationTests(DataTestClient):
     def setUp(self):
@@ -258,7 +311,7 @@ class EditOpenApplicationTests(DataTestClient):
             [{"key": "eu_military", "value": "yes"}],
         ]
     )
-    def test_edit_unsubmitted_standard_application_end_use_details(self, attributes):
+    def test_edit_unsubmitted_open_application_end_use_details(self, attributes):
         key = "is_" + attributes["key"]
         value = attributes["value"]
         data = {key: value}
@@ -288,7 +341,7 @@ class EditOpenApplicationTests(DataTestClient):
             [{"key": "suspected_wmd", "value": "yes", "reference_number": ""}],
         ]
     )
-    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_empty(self, attributes):
+    def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_empty(self, attributes):
         key = "is_" + attributes["key"]
         value = attributes["value"]
         data = {key: value}
@@ -313,7 +366,7 @@ class EditOpenApplicationTests(DataTestClient):
             [{"key": "suspected_wmd", "value": "yes"}],
         ]
     )
-    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_is_none(self, attributes):
+    def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_is_none(self, attributes):
         key = "is_" + attributes["key"]
         value = attributes["value"]
         data = {key: value}
@@ -336,7 +389,7 @@ class EditOpenApplicationTests(DataTestClient):
             [{"key": "suspected_wmd", "value": ""}],
         ]
     )
-    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_field_is_none(self, attributes):
+    def test_edit_unsubmitted_open_application_end_use_details_mandatory_field_is_none(self, attributes):
         key = "is_" + attributes["key"]
         value = attributes["value"]
         data = {key: value}
@@ -349,6 +402,33 @@ class EditOpenApplicationTests(DataTestClient):
         self.assertEqual(response.json()["errors"][key], ["Required!"])
 
         attribute = getattr(self.application, key)
+        self.assertEqual(attribute, None)
+
+    @parameterized.expand(
+        [
+            [{"key": "is_military_end_use_controls", "value": "no"}],
+            [{"key": "is_informed_wmd", "value": "no"}],
+            [{"key": "is_suspected_wmd", "value": "no"}],
+            [{"key": "is_eu_military", "value": "no"}],
+        ]
+    )
+    def test_edit_submitted_open_application_end_use_details_not_major_editable(self, attributes):
+        application = self.create_draft_open_application(self.organisation)
+        self.submit_application(application)
+        url = reverse("applications:application", kwargs={"pk": application.id})
+
+        key = attributes["key"]
+        value = attributes["value"]
+        data = {key: value}
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(response.json()["errors"][key], ["This isn't possible on a minor edit"])
+
+        attribute = getattr(application, key)
         self.assertEqual(attribute, None)
 
 
