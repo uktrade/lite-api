@@ -305,12 +305,12 @@ class CopyApplicationSuccessTests(DataTestClient):
     def _validate_exhibition_application(self):
         self._validate_reset_data()
 
-        self._validate_good_on_application()
+        self.assertEqual(self.original_application.title, self.copied_application.title)
+        self.assertEqual(self.original_application.first_exhibition_date, self.copied_application.first_exhibition_date)
+        self.assertEqual(self.original_application.required_by_date, self.copied_application.required_by_date)
+        self.assertEqual(self.original_application.reason_for_clearance, self.copied_application.reason_for_clearance)
 
-        self._validate_end_user()
-        self._validate_consignee()
-        self._validate_ultimate_end_user()
-        self._validate_third_party()
+        self._validate_good_on_application()
 
         self._validate_case_data()
 
