@@ -15,8 +15,11 @@ from users.models import ExporterUser, UserOrganisationRelationship, Role
 DEFAULT_DEMO_ORG_NAME = "Archway Communications"
 DEFAULT_DEMO_HMRC_ORG_NAME = "HMRC office at Battersea heliport"
 
-DEFAULT_ORGANISATIONS = [
+COMMERCIAL_ORGANISATIONS = [
     {"name": DEFAULT_DEMO_ORG_NAME, "type": OrganisationType.COMMERCIAL, "reg_no": "09876543"},
+]
+
+HMRC_ORGANISATIONS = [
     {"name": DEFAULT_DEMO_HMRC_ORG_NAME, "type": OrganisationType.HMRC, "reg_no": "75863840"},
 ]
 
@@ -35,9 +38,12 @@ class Command(SeedCommand):
     def operation(self, *args, **options):
         assert Role.objects.count(), "Role permissions must be seeded first!"
 
+        self.seed_default_organisations()
+        self.seed_exporter_users()
+
     @classmethod
     def seed_default_organisations(cls):
-        for organisation in DEFAULT_ORGANISATIONS:
+        for organisation in COMMERCIAL_ORGANISATIONS + HMRC_ORGANISATIONS:
             org, _ = Organisation.objects.get_or_create(
                 name=organisation["name"],
                 type=organisation["type"],
@@ -62,8 +68,8 @@ class Command(SeedCommand):
 
     @classmethod
     def seed_exporter_users(cls):
-        for user in cls._get_users():
-            default_data = dict(email=user["email"])
+        for exporter_user_data in cls._get_users():
+            default_data = dict(email=exporter_user_data["email"])
 
             exporter_user, created = ExporterUser.objects.get_or_create(
                 email__iexact=default_data["email"], defaults=default_data
@@ -72,7 +78,7 @@ class Command(SeedCommand):
             if created:
                 cls.print_created_or_updated(ExporterUser, default_data, is_created=True)
 
-            cls._add_exporter_to_default_organisations(user, exporter_user)
+            cls._add_exporter_to_organisations(exporter_user, exporter_user_data)
 
     @classmethod
     def _get_users(cls):
@@ -93,33 +99,44 @@ class Command(SeedCommand):
         except ValueError:
             raise ValueError(
                 f"{env_variable} has incorrect format;"
-                f"\nexpected format: [{{'email': '', 'organisation', 'role': ''}}]"
+                f"\nexpected format: [{{'email': '', 'organisation': '', 'role': ''}}]"
                 f"\nbut got: {users}"
             )
 
         return serialized_users
 
     @classmethod
-    def _add_exporter_to_default_organisations(cls, exporter_data, exporter_user: ExporterUser):
-        for organisation in DEFAULT_ORGANISATIONS:
-            role = Role.objects.get(
-                name=exporter_data.get("role", Roles.EXPORTER_SUPER_USER_ROLE_NAME), type=UserType.EXPORTER
+    def _add_exporter_to_organisations(cls, exporter_user: ExporterUser, exporter_user_data):
+        role_name = exporter_user_data.get("role", Roles.EXPORTER_SUPER_USER_ROLE_NAME)
+        organisation_name = exporter_user_data.get("organisation")
+
+        # If organisation was specified, only seed the exporter user to that chosen commercial organisation
+        if organisation_name:
+            organisation = [
+                organisation for organisation in COMMERCIAL_ORGANISATIONS if organisation["name"] == organisation_name
+            ][0]
+            cls._add_exporter_to_organisation(exporter_user, organisation, role_name)
+        else:
+            for organisation in COMMERCIAL_ORGANISATIONS:
+                cls._add_exporter_to_organisation(exporter_user, organisation, role_name)
+
+        for organisation in HMRC_ORGANISATIONS:
+            cls._add_exporter_to_organisation(exporter_user, organisation, Roles.EXPORTER_SUPER_USER_ROLE_NAME)
+
+    @classmethod
+    def _add_exporter_to_organisation(cls, exporter_user: ExporterUser, organisation, role_name):
+        role = Role.objects.get(name=role_name, type=UserType.EXPORTER)
+        org = Organisation.objects.get(name=organisation["name"], type=organisation["type"])
+
+        user_org, created = UserOrganisationRelationship.objects.get_or_create(
+            user=exporter_user, organisation=org, defaults=dict(user=exporter_user, organisation=org, role=role)
+        )
+
+        if created or user_org.role != role:
+            user_org.role = role
+            user_org.save()
+
+            user_org_data = dict(
+                user=exporter_user.email, organisation=dict(name=org.name, type=org.type, role=role.name),
             )
-
-            organisation = Organisation.objects.get(name=organisation["name"], type=organisation["type"])
-
-            user_org_data = dict(user=exporter_user, organisation=organisation, role=role)
-
-            user_org, created = UserOrganisationRelationship.objects.get_or_create(
-                user=exporter_user, organisation=organisation, defaults=user_org_data
-            )
-
-            if created or user_org.role != role:
-                user_org.role = role
-                user_org.save()
-
-                user_org_data = dict(
-                    user=exporter_user.email,
-                    organisation=dict(name=organisation.name, type=organisation.type, role=role.name),
-                )
-                cls.print_created_or_updated(UserOrganisationRelationship, user_org_data, is_created=created)
+            cls.print_created_or_updated(UserOrganisationRelationship, user_org_data, is_created=created)
