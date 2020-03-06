@@ -435,9 +435,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return pv_grading_query
 
     @staticmethod
-    def create_advice(user, case, advice_field, advice_type, advice_level):
+    def create_advice(user, case, advice_field, advice_type, advice_level, pv_grading=None):
         advice = advice_level(
-            user=user, case=case, type=advice_type, note="This is a note to the exporter", text="This is some text",
+            user=user,
+            case=case,
+            type=advice_type,
+            note="This is a note to the exporter",
+            text="This is some text",
+            pv_grading=pv_grading,
         )
 
         advice.team = user.team
@@ -487,13 +492,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return organisation, exporter_user
 
-    def add_application_and_party_documents(self, application, safe_document, consignee=True):
+    def add_party_documents(self, application, safe_document, consignee=True):
         # Set the application party documents
         self.create_document_for_party(application.end_user.party, safe=safe_document)
         if consignee:
             self.create_document_for_party(application.consignee.party, safe=safe_document)
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
-        self.create_application_document(application)
 
     def create_draft_standard_application(
         self,
@@ -531,7 +535,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
         # Set the application party documents
 
-        self.add_application_and_party_documents(application, safe_document)
+        self.add_party_documents(application, safe_document)
+
+        self.create_application_document(application)
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()
@@ -561,12 +567,24 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
         if case_type == CaseTypeEnum.EXHIBITION:
-            self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+            application.title = "title"
+            application.required_by_date = "2021-07-20"
+            application.first_exhibition_date = "2022-08-19"
+            application.save()
+            # must be refreshed to return data in same format as database call
+            application.refresh_from_db()
         elif case_type == CaseTypeEnum.F680:
             application.types.add(F680ClearanceType.objects.first())
+            self.create_party("End User", organisation, PartyType.END_USER, application)
+            self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+            self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
+        else:
+            self.create_party("End User", organisation, PartyType.END_USER, application)
+            self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+            self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
 
-        self.create_party("End User", organisation, PartyType.END_USER, application)
-        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+        if case_type not in [CaseTypeEnum.F680, CaseTypeEnum.EXHIBITION, CaseTypeEnum.GIFTING]:
+            self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication.objects.create(
@@ -577,10 +595,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             value=500,
         )
 
-        # Set the application party documents
-        self.add_application_and_party_documents(
-            application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION
-        )
+        self.create_application_document(application)
 
         if case_type == CaseTypeEnum.EXHIBITION:
             # Add a site to the application

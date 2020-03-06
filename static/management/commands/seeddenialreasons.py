@@ -11,7 +11,7 @@ class Command(SeedCommand):
     pipenv run ./manage.py seeddenialreasons
     """
 
-    help = "Seeds all denial reasons"
+    help = "Seeds denial reasons"
     info = "Seeding denial reasons"
     success = "Successfully seeded denial reasons"
     seed_command = "seeddenialreasons"

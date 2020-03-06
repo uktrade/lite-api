@@ -12,15 +12,12 @@ class Command(SeedCommand):
     """
 
     help = "Creates template layouts"
-    info = "Seeding layouts"
-    success = "Successfully seeded layouts"
+    info = "Seeding template layouts"
+    success = "Successfully seeded template layouts"
     seed_command = "seedlayouts"
 
     @transaction.atomic
     def operation(self, *args, **options):
-        """
-        pipenv run ./manage.py seedlayouts
-        """
         csv = self.read_csv(LAYOUTS_FILE)
         self.update_or_create(LetterLayout, csv)
         self.delete_unused_objects(LetterLayout, csv)
