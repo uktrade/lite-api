@@ -109,7 +109,7 @@ class ApplicationList(ListCreateAPIView):
                 data={
                     "errors": {
                         "application_type": [
-                            ErrorDetail(string=strings.Applications.SELECT_A_LICENCE_TYPE, code="invalid")
+                            ErrorDetail(string=strings.Applications.SELECT_AN_APPLICATION_TYPE, code="invalid")
                         ]
                     }
                 },
