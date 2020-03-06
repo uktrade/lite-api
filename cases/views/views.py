@@ -38,7 +38,6 @@ from cases.serializers import (
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
-    CaseFinalAdviceDocumentsSerializer,
 )
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
@@ -286,10 +285,7 @@ class ViewFinalAdvice(APIView):
     def get(self, request, pk):
         case = get_case(pk)
         final_advice = FinalAdvice.objects.filter(case=case)
-        if str_to_bool(request.GET.get("documents")):
-            serializer = CaseFinalAdviceDocumentsSerializer(final_advice, many=True)
-        else:
-            serializer = CaseFinalAdviceSerializer(final_advice, many=True)
+        serializer = CaseFinalAdviceSerializer(final_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
 
