@@ -1,4 +1,3 @@
-from django.db.models import Prefetch
 from django.http import Http404
 
 from applications.libraries.get_applications import get_application
