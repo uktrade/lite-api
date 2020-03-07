@@ -31,7 +31,9 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(response_data["type"], generate_key_value_pair(organisation.type, OrganisationType.choices))
         self.assertEqual(response_data["registration_number"], organisation.registration_number)
         self.assertEqual(response_data["vat_number"], organisation.vat_number)
-        self.assertEqual(response_data["status"], generate_key_value_pair(organisation.status, OrganisationStatus.choices))
+        self.assertEqual(
+            response_data["status"], generate_key_value_pair(organisation.status, OrganisationStatus.choices)
+        )
         self.assertIn("created_at", response_data)
         self.assertEqual(len(response_data), 9)
 

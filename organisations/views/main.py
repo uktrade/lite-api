@@ -17,8 +17,11 @@ from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
-from organisations.serializers import OrganisationDetailSerializer, OrganisationCreateSerializer, \
-    OrganisationListSerializer
+from organisations.serializers import (
+    OrganisationDetailSerializer,
+    OrganisationCreateSerializer,
+    OrganisationListSerializer,
+)
 from static.statuses.models import CaseStatus
 from users.enums import UserType
 
@@ -46,7 +49,11 @@ class OrganisationsList(generics.ListCreateAPIView):
         """ Create a new organisation. """
         data = request.data.copy()
         validate_only = request.data.get("validate_only", False)
-        data["status"] = OrganisationStatus.ACTIVE if getattr(request.user, "type", None) == UserType.INTERNAL else OrganisationStatus.IN_REVIEW
+        data["status"] = (
+            OrganisationStatus.ACTIVE
+            if getattr(request.user, "type", None) == UserType.INTERNAL
+            else OrganisationStatus.IN_REVIEW
+        )
         serializer = OrganisationCreateSerializer(data=data, context={"validate_only": validate_only})
 
         if serializer.is_valid():

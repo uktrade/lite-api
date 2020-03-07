@@ -59,8 +59,10 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
                         "id": relationship.organisation.id,
                         "name": relationship.organisation.name,
                         "joined_at": relationship.created_at,
-                        "status": {"key": relationship.organisation.status,
-                                   "value": relationship.organisation.status}  # TODO: return value not key!
+                        "status": {
+                            "key": relationship.organisation.status,
+                            "value": relationship.organisation.status,
+                        },  # TODO: return value not key!
                     }
                 )
 

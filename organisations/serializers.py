@@ -69,8 +69,12 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(error_messages={"blank": "Enter some text yo!"})
     type = KeyValueChoiceField(choices=OrganisationType.choices, error_messages={"blank": "Enter some text yo!"})
-    eori_number = serializers.CharField(required=False, allow_blank=True, error_messages={"blank": "Enter some text yo!"})
-    vat_number = serializers.CharField(required=False, allow_blank=True, error_messages={"blank": "Enter some text yo!"})
+    eori_number = serializers.CharField(
+        required=False, allow_blank=True, error_messages={"blank": "Enter some text yo!"}
+    )
+    vat_number = serializers.CharField(
+        required=False, allow_blank=True, error_messages={"blank": "Enter some text yo!"}
+    )
     sic_number = serializers.CharField(required=False, error_messages={"blank": "Enter some text yo!"})
     registration_number = serializers.CharField(required=False, error_messages={"blank": "Enter some text yo!"})
     user = ExporterUserCreateUpdateSerializer(write_only=True)
@@ -188,15 +192,17 @@ class OrganisationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Organisation
-        fields = ("id",
-                  "name",
-                  "sic_number",
-                  "eori_number",
-                  "type",
-                  "status",
-                  "registration_number",
-                  "vat_number",
-                  "created_at")
+        fields = (
+            "id",
+            "name",
+            "sic_number",
+            "eori_number",
+            "type",
+            "status",
+            "registration_number",
+            "vat_number",
+            "created_at",
+        )
 
 
 class OrganisationDetailSerializer(serializers.ModelSerializer):

@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0002_auto_20200210_1326'),
+        ("organisations", "0002_auto_20200210_1326"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='organisation',
-            name='status',
-            field=models.CharField(choices=[('active', 'active'), ('in_review', 'in_review')], default='in_review', max_length=20),
+            model_name="organisation",
+            name="status",
+            field=models.CharField(
+                choices=[("active", "active"), ("in_review", "in_review")], default="in_review", max_length=20
+            ),
         ),
     ]
