@@ -7,7 +7,7 @@ from common.models import TimestampableModel
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from flags.models import Flag
-from organisations.enums import OrganisationType
+from organisations.enums import OrganisationType, OrganisationStatus
 from static.countries.models import Country
 from users.libraries.get_user import get_user_organisation_relationship
 from users.models import UserOrganisationRelationship
@@ -17,6 +17,7 @@ class Organisation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=True)
     type = models.CharField(choices=OrganisationType.choices, default=OrganisationType.COMMERCIAL, max_length=20,)
+    status = models.CharField(choices=OrganisationStatus.choices, default=OrganisationStatus.IN_REVIEW, max_length=20,)
     eori_number = models.TextField(default=None, blank=True, null=True)
     sic_number = models.TextField(default=None, blank=True, null=True)
     vat_number = models.TextField(default=None, blank=True, null=True)
@@ -42,6 +43,9 @@ class Organisation(TimestampableModel):
             relationship.user.status = relationship.status
 
         return [x.user for x in user_organisation_relationships]
+
+    class Meta:
+        ordering = ["name"]
 
 
 class SiteManager(models.Manager):

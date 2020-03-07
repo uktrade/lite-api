@@ -10,7 +10,7 @@ from conf.serializers import (
     CountrySerializerField,
 )
 from gov_users.serializers import RoleNameSerializer
-from organisations.enums import OrganisationType
+from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
 from users.models import GovUser, UserOrganisationRelationship, Permission, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
@@ -67,12 +67,12 @@ class SiteSerializer(serializers.ModelSerializer):
 
 class OrganisationCreateSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
-    name = serializers.CharField()
-    type = KeyValueChoiceField(choices=OrganisationType.choices)
-    eori_number = serializers.CharField(required=False, allow_blank=True)
-    vat_number = serializers.CharField(required=False, allow_blank=True)
-    sic_number = serializers.CharField(required=False)
-    registration_number = serializers.CharField(required=False)
+    name = serializers.CharField(error_messages={"blank": "Enter some text yo!"})
+    type = KeyValueChoiceField(choices=OrganisationType.choices, error_messages={"blank": "Enter some text yo!"})
+    eori_number = serializers.CharField(required=False, allow_blank=True, error_messages={"blank": "Enter some text yo!"})
+    vat_number = serializers.CharField(required=False, allow_blank=True, error_messages={"blank": "Enter some text yo!"})
+    sic_number = serializers.CharField(required=False, error_messages={"blank": "Enter some text yo!"})
+    registration_number = serializers.CharField(required=False, error_messages={"blank": "Enter some text yo!"})
     user = ExporterUserCreateUpdateSerializer(write_only=True)
     site = SiteSerializer(write_only=True)
 
@@ -102,26 +102,29 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
 
     def validate_eori_number(self, value):
         if self.initial_data.get("type") != OrganisationType.HMRC and not value:
-            raise serializers.ValidationError(self.standard_blank_error_message)
+            raise serializers.ValidationError("ENTER SOME EORI TEXT")
         return value
 
     def validate_sic_number(self, value):
         if self.initial_data.get("type") == OrganisationType.COMMERCIAL and not value:
-            raise serializers.ValidationError(self.standard_blank_error_message)
+            raise serializers.ValidationError("ENTER SOME TEXT")
         return value
 
     def validate_vat_number(self, value):
         if self.initial_data.get("type") == OrganisationType.COMMERCIAL and not value:
-            raise serializers.ValidationError(self.standard_blank_error_message)
+            raise serializers.ValidationError("ENTER VAT NUMBER")
         return value
 
     def validate_registration_number(self, value):
         if self.initial_data.get("type") == OrganisationType.COMMERCIAL and not value:
-            raise serializers.ValidationError(self.standard_blank_error_message)
+            raise serializers.ValidationError("REGISTRATION NUMBER PLS!")
         return value
 
     @transaction.atomic
     def create(self, validated_data):
+        if self.context["validate_only"]:
+            return
+
         user_data = validated_data.pop("user")
         site_data = validated_data.pop("site")
         organisation = Organisation.objects.create(**validated_data)
@@ -179,10 +182,28 @@ class TinyOrganisationViewSerializer(serializers.ModelSerializer):
         fields = ("id", "name")
 
 
+class OrganisationListSerializer(serializers.ModelSerializer):
+    type = KeyValueChoiceField(OrganisationType.choices)
+    status = KeyValueChoiceField(OrganisationStatus.choices)
+
+    class Meta:
+        model = Organisation
+        fields = ("id",
+                  "name",
+                  "sic_number",
+                  "eori_number",
+                  "type",
+                  "status",
+                  "registration_number",
+                  "vat_number",
+                  "created_at")
+
+
 class OrganisationDetailSerializer(serializers.ModelSerializer):
     primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
     type = KeyValueChoiceField(OrganisationType.choices)
     flags = serializers.SerializerMethodField()
+    status = KeyValueChoiceField(OrganisationStatus.choices)
 
     def get_flags(self, instance):
         # TODO remove try block when other end points adopt generics

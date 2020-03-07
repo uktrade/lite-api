@@ -4,22 +4,41 @@ from rest_framework.reverse import reverse
 
 from conf.constants import Roles, GovPermissions
 from lite_content.lite_api.strings import Organisations
+from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from test_helpers.helpers import generate_key_value_pair
 from users.libraries.get_user import get_users_from_organisation
 from users.models import UserOrganisationRelationship
 
 
-class OrganisationCreateTests(DataTestClient):
+class OrganisationTests(DataTestClient):
 
     url = reverse("organisations:organisations")
 
-    def test_create_organisation_with_first_user(self):
+    def test_list_organisations(self):
+        organisation, _ = self.create_organisation_with_exporter_user("Anyone's Ghost Inc")
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"][0]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqualIgnoreType(response_data["id"], organisation.id)
+        self.assertEqual(response_data["name"], organisation.name)
+        self.assertEqual(response_data["sic_number"], organisation.sic_number)
+        self.assertEqual(response_data["eori_number"], organisation.eori_number)
+        self.assertEqual(response_data["type"], generate_key_value_pair(organisation.type, OrganisationType.choices))
+        self.assertEqual(response_data["registration_number"], organisation.registration_number)
+        self.assertEqual(response_data["vat_number"], organisation.vat_number)
+        self.assertEqual(response_data["status"], generate_key_value_pair(organisation.status, OrganisationStatus.choices))
+        self.assertIn("created_at", response_data)
+        self.assertEqual(len(response_data), 9)
+
+    def test_create_commercial_organisation_as_internal_success(self):
         data = {
             "name": "Lemonworld Co",
-            "type": "commercial",
+            "type": OrganisationType.COMMERCIAL,
             "eori_number": "GB123456789000",
             "sic_number": "2765",
             "vat_number": "123456789",
@@ -50,6 +69,57 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
+        self.assertEqual(Organisation.status, OrganisationStatus.ACTIVE)
+
+        self.assertEqual(exporter_user.email, data["user"]["email"])
+        self.assertEqual(
+            UserOrganisationRelationship.objects.get(user=exporter_user, organisation=organisation).role_id,
+            Roles.EXPORTER_SUPER_USER_ROLE_ID,
+        )
+
+        self.assertEqual(site.name, data["site"]["name"])
+        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
+        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
+        self.assertEqual(site.address.region, data["site"]["address"]["region"])
+        self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
+        self.assertEqual(site.address.city, data["site"]["address"]["city"])
+        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+
+    def test_create_commercial_organisation_as_exporter_success(self):
+        data = {
+            "name": "Lemonworld Co",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": "GB123456789000",
+            "sic_number": "2765",
+            "vat_number": "123456789",
+            "registration_number": "987654321",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                    "country": "GB",
+                },
+            },
+            "user": {"email": "trinity@bsg.com"},
+        }
+
+        response = self.client.post(self.url, data)
+        organisation = Organisation.objects.get(name=data["name"])
+        exporter_user = get_users_from_organisation(organisation)[0]
+        site = organisation.primary_site
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(organisation.name, data["name"])
+        self.assertEqual(organisation.eori_number, data["eori_number"])
+        self.assertEqual(organisation.sic_number, data["sic_number"])
+        self.assertEqual(organisation.vat_number, data["vat_number"])
+        self.assertEqual(organisation.registration_number, data["registration_number"])
+        self.assertEqual(Organisation.status, OrganisationStatus.IN_REVIEW)
 
         self.assertEqual(exporter_user.email, data["user"]["email"])
         self.assertEqual(

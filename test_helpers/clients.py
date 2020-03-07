@@ -148,6 +148,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
             print(self._testMethodName + emoji + " " + colour(str(time) + "ms") + emoji)
 
+    def assertEqualIgnoreType(self, first, second, msg=None):
+        """Fail if the two objects (as strings) are unequal as determined by the '=='
+           operator.
+        """
+        first = str(first)
+        second = str(second)
+        assertion_func = self._getAssertEqualityFunc(first, second)
+        assertion_func(first, second, msg=msg)
+
     def get(self, path, data=None, follow=False, **extra):
         response = self.client.get(path, data, follow, **extra)
         return response.json(), response.status_code
