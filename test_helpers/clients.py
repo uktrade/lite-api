@@ -10,6 +10,7 @@ from applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
+from applications.libraries.licence import get_default_duration
 from applications.models import (
     BaseApplication,
     GoodOnApplication,
@@ -22,7 +23,7 @@ from applications.models import (
     ExhibitionClearanceApplication,
     GiftingClearanceApplication,
     F680ClearanceApplication,
-)
+    Licence)
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
@@ -772,3 +773,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         ecju_query = EcjuQuery(case=case, question=question, raised_by_user=self.gov_user)
         ecju_query.save()
         return ecju_query
+
+    @staticmethod
+    def create_licence(application: BaseApplication, complete: bool):
+        return Licence.objects.create(
+            application=application,
+            start_date=django.utils.timezone.now().date(),
+            duration=get_default_duration(application),
+            complete=complete,
+        )

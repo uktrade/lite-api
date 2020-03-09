@@ -32,6 +32,7 @@ from applications.models import (
     ExternalLocationOnApplication,
     PartyOnApplication,
     F680ClearanceApplication,
+    Licence,
 )
 from applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from applications.serializers.generic_application import (
@@ -343,12 +344,12 @@ class ApplicationManageStatus(APIView):
                 )
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
-            if not application.licence_duration:
+            if not Licence.objects.filter(application=application).exists():
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.SURRENDER]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            application.licence_duration = None
+            Licence.objects.get(application=application).delete()
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
