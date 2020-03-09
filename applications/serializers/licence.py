@@ -11,8 +11,8 @@ class LicenceSerializer(serializers.ModelSerializer):
         fields = (
             "application",
             "start_date",
-            "licence_duration",
-            "finalised",
+            "duration",
+            "complete",
         )
 
     def validate(self, data):

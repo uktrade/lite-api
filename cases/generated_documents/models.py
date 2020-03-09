@@ -15,10 +15,13 @@ class GeneratedCaseDocument(CaseDocument):
     notifications = GenericRelation(ExporterNotification, related_query_name="generated_case_document",)
     advice_type = models.CharField(choices=AdviceType.choices, max_length=30, null=True, blank=False)
 
+    def send_exporter_notifications(self):
+        for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
+            user_relationship.send_notification(content_object=self, case=self.case)
+
     def save(self, *args, **kwargs):
         creating = self._state.adding
         super(GeneratedCaseDocument, self).save(*args, **kwargs)
 
-        if creating:
-            for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
-                user_relationship.send_notification(content_object=self, case=self.case)
+        if creating and self.visible_to_exporter:
+            self.send_exporter_notifications()
