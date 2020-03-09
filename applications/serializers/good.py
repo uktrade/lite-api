@@ -88,7 +88,7 @@ class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
             self.fields["item_type"].required = False
             self.fields["other_item_type"].required = False
 
-            if self.initial_data["unit"] == "ITG":
+            if self.initial_data.get("unit") == "ITG":
                 # If the good is intangible, the value and quantity become optional
                 self.fields["value"].required = False
                 self.fields["quantity"].required = False
