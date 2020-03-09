@@ -166,21 +166,22 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         # Prevent minor edits of the goods categories
         if not application.is_major_editable() and request.data.get("goods_categories"):
             return JsonResponse(
-                data={"errors": {"goods_categories": ["This isn't possible on a minor edit"]}},
+                data={"errors": {"goods_categories": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Prevent minor edits of the clearance level
         if not application.is_major_editable() and request.data.get("clearance_level"):
             return JsonResponse(
-                data={"errors": {"clearance_level": ["This isn't possible on a minor edit"]}},
+                data={"errors": {"clearance_level": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Prevent minor edits of the f680 clearance types
         if not application.is_major_editable() and request.data.get("types"):
             return JsonResponse(
-                data={"errors": {"types": ["This isn't possible on a minor edit"]}}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": {"types": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if not serializer.is_valid():
