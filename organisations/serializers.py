@@ -122,6 +122,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "type",
+            "status",
             "eori_number",
             "sic_number",
             "vat_number",

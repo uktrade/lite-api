@@ -2,6 +2,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from conf.authentication import EXPORTER_USER_TOKEN_HEADER
 from conf.constants import Roles, GovPermissions
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationType, OrganisationStatus
@@ -11,6 +12,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import generate_key_value_pair, date_to_drf_date
 from users.libraries.get_user import get_users_from_organisation
+from users.libraries.user_to_token import user_to_token
 from users.models import UserOrganisationRelationship
 
 
@@ -110,7 +112,7 @@ class OrganisationTests(DataTestClient):
             "user": {"email": "trinity@bsg.com"},
         }
 
-        response = self.client.post(self.url, data)
+        response = self.client.post(self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user)})
         organisation = Organisation.objects.get(name=data["name"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site

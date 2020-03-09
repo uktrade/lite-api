@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import authentication
 
 from conf.exceptions import PermissionDeniedError
@@ -94,7 +95,6 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         """
         exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
         exporter_user = get_user_by_pk(token_to_user_pk(exporter_user_token))
-
         return exporter_user, None
 
 
@@ -124,3 +124,14 @@ class SharedAuthentication(authentication.BaseAuthentication):
         else:
             gov_auth = GovAuthentication()
             return gov_auth.authenticate(request)
+
+
+class OrganisationAuthentication(authentication.BaseAuthentication):
+    def authenticate(self, request):
+        gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
+
+        if gov_user_token:
+            gov_auth = GovAuthentication()
+            return gov_auth.authenticate(request)
+        else:
+            return ExporterOnlyAuthentication().authenticate(request)

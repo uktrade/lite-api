@@ -8,7 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 
 from applications.models import BaseApplication
-from conf.authentication import SharedAuthentication
+from conf.authentication import SharedAuthentication, OrganisationAuthentication
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission
@@ -26,10 +26,14 @@ from users.enums import UserType
 
 
 class OrganisationsList(generics.ListCreateAPIView):
+    authentication_classes = (OrganisationAuthentication,)
     serializer_class = OrganisationListSerializer
 
     def get_queryset(self):
         """ List all organisations. """
+        if getattr(self.request.user, "type", None) != UserType.INTERNAL:
+            raise PermissionError
+
         org_types = self.request.query_params.getlist("org_type", [])
         search_term = self.request.query_params.get("search_term", "")
 
