@@ -761,7 +761,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         return generated_case_doc
 
-    def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id):
+    def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id, decisions=None):
         if not name:
             name = str(uuid.uuid4())[0:35]
 
@@ -769,6 +769,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         letter_layout = LetterLayout.objects.first()
 
         letter_template = LetterTemplate.objects.create(name=name, layout=letter_layout)
+        if decisions:
+            letter_template.decisions.set(decisions)
         letter_template.case_types.add(case_type)
         letter_template.letter_paragraphs.add(picklist_item)
         letter_template.save()

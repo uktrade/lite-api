@@ -10,6 +10,7 @@ from applications.models import Licence
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases import service
+from cases.enums import CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import GeneratedFinalAdviceDocumentGovSerializer
 from cases.helpers import create_grouped_advice
@@ -41,6 +42,7 @@ from cases.serializers import (
 )
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
+from conf.constants import GovPermissions
 from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
@@ -571,6 +573,20 @@ class LicenceView(RetrieveUpdateAPIView):
         Finalise & grant a Licence
         """
         case = get_case(pk)
+
+        # Check Permissions
+        if CaseTypeSubTypeEnum.is_mod_clearance(case.case_type.sub_type):
+            assert_user_has_permission(request.user, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE)
+        else:
+            assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+
+        # Check a licence has been started at the finalise endpoint
+        if not Licence.objects.filter(application=case).exists():
+            return JsonResponse(
+                data={"errors": ["A Licence hasn't been started yet"]}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check all decision types have documents
         required_decisions = set(FinalAdvice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
         generated_document_decisions = set(
             GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list(
@@ -579,12 +595,7 @@ class LicenceView(RetrieveUpdateAPIView):
         )
         if not required_decisions.issubset(generated_document_decisions):
             return JsonResponse(
-                data={"errors": "Not all final decisions have generated documents"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if not Licence.objects.filter(application=case).exists():
-            return JsonResponse(
-                data={"errors": "A Licence hasn't been started yet"}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": ["Not all final decisions have generated documents"]}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # Finalise Licence
@@ -602,6 +613,7 @@ class LicenceView(RetrieveUpdateAPIView):
         for document in documents:
             document.send_exporter_notifications()
 
+        # Audit
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.GRANTED_APPLICATION,
