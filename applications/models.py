@@ -11,11 +11,14 @@ from applications.enums import (
     YesNoChoiceType,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
+from cases.enums import CaseTypeEnum
 from cases.models import Case
 from common.models import TimestampableModel
 from documents.models import Document
+from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
+
 from lite_content.lite_api.strings import Parties
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
@@ -36,6 +39,10 @@ class ApplicationException(Exception):
 
 class ApplicationPartyMixin:
     def add_party(self, party):
+
+        if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
+            raise ApplicationException({"errors": {"bad_request": Parties.BAD_CASE_TYPE}})
+
         old_poa = None
 
         # Alternate behaviour of adding a party depending on party type
@@ -177,7 +184,10 @@ class OpenApplication(BaseApplication):
 # MOD Clearances Applications
 # Exhibition includes End User, Consignee, Ultimate end users & Third parties
 class ExhibitionClearanceApplication(BaseApplication):
-    pass
+    title = models.CharField(blank=False, null=True, max_length=255)
+    first_exhibition_date = models.DateField(blank=False, null=True)
+    required_by_date = models.DateField(blank=False, null=True)
+    reason_for_clearance = models.TextField(default=None, blank=True, null=True, max_length=100)
 
 
 # Gifting includes End User & Third parties
@@ -233,10 +243,16 @@ class GoodOnApplication(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     good = models.ForeignKey(Good, related_name="goods_on_application", on_delete=models.CASCADE)
     application = models.ForeignKey(BaseApplication, related_name="goods", on_delete=models.CASCADE)
+
+    # Every application except Exhibition applications contains the following data, as a result these can be null
     quantity = models.FloatField(null=True, blank=True, default=None)
-    unit = models.CharField(choices=Units.choices, default=Units.GRM, max_length=50)
-    value = models.DecimalField(max_digits=256, decimal_places=2)
-    is_good_incorporated = models.BooleanField(default=False)
+    unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
+    value = models.DecimalField(max_digits=256, decimal_places=2, null=True, blank=True, default=None)
+    is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
+
+    # Exhibition applications are the only applications that contain the following as such may be null
+    item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
+    other_item_type = models.CharField(max_length=100, null=True, blank=True, default=None)
 
     class Meta:
         ordering = ["created_at"]

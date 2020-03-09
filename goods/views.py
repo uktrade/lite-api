@@ -62,7 +62,7 @@ class GoodsListControlCode(APIView):
         if not isinstance(objects, list):
             objects = [objects]
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+        if application.case_type.sub_type not in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
             serializer_class = ClcControlGoodSerializer
             get_good_func = get_good
         else:
