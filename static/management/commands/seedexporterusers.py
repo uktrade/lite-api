@@ -15,6 +15,7 @@ from users.models import ExporterUser, UserOrganisationRelationship, Role
 DEFAULT_DEMO_ORG_NAME = "Archway Communications"
 DEFAULT_DEMO_HMRC_ORG_NAME = "HMRC office at Battersea heliport"
 
+# To seed more organisations, add them to the lists below
 COMMERCIAL_ORGANISATIONS = [
     {"name": DEFAULT_DEMO_ORG_NAME, "type": OrganisationType.COMMERCIAL, "reg_no": "09876543"},
 ]
