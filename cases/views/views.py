@@ -281,14 +281,17 @@ class CaseTeamAdvice(APIView):
 
 
 class FinalAdviceDocuments(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def get(self, request, pk):
         case = get_case(pk)
         decision_documents = AdviceDocumentTypeSerializer(FinalAdvice.objects.filter(case=case).distinct("type"), many=True).data
         # TODO Figure out a smarter way of doing this
         for decision in decision_documents:
-            document = GeneratedCaseDocument.objects.filter(advice_type=decision, case=case).first()
+            decision_key = decision["type"]["key"]
+            document = GeneratedCaseDocument.objects.filter(advice_type=decision_key, case=case).first()
             if document:
-                decision["document"] = GeneratedFinalAdviceDocumentGovSerializer(document)
+                decision["document"] = GeneratedFinalAdviceDocumentGovSerializer(document).data
             else:
                 decision["document"] = None
         return JsonResponse(data={"documents": decision_documents}, status=status.HTTP_200_OK)
