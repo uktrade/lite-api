@@ -5,9 +5,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from audit_trail.serializers import AuditSerializer
 from cases.enums import CaseTypeEnum
-from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
-from cases.models import FinalAdvice
 from conf import constants
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
@@ -35,12 +33,12 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         case = self.request.GET.get("case")
         decision = self.request.GET.get("decision")
         if decision:
-            decision = FinalAdvice.objects.get(id=decision)
-            # TODO: Link FinalAdvice to decision model
-            decision_type = Decision.objects.get(name=decision.type)
-            return LetterTemplate.objects.filter(decisions=decision_type)
+            case = get_case(pk=case)
+            decision = Decision.objects.get(name=decision)
+            return LetterTemplate.objects.filter(case_types=case.case_type, decisions=decision)
         elif case:
-            return get_letter_templates_for_case(get_case(pk=case))
+            case = get_case(pk=case)
+            return LetterTemplate.objects.filter(case_types=case.case_type, decisions__isnull=True)
         else:
             return self.queryset
 
