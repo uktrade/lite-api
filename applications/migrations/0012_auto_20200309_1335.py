@@ -6,13 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0011_merge_20200306_0925'),
+        ("applications", "0011_merge_20200306_0925"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='goodonapplication',
-            name='unit',
-            field=models.CharField(blank=True, choices=[('GRM', 'Gram(s)'), ('KGM', 'Kilogram(s)'), ('NAR', 'Number of articles'), ('MTK', 'Square metre(s)'), ('MTR', 'Metre(s)'), ('LTR', 'Litre(s)'), ('MTQ', 'Cubic metre(s)'), ('ITG', 'Intangible')], default=None, max_length=50, null=True),
+            model_name="goodonapplication",
+            name="unit",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("GRM", "Gram(s)"),
+                    ("KGM", "Kilogram(s)"),
+                    ("NAR", "Number of articles"),
+                    ("MTK", "Square metre(s)"),
+                    ("MTR", "Metre(s)"),
+                    ("LTR", "Litre(s)"),
+                    ("MTQ", "Cubic metre(s)"),
+                    ("ITG", "Intangible"),
+                ],
+                default=None,
+                max_length=50,
+                null=True,
+            ),
         ),
     ]
