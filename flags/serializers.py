@@ -50,3 +50,12 @@ class FlagAssignmentSerializer(serializers.Serializer):
         if not set(flags).issubset(list(team_good_level_flags)):
             raise serializers.ValidationError("You can only assign case-level flags that are available to your team.")
         return flags
+
+
+class CaseListFlagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Flag
+        fields = (
+            "name",
+            "team",
+        )
