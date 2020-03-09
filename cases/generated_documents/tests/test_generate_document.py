@@ -5,15 +5,14 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from audit_trail.models import Audit
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from static.decisions.models import Decision
-from users.models import ExporterNotification
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from picklists.enums import PickListStatus, PicklistType
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
+from users.models import ExporterNotification
 
 
 class GenerateDocumentTests(DataTestClient):
@@ -49,6 +48,27 @@ class GenerateDocumentTests(DataTestClient):
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
             ).count()
             == 1
+        )
+
+    @mock.patch("cases.generated_documents.views.html_to_pdf")
+    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
+    def test_generate_decision_document_success(self, upload_bytes_file_func, html_to_pdf_func):
+        html_to_pdf_func.return_value = None
+        upload_bytes_file_func.return_value = None
+        self.data["visible_to_exporter"] = False
+        self.data["advice_type"] = AdviceType.APPROVE
+
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+        response = self.client.post(url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        upload_bytes_file_func.assert_called_once()
+        self.assertTrue(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count() == 1)
+        self.assertTrue(
+            ExporterNotification.objects.filter(
+                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+            ).count()
+            == 0
         )
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
@@ -194,3 +214,27 @@ class GetGeneratedDocumentsTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.generated_case_document.id))
         self.assertEqual(response_data[0]["name"], self.generated_case_document.name)
+
+    def test_get_generated_documents_not_visible_to_exporter_gov_user_success(self):
+        document = self.create_generated_case_document(
+            self.case, template=self.letter_template, visible_to_exporter=False
+        )
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 2)
+        self.assertTrue(str(document.pk) in [doc["id"] for doc in response_data])
+
+    def test_get_generated_documents_not_visible_to_exporter_exporter_user_success(self):
+        document = self.create_generated_case_document(
+            self.case, template=self.letter_template, visible_to_exporter=False
+        )
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertFalse(str(document.pk) in [doc["id"] for doc in response_data])
