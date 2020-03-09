@@ -595,7 +595,8 @@ class LicenceView(RetrieveUpdateAPIView):
         )
         if not required_decisions.issubset(generated_document_decisions):
             return JsonResponse(
-                data={"errors": ["Not all final decisions have generated documents"]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": ["Not all final decisions have generated documents"]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Finalise Licence

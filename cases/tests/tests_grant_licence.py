@@ -22,7 +22,9 @@ class GrantLicenceTests(DataTestClient):
         self.standard_case = self.create_standard_application_case(self.organisation)
         self.url = reverse("cases:licence", kwargs={"pk": self.standard_case.id})
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.APPROVE, FinalAdvice)
-        self.template = self.create_letter_template("Template", decisions=[Decision.objects.get(name=AdviceType.APPROVE)])
+        self.template = self.create_letter_template(
+            "Template", decisions=[Decision.objects.get(name=AdviceType.APPROVE)]
+        )
 
     @mock.patch("cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_success(self, send_exporter_notifications_func):
