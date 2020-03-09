@@ -9,7 +9,6 @@ from letter_templates.helpers import get_css_location, generate_preview, markdow
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 
-
 font_config = FontConfiguration()
 GeneratedDocumentPayload = namedtuple("GeneratedDocumentPayload", "case template document_html text")
 
@@ -18,10 +17,6 @@ def html_to_pdf(request, html: str, template_name: str):
     html = HTML(string=html, base_url=request.build_absolute_uri())
     css = CSS(filename=get_css_location(template_name), font_config=font_config)
     return html.write_pdf(stylesheets=[css], font_config=font_config)
-
-
-def get_letter_templates_for_case(case):
-    return LetterTemplate.objects.filter(case_types=case.case_type, decisions__isnull=True)
 
 
 def get_letter_template_for_case(template_id, case):
