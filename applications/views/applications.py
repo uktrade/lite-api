@@ -412,7 +412,9 @@ class ApplicationFinaliseView(APIView):
                 start_date = timezone.datetime(year=int(data["year"]), month=int(data["month"]), day=int(data["day"]))
                 data["start_date"] = start_date.strftime("%Y-%m-%d")
             except KeyError:
-                return JsonResponse(data={"errors": {"start_date": ["Missing date value"]}}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(
+                    data={"errors": {"start_date": ["Missing date value"]}}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             data["application"] = application
             serializer = LicenceSerializer(data=data)

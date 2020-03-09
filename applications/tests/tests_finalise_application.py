@@ -85,7 +85,9 @@ class FinaliseApplicationTests(DataTestClient):
         clearance_application = self.create_mod_clearance_application(
             self.organisation, case_type=CaseTypeEnum.EXHIBITION
         )
-        self._set_user_permission([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        self._set_user_permission(
+            [GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION]
+        )
         data = {"action": AdviceType.APPROVE, "duration": 13}
         data.update(self.post_date)
 
@@ -149,4 +151,3 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.json()["application"], str(self.standard_application.id))
         self.assertEqual(self.standard_application.status, self.finalised_status)
         self.assertEqual(Audit.objects.all().count(), 1)
-
