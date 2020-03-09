@@ -251,9 +251,10 @@ class EditStandardApplicationTests(DataTestClient):
             [{"key": "military_end_use_controls", "value": "yes", "reference_number": "hadd"}],
             [{"key": "informed_wmd", "value": "yes", "reference_number": "kjjdnsk"}],
             [{"key": "suspected_wmd", "value": "yes", "reference_number": "kjndskhjds"}],
+            [{"key": "eu_military", "value": "no", "reference_number": "kjndskhjds"}],
         ]
     )
-    def test_edit_submitted_standard_application_end_use_details_minor_editable(self, attributes):
+    def test_edit_submitted_standard_application_end_use_details_major_editable(self, attributes):
         application = self.create_standard_application_case(self.organisation)
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         application.save()

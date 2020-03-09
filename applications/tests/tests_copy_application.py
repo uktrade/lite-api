@@ -18,7 +18,6 @@ from applications.models import (
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
-from static.f680_clearance_types.models import F680ClearanceType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -370,12 +369,9 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertEqual(
             self.copied_application.is_military_end_use_controls, self.original_application.is_military_end_use_controls
         )
-        self.assertEqual(
-            self.copied_application.is_eu_military,
-            self.original_application.is_military_end_use_controls
-            if application_type == CaseTypeSubTypeEnum.STANDARD
-            else None,
-        )
+        if application_type == CaseTypeSubTypeEnum.STANDARD:
+            self.assertEqual(self.copied_application.is_eu_military, self.original_application.is_eu_military)
+            self.assertEqual(self.copied_application.eu_military_ref, self.original_application.eu_military_ref)
 
     def _validate_good_on_application(self):
         new_goods_on_app = self.copied_application.goods.all()

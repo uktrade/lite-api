@@ -51,6 +51,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "is_suspected_wmd",
                 "suspected_wmd_ref",
                 "is_eu_military",
+                "eu_military_ref",
             )
         )
 
@@ -93,6 +94,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     )
     informed_wmd_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
     suspected_wmd_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
+    eu_military_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
     class Meta:
         model = StandardApplication
@@ -107,6 +109,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "is_suspected_wmd",
             "suspected_wmd_ref",
             "is_eu_military",
+            "eu_military_ref",
         )
 
     def update(self, instance, validated_data):
@@ -119,7 +122,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "reference_number_on_information_form", instance.reference_number_on_information_form,
         )
 
-        if instance.have_you_been_informed == "yes":
+        if instance.have_you_been_informed == YesNoChoiceType.YES:
             instance.reference_number_on_information_form = reference_number_on_information_form
         else:
             instance.reference_number_on_information_form = None

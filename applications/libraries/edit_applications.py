@@ -12,6 +12,7 @@ END_USE_FIELDS = [
     "is_suspected_wmd",
     "suspected_wmd_ref",
     "is_eu_military",
+    "eu_military_ref",
 ]
 
 

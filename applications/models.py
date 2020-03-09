@@ -161,6 +161,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
     is_eu_military = models.CharField(
         choices=YesNoChoiceType.yes_no_na_choices, default=None, max_length=10, blank=True, null=True
     )
+    eu_military_ref = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
     objects = BaseApplicationManager()
 
