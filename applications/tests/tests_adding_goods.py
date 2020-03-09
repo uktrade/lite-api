@@ -103,7 +103,6 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no goods have been added
         """
-        good_name = "A good"
         draft = self.create_draft_open_application(self.organisation)
         pre_test_good_count = GoodOnApplication.objects.all().count()
         self.create_good_document(
