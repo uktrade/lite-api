@@ -8,25 +8,26 @@ SEED_COMMANDS = {
         "seedcasetypes",
         "seedcasestatuses",
         "seedrolepermissions",
+        "seedinternaladminusers",
         "seedcontrollistentries",
         "seeddenialreasons",
         "seedcountries",
         "seedlayouts",
-        "seedsystemflags",
         "seeddecisions",
+        "seedflags",
         "seedf680clearancetypes",
     ],
-    "Dev": ["seedorgusers", "temporary_give_existing_exporters_superuser_role", "seedgovusers", "seeddemodata"],
+    "Dev": ["seeddemodata", "seedexporterusers"],
     "Tests": [
         "seedcasetypes",
         "seedcasestatuses",
         "seedrolepermissions",
+        "seedinternaladminusers",
         "seeddenialreasons",
         "seedcountries",
-        "seedgovusers",
         "seedlayouts",
-        "seedsystemflags",
         "seeddecisions",
+        "seedflags",
         "seedf680clearancetypes",
     ],
 }
@@ -61,10 +62,12 @@ class Command(SeedCommand):
 
         essential & non-essential are optional params to only run seed certain tasks
         """
-        if options["essential"]:
+        if not options["essential"] and not options["dev"]:
             self.seed_list(SEED_COMMANDS["Essential"])
-        elif options["dev"]:
             self.seed_list(SEED_COMMANDS["Dev"])
         else:
-            self.seed_list(SEED_COMMANDS["Essential"])
-            self.seed_list(SEED_COMMANDS["Dev"])
+            if options["essential"]:
+                self.seed_list(SEED_COMMANDS["Essential"])
+
+            if options["dev"]:
+                self.seed_list(SEED_COMMANDS["Dev"])

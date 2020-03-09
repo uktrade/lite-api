@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ErrorDetail
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 
@@ -33,6 +33,7 @@ from applications.models import (
     PartyOnApplication,
     F680ClearanceApplication,
 )
+from applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
@@ -45,6 +46,7 @@ from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
+from conf.helpers import convert_date_to_string
 from conf.permissions import assert_user_has_permission
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
@@ -103,6 +105,17 @@ class ApplicationList(ListCreateAPIView):
         Create a new application
         """
         data = request.data
+        if not data.get("application_type"):
+            return JsonResponse(
+                data={
+                    "errors": {
+                        "application_type": [
+                            ErrorDetail(string=strings.Applications.SELECT_AN_APPLICATION_TYPE, code="invalid")
+                        ]
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         case_type = data.pop("application_type", None)
         serializer = get_application_create_serializer(case_type)
         serializer = serializer(
@@ -589,3 +602,71 @@ class ApplicationCopy(APIView):
                     F680ClearanceApplication.objects.get(id=self.old_application_id).types.values_list("id", flat=True)
                 )
             )
+
+
+class ExhibitionDetails(ListCreateAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    queryset = BaseApplication.objects.all()
+    serializer = ExhibitionClearanceDetailSerializer
+
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def post(self, request, application):
+        serializer = self.serializer(instance=application, data=request.data)
+        if serializer.is_valid():
+            old_title = application.title
+            old_first_exhibition_date = application.first_exhibition_date
+            old_required_by_date = application.required_by_date
+            old_reason_for_clearance = application.reason_for_clearance
+            case = application.get_case()
+            serializer.save()
+            validated_data = serializer.validated_data
+
+            if validated_data["title"] != old_title:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_TITLE,
+                    target=case,
+                    payload={"old_title": old_title, "new_title": validated_data["title"],},
+                )
+
+            if validated_data["first_exhibition_date"] != old_first_exhibition_date:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_START_DATE,
+                    target=application.get_case(),
+                    payload={
+                        "old_first_exhibition_date": convert_date_to_string(old_first_exhibition_date)
+                        if old_first_exhibition_date
+                        else "",
+                        "new_first_exhibition_date": convert_date_to_string(validated_data["first_exhibition_date"]),
+                    },
+                )
+
+            if validated_data["required_by_date"] != old_required_by_date:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE,
+                    target=application.get_case(),
+                    payload={
+                        "old_required_by_date": convert_date_to_string(old_required_by_date)
+                        if old_required_by_date
+                        else "",
+                        "new_required_by_date": convert_date_to_string(validated_data["required_by_date"]),
+                    },
+                )
+
+            if validated_data.get("reason_for_clearance") != old_reason_for_clearance:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE,
+                    target=application.get_case(),
+                    payload={
+                        "old_reason_for_clearance": old_reason_for_clearance,
+                        "new_reason_for_clearance": validated_data["reason_for_clearance"],
+                    },
+                )
+
+            return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
