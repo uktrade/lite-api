@@ -51,10 +51,10 @@ class AddingGoodsOnApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"value": "", "quantity": "", "expected_value": "0.00", "expected_quantity": 1.0, }],
-            [{"value": 100, "quantity": 10, "expected_value": "100.00", "expected_quantity": 10.0, }],
-            [{"value": "", "quantity": 5, "expected_value": "0.00", "expected_quantity": 5.0, }],
-            [{"value": 123.0, "quantity": "", "expected_value": "123.00", "expected_quantity": 1.0, }],
+            [{"value": "", "quantity": "", "expected_value": "0.00", "expected_quantity": 1.0,}],
+            [{"value": 100, "quantity": 10, "expected_value": "100.00", "expected_quantity": 10.0,}],
+            [{"value": "", "quantity": 5, "expected_value": "0.00", "expected_quantity": 5.0,}],
+            [{"value": 123.0, "quantity": "", "expected_value": "123.00", "expected_quantity": 1.0,}],
         ]
     )
     def test_add_an_intangible_good_to_a_draft(self, data):
