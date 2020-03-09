@@ -9,13 +9,12 @@ from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-from test_helpers.helpers import generate_key_value_pair
+from test_helpers.helpers import generate_key_value_pair, date_to_drf_date
 from users.libraries.get_user import get_users_from_organisation
 from users.models import UserOrganisationRelationship
 
 
 class OrganisationTests(DataTestClient):
-
     url = reverse("organisations:organisations")
 
     def test_list_organisations(self):
@@ -24,27 +23,29 @@ class OrganisationTests(DataTestClient):
         response_data = response.json()["results"][0]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqualIgnoreType(response_data["id"], organisation.id)
-        self.assertEqual(response_data["name"], organisation.name)
-        self.assertEqual(response_data["sic_number"], organisation.sic_number)
-        self.assertEqual(response_data["eori_number"], organisation.eori_number)
-        self.assertEqual(response_data["type"], generate_key_value_pair(organisation.type, OrganisationType.choices))
-        self.assertEqual(response_data["registration_number"], organisation.registration_number)
-        self.assertEqual(response_data["vat_number"], organisation.vat_number)
         self.assertEqual(
-            response_data["status"], generate_key_value_pair(organisation.status, OrganisationStatus.choices)
+            response_data,
+            {
+                "id": str(organisation.id),
+                "name": organisation.name,
+                "sic_number": organisation.sic_number,
+                "eori_number": organisation.eori_number,
+                "type": generate_key_value_pair(organisation.type, OrganisationType.choices),
+                "registration_number": organisation.registration_number,
+                "vat_number": organisation.vat_number,
+                "status": generate_key_value_pair(organisation.status, OrganisationStatus.choices),
+                "created_at": date_to_drf_date(organisation.created_at),
+            },
         )
-        self.assertIn("created_at", response_data)
-        self.assertEqual(len(response_data), 9)
 
     def test_create_commercial_organisation_as_internal_success(self):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
             "eori_number": "GB123456789000",
-            "sic_number": "2765",
-            "vat_number": "123456789",
-            "registration_number": "987654321",
+            "sic_number": "01110",
+            "vat_number": "GB1234567",
+            "registration_number": "98765432",
             "site": {
                 "name": "Headquarters",
                 "address": {
@@ -71,7 +72,7 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
-        self.assertEqual(Organisation.status, OrganisationStatus.ACTIVE)
+        self.assertEqual(organisation.status, OrganisationStatus.ACTIVE)
 
         self.assertEqual(exporter_user.email, data["user"]["email"])
         self.assertEqual(
@@ -92,9 +93,9 @@ class OrganisationTests(DataTestClient):
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
             "eori_number": "GB123456789000",
-            "sic_number": "2765",
-            "vat_number": "123456789",
-            "registration_number": "987654321",
+            "sic_number": "01110",
+            "vat_number": "GB1234567",
+            "registration_number": "98765432",
             "site": {
                 "name": "Headquarters",
                 "address": {
@@ -121,7 +122,7 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
-        self.assertEqual(Organisation.status, OrganisationStatus.IN_REVIEW)
+        self.assertEqual(organisation.status, OrganisationStatus.IN_REVIEW)
 
         self.assertEqual(exporter_user.email, data["user"]["email"])
         self.assertEqual(

@@ -15,6 +15,8 @@ ORGANISATION_ID = "HTTP_ORGANISATION_ID"
 
 USER_DEACTIVATED_ERROR = "User has been deactivated"
 
+ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated"
+
 
 class ExporterAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
@@ -36,6 +38,9 @@ class ExporterAuthentication(authentication.BaseAuthentication):
             user_organisation_relationship = UserOrganisationRelationship.objects.get(
                 user=exporter_user, organisation=organisation
             )
+
+            if not organisation.is_active():
+                raise exceptions.PermissionDenied(ORGANISATION_DEACTIVATED_ERROR)
 
             if user_organisation_relationship.status == UserStatuses.DEACTIVATED:
                 raise exceptions.PermissionDenied(USER_DEACTIVATED_ERROR)

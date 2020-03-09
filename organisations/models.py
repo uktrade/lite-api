@@ -44,6 +44,9 @@ class Organisation(TimestampableModel):
 
         return [x.user for x in user_organisation_relationships]
 
+    def is_active(self):
+        return self.status == OrganisationStatus.ACTIVE
+
     class Meta:
         ordering = ["name"]
 

@@ -37,7 +37,7 @@ from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
-from organisations.enums import OrganisationType
+from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party
@@ -487,6 +487,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             sic_number="2765",
             vat_number="123456789",
             registration_number="987654321",
+            status=OrganisationStatus.ACTIVE,
         )
         if org_type:
             organisation.type = org_type

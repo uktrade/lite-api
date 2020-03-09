@@ -1,5 +1,6 @@
 import random
 
+from django.utils.datetime_safe import datetime
 from faker import Faker
 
 from flags.enums import SystemFlags
@@ -15,6 +16,14 @@ def generate_key_value_pair(key, choices):
     """
     value = next(v for k, v in choices if k == key)
     return {"key": key, "value": value}
+
+
+def date_to_drf_date(date):
+    """
+    Given a date, returns a correctly formatted string instance of it
+    suitable for comparison to rest framework datetimes
+    """
+    return date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def random_name():
