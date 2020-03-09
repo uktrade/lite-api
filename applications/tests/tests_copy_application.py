@@ -368,7 +368,10 @@ class CopyApplicationSuccessTests(DataTestClient):
             self.copied_application.is_military_end_use_controls, self.original_application.is_military_end_use_controls
         )
         self.assertEqual(
-            self.copied_application.is_military_end_use_controls,
+            self.copied_application.is_military_end_use_controls, self.original_application.is_military_end_use_controls
+        )
+        self.assertEqual(
+            self.copied_application.is_eu_military,
             self.original_application.is_military_end_use_controls
             if application_type == CaseTypeSubTypeEnum.STANDARD
             else None,
