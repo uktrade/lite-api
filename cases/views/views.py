@@ -569,8 +569,9 @@ class LicenceView(RetrieveUpdateAPIView):
     @transaction.atomic
     def put(self, request, pk):
         case = get_case(pk)
-        incomplete_final_decisions = FinalAdvice.objects.filter(document__isnull=True, case=case).exists()
-        if incomplete_final_decisions:
+        required_decisions = set(FinalAdvice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
+        generated_document_decisions = set(GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list("advice_type", flat=True))
+        if not required_decisions.issubset(generated_document_decisions):
             return JsonResponse(
                 data={"errors": "Not all final decisions have generated documents"}, status=status.HTTP_400_BAD_REQUEST
             )
