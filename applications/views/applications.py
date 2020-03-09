@@ -23,6 +23,7 @@ from applications.libraries.application_helpers import (
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
+from applications.libraries.questions import QuestionsError
 from applications.models import (
     BaseApplication,
     HmrcQuery,
@@ -676,3 +677,16 @@ class ExhibitionDetails(ListCreateAPIView):
             return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ApplicationQuestionsView(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @authorised_users(ExporterUser)
+    def post(self, request, application):
+        try:
+            application.update_questions(request.data)
+        except QuestionsError as e:
+            return JsonResponse(data={"errors": e.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
