@@ -19,8 +19,8 @@ class LicenceSerializer(serializers.ModelSerializer):
         """
         Check that the start is before the stop.
         """
-        if data.get("licence_duration") and (
-            data["licence_duration"] > LicenceDuration.MAX.value or data["licence_duration"] < LicenceDuration.MIN.value
+        if data.get("duration") and (
+            data["duration"] > LicenceDuration.MAX.value or data["duration"] < LicenceDuration.MIN.value
         ):
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return data

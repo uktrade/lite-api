@@ -344,12 +344,12 @@ class ApplicationManageStatus(APIView):
                 )
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
-            if not Licence.objects.filter(application=application).exists():
+            if not Licence.objects.filter(application=application, complete=True).exists():
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.SURRENDER]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            Licence.objects.get(application=application).delete()
+            Licence.objects.get(application=application, complete=True).delete()
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -392,38 +392,45 @@ class ApplicationFinaliseView(APIView):
             )
 
         data = deepcopy(request.data)
-
-        default_licence_duration = get_default_duration(application)
         action = data.get("action")
 
-        if (
-            data.get("licence_duration") is not None
-            and str(data["licence_duration"]) != str(default_licence_duration)
-            and not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION)
-        ):
-            return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        elif action == AdviceType.APPROVE:
-            data["duration"] = data.get("licence_duration", default_licence_duration)
+        if action == AdviceType.APPROVE:
+            default_licence_duration = get_default_duration(application)
+            data["duration"] = data.get("duration", default_licence_duration)
 
-        start_date = timezone.datetime(year=int(data["year"]), month=int(data["month"]), day=int(data["day"]))
-        data["start_date"] = start_date.strftime("%Y-%m-%d")
-        data["application"] = application
-        serializer = LicenceSerializer(data=data)
+            # Check change default duration permission
+            if data["duration"] != default_licence_duration and not request.user.has_permission(
+                GovPermissions.MANAGE_LICENCE_DURATION
+            ):
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            # Create incomplete Licence object
+            try:
+                start_date = timezone.datetime(year=int(data["year"]), month=int(data["month"]), day=int(data["day"]))
+                data["start_date"] = start_date.strftime("%Y-%m-%d")
+            except KeyError:
+                return JsonResponse(data={"errors": {"start_date": ["Missing date value"]}}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
+            data["application"] = application
+            serializer = LicenceSerializer(data=data)
 
-        if action == AdviceType.REFUSE:
+            if not serializer.is_valid():
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
+
+        elif action == AdviceType.REFUSE:
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
             )
+            application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+            application.save()
+            return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
 
-        return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
+        return JsonResponse(data={"errors": ["No action given"]}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationDurationView(APIView):
