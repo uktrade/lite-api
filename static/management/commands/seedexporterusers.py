@@ -117,7 +117,7 @@ class Command(SeedCommand):
         role_name = exporter_user_data.get("role", Roles.EXPORTER_SUPER_USER_ROLE_NAME)
         organisation_name = exporter_user_data.get("organisation")
 
-        # If organisation was specified, only seed the user to that chosen commercial organisation
+        # If a commercial (non-HMRC) Organisation was specified, only seed the user to that chosen organisation
         if organisation_name:
             organisation = cls._get_organisation_from_commercial_organisations(organisation_name)
             cls._add_exporter_to_organisation(exporter_user, organisation, role_name)
