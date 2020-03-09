@@ -38,7 +38,8 @@ from cases.serializers import (
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
-    AdviceDocumentTypeSerializer)
+    AdviceDocumentTypeSerializer,
+)
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.exceptions import NotFoundError
@@ -285,7 +286,9 @@ class FinalAdviceDocuments(APIView):
 
     def get(self, request, pk):
         case = get_case(pk)
-        decision_documents = AdviceDocumentTypeSerializer(FinalAdvice.objects.filter(case=case).distinct("type"), many=True).data
+        decision_documents = AdviceDocumentTypeSerializer(
+            FinalAdvice.objects.filter(case=case).distinct("type"), many=True
+        ).data
         # TODO Figure out a smarter way of doing this
         for decision in decision_documents:
             decision_key = decision["type"]["key"]
@@ -570,7 +573,11 @@ class LicenceView(RetrieveUpdateAPIView):
     def put(self, request, pk):
         case = get_case(pk)
         required_decisions = set(FinalAdvice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
-        generated_document_decisions = set(GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list("advice_type", flat=True))
+        generated_document_decisions = set(
+            GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list(
+                "advice_type", flat=True
+            )
+        )
         if not required_decisions.issubset(generated_document_decisions):
             return JsonResponse(
                 data={"errors": "Not all final decisions have generated documents"}, status=status.HTTP_400_BAD_REQUEST
