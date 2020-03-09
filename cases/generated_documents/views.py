@@ -83,6 +83,7 @@ class GeneratedDocuments(generics.ListAPIView):
                     template=document.template,
                     text=document.text,
                     visible_to_exporter=visible_to_exporter,
+                    advice_type=request.data.get("advice_type"),
                 )
 
                 audit_trail_service.create(
