@@ -11,6 +11,7 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from conf.serializers import KeyValueChoiceField
+from lite_content.lite_api import strings
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -148,7 +149,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             yes_no_field_val = validated_data.get(yes_no_field)
 
             if not yes_no_field_val:
-                raise serializers.ValidationError({yes_no_field: "Required!"})
+                raise serializers.ValidationError({yes_no_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED})
 
             return yes_no_field_val
 
@@ -158,4 +159,4 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
         if yes_no_field_val == YesNoChoiceType.YES:
             if not validated_data.get(ref_field):
-                raise serializers.ValidationError({ref_field: "Very bad"})
+                raise serializers.ValidationError({ref_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED})

@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 
 from audit_trail.payload import AuditType
+from lite_content.lite_api import strings
 
 END_USE_FIELDS = [
     "is_military_end_use_controls",
@@ -27,7 +28,8 @@ def edit_end_use_details(application, request):
 def end_use_helper(request, field):
     if request.data.get(field):
         return JsonResponse(
-            data={"errors": {field: ["This isn't possible on a minor edit"]}}, status=status.HTTP_400_BAD_REQUEST,
+            data={"errors": {field: [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 

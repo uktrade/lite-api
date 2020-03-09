@@ -10,6 +10,7 @@ from applications.serializers.generic_application import (
 from conf.serializers import KeyValueChoiceField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
+from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
 
@@ -103,8 +104,10 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             yes_no_field_val = validated_data.get(yes_no_field)
 
             if not yes_no_field_val:
-                raise serializers.ValidationError({yes_no_field: "Required!"})
+                raise serializers.ValidationError({yes_no_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED})
 
             if yes_no_field_val == YesNoChoiceType.YES:
                 if not validated_data.get(ref_field):
-                    raise serializers.ValidationError({ref_field: "Very bad"})
+                    raise serializers.ValidationError(
+                        {ref_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED}
+                    )

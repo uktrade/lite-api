@@ -188,7 +188,9 @@ class EditStandardApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][reference_key], ["Very bad"])
+        self.assertEqual(
+            response.json()["errors"][reference_key], [strings.Applications.Generic.END_USE_DETAILS_REQUIRED]
+        )
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
@@ -215,7 +217,9 @@ class EditStandardApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual((response.json()["errors"][reference_key]), ["Very bad"])
+        self.assertEqual(
+            (response.json()["errors"][reference_key]), [strings.Applications.Generic.END_USE_DETAILS_REQUIRED]
+        )
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
@@ -241,7 +245,7 @@ class EditStandardApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][key], ["Required!"])
+        self.assertEqual(response.json()["errors"][key], [strings.Applications.Generic.END_USE_DETAILS_REQUIRED])
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
@@ -298,7 +302,7 @@ class EditStandardApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][key], ["This isn't possible on a minor edit"])
+        self.assertEqual(response.json()["errors"][key], [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT])
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
@@ -361,7 +365,9 @@ class EditOpenApplicationTests(DataTestClient):
         self.application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][reference_key], ["Very bad"])
+        self.assertEqual(
+            response.json()["errors"][reference_key], [strings.Applications.Generic.END_USE_DETAILS_REQUIRED]
+        )
 
         attribute = getattr(self.application, key)
         self.assertEqual(attribute, old_attribute)
@@ -385,7 +391,9 @@ class EditOpenApplicationTests(DataTestClient):
         self.application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual((response.json()["errors"][reference_key]), ["Very bad"])
+        self.assertEqual(
+            (response.json()["errors"][reference_key]), [strings.Applications.Generic.END_USE_DETAILS_REQUIRED]
+        )
 
         attribute = getattr(self.application, key)
         self.assertEqual(attribute, old_attribute)
@@ -408,7 +416,7 @@ class EditOpenApplicationTests(DataTestClient):
         self.application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][key], ["Required!"])
+        self.assertEqual(response.json()["errors"][key], [strings.Applications.Generic.END_USE_DETAILS_REQUIRED])
 
         attribute = getattr(self.application, key)
         self.assertEqual(attribute, old_attribute)
@@ -465,7 +473,7 @@ class EditOpenApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][key], ["This isn't possible on a minor edit"])
+        self.assertEqual(response.json()["errors"][key], [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT])
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
@@ -558,7 +566,9 @@ class EditF680ApplicationsTests(DataTestClient):
 
         response = self.client.put(url, data=data, **self.exporter_headers)
         self.application.refresh_from_db()
-        self.assertEqual(response.json()["errors"], {"clearance_level": ["This isn't possible on a minor edit"]})
+        self.assertEqual(
+            response.json()["errors"], {"clearance_level": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_edit_submitted_application_clearance_level_major_success(self):
@@ -587,7 +597,7 @@ class EditF680ApplicationsTests(DataTestClient):
         response = self.client.put(url, data=data, **self.exporter_headers)
 
         self.application.refresh_from_db()
-        self.assertEqual(response.json()["errors"], {"types": ["This isn't possible on a minor edit"]})
+        self.assertEqual(response.json()["errors"], {"types": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_edit_submitted_application_clearance_type_major_success(self):
