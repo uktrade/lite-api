@@ -7,6 +7,7 @@ from rest_framework.reverse import reverse
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
+from static.decisions.models import Decision
 from users.models import ExporterNotification
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
@@ -28,7 +29,7 @@ class GenerateDocumentTests(DataTestClient):
         self.letter_template.letter_paragraphs.add(self.picklist_item)
 
         self.case = self.create_standard_application_case(self.organisation)
-        self.data = {"template": str(self.letter_template.id), "text": "sample"}
+        self.data = {"template": str(self.letter_template.id), "text": "sample", "visible_to_exporter": True}
         self.content_type = ContentType.objects.get_for_model(GeneratedCaseDocument)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
@@ -49,22 +50,6 @@ class GenerateDocumentTests(DataTestClient):
             ).count()
             == 1
         )
-
-    @mock.patch("cases.generated_documents.views.html_to_pdf")
-    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_document_when_template_has_decisions_failure(self, upload_bytes_file_func, html_to_pdf_func):
-        self.letter_template.decisions = ["deny"]
-        self.letter_template.save()
-        html_to_pdf_func.return_value = None
-        upload_bytes_file_func.return_value = None
-
-        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
-        response = self.client.post(url, **self.gov_headers, data=self.data)
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.json()["errors"], {"letter_template": strings.Cases.LETTER_TEMPLATE_NOT_FOUND})
-        upload_bytes_file_func.assert_not_called()
-        self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")

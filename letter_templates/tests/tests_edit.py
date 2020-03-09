@@ -8,6 +8,7 @@ from conf import constants
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from picklists.enums import PickListStatus, PicklistType
+from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 
@@ -24,7 +25,7 @@ class LetterTemplateEditTests(DataTestClient):
 
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
         self.letter_template.case_types.set([CaseTypeEnum.SIEL.id, CaseTypeEnum.OGEL.id])
-        self.letter_template.decisions = ["deny", "no_licence_required"]
+        self.letter_template.decisions.set([Decision.objects.get(name="deny"), Decision.objects.get(name="no_licence_required")])
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.letter_template.save()
 
@@ -68,7 +69,7 @@ class LetterTemplateEditTests(DataTestClient):
         response_decisions = response.json()["decisions"]
         self.assertEqual(len(response_decisions), len(data["decisions"]))
         for decision in data["decisions"]:
-            self.assertIn(decision, [response_decision["key"] for response_decision in response_decisions])
+            self.assertIn(decision, [response_decision["name"]["key"] for response_decision in response_decisions])
 
         audit_trail = Audit.objects.all()
         self.assertEqual(audit_trail.count(), 1)

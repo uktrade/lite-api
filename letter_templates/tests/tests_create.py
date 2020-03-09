@@ -146,7 +146,7 @@ class LetterTemplateCreateTests(DataTestClient):
         response_decisions = response.json()["decisions"]
         self.assertEqual(len(response_decisions), len(data["decisions"]))
         for decision in data["decisions"]:
-            self.assertIn(decision, [response_decision["key"] for response_decision in response_decisions])
+            self.assertIn(decision, [response_decision["name"]["key"] for response_decision in response_decisions])
 
     def test_create_letter_template_with_decisions_on_non_application_case_types_failure(self):
         case_type_references = [CaseTypeEnum.EUA.reference, CaseTypeEnum.GOODS.reference]

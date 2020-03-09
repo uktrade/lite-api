@@ -30,3 +30,7 @@ class DecisionsEnum:
     @classmethod
     def to_representation(cls):
         return [{"key": decision[0], "value": decision[1]} for decision in cls.choices]
+
+    @classmethod
+    def get_ids(cls, keys: list):
+        return [cls.ids[decision_key] for decision_key in keys]

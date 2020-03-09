@@ -267,7 +267,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     @staticmethod
-    def create_case_document(case: Case, user: GovUser, name: str):
+    def create_case_document(case: Case, user: GovUser, name: str, visible_to_exporter=True):
         case_doc = CaseDocument(
             case=case,
             description="This is a document",
@@ -277,6 +277,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             size=123456,
             virus_scanned_at=None,
             safe=None,
+            visible_to_exporter=visible_to_exporter,
         )
         case_doc.save()
         return case_doc
@@ -741,7 +742,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
         return self.create_end_user_advisory(note, reasoning, organisation)
 
-    def create_generated_case_document(self, case, template, document_name="Generated Doc"):
+    def create_generated_case_document(self, case, template, visible_to_exporter=True, document_name="Generated Doc"):
         generated_case_doc = GeneratedCaseDocument.objects.create(
             name=document_name,
             user=self.gov_user,
@@ -752,6 +753,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case=case,
             template=template,
             text="Here is some text",
+            visible_to_exporter=visible_to_exporter,
         )
         return generated_case_doc
 
