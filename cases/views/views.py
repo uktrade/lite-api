@@ -304,6 +304,7 @@ class ViewFinalAdvice(APIView):
     def get(self, request, pk):
         case = get_case(pk)
         final_advice = FinalAdvice.objects.filter(case=case)
+
         serializer = CaseFinalAdviceSerializer(final_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
@@ -564,13 +565,12 @@ class CaseOfficer(APIView):
 
 class LicenceView(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = LicenceSerializer
-
-    def get_object(self):
-        return get_object_or_404(Licence, application=self.kwargs["pk"])
 
     @transaction.atomic
     def put(self, request, pk):
+        """
+        Finalise & grant a Licence
+        """
         case = get_case(pk)
         required_decisions = set(FinalAdvice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
         generated_document_decisions = set(
@@ -583,8 +583,13 @@ class LicenceView(RetrieveUpdateAPIView):
                 data={"errors": "Not all final decisions have generated documents"}, status=status.HTTP_400_BAD_REQUEST
             )
 
+        if not Licence.objects.filter(application=case).exists():
+            return JsonResponse(
+                data={"errors": "A Licence hasn't been started yet"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         licence = Licence.objects.get(application=case)
-        licence.finalised = True
+        licence.complete = True
         licence.save()
 
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
@@ -594,7 +599,7 @@ class LicenceView(RetrieveUpdateAPIView):
             actor=request.user,
             verb=AuditType.GRANTED_APPLICATION,
             target=case,
-            payload={"licence_duration": licence.licence_duration},
+            payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
         )
 
         return JsonResponse({"licence": licence.id}, status=status.HTTP_201_CREATED)

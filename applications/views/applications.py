@@ -392,7 +392,7 @@ class ApplicationFinaliseView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         elif action == AdviceType.APPROVE:
-            data["licence_duration"] = data.get("licence_duration", default_licence_duration)
+            data["duration"] = data.get("licence_duration", default_licence_duration)
 
         start_date = timezone.datetime(year=int(data["year"]), month=int(data["month"]), day=int(data["day"]))
         data["start_date"] = start_date.strftime("%Y-%m-%d")

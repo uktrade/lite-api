@@ -259,4 +259,4 @@ class Licence(TimestampableModel):
     )
     start_date = models.DateField(blank=False, null=False)
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
-    finalised = models.BooleanField(default=False, null=False)
+    complete = models.BooleanField(default=False, null=False, blank=False)
