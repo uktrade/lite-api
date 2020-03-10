@@ -10,7 +10,6 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from conf.serializers import KeyValueChoiceField
 from lite_content.lite_api import strings
 
 
@@ -19,11 +18,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     goods_categories = serializers.SerializerMethodField()
-
-    is_military_end_use_controls = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices)
-    is_informed_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices)
-    is_suspected_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices)
-    is_eu_military = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_na_choices)
 
     def get_goods_categories(self, instance):
         # Return a formatted key, value format of GoodsCategories
@@ -82,14 +76,6 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     goods_categories = serializers.MultipleChoiceField(
         choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
     )
-
-    is_military_end_use_controls = KeyValueChoiceField(
-        choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True
-    )
-    is_informed_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
-    is_suspected_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
-    is_eu_military = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_na_choices, allow_blank=True, allow_null=True)
-
     military_end_use_controls_ref = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2000
     )
@@ -133,30 +119,32 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     def validate(self, data):
         validated_data = super().validate(data)
-        self._validate_yes_no_field_present(validated_data, "is_eu_military")
-        self._validate_dependent_ref_field(
-            validated_data, "is_military_end_use_controls", "military_end_use_controls_ref"
-        )
-        self._validate_dependent_ref_field(validated_data, "is_informed_wmd", "informed_wmd_ref")
-        self._validate_dependent_ref_field(validated_data, "is_suspected_wmd", "suspected_wmd_ref")
+        self._validate_boolean_field(validated_data, "is_eu_military")
+        self._validate_linked_fields(validated_data, "is_military_end_use_controls", "military_end_use_controls_ref")
+        self._validate_linked_fields(validated_data, "is_informed_wmd", "informed_wmd_ref")
+        self._validate_linked_fields(validated_data, "is_suspected_wmd", "suspected_wmd_ref")
         return validated_data
 
     @classmethod
-    def _validate_yes_no_field_present(cls, validated_data, yes_no_field):
-        is_yes_no_field_present = yes_no_field in validated_data
+    def _validate_boolean_field(cls, validated_data, boolean_field):
+        is_boolean_field_present = boolean_field in validated_data
 
-        if is_yes_no_field_present:
-            yes_no_field_val = validated_data.get(yes_no_field)
+        if is_boolean_field_present:
+            boolean_field_value = validated_data[boolean_field]
 
-            if not yes_no_field_val:
-                raise serializers.ValidationError({yes_no_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED})
+            if boolean_field_value is None:
+                raise serializers.ValidationError(
+                    {boolean_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED}
+                )
 
-            return yes_no_field_val
+            return boolean_field_value
 
     @classmethod
-    def _validate_dependent_ref_field(cls, validated_data, yes_no_field, ref_field):
-        yes_no_field_val = cls._validate_yes_no_field_present(validated_data, yes_no_field)
+    def _validate_linked_fields(cls, validated_data, boolean_field, reference_field):
+        linked_boolean_field = cls._validate_boolean_field(validated_data, boolean_field)
 
-        if yes_no_field_val == YesNoChoiceType.YES:
-            if not validated_data.get(ref_field):
-                raise serializers.ValidationError({ref_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED})
+        if linked_boolean_field:
+            if not validated_data.get(reference_field):
+                raise serializers.ValidationError(
+                    {reference_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED}
+                )

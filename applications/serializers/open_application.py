@@ -1,13 +1,11 @@
 from rest_framework import serializers
 
-from applications.enums import YesNoChoiceType
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from conf.serializers import KeyValueChoiceField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from lite_content.lite_api import strings
@@ -19,10 +17,6 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
-
-    is_military_end_use_controls = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices)
-    is_informed_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices)
-    is_suspected_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices)
 
     class Meta:
         model = OpenApplication
@@ -64,12 +58,6 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
-    is_military_end_use_controls = KeyValueChoiceField(
-        choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True
-    )
-    is_informed_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
-    is_suspected_wmd = KeyValueChoiceField(choices=YesNoChoiceType.yes_no_choices, allow_blank=True, allow_null=True)
-
     military_end_use_controls_ref = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2000
     )
@@ -89,25 +77,31 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     def validate(self, data):
         validated_data = super().validate(data)
-        self._validate_dependent_ref_field(
-            validated_data, "is_military_end_use_controls", "military_end_use_controls_ref"
-        )
-        self._validate_dependent_ref_field(validated_data, "is_informed_wmd", "informed_wmd_ref")
-        self._validate_dependent_ref_field(validated_data, "is_suspected_wmd", "suspected_wmd_ref")
+        self._validate_linked_fields(validated_data, "is_military_end_use_controls", "military_end_use_controls_ref")
+        self._validate_linked_fields(validated_data, "is_informed_wmd", "informed_wmd_ref")
+        self._validate_linked_fields(validated_data, "is_suspected_wmd", "suspected_wmd_ref")
         return validated_data
 
-    @staticmethod
-    def _validate_dependent_ref_field(validated_data, yes_no_field, ref_field):
-        is_yes_no_field_present = yes_no_field in validated_data
+    @classmethod
+    def _validate_boolean_field(cls, validated_data, boolean_field):
+        is_boolean_field_present = boolean_field in validated_data
 
-        if is_yes_no_field_present:
-            yes_no_field_val = validated_data.get(yes_no_field)
+        if is_boolean_field_present:
+            boolean_field_value = validated_data[boolean_field]
 
-            if not yes_no_field_val:
-                raise serializers.ValidationError({yes_no_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED})
+            if boolean_field_value is None:
+                raise serializers.ValidationError(
+                    {boolean_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED}
+                )
 
-            if yes_no_field_val == YesNoChoiceType.YES:
-                if not validated_data.get(ref_field):
-                    raise serializers.ValidationError(
-                        {ref_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED}
-                    )
+            return boolean_field_value
+
+    @classmethod
+    def _validate_linked_fields(cls, validated_data, boolean_field, reference_field):
+        linked_boolean_field = cls._validate_boolean_field(validated_data, boolean_field)
+
+        if linked_boolean_field:
+            if not validated_data.get(reference_field):
+                raise serializers.ValidationError(
+                    {reference_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED}
+                )

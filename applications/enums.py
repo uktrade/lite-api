@@ -4,17 +4,10 @@ from enum import Enum
 class YesNoChoiceType:
     YES = "yes"
     NO = "no"
-    NA = "not_applicable"
 
     yes_no_choices = [
         (YES, "Yes"),
         (NO, "No"),
-    ]
-
-    yes_no_na_choices = [
-        (YES, "Yes"),
-        (NO, "No"),
-        (NA, "Not applicable"),
     ]
 
 

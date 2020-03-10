@@ -100,7 +100,7 @@ jobs:
             git submodule sync
             git submodule update --init
 
-      - restore_cache:
+      - restore_cache:izers/open_application.p
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
       - run:
@@ -116,7 +116,7 @@ jobs:
           name: Prospector
           command: pipenv run prospector
 
-      - run:
+      - run:izers/open_application.p
           name: Black
           command: pipenv run black . --check --diff
 

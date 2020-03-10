@@ -125,12 +125,11 @@ class DraftTests(DataTestClient):
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEqual(
-            retrieved_application["is_military_end_use_controls"]["key"],
-            standard_application.is_military_end_use_controls,
+            retrieved_application["is_military_end_use_controls"], standard_application.is_military_end_use_controls,
         )
-        self.assertEqual(retrieved_application["is_informed_wmd"]["key"], standard_application.is_informed_wmd)
-        self.assertEqual(retrieved_application["is_suspected_wmd"]["key"], standard_application.is_suspected_wmd)
-        self.assertEqual(retrieved_application["is_eu_military"]["key"], standard_application.is_eu_military)
+        self.assertEqual(retrieved_application["is_informed_wmd"], standard_application.is_informed_wmd)
+        self.assertEqual(retrieved_application["is_suspected_wmd"], standard_application.is_suspected_wmd)
+        self.assertEqual(retrieved_application["is_eu_military"], standard_application.is_eu_military)
         self.assertEquals(
             GoodOnApplication.objects.filter(application__id=standard_application.id).count(), 1,
         )
@@ -255,10 +254,10 @@ class DraftTests(DataTestClient):
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
         self.assertEqual(
-            retrieved_application["is_military_end_use_controls"]["key"], open_application.is_military_end_use_controls
+            retrieved_application["is_military_end_use_controls"], open_application.is_military_end_use_controls
         )
-        self.assertEqual(retrieved_application["is_informed_wmd"]["key"], open_application.is_informed_wmd)
-        self.assertEqual(retrieved_application["is_suspected_wmd"]["key"], open_application.is_suspected_wmd)
+        self.assertEqual(retrieved_application["is_informed_wmd"], open_application.is_informed_wmd)
+        self.assertEqual(retrieved_application["is_suspected_wmd"], open_application.is_suspected_wmd)
         self.assertIn("is_good_incorporated", retrieved_application["goods_types"][0])
         self.assertEqual(GoodsType.objects.filter(application__id=open_application.id).count(), 2)
         self.assertIsNotNone(

@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 
 from audit_trail.payload import AuditType
+from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 
 END_USE_FIELDS = [
@@ -26,7 +27,7 @@ def edit_end_use_details(application, request):
 
 
 def end_use_helper(request, field):
-    if request.data.get(field):
+    if field in request.data:
         return JsonResponse(
             data={"errors": {field: [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}},
             status=status.HTTP_400_BAD_REQUEST,
@@ -73,7 +74,7 @@ def save_and_audit_end_use_details(request, application, serializer):
 
 
 def save_and_audit_have_you_been_informed_ref(request, application, serializer):
-    old_have_you_been_informed = application.have_you_been_informed == "yes"
+    old_have_you_been_informed = application.have_you_been_informed
     have_you_been_informed = request.data.get("have_you_been_informed")
 
     if have_you_been_informed:
@@ -83,7 +84,7 @@ def save_and_audit_have_you_been_informed_ref(request, application, serializer):
 
         new_ref_number = application.reference_number_on_information_form or "no reference"
 
-        if old_have_you_been_informed and not have_you_been_informed == "yes":
+        if old_have_you_been_informed and not str_to_bool(have_you_been_informed):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,

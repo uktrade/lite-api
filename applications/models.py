@@ -8,7 +8,6 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsCategory,
-    YesNoChoiceType,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
@@ -143,30 +142,23 @@ class BaseApplication(ApplicationPartyMixin, Case):
     usage = models.TextField(default=None, blank=True, null=True)
     licence_duration = models.IntegerField(default=None, null=True, help_text="Set when application finalised")
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
-    is_military_end_use_controls = models.CharField(
-        choices=YesNoChoiceType.yes_no_choices, default=None, max_length=50, blank=True, null=True
-    )
+
+    is_eu_military = models.BooleanField(blank=True, default=None, null=True)
+    eu_military_ref = models.TextField(default=None, blank=True, null=True, max_length=2000)
+
+    is_military_end_use_controls = models.BooleanField(blank=True, default=None, null=True)
     military_end_use_controls_ref = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
-    is_informed_wmd = models.CharField(
-        choices=YesNoChoiceType.yes_no_choices, default=None, max_length=10, blank=True, null=True
-    )
+    is_informed_wmd = models.BooleanField(blank=True, default=None, null=True)
     informed_wmd_ref = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
-    is_suspected_wmd = models.CharField(
-        choices=YesNoChoiceType.yes_no_choices, default=None, max_length=10, blank=True, null=True
-    )
+    is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
     suspected_wmd_ref = models.TextField(default=None, blank=True, null=True, max_length=2000)
-
-    is_eu_military = models.CharField(
-        choices=YesNoChoiceType.yes_no_na_choices, default=None, max_length=10, blank=True, null=True
-    )
-    eu_military_ref = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
     objects = BaseApplicationManager()
 
 
-# Export Licence Applications
+# Licence Applications
 class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)

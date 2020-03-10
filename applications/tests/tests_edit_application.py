@@ -132,10 +132,10 @@ class EditStandardApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "military_end_use_controls", "value": "yes", "reference_number": "48953745ref"}],
-            [{"key": "informed_wmd", "value": "yes", "reference_number": "48953745ref"}],
-            [{"key": "suspected_wmd", "value": "yes", "reference_number": "48953745ref"}],
-            [{"key": "eu_military", "value": "yes"}],
+            [{"key": "military_end_use_controls", "value": True, "reference_number": "48953745ref"}],
+            [{"key": "informed_wmd", "value": True, "reference_number": "48953745ref"}],
+            [{"key": "suspected_wmd", "value": True, "reference_number": "48953745ref"}],
+            [{"key": "eu_military", "value": True}],
         ]
     )
     def test_edit_unsubmitted_standard_application_end_use_details(self, attributes):
@@ -166,9 +166,9 @@ class EditStandardApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "military_end_use_controls", "value": "yes", "reference_number": ""}],
-            [{"key": "informed_wmd", "value": "yes", "reference_number": ""}],
-            [{"key": "suspected_wmd", "value": "yes", "reference_number": ""}],
+            [{"key": "military_end_use_controls", "value": True, "reference_number": ""}],
+            [{"key": "informed_wmd", "value": True, "reference_number": ""}],
+            [{"key": "suspected_wmd", "value": True, "reference_number": ""}],
         ]
     )
     def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_empty(self, attributes):
@@ -197,9 +197,9 @@ class EditStandardApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "military_end_use_controls", "value": "yes"}],
-            [{"key": "informed_wmd", "value": "yes"}],
-            [{"key": "suspected_wmd", "value": "yes"}],
+            [{"key": "military_end_use_controls", "value": True}],
+            [{"key": "informed_wmd", "value": True}],
+            [{"key": "suspected_wmd", "value": True}],
         ]
     )
     def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_is_none(self, attributes):
@@ -252,10 +252,10 @@ class EditStandardApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "military_end_use_controls", "value": "yes", "reference_number": "hadd"}],
-            [{"key": "informed_wmd", "value": "yes", "reference_number": "kjjdnsk"}],
-            [{"key": "suspected_wmd", "value": "yes", "reference_number": "kjndskhjds"}],
-            [{"key": "eu_military", "value": "no", "reference_number": "kjndskhjds"}],
+            [{"key": "military_end_use_controls", "value": True, "reference_number": "hadd"}],
+            [{"key": "informed_wmd", "value": True, "reference_number": "kjjdnsk"}],
+            [{"key": "suspected_wmd", "value": True, "reference_number": "kjndskhjds"}],
+            [{"key": "eu_military", "value": False, "reference_number": "kjndskhjds"}],
         ]
     )
     def test_edit_submitted_standard_application_end_use_details_major_editable(self, attributes):
@@ -282,10 +282,10 @@ class EditStandardApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "is_military_end_use_controls", "value": "no"}],
-            [{"key": "is_informed_wmd", "value": "no"}],
-            [{"key": "is_suspected_wmd", "value": "no"}],
-            [{"key": "is_eu_military", "value": "no"}],
+            [{"key": "is_military_end_use_controls", "value": True}],
+            [{"key": "is_informed_wmd", "value": True}],
+            [{"key": "is_suspected_wmd", "value": True}],
+            [{"key": "is_eu_military", "value": False}],
         ]
     )
     def test_edit_submitted_standard_application_end_use_details_not_major_editable(self, attributes):
@@ -316,9 +316,9 @@ class EditOpenApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "military_end_use_controls", "value": "yes", "reference_number": "48953745ref"}],
-            [{"key": "informed_wmd", "value": "yes", "reference_number": "48953745ref"}],
-            [{"key": "suspected_wmd", "value": "yes", "reference_number": "48953745ref"}],
+            [{"key": "military_end_use_controls", "value": True, "reference_number": "48953745ref"}],
+            [{"key": "informed_wmd", "value": True, "reference_number": "48953745ref"}],
+            [{"key": "suspected_wmd", "value": True, "reference_number": "48953745ref"}],
         ]
     )
     def test_edit_unsubmitted_open_application_end_use_details(self, attributes):
@@ -346,9 +346,9 @@ class EditOpenApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "military_end_use_controls", "value": "yes", "reference_number": ""}],
-            [{"key": "informed_wmd", "value": "yes", "reference_number": ""}],
-            [{"key": "suspected_wmd", "value": "yes", "reference_number": ""}],
+            [{"key": "military_end_use_controls", "value": True, "reference_number": ""}],
+            [{"key": "informed_wmd", "value": True, "reference_number": ""}],
+            [{"key": "suspected_wmd", "value": True, "reference_number": ""}],
         ]
     )
     def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_empty(self, attributes):
@@ -374,9 +374,9 @@ class EditOpenApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "military_end_use_controls", "value": "yes"}],
-            [{"key": "informed_wmd", "value": "yes"}],
-            [{"key": "suspected_wmd", "value": "yes"}],
+            [{"key": "military_end_use_controls", "value": True}],
+            [{"key": "informed_wmd", "value": True}],
+            [{"key": "suspected_wmd", "value": True}],
         ]
     )
     def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_is_none(self, attributes):
@@ -398,14 +398,15 @@ class EditOpenApplicationTests(DataTestClient):
         attribute = getattr(self.application, key)
         self.assertEqual(attribute, old_attribute)
 
-    @parameterized.expand(
-        [
-            [{"key": "military_end_use_controls", "value": ""}],
-            [{"key": "informed_wmd", "value": ""}],
-            [{"key": "suspected_wmd", "value": ""}],
-        ]
-    )
-    def test_edit_unsubmitted_open_application_end_use_details_mandatory_field_is_none(self, attributes):
+    # @parameterized.expand(
+    #     [
+    #         [{"key": "military_end_use_controls", "value": ""}],
+    #         [{"key": "informed_wmd", "value": ""}],
+    #         [{"key": "suspected_wmd", "value": ""}],
+    #     ]
+    # )
+    def test_edit_unsubmitted_open_application_end_use_details_mandatory_field_is_none(self):
+        attributes = {"key": "military_end_use_controls", "value": ""}
         key = "is_" + attributes["key"]
         old_attribute = getattr(self.application, key)
         value = attributes["value"]
@@ -423,9 +424,9 @@ class EditOpenApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "military_end_use_controls", "value": "yes", "reference_number": "hadd"}],
-            [{"key": "informed_wmd", "value": "yes", "reference_number": "kjjdnsk"}],
-            [{"key": "suspected_wmd", "value": "yes", "reference_number": "kjndskhjds"}],
+            [{"key": "military_end_use_controls", "value": True, "reference_number": "hadd"}],
+            [{"key": "informed_wmd", "value": True, "reference_number": "kjjdnsk"}],
+            [{"key": "suspected_wmd", "value": True, "reference_number": "kjndskhjds"}],
         ]
     )
     def test_edit_submitted_open_application_end_use_details_minor_editable(self, attributes):
@@ -453,9 +454,9 @@ class EditOpenApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "is_military_end_use_controls", "value": "no"}],
-            [{"key": "is_informed_wmd", "value": "no"}],
-            [{"key": "is_suspected_wmd", "value": "no"}],
+            [{"key": "is_military_end_use_controls", "value": True}],
+            [{"key": "is_informed_wmd", "value": True}],
+            [{"key": "is_suspected_wmd", "value": True}],
         ]
     )
     def test_edit_submitted_open_application_end_use_details_not_major_editable(self, attributes):
