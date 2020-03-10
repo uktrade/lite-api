@@ -371,7 +371,14 @@ class CopyApplicationSuccessTests(DataTestClient):
         )
         if application_type == CaseTypeSubTypeEnum.STANDARD:
             self.assertEqual(self.copied_application.is_eu_military, self.original_application.is_eu_military)
-            self.assertEqual(self.copied_application.eu_military_ref, self.original_application.eu_military_ref)
+            self.assertEqual(
+                self.copied_application.is_compliant_limitations_eu,
+                self.original_application.is_compliant_limitations_eu,
+            )
+            self.assertEqual(
+                self.copied_application.compliant_limitations_eu_ref,
+                self.original_application.compliant_limitations_eu_ref,
+            )
 
     def _validate_good_on_application(self):
         new_goods_on_app = self.copied_application.goods.all()

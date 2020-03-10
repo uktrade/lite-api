@@ -59,9 +59,9 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     military_end_use_controls_ref = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, max_length=2000
+        required=False, allow_blank=True, allow_null=True, max_length=225
     )
-    informed_wmd_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
+    informed_wmd_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=225)
     suspected_wmd_ref = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
     class Meta:

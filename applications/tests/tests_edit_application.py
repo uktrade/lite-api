@@ -135,7 +135,6 @@ class EditStandardApplicationTests(DataTestClient):
             [{"key": "military_end_use_controls", "value": True, "reference_number": "48953745ref"}],
             [{"key": "informed_wmd", "value": True, "reference_number": "48953745ref"}],
             [{"key": "suspected_wmd", "value": True, "reference_number": "48953745ref"}],
-            [{"key": "eu_military", "value": True}],
         ]
     )
     def test_edit_unsubmitted_standard_application_end_use_details(self, attributes):
@@ -145,10 +144,8 @@ class EditStandardApplicationTests(DataTestClient):
         key = "is_" + attributes["key"]
         value = attributes["value"]
         data = {key: value}
-
-        if "reference_number" in attributes:
-            reference_key = attributes["key"] + "_ref"
-            data[reference_key] = attributes["reference_number"]
+        reference_key = attributes["key"] + "_ref"
+        data[reference_key] = attributes["reference_number"]
 
         updated_at = application.updated_at
 
@@ -261,7 +258,6 @@ class EditStandardApplicationTests(DataTestClient):
             [{"key": "military_end_use_controls", "value": True, "reference_number": "hadd"}],
             [{"key": "informed_wmd", "value": True, "reference_number": "kjjdnsk"}],
             [{"key": "suspected_wmd", "value": True, "reference_number": "kjndskhjds"}],
-            [{"key": "eu_military", "value": False, "reference_number": "kjndskhjds"}],
         ]
     )
     def test_edit_submitted_standard_application_end_use_details_major_editable(self, attributes):
@@ -291,7 +287,6 @@ class EditStandardApplicationTests(DataTestClient):
             [{"key": "is_military_end_use_controls", "value": True}],
             [{"key": "is_informed_wmd", "value": True}],
             [{"key": "is_suspected_wmd", "value": True}],
-            [{"key": "is_eu_military", "value": False}],
         ]
     )
     def test_edit_submitted_standard_application_end_use_details_not_major_editable(self, attributes):
@@ -312,6 +307,45 @@ class EditStandardApplicationTests(DataTestClient):
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
+
+    def test_edit_standard_submitted_application_end_use_details_is_compliant_limitations_eu(self):
+        application = self.create_standard_application_case(self.organisation)
+        application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        application.save()
+        url = reverse("applications:application", kwargs={"pk": application.id})
+        data = {
+            "is_eu_military": True,
+            "is_compliant_limitations_eu": False,
+            "compliant_limitations_eu_ref": "24524f",
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.is_eu_military, data["is_eu_military"])
+        self.assertEqual(application.is_compliant_limitations_eu, data["is_compliant_limitations_eu"])
+        self.assertEqual(application.compliant_limitations_eu_ref, data["compliant_limitations_eu_ref"])
+        self.assertEqual(Audit.objects.all().count(), 2)
+
+    def test_edit_standard_application_end_use_details_is_compliant_limitations_eu_missing(self):
+        application = self.create_draft_standard_application(self.organisation)
+        url = reverse("applications:application", kwargs={"pk": application.id})
+        data = {
+            "is_eu_military": True,
+            "is_compliant_limitations_eu": "",
+            "compliant_limitations_eu_ref": "",
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(
+            response.json()["errors"]["is_compliant_limitations_eu"],
+            [strings.Applications.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU],
+        )
 
 
 class EditOpenApplicationTests(DataTestClient):
