@@ -1,11 +1,13 @@
-from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+
+from lite_content.lite_api import strings
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+from rest_framework.exceptions import ValidationError
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from flags.enums import FlagLevels, FlagStatuses
 from flags.models import Flag, FlaggingRule
-from lite_content.lite_api import strings
 from teams.models import Team
 from teams.serializers import TeamSerializer
 
@@ -77,13 +79,15 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlaggingRule
         fields = ("id", "team", "level", "flag", "flag_name", "status", "matching_value")
-        validators = [
-            UniqueTogetherValidator(
-                queryset=FlaggingRule.objects.all(),
-                fields=["level", "flag", "matching_value"],
-                message="This combination already exists",
+
+    def validate(self, attrs):
+        try:
+            FlaggingRule.objects.get(
+                level=attrs.get("level"), flag=attrs.get("flag"), matching_value=attrs.get("matching_value")
             )
-        ]
+            raise ValidationError("Rule already exists")
+        except FlaggingRule.DoesNotExist:
+            return attrs
 
     def update(self, instance, validated_data):
         instance.status = validated_data.get("status", instance.status)
