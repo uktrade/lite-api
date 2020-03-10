@@ -78,7 +78,11 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         model = FlaggingRule
         fields = ("id", "team", "level", "flag", "flag_name", "status", "matching_value")
         validators = [
-            UniqueTogetherValidator(queryset=FlaggingRule.objects.all(), fields=["level", "flag", "matching_value"])
+            UniqueTogetherValidator(
+                queryset=FlaggingRule.objects.all(),
+                fields=["level", "flag", "matching_value"],
+                message="This combination already exists",
+            )
         ]
 
     def update(self, instance, validated_data):
