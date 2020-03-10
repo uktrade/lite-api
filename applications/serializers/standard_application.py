@@ -136,12 +136,11 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             validated_data, "is_eu_military", strings.Applications.EndUseDetailsErrors.EU_MILITARY
         )
 
-        if self.instance.is_eu_military:
-            self._validate_boolean_field(
-                validated_data,
-                "is_compliant_limitations_eu",
-                strings.Applications.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU,
-            )
+        self._validate_boolean_field(
+            validated_data,
+            "is_compliant_limitations_eu",
+            strings.Applications.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU,
+        )
 
         return validated_data
 
