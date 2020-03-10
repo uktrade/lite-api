@@ -303,7 +303,7 @@ class FlaggingRules(ListCreateAPIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class FlaggingRuleDetail:
+class FlaggingRuleDetail(APIView):
     """
     Details of a specific flagging rule
     """
