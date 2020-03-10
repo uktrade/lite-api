@@ -70,10 +70,14 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     flag = PrimaryKeyRelatedField(queryset=Flag.objects.all())
+    flag_name = serializers.SerializerMethodField()
+
+    def get_flag_name(self, instance):
+        return instance.flag.name
 
     class Meta:
         model = FlaggingRule
-        fields = "__all__"
+        fields = ("__all__", "flag_name")
 
     def update(self, instance, validated_data):
         instance.status = validated_data.get("status", instance.status)
