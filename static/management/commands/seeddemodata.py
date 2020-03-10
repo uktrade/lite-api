@@ -1,6 +1,7 @@
 from django.db import transaction, models
 
-from static.management.SeedCommand import SeedCommand, SeedCommandTest
+from conf.constants import Teams
+from static.management.SeedCommand import SeedCommand
 
 from flags.models import Flag
 from queues.models import Queue
@@ -16,55 +17,58 @@ class Command(SeedCommand):
     pipenv run ./manage.py seeddemodata
     """
 
-    help = "Creates Teams, Queues and Flags for the purpose of demoing"
-    info = "Seeding demo data"
-    success = "Successfully seeded demo data"
+    help = "Seeds demo teams, queues and flags"
+    info = "Seeding demo teams, queues and flags"
+    success = "Successfully seeded demo teams, queues and flags"
     seed_command = "seeddemodata"
 
     @transaction.atomic
     def operation(self, *args, **options):
+        assert Team.objects.filter(id=Teams.ADMIN_TEAM_ID), "Admin team must be seeded first!"
+
         teams = self.seed_teams()
         self.seed_queues(teams)
         self.seed_flags(teams)
 
-    def seed_teams(self) -> dict:
-        teams_csv = self.read_csv(TEAMS_FILE)
-        return self.create_team(Team, teams_csv)
-
-    def seed_queues(self, team_ids):
-        queues_csv = self.read_csv(QUEUES_FILE)
-        self._create_queue_or_flag(Queue, queues_csv, team_ids)
-
-    def seed_flags(self, team_ids):
-        flags_csv = self.read_csv(FLAGS_FILE)
-        self._create_queue_or_flag(Flag, flags_csv, team_ids)
-
-    @staticmethod
-    def create_team(model: models.Model, rows: list) -> dict:
+    @classmethod
+    def seed_teams(cls) -> dict:
+        rows = cls.read_csv(TEAMS_FILE)
         teams = {}
+
         for row in rows:
             team = Team.objects.filter(name__iexact=row["name"])
             if not team.exists():
-                team_id = model.objects.create(**row).id
-                print(f"CREATED Team: {dict(row)}")
+                team_id = Team.objects.create(**row).id
+                cls.print_created_or_updated(Team, row, is_created=True)
             else:
                 team_id = team.first().id
             teams[row["name"]] = str(team_id)
+
         return teams
 
-    @staticmethod
-    def _create_queue_or_flag(model: models.Model, rows: list, teams: dict):
+    @classmethod
+    def seed_queues(cls, team_ids):
+        queues_csv = cls.read_csv(QUEUES_FILE)
+        cls._create_queues_or_flags(Queue, queues_csv, team_ids, include_team_in_filter=True)
+
+    @classmethod
+    def seed_flags(cls, team_ids):
+        flags_csv = cls.read_csv(FLAGS_FILE)
+        cls._create_queues_or_flags(Flag, flags_csv, team_ids, include_team_in_filter=False)
+
+    @classmethod
+    def _create_queues_or_flags(cls, model: models.Model, rows: dict, teams: dict, include_team_in_filter: bool):
         for row in rows:
-            obj = model.objects.filter(name__iexact=row["name"])
+            team_name = row.pop("team_name")
+            row["team_id"] = teams[team_name]
+            filter = dict(name__iexact=row["name"])
+
+            if include_team_in_filter:
+                filter["team_id"] = row["team_id"]
+
+            obj = model.objects.filter(**filter)
+
             if not obj.exists():
-                row["team_id"] = teams[row.pop("team_name")]
                 model.objects.create(**row)
-                print(f"CREATED {model.__name__}: {dict(row)}")
-
-
-class SeedDemoDataTests(SeedCommandTest):
-    def test_seed_case_statuses(self):
-        self.seed_command(Command)
-        self.assertTrue(Flag.objects.count() == len(Command.read_csv(FLAGS_FILE)))
-        self.assertTrue(Queue.objects.count() == len(Command.read_csv(QUEUES_FILE)))
-        self.assertTrue(Team.objects.count() == len(Command.read_csv(TEAMS_FILE)))
+                data = dict(name=row["name"], team_name=team_name)
+                cls.print_created_or_updated(model, data, is_created=True)

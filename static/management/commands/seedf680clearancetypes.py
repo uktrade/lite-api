@@ -1,5 +1,4 @@
 from django.db import transaction
-from conf import settings
 
 from static.management.SeedCommand import SeedCommand
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
@@ -11,20 +10,21 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedf680clearancetypes
     """
 
-    help = "Creates F680 clearance types"
-    info = "Seeding F680 clearance types"
-    success = "Successfully seeded F680 clearance types"
+    help = "Creates f680 clearance types"
+    info = "Seeding f680 clearance types"
+    success = "Successfully seeded f680 clearance types"
     seed_command = "seedf680clearancetypes"
 
     @transaction.atomic
     def operation(self, *args, **options):
+        for type in F680ClearanceTypeEnum.choices:
+            id = F680ClearanceTypeEnum.ids[type[0]]
+            name = type[0]
+            data = dict(id=id, name=name)
 
-        for f680_clearance_type in F680ClearanceTypeEnum.choices:
-            _, created = F680ClearanceType.objects.update_or_create(
-                id=F680ClearanceTypeEnum.ids[f680_clearance_type[0]], defaults={"name": f680_clearance_type[0]}
-            )
-            if not settings.SUPPRESS_TEST_OUTPUT:
-                if created:
-                    print(f"CREATED F680ClearanceType: {{'name': {f680_clearance_type[1]}}}")
-                else:
-                    print(f"UPDATED F680ClearanceType: {{'name': {f680_clearance_type[1]}}}")
+            f680_clearance_type, created = F680ClearanceType.objects.get_or_create(id=id, defaults=data)
+
+            if created or f680_clearance_type.name != name:
+                f680_clearance_type.name = name
+                f680_clearance_type.save()
+                self.print_created_or_updated(F680ClearanceType, data, is_created=created)
