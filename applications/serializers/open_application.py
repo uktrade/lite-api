@@ -89,18 +89,6 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         return validated_data
 
     @classmethod
-    def _validate_boolean_field(cls, validated_data, boolean_field, error):
-        is_boolean_field_present = boolean_field in validated_data
-
-        if is_boolean_field_present:
-            boolean_field_value = validated_data[boolean_field]
-
-            if boolean_field_value is None:
-                raise serializers.ValidationError({boolean_field: error})
-
-            return boolean_field_value
-
-    @classmethod
     def _validate_linked_fields(cls, validated_data, linked_field, error):
         linked_boolean_field = "is_" + linked_field
         linked_boolean_field = cls._validate_boolean_field(validated_data, linked_boolean_field, error)
@@ -112,3 +100,15 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
                 raise serializers.ValidationError(
                     {linked_reference_field: strings.Applications.EndUseDetailsErrors.MISSING_REFERENCE}
                 )
+
+    @classmethod
+    def _validate_boolean_field(cls, validated_data, boolean_field, error):
+        is_boolean_field_present = boolean_field in validated_data
+
+        if is_boolean_field_present:
+            boolean_field_value = validated_data[boolean_field]
+
+            if boolean_field_value is None:
+                raise serializers.ValidationError({boolean_field: error})
+
+            return boolean_field_value

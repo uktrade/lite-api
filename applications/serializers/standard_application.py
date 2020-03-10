@@ -119,9 +119,6 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     def validate(self, data):
         validated_data = super().validate(data)
-        self._validate_boolean_field(
-            validated_data, "eu_military", strings.Applications.EndUseDetailsErrors.EU_MILITARY
-        )
         self._validate_linked_fields(
             validated_data, "military_end_use_controls", strings.Applications.EndUseDetailsErrors.INFORMED_TO_APPLY
         )
@@ -131,19 +128,10 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         self._validate_linked_fields(
             validated_data, "suspected_wmd", strings.Applications.EndUseDetailsErrors.SUSPECTED_WMD
         )
+        self._validate_boolean_field(
+            validated_data, "eu_military", strings.Applications.EndUseDetailsErrors.EU_MILITARY
+        )
         return validated_data
-
-    @classmethod
-    def _validate_boolean_field(cls, validated_data, boolean_field, error):
-        is_boolean_field_present = boolean_field in validated_data
-
-        if is_boolean_field_present:
-            boolean_field_value = validated_data[boolean_field]
-
-            if boolean_field_value is None:
-                raise serializers.ValidationError({boolean_field: error})
-
-            return boolean_field_value
 
     @classmethod
     def _validate_linked_fields(cls, validated_data, linked_field, error):
@@ -157,3 +145,15 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
                 raise serializers.ValidationError(
                     {linked_reference_field: strings.Applications.EndUseDetailsErrors.MISSING_REFERENCE}
                 )
+
+    @classmethod
+    def _validate_boolean_field(cls, validated_data, boolean_field, error):
+        is_boolean_field_present = boolean_field in validated_data
+
+        if is_boolean_field_present:
+            boolean_field_value = validated_data[boolean_field]
+
+            if boolean_field_value is None:
+                raise serializers.ValidationError({boolean_field: error})
+
+            return boolean_field_value
