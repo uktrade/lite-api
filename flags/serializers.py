@@ -82,7 +82,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
             UniqueTogetherValidator(
                 queryset=FlaggingRule.objects.all(),
                 fields=["level", "flag", "matching_value"],
-                message="Rule already exists",
+                message=strings.FlaggingRules.DUPLICATE_RULE,
             )
         ]
 
