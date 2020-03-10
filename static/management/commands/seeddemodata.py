@@ -1,7 +1,7 @@
 from django.db import transaction, models
 
 from addresses.models import Address
-from organisations.enums import OrganisationType
+from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Site, Organisation
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -80,9 +80,10 @@ class Command(SeedCommand):
             name=org["name"],
             type=org["type"],
             eori_number="1234567890AAA",
-            sic_number="2345",
+            sic_number="12345",
             vat_number="GB1234567",
             registration_number=org["reg_no"],
+            status=OrganisationStatus.ACTIVE,
         )
 
         address, _ = Address.objects.get_or_create(
