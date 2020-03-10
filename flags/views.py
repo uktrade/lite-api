@@ -271,7 +271,6 @@ class FlaggingRules(ListCreateAPIView):
     serializer_class = FlaggingRuleSerializer
 
     def get_queryset(self):
-        """ List all organisations. """
         rules = FlaggingRule.objects.all().order_by("team")
 
         include_deactivated = self.request.query_params.getlist("include_deactivated", "")
@@ -291,7 +290,6 @@ class FlaggingRules(ListCreateAPIView):
     @transaction.atomic
     @swagger_auto_schema(request_body=FlaggingRuleSerializer, responses={400: "JSON parse error"})
     def post(self, request):
-        """ Create a new organisation. """
         json = request.data
         json["team"] = self.request.user.team.id
         serializer = FlaggingRuleSerializer(data=request.data)
@@ -304,27 +302,16 @@ class FlaggingRules(ListCreateAPIView):
 
 
 class FlaggingRuleDetail(APIView):
-    """
-    Details of a specific flagging rule
-    """
-
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        """
-        Returns details of a specific flag
-        """
         flagging_rule = get_flagging_rule(pk)
         serializer = FlaggingRuleSerializer(flagging_rule)
         return JsonResponse(data={"flag": serializer.data})
 
     def put(self, request, pk):
-        """
-        Edit details of a specific flag
-        """
         flagging_rule = get_flagging_rule(pk)
 
-        # Prevent a user changing a flag if it does not belong to their team
         if request.user.team != flagging_rule.team:
             return JsonResponse(data={"errors": strings.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN)
 
