@@ -16,7 +16,9 @@ from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.models import Case
 from conf.authentication import GovAuthentication
+from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
+from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flag, get_flagging_rule
@@ -271,6 +273,7 @@ class FlaggingRules(ListCreateAPIView):
     serializer_class = FlaggingRuleSerializer
 
     def get_queryset(self):
+        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
         rules = FlaggingRule.objects.all().order_by("team")
 
         include_deactivated = self.request.query_params.getlist("include_deactivated", "")
@@ -290,6 +293,7 @@ class FlaggingRules(ListCreateAPIView):
     @transaction.atomic
     @swagger_auto_schema(request_body=FlaggingRuleSerializer, responses={400: "JSON parse error"})
     def post(self, request):
+        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
         json = request.data
         json["team"] = self.request.user.team.id
         serializer = FlaggingRuleSerializer(data=request.data)
@@ -305,11 +309,13 @@ class FlaggingRuleDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
+        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
         flagging_rule = get_flagging_rule(pk)
         serializer = FlaggingRuleSerializer(flagging_rule)
         return JsonResponse(data={"flag": serializer.data})
 
     def put(self, request, pk):
+        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
         flagging_rule = get_flagging_rule(pk)
 
         if request.user.team != flagging_rule.team:
