@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueValidator
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from flags.enums import FlagLevels, FlagStatuses
-from flags.models import Flag
+from flags.models import Flag, FlaggingRule
 from teams.models import Team
 from teams.serializers import TeamSerializer
 
@@ -59,3 +59,16 @@ class CaseListFlagSerializer(serializers.ModelSerializer):
             "name",
             "team",
         )
+
+
+class FlaggingRuleSerializer(serializers.ModelSerializer):
+    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
+    level = serializers.ChoiceField(
+        choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.BLANK_LEVEL},
+    )
+    status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
+    flag = PrimaryKeyRelatedSerializerField(queryset=Flag.objects.all())
+
+    class Meta:
+        model = FlaggingRule
+        fields = "__all__"

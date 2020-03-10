@@ -1,7 +1,13 @@
+import operator
+from functools import reduce
+
+from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -14,13 +20,13 @@ from conf.helpers import str_to_bool
 from flags.enums import FlagStatuses
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flag
-from flags.models import Flag
-from flags.serializers import FlagSerializer, FlagAssignmentSerializer
+from flags.models import Flag, FlaggingRule
+from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer
 from goods.models import Good
 from lite_content.lite_api import strings
 from parties.models import Party
-from queries.goods_query.models import GoodsQuery
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
+from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country
 
 
@@ -258,3 +264,42 @@ class AssignFlags(APIView):
             qs = HmrcQuery.objects.filter(party__party=party)
         if qs:
             return qs.first().get_case()
+
+
+class FlaggingRules(ListCreateAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = FlaggingRuleSerializer
+
+    def get_queryset(self):
+        """ List all organisations. """
+        rules = FlaggingRule.objects.all().order_by("team")
+
+        include_deactivated = self.request.query_params.getlist("include_deactivated", "")
+        if not include_deactivated:
+            rules = rules.filter(status=FlagStatuses.ACTIVE)
+
+        level = self.request.query_params.get("level", "")
+        if level:
+            rules = rules.filter(level=level)
+
+        only_my_team = self.request.query_params.get("only_my_team", "")
+        if only_my_team:
+            rules = rules.filter(team=self.request.user.team)
+
+        return rules
+
+    @transaction.atomic
+    @swagger_auto_schema(request_body=FlaggingRuleSerializer, responses={400: "JSON parse error"})
+    def post(self, request):
+        """ Create a new organisation. """
+        serializer = FlaggingRuleSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FlaggingRuleDetail:
+    pass

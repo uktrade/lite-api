@@ -31,7 +31,7 @@ from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.enums import SystemFlags
-from flags.models import Flag
+from flags.models import Flag, FlaggingRule
 from goods.enums import GoodControlled, GoodPvGraded, PvGrading
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
@@ -334,6 +334,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         flag = Flag(name=name, level=level, team=team)
         flag.save()
         return flag
+
+    @staticmethod
+    def create_flagging_rule(level: str, team: Team, flag: Flag, matching_value: str):
+        flagging_rule = FlaggingRule(level=level, team=team, flag=flag, matching_value=matching_value)
+        flagging_rule.save()
+        return flagging_rule
 
     @staticmethod
     def create_case_assignment(queue, case, users):
