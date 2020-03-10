@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 
+from compat import get_model
 from django.db import models
 
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
@@ -36,8 +37,8 @@ class CaseQuerySet(models.QuerySet):
     def in_queue(self, queue_id):
         return self.filter(queues__in=[queue_id])
 
-    def in_team(self, team):
-        return self.filter(queues__team=team).distinct()
+    def in_team(self, team_id):
+        return self.filter(queues__team_id=team_id).distinct()
 
     def is_updated(self, user):
         """
@@ -84,6 +85,22 @@ class CaseQuerySet(models.QuerySet):
 
         return self.order_by(f"{order}submitted_at")
 
+    def filter_based_on_queue(self, queue_id, team_id, user):
+        if queue_id == MY_TEAMS_QUEUES_CASES_ID:
+            return self.in_team(team_id=team_id)
+        elif queue_id == OPEN_CASES_QUEUE_ID:
+            return self.is_open()
+        elif queue_id == UPDATED_CASES_QUEUE_ID:
+            return self.is_updated(user=user)
+        elif queue_id == MY_ASSIGNED_CASES_QUEUE_ID:
+            return self.assigned_to_user(user=user).not_terminal()
+        elif queue_id == MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID:
+            return self.assigned_as_case_officer(user=user).not_terminal()
+        elif queue_id is not None and queue_id != ALL_CASES_QUEUE_ID:
+            return self.in_queue(queue_id=queue_id)
+
+        return self
+
 
 class CaseManager(models.Manager):
     """
@@ -106,24 +123,25 @@ class CaseManager(models.Manager):
         assigned_user=None,
         case_officer=None,
         date_order=None,
+        include_hidden=None,
     ):
         """
         Search for a user's available cases given a set of search parameters.
         """
         case_qs = self.submitted().prefetch_related("queues", "status", "organisation__flags",)
+        team_id = user.team.id
 
-        if queue_id == MY_TEAMS_QUEUES_CASES_ID:
-            case_qs = case_qs.in_team(team=user.team)
-        elif queue_id == OPEN_CASES_QUEUE_ID:
-            case_qs = case_qs.is_open()
-        elif queue_id == UPDATED_CASES_QUEUE_ID:
-            case_qs = case_qs.is_updated(user=user)
-        elif queue_id == MY_ASSIGNED_CASES_QUEUE_ID:
-            case_qs = case_qs.assigned_to_user(user=user).not_terminal()
-        elif queue_id == MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID:
-            case_qs = case_qs.assigned_as_case_officer(user=user).not_terminal()
-        elif queue_id is not None and queue_id != ALL_CASES_QUEUE_ID:
-            case_qs = case_qs.in_queue(queue_id=queue_id)
+        if not include_hidden:
+            EcjuQuery = get_model("cases", "ecjuquery")
+
+            case_qs = case_qs.exclude(
+                id__in=EcjuQuery.objects.filter(raised_by_user__team_id=team_id, responded_at__isnull=True)
+                .values("case_id")
+                .distinct()
+            )
+
+        if queue_id:
+            case_qs = case_qs.filter_based_on_queue(queue_id=queue_id, team_id=team_id, user=user)
 
         if status:
             case_qs = case_qs.has_status(status=status)
