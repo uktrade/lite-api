@@ -310,6 +310,7 @@ class EditStandardApplicationTests(DataTestClient):
 
     def test_edit_standard_submitted_application_end_use_details_is_compliant_limitations_eu(self):
         application = self.create_standard_application_case(self.organisation)
+        application.is_eu_military = True
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})
@@ -328,6 +329,7 @@ class EditStandardApplicationTests(DataTestClient):
 
     def test_edit_standard_application_end_use_details_is_compliant_limitations_eu_missing(self):
         application = self.create_draft_standard_application(self.organisation)
+        application.is_eu_military = True
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})

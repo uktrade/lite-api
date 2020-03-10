@@ -107,6 +107,19 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         if "goods_categories" in validated_data:
             instance.goods_categories = validated_data.pop("goods_categories")
 
+        self._update_have_you_been_informed_linked_fields(instance, validated_data)
+
+        self._update_reference_field(instance, "military_end_use_controls", validated_data)
+        self._update_reference_field(instance, "informed_wmd", validated_data)
+        self._update_reference_field(instance, "suspected_wmd", validated_data)
+
+        self._update_eu_military_linked_fields(instance, validated_data)
+
+        instance = super().update(instance, validated_data)
+        return instance
+
+    @classmethod
+    def _update_have_you_been_informed_linked_fields(cls, instance, validated_data):
         instance.have_you_been_informed = validated_data.pop("have_you_been_informed", instance.have_you_been_informed)
 
         reference_number_on_information_form = validated_data.pop(
@@ -118,8 +131,29 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         else:
             instance.reference_number_on_information_form = None
 
-        instance = super().update(instance, validated_data)
-        return instance
+    @classmethod
+    def _update_eu_military_linked_fields(cls, instance, validated_data):
+        instance.is_compliant_limitations_eu = validated_data.pop(
+            "is_compliant_limitations_eu", instance.is_compliant_limitations_eu
+        )
+        if instance.is_compliant_limitations_eu:
+            instance.compliant_limitations_eu_ref = None
+
+        instance.is_eu_military = validated_data.pop("is_eu_military", instance.is_eu_military)
+        if not instance.is_eu_military:
+            instance.is_compliant_limitations_eu = None
+            instance.compliant_limitations_eu_ref = None
+
+    @classmethod
+    def _update_reference_field(cls, instance, linked_field, validated_data):
+        linked_boolean_field = "is_" + linked_field
+
+        updated_boolean_field = validated_data.pop(linked_boolean_field, getattr(instance, linked_boolean_field))
+        setattr(instance, linked_boolean_field, updated_boolean_field)
+
+        if updated_boolean_field:
+            linked_reference_field = linked_field + "_ref"
+            setattr(instance, linked_reference_field, None)
 
     def validate(self, data):
         validated_data = super().validate(data)
@@ -135,17 +169,20 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         self._validate_boolean_field(
             validated_data, "is_eu_military", strings.Applications.EndUseDetailsErrors.EU_MILITARY
         )
+        self._validate__eu_military_linked_fields(self.instance, validated_data)
 
+        return validated_data
+
+    @classmethod
+    def _validate__eu_military_linked_fields(cls, instance, validated_data):
         if (
-            self.instance.is_eu_military
-            and not self.instance.is_compliant_limitations_eu
+            instance.is_eu_military
+            and not instance.is_compliant_limitations_eu
             and validated_data.get("is_compliant_limitations_eu") is None
         ):
             raise serializers.ValidationError(
                 {"is_compliant_limitations_eu": strings.Applications.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU}
             )
-
-        return validated_data
 
     @classmethod
     def _validate_linked_fields(cls, validated_data, linked_field, error):
