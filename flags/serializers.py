@@ -77,7 +77,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FlaggingRule
-        fields = ("team", "level", "flag", "flag_name", "status", "matching_value")
+        fields = ("id", "team", "level", "flag", "flag_name", "status", "matching_value")
 
     def update(self, instance, validated_data):
         instance.status = validated_data.get("status", instance.status)
