@@ -200,7 +200,7 @@ class OrganisationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @parameterized.expand([["1231234"], [""]])
+    @parameterized.expand([["GB1234567"], [""]])
     def test_create_organisation_as_a_private_individual(self, vat_number):
         data = {
             "name": "John Smith",
@@ -222,7 +222,6 @@ class OrganisationTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-
         organisation = Organisation.objects.get(name=data["name"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
@@ -318,9 +317,9 @@ class EditOrganisationTests(DataTestClient):
         self.new_org_name = "New org name"
         self.type = "commercial"
         self.eori_number = "123"
-        self.sic_number = "456"
-        self.vat_number = "789"
-        self.registration_number = "111"
+        self.sic_number = "12345"
+        self.vat_number = "GB1234567"
+        self.registration_number = "12345678"
 
         self.original_org_eori_number = self.organisation.eori_number
         self.original_org_sic_number = self.organisation.sic_number
