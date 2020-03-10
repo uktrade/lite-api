@@ -1,3 +1,5 @@
+from rest_framework.relations import PrimaryKeyRelatedField
+
 from lite_content.lite_api import strings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -67,7 +69,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.BLANK_LEVEL},
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
-    flag = PrimaryKeyRelatedSerializerField(queryset=Flag.objects.all(), serializer=CaseListFlagSerializer)
+    flag = PrimaryKeyRelatedField(queryset=Flag.objects.all(), serializer=CaseListFlagSerializer)
 
     class Meta:
         model = FlaggingRule
