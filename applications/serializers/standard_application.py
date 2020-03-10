@@ -119,32 +119,41 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     def validate(self, data):
         validated_data = super().validate(data)
-        self._validate_boolean_field(validated_data, "is_eu_military")
-        self._validate_linked_fields(validated_data, "is_military_end_use_controls", "military_end_use_controls_ref")
-        self._validate_linked_fields(validated_data, "is_informed_wmd", "informed_wmd_ref")
-        self._validate_linked_fields(validated_data, "is_suspected_wmd", "suspected_wmd_ref")
+        self._validate_boolean_field(
+            validated_data, "eu_military", strings.Applications.EndUseDetailsErrors.EU_MILITARY
+        )
+        self._validate_linked_fields(
+            validated_data, "military_end_use_controls", strings.Applications.EndUseDetailsErrors.INFORMED_TO_APPLY
+        )
+        self._validate_linked_fields(
+            validated_data, "informed_wmd", strings.Applications.EndUseDetailsErrors.INFORMED_WMD
+        )
+        self._validate_linked_fields(
+            validated_data, "suspected_wmd", strings.Applications.EndUseDetailsErrors.SUSPECTED_WMD
+        )
         return validated_data
 
     @classmethod
-    def _validate_boolean_field(cls, validated_data, boolean_field):
+    def _validate_boolean_field(cls, validated_data, boolean_field, error):
         is_boolean_field_present = boolean_field in validated_data
 
         if is_boolean_field_present:
             boolean_field_value = validated_data[boolean_field]
 
             if boolean_field_value is None:
-                raise serializers.ValidationError(
-                    {boolean_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED}
-                )
+                raise serializers.ValidationError({boolean_field: error})
 
             return boolean_field_value
 
     @classmethod
-    def _validate_linked_fields(cls, validated_data, boolean_field, reference_field):
-        linked_boolean_field = cls._validate_boolean_field(validated_data, boolean_field)
+    def _validate_linked_fields(cls, validated_data, linked_field, error):
+        linked_boolean_field = "is_" + linked_field
+        linked_boolean_field = cls._validate_boolean_field(validated_data, linked_boolean_field, error)
 
         if linked_boolean_field:
-            if not validated_data.get(reference_field):
+            linked_reference_field = linked_field + "_ref"
+
+            if not validated_data.get(linked_reference_field):
                 raise serializers.ValidationError(
-                    {reference_field: strings.Applications.Generic.END_USE_DETAILS_REQUIRED}
+                    {linked_reference_field: strings.Applications.EndUseDetailsErrors.MISSING_REFERENCE}
                 )
