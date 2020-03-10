@@ -330,9 +330,10 @@ class EditStandardApplicationTests(DataTestClient):
 
     def test_edit_standard_application_end_use_details_is_compliant_limitations_eu_missing(self):
         application = self.create_draft_standard_application(self.organisation)
+        application.is_eu_military = True
+        application.save()
         url = reverse("applications:application", kwargs={"pk": application.id})
         data = {
-            "is_eu_military": True,
             "is_compliant_limitations_eu": "",
             "compliant_limitations_eu_ref": "",
         }

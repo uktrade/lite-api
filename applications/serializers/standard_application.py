@@ -132,13 +132,15 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         self._validate_linked_fields(
             validated_data, "suspected_wmd", strings.Applications.EndUseDetailsErrors.SUSPECTED_WMD
         )
-        is_eu_military = self._validate_boolean_field(
+        self._validate_boolean_field(
             validated_data, "is_eu_military", strings.Applications.EndUseDetailsErrors.EU_MILITARY
         )
 
-        if is_eu_military and validated_data.get("is_compliant_limitations_eu") is None:
-            raise serializers.ValidationError(
-                {"is_compliant_limitations_eu": strings.Applications.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU}
+        if self.instance.is_eu_military:
+            self._validate_boolean_field(
+                validated_data,
+                "is_compliant_limitations_eu",
+                strings.Applications.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU,
             )
 
         return validated_data
