@@ -2,7 +2,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from lite_content.lite_api import strings
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 from rest_framework.exceptions import ValidationError
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
@@ -79,15 +79,9 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlaggingRule
         fields = ("id", "team", "level", "flag", "flag_name", "status", "matching_value")
-
-    def validate(self, attrs):
-        try:
-            FlaggingRule.objects.get(
-                level=attrs.get("level"), flag=attrs.get("flag"), matching_value=attrs.get("matching_value")
-            )
-            raise ValidationError("Only one item (such as an end_user) can be given at a time")
-        except FlaggingRule.DoesNotExist:
-            return attrs
+        validators = [
+            UniqueTogetherValidator(queryset=FlaggingRule.objects.all(), fields=["level", "flag", "matching_value"])
+        ]
 
     def update(self, instance, validated_data):
         instance.status = validated_data.get("status", instance.status)
