@@ -74,3 +74,9 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlaggingRule
         fields = "__all__"
+
+    def update(self, instance, validated_data):
+        instance.status = validated_data.get("status", instance.status)
+        instance.matching_value = validated_data.get("matching_value")
+        instance.save()
+        return instance

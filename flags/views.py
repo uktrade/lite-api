@@ -19,7 +19,7 @@ from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from flags.enums import FlagStatuses
 from flags.helpers import get_object_of_level
-from flags.libraries.get_flag import get_flag
+from flags.libraries.get_flag import get_flag, get_flagging_rule
 from flags.models import Flag, FlaggingRule
 from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer
 from goods.models import Good
@@ -304,4 +304,34 @@ class FlaggingRules(ListCreateAPIView):
 
 
 class FlaggingRuleDetail:
-    pass
+    """
+    Details of a specific flagging rule
+    """
+
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Returns details of a specific flag
+        """
+        flagging_rule = get_flagging_rule(pk)
+        serializer = FlaggingRuleSerializer(flagging_rule)
+        return JsonResponse(data={"flag": serializer.data})
+
+    def put(self, request, pk):
+        """
+        Edit details of a specific flag
+        """
+        flagging_rule = get_flagging_rule(pk)
+
+        # Prevent a user changing a flag if it does not belong to their team
+        if request.user.team != flagging_rule.team:
+            return JsonResponse(data={"errors": strings.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = FlaggingRuleSerializer(instance=flagging_rule, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(data={"flagging_rule": serializer.data})
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
