@@ -5,21 +5,22 @@ from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
 from rest_framework.exceptions import ParseError, PermissionDenied
-from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import UpdateAPIView, ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
-from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication
+from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
+from queues.models import Queue
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser, ExporterNotification
+from users.models import ExporterUser, ExporterNotification, GovUser
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
@@ -218,3 +219,13 @@ class AssignSites(UpdateAPIView):
         user_organisation_relationship.sites.set(combined_sites)
 
         return JsonResponse(data={"status": "success"})
+
+
+class UserTeamQueues(ListAPIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        data = Queue.objects.filter(
+            team_id=GovUser.objects.filter(id=pk).values_list("team", flat=True).first()
+        ).values_list("id", "name")
+        return JsonResponse(data={"queues": list(data)}, status=status.HTTP_200_OK)
