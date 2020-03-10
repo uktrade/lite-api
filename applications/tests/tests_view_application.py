@@ -130,6 +130,9 @@ class DraftTests(DataTestClient):
         self.assertEqual(retrieved_application["is_informed_wmd"], standard_application.is_informed_wmd)
         self.assertEqual(retrieved_application["is_suspected_wmd"], standard_application.is_suspected_wmd)
         self.assertEqual(retrieved_application["is_eu_military"], standard_application.is_eu_military)
+        self.assertEqual(
+            retrieved_application["is_compliant_limitations_eu"], standard_application.is_compliant_limitations_eu
+        )
         self.assertEquals(
             GoodOnApplication.objects.filter(application__id=standard_application.id).count(), 1,
         )
