@@ -77,7 +77,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.status = validated_data.get("status", instance.status)
-        instance.matching_value = validated_data.get("matching_value")
-        instance.flag = validated_data.get("flag")
+        instance.matching_value = validated_data.get("matching_value", instance.matching_value)
+        instance.flag = validated_data.get("flag", instance.flag)
         instance.save()
         return instance
