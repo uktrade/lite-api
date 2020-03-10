@@ -1,15 +1,9 @@
 from django.db import transaction, models
 
-from addresses.models import Address
-from organisations.enums import OrganisationType, OrganisationStatus
-from organisations.models import Site, Organisation
-from static.countries.helpers import get_country
-from static.countries.models import Country
 from conf.constants import Teams
-from static.management.SeedCommand import SeedCommand
-
 from flags.models import Flag
 from queues.models import Queue
+from static.management.SeedCommand import SeedCommand
 from teams.models import Team
 
 FLAGS_FILE = "lite_content/lite_api/demo_flags.csv"

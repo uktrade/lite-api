@@ -204,7 +204,7 @@ class OrganisationTests(DataTestClient):
     def test_create_organisation_as_a_private_individual(self, vat_number):
         data = {
             "name": "John Smith",
-            "type": "individual",
+            "type": OrganisationType.INDIVIDUAL,
             "eori_number": "1234567890",
             "vat_number": vat_number,
             "site": {

@@ -134,4 +134,4 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
             gov_auth = GovAuthentication()
             return gov_auth.authenticate(request)
         else:
-            return ExporterOnlyAuthentication().authenticate(request)
+            return AnonymousUser, None

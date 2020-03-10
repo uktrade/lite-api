@@ -1,6 +1,3 @@
-import random
-
-from django.utils.datetime_safe import datetime
 from faker import Faker
 
 from flags.enums import SystemFlags
