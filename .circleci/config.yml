@@ -100,7 +100,7 @@ jobs:
             git submodule sync
             git submodule update --init
 
-      - restore_cache:izers/open_application.p
+      - restore_cache:izers/open_application
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
 
       - run:
