@@ -292,6 +292,8 @@ class FlaggingRules(ListCreateAPIView):
     @swagger_auto_schema(request_body=FlaggingRuleSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """ Create a new organisation. """
+        json = request.data
+        json["team"] = self.request.user.team.id
         serializer = FlaggingRuleSerializer(data=request.data)
 
         if serializer.is_valid():

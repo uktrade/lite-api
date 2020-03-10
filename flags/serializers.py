@@ -67,7 +67,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.BLANK_LEVEL},
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
-    flag = PrimaryKeyRelatedSerializerField(queryset=Flag.objects.all())
+    flag = PrimaryKeyRelatedSerializerField(queryset=Flag.objects.all(), serializer=CaseListFlagSerializer)
 
     class Meta:
         model = FlaggingRule
