@@ -600,7 +600,7 @@ class LicenceView(RetrieveUpdateAPIView):
 
         # Finalise Licence
         licence = Licence.objects.get(application=case)
-        licence.complete = True
+        licence.is_complete = True
         licence.save()
 
         # Finalise Case

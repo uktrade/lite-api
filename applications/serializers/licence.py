@@ -12,7 +12,7 @@ class LicenceSerializer(serializers.ModelSerializer):
             "application",
             "start_date",
             "duration",
-            "complete",
+            "is_complete",
         )
 
     def validate(self, data):

@@ -30,7 +30,7 @@ class GrantLicenceTests(DataTestClient):
     @mock.patch("cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_standard_application_success(self, send_exporter_notifications_func):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        licence = self.create_licence(self.standard_case, complete=False)
+        licence = self.create_licence(self.standard_case, is_complete=False)
         self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
@@ -38,7 +38,7 @@ class GrantLicenceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["licence"], str(licence.id))
-        self.assertEqual(Licence.objects.filter(application=self.standard_case, complete=True).count(), 1)
+        self.assertEqual(Licence.objects.filter(application=self.standard_case, is_complete=True).count(), 1)
         self.assertEqual(self.standard_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
@@ -47,7 +47,7 @@ class GrantLicenceTests(DataTestClient):
 
     def test_grant_standard_application_wrong_permission_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
-        self.create_licence(self.standard_case, complete=False)
+        self.create_licence(self.standard_case, is_complete=False)
         self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
@@ -66,7 +66,7 @@ class GrantLicenceTests(DataTestClient):
 
     def test_missing_advice_document_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.create_licence(self.standard_case, complete=False)
+        self.create_licence(self.standard_case, is_complete=False)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
 
@@ -80,7 +80,7 @@ class GrantLicenceTests(DataTestClient):
         self.url = reverse("cases:licence", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
-        licence = self.create_licence(clearance_case, complete=False)
+        licence = self.create_licence(clearance_case, is_complete=False)
         self.create_generated_case_document(clearance_case, self.template, advice_type=AdviceType.APPROVE)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
@@ -88,7 +88,7 @@ class GrantLicenceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["licence"], str(licence.id))
-        self.assertEqual(Licence.objects.filter(application=clearance_case, complete=True).count(), 1)
+        self.assertEqual(Licence.objects.filter(application=clearance_case, is_complete=True).count(), 1)
         self.assertEqual(clearance_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
@@ -101,7 +101,7 @@ class GrantLicenceTests(DataTestClient):
         self.url = reverse("cases:licence", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.create_licence(clearance_case, complete=False)
+        self.create_licence(clearance_case, is_complete=False)
         self.create_generated_case_document(clearance_case, self.template, advice_type=AdviceType.APPROVE)
 
         response = self.client.put(self.url, data={}, **self.gov_headers)

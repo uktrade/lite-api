@@ -793,10 +793,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return ecju_query
 
     @staticmethod
-    def create_licence(application: BaseApplication, complete: bool):
+    def create_licence(application: BaseApplication, is_complete: bool):
         return Licence.objects.create(
             application=application,
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
-            complete=complete,
+            is_complete=is_complete,
         )
