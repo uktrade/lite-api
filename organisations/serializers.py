@@ -262,14 +262,6 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
         model = Organisation
         fields = "__all__"
 
-    def update(self, instance, validated_data):
-        """
-        Update and return an existing `Organisation` instance, given the validated data.
-        """
-        instance.primary_site = validated_data.get("primary_site", instance.primary_site)
-        instance.save()
-        return instance
-
 
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()

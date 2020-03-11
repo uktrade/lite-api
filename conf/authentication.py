@@ -133,7 +133,7 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
 
         if gov_user_token:
             return GovAuthentication().authenticate(request)
-        elif organisation_token is not None and organisation_token != "None":
+        elif organisation_token is not None and organisation_token != "None":  # noqa
             return HmrcExporterAuthentication().authenticate(request)
         else:
             return AnonymousUser, None
