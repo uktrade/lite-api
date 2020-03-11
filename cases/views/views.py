@@ -111,13 +111,12 @@ class CaseDocuments(APIView):
         """
         Adds a document to the specified case
         """
-        case = get_case(pk)
-        case_id = str(case.id)
         data = request.data
 
         for document in data:
-            document["case"] = case_id
+            document["case"] = pk
             document["user"] = request.user.id
+            document["visible_to_exporter"] = True
 
         serializer = CaseDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
@@ -127,7 +126,7 @@ class CaseDocuments(APIView):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPLOAD_CASE_DOCUMENT,
-                    target=case,
+                    target=get_case(pk),
                     payload={"file_name": document["name"]},
                 )
 
