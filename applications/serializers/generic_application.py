@@ -83,7 +83,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         if hasattr(instance, "export_type"):
             return {
                 "key": instance.export_type,
-                "value": get_value_from_enum(ApplicationExportType, instance.export_type),
+                "value": get_value_from_enum(instance.export_type, ApplicationExportType),
             }
 
     def get_status(self, instance):

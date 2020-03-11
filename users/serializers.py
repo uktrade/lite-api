@@ -2,8 +2,10 @@ from rest_framework import serializers
 
 from conf.constants import Roles
 from conf.exceptions import NotFoundError
+from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
+from organisations.enums import OrganisationStatus
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation, Site
 from teams.serializers import TeamSerializer
@@ -59,6 +61,10 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
                         "id": relationship.organisation.id,
                         "name": relationship.organisation.name,
                         "joined_at": relationship.created_at,
+                        "status": {
+                            "key": relationship.organisation.status,
+                            "value": get_value_from_enum(relationship.organisation.status, OrganisationStatus),
+                        },
                     }
                 )
 
