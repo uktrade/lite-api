@@ -65,11 +65,14 @@ class CaseListFlagSerializer(serializers.ModelSerializer):
 class FlaggingRuleSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
     level = serializers.ChoiceField(
-        choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.BLANK_LEVEL},
+        choices=FlagLevels.choices, error_messages={"required": strings.Flags.BLANK_LEVEL,},
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
-    flag = PrimaryKeyRelatedField(queryset=Flag.objects.all())
+    flag = PrimaryKeyRelatedField(queryset=Flag.objects.all(), error_messages={"null": strings.FlaggingRules.NO_FLAG})
     flag_name = serializers.SerializerMethodField()
+    matching_value = serializers.CharField(
+        max_length=100, error_messages={"blank": strings.FlaggingRules.NO_MATCHING_VALUE}
+    )
 
     def get_flag_name(self, instance):
         return instance.flag.name
