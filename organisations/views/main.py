@@ -31,7 +31,10 @@ class OrganisationsList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         """ List all organisations. """
-        if getattr(self.request.user, "type", None) != UserType.INTERNAL and self.request.user.organisation.type != OrganisationType.HMRC:
+        if (
+            getattr(self.request.user, "type", None) != UserType.INTERNAL
+            and self.request.user.organisation.type != OrganisationType.HMRC
+        ):
             raise PermissionError("Exporters aren't allowed to view other organisations")
 
         org_types = self.request.query_params.getlist("org_type", [])
