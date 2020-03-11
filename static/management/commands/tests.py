@@ -85,15 +85,15 @@ class SeedingTests(SeedCommandTest):
         self.seed_command(seedrolepermissions.Command)
         seedinternaladminusers.Command.seed_admin_team()
         self.seed_command(seedflags.Command)
-        for flag in seedlayouts.Command.read_csv(seedflags.FLAGS_FILE):
-            self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())
+        for flag in seedflags.Command.read_csv(seedflags.FLAGS_FILE):
+            self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
 
     def test_seed_demo_data(self):
         seedinternaladminusers.Command.seed_admin_team()
         self.seed_command(seeddemodata.Command)
         for team in seeddemodata.Command.read_csv(seeddemodata.TEAMS_FILE):
-            self.assertTrue(Team.objects.filter(name=team["name"]).exists())
+            self.assertTrue(Team.objects.filter(name=team["name"]).exists(), f"Team {team['name']} does not exist")
         for queue in seeddemodata.Command.read_csv(seeddemodata.QUEUES_FILE):
-            self.assertTrue(Queue.objects.filter(name=queue["name"]).exists())
+            self.assertTrue(Queue.objects.filter(name=queue["name"]).exists(), f"Queue {queue['name']} does not exist")
         for flag in seeddemodata.Command.read_csv(seeddemodata.FLAGS_FILE):
-            self.assertTrue(Flag.objects.filter(name=flag["name"]).exists())
+            self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
