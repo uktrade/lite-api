@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from static.decisions.enums import DecisionsEnum
+from cases.enums import AdviceType
 from static.decisions.models import Decision
 from static.management.SeedCommand import SeedCommand
 
@@ -17,6 +17,6 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        for name, id in DecisionsEnum.ids.items():
+        for name, id in AdviceType.ids.items():
             _, created = Decision.objects.get_or_create(id=id, name=name)
             self.print_created_or_updated(Decision, {"id": id, "name": name}, is_created=created)

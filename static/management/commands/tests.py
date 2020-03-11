@@ -10,7 +10,7 @@ from flags.models import Flag
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
-from static.decisions.enums import DecisionsEnum
+from cases.enums import AdviceType
 from static.decisions.models import Decision
 from static.denial_reasons.models import DenialReason
 from static.letter_layouts.models import LetterLayout
@@ -103,9 +103,9 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_decisions(self):
         self.seed_command(seeddecisions.Command)
-        enum = DecisionsEnum.choices
+        enum = AdviceType.choices
         self.assertEqual(Decision.objects.count(), len(enum))
         for key, _ in enum:
             self.assertTrue(
-                Decision.objects.filter(id=DecisionsEnum.ids[key], name=key).exists(), f"Decision {key} does not exist"
+                Decision.objects.filter(id=AdviceType.ids[key], name=key).exists(), f"Decision {key} does not exist"
             )

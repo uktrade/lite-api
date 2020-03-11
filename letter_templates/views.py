@@ -15,7 +15,7 @@ from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 from picklists.enums import PicklistType
 from picklists.models import PicklistItem
-from static.decisions.enums import DecisionsEnum
+from cases.enums import AdviceType
 from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout
 
@@ -46,7 +46,7 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         data = request.data
         data["case_types"] = CaseTypeEnum.references_to_ids(data.get("case_types"))
-        data["decisions"] = [DecisionsEnum.ids[decision] for decision in data.get("decisions", [])]
+        data["decisions"] = [AdviceType.ids[decision] for decision in data.get("decisions", [])]
         serializer = self.serializer_class(data=data)
 
         if serializer.is_valid():
@@ -101,7 +101,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
 
         old_decisions = set(template_object.decisions.values_list("name", flat=True))
         new_decisions = set(request.data.get("decisions", old_decisions))
-        request.data["decisions"] = DecisionsEnum.get_ids(new_decisions)
+        request.data["decisions"] = AdviceType.get_ids(new_decisions)
 
         old_layout = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)

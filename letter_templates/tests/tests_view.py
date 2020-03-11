@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from letter_templates.models import LetterTemplate
 from picklists.enums import PickListStatus, PicklistType
-from static.decisions.enums import DecisionsEnum
+from cases.enums import AdviceType
 from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
@@ -55,7 +55,7 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertIsNotNone(response_data.get("updated_at"))
 
     def test_get_letter_templates_for_decision_success(self):
-        decision = DecisionsEnum.APPROVE
+        decision = AdviceType.APPROVE
         url = reverse("letter_templates:letter_templates")
         self.letter_template.decisions.set([Decision.objects.get(name=decision)])
         self.letter_template.case_types.set([CaseTypeEnum.SIEL.id])
