@@ -13,7 +13,7 @@ from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission
 from lite_content.lite_api.strings import Organisations
-from organisations.enums import OrganisationStatus
+from organisations.enums import OrganisationStatus, OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from organisations.serializers import (
@@ -31,8 +31,8 @@ class OrganisationsList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         """ List all organisations. """
-        if getattr(self.request.user, "type", None) != UserType.INTERNAL:
-            raise PermissionError
+        if getattr(self.request.user, "type", None) != UserType.INTERNAL and self.request.user.organisation.type != OrganisationType.HMRC:
+            raise PermissionError("Exporters aren't allowed to view other organisations")
 
         org_types = self.request.query_params.getlist("org_type", [])
         search_term = self.request.query_params.get("search_term", "")

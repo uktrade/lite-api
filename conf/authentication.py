@@ -70,7 +70,7 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         exporter_user = get_user_by_pk(token_to_user_pk(exporter_user_token))
         organisation = get_organisation_by_pk(organisation_id)
 
-        if organisation.type is not OrganisationType.HMRC:
+        if organisation.type != OrganisationType.HMRC:
             raise PermissionDeniedError("You don't belong to an HMRC organisation")
 
         if organisation in get_user_organisations(exporter_user):
@@ -129,9 +129,11 @@ class SharedAuthentication(authentication.BaseAuthentication):
 class OrganisationAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
+        organisation_token = request.META.get(ORGANISATION_ID)
 
         if gov_user_token:
-            gov_auth = GovAuthentication()
-            return gov_auth.authenticate(request)
+            return GovAuthentication().authenticate(request)
+        elif organisation_token:
+            return HmrcExporterAuthentication().authenticate(request)
         else:
             return AnonymousUser, None
