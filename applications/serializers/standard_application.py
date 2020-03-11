@@ -171,7 +171,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     def _validate__eu_military_linked_fields(cls, instance, validated_data):
         if (
             instance.is_eu_military
-            and not instance.is_compliant_limitations_eu
+            and instance.is_compliant_limitations_eu is None
             and validated_data.get("is_compliant_limitations_eu") is None
         ):
             raise serializers.ValidationError(
