@@ -49,6 +49,9 @@ class Party(TimestampableModel):
 
     objects = PartyManager()
 
+    class Meta:
+        ordering = ["name"]
+
 
 class PartyDocument(Document):
     party = models.ForeignKey(Party, on_delete=models.CASCADE)
