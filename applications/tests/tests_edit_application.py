@@ -186,7 +186,8 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"][reference_key], [strings.Applications.EndUseDetailsErrors.MISSING_REFERENCE]
+            response.json()["errors"][reference_key],
+            [strings.Applications.Generic.EndUseDetails.Error.MISSING_REFERENCE],
         )
 
         attribute = getattr(application, key)
@@ -215,7 +216,8 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            (response.json()["errors"][reference_key]), [strings.Applications.EndUseDetailsErrors.MISSING_REFERENCE]
+            (response.json()["errors"][reference_key]),
+            [strings.Applications.Generic.EndUseDetails.Error.MISSING_REFERENCE],
         )
 
         attribute = getattr(application, key)
@@ -227,11 +229,23 @@ class EditStandardApplicationTests(DataTestClient):
                 {
                     "key": "military_end_use_controls",
                     "value": "",
-                    "error": strings.Applications.EndUseDetailsErrors.INFORMED_TO_APPLY,
+                    "error": strings.Applications.Generic.EndUseDetails.Error.INFORMED_TO_APPLY,
                 }
             ],
-            [{"key": "informed_wmd", "value": "", "error": strings.Applications.EndUseDetailsErrors.INFORMED_WMD}],
-            [{"key": "suspected_wmd", "value": "", "error": strings.Applications.EndUseDetailsErrors.SUSPECTED_WMD}],
+            [
+                {
+                    "key": "informed_wmd",
+                    "value": "",
+                    "error": strings.Applications.Generic.EndUseDetails.Error.INFORMED_WMD,
+                }
+            ],
+            [
+                {
+                    "key": "suspected_wmd",
+                    "value": "",
+                    "error": strings.Applications.Generic.EndUseDetails.Error.SUSPECTED_WMD,
+                }
+            ],
         ]
     )
     def test_edit_unsubmitted_standard_application_end_use_details_mandatory_field_is_none(self, attributes):
@@ -303,7 +317,7 @@ class EditStandardApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][key], [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT])
+        self.assertEqual(response.json()["errors"][key], [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT])
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
@@ -345,7 +359,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
             response.json()["errors"]["is_compliant_limitations_eu"],
-            [strings.Applications.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU],
+            [strings.Applications.Generic.EndUseDetails.Error.COMPLIANT_LIMITATIONS_EU],
         )
 
 
@@ -407,7 +421,8 @@ class EditOpenApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"][reference_key], [strings.Applications.EndUseDetailsErrors.MISSING_REFERENCE]
+            response.json()["errors"][reference_key],
+            [strings.Applications.Generic.EndUseDetails.Error.MISSING_REFERENCE],
         )
 
         attribute = getattr(self.application, key)
@@ -433,7 +448,8 @@ class EditOpenApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            (response.json()["errors"][reference_key]), [strings.Applications.EndUseDetailsErrors.MISSING_REFERENCE]
+            (response.json()["errors"][reference_key]),
+            [strings.Applications.Generic.EndUseDetails.Error.MISSING_REFERENCE],
         )
 
         attribute = getattr(self.application, key)
@@ -445,11 +461,23 @@ class EditOpenApplicationTests(DataTestClient):
                 {
                     "key": "military_end_use_controls",
                     "value": "",
-                    "error": strings.Applications.EndUseDetailsErrors.INFORMED_TO_APPLY,
+                    "error": strings.Applications.Generic.EndUseDetails.Error.INFORMED_TO_APPLY,
                 }
             ],
-            [{"key": "informed_wmd", "value": "", "error": strings.Applications.EndUseDetailsErrors.INFORMED_WMD,}],
-            [{"key": "suspected_wmd", "value": "", "error": strings.Applications.EndUseDetailsErrors.SUSPECTED_WMD,}],
+            [
+                {
+                    "key": "informed_wmd",
+                    "value": "",
+                    "error": strings.Applications.Generic.EndUseDetails.Error.INFORMED_WMD,
+                }
+            ],
+            [
+                {
+                    "key": "suspected_wmd",
+                    "value": "",
+                    "error": strings.Applications.Generic.EndUseDetails.Error.SUSPECTED_WMD,
+                }
+            ],
         ]
     )
     def test_edit_unsubmitted_open_application_end_use_details_mandatory_field_is_none(self, attributes):
@@ -520,7 +548,7 @@ class EditOpenApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][key], [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT])
+        self.assertEqual(response.json()["errors"][key], [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT])
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
@@ -614,7 +642,7 @@ class EditF680ApplicationsTests(DataTestClient):
         response = self.client.put(url, data=data, **self.exporter_headers)
         self.application.refresh_from_db()
         self.assertEqual(
-            response.json()["errors"], {"clearance_level": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}
+            response.json()["errors"], {"clearance_level": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -644,7 +672,9 @@ class EditF680ApplicationsTests(DataTestClient):
         response = self.client.put(url, data=data, **self.exporter_headers)
 
         self.application.refresh_from_db()
-        self.assertEqual(response.json()["errors"], {"types": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]})
+        self.assertEqual(
+            response.json()["errors"], {"types": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_edit_submitted_application_clearance_type_major_success(self):

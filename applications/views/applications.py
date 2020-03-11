@@ -114,7 +114,7 @@ class ApplicationList(ListCreateAPIView):
                 data={
                     "errors": {
                         "application_type": [
-                            ErrorDetail(string=strings.Applications.SELECT_AN_APPLICATION_TYPE, code="invalid")
+                            ErrorDetail(string=strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE, code="invalid")
                         ]
                     }
                 },
@@ -166,21 +166,21 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         # Prevent minor edits of the goods categories
         if not application.is_major_editable() and request.data.get("goods_categories"):
             return JsonResponse(
-                data={"errors": {"goods_categories": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}},
+                data={"errors": {"goods_categories": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Prevent minor edits of the clearance level
         if not application.is_major_editable() and request.data.get("clearance_level"):
             return JsonResponse(
-                data={"errors": {"clearance_level": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}},
+                data={"errors": {"clearance_level": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Prevent minor edits of the f680 clearance types
         if not application.is_major_editable() and request.data.get("types"):
             return JsonResponse(
-                data={"errors": {"types": [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}},
+                data={"errors": {"types": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -242,11 +242,13 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         if not is_case_status_draft(application.status.status):
             return JsonResponse(
-                data={"errors": strings.Applications.DELETE_SUBMITTED_APPLICATION_ERROR},
+                data={"errors": strings.Applications.Generic.DELETE_SUBMITTED_APPLICATION_ERROR},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         application.delete()
-        return JsonResponse(data={"status": strings.Applications.DELETE_DRAFT_APPLICATION}, status=status.HTTP_200_OK)
+        return JsonResponse(
+            data={"status": strings.Applications.Generic.DELETE_DRAFT_APPLICATION}, status=status.HTTP_200_OK
+        )
 
 
 class ApplicationSubmission(APIView):
@@ -307,7 +309,8 @@ class ApplicationManageStatus(APIView):
 
         if data["status"] == CaseStatusEnum.FINALISED:
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISED]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if isinstance(request.user, ExporterUser):
@@ -316,7 +319,7 @@ class ApplicationManageStatus(APIView):
 
             if not can_status_be_set_by_exporter_user(application.status.status, data["status"]):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]},
+                    data={"errors": [strings.Applications.Generic.Finalise.Error.EXPORTER_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
@@ -324,14 +327,14 @@ class ApplicationManageStatus(APIView):
                 request.user, application.status.status, data["status"], is_licence_application
             ):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.GOV_SET_STATUS]},
+                    data={"errors": [strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
             if not application.licence_duration:
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SURRENDER]},
+                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             application.licence_duration = None
@@ -373,7 +376,8 @@ class ApplicationFinaliseView(APIView):
             request.user, application.status.status, CaseStatusEnum.FINALISED, is_licence_application
         ):
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISED]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         data = deepcopy(request.data)
@@ -387,7 +391,7 @@ class ApplicationFinaliseView(APIView):
             and not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION)
         ):
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
+                data={"errors": [strings.Applications.Generic.Finalise.Error.SET_DURATION_PERMISSION]},
                 status=status.HTTP_403_FORBIDDEN,
             )
         elif action == AdviceType.APPROVE:

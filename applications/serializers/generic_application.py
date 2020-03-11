@@ -41,7 +41,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     case_type = serializers.SerializerMethodField()
     export_type = serializers.SerializerMethodField()
@@ -165,7 +165,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     case_type = PrimaryKeyRelatedField(
         queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
@@ -199,7 +199,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
@@ -241,7 +241,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
             validated_data["licence_duration"] > LicenceDuration.MAX.value
             or validated_data["licence_duration"] < LicenceDuration.MIN.value
         ):
-            raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
+            raise serializers.ValidationError(strings.Applications.Generic.Finalise.Error.DURATION_RANGE)
         return validated_data
 
 

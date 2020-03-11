@@ -4,24 +4,24 @@ from rest_framework import status
 
 from audit_trail.payload import AuditType
 from conf.helpers import str_to_bool
-from lite_content.lite_api import strings
+from lite_content.lite_api.strings import Applications as strings
 
-END_USE_FIELDS = [
-    "is_military_end_use_controls",
-    "military_end_use_controls_ref",
-    "is_informed_wmd",
-    "informed_wmd_ref",
-    "is_suspected_wmd",
-    "suspected_wmd_ref",
-    "is_eu_military",
-    "is_compliant_limitations_eu",
-    "compliant_limitations_eu_ref",
-]
+END_USE_FIELDS = {
+    "is_military_end_use_controls": strings.Generic.EndUseDetails.Audit.INFORMED_TO_APPLY_TITLE,
+    "military_end_use_controls_ref": strings.Generic.EndUseDetails.Audit.INFORMED_TO_APPLY_REF,
+    "is_informed_wmd": strings.Generic.EndUseDetails.Audit.INFORMED_WMD_TITLE,
+    "informed_wmd_ref": strings.Generic.EndUseDetails.Audit.INFORMED_WMD_REF,
+    "is_suspected_wmd": strings.Generic.EndUseDetails.Audit.SUSPECTED_WMD_TITLE,
+    "suspected_wmd_ref": strings.Generic.EndUseDetails.Audit.SUSPECTED_WMD_REF,
+    "is_eu_military": strings.Generic.EndUseDetails.Audit.EU_MILITARY_TITLE,
+    "is_compliant_limitations_eu": strings.Generic.EndUseDetails.Audit.COMPLIANT_LIMITATIONS_EU_TITLE,
+    "compliant_limitations_eu_ref": strings.Generic.EndUseDetails.Audit.COMPLIANT_LIMITATIONS_EU_REF,
+}
 
 
 def edit_end_use_details(application, request):
     if not application.is_major_editable():
-        for field in END_USE_FIELDS:
+        for field in END_USE_FIELDS.keys():
             response_error = end_use_helper(request, field)
             if response_error:
                 return response_error
@@ -30,18 +30,17 @@ def edit_end_use_details(application, request):
 def end_use_helper(request, field):
     if field in request.data:
         return JsonResponse(
-            data={"errors": {field: [strings.Applications.NOT_POSSIBLE_ON_MINOR_EDIT]}},
-            status=status.HTTP_400_BAD_REQUEST,
+            data={"errors": {field: [strings.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}}, status=status.HTTP_400_BAD_REQUEST,
         )
 
 
 def get_old_end_use_details_fields(application):
-    return {end_use_field: getattr(application, end_use_field) for end_use_field in END_USE_FIELDS}
+    return {end_use_field: getattr(application, end_use_field) for end_use_field in END_USE_FIELDS.keys()}
 
 
 def get_new_end_use_details_fields(validated_data):
     new_end_use_details = {}
-    for end_use_field in END_USE_FIELDS:
+    for end_use_field in END_USE_FIELDS.keys():
         if end_use_field in validated_data:
             new_end_use_details[end_use_field] = validated_data[end_use_field]
     return new_end_use_details
@@ -53,10 +52,10 @@ def audit_end_use_details(user, case, old_end_use_details_fields, new_end_use_de
         if new_end_use_value != old_end_use_value:
             audit_trail_service.create(
                 actor=user,
-                verb=AuditType.UPDATE_APPLICATION_END_USE_DETAILS,
+                verb=AuditType.UPDATE_APPLICATION_END_USE_DETAIL,
                 target=case,
                 payload={
-                    "end_use_detail": key,
+                    "end_use_detail": END_USE_FIELDS[key],
                     "old_end_use_detail": old_end_use_value,
                     "new_end_use_detail": new_end_use_value,
                 },

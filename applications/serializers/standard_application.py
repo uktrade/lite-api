@@ -164,11 +164,11 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     def validate(self, data):
         validated_data = super().validate(data)
         self._validate_linked_fields(
-            validated_data, "military_end_use_controls", strings.EndUseDetailsErrors.INFORMED_TO_APPLY
+            validated_data, "military_end_use_controls", strings.Generic.EndUseDetails.Error.INFORMED_TO_APPLY
         )
-        self._validate_linked_fields(validated_data, "informed_wmd", strings.EndUseDetailsErrors.INFORMED_WMD)
-        self._validate_linked_fields(validated_data, "suspected_wmd", strings.EndUseDetailsErrors.SUSPECTED_WMD)
-        self._validate_boolean_field(validated_data, "is_eu_military", strings.EndUseDetailsErrors.EU_MILITARY)
+        self._validate_linked_fields(validated_data, "informed_wmd", strings.Generic.EndUseDetails.Error.INFORMED_WMD)
+        self._validate_linked_fields(validated_data, "suspected_wmd", strings.Generic.EndUseDetails.Error.SUSPECTED_WMD)
+        self._validate_boolean_field(validated_data, "is_eu_military", strings.Generic.EndUseDetails.Error.EU_MILITARY)
         self._validate_eu_military_linked_fields(self.instance, validated_data)
 
         return validated_data
@@ -181,7 +181,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             and validated_data.get("is_compliant_limitations_eu") is None
         ):
             raise serializers.ValidationError(
-                {"is_compliant_limitations_eu": strings.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU}
+                {"is_compliant_limitations_eu": strings.Generic.EndUseDetails.Error.COMPLIANT_LIMITATIONS_EU}
             )
 
     @classmethod
@@ -194,7 +194,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
             if not validated_data.get(linked_reference_field):
                 raise serializers.ValidationError(
-                    {linked_reference_field: strings.EndUseDetailsErrors.MISSING_REFERENCE}
+                    {linked_reference_field: strings.Generic.EndUseDetails.Error.MISSING_REFERENCE}
                 )
 
     @classmethod

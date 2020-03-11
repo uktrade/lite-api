@@ -99,10 +99,10 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     def validate(self, data):
         validated_data = super().validate(data)
         self._validate_linked_fields(
-            validated_data, "military_end_use_controls", strings.EndUseDetailsErrors.INFORMED_TO_APPLY
+            validated_data, "military_end_use_controls", strings.Generic.EndUseDetails.Error.INFORMED_TO_APPLY
         )
-        self._validate_linked_fields(validated_data, "informed_wmd", strings.EndUseDetailsErrors.INFORMED_WMD)
-        self._validate_linked_fields(validated_data, "suspected_wmd", strings.EndUseDetailsErrors.SUSPECTED_WMD)
+        self._validate_linked_fields(validated_data, "informed_wmd", strings.Generic.EndUseDetails.Error.INFORMED_WMD)
+        self._validate_linked_fields(validated_data, "suspected_wmd", strings.Generic.EndUseDetails.Error.SUSPECTED_WMD)
         return validated_data
 
     @classmethod
@@ -115,7 +115,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
             if not validated_data.get(linked_reference_field):
                 raise serializers.ValidationError(
-                    {linked_reference_field: strings.EndUseDetailsErrors.MISSING_REFERENCE}
+                    {linked_reference_field: strings.Generic.EndUseDetails.Error.MISSING_REFERENCE}
                 )
 
     @classmethod
