@@ -145,6 +145,19 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
     return errors
 
 
+def _validate_end_use_details(draft, errors, application_type):
+    if application_type == CaseTypeSubTypeEnum.STANDARD:
+        if draft.is_eu_military is None:
+            errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+        elif draft.is_eu_military and draft.is_compliant_limitations_eu is None:
+            errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+
+    if draft.is_military_end_use_controls is None or draft.is_informed_wmd is None or draft.is_suspected_wmd is None:
+        errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+
+    return errors
+
+
 def _validate_third_parties(draft, errors, is_mandatory):
     """ Checks all third parties have documents if is_mandatory is True """
 
@@ -193,6 +206,7 @@ def _validate_standard_licence(draft, errors):
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
+    errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
 
     return errors
 
