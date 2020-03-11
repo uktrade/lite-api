@@ -2,7 +2,6 @@ from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
 from conf.constants import Roles
-from organisations.models import Organisation
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
@@ -38,8 +37,7 @@ class CreateExporterUser(DataTestClient):
         # Add new exporter user
         self.client.post(self.url, self.data, **self.exporter_headers)
         # Create another request user before attempting to re-add the new exporter user
-        other_org = Organisation.objects.create(name="other org")
-        other_exporter_user = self.create_exporter_user(first_name="bah", last_name="humbug", organisation=other_org)
+        other_org, other_exporter_user = self.create_organisation_with_exporter_user()
         other_exporter_user_headers = {
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(other_exporter_user),
             "HTTP_ORGANISATION_ID": str(other_org.id),

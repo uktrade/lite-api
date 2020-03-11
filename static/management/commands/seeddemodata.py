@@ -1,10 +1,9 @@
 from django.db import transaction, models
 
 from conf.constants import Teams
-from static.management.SeedCommand import SeedCommand
-
 from flags.models import Flag
 from queues.models import Queue
+from static.management.SeedCommand import SeedCommand
 from teams.models import Team
 
 FLAGS_FILE = "lite_content/lite_api/demo_flags.csv"
