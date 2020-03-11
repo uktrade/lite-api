@@ -473,14 +473,6 @@ class CaseFinalAdviceSerializer(CaseAdviceSerializer):
         fields = "__all__"
 
 
-class AdviceDocumentTypeSerializer(serializers.ModelSerializer):
-    type = KeyValueChoiceField(choices=AdviceType.choices)
-
-    class Meta:
-        model = FinalAdvice
-        fields = ("type",)
-
-
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
     raised_by_user_name = serializers.SerializerMethodField()
     responded_by_user_name = serializers.SerializerMethodField()

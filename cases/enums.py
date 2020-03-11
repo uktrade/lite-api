@@ -236,6 +236,10 @@ class AdviceType:
         (CONFLICTING, "Conflicting"),
     ]
 
+    @classmethod
+    def as_dict(cls):
+        return {choice[0]: choice[1] for choice in cls.choices}
+
 
 class CaseDocumentState:
     UPLOADED = "UPLOADED"

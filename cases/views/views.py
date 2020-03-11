@@ -10,9 +10,9 @@ from applications.models import Licence
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases import service
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.generated_documents.serializers import GeneratedFinalAdviceDocumentGovSerializer
+from cases.generated_documents.serializers import FinalAdviceDocumentGovSerializer
 from cases.helpers import create_grouped_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
@@ -38,7 +38,6 @@ from cases.serializers import (
     CaseFinalAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
-    AdviceDocumentTypeSerializer,
 )
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
@@ -285,19 +284,28 @@ class FinalAdviceDocuments(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        case = get_case(pk)
-        decision_documents = AdviceDocumentTypeSerializer(
-            FinalAdvice.objects.filter(case=case).distinct("type"), many=True
-        ).data
-        # TODO Get help to figure out a more optimal way of doing this
-        for decision in decision_documents:
-            decision_key = decision["type"]["key"]
-            document = GeneratedCaseDocument.objects.filter(advice_type=decision_key, case=case).first()
-            if document:
-                decision["document"] = GeneratedFinalAdviceDocumentGovSerializer(document).data
-            else:
-                decision["document"] = None
-        return JsonResponse(data={"documents": decision_documents}, status=status.HTTP_200_OK)
+        """
+        Gets all advice types and any documents generated for those types of advice.
+        """
+        # Get advice documents
+        advice_documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case__id=pk)
+        advice_documents = FinalAdviceDocumentGovSerializer(advice_documents, many=True,).data
+        advice_documents = {
+            document["advice_type"]["key"]: {"document": document, "value": document["advice_type"]["value"]}
+            for document in advice_documents
+        }
+
+        # Add any final advice that doesn't have documents
+        advice_values = AdviceType.as_dict()
+        advice_without_documents = (
+            FinalAdvice.objects.filter(case__id=pk)
+            .exclude(type__in=advice_documents.keys())
+            .distinct("type")
+            .values_list("type", flat=True)
+        )
+        for advice_type in advice_without_documents:
+            advice_documents[advice_type] = {"value": advice_values[advice_type]}
+        return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
 
 class ViewFinalAdvice(APIView):

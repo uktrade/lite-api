@@ -20,9 +20,9 @@ class FinalAdviceDocumentsTests(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for advice in response.json()["documents"]:
-            self.assertTrue(advice["type"]["key"] in self.advice)
-            self.assertIsNone(advice["document"])
+        for key, value in response.json()["documents"].items():
+            self.assertTrue(key in self.advice)
+            self.assertIsNone(value.get("document"))
 
     def test_get_final_advice_with_document(self):
         document_one = self.create_generated_case_document(self.case, self.template, advice_type=self.advice[0])
@@ -32,5 +32,5 @@ class FinalAdviceDocumentsTests(DataTestClient):
         response_data = response.json()["documents"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data[0]["document"]["id"], str(document_one.pk))
-        self.assertEqual(response_data[1]["document"]["id"], str(document_two.pk))
+        self.assertEqual(response_data[self.advice[0]]["document"]["id"], str(document_one.pk))
+        self.assertEqual(response_data[self.advice[1]]["document"]["id"], str(document_two.pk))
