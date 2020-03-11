@@ -32,5 +32,5 @@ class DecisionsEnum:
         return [{"key": decision[0], "value": decision[1]} for decision in cls.choices]
 
     @classmethod
-    def get_ids(cls, keys: list):
+    def get_ids(cls, keys):
         return [cls.ids[decision_key] for decision_key in keys]
