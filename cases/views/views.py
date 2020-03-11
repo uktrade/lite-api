@@ -289,7 +289,7 @@ class FinalAdviceDocuments(APIView):
         decision_documents = AdviceDocumentTypeSerializer(
             FinalAdvice.objects.filter(case=case).distinct("type"), many=True
         ).data
-        # TODO Figure out a smarter way of doing this
+        # TODO Get help to figure out a more optimal way of doing this
         for decision in decision_documents:
             decision_key = decision["type"]["key"]
             document = GeneratedCaseDocument.objects.filter(advice_type=decision_key, case=case).first()
