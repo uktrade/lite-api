@@ -25,6 +25,11 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(response_data["flag"], str(flag.id))
         self.assertEqual(response_data["matching_value"], "SIEL")
 
+        rule = FlaggingRule.objects.get()
+        self.assertEqual(rule.level, "Case")
+        self.assertEqual(rule.flag, flag)
+        self.assertEqual(rule.matching_value, "SIEL")
+
     def test_create_flagging_rule_failure_duplicate(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
