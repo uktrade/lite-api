@@ -325,7 +325,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.is_compliant_limitations_eu, data["is_compliant_limitations_eu"])
         self.assertEqual(application.compliant_limitations_eu_ref, data["compliant_limitations_eu_ref"])
-        self.assertEqual(Audit.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.all().count(), 2)
 
     def test_edit_standard_application_end_use_details_is_compliant_limitations_eu_missing(self):
         application = self.create_draft_standard_application(self.organisation)
