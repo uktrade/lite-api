@@ -226,6 +226,6 @@ class UserTeamQueues(ListAPIView):
 
     def get(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
-        gov_user_teams = GovUser.objects.filter(id=pk).values("team_id")
-        queues = Queue.objects.filter(team_id__in=gov_user_teams).values_list("id", "name")
+        gov_user_team = GovUser.objects.filter(id=pk).values("team_id")
+        queues = Queue.objects.filter(team_id__in=gov_user_team).values_list("id", "name")
         return JsonResponse(data={"queues": list(queues)}, status=status.HTTP_200_OK)
