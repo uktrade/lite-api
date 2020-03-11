@@ -133,7 +133,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     @classmethod
     def _update_eu_military_linked_fields(cls, instance, validated_data):
-        instance.is_compliant_limitations_eu = validated_data.pop(
+        instance.compliant_limitations_eu_ref = validated_data.pop(
             "compliant_limitations_eu_ref", instance.compliant_limitations_eu_ref
         )
 
@@ -158,7 +158,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         updated_boolean_field = validated_data.pop(linked_boolean_field, getattr(instance, linked_boolean_field))
         setattr(instance, linked_boolean_field, updated_boolean_field)
 
-        if updated_boolean_field:
+        if not updated_boolean_field:
             setattr(instance, linked_reference_field, None)
 
     def validate(self, data):
