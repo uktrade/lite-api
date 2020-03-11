@@ -8,7 +8,7 @@ from applications.serializers.generic_application import (
 )
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
-from lite_content.lite_api import strings
+from lite_content.lite_api.strings import Applications as strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
 
@@ -97,14 +97,10 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     def validate(self, data):
         validated_data = super().validate(data)
         self._validate_linked_fields(
-            validated_data, "military_end_use_controls", strings.Applications.EndUseDetailsErrors.INFORMED_TO_APPLY
+            validated_data, "military_end_use_controls", strings.EndUseDetailsErrors.INFORMED_TO_APPLY
         )
-        self._validate_linked_fields(
-            validated_data, "informed_wmd", strings.Applications.EndUseDetailsErrors.INFORMED_WMD
-        )
-        self._validate_linked_fields(
-            validated_data, "suspected_wmd", strings.Applications.EndUseDetailsErrors.SUSPECTED_WMD
-        )
+        self._validate_linked_fields(validated_data, "informed_wmd", strings.EndUseDetailsErrors.INFORMED_WMD)
+        self._validate_linked_fields(validated_data, "suspected_wmd", strings.EndUseDetailsErrors.SUSPECTED_WMD)
         return validated_data
 
     @classmethod
@@ -117,7 +113,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
             if not validated_data.get(linked_reference_field):
                 raise serializers.ValidationError(
-                    {linked_reference_field: strings.Applications.EndUseDetailsErrors.MISSING_REFERENCE}
+                    {linked_reference_field: strings.EndUseDetailsErrors.MISSING_REFERENCE}
                 )
 
     @classmethod

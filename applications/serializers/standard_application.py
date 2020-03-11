@@ -10,7 +10,7 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from lite_content.lite_api import strings
+from lite_content.lite_api.strings import Applications as strings
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -158,17 +158,11 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     def validate(self, data):
         validated_data = super().validate(data)
         self._validate_linked_fields(
-            validated_data, "military_end_use_controls", strings.Applications.EndUseDetailsErrors.INFORMED_TO_APPLY
+            validated_data, "military_end_use_controls", strings.EndUseDetailsErrors.INFORMED_TO_APPLY
         )
-        self._validate_linked_fields(
-            validated_data, "informed_wmd", strings.Applications.EndUseDetailsErrors.INFORMED_WMD
-        )
-        self._validate_linked_fields(
-            validated_data, "suspected_wmd", strings.Applications.EndUseDetailsErrors.SUSPECTED_WMD
-        )
-        self._validate_boolean_field(
-            validated_data, "is_eu_military", strings.Applications.EndUseDetailsErrors.EU_MILITARY
-        )
+        self._validate_linked_fields(validated_data, "informed_wmd", strings.EndUseDetailsErrors.INFORMED_WMD)
+        self._validate_linked_fields(validated_data, "suspected_wmd", strings.EndUseDetailsErrors.SUSPECTED_WMD)
+        self._validate_boolean_field(validated_data, "is_eu_military", strings.EndUseDetailsErrors.EU_MILITARY)
         self._validate__eu_military_linked_fields(self.instance, validated_data)
 
         return validated_data
@@ -181,7 +175,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             and validated_data.get("is_compliant_limitations_eu") is None
         ):
             raise serializers.ValidationError(
-                {"is_compliant_limitations_eu": strings.Applications.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU}
+                {"is_compliant_limitations_eu": strings.EndUseDetailsErrors.IS_COMPLIANT_LIMITATIONS_EU}
             )
 
     @classmethod
@@ -194,7 +188,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
             if not validated_data.get(linked_reference_field):
                 raise serializers.ValidationError(
-                    {linked_reference_field: strings.Applications.EndUseDetailsErrors.MISSING_REFERENCE}
+                    {linked_reference_field: strings.EndUseDetailsErrors.MISSING_REFERENCE}
                 )
 
     @classmethod
