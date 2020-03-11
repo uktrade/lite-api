@@ -143,6 +143,8 @@ class GoodSerializer(serializers.ModelSerializer):
             "is_pv_graded",
             "pv_grading_details",
             "missing_document_reason",
+            "comment",
+            "report_summary"
         )
 
     def __init__(self, *args, **kwargs):
