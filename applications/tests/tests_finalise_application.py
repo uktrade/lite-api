@@ -171,7 +171,7 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["name"], self.standard_application.name)
         self.assertIsNone(response_data["licence_duration"])
-        self.assertEqual(response_data["status"], str(self.finalised_status.id))
+        self.assertEqual(response_data["status"]["key"], str(self.finalised_status.status))
         self.assertEqual(
             Audit.objects.get(target_object_id=self.standard_application.id).verb, AuditType.FINALISED_APPLICATION.value
         )
@@ -188,7 +188,7 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["name"], self.standard_application.name)
         self.assertEqual(response_data["licence_duration"], get_default_duration(self.standard_application))
-        self.assertEqual(response_data["status"], str(self.finalised_status.id))
+        self.assertEqual(response_data["status"]["key"], str(self.finalised_status.status))
         self.assertEqual(
             Audit.objects.get(target_object_id=self.standard_application.id).verb, AuditType.GRANTED_APPLICATION.value
         )
