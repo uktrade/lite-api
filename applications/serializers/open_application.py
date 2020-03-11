@@ -85,13 +85,15 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     @classmethod
     def _update_reference_field(cls, instance, linked_field, validated_data):
-        linked_boolean_field = "is_" + linked_field
+        linked_reference_field = linked_field + "_ref"
+        updated_reference_field = validated_data.pop(linked_reference_field, getattr(instance, linked_reference_field))
+        setattr(instance, linked_reference_field, updated_reference_field)
 
+        linked_boolean_field = "is_" + linked_field
         updated_boolean_field = validated_data.pop(linked_boolean_field, getattr(instance, linked_boolean_field))
         setattr(instance, linked_boolean_field, updated_boolean_field)
 
         if updated_boolean_field:
-            linked_reference_field = linked_field + "_ref"
             setattr(instance, linked_reference_field, None)
 
     def validate(self, data):

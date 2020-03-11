@@ -134,6 +134,10 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     @classmethod
     def _update_eu_military_linked_fields(cls, instance, validated_data):
         instance.is_compliant_limitations_eu = validated_data.pop(
+            "compliant_limitations_eu_ref", instance.compliant_limitations_eu_ref
+        )
+
+        instance.is_compliant_limitations_eu = validated_data.pop(
             "is_compliant_limitations_eu", instance.is_compliant_limitations_eu
         )
         if instance.is_compliant_limitations_eu:
@@ -146,13 +150,15 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     @classmethod
     def _update_reference_field(cls, instance, linked_field, validated_data):
-        linked_boolean_field = "is_" + linked_field
+        linked_reference_field = linked_field + "_ref"
+        updated_reference_field = validated_data.pop(linked_reference_field, getattr(instance, linked_reference_field))
+        setattr(instance, linked_reference_field, updated_reference_field)
 
+        linked_boolean_field = "is_" + linked_field
         updated_boolean_field = validated_data.pop(linked_boolean_field, getattr(instance, linked_boolean_field))
         setattr(instance, linked_boolean_field, updated_boolean_field)
 
         if updated_boolean_field:
-            linked_reference_field = linked_field + "_ref"
             setattr(instance, linked_reference_field, None)
 
     def validate(self, data):
@@ -163,12 +169,12 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         self._validate_linked_fields(validated_data, "informed_wmd", strings.EndUseDetailsErrors.INFORMED_WMD)
         self._validate_linked_fields(validated_data, "suspected_wmd", strings.EndUseDetailsErrors.SUSPECTED_WMD)
         self._validate_boolean_field(validated_data, "is_eu_military", strings.EndUseDetailsErrors.EU_MILITARY)
-        self._validate__eu_military_linked_fields(self.instance, validated_data)
+        self._validate_eu_military_linked_fields(self.instance, validated_data)
 
         return validated_data
 
     @classmethod
-    def _validate__eu_military_linked_fields(cls, instance, validated_data):
+    def _validate_eu_military_linked_fields(cls, instance, validated_data):
         if (
             instance.is_eu_military
             and instance.is_compliant_limitations_eu is None

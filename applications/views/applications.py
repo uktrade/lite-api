@@ -228,8 +228,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             save_and_audit_end_use_details(request, application, serializer)
-
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+        elif application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             is_updated = save_and_audit_end_use_details(request, application, serializer)
             if not is_updated:
                 save_and_audit_have_you_been_informed_ref(request, application, serializer)
