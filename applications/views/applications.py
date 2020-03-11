@@ -426,11 +426,11 @@ class ApplicationFinaliseView(APIView):
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
         elif action == AdviceType.REFUSE:
+            application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+            application.save()
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
             )
-            application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-            application.save()
             return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
 
         return JsonResponse(
