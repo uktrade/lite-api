@@ -129,11 +129,11 @@ class SharedAuthentication(authentication.BaseAuthentication):
 class OrganisationAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
-        organisation_token = request.META.get(ORGANISATION_ID)
+        organisation_token = request.META.get(ORGANISATION_ID, None)
 
         if gov_user_token:
             return GovAuthentication().authenticate(request)
-        elif organisation_token:
+        elif organisation_token is not None and organisation_token != "None":
             return HmrcExporterAuthentication().authenticate(request)
         else:
             return AnonymousUser, None
