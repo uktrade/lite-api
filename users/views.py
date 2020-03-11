@@ -224,8 +224,8 @@ class AssignSites(UpdateAPIView):
 class UserTeamQueues(ListAPIView):
     authentication_classes = (GovAuthentication,)
 
-    def get(self, request, pk):
-        data = Queue.objects.filter(
-            team_id=GovUser.objects.filter(id=pk).values_list("team", flat=True).first()
-        ).values_list("id", "name")
-        return JsonResponse(data={"queues": list(data)}, status=status.HTTP_200_OK)
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        gov_user_teams = GovUser.objects.filter(id=pk).values("team_id")
+        queues = Queue.objects.filter(team_id__in=gov_user_teams).values_list("id", "name")
+        return JsonResponse(data={"queues": list(queues)}, status=status.HTTP_200_OK)
