@@ -5,7 +5,7 @@ from django.db import transaction
 from addresses.models import Address
 from conf.constants import Roles
 from conf.settings import env
-from organisations.enums import OrganisationType
+from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site
 from static.countries.helpers import get_country
 from static.management.SeedCommand import SeedCommand
@@ -52,6 +52,7 @@ class Command(SeedCommand):
                 sic_number="2345",
                 vat_number="GB1234567",
                 registration_number=organisation["reg_no"],
+                status=OrganisationStatus.ACTIVE,
             )
 
             address, _ = Address.objects.get_or_create(
