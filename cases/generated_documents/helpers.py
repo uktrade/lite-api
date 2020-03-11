@@ -19,16 +19,6 @@ def html_to_pdf(request, html: str, template_name: str):
     return html.write_pdf(stylesheets=[css], font_config=font_config)
 
 
-def get_letter_template_for_case(template_id, case):
-    """
-    Get the letter template via the ID but only if it can also be applied to the given case
-    """
-    try:
-        return LetterTemplate.objects.get(pk=template_id, case_types=case.case_type)
-    except LetterTemplate.DoesNotExist:
-        raise NotFoundError({"letter_template": strings.Cases.LETTER_TEMPLATE_NOT_FOUND})
-
-
 def get_generated_document_data(request_params, pk):
     template_id = request_params.get("template")
     if not template_id:
@@ -39,7 +29,10 @@ def get_generated_document_data(request_params, pk):
         raise AttributeError(strings.Cases.MISSING_TEXT)
 
     case = get_case(pk)
-    template = get_letter_template_for_case(template_id, case)
+    try:
+        template = LetterTemplate.objects.get(pk=template_id, case_types=case.case_type)
+    except LetterTemplate.DoesNotExist:
+        raise NotFoundError({"letter_template": strings.Cases.LETTER_TEMPLATE_NOT_FOUND})
     document_html = generate_preview(layout=template.layout.filename, text=markdown_to_html(text), case=case)
 
     if "error" in document_html:
