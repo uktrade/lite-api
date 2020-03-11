@@ -31,4 +31,9 @@ class GeneratedFinalAdviceDocumentGovSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GeneratedCaseDocument
-        fields = ("id", "advice_type", "user", "created_at")
+        fields = (
+            "id",
+            "advice_type",
+            "user",
+            "created_at",
+        )
