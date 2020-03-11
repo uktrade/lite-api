@@ -39,7 +39,7 @@ def replace_default_string_for_form_select(data, fields, replacement_value=None,
     return data
 
 
-def get_value_from_enum(enum, value):
+def get_value_from_enum(value, enum):
     for choice in enum.choices:
         if choice[0] == value:
             return choice[1]

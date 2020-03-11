@@ -2,28 +2,52 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from conf.authentication import EXPORTER_USER_TOKEN_HEADER
 from conf.constants import Roles, GovPermissions
 from lite_content.lite_api.strings import Organisations
+from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from test_helpers.helpers import generate_key_value_pair, date_to_drf_date
 from users.libraries.get_user import get_users_from_organisation
+from users.libraries.user_to_token import user_to_token
 from users.models import UserOrganisationRelationship
 
 
-class OrganisationCreateTests(DataTestClient):
-
+class OrganisationTests(DataTestClient):
     url = reverse("organisations:organisations")
 
-    def test_create_organisation_with_first_user(self):
+    def test_list_organisations(self):
+        organisation, _ = self.create_organisation_with_exporter_user("Anyone's Ghost Inc")
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"][0]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response_data,
+            {
+                "id": str(organisation.id),
+                "name": organisation.name,
+                "sic_number": organisation.sic_number,
+                "eori_number": organisation.eori_number,
+                "type": generate_key_value_pair(organisation.type, OrganisationType.choices),
+                "registration_number": organisation.registration_number,
+                "vat_number": organisation.vat_number,
+                "status": generate_key_value_pair(organisation.status, OrganisationStatus.choices),
+                "created_at": date_to_drf_date(organisation.created_at),
+            },
+        )
+
+    def test_create_commercial_organisation_as_internal_success(self):
         data = {
             "name": "Lemonworld Co",
-            "type": "commercial",
+            "type": OrganisationType.COMMERCIAL,
             "eori_number": "GB123456789000",
-            "sic_number": "2765",
-            "vat_number": "123456789",
-            "registration_number": "987654321",
+            "sic_number": "01110",
+            "vat_number": "GB1234567",
+            "registration_number": "98765432",
             "site": {
                 "name": "Headquarters",
                 "address": {
@@ -50,6 +74,57 @@ class OrganisationCreateTests(DataTestClient):
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
+        self.assertEqual(organisation.status, OrganisationStatus.ACTIVE)
+
+        self.assertEqual(exporter_user.email, data["user"]["email"])
+        self.assertEqual(
+            UserOrganisationRelationship.objects.get(user=exporter_user, organisation=organisation).role_id,
+            Roles.EXPORTER_SUPER_USER_ROLE_ID,
+        )
+
+        self.assertEqual(site.name, data["site"]["name"])
+        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
+        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
+        self.assertEqual(site.address.region, data["site"]["address"]["region"])
+        self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
+        self.assertEqual(site.address.city, data["site"]["address"]["city"])
+        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+
+    def test_create_commercial_organisation_as_exporter_success(self):
+        data = {
+            "name": "Lemonworld Co",
+            "type": OrganisationType.COMMERCIAL,
+            "eori_number": "GB123456789000",
+            "sic_number": "01110",
+            "vat_number": "GB1234567",
+            "registration_number": "98765432",
+            "site": {
+                "name": "Headquarters",
+                "address": {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                    "country": "GB",
+                },
+            },
+            "user": {"email": "trinity@bsg.com"},
+        }
+
+        response = self.client.post(self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user)})
+        organisation = Organisation.objects.get(name=data["name"])
+        exporter_user = get_users_from_organisation(organisation)[0]
+        site = organisation.primary_site
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(organisation.name, data["name"])
+        self.assertEqual(organisation.eori_number, data["eori_number"])
+        self.assertEqual(organisation.sic_number, data["sic_number"])
+        self.assertEqual(organisation.vat_number, data["vat_number"])
+        self.assertEqual(organisation.registration_number, data["registration_number"])
+        self.assertEqual(organisation.status, OrganisationStatus.IN_REVIEW)
 
         self.assertEqual(exporter_user.email, data["user"]["email"])
         self.assertEqual(
@@ -125,11 +200,11 @@ class OrganisationCreateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @parameterized.expand([["1231234"], [""]])
+    @parameterized.expand([["GB1234567"], [""]])
     def test_create_organisation_as_a_private_individual(self, vat_number):
         data = {
             "name": "John Smith",
-            "type": "individual",
+            "type": OrganisationType.INDIVIDUAL,
             "eori_number": "1234567890",
             "vat_number": vat_number,
             "site": {
@@ -147,7 +222,6 @@ class OrganisationCreateTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-
         organisation = Organisation.objects.get(name=data["name"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
@@ -243,9 +317,9 @@ class EditOrganisationTests(DataTestClient):
         self.new_org_name = "New org name"
         self.type = "commercial"
         self.eori_number = "123"
-        self.sic_number = "456"
-        self.vat_number = "789"
-        self.registration_number = "111"
+        self.sic_number = "12345"
+        self.vat_number = "GB1234567"
+        self.registration_number = "12345678"
 
         self.original_org_eori_number = self.organisation.eori_number
         self.original_org_sic_number = self.organisation.sic_number

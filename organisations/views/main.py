@@ -8,30 +8,42 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 
 from applications.models import BaseApplication
-from conf.authentication import SharedAuthentication
+from conf.authentication import SharedAuthentication, OrganisationAuthentication
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission
 from lite_content.lite_api.strings import Organisations
+from organisations.enums import OrganisationStatus, OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
-from organisations.serializers import OrganisationDetailSerializer, OrganisationCreateSerializer
 from static.statuses.enums import CaseStatusEnum
+from organisations.serializers import (
+    OrganisationDetailSerializer,
+    OrganisationCreateSerializer,
+    OrganisationListSerializer,
+)
 from static.statuses.models import CaseStatus
+from users.enums import UserType
 
 
 class OrganisationsList(generics.ListCreateAPIView):
-    authentication_classes = (SharedAuthentication,)
-    serializer_class = OrganisationDetailSerializer
+    authentication_classes = (OrganisationAuthentication,)
+    serializer_class = OrganisationListSerializer
 
     def get_queryset(self):
         """ List all organisations. """
+        if (
+            getattr(self.request.user, "type", None) != UserType.INTERNAL
+            and self.request.user.organisation.type != OrganisationType.HMRC
+        ):
+            raise PermissionError("Exporters aren't allowed to view other organisations")
+
         org_types = self.request.query_params.getlist("org_type", [])
         search_term = self.request.query_params.get("search_term", "")
 
         query = [Q(name__icontains=search_term) | Q(registration_number__icontains=search_term)]
 
-        result = Organisation.objects.filter(reduce(operator.and_, query)).order_by("name")
+        result = Organisation.objects.filter(reduce(operator.and_, query))
 
         if org_types:
             result = result.filter(Q(type__in=org_types))
@@ -42,10 +54,18 @@ class OrganisationsList(generics.ListCreateAPIView):
     @swagger_auto_schema(request_body=OrganisationCreateSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """ Create a new organisation. """
-        serializer = OrganisationCreateSerializer(data=request.data)
+        data = request.data.copy()
+        validate_only = request.data.get("validate_only", False)
+        data["status"] = (
+            OrganisationStatus.ACTIVE
+            if getattr(request.user, "type", None) == UserType.INTERNAL
+            else OrganisationStatus.IN_REVIEW
+        )
+        serializer = OrganisationCreateSerializer(data=data, context={"validate_only": validate_only})
 
         if serializer.is_valid():
-            serializer.save()
+            if not validate_only:
+                serializer.save()
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

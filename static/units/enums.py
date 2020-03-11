@@ -12,6 +12,7 @@ class Units:
     MTR = "MTR"
     LTR = "LTR"
     MTQ = "MTQ"
+    ITG = "ITG"
 
     choices = [
         (GRM, "Gram(s)"),
@@ -21,4 +22,5 @@ class Units:
         (MTR, "Metre(s)"),
         (LTR, "Litre(s)"),
         (MTQ, "Cubic metre(s)"),
+        (ITG, "Intangible"),
     ]
