@@ -413,7 +413,7 @@ class ApplicationFinaliseView(APIView):
                 data["start_date"] = start_date.strftime("%Y-%m-%d")
             except KeyError:
                 return JsonResponse(
-                    data={"errors": {"start_date": ["Missing date value"]}}, status=status.HTTP_400_BAD_REQUEST
+                    data={"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}}, status=status.HTTP_400_BAD_REQUEST
                 )
 
             data["application"] = application
@@ -432,7 +432,7 @@ class ApplicationFinaliseView(APIView):
             application.save()
             return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
 
-        return JsonResponse(data={"errors": ["No action given"]}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(data={"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicationDurationView(APIView):

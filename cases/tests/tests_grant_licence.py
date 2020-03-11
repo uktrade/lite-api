@@ -10,6 +10,7 @@ from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import FinalAdvice
 from conf.constants import GovPermissions
 from conf.exceptions import PermissionDeniedError
+from lite_content.lite_api.strings import Cases
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
@@ -61,7 +62,7 @@ class GrantLicenceTests(DataTestClient):
         response = self.client.put(self.url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": ["A Licence hasn't been started yet"]})
+        self.assertEqual(response.json(), {"errors": [Cases.Licence.NOT_STARTED]})
 
     def test_missing_advice_document_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
@@ -70,7 +71,7 @@ class GrantLicenceTests(DataTestClient):
         response = self.client.put(self.url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": ["Not all final decisions have generated documents"]})
+        self.assertEqual(response.json(), {"errors": [Cases.Licence.MISSING_DOCUMENTS]})
 
     @mock.patch("cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
     def test_grant_clearance_success(self, send_exporter_notifications_func):

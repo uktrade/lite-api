@@ -130,7 +130,7 @@ class FinaliseApplicationTests(DataTestClient):
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"start_date": ["Missing date value"]}})
+        self.assertEqual(response.json(), {"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}})
 
     def test_no_action_failure(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
@@ -138,7 +138,7 @@ class FinaliseApplicationTests(DataTestClient):
         response = self.client.put(self.url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": ["No action given"]})
+        self.assertEqual(response.json(), {"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]})
 
     def test_refuse_application_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])

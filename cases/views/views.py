@@ -583,7 +583,7 @@ class LicenceView(RetrieveUpdateAPIView):
         # Check a licence has been started at the finalise endpoint
         if not Licence.objects.filter(application=case).exists():
             return JsonResponse(
-                data={"errors": ["A Licence hasn't been started yet"]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [Cases.Licence.NOT_STARTED]}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # Check all decision types have documents
@@ -595,7 +595,7 @@ class LicenceView(RetrieveUpdateAPIView):
         )
         if not required_decisions.issubset(generated_document_decisions):
             return JsonResponse(
-                data={"errors": ["Not all final decisions have generated documents"]},
+                data={"errors": [Cases.Licence.MISSING_DOCUMENTS]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
