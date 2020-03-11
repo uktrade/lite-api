@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parties', '0005_auto_20200303_1516'),
+        ("parties", "0005_auto_20200303_1516"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='party',
-            options={'ordering': ['name']},
-        ),
+        migrations.AlterModelOptions(name="party", options={"ordering": ["name"]},),
     ]

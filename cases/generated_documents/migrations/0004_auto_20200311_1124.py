@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('generated_documents', '0003_auto_20200218_1203'),
+        ("generated_documents", "0003_auto_20200218_1203"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='generatedcasedocument',
-            options={'ordering': ['name']},
-        ),
+        migrations.AlterModelOptions(name="generatedcasedocument", options={"ordering": ["name"]},),
     ]
