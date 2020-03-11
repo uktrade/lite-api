@@ -1,6 +1,5 @@
 from django.db import transaction
 
-from conf import settings
 from static.decisions.enums import DecisionsEnum
 from static.decisions.models import Decision
 from static.management.SeedCommand import SeedCommand
