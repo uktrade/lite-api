@@ -517,7 +517,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_informed_wmd=False,
             is_suspected_wmd=False,
             is_eu_military=False,
-            is_compliant_limitations_eu=False,
+            is_compliant_limitations_eu=None,
         )
 
         application.save()
