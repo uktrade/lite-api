@@ -1,3 +1,4 @@
+from rest_framework.exceptions import ValidationError
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from lite_content.lite_api import strings
