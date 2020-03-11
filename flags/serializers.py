@@ -76,7 +76,15 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FlaggingRule
-        fields = ("id", "team", "level", "flag", "flag_name", "status", "matching_value")
+        fields = (
+            "id",
+            "team",
+            "level",
+            "flag",
+            "flag_name",
+            "status",
+            "matching_value",
+        )
         validators = [
             UniqueTogetherValidator(
                 queryset=FlaggingRule.objects.all(),
