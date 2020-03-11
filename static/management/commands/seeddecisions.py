@@ -20,8 +20,4 @@ class Command(SeedCommand):
     def operation(self, *args, **options):
         for name, id in DecisionsEnum.ids.items():
             _, created = Decision.objects.get_or_create(id=id, name=name)
-            if not settings.SUPPRESS_TEST_OUTPUT:
-                if created:
-                    print(f"CREATED Decision: {name}")
-                else:
-                    print(f"UPDATED Decision: {name}")
+            self.print_created_or_updated(Decision, {"id": id, "name": name}, is_created=created)
