@@ -17,7 +17,7 @@ class LicenceSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """
-        Check that the start is before the stop.
+        Check that the duration is valid
         """
         if data.get("duration") and (
             data["duration"] > LicenceDuration.MAX.value or data["duration"] < LicenceDuration.MIN.value
