@@ -40,17 +40,17 @@ class DBLoggingMiddleware:
         final_queries = connection.queries
 
         elapsed_time = time.time() - start
-        logging.info(
-            {
-                "message": "liteolog db",
-                "corrID": request.correlation,
-                "type": "db details",
-                "elapsed_time": elapsed_time,
-                "initial query count": len(initial_queries),
-                "final query count": len(final_queries),
-                "query set": final_queries,
-                "method": "DB-QUERY-SET",
-            }
-        )
+        # logging.info(
+        #     {
+        #         "message": "liteolog db",
+        #         "corrID": request.correlation,
+        #         "type": "db details",
+        #         "elapsed_time": elapsed_time,
+        #         "initial query count": len(initial_queries),
+        #         "final query count": len(final_queries),
+        #         "query set": final_queries,
+        #         "method": "DB-QUERY-SET",
+        #     }
+        # )
 
         return response

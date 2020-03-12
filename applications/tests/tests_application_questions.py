@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.libraries.questions import Question
 from cases.enums import CaseTypeEnum
 from test_helpers.clients import DataTestClient
 
@@ -16,19 +15,20 @@ class ApplicationQuestionsTest(DataTestClient):
     def test_update_f680_questions(self):
         self.assertIsNone(self.draft.questions)
 
-        data = {Question.ONE.value: 'Answer'}
+        data = {
+            "foreign_technology": True,
+            "foreign_technology_description": "This is going to Norway."
+        }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.draft.questions, data)
 
-        assert 0
-
     def test_update_f680_questions_failure(self):
         self.assertIsNone(self.draft.questions)
 
-        data = {"bad_key": 'Answer'}
+        data = {"foreign_technology": 'HELLO'}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

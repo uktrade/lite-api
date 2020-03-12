@@ -1,6 +1,6 @@
 import unittest
 
-from applications.libraries import questions
+from applications.libraries.questions import questions
 from cases.enums import CaseTypeSubTypeEnum
 from parameterized import parameterized
 
@@ -11,21 +11,27 @@ class ApplicationQuestionsTest(unittest.TestCase):
             (
                 CaseTypeSubTypeEnum.F680,
                 {},
-                {questions.Question.ONE.value: "answer"},
-                {questions.Question.ONE.value: "answer"}
+                {
+                    "foreign_technology": True,
+                    "foreign_technology_description": "This is going to Norway."
+                },
+                {
+                    "foreign_technology": True,
+                    "foreign_technology_description": "This is going to Norway."
+                }
             ),
             (
                 CaseTypeSubTypeEnum.F680,
-                {questions.Question.ONE.value: "answer"},
-                {questions.Question.ONE.value: "updated_answer"},
-                {questions.Question.ONE.value: "updated_answer"}
+                {"foreign_technology": False},
+                {
+                    "foreign_technology": True,
+                    "foreign_technology_description": "This is going to Norway."
+                },
+                {
+                    "foreign_technology": True,
+                    "foreign_technology_description": "This is going to Norway."
+                }
             ),
-            (
-                CaseTypeSubTypeEnum.F680,
-                {questions.Question.ONE.value: "answer"},
-                {questions.Question.ONE.value: "answer", questions.Question.TWO.value: "answer_2"},
-                {questions.Question.ONE.value: "answer", questions.Question.TWO.value: "answer_2"},
-            )
         ]
     )
     def test_update_questions(self, application_type, old_questions, new_questions, expected_questions):
@@ -37,18 +43,10 @@ class ApplicationQuestionsTest(unittest.TestCase):
 
         self.assertEqual(updated_questions, expected_questions)
 
-    def test_invalid_schema_error(self):
-        with self.assertRaises(Exception):
-            questions.update(
-                application_type=CaseTypeSubTypeEnum.F680,
-                old_questions={},
-                new_questions={"INVALID_QUESTION_FIELD": "answer"}
-            )
-
-    def test_invalid_application_type(self):
-        with self.assertRaises(Exception):
+    def test_invalid_field_type(self):
+        with self.assertRaises(Exception) as e:
             questions.update(
                 application_type=CaseTypeSubTypeEnum.GOODS,
                 old_questions={},
-                new_questions={"INVALID_QUESTION_FIELD": "answer"}
+                new_questions={"foreign_technology": "answer"}
             )

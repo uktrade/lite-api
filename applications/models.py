@@ -2,7 +2,7 @@ import uuid
 
 from jsonfield import JSONField
 
-from applications.libraries import questions
+from applications.libraries.questions import questions
 from common.models import TimestampableModel
 from django.db import models
 from django.utils import timezone
@@ -183,6 +183,9 @@ class F680ClearanceApplication(BaseApplication):
     def update_questions(self, data):
         self.questions = questions.update(self.case_type.sub_type, self.questions or {}, data)
         self.save()
+
+    def get_questions(self):
+        return questions.serialize(self.case_type.sub_type, self.questions or {})
 
 
 # Queries

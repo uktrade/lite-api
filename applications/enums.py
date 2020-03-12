@@ -67,3 +67,27 @@ class DefaultDuration(Enum):
     PERMANENT_STANDARD = 2 * 12
     PERMANENT_OPEN_EU = 3 * 12
     PERMANENT_OPEN = 5 * 12
+
+
+class MTCRAnswers(Enum):
+    CATEGORY_1 = "mtcr_category_1"
+    CATEGORY_2 = "mtcr_category_2"
+    NO = 'none'
+    UNKNOWN = "unknown"
+
+    @classmethod
+    def choices(cls):
+        return (
+            (cls.CATEGORY_1.value, cls.CATEGORY_1.to_representation()),
+            (cls.CATEGORY_2.value, cls.CATEGORY_2.to_representation()),
+            (cls.NO.value, cls.NO.to_representation()),
+            (cls.UNKNOWN.value, cls.UNKNOWN.to_representation()),
+        )
+
+    def to_representation(self):
+        return {
+            MTCRAnswers.CATEGORY_1: "MTCR Category 1",
+            MTCRAnswers.CATEGORY_2: "MTCR Category 2",
+            MTCRAnswers.NO: "No",
+            MTCRAnswers.UNKNOWN: "Unknown",
+        }[self]

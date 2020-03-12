@@ -15,6 +15,7 @@ from goods.enums import PvGrading
 from lite_content.lite_api import strings
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.f680_clearance_types.models import F680ClearanceType
+from applications.libraries.questions.serializers import F680JsonSerializer
 
 
 class F680ClearanceTypeSerializer(serializers.ModelSerializer):
@@ -31,6 +32,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
     additional_documents = serializers.SerializerMethodField()
     types = F680ClearanceTypeSerializer(read_only=True, many=True)
     clearance_level = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, required=False, allow_blank=True)
+    questions = F680JsonSerializer()
 
     class Meta:
         model = F680ClearanceApplication
@@ -45,6 +47,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
             "additional_documents",
             "types",
             "clearance_level",
+            "questions"
         )
 
 

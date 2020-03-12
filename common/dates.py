@@ -8,7 +8,6 @@ from rest_framework import status
 BANK_HOLIDAY_API = "https://www.gov.uk/bank-holidays.json"
 BACKUP_FILE_NAME = "bank-holidays.csv"
 LOG_PREFIX = "update_cases_sla background task:"
-BANK_HOLIDAYS_CACHE = []
 
 
 def is_weekend(date):
@@ -30,7 +29,7 @@ def get_backup_bank_holidays():
         return []
 
 
-def get_bank_holidays(call_api=True, data=BANK_HOLIDAYS_CACHE):  # noqa
+def get_bank_holidays(call_api=True, data=[]):  # noqa
     """
     :param data: mutable default for cache behaviour
 
@@ -55,7 +54,7 @@ def get_bank_holidays(call_api=True, data=BANK_HOLIDAYS_CACHE):  # noqa
     else:
         try:
             dates = r.json()["england-and-wales"]["events"]
-            data = [event["date"] for event in dates]
+            for event in dates: data.append(event["date"])
             with open(BACKUP_FILE_NAME, "w") as backup_file:
                 backup_file.write(",".join(data))
             logging.info(f"{LOG_PREFIX} Fetched GOV Bank Holiday list successfully")
