@@ -516,6 +516,12 @@ class ApplicationCopy(APIView):
             "reference_code",
             "submitted_at",
             "licence_duration",
+            "is_informed_wmd",
+            "is_suspected_wmd",
+            "is_military_end_use_controls",
+            "is_eu_military",
+            "is_compliant_limitations_eu",
+            "compliant_limitations_eu_ref",
         ]
         for attribute in set_none:
             setattr(self.new_application, attribute, None)
