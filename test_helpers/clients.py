@@ -488,7 +488,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         response = self.client.get(path, data, follow, **extra)
         return response.json(), response.status_code
 
-    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None):
+    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
         organisation = Organisation(
             name=name,
             eori_number="GB123456789000",
@@ -506,7 +506,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         organisation.primary_site = site
         organisation.save()
 
-        exporter_user = self.create_exporter_user(organisation)
+        if not exporter_user:
+            exporter_user = self.create_exporter_user(organisation)
+        else:
+            self.add_exporter_user_to_org(organisation, exporter_user)
 
         return organisation, exporter_user
 
