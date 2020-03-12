@@ -37,6 +37,9 @@ class Role(models.Model):
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=True)
     statuses = models.ManyToManyField(CaseStatus, related_name="roles_statuses")
 
+    class Meta:
+        ordering = ["name"]
+
 
 class CustomUserManager(BaseUserManager):
     use_in_migrations = True

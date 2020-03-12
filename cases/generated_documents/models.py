@@ -20,3 +20,6 @@ class GeneratedCaseDocument(CaseDocument):
         if creating:
             for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):
                 user_relationship.send_notification(content_object=self, case=self.case)
+
+    class Meta:
+        ordering = ["name"]
