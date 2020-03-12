@@ -50,6 +50,7 @@ def audit_end_use_details(user, case, old_end_use_details_fields, new_end_use_de
     for key, new_end_use_value in new_end_use_details_fields.items():
         old_end_use_value = old_end_use_details_fields[key]
         if new_end_use_value != old_end_use_value:
+            old_end_use_value, new_end_use_value = _transform_values(old_end_use_value, new_end_use_value)
             audit_trail_service.create(
                 actor=user,
                 verb=AuditType.UPDATE_APPLICATION_END_USE_DETAIL,
@@ -60,6 +61,16 @@ def audit_end_use_details(user, case, old_end_use_details_fields, new_end_use_de
                     "new_end_use_detail": new_end_use_value,
                 },
             )
+
+
+def _transform_values(old_end_use_value, new_end_use_value):
+    if isinstance(old_end_use_value, bool):
+        old_end_use_value = "Yes" if old_end_use_value else "No"
+
+    if isinstance(new_end_use_value, bool):
+        new_end_use_value = "Yes" if new_end_use_value else "No"
+
+    return old_end_use_value, new_end_use_value
 
 
 def save_and_audit_end_use_details(request, application, serializer):
