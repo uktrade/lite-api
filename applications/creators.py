@@ -272,6 +272,7 @@ def _validate_open_licence(draft, errors):
     errors = _validate_locations(draft, errors)
     errors = _validate_countries(draft, errors, is_mandatory=True)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
+    errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
 
     return errors
 
