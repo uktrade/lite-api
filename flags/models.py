@@ -13,3 +13,12 @@ class Flag(TimestampableModel):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     level = models.CharField(choices=FlagLevels.choices, max_length=20)
     status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
+
+
+class FlaggingRule(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    level = models.CharField(choices=FlagLevels.choices, max_length=20)
+    status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
+    flag = models.ForeignKey(Flag, on_delete=models.CASCADE)
+    matching_value = models.CharField(max_length=100)

@@ -36,7 +36,7 @@ class ExistingParties(generics.ListCreateAPIView):
         uncopied_parties = self.get_uncopied_parties(application.organisation, params)
         newest_copied_parties = self.get_newest_copied_parties(application.organisation, params)
 
-        return uncopied_parties.union(newest_copied_parties)
+        return uncopied_parties.union(newest_copied_parties).order_by("name")
 
     @staticmethod
     def get_uncopied_parties(organisation, params):
