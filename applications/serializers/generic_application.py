@@ -1,5 +1,5 @@
 import abc
-from datetime import datetime
+from django.utils import timezone
 
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -229,7 +229,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         # Remove any previous denial reasons
         if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
             ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
-            instance.last_closed_at = datetime.now()
+            instance.last_closed_at = timezone.now()
 
         instance.save()
         return instance
