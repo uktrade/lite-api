@@ -29,3 +29,14 @@ class CountriesTests(DataTestClient):
         self.assertEqual(Country.objects.count() - 2, len(countries))
         self.assertNotIn(country_one.name, country_names)
         self.assertNotIn(country_two.name, country_names)
+
+    def test_get_country(self):
+        response = self.client.get(reverse("static:countries:country", kwargs={"pk": "GB"}))
+        response_data = response.json()
+        country = Country.objects.get(pk="GB")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["id"], country.pk)
+        self.assertEqual(response_data["name"], country.name)
+        self.assertEqual(response_data["type"], country.type)
+        self.assertEqual(response_data["is_eu"], country.is_eu)

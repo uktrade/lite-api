@@ -28,7 +28,7 @@ class TeamList(APIView):
         """
         List all teams
         """
-        teams = Team.objects.all().order_by("name")
+        teams = Team.objects.all()
 
         serializer = TeamSerializer(teams, many=True)
         return JsonResponse(data={"teams": serializer.data})
@@ -38,9 +38,8 @@ class TeamList(APIView):
         """
         Create a new team
         """
-        data = JSONParser().parse(request)
+        serializer = TeamSerializer(data=request.data)
 
-        serializer = TeamSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(data={"team": serializer.data}, status=status.HTTP_201_CREATED)
