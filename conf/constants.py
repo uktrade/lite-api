@@ -14,6 +14,7 @@ class GovPermissions(Enum):
     REOPEN_CLOSED_CASES = "Can re-open closed cases"
     MANAGE_LICENCE_DURATION = "Can edit licence duration"
     MANAGE_ORGANISATIONS = "Manage organisations"
+    MANAGE_FLAGGING_RULES = "Manage flagging rules"
 
 
 class ExporterPermissions(Enum):
