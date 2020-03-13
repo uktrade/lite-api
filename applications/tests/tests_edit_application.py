@@ -187,7 +187,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
             response.json()["errors"][reference_key],
-            [strings.Applications.Generic.EndUseDetails.Error.MISSING_REFERENCE],
+            [strings.Applications.Generic.EndUseDetails.Error.MISSING_DETAILS],
         )
 
         attribute = getattr(application, key)
@@ -217,7 +217,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
             (response.json()["errors"][reference_key]),
-            [strings.Applications.Generic.EndUseDetails.Error.MISSING_REFERENCE],
+            [strings.Applications.Generic.EndUseDetails.Error.MISSING_DETAILS],
         )
 
         attribute = getattr(application, key)
@@ -422,7 +422,7 @@ class EditOpenApplicationTests(DataTestClient):
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
             response.json()["errors"][reference_key],
-            [strings.Applications.Generic.EndUseDetails.Error.MISSING_REFERENCE],
+            [strings.Applications.Generic.EndUseDetails.Error.MISSING_DETAILS],
         )
 
         attribute = getattr(self.application, key)
@@ -449,7 +449,7 @@ class EditOpenApplicationTests(DataTestClient):
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
             (response.json()["errors"][reference_key]),
-            [strings.Applications.Generic.EndUseDetails.Error.MISSING_REFERENCE],
+            [strings.Applications.Generic.EndUseDetails.Error.MISSING_DETAILS],
         )
 
         attribute = getattr(self.application, key)
