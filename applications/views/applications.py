@@ -428,6 +428,8 @@ class ApplicationFinaliseView(APIView):
                 payload={"licence_duration": serializer.validated_data["licence_duration"]},
             )
 
+        serializer_cls = get_application_view_serializer(application)
+        serializer = serializer_cls(application)
         return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
 
