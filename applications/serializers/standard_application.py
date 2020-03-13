@@ -194,7 +194,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
             if not validated_data.get(linked_reference_field):
                 raise serializers.ValidationError(
-                    {linked_reference_field: strings.Generic.EndUseDetails.Error.MISSING_REFERENCE}
+                    {linked_reference_field: strings.Generic.EndUseDetails.Error.MISSING_DETAILS}
                 )
 
     @classmethod
