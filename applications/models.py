@@ -141,6 +141,9 @@ class BaseApplication(ApplicationPartyMixin, Case):
 
     objects = BaseApplicationManager()
 
+    class Meta:
+        ordering = ["created_at"]
+
 
 # Export Licence Applications
 class StandardApplication(BaseApplication):
