@@ -2,6 +2,8 @@ import uuid
 from datetime import datetime, timezone
 
 import django.utils.timezone
+from django.test import tag
+from django.conf import settings as conf_settings
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -793,3 +795,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         ecju_query = EcjuQuery(case=case, question=question, raised_by_user=gov_user if gov_user else self.gov_user)
         ecju_query.save()
         return ecju_query
+
+
+@tag("performance")
+class PerformanceTestClient(DataTestClient):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # we need to set debug to true otherwise we can't see the amount of queries
+        conf_settings.DEBUG = True
+
+    def create_organisations_multiple_users(self, required_user, organisations: int = 1, users_per_org: int = 10):
+        for i in range(organisations):
+            organisation, _ = self.create_organisation_with_exporter_user(exporter_user=required_user)
+            for j in range(users_per_org):
+                self.create_exporter_user(organisation=organisation)

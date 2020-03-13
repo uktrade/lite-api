@@ -1,24 +1,39 @@
 import timeit
 
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
-from test_helpers.clients import DataTestClient
+from rest_framework import status
+
+from test_helpers.clients import PerformanceTestClient
+from parameterized import parameterized
+
+from django.db import connections, DEFAULT_DB_ALIAS, ConnectionHandler, connection
 
 
-class UsersPerformanceTests(DataTestClient):
+class UsersPerformanceTests(PerformanceTestClient):
 
     url = reverse("users:me")
 
-    def test_users_me_performance(self):
+    def setUp(self):
+        super().setUp()
+
+    @parameterized.expand([(10, 0), (100, 0), (1000, 0)])
+    def test_users_me_performance(self, org_count, users):
         """
         Tests the performance of the 'users/me' endpoint
         """
-        for i in range(100):
-            self.create_organisation_with_exporter_user(exporter_user=self.exporter_user)
+        self.create_organisations_multiple_users(
+            required_user=self.exporter_user, organisations=org_count, users_per_org=users
+        )
+        time = timeit.timeit(self.make_users_me_request, number=1)
+        print(f"queries: {len(connection.queries)}")
 
-        print(timeit.timeit(self.make_users_me_request, number=40))
+        print(f"{org_count} orgs with {users} users each time: {time}")
 
     def make_users_me_request(self):
         """
         Need to wrap the get in a class method to get 'self' context into timeit
         """
-        return self.get(self.url, **self.exporter_headers)
+        _, status_code = self.get(self.url, **self.exporter_headers)
+        if status_code != status.HTTP_200_OK:
+            assert False
