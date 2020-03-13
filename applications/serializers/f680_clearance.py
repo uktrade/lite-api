@@ -67,7 +67,7 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     types = PrimaryKeyRelatedSerializerField(
         queryset=F680ClearanceType.objects.all(),
@@ -98,7 +98,8 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         return validated_data
 
     def update(self, instance, validated_data):
+        if "types" in validated_data:
+            validated_data["types"] = validated_data.get("types")
+
         instance = super().update(instance, validated_data)
-        instance.types.set(validated_data.get("types", list(instance.types.values_list("id", flat=True))))
-        instance.save()
         return instance

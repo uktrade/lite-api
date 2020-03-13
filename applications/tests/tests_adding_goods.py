@@ -145,7 +145,7 @@ class AddingGoodsOnApplicationTests(DataTestClient):
         Then a 400 BAD REQUEST is returned
         And no goods have been added
         """
-        draft = self.create_open_application(self.organisation)
+        draft = self.create_draft_open_application(self.organisation)
         pre_test_good_count = GoodOnApplication.objects.all().count()
         self.create_good_document(
             self.good, user=self.exporter_user, organisation=self.organisation, name="doc1", s3_key="doc3",

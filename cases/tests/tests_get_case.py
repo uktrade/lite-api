@@ -63,7 +63,7 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(actual_flags_on_goods, expected_flags)
 
     def test_case_returns_expected_goods_types_flags(self):
-        self.open_application = self.create_open_application(self.organisation)
+        self.open_application = self.create_draft_open_application(self.organisation)
         self.open_case = self.submit_application(self.open_application)
         self.open_case_url = reverse("cases:case", kwargs={"pk": self.open_case.id})
 

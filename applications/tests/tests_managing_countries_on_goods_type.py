@@ -12,7 +12,7 @@ from test_helpers.clients import DataTestClient
 class GoodTypeCountriesManagementTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.open_draft = self.create_open_application(self.organisation)
+        self.open_draft = self.create_draft_open_application(self.organisation)
 
         self.goods_types = GoodsType.objects.filter(application=self.open_draft).order_by("id")
 
