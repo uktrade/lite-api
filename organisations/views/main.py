@@ -22,6 +22,7 @@ from organisations.serializers import (
     OrganisationCreateSerializer,
     OrganisationListSerializer,
 )
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from users.enums import UserType
 
@@ -114,5 +115,5 @@ class OrganisationsDetail(generics.RetrieveAPIView):
         reopened_due_to_org_changes_status = CaseStatus.objects.get(status="reopened_due_to_org_changes")
 
         BaseApplication.objects.filter(
-            organisation=organisation, status=CaseStatus.objects.get(status=CaseStatusEnum.FINALISED)
+            organisation=organisation, status=get_case_status_by_status(CaseStatusEnum.FINALISED)
         ).update(status_id=reopened_due_to_org_changes_status)

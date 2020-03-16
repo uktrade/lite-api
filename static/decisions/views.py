@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.status import HTTP_200_OK
 
-from cases.enums import AdviceType as AdviceType
+from cases.enums import AdviceType
 
 
 class Decisions(APIView):
