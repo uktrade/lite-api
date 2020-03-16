@@ -136,7 +136,9 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         if role:
             if self.initial_data["role"] not in [str(role) for role in Roles.EXPORTER_PRESET_ROLES]:
                 try:
-                    role = Role.objects.get(id=self.initial_data["role"], organisation_id=self.initial_data["organisation"])
+                    role = Role.objects.get(
+                        id=self.initial_data["role"], organisation_id=self.initial_data["organisation"]
+                    )
                 except Role.DoesNotExist:
                     role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
         return role
