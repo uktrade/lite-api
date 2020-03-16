@@ -288,24 +288,18 @@ class FinalAdviceDocuments(APIView):
         """
         Gets all advice types and any documents generated for those types of advice.
         """
-        # Get advice documents
-        advice_documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case__id=pk)
-        advice_documents = FinalAdviceDocumentGovSerializer(advice_documents, many=True,).data
-        advice_documents = {
-            document["advice_type"]["key"]: {"document": document, "value": document["advice_type"]["value"]}
-            for document in advice_documents
-        }
-
-        # Add any final advice that doesn't have documents
+        # Get all advice
         advice_values = AdviceType.as_dict()
-        advice_without_documents = (
-            FinalAdvice.objects.filter(case__id=pk)
-            .exclude(type__in=advice_documents.keys())
-            .distinct("type")
-            .values_list("type", flat=True)
-        )
-        for advice_type in advice_without_documents:
-            advice_documents[advice_type] = {"value": advice_values[advice_type]}
+        final_advice = FinalAdvice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
+        advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
+
+        # Add advice documents
+        generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
+        generated_advice_documents = FinalAdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
+        for document in generated_advice_documents:
+            advice_type = document["advice_type"]["key"]
+            advice_documents[advice_type]["document"] = document
+
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
 
