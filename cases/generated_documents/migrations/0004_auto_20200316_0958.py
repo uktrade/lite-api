@@ -6,17 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('generated_documents', '0003_auto_20200218_1203'),
+        ("generated_documents", "0003_auto_20200218_1203"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='generatedcasedocument',
-            options={'ordering': ['name']},
-        ),
+        migrations.AlterModelOptions(name="generatedcasedocument", options={"ordering": ["name"]},),
         migrations.AddField(
-            model_name='generatedcasedocument',
-            name='advice_type',
-            field=models.CharField(choices=[('approve', 'Approve'), ('proviso', 'Proviso'), ('refuse', 'Refuse'), ('no_licence_required', 'No Licence Required'), ('not_applicable', 'Not Applicable'), ('conflicting', 'Conflicting')], max_length=30, null=True),
+            model_name="generatedcasedocument",
+            name="advice_type",
+            field=models.CharField(
+                choices=[
+                    ("approve", "Approve"),
+                    ("proviso", "Proviso"),
+                    ("refuse", "Refuse"),
+                    ("no_licence_required", "No Licence Required"),
+                    ("not_applicable", "Not Applicable"),
+                    ("conflicting", "Conflicting"),
+                ],
+                max_length=30,
+                null=True,
+            ),
         ),
     ]
