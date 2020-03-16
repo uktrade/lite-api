@@ -47,7 +47,7 @@ class DeleteApplication(DataTestClient):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(response.json()["status"], strings.Applications.DELETE_DRAFT_APPLICATION)
+        self.assertEqual(response.json()["status"], strings.Applications.Generic.DELETE_DRAFT_APPLICATION)
         self.assertEqual(number_of_applications - 1, BaseApplication.objects.all().count())
         self.assertTrue(draft not in BaseApplication.objects.all())
 
@@ -96,5 +96,5 @@ class DeleteApplication(DataTestClient):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], strings.Applications.DELETE_SUBMITTED_APPLICATION_ERROR)
+        self.assertEqual(response.json()["errors"], strings.Applications.Generic.DELETE_SUBMITTED_APPLICATION_ERROR)
         self.assertEqual(number_of_applications, BaseApplication.objects.all().count())

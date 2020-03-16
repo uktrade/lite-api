@@ -16,7 +16,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        self.draft = self.create_open_application(self.organisation)
+        self.draft = self.create_draft_open_application(self.organisation)
 
         self.url = reverse("applications:countries", kwargs={"pk": self.draft.id})
         self.data = {"countries": Country.objects.all()[: self.COUNTRIES_COUNT].values_list("id", flat=True)}
@@ -81,7 +81,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
         Ensure that a user cannot add countries to another organisation's draft
         """
         organisation_2, _ = self.create_organisation_with_exporter_user()
-        self.draft = self.create_open_application(organisation_2)
+        self.draft = self.create_draft_open_application(organisation_2)
         self.url = reverse("applications:countries", kwargs={"pk": self.draft.id})
 
         response = self.client.post(self.url, self.data, **self.exporter_headers)
@@ -92,7 +92,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
 
     @parameterized.expand(get_case_statuses(read_only=True))
     def test_add_countries_to_application_in_read_only_status_failure(self, read_only_status):
-        application = self.create_open_application(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
         application.status = get_case_status_by_status(read_only_status)
         application.save()
 
@@ -109,7 +109,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
     def test_add_countries_to_application_in_editable_status_failure(self, editable_status):
         """ Test failure in adding a country to an application in a minor editable status. Major editing
          status of APPLICANT_EDITING is removed from the case status list. """
-        application = self.create_open_application(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
         application.status = get_case_status_by_status(editable_status)
         application.save()
 
@@ -128,7 +128,7 @@ class CountriesOnDraftApplicationTests(DataTestClient):
 
         delete_country_data = {"countries": Country.objects.filter(id="GA").values_list("id", flat=True)}
 
-        application = self.create_open_application(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
         # Add second country, as cannot delete last remaining country
         url = reverse("applications:countries", kwargs={"pk": application.id})
         self.client.post(url, add_second_country_data, **self.exporter_headers)

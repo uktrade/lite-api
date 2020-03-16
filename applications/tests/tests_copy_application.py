@@ -18,7 +18,6 @@ from applications.models import (
 from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
-from static.f680_clearance_types.models import F680ClearanceType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -78,7 +77,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an open application that is a draft
         """
-        self.original_application = self.create_open_application(self.organisation)
+        self.original_application = self.create_draft_open_application(self.organisation)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -98,7 +97,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         """
         Ensure we can copy an open application that is submitted (ongoing or otherwise)
         """
-        self.original_application = self.create_open_application(self.organisation)
+        self.original_application = self.create_draft_open_application(self.organisation)
         self.submit_application(self.original_application)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -282,6 +281,8 @@ class CopyApplicationSuccessTests(DataTestClient):
     def _validate_standard_application(self):
         self._validate_reset_data()
 
+        self._validate_end_use_details()
+
         self._validate_good_on_application()
 
         self._validate_end_user()
@@ -293,6 +294,8 @@ class CopyApplicationSuccessTests(DataTestClient):
 
     def _validate_open_application(self):
         self._validate_reset_data()
+
+        self._validate_end_use_details()
 
         self._validate_goodstype()
 
@@ -356,6 +359,14 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertEqual(self.copied_application.status, get_case_status_by_status(CaseStatusEnum.DRAFT))
         self.assertGreater(self.copied_application.created_at, self.original_application.created_at)
         self.assertGreater(self.copied_application.updated_at, self.original_application.updated_at)
+
+    def _validate_end_use_details(self):
+        self.assertIsNone(self.copied_application.is_informed_wmd)
+        self.assertIsNone(self.copied_application.is_suspected_wmd)
+        self.assertIsNone(self.copied_application.is_military_end_use_controls)
+        self.assertIsNone(self.copied_application.is_eu_military)
+        self.assertIsNone(self.copied_application.is_compliant_limitations_eu)
+        self.assertIsNone(self.copied_application.compliant_limitations_eu_ref)
 
     def _validate_good_on_application(self):
         new_goods_on_app = self.copied_application.goods.all()

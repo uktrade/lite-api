@@ -5,10 +5,7 @@ import django.utils.timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
-from applications.enums import (
-    ApplicationExportType,
-    ApplicationExportLicenceOfficialType,
-)
+from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.models import (
     BaseApplication,
@@ -534,6 +531,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             usage="Trade",
             organisation=organisation,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            is_military_end_use_controls=False,
+            is_informed_wmd=False,
+            is_suspected_wmd=False,
+            is_eu_military=False,
+            is_compliant_limitations_eu=None,
         )
 
         application.save()
@@ -667,7 +669,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_open_application(self, organisation: Organisation, reference_name="Open Draft"):
+    def create_draft_open_application(self, organisation: Organisation, reference_name="Open Draft"):
         application = OpenApplication(
             name=reference_name,
             case_type_id=CaseTypeEnum.OIEL.id,
@@ -676,6 +678,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             usage="Trade",
             organisation=organisation,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            is_military_end_use_controls=False,
+            is_informed_wmd=False,
+            is_suspected_wmd=False,
         )
 
         application.save()

@@ -38,7 +38,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.gov_user_2.save()
         self.gov_user_3.save()
 
-        self.open_application = self.create_open_application(self.organisation)
+        self.open_application = self.create_draft_open_application(self.organisation)
         self.open_case = self.submit_application(self.open_application)
 
         self.standard_case_url = reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id})

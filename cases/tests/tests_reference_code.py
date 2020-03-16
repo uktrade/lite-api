@@ -49,7 +49,7 @@ class ReferenceCode(DataTestClient):
         )
 
     def test_open_application_reference_code(self):
-        open_application = self.create_open_application(self.organisation)
+        open_application = self.create_draft_open_application(self.organisation)
         open_application = self.submit_application(open_application)
 
         expected_prefix = APPLICATION_PREFIX + OPEN + INDIVIDUAL + EXPORT + LICENCE + SEPARATOR

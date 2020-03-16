@@ -12,7 +12,7 @@ from test_helpers.clients import DataTestClient
 class OpenApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_open_application(self.organisation)
+        self.draft = self.create_draft_open_application(self.organisation)
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
