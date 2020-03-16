@@ -2,13 +2,14 @@ from django.http import Http404
 
 from applications.libraries.get_applications import get_application
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeTypeEnum
 from cases.models import Case
-from flags.serializers import FlagSerializer
+from flags.serializers import CaseListFlagSerializer
 from goodstype.models import GoodsType
 from parties.enums import PartyType
 from parties.models import Party
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
+from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country
 from teams.models import Team
 
@@ -48,7 +49,7 @@ def get_destination_flags(case):
         query = get_end_user_advisory_by_pk(case.id)
         if query.end_user:
             flags += query.end_user.flags.all()
-    else:
+    elif case.case_type == CaseTypeTypeEnum.APPLICATION:
         application = get_application(case.id)
         if isinstance(application, StandardApplication):
             flags += get_standard_application_destination_flags(application)
@@ -56,35 +57,44 @@ def get_destination_flags(case):
     return flags
 
 
+def get_goods_flags(case):
+    goods_flags = []
+    case_type = case.case_type.sub_type
+
+    if case_type in [
+        CaseTypeSubTypeEnum.STANDARD,
+        CaseTypeSubTypeEnum.EUA,
+        CaseTypeSubTypeEnum.EXHIBITION,
+        CaseTypeSubTypeEnum.GIFTING,
+        CaseTypeSubTypeEnum.F680,
+    ]:
+        goods_on_application = GoodOnApplication.objects.select_related("good").filter(application_id=case.id)
+        for good_on_application in goods_on_application:
+            goods_flags += good_on_application.good.flags.all()
+    elif case_type in [
+        CaseTypeSubTypeEnum.OPEN,
+        CaseTypeSubTypeEnum.HMRC,
+    ]:
+        goods_types = GoodsType.objects.filter(application_id=case.id)
+        for goods_type in goods_types:
+            goods_flags += goods_type.flags.all()
+    elif case_type == CaseTypeSubTypeEnum.GOODS:
+        goods_flags += GoodsQuery.objects.select_related("good").get(id=case.id).good.flags.all()
+
+    return goods_flags
+
+
 def get_ordered_flags(case: Case, team: Team):
     case_flags = case.flags.all()
     org_flags = case.organisation.flags.all()
-    goods_flags = []
-    destination_flags = []
-
-    if case.case_type.sub_type in [
-        CaseTypeSubTypeEnum.STANDARD,
-        CaseTypeSubTypeEnum.OPEN,
-        CaseTypeSubTypeEnum.HMRC,
-        CaseTypeSubTypeEnum.EUA,
-    ]:
-        goods_on_application = GoodOnApplication.objects.filter(application=case)
-        if goods_on_application.exists():
-            goods_on_application = goods_on_application.select_related("good")
-            for good_on_application in goods_on_application:
-                goods_flags += good_on_application.good.flags.all()
-        else:
-            goods_types = GoodsType.objects.filter(application=case)
-            for goods_type in goods_types:
-                goods_flags += goods_type.flags.all()
-
-        destination_flags = get_destination_flags(case)
+    goods_flags = get_goods_flags(case)
+    destination_flags = get_destination_flags(case)
 
     flag_data = (
-        sort_flags_by_team_and_name(FlagSerializer(set(goods_flags), many=True).data, team)
-        + sort_flags_by_team_and_name(FlagSerializer(set(destination_flags), many=True).data, team)
-        + sort_flags_by_team_and_name(FlagSerializer(case_flags, many=True).data, team)
-        + sort_flags_by_team_and_name(FlagSerializer(org_flags, many=True).data, team)
+        sort_flags_by_team_and_name(CaseListFlagSerializer(set(goods_flags), many=True).data, team)
+        + sort_flags_by_team_and_name(CaseListFlagSerializer(set(destination_flags), many=True).data, team)
+        + sort_flags_by_team_and_name(CaseListFlagSerializer(case_flags, many=True).data, team)
+        + sort_flags_by_team_and_name(CaseListFlagSerializer(org_flags, many=True).data, team)
     )
     return flag_data
 
@@ -98,6 +108,6 @@ def sort_flags_by_team_and_name(flag_data, team):
     # Group flags by user's team.
     team_flags, non_team_flags = [], []
     for flag in flag_data:
-        team_flags.append(flag) if flag["team"]["id"] == str(team.id) else non_team_flags.append(flag)
+        team_flags.append(flag) if flag["team"] == str(team.id) else non_team_flags.append(flag)
 
     return team_flags + non_team_flags

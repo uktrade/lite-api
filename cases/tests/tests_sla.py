@@ -32,7 +32,7 @@ class SlaCaseTests(DataTestClient):
         super().setUp()
         self.case_types = {
             CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
-            CaseTypeSubTypeEnum.OPEN: self.create_open_application(self.organisation),
+            CaseTypeSubTypeEnum.OPEN: self.create_draft_open_application(self.organisation),
             CaseTypeSubTypeEnum.EXHIBITION: self.create_mod_clearance_application(
                 self.organisation, CaseTypeEnum.EXHIBITION
             ),

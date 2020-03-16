@@ -72,7 +72,7 @@ def get_application_create_serializer(case_type):
     elif sub_type == CaseTypeSubTypeEnum.F680:
         return F680ClearanceCreateSerializer
     else:
-        raise BadRequestError({"application_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
+        raise BadRequestError({"application_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]})
 
 
 def get_application_update_serializer(application: BaseApplication):

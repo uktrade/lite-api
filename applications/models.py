@@ -10,7 +10,11 @@ from lite_content.lite_api.strings import Parties
 from separatedvaluesfield.models import SeparatedValuesField
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 
-from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory
+from applications.enums import (
+    ApplicationExportType,
+    ApplicationExportLicenceOfficialType,
+    GoodsCategory,
+)
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
 from cases.models import Case
@@ -141,10 +145,26 @@ class BaseApplication(ApplicationPartyMixin, Case):
     licence_duration = models.IntegerField(default=None, null=True, help_text="Set when application finalised")
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
+    is_military_end_use_controls = models.BooleanField(blank=True, default=None, null=True)
+    military_end_use_controls_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
+
+    is_informed_wmd = models.BooleanField(blank=True, default=None, null=True)
+    informed_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
+
+    is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
+    suspected_wmd_ref = models.TextField(default=None, blank=True, null=True, max_length=2200)
+
+    is_eu_military = models.BooleanField(blank=True, default=None, null=True)
+    is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
+    compliant_limitations_eu_ref = models.TextField(default=None, blank=True, null=True, max_length=2200)
+
     objects = BaseApplicationManager()
 
+    class Meta:
+        ordering = ["created_at"]
 
-# Export Licence Applications
+
+# Licence Applications
 class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)

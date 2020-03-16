@@ -114,11 +114,13 @@ class ApplicationGoodOnApplication(APIView):
         application = good_on_application.application
 
         if application.status.status in get_case_statuses(read_only=True):
-            return JsonResponse(data={"errors": [strings.Applications.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,)
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if good_on_application.application.organisation.id != request.user.organisation.id:
             return JsonResponse(
-                data={"errors": strings.Applications.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
+                data={"errors": strings.Applications.Generic.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
             )
 
         if (

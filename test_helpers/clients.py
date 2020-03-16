@@ -5,10 +5,7 @@ import django.utils.timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
-from applications.enums import (
-    ApplicationExportType,
-    ApplicationExportLicenceOfficialType,
-)
+from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.models import (
     BaseApplication,
@@ -30,14 +27,14 @@ from cases.sla import get_application_target_sla
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
-from flags.enums import SystemFlags
-from flags.models import Flag
+from flags.enums import SystemFlags, FlagStatuses
+from flags.models import Flag, FlaggingRule
 from goods.enums import GoodControlled, GoodPvGraded, PvGrading
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
-from organisations.enums import OrganisationType
+from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party
@@ -147,6 +144,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 emoji = " 🔥"
 
             print(self._testMethodName + emoji + " " + colour(str(time) + "ms") + emoji)
+
+    def assertEqualIgnoreType(self, first, second, msg=None):
+        """Fail if the two objects (as strings) are unequal as determined by the '=='
+           operator.
+        """
+        first = str(first)
+        second = str(second)
+        assertion_func = self._getAssertEqualityFunc(first, second)
+        assertion_func(first, second, msg=msg)
 
     def get(self, path, data=None, follow=False, **extra):
         response = self.client.get(path, data, follow, **extra)
@@ -336,6 +342,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return flag
 
     @staticmethod
+    def create_flagging_rule(
+        level: str, team: Team, flag: Flag, matching_value: str, status: str = FlagStatuses.ACTIVE
+    ):
+        flagging_rule = FlaggingRule(level=level, team=team, flag=flag, matching_value=matching_value, status=status)
+        flagging_rule.save()
+        return flagging_rule
+
+    @staticmethod
     def create_case_assignment(queue, case, users):
         case_assignment = CaseAssignment(queue=queue, case=case)
         case_assignment.users.set(users)
@@ -478,6 +492,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             sic_number="2765",
             vat_number="123456789",
             registration_number="987654321",
+            status=OrganisationStatus.ACTIVE,
         )
         if org_type:
             organisation.type = org_type
@@ -516,6 +531,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             usage="Trade",
             organisation=organisation,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            is_military_end_use_controls=False,
+            is_informed_wmd=False,
+            is_suspected_wmd=False,
+            is_eu_military=False,
+            is_compliant_limitations_eu=None,
         )
 
         application.save()
@@ -649,7 +669,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_open_application(self, organisation: Organisation, reference_name="Open Draft"):
+    def create_draft_open_application(self, organisation: Organisation, reference_name="Open Draft"):
         application = OpenApplication(
             name=reference_name,
             case_type_id=CaseTypeEnum.OIEL.id,
@@ -658,6 +678,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             usage="Trade",
             organisation=organisation,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            is_military_end_use_controls=False,
+            is_informed_wmd=False,
+            is_suspected_wmd=False,
         )
 
         application.save()
@@ -768,7 +791,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return letter_template
 
-    def create_ecju_query(self, case, question="ECJU question"):
-        ecju_query = EcjuQuery(case=case, question=question, raised_by_user=self.gov_user)
+    def create_ecju_query(self, case, question="ECJU question", gov_user=None):
+        ecju_query = EcjuQuery(case=case, question=question, raised_by_user=gov_user if gov_user else self.gov_user)
         ecju_query.save()
         return ecju_query

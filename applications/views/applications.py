@@ -20,6 +20,11 @@ from applications.libraries.application_helpers import (
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
 )
+from applications.libraries.edit_applications import (
+    edit_end_use_details,
+    save_and_audit_have_you_been_informed_ref,
+    save_and_audit_end_use_details,
+)
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
@@ -110,7 +115,7 @@ class ApplicationList(ListCreateAPIView):
                 data={
                     "errors": {
                         "application_type": [
-                            ErrorDetail(string=strings.Applications.SELECT_AN_APPLICATION_TYPE, code="invalid")
+                            ErrorDetail(string=strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE, code="invalid")
                         ]
                     }
                 },
@@ -154,24 +159,30 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         data = request.data.copy()
         serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
+        # Prevent minor edits of the end use details
+        end_use_details_error = edit_end_use_details(application, request)
+        if end_use_details_error:
+            return end_use_details_error
+
         # Prevent minor edits of the goods categories
         if not application.is_major_editable() and request.data.get("goods_categories"):
             return JsonResponse(
-                data={"errors": {"goods_categories": ["This isn't possible on a minor edit"]}},
+                data={"errors": {"goods_categories": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Prevent minor edits of the clearance level
         if not application.is_major_editable() and request.data.get("clearance_level"):
             return JsonResponse(
-                data={"errors": {"clearance_level": ["This isn't possible on a minor edit"]}},
+                data={"errors": {"clearance_level": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Prevent minor edits of the f680 clearance types
         if not application.is_major_editable() and request.data.get("types"):
             return JsonResponse(
-                data={"errors": {"types": ["This isn't possible on a minor edit"]}}, status=status.HTTP_400_BAD_REQUEST,
+                data={"errors": {"types": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if not serializer.is_valid():
@@ -195,57 +206,33 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             )
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if request.data.get("clearance_level") or request.data.get("types"):
-            # Audit block
-            if application.case_type.sub_type == CaseTypeSubTypeEnum.F680 and request.data.get("types"):
-                old_types = [
-                    F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
-                ]
-                new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
-                serializer.save()
-
-                if set(old_types) != set(new_types):
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
-                        target=case,
-                        payload={"old_types": old_types, "new_types": new_types},
-                    )
-            else:
-                serializer.save()
+        if request.data.get("clearance_level"):
+            serializer.save()
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            old_have_you_been_informed = application.have_you_been_informed == "yes"
-            have_you_been_informed = request.data.get("have_you_been_informed") == "yes"
-
-            old_ref_number = application.reference_number_on_information_form or "no reference"
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680 and request.data.get("types"):
+            old_types = [
+                F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
+            ]
+            new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
             serializer.save()
-            new_ref_number = application.reference_number_on_information_form or "no reference"
 
-            if old_have_you_been_informed and not have_you_been_informed:
+            if set(old_types) != set(new_types):
                 audit_trail_service.create(
                     actor=request.user,
-                    verb=AuditType.REMOVED_APPLICATION_LETTER_REFERENCE,
+                    verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
                     target=case,
-                    payload={"old_ref_number": old_ref_number},
+                    payload={"old_types": old_types, "new_types": new_types},
                 )
-            else:
-                if old_have_you_been_informed:
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATE_APPLICATION_LETTER_REFERENCE,
-                        target=case,
-                        payload={"old_ref_number": old_ref_number, "new_ref_number": new_ref_number},
-                    )
-                else:
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.ADDED_APPLICATION_LETTER_REFERENCE,
-                        target=case,
-                        payload={"new_ref_number": new_ref_number},
-                    )
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            save_and_audit_end_use_details(request, application, serializer)
+        elif application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            is_updated = save_and_audit_end_use_details(request, application, serializer)
+            if not is_updated:
+                save_and_audit_have_you_been_informed_ref(request, application, serializer)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -256,11 +243,13 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         if not is_case_status_draft(application.status.status):
             return JsonResponse(
-                data={"errors": strings.Applications.DELETE_SUBMITTED_APPLICATION_ERROR},
+                data={"errors": strings.Applications.Generic.DELETE_SUBMITTED_APPLICATION_ERROR},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         application.delete()
-        return JsonResponse(data={"status": strings.Applications.DELETE_DRAFT_APPLICATION}, status=status.HTTP_200_OK)
+        return JsonResponse(
+            data={"status": strings.Applications.Generic.DELETE_DRAFT_APPLICATION}, status=status.HTTP_200_OK
+        )
 
 
 class ApplicationSubmission(APIView):
@@ -321,7 +310,8 @@ class ApplicationManageStatus(APIView):
 
         if data["status"] == CaseStatusEnum.FINALISED:
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISED]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if isinstance(request.user, ExporterUser):
@@ -330,7 +320,7 @@ class ApplicationManageStatus(APIView):
 
             if not can_status_be_set_by_exporter_user(application.status.status, data["status"]):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]},
+                    data={"errors": [strings.Applications.Generic.Finalise.Error.EXPORTER_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
@@ -338,14 +328,14 @@ class ApplicationManageStatus(APIView):
                 request.user, application.status.status, data["status"], is_licence_application
             ):
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.GOV_SET_STATUS]},
+                    data={"errors": [strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
             if not application.licence_duration:
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SURRENDER]},
+                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             application.licence_duration = None
@@ -387,7 +377,8 @@ class ApplicationFinaliseView(APIView):
             request.user, application.status.status, CaseStatusEnum.FINALISED, is_licence_application
         ):
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_FINALISED]}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         data = deepcopy(request.data)
@@ -401,7 +392,7 @@ class ApplicationFinaliseView(APIView):
             and not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION)
         ):
             return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
+                data={"errors": [strings.Applications.Generic.Finalise.Error.SET_DURATION_PERMISSION]},
                 status=status.HTTP_403_FORBIDDEN,
             )
         elif action == AdviceType.APPROVE:
@@ -429,6 +420,8 @@ class ApplicationFinaliseView(APIView):
                 payload={"licence_duration": serializer.validated_data["licence_duration"]},
             )
 
+        serializer_cls = get_application_view_serializer(application)
+        serializer = serializer_cls(application)
         return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
 
@@ -526,6 +519,12 @@ class ApplicationCopy(APIView):
             "reference_code",
             "submitted_at",
             "licence_duration",
+            "is_informed_wmd",
+            "is_suspected_wmd",
+            "is_military_end_use_controls",
+            "is_eu_military",
+            "is_compliant_limitations_eu",
+            "compliant_limitations_eu_ref",
         ]
         for attribute in set_none:
             setattr(self.new_application, attribute, None)

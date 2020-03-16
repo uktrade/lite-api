@@ -124,6 +124,15 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(retrieved_application["updated_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
+        self.assertEqual(
+            retrieved_application["is_military_end_use_controls"], standard_application.is_military_end_use_controls,
+        )
+        self.assertEqual(retrieved_application["is_informed_wmd"], standard_application.is_informed_wmd)
+        self.assertEqual(retrieved_application["is_suspected_wmd"], standard_application.is_suspected_wmd)
+        self.assertEqual(retrieved_application["is_eu_military"], standard_application.is_eu_military)
+        self.assertEqual(
+            retrieved_application["is_compliant_limitations_eu"], standard_application.is_compliant_limitations_eu
+        )
         self.assertEquals(
             GoodOnApplication.objects.filter(application__id=standard_application.id).count(), 1,
         )
@@ -229,7 +238,7 @@ class DraftTests(DataTestClient):
         )
 
     def test_view_draft_open_application_as_exporter_success(self):
-        open_application = self.create_open_application(self.organisation)
+        open_application = self.create_draft_open_application(self.organisation)
 
         url = reverse("applications:application", kwargs={"pk": open_application.id})
 
@@ -247,6 +256,11 @@ class DraftTests(DataTestClient):
         self.assertIsNotNone(retrieved_application["updated_at"])
         self.assertIsNone(retrieved_application["submitted_at"])
         self.assertEqual(retrieved_application["status"]["key"], CaseStatusEnum.DRAFT)
+        self.assertEqual(
+            retrieved_application["is_military_end_use_controls"], open_application.is_military_end_use_controls
+        )
+        self.assertEqual(retrieved_application["is_informed_wmd"], open_application.is_informed_wmd)
+        self.assertEqual(retrieved_application["is_suspected_wmd"], open_application.is_suspected_wmd)
         self.assertIn("is_good_incorporated", retrieved_application["goods_types"][0])
         self.assertEqual(GoodsType.objects.filter(application__id=open_application.id).count(), 2)
         self.assertIsNotNone(

@@ -1,22 +1,35 @@
-import random
+from faker import Faker
 
-from cases.models import CaseType
-from conf.exceptions import NotFoundError
 from flags.enums import SystemFlags
 from users.models import ExporterUser, UserOrganisationRelationship
+
+
+def generate_key_value_pair(key, choices):
+    """
+    Given a key from a list of choices, generate a key value pair
+    :param key: A key from a list of choices, eg "in_review"
+    :param choices: A list of tuples, matching the key with a display version of it
+    :return: A key value pair of the key and its value, eg {"key": "in_review", "value": "In review"}
+    """
+    value = next(v for k, v in choices if k == key)
+    return {"key": key, "value": value}
+
+
+def date_to_drf_date(date):
+    """
+    Given a date, returns a correctly formatted string instance of it
+    suitable for comparison to rest framework datetimes
+    """
+    return date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def random_name():
     """
     :return: A randomly generated first name and last name
     """
-    first_names = ("John", "Andy", "Joe", "Jane", "Emily", "Kate")
-    last_names = ("Johnson", "Smith", "Williams", "Hargreaves", "Montague", "Jenkins")
-
-    first_name = random.choice(first_names)  # nosec
-    last_name = random.choice(last_names)  # nosec
-
-    return first_name, last_name
+    fake = Faker()
+    name = fake.name().split(" ")  # Split the first and last name
+    return name[0], name[1]
 
 
 def create_exporter_users(organisation, quantity=1):

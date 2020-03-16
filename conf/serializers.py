@@ -1,4 +1,3 @@
-from lite_content.lite_api import strings
 import six
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
@@ -9,10 +8,13 @@ from rest_framework.fields import (
     to_choices_dict,
     flatten_choices_dict,
     CharField,
+    empty,
+    SkipField,
 )
 from rest_framework.relations import PrimaryKeyRelatedField
 
 from conf.validators import ControlListEntryValidator
+from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
@@ -41,6 +43,39 @@ class CountrySerializerField(PrimaryKeyRelatedField):
         self.queryset = Country.objects.all()
         self.error_messages = {"null": strings.Addresses.NULL_COUNTRY}
         super(CountrySerializerField, self).__init__(**kwargs)
+
+    def validate_empty_values(self, data):
+        """
+        Validate empty values, and either:
+
+        * Raise `ValidationError`, indicating invalid data.
+        * Raise `SkipField`, indicating that the field should be ignored.
+        * Return (True, data), indicating an empty value that should be
+          returned without any further validation being applied.
+        * Return (False, data), indicating a non-empty value, that should
+          have validation applied as normal.
+        """
+        if self.read_only:
+            return (True, self.get_default())
+
+        if data is empty:
+            if getattr(self.root, "partial", False):
+                raise SkipField()
+            if self.required:
+                self.fail("required")
+            return (True, self.get_default())
+
+        if data is None:
+            if not self.allow_null:
+                raise serializers.ValidationError(strings.Addresses.NULL_COUNTRY)
+            # Nullable `source='*'` fields should not be skipped when its named
+            # field is given a null value. This is because `source='*'` means
+            # the field is passed the entire object, which is not null.
+            elif self.source == "*":
+                return (False, None)
+            return (True, None)
+
+        return (False, data)
 
     def to_internal_value(self, data):
         if self.pk_field is not None:

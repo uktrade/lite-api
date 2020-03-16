@@ -1,3 +1,5 @@
+import datetime
+
 from django.urls import reverse
 from rest_framework import status
 
@@ -441,3 +443,61 @@ class TestQueueOrdering(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(case_ids, expected_case_ids)
+
+
+class TestTeamOpenEcjuQueryOnWorkCase(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.other_team = self.create_team("other team")
+        self.other_team_gov_user = self.create_gov_user("new_user@digital.trade.gov.uk", self.other_team)
+        self.queue = self.create_queue("my new queue", self.team)
+        self.case = self.create_standard_application_case(self.organisation)
+        self.case.queues.set([self.queue])
+        self.url = reverse("cases:search") + "?queue_id=" + str(self.queue.id)
+
+    def test_get_case_from_queue(self):
+        response = self.client.get(self.url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response_data["count"], 1)
+        self.assertEqual(response_data["results"]["queue"]["id"], str(self.queue.id))
+        self.assertEqual(response_data["results"]["cases"][0]["id"], str(self.case.id))
+
+    def test_do_not_get_case_with_open_team_ecju(self):
+        self.create_ecju_query(self.case, gov_user=self.gov_user)
+        response = self.client.get(self.url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response_data["count"], 0)
+
+    def test_get_case_with_only_closed_team_ecju(self):
+        ecju_query = self.create_ecju_query(self.case, gov_user=self.gov_user)
+        ecju_query.response = "response"
+        ecju_query.responded_at = datetime.datetime.now()
+        ecju_query.responded_by_user = self.exporter_user
+        ecju_query.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response_data["count"], 1)
+
+    def test_get_case_with_other_team_open_ecju(self):
+        self.create_ecju_query(self.case, gov_user=self.other_team_gov_user)
+        response = self.client.get(self.url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response_data["count"], 1)
