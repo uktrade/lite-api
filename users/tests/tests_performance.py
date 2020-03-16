@@ -1,13 +1,12 @@
 import timeit
 
-from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework import status
 
 from test_helpers.clients import PerformanceTestClient
 from parameterized import parameterized
 
-from django.db import connections, DEFAULT_DB_ALIAS, ConnectionHandler, connection
+from django.db import connection
 
 
 class UsersPerformanceTests(PerformanceTestClient):
@@ -28,7 +27,7 @@ class UsersPerformanceTests(PerformanceTestClient):
         time = timeit.timeit(self.make_users_me_request, number=1)
         print(f"queries: {len(connection.queries)}")
 
-        print(f"{org_count} orgs with {users} users each time: {time}")
+        print(f"{org_count} orgs with {users} other users each time: {time}")
 
     def make_users_me_request(self):
         """
