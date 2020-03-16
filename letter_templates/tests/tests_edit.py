@@ -26,7 +26,7 @@ class LetterTemplateEditTests(DataTestClient):
         self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
         self.letter_template.case_types.set([CaseTypeEnum.SIEL.id, CaseTypeEnum.OGEL.id])
         self.letter_template.decisions.set(
-            [Decision.objects.get(name="deny"), Decision.objects.get(name="no_licence_required")]
+            [Decision.objects.get(name="refuse"), Decision.objects.get(name="no_licence_required")]
         )
         self.letter_template.letter_paragraphs.add(self.picklist_item)
         self.letter_template.save()

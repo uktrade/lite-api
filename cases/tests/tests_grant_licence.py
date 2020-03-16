@@ -17,7 +17,7 @@ from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 
 
-class GrantLicenceTests(DataTestClient):
+class FinaliseCaseTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_case = self.create_standard_application_case(self.organisation)
@@ -54,15 +54,6 @@ class GrantLicenceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.json(), {"errors": {"error": PermissionDeniedError.default_detail}})
-
-    def test_missing_licence_failure(self):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
-
-        response = self.client.put(self.url, data={}, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": [Cases.Licence.NOT_STARTED]})
 
     def test_missing_advice_document_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
@@ -108,3 +99,12 @@ class GrantLicenceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.json(), {"errors": {"error": PermissionDeniedError.default_detail}})
+
+    def test_finalise_case_without_licence_success(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
+        self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
+
+        response = self.client.put(self.url, data={}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json(), {"case": str(self.standard_case.pk)})

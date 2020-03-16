@@ -11,7 +11,6 @@ from conf.constants import GovPermissions
 from lite_content.lite_api import strings
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
-from test_helpers.helpers import generate_key_value_pair
 from users.models import Role
 
 
@@ -44,12 +43,6 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
         self.assertFalse(response_data["is_complete"])
-        self.assertEqual(
-            response_data["status"], generate_key_value_pair(self.finalised_status.status, CaseStatusEnum.choices)
-        )
-        self.assertEqual(
-            Audit.objects.get(target_object_id=self.standard_application.id).verb, AuditType.FINALISED_APPLICATION.value
-        )
         self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
 
         # The case should not be finalised until the case is complete
@@ -65,12 +58,6 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["duration"], data["duration"])
-        self.assertEqual(
-            response_data["status"], generate_key_value_pair(self.finalised_status.status, CaseStatusEnum.choices)
-        )
-        self.assertEqual(
-            Audit.objects.get(target_object_id=self.standard_application.id).verb, AuditType.FINALISED_APPLICATION.value
-        )
         self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
 
     def test_no_duration_finalise_success(self):
@@ -83,12 +70,6 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["duration"], get_default_duration(self.standard_application))
-        self.assertEqual(
-            response_data["status"], generate_key_value_pair(self.finalised_status.status, CaseStatusEnum.choices)
-        )
-        self.assertEqual(
-            Audit.objects.get(target_object_id=self.standard_application.id).verb, AuditType.FINALISED_APPLICATION.value
-        )
         self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
 
     def test_no_permissions_finalise_failure(self):
@@ -118,12 +99,6 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
         self.assertFalse(response_data["is_complete"])
-        self.assertEqual(
-            response_data["status"], generate_key_value_pair(self.finalised_status.status, CaseStatusEnum.choices)
-        )
-        self.assertEqual(
-            Audit.objects.get(target_object_id=self.standard_application.id).verb, AuditType.FINALISED_APPLICATION.value
-        )
         self.assertTrue(Licence.objects.filter(application=clearance_application, is_complete=False).exists())
 
     def test_set_duration_permission_denied(self):
@@ -180,9 +155,4 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"], str(self.standard_application.id))
         self.assertEqual(self.standard_application.status, self.finalised_status)
-        self.assertEqual(
-            response_data["status"], generate_key_value_pair(self.finalised_status.status, CaseStatusEnum.choices)
-        )
-        self.assertEqual(
-            Audit.objects.get(target_object_id=self.standard_application.id).verb, AuditType.FINALISED_APPLICATION.value
-        )
+        self.assertEqual(Audit.objects.count(), 1)
