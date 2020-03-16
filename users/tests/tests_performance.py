@@ -17,7 +17,7 @@ class UsersPerformanceTests(PerformanceTestClient):
         super().setUp()
 
     @parameterized.expand([(10, 0), (100, 0), (1000, 0)])
-    def test_users_me_performance(self, org_count, users):
+    def test_users_me_performance_by_organisation(self, org_count, users):
         """
         Tests the performance of the 'users/me' endpoint
         """
