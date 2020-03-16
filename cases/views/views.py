@@ -126,7 +126,7 @@ class CaseDocuments(APIView):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPLOAD_CASE_DOCUMENT,
-                    target=get_case(pk),
+                    target_object_id=pk,
                     payload={"file_name": document["name"]},
                 )
 
@@ -607,8 +607,7 @@ class FinaliseView(RetrieveUpdateAPIView):
         # Finalise Licence if granting a licence
         if Licence.objects.filter(application=case).exists():
             licence = Licence.objects.get(application=case)
-            licence.is_complete = True
-            licence.save()
+            licence.update(is_complete=True)
             return_payload["licence"] = licence.id
             audit_trail_service.create(
                 actor=request.user,

@@ -17,12 +17,15 @@ class FinalAdviceDocumentsTests(DataTestClient):
         self.url = reverse("cases:final_advice_documents", kwargs={"pk": self.case.id})
 
     def test_get_final_advice_no_documents(self):
+        expected_format = {
+            AdviceType.APPROVE: {"value": AdviceType.get_text(AdviceType.APPROVE)},
+            AdviceType.REFUSE: {"value": AdviceType.get_text(AdviceType.REFUSE)},
+        }
+
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for key, value in response.json()["documents"].items():
-            self.assertTrue(key in self.advice)
-            self.assertIsNone(value.get("document"))
+        self.assertEqual(response.json()["documents"], expected_format)
 
     def test_get_final_advice_with_document(self):
         document_one = self.create_generated_case_document(self.case, self.template, advice_type=self.advice[0])
@@ -32,5 +35,14 @@ class FinalAdviceDocumentsTests(DataTestClient):
         response_data = response.json()["documents"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data[self.advice[0]]["value"], AdviceType.get_text(self.advice[0]))
+        self.assertEqual(
+            list(response_data[self.advice[0]]["document"].keys()), ["id", "advice_type", "user", "created_at"]
+        )
         self.assertEqual(response_data[self.advice[0]]["document"]["id"], str(document_one.pk))
+
+        self.assertEqual(response_data[self.advice[1]]["value"], AdviceType.get_text(self.advice[1]))
+        self.assertEqual(
+            list(response_data[self.advice[1]]["document"].keys()), ["id", "advice_type", "user", "created_at"]
+        )
         self.assertEqual(response_data[self.advice[1]]["document"]["id"], str(document_two.pk))
