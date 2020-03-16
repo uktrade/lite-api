@@ -25,7 +25,7 @@ class ApplicationQuestionsTest(DataTestClient):
     def test_update_f680_questions_failure(self):
         self.assertIsNone(self.draft.questions)
 
-        data = {"foreign_technology": "HELLO"}
+        data = {"foreign_technology": ['Must be a valid boolean.']}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
