@@ -602,11 +602,14 @@ class FinaliseView(RetrieveUpdateAPIView):
         if not required_decisions.issubset(generated_document_decisions):
             return JsonResponse(data={"errors": [Cases.Licence.MISSING_DOCUMENTS]}, status=status.HTTP_400_BAD_REQUEST,)
 
+        return_payload = {"case": pk}
+
         # Finalise Licence if granting a licence
         if Licence.objects.filter(application=case).exists():
             licence = Licence.objects.get(application=case)
             licence.is_complete = True
             licence.save()
+            return_payload["licence"] = licence.id
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.GRANTED_APPLICATION,
@@ -624,4 +627,4 @@ class FinaliseView(RetrieveUpdateAPIView):
         for document in documents:
             document.send_exporter_notifications()
 
-        return JsonResponse({"licence": licence.id}, status=status.HTTP_201_CREATED)
+        return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
