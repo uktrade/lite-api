@@ -25,3 +25,6 @@ class GeneratedCaseDocument(CaseDocument):
 
         if creating and self.visible_to_exporter:
             self.send_exporter_notifications()
+
+    class Meta:
+        ordering = ["name"]

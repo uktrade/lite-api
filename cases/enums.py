@@ -192,7 +192,7 @@ class CaseTypeEnum:
     @classmethod
     def reference_to_class(cls, case_type_reference):
         if not case_type_reference:
-            raise ValidationError({"errors": {"case_type": [strings.Applications.SELECT_A_LICENCE_TYPE]}})
+            raise ValidationError({"errors": {"case_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]}})
 
         for case_type in cls.case_type_list:
             if case_type.reference == case_type_reference:

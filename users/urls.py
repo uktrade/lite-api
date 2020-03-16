@@ -11,4 +11,5 @@ urlpatterns = [
     path("me/", views.UserMeDetail.as_view(), name="me"),
     path("notifications/", views.NotificationViewSet.as_view(), name="notifications"),
     path("<uuid:pk>/sites/", views.AssignSites.as_view(), name="assign_sites"),
+    path("<uuid:pk>/team-queues/", views.UserTeamQueues.as_view(), name="team_queues"),
 ]

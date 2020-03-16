@@ -64,15 +64,15 @@ urlpatterns = [
         external_locations.ApplicationRemoveExternalLocation.as_view(),
         name="application_remove_external_location",
     ),
-    path("<uuid:pk>/countries/", countries.ApplicationCountries.as_view(), name="countries",),
+    path("<uuid:pk>/countries/", countries.ApplicationCountries.as_view(), name="countries"),
     # Supporting Documents
-    path("<uuid:pk>/documents/", documents.ApplicationDocumentView.as_view(), name="application_documents",),
+    path("<uuid:pk>/documents/", documents.ApplicationDocumentView.as_view(), name="application_documents"),
     path(
         "<uuid:pk>/documents/<uuid:doc_pk>/",
         documents.ApplicationDocumentDetailView.as_view(),
         name="application_document",
     ),
     # Existing parties
-    path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties",),
+    path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties"),
     path("<uuid:pk>/exhibition-details/", applications.ExhibitionDetails.as_view(), name="exhibition"),
 ]

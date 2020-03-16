@@ -5,10 +5,7 @@ import django.utils.timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
-from applications.enums import (
-    ApplicationExportType,
-    ApplicationExportLicenceOfficialType,
-)
+from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
 from applications.models import (
@@ -32,8 +29,8 @@ from cases.sla import get_application_target_sla
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
-from flags.enums import SystemFlags
-from flags.models import Flag
+from flags.enums import SystemFlags, FlagStatuses
+from flags.models import Flag, FlaggingRule
 from goods.enums import GoodControlled, GoodPvGraded, PvGrading
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
@@ -348,6 +345,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return flag
 
     @staticmethod
+    def create_flagging_rule(
+        level: str, team: Team, flag: Flag, matching_value: str, status: str = FlagStatuses.ACTIVE
+    ):
+        flagging_rule = FlaggingRule(level=level, team=team, flag=flag, matching_value=matching_value, status=status)
+        flagging_rule.save()
+        return flagging_rule
+
+    @staticmethod
     def create_case_assignment(queue, case, users):
         case_assignment = CaseAssignment(queue=queue, case=case)
         case_assignment.users.set(users)
@@ -529,6 +534,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             usage="Trade",
             organisation=organisation,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            is_military_end_use_controls=False,
+            is_informed_wmd=False,
+            is_suspected_wmd=False,
+            is_eu_military=False,
+            is_compliant_limitations_eu=None,
         )
 
         application.save()
@@ -662,7 +672,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_open_application(self, organisation: Organisation, reference_name="Open Draft"):
+    def create_draft_open_application(self, organisation: Organisation, reference_name="Open Draft"):
         application = OpenApplication(
             name=reference_name,
             case_type_id=CaseTypeEnum.OIEL.id,
@@ -671,6 +681,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             usage="Trade",
             organisation=organisation,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            is_military_end_use_controls=False,
+            is_informed_wmd=False,
+            is_suspected_wmd=False,
         )
 
         application.save()

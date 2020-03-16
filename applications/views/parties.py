@@ -105,7 +105,7 @@ class ApplicationPartyView(APIView):
 
         if not application.party_is_editable(poa.party):
             return JsonResponse(
-                data={"errors": [strings.Applications.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [strings.Applications.Generic.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

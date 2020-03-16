@@ -1,4 +1,5 @@
 import abc
+from django.utils import timezone
 
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -40,7 +41,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     case_type = serializers.SerializerMethodField()
     export_type = serializers.SerializerMethodField()
@@ -162,7 +163,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     case_type = PrimaryKeyRelatedField(
         queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
@@ -196,7 +197,7 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
@@ -222,8 +223,9 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         # Remove any previous denial reasons
         if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
             ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
+            instance.last_closed_at = timezone.now()
 
-        instance.save()
+        instance = super().update(instance, validated_data)
         return instance
 
 

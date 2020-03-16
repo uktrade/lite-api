@@ -232,7 +232,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        self.application = self.create_open_application(organisation=self.organisation)
+        self.application = self.create_draft_open_application(organisation=self.organisation)
 
         self.good_1 = self.create_goods_type(self.application)
         self.good_1.flags.add(self.create_flag("New Flag", "Good", self.team))

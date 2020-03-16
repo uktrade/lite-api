@@ -138,7 +138,7 @@ class ConsigneeOnDraftTests(DataTestClient):
             "type": PartyType.CONSIGNEE,
         }
 
-        open_draft = self.create_open_application(self.organisation)
+        open_draft = self.create_draft_open_application(self.organisation)
         url = reverse("applications:parties", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)

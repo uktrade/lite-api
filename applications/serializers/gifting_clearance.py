@@ -50,7 +50,7 @@ class GiftingClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
 
     class Meta:

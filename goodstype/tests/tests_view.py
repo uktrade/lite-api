@@ -7,7 +7,7 @@ from test_helpers.clients import DataTestClient
 
 class GoodViewTests(DataTestClient):
     def test_view_goodstype_details(self):
-        application = self.create_open_application(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
         goods_type = GoodsType.objects.filter(application=application).first()
         url = reverse("goodstype:goodstypes_detail", kwargs={"pk": goods_type.id})
 
