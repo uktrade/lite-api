@@ -134,7 +134,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_role(self, role):
         if role:
-            if self.initial_data["role"] not in [str(role) for role in Roles.EXPORTER_PRESET_ROLES]:
+            if role.pk not in Roles.EXPORTER_PRESET_ROLES:
                 try:
                     role = Role.objects.get(
                         id=self.initial_data["role"], organisation_id=self.initial_data["organisation"]
