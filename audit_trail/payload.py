@@ -56,7 +56,7 @@ class AuditType(Enum):
     UPDATED_LETTER_TEMPLATE_NAME = "updated letter template name from {old_name} to {new_name}"
     ADDED_LETTER_TEMPLATE_CASE_TYPES = "added letter template types: {new_case_types}"
     UPDATED_LETTER_TEMPLATE_CASE_TYPES = "updated letter template types from {old_case_types} to {new_case_types}"
-    REMOVED_LETTER_TEMPLATE_CASE_TYPES = "removed letter template types: {new_case_types}"
+    REMOVED_LETTER_TEMPLATE_CASE_TYPES = "removed letter template types: {old_case_types}"
     ADDED_LETTER_TEMPLATE_DECISIONS = "added decisions: {new_decisions}"
     UPDATED_LETTER_TEMPLATE_DECISIONS = "updated decisions from {old_decisions} to {new_decisions}"
     REMOVED_LETTER_TEMPLATE_DECISIONS = "removed decisions: {old_decisions}"
