@@ -607,7 +607,8 @@ class FinaliseView(RetrieveUpdateAPIView):
         # Finalise Licence if granting a licence
         if Licence.objects.filter(application=case).exists():
             licence = Licence.objects.get(application=case)
-            licence.update(is_complete=True)
+            licence.is_complete = True
+            licence.save()
             return_payload["licence"] = licence.id
             audit_trail_service.create(
                 actor=request.user,
