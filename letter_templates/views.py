@@ -123,20 +123,50 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                 )
 
             if new_case_types != old_case_types:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
-                    target=serializer.instance,
-                    payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types)},
-                )
+                if not old_case_types:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.ADDED_LETTER_TEMPLATE_CASE_TYPES,
+                        target=serializer.instance,
+                        payload={"new_case_types": sorted(new_case_types)},
+                    )
+                elif not new_case_types:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REMOVED_LETTER_TEMPLATE_CASE_TYPES,
+                        target=serializer.instance,
+                        payload={"old_case_types": sorted(old_case_types)},
+                    )
+                else:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
+                        target=serializer.instance,
+                        payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types)},
+                    )
 
             if new_decisions != old_decisions:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_LETTER_TEMPLATE_DECISIONS,
-                    target=serializer.instance,
-                    payload={"old_decisions": sorted(old_decisions), "new_decisions": sorted(new_decisions)},
-                )
+                if not old_decisions:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.ADDED_LETTER_TEMPLATE_DECISIONS,
+                        target=serializer.instance,
+                        payload={"new_decisions": sorted(new_decisions)},
+                    )
+                elif not new_decisions:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REMOVED_LETTER_TEMPLATE_DECISIONS,
+                        target=serializer.instance,
+                        payload={"old_decisions": sorted(old_decisions)},
+                    )
+                else:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_LETTER_TEMPLATE_DECISIONS,
+                        target=serializer.instance,
+                        payload={"old_decisions": sorted(old_decisions), "new_decisions": sorted(new_decisions)},
+                    )
 
             if new_layout != old_layout:
                 audit_trail_service.create(
