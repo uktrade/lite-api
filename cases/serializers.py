@@ -221,24 +221,26 @@ class CaseDetailSerializer(CaseSerializer):
         return instance.get_users()
 
     def get_has_advice(self, instance):
-        has_advice = {"team": False, "my_team": False, "final": False}
+        has_advice = {"user": False, "my_user": False, "team": False, "my_team": False, "final": False}
 
-        if TeamAdvice.objects.filter(case=instance).first():
+        team_advice = TeamAdvice.objects.filter(case=instance).values_list("id", flat=True)
+        if team_advice.exists():
             has_advice["team"] = True
 
-        if FinalAdvice.objects.filter(case=instance).first():
+        final_advice = FinalAdvice.objects.filter(case=instance).values_list("id", flat=True)
+        if final_advice.exists():
             has_advice["final"] = True
 
-        try:
-            team_advice = TeamAdvice.objects.filter(case=instance, team=self.team).values_list("id", flat=True)
+        if Advice.objects.filter(case=instance).exclude(id__in=team_advice.union(final_advice)).exists():
+            has_advice["user"] = True
 
-            if team_advice.exists():
-                has_advice["my_team"] = True
+        my_team_advice = TeamAdvice.objects.filter(case=instance, team=self.team).values_list("id", flat=True)
+        if my_team_advice.exists():
+            has_advice["my_team"] = True
 
-            if Advice.objects.filter(case=instance, user=self.user).exclude(id__in=team_advice).exists():
-                has_advice["my_user"] = True
-        except AttributeError:
-            pass
+        if Advice.objects.filter(case=instance, user=self.user).exclude(id__in=my_team_advice).exists():
+            has_advice["my_user"] = True
+
         return has_advice
 
     def get_all_flags(self, instance):
