@@ -34,5 +34,4 @@ class UsersPerformanceTests(PerformanceTestClient):
         Need to wrap the get in a class method to get 'self' context into timeit
         """
         _, status_code = self.get(self.url, **self.exporter_headers)
-        if status_code != status.HTTP_200_OK:
-            assert False
+        self.assertTrue(status_code == status.HTTP_200_OK)
