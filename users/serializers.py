@@ -133,20 +133,20 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         return email
 
     def validate_role(self, role):
-        if hasattr(self, "initial_data") and "role" in self.initial_data:
-            try:
-                if self.initial_data["role"] not in Roles.EXPORTER_PRESET_ROLES:
-                    Role.objects.get(id=self.initial_data["role"], organisation=self.initial_data["organisation"])
-            except NotFoundError:
-                pass
+        if role:
+            if role.pk not in Roles.EXPORTER_PRESET_ROLES:
+                try:
+                    role = Role.objects.get(
+                        id=self.initial_data["role"], organisation_id=self.initial_data["organisation"]
+                    )
+                except Role.DoesNotExist:
+                    role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
         return role
 
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
         sites = validated_data.pop("sites")
-        role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
-        if "role" in validated_data:
-            role = validated_data.pop("role")
+        role = validated_data.pop("role", Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID))
 
         exporter, _ = ExporterUser.objects.get_or_create(email__iexact=validated_data["email"], defaults=validated_data)
 
