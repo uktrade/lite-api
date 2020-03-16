@@ -72,7 +72,7 @@ class DefaultDuration(Enum):
 class MTCRAnswers(Enum):
     CATEGORY_1 = "mtcr_category_1"
     CATEGORY_2 = "mtcr_category_2"
-    NO = 'none'
+    NO = "none"
     UNKNOWN = "unknown"
 
     @classmethod

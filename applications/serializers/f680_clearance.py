@@ -47,7 +47,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
             "additional_documents",
             "types",
             "clearance_level",
-            "questions"
+            "questions",
         )
 
 

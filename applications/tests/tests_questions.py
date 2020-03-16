@@ -11,34 +11,20 @@ class ApplicationQuestionsTest(unittest.TestCase):
             (
                 CaseTypeSubTypeEnum.F680,
                 {},
-                {
-                    "foreign_technology": True,
-                    "foreign_technology_description": "This is going to Norway."
-                },
-                {
-                    "foreign_technology": True,
-                    "foreign_technology_description": "This is going to Norway."
-                }
+                {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."},
+                {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."},
             ),
             (
                 CaseTypeSubTypeEnum.F680,
                 {"foreign_technology": False},
-                {
-                    "foreign_technology": True,
-                    "foreign_technology_description": "This is going to Norway."
-                },
-                {
-                    "foreign_technology": True,
-                    "foreign_technology_description": "This is going to Norway."
-                }
+                {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."},
+                {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."},
             ),
         ]
     )
     def test_update_questions(self, application_type, old_questions, new_questions, expected_questions):
         updated_questions = questions.update(
-            application_type=application_type,
-            old_questions=old_questions,
-            new_questions=new_questions
+            application_type=application_type, old_questions=old_questions, new_questions=new_questions
         )
 
         self.assertEqual(updated_questions, expected_questions)
@@ -48,5 +34,5 @@ class ApplicationQuestionsTest(unittest.TestCase):
             questions.update(
                 application_type=CaseTypeSubTypeEnum.GOODS,
                 old_questions={},
-                new_questions={"foreign_technology": "answer"}
+                new_questions={"foreign_technology": "answer"},
             )

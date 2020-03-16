@@ -15,10 +15,7 @@ class ApplicationQuestionsTest(DataTestClient):
     def test_update_f680_questions(self):
         self.assertIsNone(self.draft.questions)
 
-        data = {
-            "foreign_technology": True,
-            "foreign_technology_description": "This is going to Norway."
-        }
+        data = {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.draft.refresh_from_db()
@@ -28,10 +25,8 @@ class ApplicationQuestionsTest(DataTestClient):
     def test_update_f680_questions_failure(self):
         self.assertIsNone(self.draft.questions)
 
-        data = {"foreign_technology": 'HELLO'}
+        data = {"foreign_technology": "HELLO"}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": data})
-
-

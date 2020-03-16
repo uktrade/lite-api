@@ -80,7 +80,6 @@ class KeyValueChoiceField(Field):
             self.fail("invalid_choice", input=data)
 
     def to_representation(self, value):
-        print('_______REPRE')
         if value in ("", None):
             return value
         return {"key": six.text_type(value), "value": self.choices[value]}
