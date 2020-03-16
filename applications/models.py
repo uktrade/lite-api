@@ -205,8 +205,7 @@ class F680ClearanceApplication(BaseApplication):
         self.save()
 
     def get_questions(self):
-        return questions.serialize(self.case_type.sub_type, self.questions or {})
-
+        return questions.serialize(self.case_type.sub_type, self.questions) if self.questions else {}
 
 # Queries
 class HmrcQuery(BaseApplication):

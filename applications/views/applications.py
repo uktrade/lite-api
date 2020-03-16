@@ -683,11 +683,14 @@ class ApplicationQuestionsView(APIView):
 
     @authorised_users(ExporterUser)
     def post(self, request, application):
+        from pprint import pprint
+        print('\npost\n')
+        pprint(request.data)
         try:
             application.update_questions(request.data)
         except QuestionsError as e:
+            print(e.errors)
             return JsonResponse(data={"errors": e.errors}, status=status.HTTP_400_BAD_REQUEST)
-
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
