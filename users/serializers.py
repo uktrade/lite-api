@@ -135,7 +135,7 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_role(self, role):
         if hasattr(self, "initial_data") and "role" in self.initial_data:
             try:
-                if self.initial_data["role"] not in Roles.EXPORTER_PRESET_ROLES:
+                if self.initial_data["role"] not in [str(role) for role in Roles.EXPORTER_PRESET_ROLES]:
                     Role.objects.get(id=self.initial_data["role"], organisation=self.initial_data["organisation"])
             except NotFoundError:
                 pass
