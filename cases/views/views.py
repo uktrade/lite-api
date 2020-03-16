@@ -126,7 +126,7 @@ class CaseDocuments(APIView):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPLOAD_CASE_DOCUMENT,
-                    target_object_id=pk,
+                    target=get_case(pk),
                     payload={"file_name": document["name"]},
                 )
 
