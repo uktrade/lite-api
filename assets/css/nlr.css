@@ -1,0 +1,50 @@
+@font-face {
+  font-family: Helvetica;
+  src: url("../fonts/Helvetica.ttf") format("truetype");
+}
+.document * {
+  font-size: 4mm;
+  line-height: 1.3;
+  font-family: Helvetica;
+  word-wrap: break-word;
+}
+.document #addresses {
+  display: flex;
+  flex-direction: row;
+}
+.document #recipient-address {
+  width: 90mm;
+}
+.document #sender-address {
+  margin-left: 10%;
+}
+.document #references {
+  display: inline-block;
+}
+.document table {
+  border-collapse: collapse;
+  width: 100%;
+  page-break-inside: avoid;
+  page-break-before: auto;
+}
+.document td {
+  vertical-align: top;
+  border: 1px solid #6d6d6d;
+  padding: 2mm;
+}
+.document td:first-of-type {
+  width: 45mm;
+}
+.document th {
+  vertical-align: top;
+  border: 1px solid #6d6d6d;
+  padding: 2mm;
+}
+.document h1 {
+  font-size: 5mm;
+}
+.document img {
+  display: inline-block;
+  float: right;
+  width: 25%;
+}
