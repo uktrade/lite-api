@@ -572,7 +572,7 @@ class CaseOfficer(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LicenceView(RetrieveUpdateAPIView):
+class FinaliseView(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = LicenceSerializer
 
@@ -592,10 +592,6 @@ class LicenceView(RetrieveUpdateAPIView):
         else:
             assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
-        # Check a licence has been started at the finalise endpoint
-        if not Licence.objects.filter(application=case).exists():
-            return JsonResponse(data={"errors": [Cases.Licence.NOT_STARTED]}, status=status.HTTP_400_BAD_REQUEST)
-
         # Check all decision types have documents
         required_decisions = set(FinalAdvice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
         generated_document_decisions = set(
@@ -606,10 +602,17 @@ class LicenceView(RetrieveUpdateAPIView):
         if not required_decisions.issubset(generated_document_decisions):
             return JsonResponse(data={"errors": [Cases.Licence.MISSING_DOCUMENTS]}, status=status.HTTP_400_BAD_REQUEST,)
 
-        # Finalise Licence
-        licence = Licence.objects.get(application=case)
-        licence.is_complete = True
-        licence.save()
+        # Finalise Licence if granting a licence
+        if Licence.objects.filter(application=case).exists():
+            licence = Licence.objects.get(application=case)
+            licence.is_complete = True
+            licence.save()
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.GRANTED_APPLICATION,
+                target=case,
+                payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
+            )
 
         # Finalise Case
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
@@ -620,13 +623,5 @@ class LicenceView(RetrieveUpdateAPIView):
         documents.update(visible_to_exporter=True)
         for document in documents:
             document.send_exporter_notifications()
-
-        # Audit
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.GRANTED_APPLICATION,
-            target=case,
-            payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
-        )
 
         return JsonResponse({"licence": licence.id}, status=status.HTTP_201_CREATED)

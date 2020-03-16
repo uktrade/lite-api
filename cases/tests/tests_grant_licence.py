@@ -21,7 +21,7 @@ class GrantLicenceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_case = self.create_standard_application_case(self.organisation)
-        self.url = reverse("cases:licence", kwargs={"pk": self.standard_case.id})
+        self.url = reverse("cases:finalise", kwargs={"pk": self.standard_case.id})
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.APPROVE, FinalAdvice)
         self.template = self.create_letter_template(
             "Template", decisions=[Decision.objects.get(name=AdviceType.APPROVE)]
@@ -77,7 +77,7 @@ class GrantLicenceTests(DataTestClient):
     def test_grant_clearance_success(self, send_exporter_notifications_func):
         clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(clearance_case)
-        self.url = reverse("cases:licence", kwargs={"pk": clearance_case.id})
+        self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
         licence = self.create_licence(clearance_case, is_complete=False)
@@ -98,7 +98,7 @@ class GrantLicenceTests(DataTestClient):
     def test_grant_clearance_wrong_permission_failure(self):
         clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(clearance_case)
-        self.url = reverse("cases:licence", kwargs={"pk": clearance_case.id})
+        self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_licence(clearance_case, is_complete=False)
