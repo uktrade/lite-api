@@ -37,12 +37,14 @@ from applications.models import (
     ExternalLocationOnApplication,
     PartyOnApplication,
     F680ClearanceApplication,
+    Licence,
 )
 from applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
+from applications.serializers.licence import LicenceSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
@@ -332,12 +334,12 @@ class ApplicationManageStatus(APIView):
                 )
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
-            if not application.licence_duration:
+            if not Licence.objects.filter(application=application, is_complete=True).exists():
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            application.licence_duration = None
+            Licence.objects.get(application=application, is_complete=True).delete()
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -381,47 +383,50 @@ class ApplicationFinaliseView(APIView):
             )
 
         data = deepcopy(request.data)
-
-        default_licence_duration = get_default_duration(application)
         action = data.get("action")
 
-        if (
-            data.get("licence_duration") is not None
-            and str(data["licence_duration"]) != str(default_licence_duration)
-            and not request.user.has_permission(GovPermissions.MANAGE_LICENCE_DURATION)
-        ):
-            return JsonResponse(
-                data={"errors": [strings.Applications.Generic.Finalise.Error.SET_DURATION_PERMISSION]},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        elif action == AdviceType.APPROVE:
-            data["licence_duration"] = data.get("licence_duration", default_licence_duration)
+        if action == AdviceType.APPROVE:
+            default_licence_duration = get_default_duration(application)
+            data["duration"] = data.get("duration", default_licence_duration)
 
-        data["status"] = str(get_case_status_by_status(CaseStatusEnum.FINALISED).pk)
+            # Check change default duration permission
+            if data["duration"] != default_licence_duration and not request.user.has_permission(
+                GovPermissions.MANAGE_LICENCE_DURATION
+            ):
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
-        serializer_cls = get_application_update_serializer(application)
-        serializer = serializer_cls(application, data=data, partial=True)
+            # Create incomplete Licence object
+            try:
+                start_date = timezone.datetime(year=int(data["year"]), month=int(data["month"]), day=int(data["day"]))
+                data["start_date"] = start_date.strftime("%Y-%m-%d")
+            except KeyError:
+                return JsonResponse(
+                    data={"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            data["application"] = application
+            serializer = LicenceSerializer(data=data)
 
-        serializer.save()
+            if not serializer.is_valid():
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
-        if action == AdviceType.REFUSE:
+        elif action == AdviceType.REFUSE:
+            application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+            application.save()
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
             )
-        elif action == AdviceType.APPROVE:
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.GRANTED_APPLICATION,
-                target=application.get_case(),
-                payload={"licence_duration": serializer.validated_data["licence_duration"]},
-            )
+            return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
 
-        serializer_cls = get_application_view_serializer(application)
-        serializer = serializer_cls(application)
-        return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
+        return JsonResponse(
+            data={"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class ApplicationDurationView(APIView):

@@ -2,12 +2,18 @@ from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.models import Licence
+from applications.serializers.licence import LicenceSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases import service
+from cases.enums import CaseTypeSubTypeEnum, AdviceType
+from cases.generated_documents.models import GeneratedCaseDocument
+from cases.generated_documents.serializers import FinalAdviceDocumentGovSerializer
 from cases.helpers import create_grouped_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
@@ -36,6 +42,7 @@ from cases.serializers import (
 )
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
+from conf.constants import GovPermissions
 from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
@@ -48,6 +55,8 @@ from parties.serializers import PartySerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
 
@@ -102,13 +111,12 @@ class CaseDocuments(APIView):
         """
         Adds a document to the specified case
         """
-        case = get_case(pk)
-        case_id = str(case.id)
         data = request.data
 
         for document in data:
-            document["case"] = case_id
+            document["case"] = pk
             document["user"] = request.user.id
+            document["visible_to_exporter"] = True
 
         serializer = CaseDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
@@ -118,7 +126,7 @@ class CaseDocuments(APIView):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPLOAD_CASE_DOCUMENT,
-                    target=case,
+                    target=get_case(pk),
                     payload={"file_name": document["name"]},
                 )
 
@@ -271,6 +279,28 @@ class CaseTeamAdvice(APIView):
         case_advice_contains_refusal(pk)
         audit_trail_service.create(actor=request.user, verb=AuditType.CLEARED_TEAM_ADVICE, target=self.case)
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
+
+
+class FinalAdviceDocuments(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Gets all advice types and any documents generated for those types of advice.
+        """
+        # Get all advice
+        advice_values = AdviceType.as_dict()
+        final_advice = FinalAdvice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
+        advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
+
+        # Add advice documents
+        generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
+        generated_advice_documents = FinalAdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
+        for document in generated_advice_documents:
+            advice_type = document["advice_type"]["key"]
+            advice_documents[advice_type]["document"] = document
+
+        return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
 
 class ViewFinalAdvice(APIView):
@@ -534,3 +564,61 @@ class CaseOfficer(APIView):
             return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FinaliseView(RetrieveUpdateAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = LicenceSerializer
+
+    def get_object(self):
+        return get_object_or_404(Licence, application=self.kwargs["pk"])
+
+    @transaction.atomic
+    def put(self, request, pk):
+        """
+        Finalise & grant a Licence
+        """
+        case = get_case(pk)
+
+        # Check Permissions
+        if CaseTypeSubTypeEnum.is_mod_clearance(case.case_type.sub_type):
+            assert_user_has_permission(request.user, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE)
+        else:
+            assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+
+        # Check all decision types have documents
+        required_decisions = set(FinalAdvice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
+        generated_document_decisions = set(
+            GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list(
+                "advice_type", flat=True
+            )
+        )
+        if not required_decisions.issubset(generated_document_decisions):
+            return JsonResponse(data={"errors": [Cases.Licence.MISSING_DOCUMENTS]}, status=status.HTTP_400_BAD_REQUEST,)
+
+        return_payload = {"case": pk}
+
+        # Finalise Licence if granting a licence
+        if Licence.objects.filter(application=case).exists():
+            licence = Licence.objects.get(application=case)
+            licence.is_complete = True
+            licence.save()
+            return_payload["licence"] = licence.id
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.GRANTED_APPLICATION,
+                target=case,
+                payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
+            )
+
+        # Finalise Case
+        case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        case.save()
+
+        # Show documents to exporter & notify
+        documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)
+        documents.update(visible_to_exporter=True)
+        for document in documents:
+            document.send_exporter_notifications()
+
+        return JsonResponse(return_payload, status=status.HTTP_201_CREATED)

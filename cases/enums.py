@@ -236,6 +236,33 @@ class AdviceType:
         (CONFLICTING, "Conflicting"),
     ]
 
+    ids = {
+        APPROVE: UUID("00000000-0000-0000-0000-000000000001"),
+        PROVISO: UUID("00000000-0000-0000-0000-000000000002"),
+        REFUSE: UUID("00000000-0000-0000-0000-000000000003"),
+        NO_LICENCE_REQUIRED: UUID("00000000-0000-0000-0000-000000000004"),
+        NOT_APPLICABLE: UUID("00000000-0000-0000-0000-000000000005"),
+        CONFLICTING: UUID("00000000-0000-0000-0000-000000000006"),
+    }
+
+    @classmethod
+    def get_text(cls, choice):
+        for key, value in cls.choices:
+            if key == choice:
+                return value
+
+    @classmethod
+    def to_representation(cls):
+        return [{"key": decision[0], "value": decision[1]} for decision in cls.choices]
+
+    @classmethod
+    def get_ids(cls, keys):
+        return [cls.ids[decision_key] for decision_key in keys]
+
+    @classmethod
+    def as_dict(cls):
+        return {choice[0]: choice[1] for choice in cls.choices}
+
 
 class CaseDocumentState:
     UPLOADED = "UPLOADED"

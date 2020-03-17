@@ -1,133 +1,111 @@
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from applications.enums import LicenceDuration
 from applications.libraries.licence import get_default_duration
+from applications.models import Licence
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
-from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
-from cases.models import CaseAssignment
+from cases.enums import AdviceType, CaseTypeEnum
 from conf.constants import GovPermissions
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
+from lite_content.lite_api import strings
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
-from test_helpers.helpers import generate_key_value_pair
 from users.models import Role
-from lite_content.lite_api import strings
 
 
 class FinaliseApplicationTests(DataTestClient):
+    def _set_user_permission(self, permissions: list):
+        self.gov_user.role = self.role
+        self.gov_user.role.permissions.set([permission.name for permission in permissions])
+        self.gov_user.save()
+
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_draft_standard_application(self.organisation)
-        self.submit_application(self.standard_application)
+        self.standard_application = self.create_standard_application_case(self.organisation)
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
         self.role = Role.objects.create(name="test")
         self.finalised_status = CaseStatus.objects.get(status="finalised")
+        self.date = timezone.now()
+        self.post_date = {"year": self.date.year, "month": self.date.month, "day": self.date.day}
 
-    def test_gov_user_finalise_permission_error(self):
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([])
-        self.gov_user.save()
+    def test_approve_application_success(self):
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 60}
+        data.update(self.post_date)
 
-        data = {"licence_duration": 13}
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response_data = response.json()
+        self.standard_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["application"], str(self.standard_application.id))
+        self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
+        self.assertEqual(response_data["duration"], data["duration"])
+        self.assertFalse(response_data["is_complete"])
+        self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
+
+        # The case should not be finalised until the case is complete
+        self.assertNotEqual(self.standard_application.status, self.finalised_status)
+
+    def test_default_duration_no_permission_finalise_success(self):
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
+        data = {"action": AdviceType.APPROVE, "duration": get_default_duration(self.standard_application)}
+        data.update(self.post_date)
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["duration"], data["duration"])
+        self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
+
+    def test_no_duration_finalise_success(self):
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
+        data = {"action": AdviceType.APPROVE}
+        data.update(self.post_date)
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["duration"], get_default_duration(self.standard_application))
+        self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
+
+    def test_no_permissions_finalise_failure(self):
+        self._set_user_permission([])
+        data = {"action": AdviceType.APPROVE}
+        data.update(self.post_date)
+
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_gov_user_finalise_clearance_application_success(self):
+    def test_finalise_clearance_application_success(self):
         clearance_application = self.create_mod_clearance_application(
             self.organisation, case_type=CaseTypeEnum.EXHIBITION
         )
-
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
+        self._set_user_permission(
+            [GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION]
         )
-        self.gov_user.save()
+        data = {"action": AdviceType.APPROVE, "duration": 13}
+        data.update(self.post_date)
 
-        licence_duration = 13
-        data = {"licence_duration": licence_duration}
         url = reverse("applications:finalise", kwargs={"pk": clearance_application.pk})
         response = self.client.put(url, data=data, **self.gov_headers)
+        response_data = response.json()
 
-        clearance_application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(clearance_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
-        self.assertEqual(clearance_application.licence_duration, data["licence_duration"])
-        self.assertEqual(licence_duration, response.json()["licence_duration"])
+        self.assertEqual(response_data["application"], str(clearance_application.id))
+        self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
+        self.assertEqual(response_data["duration"], data["duration"])
+        self.assertFalse(response_data["is_complete"])
+        self.assertTrue(Licence.objects.filter(application=clearance_application, is_complete=False).exists())
 
-    def test_gov_user_finalise_clearance_application_failure(self):
-        """ Test failure in finalising a clearance application as the gov user does not have the
-         permission.
-        """
-        clearance_application = self.create_mod_clearance_application(
-            self.organisation, case_type=CaseTypeEnum.EXHIBITION
-        )
+    def test_set_duration_permission_denied(self):
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
+        data = {"action": AdviceType.APPROVE, "duration": 13}
+        data.update(self.post_date)
 
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
-        )
-        self.gov_user.save()
-
-        data = {"licence_duration": 13}
-        url = reverse("applications:finalise", kwargs={"pk": clearance_application.pk})
-        response = self.client.put(url, data=data, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_gov_user_finalise_application_success(self):
-        self.assertEqual(self.standard_application.licence_duration, None)
-
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
-        )
-        self.gov_user.save()
-
-        data = {"licence_duration": 13}
-        response = self.client.put(self.url, data=data, **self.gov_headers)
-
-        self.standard_application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
-        self.assertEqual(self.standard_application.licence_duration, data["licence_duration"])
-
-    def test_gov_user_finalise_application_removes_case_from_queues_and_users_from_case_success(self):
-        """
-        When a case is set to the finalised status, its assigned users, case officer and queues should be removed
-        """
-        self.standard_application.case_officer = self.gov_user
-        self.standard_application.save()
-        self.standard_application.queues.set([self.queue])
-        case_assignment = CaseAssignment.objects.create(case=self.standard_application, queue=self.queue)
-        case_assignment.users.set([self.gov_user])
-
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
-        )
-        self.gov_user.save()
-
-        data = {"licence_duration": 13}
-        response = self.client.put(self.url, data, **self.gov_headers)
-
-        self.standard_application.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
-        self.assertEqual(self.standard_application.licence_duration, data["licence_duration"])
-        self.assertEqual(self.standard_application.queues.count(), 0)
-        self.assertEqual(self.standard_application.case_officer, None)
-        self.assertEqual(CaseAssignment.objects.filter(case=self.standard_application).count(), 0)
-
-    def test_gov_use_set_duration_permission_denied(self):
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.gov_user.save()
-
-        data = {"licence_duration": 13}
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -136,13 +114,10 @@ class FinaliseApplicationTests(DataTestClient):
         )
 
     def test_invalid_duration_data(self):
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name, GovPermissions.MANAGE_LICENCE_DURATION.name]
-        )
-        self.gov_user.save()
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": LicenceDuration.MAX.value + 1}
+        data.update(self.post_date)
 
-        data = {"licence_duration": LicenceDuration.MAX.value + 1}
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -151,52 +126,33 @@ class FinaliseApplicationTests(DataTestClient):
             {"errors": {"non_field_errors": [strings.Applications.Generic.Finalise.Error.DURATION_RANGE]}},
         )
 
-    def test_default_duration_no_permission_application_finalised_success(self):
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.gov_user.save()
+    def test_no_start_date_failure(self):
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 20}
 
-        data = {"licence_duration": get_default_duration(self.standard_application)}
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json(), {"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}}
+        )
+
+    def test_no_action_failure(self):
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
+
+        response = self.client.put(self.url, data={}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]})
+
+    def test_refuse_application_success(self):
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
+
+        data = {"action": AdviceType.REFUSE}
         response = self.client.put(self.url, data=data, **self.gov_headers)
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.standard_application.licence_duration, data["licence_duration"])
-
-    def test_refuse_application_success(self):
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.gov_user.save()
-
-        data = {"action": AdviceType.REFUSE}
-        response = self.client.put(self.url, data=data, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["name"], self.standard_application.name)
-        self.assertIsNone(response_data["licence_duration"])
-        self.assertEqual(
-            response_data["status"], generate_key_value_pair(self.finalised_status.status, CaseStatusEnum.choices)
-        )
-        self.assertEqual(
-            Audit.objects.get(target_object_id=self.standard_application.id).verb, AuditType.FINALISED_APPLICATION.value
-        )
-
-    def test_grant_application_success(self):
-        self.gov_user.role = self.role
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.gov_user.save()
-
-        data = {"action": AdviceType.APPROVE}
-        response = self.client.put(self.url, data=data, **self.gov_headers)
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["name"], self.standard_application.name)
-        self.assertEqual(response_data["licence_duration"], get_default_duration(self.standard_application))
-        self.assertEqual(
-            response_data["status"], generate_key_value_pair(self.finalised_status.status, CaseStatusEnum.choices)
-        )
-        self.assertEqual(
-            Audit.objects.get(target_object_id=self.standard_application.id).verb, AuditType.GRANTED_APPLICATION.value
-        )
+        self.assertEqual(response.json()["application"], str(self.standard_application.id))
+        self.assertEqual(self.standard_application.status, self.finalised_status)
+        self.assertEqual(Audit.objects.count(), 1)

@@ -312,6 +312,7 @@ class CaseDocumentCreateSerializer(serializers.ModelSerializer):
             "size",
             "case",
             "description",
+            "visible_to_exporter",
         )
 
     def create(self, validated_data):

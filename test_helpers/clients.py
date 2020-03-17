@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 from addresses.models import Address
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
+from applications.libraries.licence import get_default_duration
 from applications.models import (
     BaseApplication,
     GoodOnApplication,
@@ -19,6 +20,7 @@ from applications.models import (
     ExhibitionClearanceApplication,
     GiftingClearanceApplication,
     F680ClearanceApplication,
+    Licence,
 )
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -272,7 +274,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     @staticmethod
-    def create_case_document(case: Case, user: GovUser, name: str):
+    def create_case_document(case: Case, user: GovUser, name: str, visible_to_exporter=True):
         case_doc = CaseDocument(
             case=case,
             description="This is a document",
@@ -282,6 +284,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             size=123456,
             virus_scanned_at=None,
             safe=None,
+            visible_to_exporter=visible_to_exporter,
         )
         case_doc.save()
         return case_doc
@@ -763,7 +766,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_end_user_advisory_case(self, note: str, reasoning: str, organisation: Organisation):
         return self.create_end_user_advisory(note, reasoning, organisation)
 
-    def create_generated_case_document(self, case, template, document_name="Generated Doc"):
+    def create_generated_case_document(
+        self, case, template, visible_to_exporter=True, document_name="Generated Doc", advice_type=None
+    ):
         generated_case_doc = GeneratedCaseDocument.objects.create(
             name=document_name,
             user=self.gov_user,
@@ -774,10 +779,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case=case,
             template=template,
             text="Here is some text",
+            visible_to_exporter=visible_to_exporter,
+            advice_type=advice_type,
         )
         return generated_case_doc
 
-    def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id):
+    def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id, decisions=None):
         if not name:
             name = str(uuid.uuid4())[0:35]
 
@@ -785,6 +792,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         letter_layout = LetterLayout.objects.first()
 
         letter_template = LetterTemplate.objects.create(name=name, layout=letter_layout)
+        if decisions:
+            letter_template.decisions.set(decisions)
         letter_template.case_types.add(case_type)
         letter_template.letter_paragraphs.add(picklist_item)
         letter_template.save()
@@ -795,3 +804,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         ecju_query = EcjuQuery(case=case, question=question, raised_by_user=gov_user if gov_user else self.gov_user)
         ecju_query.save()
         return ecju_query
+
+    @staticmethod
+    def create_licence(application: BaseApplication, is_complete: bool):
+        return Licence.objects.create(
+            application=application,
+            start_date=django.utils.timezone.now().date(),
+            duration=get_default_duration(application),
+            is_complete=is_complete,
+        )
