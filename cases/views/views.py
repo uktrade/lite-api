@@ -2,7 +2,7 @@ from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -625,7 +625,7 @@ class FinaliseView(RetrieveUpdateAPIView):
         return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
 
 
-class AssignedQueues(ListCreateAPIView):
+class AssignedQueues(ListAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = TinyQueueSerializer
 
@@ -634,3 +634,12 @@ class AssignedQueues(ListCreateAPIView):
         assignments = CaseAssignment.objects.filter(users=self.request.user, case__id=self.kwargs["pk"])
         # TODO figure out how to do this the django way
         return [assignment.queue for assignment in assignments]
+
+    @transaction.atomic
+    def put(self, request, pk):
+        queues = request.data.get("queues")
+        if queues:
+            total = CaseAssignment.objects.filter(users=self.request.user, case__id=pk, queue__id__in=queues).delete()
+            return JsonResponse(data={"queues_removed": total}, status=status.HTTP_200_OK)
+        else:
+            return JsonResponse(data={"errors": {"queues": ["No queues selected"]}}, status=status.HTTP_400_BAD_REQUEST)
