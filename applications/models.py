@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
+from rest_framework.exceptions import APIException
 from separatedvaluesfield.models import SeparatedValuesField
 
 from applications.enums import (
@@ -30,8 +31,8 @@ from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.units.enums import Units
 
 
-class ApplicationException(Exception):
-    def __init__(self, data=None, *args, **kwargs):
+class ApplicationException(APIException):
+    def __init__(self, data):
         super().__init__(data)
         self.data = data
 
