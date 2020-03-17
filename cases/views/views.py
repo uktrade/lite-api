@@ -2,7 +2,7 @@ from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404
+from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -26,7 +26,7 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision
+from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision, CaseAssignment
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -52,6 +52,7 @@ from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents, Cases
 from parties.serializers import PartySerializer
+from queues.serializers import TinyQueueSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -622,3 +623,14 @@ class FinaliseView(RetrieveUpdateAPIView):
             document.send_exporter_notifications()
 
         return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
+
+
+class AssignedQueues(ListCreateAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = TinyQueueSerializer
+
+    def get_queryset(self):
+        # Get all queues where this user is assigned to this case
+        assignments = CaseAssignment.objects.filter(users=self.request.user, case__id=self.kwargs["pk"])
+        # TODO figure out how to do this the django way
+        return [assignment.queue for assignment in assignments]
