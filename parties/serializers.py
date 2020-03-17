@@ -2,6 +2,7 @@ from django.core.validators import URLValidator
 from rest_framework import serializers, relations
 
 from cases.enums import CaseTypeSubTypeEnum
+from cases.libraries.get_case import get_case
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
 from flags.serializers import FlagSerializer
@@ -115,3 +116,32 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
         document.save()
         process_document(document)
         return document
+
+
+class AdditionalContactSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(error_messages={"required": Parties.NULL_NAME})
+    address = serializers.CharField(error_messages={"required": Parties.NULL_ADDRESS})
+    country = CountrySerializerField(error_messages={"required": Parties.NULL_COUNTRY})
+    type = KeyValueChoiceField(choices=PartyType.choices, required=True)
+    organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+
+    class Meta:
+        model = Party
+        fields = (
+            "id",
+            "name",
+            "phone_number",
+            "email",
+            "details",
+            "address",
+            "country",
+            "type",
+            "organisation",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if hasattr(self, "initial_data"):
+            self.initial_data["type"] = PartyType.ADDITIONAL_CONTACT
+            self.initial_data["organisation"] = self.context["organisation_pk"]
