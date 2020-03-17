@@ -101,3 +101,24 @@ class MTCRAnswers(Enum):
             MTCRAnswers.NO: "No",
             MTCRAnswers.UNKNOWN: "Unknown",
         }[self]
+
+
+class ServiceEquipmentType(Enum):
+    MOD_FUNDED = "mod_funded"
+    PART_MOD_PART_PRIVATE_VENTURE = "part_mod_part_venture"
+    PRIVATE_VENTURE = "private_venture"
+
+    @classmethod
+    def choices(cls):
+        return (
+            (cls.MOD_FUNDED.value, cls.MOD_FUNDED.to_representation()),
+            (cls.PART_MOD_PART_PRIVATE_VENTURE.value, cls.PART_MOD_PART_PRIVATE_VENTURE.to_representation()),
+            (cls.PRIVATE_VENTURE.value, cls.PRIVATE_VENTURE.to_representation()),
+        )
+
+    def to_representation(self):
+        return {
+            ServiceEquipmentType.MOD_FUNDED: "MOD funded",
+            ServiceEquipmentType.PART_MOD_PART_PRIVATE_VENTURE: "Part MOD part private venture",
+            ServiceEquipmentType.PRIVATE_VENTURE: "Private venture",
+        }[self]

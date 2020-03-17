@@ -1,9 +1,9 @@
-import uuid
+from uuid import UUID
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from applications.enums import MTCRAnswers
+from applications.enums import MTCRAnswers, ServiceEquipmentType
 from conf.serializers import KeyValueChoiceField
 
 
@@ -20,32 +20,44 @@ class F680JsonSerializer(serializers.Serializer):
     mtcr_type = KeyValueChoiceField(choices=MTCRAnswers.choices(), allow_blank=True, required=False)
 
     electronic_warfare_requirement = serializers.BooleanField(required=False)
-    electronic_warfare_requirement_attachment = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    # electronic_warfare_requirement_attachment = serializers.UUIDField(required=False, allow_null=True)
+    electronic_warfare_requirement_attachment = serializers.CharField(max_length=256, required=False, allow_blank=True)
 
     uk_service_equipment = serializers.BooleanField(required=False)
     uk_service_equipment_description = serializers.CharField(max_length=256, allow_blank=True, required=False)
-    uk_service_equipment_type = serializers.CharField(required=False, allow_blank=True)
+    uk_service_equipment_type = KeyValueChoiceField(choices=ServiceEquipmentType.choices(), allow_blank=True, required=False)
 
     value = serializers.IntegerField(required=False)
 
-
-    def validate(self, attrs):
-        if attrs.get("electronic_warfare_requirement"):
-            try:
-                uuid.UUID(attrs.get("electronic_warfare_requirement_attachment"))
-            except (ValueError, TypeError):
+    def validate(self, data):
+        validated_data = super().validate(data)
+        if validated_data.get("electronic_warfare_requirement"):
+            if not validated_data.get("electronic_warfare_requirement_attachment"):
                 raise ValidationError({"electronic_warfare_requirement_attachment": ["Attachment required."]})
 
-        if attrs.get("expedited") and not attrs.get("expedited_date"):
-            raise ValidationError({"expedited_date": ["Date required."]})
+            try:
+                UUID(validated_data["electronic_warfare_requirement_attachment"])
+            except ValueError:
+                raise ValidationError({"electronic_warfare_requirement_attachment": ["Attachment required."]})
 
-        return attrs
+        if validated_data.get("expedited"):
+            if not validated_data.get("expedited_date"):
+                raise ValidationError({"expedited_date": ["Date required."]})
+            else:
+                validated_data["expedited_date"] = str(validated_data["expedited_date"])
 
-    def validate_electronic_warfare_requirement_attachment(self, item):
-        try:
-            uuid.UUID(item)
-        except (ValueError, TypeError):
-            raise ValidationError({"electronic_warfare_requirement_attachment": ["Must be a valid UUID"]})
+        if validated_data.get("foreign_technology") and not validated_data.get("foreign_technology_description"):
+            raise ValidationError({"foreign_technology_description": ["Description required"]})
 
-        return item
+        if validated_data.get("locally_manufactured") and not validated_data.get("locally_manufactured_description"):
+            raise ValidationError({"locally_manufactured_description": ["Description required"]})
+
+        if validated_data.get("uk_service_equipment") and not validated_data.get("uk_service_equipment_type"):
+            raise ValidationError({"uk_service_equipment_type": ["Please select an option"]})
+
+        return validated_data
+
+    def get_expedited_date(self, item):
+        return str(item)
+
+    def get_electronic_warfare_requirement_attachment(self, item):
+        return str(item)
