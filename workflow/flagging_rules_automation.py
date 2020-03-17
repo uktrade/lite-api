@@ -4,6 +4,7 @@ from flags.enums import FlagLevels, FlagStatuses
 from flags.models import FlaggingRule
 from goods.models import Good
 from parties.models import Party
+from static.countries.models import Country
 
 
 def active_flagging_rules(level):
@@ -45,7 +46,7 @@ def apply_destination_rule_on_party(party: Party, flagging_rules=None):
 def apply_goods_rules_for_case(case: Case):
     flagging_rules = active_flagging_rules(FlagLevels.GOOD)
     goods = (
-        Good.objects.prefetch_related("goods_on_application__application")
+        Good.objects.prefetch_related("goods_on_application__application_id")
         .filter(goods_on_application__application_id=case.id)
         .distinct()
     )
