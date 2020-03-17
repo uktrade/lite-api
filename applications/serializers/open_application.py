@@ -8,7 +8,6 @@ from applications.serializers.generic_application import (
 )
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
-from lite_content.lite_api.strings import Applications as strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
 

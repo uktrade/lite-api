@@ -20,11 +20,7 @@ from applications.libraries.application_helpers import (
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
 )
-from applications.libraries.edit_applications import (
-    edit_end_use_details,
-    save_and_audit_have_you_been_informed_ref,
-    save_and_audit_end_use_details,
-)
+from applications.libraries.edit_applications import save_and_audit_have_you_been_informed_ref
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
