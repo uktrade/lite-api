@@ -40,7 +40,7 @@ class ApplicationPartyMixin:
     def add_party(self, party):
 
         if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
-            raise ApplicationException({"errors": {"bad_request": Parties.BAD_CASE_TYPE}})
+            raise ApplicationException({"bad_request": Parties.BAD_CASE_TYPE})
 
         old_poa = None
 
@@ -56,7 +56,7 @@ class ApplicationPartyMixin:
         elif party.type == PartyType.THIRD_PARTY:
             # Rule: Append
             if not party.role:
-                raise ApplicationException({"errors": {"required": Parties.ThirdParty.NULL_ROLE}})
+                raise ApplicationException({"required": Parties.ThirdParty.NULL_ROLE})
 
         poa = PartyOnApplication.objects.create(application=self, party=party)
 
