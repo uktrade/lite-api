@@ -37,7 +37,7 @@ def apply_destination_rules(case: Case):
 def apply_destination_rule_on_party(party: Party, flagging_rules=None):
     if not flagging_rules:
         flagging_rules = active_flagging_rules(FlagLevels.DESTINATION)
-    flags = flagging_rules.filter(matching_value__iexact=party.country.id).values_list("flag_id")
+    flags = flagging_rules.filter(matching_value=party.country.id).values_list("flag_id")
     party.flags.add(flags)
     party.flags.save()
 
