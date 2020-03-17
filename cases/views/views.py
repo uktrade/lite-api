@@ -639,7 +639,19 @@ class AssignedQueues(ListAPIView):
     def put(self, request, pk):
         queues = request.data.get("queues")
         if queues:
-            total = CaseAssignment.objects.filter(users=self.request.user, case__id=pk, queue__id__in=queues).delete()
-            return JsonResponse(data={"queues_removed": total}, status=status.HTTP_200_OK)
+            queue_names = []
+            assignments = CaseAssignment.objects.filter(users=self.request.user, case__id=pk, queue__id__in=queues)
+
+            if assignments:
+                queue_names = sorted([assignment.queue.name for assignment in assignments])
+                assignments.delete()
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UNASSIGNED_QUEUES,
+                    target=get_case(pk),
+                    payload={"queues": queue_names},
+                )
+
+            return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
         else:
             return JsonResponse(data={"errors": {"queues": ["No queues selected"]}}, status=status.HTTP_400_BAD_REQUEST)
