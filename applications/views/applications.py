@@ -160,11 +160,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         data = request.data.copy()
         serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
-        # Prevent minor edits of the end use details
-        end_use_details_error = edit_end_use_details(application, request)
-        if end_use_details_error:
-            return end_use_details_error
-
         # Prevent minor edits of the goods categories
         if not application.is_major_editable() and request.data.get("goods_categories"):
             return JsonResponse(
@@ -228,12 +223,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 )
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            save_and_audit_end_use_details(request, application, serializer)
-        elif application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            is_updated = save_and_audit_end_use_details(request, application, serializer)
-            if not is_updated:
-                save_and_audit_have_you_been_informed_ref(request, application, serializer)
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            save_and_audit_have_you_been_informed_ref(request, application, serializer)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
