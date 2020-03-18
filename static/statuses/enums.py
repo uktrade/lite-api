@@ -82,6 +82,7 @@ class CaseStatusEnum:
     ]
 
     priority = {
+        DRAFT: 0,
         SUBMITTED: 1,
         APPLICANT_EDITING: 2,
         RESUBMITTED: 3,

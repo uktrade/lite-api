@@ -1,3 +1,6 @@
+from parameterized import parameterized
+
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from workflow.user_queue_assignment import user_queue_assignment_workflow, get_next_non_terminal_status
@@ -63,16 +66,31 @@ class UserQueueAssignmentTests(DataTestClient):
         self.assertEqual(self.case.queues.first(), self.queue)
         self.assertNotEqual(self.case.status, self.new_status)
 
-    def test_change_next_status_ignores_terminal_states(self):
-        """
-        Workflow shouldn't be able to move cases to terminal states
-        """
+
+class NextStatusTests(DataTestClient):
+    def test_next_status_ignores_terminal_states(self):
         # status before a terminal state
-        status = CaseStatus.objects.get(status="under_final_review")
-        self.case.status = status
-        self.case.save()
+        result = get_next_non_terminal_status(CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW))
+        self.assertIsNone(result)
 
-        user_queue_assignment_workflow([self.queue], self.case)
+    def test_next_status_ignores_draft(self):
+        result = get_next_non_terminal_status(CaseStatus.objects.get(status=CaseStatusEnum.DRAFT))
+        self.assertIsNone(result)
 
-        self.case.refresh_from_db()
-        self.assertEqual(self.case.status, status)
+    def test_next_status_ignores_finalised_onwards(self):
+        result = get_next_non_terminal_status(CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
+        self.assertIsNone(result)
+
+    @parameterized.expand(
+        [
+            [CaseStatusEnum.SUBMITTED, CaseStatusEnum.INITIAL_CHECKS],
+            [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.INITIAL_CHECKS],
+            [CaseStatusEnum.RESUBMITTED, CaseStatusEnum.INITIAL_CHECKS],
+            [CaseStatusEnum.INITIAL_CHECKS, CaseStatusEnum.UNDER_REVIEW],
+            [CaseStatusEnum.UNDER_REVIEW, CaseStatusEnum.UNDER_FINAL_REVIEW],
+        ]
+    )
+    def test_next_status_increments(self, old_status, new_status):
+        result = get_next_non_terminal_status(CaseStatus.objects.get(status=old_status))
+        self.assertEqual(result.status, new_status)
+
