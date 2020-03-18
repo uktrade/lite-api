@@ -632,7 +632,7 @@ class AssignedQueues(APIView):
 
     def get(self, request, pk):
         # Get all queues where this user is assigned to this case
-        assignments = CaseAssignment.objects.filter(users=self.request.user, case__id=self.kwargs["pk"])
+        assignments = CaseAssignment.objects.filter(users=self.request.user, case__id=pk)
         # TODO figure out how to do this the django way
         queues = [assignment.queue for assignment in assignments]
         serializer = TinyQueueSerializer(queues, many=True)
