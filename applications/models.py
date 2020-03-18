@@ -154,6 +154,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
     is_eu_military = models.BooleanField(blank=True, default=None, null=True)
     is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
     compliant_limitations_eu_ref = models.TextField(default=None, blank=True, null=True, max_length=2200)
+    is_agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
 
     objects = BaseApplicationManager()
 
