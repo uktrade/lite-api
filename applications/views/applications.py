@@ -346,6 +346,7 @@ class ApplicationManageStatus(APIView):
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
+        old_status = application.status
 
         serializer = get_application_update_serializer(application)
         serializer = serializer(application, data=data, partial=True)
@@ -353,7 +354,10 @@ class ApplicationManageStatus(APIView):
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
+        application = serializer.save()
+
+        if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(application.status.status):
+            apply_flagging_rules_to_case(application)
 
         audit_trail_service.create(
             actor=request.user,

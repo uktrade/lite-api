@@ -254,8 +254,13 @@ class GoodQueryManageStatus(APIView):
                 data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
             )
 
+        old_status = query.status
+
         query.status = get_case_status_by_status(new_status)
         query.save()
+
+        if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(query.status.status):
+            apply_flagging_rules_to_case(query)
 
         audit_trail_service.create(
             actor=request.user,
