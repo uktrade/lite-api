@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from audit_trail.models import Audit
+from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -502,6 +503,47 @@ class EditOpenApplicationTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
 
         application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(
+            response.json()["errors"]["intended_end_use"],
+            [strings.Applications.Generic.EndUseDetails.Error.INTENDED_END_USE],
+        )
+
+
+class EditF680ApplicationTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.application = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
+        self.url = reverse("applications:end_use_details", kwargs={"pk": self.application.id})
+
+    def test_edit_f680_application_end_use_details_intended_end_use(self):
+        self.application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        self.application.save()
+
+        data = {
+            "intended_end_use": "this is the intended end use",
+        }
+
+        response = self.client.put(self.url, data, **self.exporter_headers)
+
+        self.application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.application.intended_end_use, data["intended_end_use"])
+        self.assertEqual(Audit.objects.all().count(), 1)
+
+    def test_edit_f680_application_end_use_details_intended_end_use_is_empty_failure(self):
+        self.submit_application(self.application)
+        self.application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        self.application.save()
+
+        data = {
+            "intended_end_use": "",
+        }
+
+        response = self.client.put(self.url, data, **self.exporter_headers)
+
+        self.application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(

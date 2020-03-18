@@ -602,6 +602,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
             self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
+            application.intended_end_use = "intended end use here"
+            application.save()
         else:
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)

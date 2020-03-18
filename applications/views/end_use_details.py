@@ -2,8 +2,8 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.generics import UpdateAPIView
 
+from applications.helpers import get_application_end_use_details_update_serializer
 from applications.libraries.edit_applications import edit_end_use_details, save_and_audit_end_use_details
-from applications.serializers.end_use_details import EndUseDetailsUpdateSerializer
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, application_in_editable_state
 from users.models import ExporterUser
@@ -20,9 +20,8 @@ class EndUseDetails(UpdateAPIView):
         if end_use_details_error:
             return end_use_details_error
 
-        serializer = EndUseDetailsUpdateSerializer(
-            application, data=request.data, application_type=application.case_type.sub_type, partial=True
-        )
+        serializer = get_application_end_use_details_update_serializer(application)
+        serializer = serializer(application, data=request.data, partial=True)
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
