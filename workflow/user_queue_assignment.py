@@ -11,7 +11,6 @@ def get_queues_with_case_assignments(case: Case):
 def get_next_non_terminal_status(status: CaseStatus):
     if status.workflow_sequence:
         next_status_id = status.workflow_sequence + 1
-
         try:
             return CaseStatus.objects.get(workflow_sequence=next_status_id, is_terminal=False)
         except CaseStatus.DoesNotExist:
