@@ -20,19 +20,12 @@ END_USE_FIELDS = {
 }
 
 
-def edit_end_use_details(application, request):
-    if not application.is_major_editable():
-        for field in END_USE_FIELDS.keys():
-            response_error = end_use_helper(request, field)
-            if response_error:
-                return response_error
-
-
-def end_use_helper(request, field):
-    if field in request.data:
-        return JsonResponse(
-            data={"errors": {field: [strings.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}}, status=status.HTTP_400_BAD_REQUEST,
-        )
+def get_end_use_details_minor_edit_errors(request):
+    return {
+        end_use_field: [strings.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]
+        for end_use_field in END_USE_FIELDS.keys()
+        if end_use_field in request.data.keys()
+    }
 
 
 def get_old_end_use_details_fields(application):
