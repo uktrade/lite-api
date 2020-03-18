@@ -47,6 +47,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "is_eu_military",
                 "is_compliant_limitations_eu",
                 "compliant_limitations_eu_ref",
+                "intended_end_use",
             )
         )
 

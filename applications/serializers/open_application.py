@@ -31,6 +31,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "informed_wmd_ref",
             "is_suspected_wmd",
             "suspected_wmd_ref",
+            "intended_end_use",
         )
 
     def get_goods_types(self, application):
