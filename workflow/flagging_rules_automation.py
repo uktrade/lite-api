@@ -43,8 +43,6 @@ def apply_destination_rules_for_case(case):
     for party in parties:
         apply_destination_rule_on_party(party, flagging_rules)
 
-    # CountryOnApplication ?
-
 
 def apply_destination_rule_on_party(party: Party, flagging_rules=None):
     if not flagging_rules:
