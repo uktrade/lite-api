@@ -52,7 +52,7 @@ class EditStandardApplicationTests(DataTestClient):
             [{"key": "suspected_wmd", "value": True, "reference_number": ""}],
         ]
     )
-    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_empty(self, attributes):
+    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_is_empty(self, attributes):
         application = self.create_draft_standard_application(self.organisation)
         url = reverse("applications:end_use_details", kwargs={"pk": application.id})
 
@@ -84,7 +84,7 @@ class EditStandardApplicationTests(DataTestClient):
             [{"key": "suspected_wmd", "value": True}],
         ]
     )
-    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_is_none(self, attributes):
+    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_ref_is_missing(self, attributes):
         application = self.create_draft_standard_application(self.organisation)
         url = reverse("applications:end_use_details", kwargs={"pk": application.id})
 
@@ -132,7 +132,7 @@ class EditStandardApplicationTests(DataTestClient):
             ],
         ]
     )
-    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_field_is_none(self, attributes):
+    def test_edit_unsubmitted_standard_application_end_use_details_mandatory_field_is_empty(self, attributes):
         application = self.create_draft_standard_application(self.organisation)
         url = reverse("applications:end_use_details", kwargs={"pk": application.id})
 
@@ -182,9 +182,9 @@ class EditStandardApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "is_military_end_use_controls", "value": True}],
-            [{"key": "is_informed_wmd", "value": True}],
-            [{"key": "is_suspected_wmd", "value": True}],
+            [{"key": "is_military_end_use_controls", "value": True, "reference_number": "hadd"}],
+            [{"key": "is_informed_wmd", "value": True, "reference_number": "kjjdnsk"}],
+            [{"key": "is_suspected_wmd", "value": True, "reference_number": "kjndskhjds"}],
         ]
     )
     def test_edit_submitted_standard_application_end_use_details_not_major_editable(self, attributes):
@@ -225,7 +225,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(application.compliant_limitations_eu_ref, data["compliant_limitations_eu_ref"])
         self.assertEqual(Audit.objects.all().count(), 2)
 
-    def test_edit_standard_application_end_use_details_is_compliant_limitations_eu_missing(self):
+    def test_edit_standard_application_end_use_details_is_compliant_limitations_eu_is_empty(self):
         application = self.create_draft_standard_application(self.organisation)
         application.is_eu_military = True
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
@@ -244,6 +244,41 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(
             response.json()["errors"]["is_compliant_limitations_eu"],
             [strings.Applications.Generic.EndUseDetails.Error.COMPLIANT_LIMITATIONS_EU],
+        )
+
+    def test_edit_standard_application_end_use_details_intended_end_use(self):
+        application = self.create_draft_standard_application(self.organisation)
+        application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        application.save()
+        url = reverse("applications:end_use_details", kwargs={"pk": application.id})
+        data = {
+            "intended_end_use": "this is the intended end use",
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.intended_end_use, data["intended_end_use"])
+        self.assertEqual(Audit.objects.all().count(), 1)
+
+    def test_edit_standard_application_end_use_details_intended_end_use_is_empty(self):
+        application = self.create_draft_standard_application(self.organisation)
+        application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        application.save()
+        url = reverse("applications:end_use_details", kwargs={"pk": application.id})
+        data = {
+            "intended_end_use": "",
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(
+            response.json()["errors"]["intended_end_use"],
+            [strings.Applications.Generic.EndUseDetails.Error.INTENDED_END_USE],
         )
 
 
@@ -290,7 +325,7 @@ class EditOpenApplicationTests(DataTestClient):
             [{"key": "suspected_wmd", "value": True, "reference_number": ""}],
         ]
     )
-    def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_empty(self, attributes):
+    def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_is_empty(self, attributes):
         key = "is_" + attributes["key"]
         old_attribute = getattr(self.application, key)
         value = attributes["value"]
@@ -319,8 +354,7 @@ class EditOpenApplicationTests(DataTestClient):
             [{"key": "suspected_wmd", "value": True}],
         ]
     )
-    def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_is_none(self, attributes):
-        attributes = {"key": "suspected_wmd", "value": True}
+    def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_is_missing(self, attributes):
         key = "is_" + attributes["key"]
         old_attribute = getattr(self.application, key)
         value = attributes["value"]
@@ -365,7 +399,7 @@ class EditOpenApplicationTests(DataTestClient):
             ],
         ]
     )
-    def test_edit_unsubmitted_open_application_end_use_details_mandatory_field_is_none(self, attributes):
+    def test_edit_unsubmitted_open_application_end_use_details_mandatory_field_is_empty(self, attributes):
         key = "is_" + attributes["key"]
         old_attribute = getattr(self.application, key)
         value = attributes["value"]
@@ -381,15 +415,14 @@ class EditOpenApplicationTests(DataTestClient):
         attribute = getattr(self.application, key)
         self.assertEqual(attribute, old_attribute)
 
-    # @parameterized.expand(
-    #     [
-    #         [{"key": "military_end_use_controls", "value": True, "reference_number": "hadd"}],
-    #         [{"key": "informed_wmd", "value": True, "reference_number": "kjjdnsk"}],
-    #         [{"key": "suspected_wmd", "value": True, "reference_number": "kjndskhjds"}],
-    #     ]
-    # )
-    def test_edit_submitted_open_application_end_use_details_major_editable(self):
-        attributes = {"key": "suspected_wmd", "value": True, "reference_number": "kjndskhjds"}
+    @parameterized.expand(
+        [
+            [{"key": "military_end_use_controls", "value": True, "reference_number": "hadd"}],
+            [{"key": "informed_wmd", "value": True, "reference_number": "kjjdnsk"}],
+            [{"key": "suspected_wmd", "value": True, "reference_number": "kjndskhjds"}],
+        ]
+    )
+    def test_edit_submitted_open_application_end_use_details_major_editable(self, attributes):
         application = self.create_draft_open_application(self.organisation)
         self.submit_application(application)
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
@@ -414,9 +447,9 @@ class EditOpenApplicationTests(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "is_military_end_use_controls", "value": True}],
-            [{"key": "is_informed_wmd", "value": True}],
-            [{"key": "is_suspected_wmd", "value": True}],
+            [{"key": "is_military_end_use_controls", "value": True, "reference_number": "hadd"}],
+            [{"key": "is_informed_wmd", "value": True, "reference_number": "kjjdnsk"}],
+            [{"key": "is_suspected_wmd", "value": True, "reference_number": "kjndskhjds"}],
         ]
     )
     def test_edit_submitted_open_application_end_use_details_not_major_editable(self, attributes):
@@ -438,3 +471,40 @@ class EditOpenApplicationTests(DataTestClient):
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
+
+    def test_edit_open_application_end_use_details_intended_end_use(self):
+        application = self.create_draft_open_application(self.organisation)
+        self.submit_application(application)
+        application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        application.save()
+        url = reverse("applications:end_use_details", kwargs={"pk": application.id})
+        data = {
+            "intended_end_use": "this is the intended end use",
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(application.intended_end_use, data["intended_end_use"])
+        self.assertEqual(Audit.objects.all().count(), 1)
+
+    def test_edit_open_application_end_use_details_intended_end_use_is_empty(self):
+        application = self.create_draft_open_application(self.organisation)
+        self.submit_application(application)
+        application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        application.save()
+        url = reverse("applications:end_use_details", kwargs={"pk": application.id})
+        data = {
+            "intended_end_use": "",
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        application.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(
+            response.json()["errors"]["intended_end_use"],
+            [strings.Applications.Generic.EndUseDetails.Error.INTENDED_END_USE],
+        )

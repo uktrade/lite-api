@@ -16,6 +16,7 @@ END_USE_FIELDS = {
     "is_eu_military": strings.Generic.EndUseDetails.Audit.EU_MILITARY_TITLE,
     "is_compliant_limitations_eu": strings.Generic.EndUseDetails.Audit.COMPLIANT_LIMITATIONS_EU_TITLE,
     "compliant_limitations_eu_ref": strings.Generic.EndUseDetails.Audit.COMPLIANT_LIMITATIONS_EU_REF,
+    "intended_end_use": strings.Generic.EndUseDetails.Audit.INTENDED_END_USE_TITLE,
 }
 
 
@@ -74,14 +75,13 @@ def _transform_values(old_end_use_value, new_end_use_value):
 
 
 def save_and_audit_end_use_details(request, application, serializer):
-    old_end_use_details_fields = get_old_end_use_details_fields(application)
     new_end_use_details_fields = get_new_end_use_details_fields(serializer.validated_data)
     if new_end_use_details_fields:
+        old_end_use_details_fields = get_old_end_use_details_fields(application)
         serializer.save()
         audit_end_use_details(
             request.user, application.get_case(), old_end_use_details_fields, new_end_use_details_fields
         )
-        return True
 
 
 def save_and_audit_have_you_been_informed_ref(request, application, serializer):
@@ -117,4 +117,3 @@ def save_and_audit_have_you_been_informed_ref(request, application, serializer):
                     target=application.get_case(),
                     payload={"new_ref_number": new_ref_number},
                 )
-        return True

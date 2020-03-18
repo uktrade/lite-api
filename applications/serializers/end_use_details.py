@@ -46,7 +46,7 @@ class EndUseDetailsUpdateSerializer(serializers.ModelSerializer):
         self._validate_linked_fields(data, "informed_wmd", strings.Generic.EndUseDetails.Error.INFORMED_WMD)
         self._validate_linked_fields(data, "suspected_wmd", strings.Generic.EndUseDetails.Error.SUSPECTED_WMD)
 
-        self._validate_field(data, "intended_end_use", "error")
+        self._validate_field(data, "intended_end_use", strings.Generic.EndUseDetails.Error.INTENDED_END_USE)
 
         if self.application_type == CaseTypeSubTypeEnum.STANDARD:
             self._validate_field(data, "is_eu_military", strings.Generic.EndUseDetails.Error.EU_MILITARY)
