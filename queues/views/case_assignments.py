@@ -55,5 +55,8 @@ class CaseAssignments(views.APIView):
             case_assignment.users.set(users)
             case_assignment.save()
 
+            # Add to queue
+            case.queues.add(queue)
+
         # Return the newly set case assignments
         return self.get(request, pk)
