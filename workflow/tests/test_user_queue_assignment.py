@@ -68,26 +68,19 @@ class UserQueueAssignmentTests(DataTestClient):
 
 
 class NextStatusTests(DataTestClient):
-    def test_next_status_ignores_terminal_states(self):
-        # status before a terminal state
-        result = get_next_non_terminal_status(CaseStatus.objects.get(status=CaseStatusEnum.UNDER_FINAL_REVIEW))
-        self.assertIsNone(result)
-
-    def test_next_status_ignores_draft(self):
+    def test_next_status_ignores_non_applicable_states(self):
         result = get_next_non_terminal_status(CaseStatus.objects.get(status=CaseStatusEnum.DRAFT))
-        self.assertIsNone(result)
-
-    def test_next_status_ignores_finalised_onwards(self):
-        result = get_next_non_terminal_status(CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         self.assertIsNone(result)
 
     @parameterized.expand(
         [
             [CaseStatusEnum.SUBMITTED, CaseStatusEnum.INITIAL_CHECKS],
-            [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.INITIAL_CHECKS],
             [CaseStatusEnum.RESUBMITTED, CaseStatusEnum.INITIAL_CHECKS],
             [CaseStatusEnum.INITIAL_CHECKS, CaseStatusEnum.UNDER_REVIEW],
             [CaseStatusEnum.UNDER_REVIEW, CaseStatusEnum.UNDER_FINAL_REVIEW],
+            [CaseStatusEnum.REOPENED_FOR_CHANGES, CaseStatusEnum.CHANGE_INTIAL_REVIEW],
+            [CaseStatusEnum.CHANGE_INTIAL_REVIEW, CaseStatusEnum.CHANGE_UNDER_REVIEW],
+            [CaseStatusEnum.CHANGE_UNDER_REVIEW, CaseStatusEnum.CHANGE_UNDER_FINAL_REVIEW],
         ]
     )
     def test_next_status_increments(self, old_status, new_status):
