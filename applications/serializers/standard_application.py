@@ -82,7 +82,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         fields = GenericApplicationUpdateSerializer.Meta.fields + (
             "have_you_been_informed",
             "reference_number_on_information_form",
-            "goods_categories"
+            "goods_categories",
         )
 
     def update(self, instance, validated_data):

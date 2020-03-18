@@ -84,7 +84,7 @@ class EndUseDetailsUpdateSerializer(serializers.ModelSerializer):
         if is_field_present:
             field_value = data.get(field_name)
 
-            # Raise an error if the field's value is falsy (but not False)
+            # Raise an error if the field_value is falsy but not False (boolean fields may have a field_value of False)
             if not field_value and field_value is not False:
                 raise serializers.ValidationError({field_name: error})
 
