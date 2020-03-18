@@ -67,7 +67,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, {"errors": {"sub_type": [PartyErrors.NULL_TYPE]}})
+        self.assertEqual(response_data, {"errors": {"sub_type": [PartyErrors.SUB_TYPE["required"]]}})
 
     def test_get_ultimate_end_users(self):
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
@@ -266,7 +266,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(original_party_count, self.draft.ultimate_end_users.count())
-        self.assertEqual(response.json(), {"errors": {"name": [PartyErrors.NULL_NAME]}})
+        self.assertEqual(response.json(), {"errors": {"name": [PartyErrors.NAME["null"]]}})
 
     def test_ultimate_end_user_copy_of_success(self):
         ultimate_end_user = {
