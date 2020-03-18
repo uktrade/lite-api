@@ -633,3 +633,10 @@ class AdditionalContacts(ListCreateAPIView):
 
     def get_serializer_context(self):
         return {"organisation_pk": get_case(self.kwargs["pk"]).organisation.id}
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        audit_trail_service.create(
+            actor=self.request.user, verb=AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE,
+            target=get_case(self.kwargs["pk"]), payload={"contact": serializer.data["name"]}
+        )
