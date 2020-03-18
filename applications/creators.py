@@ -1,3 +1,4 @@
+from applications.libraries.questions.serializers import F680JsonSerializer
 from lite_content.lite_api import strings
 from applications.models import (
     CountryOnApplication,
@@ -158,6 +159,22 @@ def _validate_end_use_details(draft, errors, application_type):
     return errors
 
 
+def _validate_questions(draft, errors):
+    serializer = F680JsonSerializer(data=draft.questions)
+    if not serializer.is_valid():
+        errors.update(serializer.errors)
+
+    required_fields_for_submission = [
+        "expedited", "foreign_technology", "locally_manufactured", "mtcr_type", "electronic_warfare_requirement",
+        "uk_service_equipment", "value"
+    ]
+
+    if any([serializer.validated_data.get(field) is None for field in required_fields_for_submission]):
+        errors["questions"] = "Questions must be completed"
+
+    return errors
+
+
 def _validate_third_parties(draft, errors, is_mandatory):
     """ Checks all third parties have documents if is_mandatory is True """
 
@@ -247,6 +264,7 @@ def _validate_f680_clearance(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
+    errors = _validate_questions(draft, errors)
 
     if not draft.end_user and not draft.third_parties.exists():
         errors["party"] = strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY

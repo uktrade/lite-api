@@ -30,7 +30,7 @@ def update(application_type: CaseTypeSubTypeEnum, old_questions: Dict, new_quest
 
 
 def serialize(application_type: CaseTypeSubTypeEnum, questions: Dict):
-    serializer = SERIALIZERS[application_type](data=questions)
+    serializer = SERIALIZERS[application_type](data=questions, partial=True)
     if not serializer.is_valid():
         raise QuestionsError("Invalid questions", errors=serializer.errors)
     return serializer.to_representation(serializer.validated_data)
