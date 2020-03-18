@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -60,6 +62,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
+from workflow.user_queue_assignment import user_queue_assignment_workflow
 
 
 class CaseDetail(APIView):
@@ -642,11 +645,13 @@ class AssignedQueues(APIView):
         queues = request.data.get("queues")
         if queues:
             queue_names = []
-            assignments = CaseAssignment.objects.filter(users=self.request.user, case__id=pk, queue__id__in=queues)
+            assignments = CaseAssignment.objects.filter(users=request.user, case__id=pk, queue__id__in=queues)
 
             if assignments:
-                queue_names = sorted([assignment.queue.name for assignment in assignments])
+                queues = [assignment.queue for assignment in assignments]
+                queue_names = sorted([queue.name for queue in queues])
                 assignments.delete()
+                user_queue_assignment_workflow(queues, get_case(pk))
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UNASSIGNED_QUEUES,
