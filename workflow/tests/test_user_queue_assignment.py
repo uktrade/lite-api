@@ -93,4 +93,3 @@ class NextStatusTests(DataTestClient):
     def test_next_status_increments(self, old_status, new_status):
         result = get_next_non_terminal_status(CaseStatus.objects.get(status=old_status))
         self.assertEqual(result.status, new_status)
-
