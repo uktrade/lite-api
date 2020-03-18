@@ -152,6 +152,7 @@ class GoodQueryCLCResponse(APIView):
 
                     query.good.flags.clear()
                     query.good.save()
+                    apply_flagging_rules_to_case(query)
 
                 audit_trail_service.create(
                     actor=request.user, verb=AuditType.CLC_RESPONSE, action_object=query.good, target=query.get_case(),

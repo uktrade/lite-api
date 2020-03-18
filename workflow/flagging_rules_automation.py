@@ -33,7 +33,13 @@ def apply_case_rules(case):
 def apply_destination_rules_for_case(case):
     flagging_rules = active_flagging_rules(FlagLevels.DESTINATION)
 
-    parties = Party.objects.filter(id__in=PartyOnApplication.objects.filter(application_id=case.id).values("party_id"))
+    if case.case_type.id == CaseTypeEnum.EUA.id:
+        parties = [case.end_user]
+    else:
+        parties = Party.objects.filter(
+            id__in=PartyOnApplication.objects.filter(application_id=case.id).values("party_id")
+        )
+
     for party in parties:
         apply_destination_rule_on_party(party, flagging_rules)
 
@@ -51,9 +57,9 @@ def apply_destination_rule_on_party(party: Party, flagging_rules=None):
 
 def apply_good_flagging_rules_for_case(case):
     flagging_rules = active_flagging_rules(FlagLevels.GOOD)
-    if case.case_type == CaseTypeEnum.GOODS:
+    if case.case_type.id == CaseTypeEnum.GOODS.id:
         goods = [case.good]
-    elif case.case_type in [CaseTypeEnum.OICL, CaseTypeEnum.OGEL, CaseTypeEnum.OIEL, CaseTypeEnum.HMRC]:
+    elif case.case_type_id in [CaseTypeEnum.OICL.id, CaseTypeEnum.OGEL.id, CaseTypeEnum.OIEL.id, CaseTypeEnum.HMRC.id]:
         goods = GoodsType.objects.filter(application_id=case.id)
     else:
         goods = (
