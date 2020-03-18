@@ -5,7 +5,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import PartyOnApplication
-from lite_content.lite_api.strings import Parties
+from lite_content.lite_api.strings import PartyErrors
 from parties.enums import PartyType
 from parties.models import Party
 from parties.models import PartyDocument
@@ -397,7 +397,7 @@ class EndUserOnDraftTests(DataTestClient):
         response = self.client.post(self.url, end_user, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"name": [Parties.NULL_NAME]}})
+        self.assertEqual(response.json(), {"errors": {"name": [PartyErrors.NULL_NAME]}})
 
     def test_end_user_copy_of_success(self):
         end_user = {

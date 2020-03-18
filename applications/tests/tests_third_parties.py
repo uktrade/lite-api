@@ -6,7 +6,7 @@ from rest_framework import status
 
 from applications.models import PartyOnApplication
 from audit_trail.models import Audit
-from lite_content.lite_api.strings import Parties
+from lite_content.lite_api.strings import PartyErrors
 from parties.enums import PartyType
 from parties.models import Party, PartyDocument
 from test_helpers.clients import DataTestClient
@@ -82,11 +82,11 @@ class ThirdPartiesOnDraft(DataTestClient):
                 {},
                 {
                     "errors": {
-                        "name": [Parties.NULL_NAME],
-                        "address": [Parties.NULL_ADDRESS],
-                        "country": [Parties.NULL_COUNTRY],
-                        "sub_type": [Parties.NULL_SUB_TYPE],
-                        "type": [Parties.NULL_TYPE],
+                        "name": [PartyErrors.NULL_NAME],
+                        "address": [PartyErrors.NULL_ADDRESS],
+                        "country": [PartyErrors.NULL_COUNTRY],
+                        "sub_type": [PartyErrors.NULL_SUB_TYPE],
+                        "type": [PartyErrors.NULL_TYPE],
                     }
                 },
             ],
@@ -98,7 +98,7 @@ class ThirdPartiesOnDraft(DataTestClient):
                     "website": "https://www.gov.uk",
                     "type": PartyType.THIRD_PARTY,
                 },
-                {"errors": {"sub_type": [Parties.NULL_TYPE], "role": [Parties.ThirdParty.NULL_ROLE]}},
+                {"errors": {"sub_type": [PartyErrors.NULL_TYPE], "role": [PartyErrors.ThirdParty.NULL_ROLE]}},
             ],
         ]
     )
@@ -305,7 +305,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(original_party_count, self.draft.third_parties.count())
-        self.assertEqual(response.json(), {"errors": {"role": [Parties.ThirdParty.NULL_ROLE]}})
+        self.assertEqual(response.json(), {"errors": {"role": [PartyErrors.ThirdParty.NULL_ROLE]}})
 
     def test_third_party_copy_of_success(self):
         third_party = {

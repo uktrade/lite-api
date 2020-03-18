@@ -19,7 +19,7 @@ from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
 
-from lite_content.lite_api.strings import Parties
+from lite_content.lite_api.strings import PartyErrors
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
 from parties.models import Party
@@ -41,7 +41,7 @@ class ApplicationPartyMixin:
     def add_party(self, party):
 
         if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
-            raise ApplicationException({"bad_request": Parties.BAD_CASE_TYPE})
+            raise ApplicationException({"bad_request": PartyErrors.BAD_CASE_TYPE})
 
         old_poa = None
 
@@ -57,7 +57,7 @@ class ApplicationPartyMixin:
         elif party.type == PartyType.THIRD_PARTY:
             # Rule: Append
             if not party.role:
-                raise ApplicationException({"required": Parties.ThirdParty.NULL_ROLE})
+                raise ApplicationException({"required": PartyErrors.ROLE["null"]})
 
         poa = PartyOnApplication.objects.create(application=self, party=party)
 

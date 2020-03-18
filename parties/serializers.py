@@ -6,7 +6,7 @@ from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from documents.libraries.process_document import process_document
 from flags.serializers import FlagSerializer
 from goods.enums import PvGrading
-from lite_content.lite_api.strings import Parties
+from lite_content.lite_api.strings import PartyErrors
 from organisations.models import Organisation
 from parties.enums import PartyType, SubType, PartyRole
 from parties.models import Party
@@ -14,17 +14,15 @@ from parties.models import PartyDocument
 
 
 class PartySerializer(serializers.ModelSerializer):
-    name = serializers.CharField(error_messages={"required": Parties.NULL_NAME})
-    address = serializers.CharField(error_messages={"required": Parties.NULL_ADDRESS})
-    country = CountrySerializerField(error_messages={"required": Parties.NULL_COUNTRY})
+    name = serializers.CharField(error_messages=PartyErrors.NAME)
+    address = serializers.CharField(error_messages=PartyErrors.ADDRESS)
+    country = CountrySerializerField()
     website = serializers.CharField(required=False, allow_blank=True)
-    type = serializers.ChoiceField(choices=PartyType.choices, error_messages={"required": Parties.NULL_TYPE})
+    type = serializers.ChoiceField(choices=PartyType.choices, error_messages=PartyErrors.TYPE)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
-    sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages={"required": Parties.NULL_SUB_TYPE})
-    role = KeyValueChoiceField(
-        choices=PartyRole.choices, error_messages={"required": Parties.ThirdParty.NULL_ROLE}, required=False
-    )
+    sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages=PartyErrors.SUB_TYPE)
+    role = KeyValueChoiceField(choices=PartyRole.choices, error_messages=PartyErrors.ROLE, required=False)
     flags = FlagSerializer(many=True, required=False)
     clearance_level = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, required=False, allow_blank=True)
     descriptors = serializers.CharField(allow_null=True, required=False, allow_blank=True)
@@ -118,9 +116,12 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
 
 
 class AdditionalContactSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(error_messages={"required": Parties.NULL_NAME})
-    address = serializers.CharField(error_messages={"required": Parties.NULL_ADDRESS})
-    country = CountrySerializerField(error_messages={"required": Parties.NULL_COUNTRY})
+    name = serializers.CharField(error_messages=PartyErrors.NAME)
+    email = serializers.EmailField(error_messages=PartyErrors.EMAIL)
+    phone_number = serializers.CharField(error_messages=PartyErrors.PHONE_NUMBER)
+    details = serializers.CharField(error_messages=PartyErrors.DETAILS)
+    address = serializers.CharField(error_messages=PartyErrors.ADDRESS)
+    country = CountrySerializerField()
     type = KeyValueChoiceField(choices=PartyType.choices, required=True)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
