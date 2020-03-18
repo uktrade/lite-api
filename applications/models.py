@@ -155,6 +155,8 @@ class BaseApplication(ApplicationPartyMixin, Case):
     is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
     compliant_limitations_eu_ref = models.TextField(default=None, blank=True, null=True, max_length=2200)
 
+    intended_end_use = models.TextField(default=None, blank=True, null=True, max_length=2200)
+
     objects = BaseApplicationManager()
 
     class Meta:

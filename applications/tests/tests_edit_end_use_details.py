@@ -320,6 +320,7 @@ class EditOpenApplicationTests(DataTestClient):
         ]
     )
     def test_edit_unsubmitted_open_application_end_use_details_mandatory_ref_is_none(self, attributes):
+        attributes = {"key": "suspected_wmd", "value": True}
         key = "is_" + attributes["key"]
         old_attribute = getattr(self.application, key)
         value = attributes["value"]
@@ -380,14 +381,15 @@ class EditOpenApplicationTests(DataTestClient):
         attribute = getattr(self.application, key)
         self.assertEqual(attribute, old_attribute)
 
-    @parameterized.expand(
-        [
-            [{"key": "military_end_use_controls", "value": True, "reference_number": "hadd"}],
-            [{"key": "informed_wmd", "value": True, "reference_number": "kjjdnsk"}],
-            [{"key": "suspected_wmd", "value": True, "reference_number": "kjndskhjds"}],
-        ]
-    )
-    def test_edit_submitted_open_application_end_use_details_major_editable(self, attributes):
+    # @parameterized.expand(
+    #     [
+    #         [{"key": "military_end_use_controls", "value": True, "reference_number": "hadd"}],
+    #         [{"key": "informed_wmd", "value": True, "reference_number": "kjjdnsk"}],
+    #         [{"key": "suspected_wmd", "value": True, "reference_number": "kjndskhjds"}],
+    #     ]
+    # )
+    def test_edit_submitted_open_application_end_use_details_major_editable(self):
+        attributes = {"key": "suspected_wmd", "value": True, "reference_number": "kjndskhjds"}
         application = self.create_draft_open_application(self.organisation)
         self.submit_application(application)
         application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
