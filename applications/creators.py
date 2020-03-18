@@ -14,9 +14,9 @@ from parties.models import PartyDocument
 def _validate_locations(application, errors):
     """ Site & External location errors """
     if (
-        not SiteOnApplication.objects.filter(application=application).exists()
-        and not ExternalLocationOnApplication.objects.filter(application=application).exists()
-        and not getattr(application, "have_goods_departed", False)
+            not SiteOnApplication.objects.filter(application=application).exists()
+            and not ExternalLocationOnApplication.objects.filter(application=application).exists()
+            and not getattr(application, "have_goods_departed", False)
     ):
         errors["location"] = strings.Applications.Generic.NO_LOCATION_SET
 
@@ -128,7 +128,7 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
 
     if is_mandatory:
         ultimate_end_user_required = False
-        if next(filter(lambda x: x.is_good_incorporated, GoodOnApplication.objects.filter(application=draft),), None,):
+        if next(filter(lambda x: x.is_good_incorporated, GoodOnApplication.objects.filter(application=draft)), None):
             ultimate_end_user_required = True
 
         if ultimate_end_user_required:
@@ -152,7 +152,12 @@ def _validate_end_use_details(draft, errors, application_type):
         elif draft.is_eu_military and draft.is_compliant_limitations_eu is None:
             errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
 
-    if draft.is_military_end_use_controls is None or draft.is_informed_wmd is None or draft.is_suspected_wmd is None:
+    if (
+            draft.is_military_end_use_controls is None
+            or draft.is_informed_wmd is None
+            or draft.is_suspected_wmd is None
+            or not draft.intended_end_use
+    ):
         errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
 
     return errors

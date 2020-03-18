@@ -516,6 +516,7 @@ class ApplicationCopy(APIView):
             "is_eu_military",
             "is_compliant_limitations_eu",
             "compliant_limitations_eu_ref",
+            "intended_end_use"
         ]
         for attribute in set_none:
             setattr(self.new_application, attribute, None)

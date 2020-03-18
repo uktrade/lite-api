@@ -539,6 +539,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_suspected_wmd=False,
             is_eu_military=False,
             is_compliant_limitations_eu=None,
+            intended_end_use="intended end use is none of your business",
         )
 
         application.save()
@@ -684,6 +685,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_military_end_use_controls=False,
             is_informed_wmd=False,
             is_suspected_wmd=False,
+            intended_end_use="intended end use is none of your business",
         )
 
         application.save()

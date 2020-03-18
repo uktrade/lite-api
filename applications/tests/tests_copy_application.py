@@ -367,6 +367,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertIsNone(self.copied_application.is_eu_military)
         self.assertIsNone(self.copied_application.is_compliant_limitations_eu)
         self.assertIsNone(self.copied_application.compliant_limitations_eu_ref)
+        self.assertIsNone(self.copied_application.intended_end_use)
 
     def _validate_good_on_application(self):
         new_goods_on_app = self.copied_application.goods.all()
