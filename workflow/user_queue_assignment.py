@@ -3,8 +3,8 @@ from queues.models import Queue
 from static.statuses.models import CaseStatus
 
 
-def are_all_users_done_with_case_on_queue(case: Case, queue: Queue):
-    return not CaseAssignment.objects.filter(case=case, queue=queue).exists()
+def get_queues_with_case_assignments(case: Case):
+    return {assignment.queue for assignment in CaseAssignment.objects.filter(case=case).distinct("queue")}
 
 
 def get_next_non_terminal_status(status: CaseStatus):
@@ -17,10 +17,11 @@ def get_next_non_terminal_status(status: CaseStatus):
 
 
 def user_queue_assignment_workflow(queues: [Queue], case: Case):
-    for queue in queues:
-        if are_all_users_done_with_case_on_queue(case, queue):
-            case.queues.remove(queue)
+    # Remove case from queues where all gov users are done with the case
+    queues_without_case_assignments = set(queues) - get_queues_with_case_assignments(case)
+    case.queues.remove(*queues_without_case_assignments)
 
+    # Move case to next non-terminal state if unassigned from all queues
     if case.queues.count() == 0:
         next_status = get_next_non_terminal_status(case.status)
         if next_status:
