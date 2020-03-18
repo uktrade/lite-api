@@ -82,11 +82,10 @@ class ThirdPartiesOnDraft(DataTestClient):
                 {},
                 {
                     "errors": {
-                        "name": [PartyErrors.NULL_NAME],
-                        "address": [PartyErrors.NULL_ADDRESS],
-                        "country": [PartyErrors.NULL_COUNTRY],
-                        "sub_type": [PartyErrors.NULL_SUB_TYPE],
-                        "type": [PartyErrors.NULL_TYPE],
+                        "name": [PartyErrors.NAME["null"]],
+                        "address": [PartyErrors.ADDRESS["null"]],
+                        "sub_type": [PartyErrors.SUB_TYPE["null"]],
+                        "type": [PartyErrors.TYPE["null"]],
                     }
                 },
             ],
@@ -98,7 +97,7 @@ class ThirdPartiesOnDraft(DataTestClient):
                     "website": "https://www.gov.uk",
                     "type": PartyType.THIRD_PARTY,
                 },
-                {"errors": {"sub_type": [PartyErrors.NULL_TYPE], "role": [PartyErrors.ThirdParty.NULL_ROLE]}},
+                {"errors": {"sub_type": [PartyErrors.SUB_TYPE["null"]], "role": [PartyErrors.ROLE["null"]]}},
             ],
         ]
     )
