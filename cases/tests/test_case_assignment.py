@@ -3,6 +3,7 @@ from rest_framework import status
 
 from audit_trail.models import Audit
 from test_helpers.clients import DataTestClient
+from lite_content.lite_api.strings import Cases
 
 
 class CaseAssignmentTests(DataTestClient):
@@ -79,4 +80,4 @@ class CaseAssignmentTests(DataTestClient):
         response = self.client.put(self.url, **self.gov_headers, data={"queues": []})
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"queues": ["No queues selected"]}})
+        self.assertEqual(response.json(), {"errors": {"queues": [Cases.UnassignQueues.NO_QUEUES]}})

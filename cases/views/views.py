@@ -659,4 +659,4 @@ class AssignedQueues(APIView):
 
             return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
         else:
-            return JsonResponse(data={"errors": {"queues": ["No queues selected"]}}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={"errors": {"queues": [Cases.UnassignQueues.NO_QUEUES]}}, status=status.HTTP_400_BAD_REQUEST)
