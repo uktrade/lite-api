@@ -63,6 +63,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
+from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
 class ApplicationList(ListCreateAPIView):
@@ -278,6 +279,8 @@ class ApplicationSubmission(APIView):
         application.sla_days = 0
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
+
+        apply_flagging_rules_to_case(application)
 
         update_submitted_application_good_statuses_and_flags(application)
 

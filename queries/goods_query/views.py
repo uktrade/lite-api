@@ -27,6 +27,7 @@ from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
+from workflow.flagging_rules_automation import apply_goods_rules_for_good, apply_flagging_rules_to_case
 
 
 class GoodsQueriesCreate(APIView):
@@ -91,6 +92,8 @@ class GoodsQueriesCreate(APIView):
 
         good.save()
         goods_query.save()
+
+        apply_flagging_rules_to_case(goods_query)
 
         return JsonResponse(data={"id": goods_query.id}, status=status.HTTP_201_CREATED)
 
