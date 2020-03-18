@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0015_licence'),
+        ("applications", "0015_licence"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='baseapplication',
-            name='is_agreed_to_foi',
+            model_name="baseapplication",
+            name="is_agreed_to_foi",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
     ]
