@@ -14,6 +14,7 @@ from conf.authentication import ExporterAuthentication, ExporterOnlyAuthenticati
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.permissions import assert_user_has_permission
+from lite_content.lite_api.strings import Users
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
@@ -208,7 +209,7 @@ class AssignSites(UpdateAPIView):
 
         # If (after the PUT) the user isn't assigned to any sites, raise an error
         if not combined_sites:
-            raise serializers.ValidationError({"sites": ["Select at least one site to assign the user to"]})
+            raise serializers.ValidationError({"sites": [Users.SELECT_AT_LEAST_ONE_SITE_ERROR]})
 
         # Ensure user has access to the sites they're trying to assign the user to
         for site in sites:
