@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
