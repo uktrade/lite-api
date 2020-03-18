@@ -117,7 +117,8 @@ class OrganisationsDetail(generics.RetrieveAPIView):
 
         applications = BaseApplication.objects.filter(
             organisation=organisation, status=get_case_status_by_status(CaseStatusEnum.FINALISED)
-        ).update(status_id=reopened_due_to_org_changes_status)
+        )
+        applications.update(status_id=reopened_due_to_org_changes_status)
 
         for application in applications:
             apply_flagging_rules_to_case(application)
