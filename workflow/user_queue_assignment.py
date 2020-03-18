@@ -7,14 +7,13 @@ def are_all_users_done_with_case_on_queue(case: Case, queue: Queue):
     return not CaseAssignment.objects.filter(case=case, queue=queue).exists()
 
 
-def move_case_to_next_non_terminal_status(case: Case):
+def get_next_non_terminal_status(status: CaseStatus):
     # TODO Fix status ordering for automation
-    next_priority = case.status.priority + 1
-    status = CaseStatus.objects.filter(priority=next_priority, is_terminal=False)
-    if status:
-        new_status = status.first()
-        case.status = new_status
-        case.save()
+    next_priority = status.priority + 1
+    try:
+        return CaseStatus.objects.get(priority=next_priority, is_terminal=False)
+    except CaseStatus.DoesNotExist:
+        return None
 
 
 def user_queue_assignment_workflow(queues: [Queue], case: Case):
@@ -23,4 +22,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
             case.queues.remove(queue)
 
     if case.queues.count() == 0:
-        move_case_to_next_non_terminal_status(case)
+        next_status = get_next_non_terminal_status(case.status)
+        if next_status:
+            case.status = next_status
+            case.save()
