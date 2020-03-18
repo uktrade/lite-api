@@ -15,7 +15,7 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
 from static.statuses.enums import CaseStatusEnum
@@ -198,7 +198,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
     def test_copy_draft_F680_application_successful(self):
         """
-        Ensure we can copy an exhibition application that is a draft
+        Ensure we can copy an f680 application that is a draft
         """
         self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
 
@@ -218,7 +218,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
     def test_copy_submitted_F680_application_successful(self):
         """
-        Ensure we can copy an exhibition application that is submitted (ongoing or otherwise)
+        Ensure we can copy an f680 application that is submitted (ongoing or otherwise)
         """
         self.original_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
         self.submit_application(self.original_application)
@@ -332,6 +332,8 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self._validate_f680_clearance_types()
 
+        self._validate_end_use_details(self.copied_application.case_type.sub_type)
+
         self._validate_good_on_application()
 
         self._validate_end_user()
@@ -360,14 +362,17 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertGreater(self.copied_application.created_at, self.original_application.created_at)
         self.assertGreater(self.copied_application.updated_at, self.original_application.updated_at)
 
-    def _validate_end_use_details(self):
-        self.assertIsNone(self.copied_application.is_informed_wmd)
-        self.assertIsNone(self.copied_application.is_suspected_wmd)
-        self.assertIsNone(self.copied_application.is_military_end_use_controls)
-        self.assertIsNone(self.copied_application.is_eu_military)
-        self.assertIsNone(self.copied_application.is_compliant_limitations_eu)
-        self.assertIsNone(self.copied_application.compliant_limitations_eu_ref)
-        self.assertIsNone(self.copied_application.intended_end_use)
+    def _validate_end_use_details(self, application_type=None):
+        if application_type == CaseTypeSubTypeEnum.F680:
+            self.assertIsNone(self.copied_application.intended_end_use)
+        else:
+            self.assertIsNone(self.copied_application.is_informed_wmd)
+            self.assertIsNone(self.copied_application.is_suspected_wmd)
+            self.assertIsNone(self.copied_application.is_military_end_use_controls)
+            self.assertIsNone(self.copied_application.is_eu_military)
+            self.assertIsNone(self.copied_application.is_compliant_limitations_eu)
+            self.assertIsNone(self.copied_application.compliant_limitations_eu_ref)
+            self.assertIsNone(self.copied_application.intended_end_use)
 
     def _validate_good_on_application(self):
         new_goods_on_app = self.copied_application.goods.all()
