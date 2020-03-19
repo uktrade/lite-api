@@ -3,13 +3,15 @@ from rest_framework.fields import CharField
 
 from applications.enums import GoodsCategory, YesNoChoiceType
 from applications.mixins.serializers import PartiesSerializerMixin
-from applications.models import StandardApplication
+from applications.models import StandardApplication, Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
+from applications.serializers.licence import LicenceSerializer
+from conf.serializers import PrimaryKeyRelatedSerializerField
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -17,6 +19,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     goods_categories = serializers.SerializerMethodField()
+    licence = PrimaryKeyRelatedSerializerField(queryset=Licence.objects.all(), serializer=LicenceSerializer)
 
     def get_goods_categories(self, instance):
         # Return a formatted key, value format of GoodsCategories
@@ -48,6 +51,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "is_compliant_limitations_eu",
                 "compliant_limitations_eu_ref",
                 "intended_end_use",
+                "licence",
             )
         )
 

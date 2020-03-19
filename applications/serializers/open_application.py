@@ -1,11 +1,13 @@
 from rest_framework import serializers
 
-from applications.models import OpenApplication
+from applications.models import OpenApplication, Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
+from applications.serializers.licence import LicenceSerializer
+from conf.serializers import PrimaryKeyRelatedSerializerField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from static.countries.models import Country
@@ -16,6 +18,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
+    licence = PrimaryKeyRelatedSerializerField(queryset=Licence.objects.all(), serializer=LicenceSerializer)
 
     class Meta:
         model = OpenApplication
@@ -32,6 +35,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "is_suspected_wmd",
             "suspected_wmd_ref",
             "intended_end_use",
+            "licence",
         )
 
     def get_goods_types(self, application):
