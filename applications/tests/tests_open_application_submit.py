@@ -16,14 +16,14 @@ class OpenApplicationTests(DataTestClient):
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    def test_submit_open_application_success(self):
+    def test_submit_open_application_before_declaration_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get()
         self.assertEqual(case.id, self.draft.id)
         self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
 
     def test_submit_open_application_without_site_or_external_location_failure(self):
         SiteOnApplication.objects.get(application=self.draft).delete()

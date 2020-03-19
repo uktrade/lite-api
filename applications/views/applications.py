@@ -267,6 +267,14 @@ class ApplicationSubmission(APIView):
             assert_user_has_permission(
                 request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
             )
+
+        if application.case_type.sub_type in [
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EUA,
+            CaseTypeSubTypeEnum.GOODS,
+        ]:
+            application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+
         previous_application_status = application.status
 
         errors = validate_application_ready_for_submission(application)
@@ -276,7 +284,6 @@ class ApplicationSubmission(APIView):
         application.submitted_at = timezone.now()
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.sla_days = 0
-        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
         update_submitted_application_good_statuses_and_flags(application)
@@ -311,6 +318,8 @@ class ApplicationDeclaration(APIView):
         if errors:
 
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
 
         return JsonResponse(
             data={"data": get_application_view_serializer(application)(application).data}, status=status.HTTP_200_OK

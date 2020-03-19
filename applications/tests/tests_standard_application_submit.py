@@ -20,13 +20,13 @@ class StandardApplicationTests(DataTestClient):
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    def test_submit_standard_application_success(self):
+    def test_submit_standard_application_before_declaration_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get(id=self.draft.id)
         self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
         # 'Draft' applications should not create audit entries when submitted
@@ -41,7 +41,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get(id=draft.id)
         self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
 
     def test_submit_standard_application_with_invalid_id_failure(self):
         draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
@@ -185,7 +185,7 @@ class StandardApplicationTests(DataTestClient):
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            standard_application.status, get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING),
         )
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
 
