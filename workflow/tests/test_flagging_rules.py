@@ -1,8 +1,9 @@
 from parameterized import parameterized
 
-from applications.models import GoodOnApplication, PartyOnApplication
+from applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
 from cases.enums import CaseTypeEnum
 from flags.enums import FlagLevels, FlagStatuses
+from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -213,3 +214,182 @@ class FlaggingRulesAutomation(DataTestClient):
             self.assertNotIn(flag, case.flags.all())
         else:
             self.assertIn(flag, case.flags.all())
+
+
+class FlaggingRulesAutomationForEachCaseType(DataTestClient):
+    def test_open_application_automation(self):
+        application = self.create_draft_open_application(self.organisation)
+
+        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
+        self.create_flagging_rule(
+            FlagLevels.CASE, self.team, flag=case_flag, matching_value=application.case_type.reference
+        )
+
+        goods_type = GoodsType.objects.filter(application_id=application.id).first()
+        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=goods_type.control_code)
+
+        country = CountryOnApplication.objects.filter(application_id=application.id).first().country
+        destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
+        dest_flagging_rule = self.create_flagging_rule(
+            FlagLevels.DESTINATION, self.team, flag=destination_flag, matching_value=country.id
+        )
+        apply_flagging_rule_to_all_open_cases(dest_flagging_rule)
+
+        self.submit_application(application)
+        apply_flagging_rules_to_case(application)
+
+        application.refresh_from_db()
+        goods_type.refresh_from_db()
+        country.refresh_from_db()
+
+        self.assertIn(case_flag, application.flags.all())
+        self.assertIn(good_flag, goods_type.flags.all())
+        self.assertIn(destination_flag, country.flags.all())
+
+    def test_standard_application(self):
+        application = self.create_standard_application_case(self.organisation)
+
+        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
+        self.create_flagging_rule(
+            FlagLevels.CASE, self.team, flag=case_flag, matching_value=application.case_type.reference
+        )
+
+        good = GoodOnApplication.objects.filter(application_id=application.id).first().good
+        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_code)
+
+        party = PartyOnApplication.objects.filter(application_id=application.id).first().party
+        destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
+        self.create_flagging_rule(
+            FlagLevels.DESTINATION, self.team, flag=destination_flag, matching_value=party.country_id
+        )
+
+        self.submit_application(application)
+        apply_flagging_rules_to_case(application)
+
+        application.refresh_from_db()
+        good.refresh_from_db()
+        party.refresh_from_db()
+
+        self.assertIn(case_flag, application.flags.all())
+        self.assertIn(good_flag, good.flags.all())
+        self.assertIn(destination_flag, party.flags.all())
+
+    def test_hmrc_application(self):
+        application = self.create_hmrc_query(self.organisation)
+
+        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
+        self.create_flagging_rule(
+            FlagLevels.CASE, self.team, flag=case_flag, matching_value=application.case_type.reference
+        )
+
+        goods_type = GoodsType.objects.filter(application_id=application.id).first()
+        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=goods_type.control_code)
+
+        party = PartyOnApplication.objects.filter(application_id=application.id).first().party
+        destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
+        self.create_flagging_rule(
+            FlagLevels.DESTINATION, self.team, flag=destination_flag, matching_value=party.country_id
+        )
+
+        self.submit_application(application)
+        apply_flagging_rules_to_case(application)
+
+        application.refresh_from_db()
+        goods_type.refresh_from_db()
+        party.refresh_from_db()
+
+        self.assertIn(case_flag, application.flags.all())
+        self.assertIn(good_flag, goods_type.flags.all())
+        self.assertIn(destination_flag, party.flags.all())
+
+    def test_F680_application(self):
+        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
+
+        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
+        self.create_flagging_rule(
+            FlagLevels.CASE, self.team, flag=case_flag, matching_value=application.case_type.reference
+        )
+
+        good = GoodOnApplication.objects.filter(application_id=application.id).first().good
+        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_code)
+
+        party = PartyOnApplication.objects.filter(application_id=application.id).first().party
+        destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
+        self.create_flagging_rule(
+            FlagLevels.DESTINATION, self.team, flag=destination_flag, matching_value=party.country_id
+        )
+
+        self.submit_application(application)
+        apply_flagging_rules_to_case(application)
+
+        application.refresh_from_db()
+        good.refresh_from_db()
+        party.refresh_from_db()
+
+        self.assertIn(case_flag, application.flags.all())
+        self.assertIn(good_flag, good.flags.all())
+        self.assertIn(destination_flag, party.flags.all())
+
+    def test_exhibition_application(self):
+        application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
+        self.submit_application(application)
+
+        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
+        self.create_flagging_rule(
+            FlagLevels.CASE, self.team, flag=case_flag, matching_value=application.case_type.reference
+        )
+
+        good = GoodOnApplication.objects.filter(application_id=application.id).first().good
+        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_code)
+
+        self.submit_application(application)
+        apply_flagging_rules_to_case(application)
+
+        application.refresh_from_db()
+        good.refresh_from_db()
+
+        self.assertIn(case_flag, application.flags.all())
+        self.assertIn(good_flag, good.flags.all())
+
+    def test_goods_query_application(self):
+        query = self.create_clc_query("query", self.organisation)
+
+        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
+        self.create_flagging_rule(FlagLevels.CASE, self.team, flag=case_flag, matching_value=query.case_type.reference)
+
+        good = query.good
+        good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_code)
+
+        apply_flagging_rules_to_case(query)
+
+        query.refresh_from_db()
+        good.refresh_from_db()
+
+        self.assertIn(case_flag, query.flags.all())
+        self.assertIn(good_flag, good.flags.all())
+
+    def test_end_user_advisory_application(self):
+        query = self.create_end_user_advisory("a", "v", self.organisation)
+
+        case_flag = self.create_flag("case flag", FlagLevels.CASE, self.team)
+        self.create_flagging_rule(FlagLevels.CASE, self.team, flag=case_flag, matching_value=query.case_type.reference)
+
+        party = query.end_user
+        destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
+        self.create_flagging_rule(
+            FlagLevels.DESTINATION, self.team, flag=destination_flag, matching_value=party.country_id
+        )
+
+        apply_flagging_rules_to_case(query)
+
+        query.refresh_from_db()
+        party.refresh_from_db()
+
+        self.assertIn(case_flag, query.flags.all())
+        self.assertIn(destination_flag, party.flags.all())

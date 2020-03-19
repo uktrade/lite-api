@@ -107,4 +107,4 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule):
             for case in open_cases:
                 apply_destination_rules_for_case(case, flagging_rule_queryset)
 
-                Country.objects.get(id=flagging_rule.matching_value).flags.add(flagging_rule.flag)
+            Country.objects.get(id=flagging_rule.matching_value).flags.add(flagging_rule.flag)
