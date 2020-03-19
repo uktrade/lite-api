@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -10,6 +8,7 @@ from conf.serializers import KeyValueChoiceField
 class F680JsonSerializer(serializers.Serializer):
     expedited = serializers.BooleanField(required=False)
     expedited_date = serializers.DateField(required=False, format="DD-MM-YYYY")
+    expedited_description = serializers.CharField(max_length=256, allow_blank=True, required=False)
 
     foreign_technology = serializers.BooleanField(required=False)
     foreign_technology_description = serializers.CharField(max_length=256, allow_blank=True, required=False)
@@ -20,7 +19,6 @@ class F680JsonSerializer(serializers.Serializer):
     mtcr_type = KeyValueChoiceField(choices=MTCRAnswers.choices(), allow_blank=True, required=False)
 
     electronic_warfare_requirement = serializers.BooleanField(required=False)
-    electronic_warfare_requirement_attachment = serializers.CharField(max_length=256, required=False, allow_blank=True)
 
     uk_service_equipment = serializers.BooleanField(required=False)
     uk_service_equipment_description = serializers.CharField(max_length=256, allow_blank=True, required=False)
@@ -30,14 +28,6 @@ class F680JsonSerializer(serializers.Serializer):
 
     def validate(self, data):
         validated_data = super().validate(data)
-        if validated_data.get("electronic_warfare_requirement"):
-            if not validated_data.get("electronic_warfare_requirement_attachment"):
-                raise ValidationError({"electronic_warfare_requirement_attachment": ["Attachment required."]})
-
-            try:
-                UUID(validated_data["electronic_warfare_requirement_attachment"])
-            except ValueError:
-                raise ValidationError({"electronic_warfare_requirement_attachment": ["Attachment required."]})
 
         if validated_data.get("expedited"):
             if not validated_data.get("expedited_date"):
@@ -57,7 +47,4 @@ class F680JsonSerializer(serializers.Serializer):
         return validated_data
 
     def get_expedited_date(self, item):
-        return str(item)
-
-    def get_electronic_warfare_requirement_attachment(self, item):
         return str(item)

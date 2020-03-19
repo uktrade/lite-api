@@ -47,50 +47,6 @@ class ApplicationQuestionsTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.draft.questions, data)
 
-    def test_update_f680_questions_failure_44(self):
-        self.assertIsNone(self.draft.questions)
-
-        data = {
-            "electronic_warfare_requirement": True,
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.draft.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {'electronic_warfare_requirement_attachment': ['Attachment required.']}})
-        self.assertIsNone(self.draft.questions)
-
-    def test_update_f680_questions_failure_2(self):
-        self.assertIsNone(self.draft.questions)
-
-        data = {
-            "electronic_warfare_requirement": True,
-            "electronic_warfare_attachment": "HELLO",
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.draft.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {'errors': {'electronic_warfare_requirement_attachment': ['Attachment required.']}})
-        self.assertIsNone(self.draft.questions)
-
-    def test_update_f680_questions_success_21(self):
-        self.assertIsNone(self.draft.questions)
-
-        data = {
-            "electronic_warfare_requirement": True,
-            "electronic_warfare_requirement_attachment": str(uuid.uuid4()),
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.draft.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.draft.questions, data)
-    #
-
     def test_update_f680_questions_success_3(self):
         self.assertIsNone(self.draft.questions)
 

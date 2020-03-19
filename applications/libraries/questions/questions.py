@@ -19,6 +19,13 @@ def update(application_type: CaseTypeSubTypeEnum, old_questions: Dict, new_quest
     Update and validates a question set for a given application type.
     """
     questions = deepcopy(old_questions)
+    old_fields = set(old_questions.keys())
+    new_fields = set(new_questions.keys())
+    removed_fields = old_fields - new_fields
+
+    for removed_field in removed_fields:
+        del questions[removed_field]
+
     questions.update(new_questions)
 
     serializer = SERIALIZERS[application_type](data=questions, partial=True)
