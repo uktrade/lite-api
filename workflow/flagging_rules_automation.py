@@ -9,6 +9,7 @@ from parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country
+from static.statuses.enums import CaseStatusEnum
 
 
 def active_flagging_rules_for_level(level):
@@ -17,10 +18,11 @@ def active_flagging_rules_for_level(level):
     )
 
 
-def apply_flagging_rules_to_case(object):
-    apply_case_rules(object)
-    apply_destination_rules_for_case(object)
-    apply_good_flagging_rules_for_case(object)
+def apply_flagging_rules_to_case(case):
+    if not (case.status.status == CaseStatusEnum.DRAFT or CaseStatusEnum.is_terminal(case.status.status)):
+        apply_case_rules(case)
+        apply_destination_rules_for_case(case)
+        apply_good_flagging_rules_for_case(case)
 
 
 def apply_case_rules(case):
