@@ -66,6 +66,22 @@ class UserQueueAssignmentTests(DataTestClient):
         self.assertEqual(self.case.queues.first(), self.queue)
         self.assertNotEqual(self.case.status, self.new_status)
 
+    def test_multiple_case_assignments(self):
+        """
+        As multiple users are on the queue, when you remove yourself from the queue
+        the case should remain assigned to the queue and the status shouldn't change
+        """
+        other_user = self.create_gov_user("other@gmail.com", self.team)
+        self.create_case_assignment(self.queue, self.case, [self.gov_user, other_user])
+        self.case.queues.add(self.queue)
+
+        user_queue_assignment_workflow([self.queue], self.case)
+
+        self.case.refresh_from_db()
+        self.assertEqual(self.case.queues.count(), 1)
+        self.assertEqual(self.case.queues.first(), self.queue)
+        self.assertNotEqual(self.case.status, self.new_status)
+
 
 class NextStatusTests(DataTestClient):
     def test_next_status_ignores_non_applicable_states(self):
