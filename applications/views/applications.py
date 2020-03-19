@@ -9,7 +9,7 @@ from rest_framework.exceptions import PermissionDenied, ErrorDetail
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 
-from applications.creators import validate_application_ready_for_submission
+from applications.creators import validate_application_ready_for_submission, _validate_agree_to_tsc
 from applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -297,6 +297,24 @@ class ApplicationSubmission(APIView):
             )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+
+class ApplicationDeclaration(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @transaction.atomic
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def put(self, request, application):
+        errors = {}
+        errors = _validate_agree_to_tsc(request, errors)
+        if errors:
+
+            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return JsonResponse(
+            data={"data": get_application_view_serializer(application)(application).data}, status=status.HTTP_200_OK
+        )
 
 
 class ApplicationManageStatus(APIView):

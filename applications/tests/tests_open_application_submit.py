@@ -51,3 +51,23 @@ class OpenApplicationTests(DataTestClient):
         self.assertContains(
             response, text=strings.Applications.Open.NO_COUNTRIES_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+    def test_standard_application_declaration_submit_success(self):
+        data = {
+            "agreed_to_declaration": True,
+        }
+
+        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_standard_application_declaration_submit_tcs_false_failure(self):
+        data = {
+            "agreed_to_declaration": False,
+        }
+
+        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

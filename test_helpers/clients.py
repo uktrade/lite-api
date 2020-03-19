@@ -539,7 +539,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_suspected_wmd=False,
             is_eu_military=False,
             is_compliant_limitations_eu=None,
-            is_agreed_to_foi=True,
         )
 
         application.save()
@@ -588,7 +587,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case_type_id=case_type.id,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
             clearance_level=PvGrading.UK_UNCLASSIFIED if case_type == CaseTypeEnum.F680 else None,
-            is_agreed_to_foi=True,
         )
 
         if case_type == CaseTypeEnum.EXHIBITION:
@@ -686,7 +684,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_military_end_use_controls=False,
             is_informed_wmd=False,
             is_suspected_wmd=False,
-            is_agreed_to_foi=True,
         )
 
         application.save()

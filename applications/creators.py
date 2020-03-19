@@ -158,9 +158,9 @@ def _validate_end_use_details(draft, errors, application_type):
     return errors
 
 
-def _validate_agreed_to_foi(draft, errors):
-    if draft.is_agreed_to_foi is None:
-        errors["agreed_to_foi"] = strings.Applications.Generic.AGREEMENT_TO_FOI_REQUIRED
+def _validate_agree_to_tsc(request, errors):
+    if request.data.get("agreed_to_declaration") is not True:
+        errors["agreed_to_declaration"] = strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED
 
     return errors
 
@@ -214,7 +214,6 @@ def _validate_standard_licence(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
-    errors = _validate_agreed_to_foi(draft, errors)
 
     return errors
 
@@ -225,7 +224,6 @@ def _validate_exhibition_clearance(draft, errors):
     errors = _validate_exhibition_details(draft, errors)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_locations(draft, errors)
-    errors = _validate_agreed_to_foi(draft, errors)
 
     return errors
 
@@ -236,7 +234,6 @@ def _validate_gifting_clearance(draft, errors):
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
-    errors = _validate_agreed_to_foi(draft, errors)
 
     if draft.consignee:
         errors["consignee"] = strings.Applications.Gifting.CONSIGNEE
@@ -257,7 +254,6 @@ def _validate_f680_clearance(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_agreed_to_foi(draft, errors)
 
     if not draft.end_user and not draft.third_parties.exists():
         errors["party"] = strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY
@@ -284,7 +280,6 @@ def _validate_open_licence(draft, errors):
     errors = _validate_countries(draft, errors, is_mandatory=True)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
-    errors = _validate_agreed_to_foi(draft, errors)
 
     return errors
 
