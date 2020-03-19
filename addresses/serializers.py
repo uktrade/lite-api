@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from addresses.models import Address
+from addresses.models import Address, ForeignAddress
 from conf.serializers import CountrySerializerField
 
 
@@ -24,5 +24,22 @@ class AddressSerializer(serializers.ModelSerializer):
             "city",
             "region",
             "postcode",
+            "country",
+        )
+
+
+class ForeignAddressSerializer(serializers.ModelSerializer):
+    """
+    Used for serializing foreign addresses
+    """
+
+    address = serializers.CharField(error_messages={"blank": "Enter a real building and street name"})
+    country = CountrySerializerField()
+
+    class Meta:
+        model = ForeignAddress
+        fields = (
+            "id",
+            "address",
             "country",
         )

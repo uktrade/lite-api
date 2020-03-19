@@ -1,8 +1,8 @@
 from django.db import transaction
 from rest_framework import serializers
 
-from addresses.models import Address
-from addresses.serializers import AddressSerializer
+from addresses.models import Address, ForeignAddress
+from addresses.serializers import AddressSerializer, ForeignAddressSerializer
 from conf.constants import ExporterPermissions
 from conf.serializers import (
     PrimaryKeyRelatedSerializerField,
@@ -19,33 +19,58 @@ from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSi
 
 class SiteSerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages={"blank": "Enter a name for your site"}, write_only=True)
-    address = AddressSerializer(write_only=True)
+    address = AddressSerializer(write_only=True, required=False)
+    foreign_address = ForeignAddressSerializer(write_only=True, required=False)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "organisation")
+        fields = ("id", "name", "address", "foreign_address", "organisation")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # if hasattr(self, "initial_data"):
+        #     if "address" in self.initial_data:
+        #         self.foreign_address = None
+        #         self.Meta.fields = ("id", "name", "address", "organisation")
+        #     if "foreign_address" in self.initial_data:
+        #         self.address = None
+        #         self.Meta.fields = ("id", "name", "foreign_address", "organisation")
 
     @transaction.atomic
     def create(self, validated_data):
-        address_data = validated_data.pop("address")
-        address_data["country"] = address_data["country"].id
+        if "address" in validated_data:
+            address_data = validated_data.pop("address")
+            address_data["country"] = address_data["country"].id
 
-        address_serializer = AddressSerializer(data=address_data)
-        if address_serializer.is_valid():
-            address = Address(**address_serializer.validated_data)
-            address.save()
+            address_serializer = AddressSerializer(data=address_data)
+            if address_serializer.is_valid():
+                address = Address(**address_serializer.validated_data)
+                address.save()
+            else:
+                return address_serializer.errors
+
+            site = Site.objects.create(address=address, **validated_data)
         else:
-            raise serializers.ValidationError(address_serializer.errors)
+            foreign_address_data = validated_data.pop("foreign_address")
+            foreign_address_data["country"] = foreign_address_data["country"].id
 
-        site = Site.objects.create(address=address, **validated_data)
+            foreign_address_serializer = ForeignAddressSerializer(data=foreign_address_data)
+            if foreign_address_serializer.is_valid(raise_exception=True):
+                foreign_address = ForeignAddress(**foreign_address_serializer.validated_data)
+                foreign_address.save()
+            else:
+                return foreign_address_serializer.errors
+
+            site = Site.objects.create(foreign_address=foreign_address, **validated_data)
+
         return site
 
     def update(self, instance, validated_data):
         instance.name = validated_data["name"]
         instance.save()
 
-        address_data = validated_data.pop("address")
+        address_data = validated_data.pop("address") or validated_data.pop("foreign_address")
         address_data["country"] = address_data["country"].id
         address_serializer = AddressSerializer(instance.address, partial=True, data=address_data)
         if address_serializer.is_valid():
@@ -172,7 +197,11 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         site_data = validated_data.pop("site")
         organisation = Organisation.objects.create(**validated_data)
         user_data["organisation"] = organisation.id
-        site_data["address"]["country"] = site_data["address"]["country"].id
+
+        if "address" in site_data:
+            site_data["address"]["country"] = site_data["address"]["country"].id
+        else:
+            site_data["foreign_address"]["country"] = site_data["foreign_address"]["country"].id
 
         site_serializer = SiteSerializer(data=site_data)
         if site_serializer.is_valid():

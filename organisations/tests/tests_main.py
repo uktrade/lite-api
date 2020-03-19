@@ -1,3 +1,6 @@
+from pprint import pprint
+
+from django.test import tag
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -90,7 +93,25 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
         self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
 
-    def test_create_commercial_organisation_as_exporter_success(self):
+    @parameterized.expand(
+        [
+            [
+                {
+                    "address": {
+                        "address_line_1": "42 Industrial Estate",
+                        "address_line_2": "Queens Road",
+                        "region": "Hertfordshire",
+                        "postcode": "AL1 4GT",
+                        "city": "St Albans",
+                        "country": "GB",
+                    }
+                }
+            ],
+            [{"foreign_address": {"address": "123", "country": "PL"}}],
+        ]
+    )
+    @tag("only")
+    def test_create_commercial_organisation_as_exporter_success(self, address):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
@@ -98,17 +119,7 @@ class OrganisationTests(DataTestClient):
             "sic_number": "01110",
             "vat_number": "GB1234567",
             "registration_number": "98765432",
-            "site": {
-                "name": "Headquarters",
-                "address": {
-                    "address_line_1": "42 Industrial Estate",
-                    "address_line_2": "Queens Road",
-                    "region": "Hertfordshire",
-                    "postcode": "AL1 4GT",
-                    "city": "St Albans",
-                    "country": "GB",
-                },
-            },
+            "site": {"name": "Headquarters", **address},
             "user": {"email": "trinity@bsg.com"},
         }
 
@@ -133,12 +144,17 @@ class OrganisationTests(DataTestClient):
         )
 
         self.assertEqual(site.name, data["site"]["name"])
-        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
-        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
-        self.assertEqual(site.address.region, data["site"]["address"]["region"])
-        self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
-        self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+
+        if "address" in address:
+            self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
+            self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
+            self.assertEqual(site.address.region, data["site"]["address"]["region"])
+            self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
+            self.assertEqual(site.address.city, data["site"]["address"]["city"])
+            self.assertEqualIgnoreType(site.address.country.id, data["site"]["address"]["country"])
+        else:
+            self.assertEqual(site.foreign_address.address, data["site"]["foreign_address"]["address"])
+            self.assertEqualIgnoreType(site.foreign_address.country.id, data["site"]["foreign_address"]["country"])
 
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
