@@ -534,6 +534,7 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
 
     question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
+    query_type = KeyValueChoiceField(choices=PicklistType.choices)
 
     class Meta:
         model = EcjuQuery
@@ -542,6 +543,7 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "question",
             "case",
             "raised_by_user",
+            "query_type",
         )
 
 
