@@ -35,6 +35,7 @@ from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSe
 from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import Party
+from picklists.enums import PicklistType
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from static.countries.models import Country
@@ -478,6 +479,7 @@ class CaseFinalAdviceSerializer(CaseAdviceSerializer):
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
     raised_by_user_name = serializers.SerializerMethodField()
     responded_by_user_name = serializers.SerializerMethodField()
+    query_type = KeyValueChoiceField(choices=PicklistType.choices, required=False)
 
     class Meta:
         model = EcjuQuery
@@ -490,6 +492,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
             "raised_by_user_name",
             "created_at",
             "responded_at",
+            "query_type",
         )
 
     def get_raised_by_user_name(self, instance):

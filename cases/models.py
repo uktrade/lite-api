@@ -18,6 +18,7 @@ from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
 from organisations.models import Organisation
+from picklists.enums import PicklistType
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -305,6 +306,9 @@ class EcjuQuery(TimestampableModel):
     )
     responded_by_user = models.ForeignKey(
         ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
+    )
+    query_type = models.CharField(
+        choices=PicklistType.choices, max_length=50, default=PicklistType.ECJU, null=False, blank=False
     )
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
