@@ -1,5 +1,3 @@
-from django.db import connection
-
 from applications.models import PartyOnApplication
 from cases.enums import CaseTypeEnum
 from cases.models import Case
