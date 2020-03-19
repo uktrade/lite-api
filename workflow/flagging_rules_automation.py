@@ -1,3 +1,5 @@
+from django.db import connection
+
 from applications.models import PartyOnApplication
 from cases.enums import CaseTypeEnum
 from cases.models import Case
@@ -95,7 +97,7 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule):
         flagging_rule_queryset = FlaggingRule.objects.filter(id=flagging_rule.id)
 
         if flagging_rule.level == FlagLevels.CASE:
-            open_cases.filter(case_type__reference=flagging_rule.matching_value).all()
+            open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value).all()
             for case in open_cases:
                 case.flags.add(flagging_rule.flag)
 
