@@ -365,14 +365,15 @@ class CopyApplicationSuccessTests(DataTestClient):
     def _validate_end_use_details(self, application_type=None):
         if application_type == CaseTypeSubTypeEnum.F680:
             self.assertIsNone(self.copied_application.intended_end_use)
-        else:
+        elif application_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+            self.assertIsNone(self.copied_application.intended_end_use)
             self.assertIsNone(self.copied_application.is_informed_wmd)
             self.assertIsNone(self.copied_application.is_suspected_wmd)
             self.assertIsNone(self.copied_application.is_military_end_use_controls)
-            self.assertIsNone(self.copied_application.is_eu_military)
-            self.assertIsNone(self.copied_application.is_compliant_limitations_eu)
-            self.assertIsNone(self.copied_application.compliant_limitations_eu_ref)
-            self.assertIsNone(self.copied_application.intended_end_use)
+            if application_type == CaseTypeSubTypeEnum.STANDARD:
+                self.assertIsNone(self.copied_application.is_eu_military)
+                self.assertIsNone(self.copied_application.is_compliant_limitations_eu)
+                self.assertIsNone(self.copied_application.compliant_limitations_eu_ref)
 
     def _validate_good_on_application(self):
         new_goods_on_app = self.copied_application.goods.all()
