@@ -418,6 +418,24 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return good
 
     @staticmethod
+    def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
+
+        goods_query = GoodsQuery.objects.create(
+            clc_raised_reasons=clc_reason,
+            pv_grading_raised_reasons=pv_reason,
+            good=good,
+            organisation=organisation,
+            case_type_id=CaseTypeEnum.GOODS.id,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=django.utils.timezone.now(),
+        )
+        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
+        goods_query.save()
+        return goods_query
+
+    @staticmethod
     def create_clc_query(description, organisation) -> GoodsQuery:
         good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
 
