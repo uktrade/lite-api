@@ -52,6 +52,7 @@ from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents, Cases
 from parties.serializers import PartySerializer
+from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -644,17 +645,26 @@ class AssignedQueues(APIView):
         if queues:
             queue_names = []
             assignments = CaseAssignment.objects.filter(users=request.user, case__id=pk, queue__id__in=queues)
+            case = get_case(pk)
 
             if assignments:
                 queues = [assignment.queue for assignment in assignments]
                 queue_names = sorted([queue.name for queue in queues])
                 assignments.delete()
-                user_queue_assignment_workflow(queues, get_case(pk))
+                user_queue_assignment_workflow(queues, case)
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UNASSIGNED_QUEUES,
-                    target=get_case(pk),
+                    target=case,
                     payload={"queues": queue_names},
+                )
+            else:
+                # When users click done without queue assignments
+                user_queue_assignment_workflow([], case)
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UNASSIGNED,
+                    target=case,
                 )
 
             return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)

@@ -54,6 +54,7 @@ class AuditType(Enum):
     GRANTED_APPLICATION = "granted licence for {licence_duration} months starting from {start_date}"
     FINALISED_APPLICATION = "finalised the application"
     UNASSIGNED_QUEUES = "marked themselves as done for this case on the following queues: {queues}"
+    UNASSIGNED = "marked themselves as done for this case"
 
     UPDATED_LETTER_TEMPLATE_NAME = "updated letter template name from {old_name} to {new_name}"
     ADDED_LETTER_TEMPLATE_CASE_TYPES = "added letter template types: {new_case_types}"

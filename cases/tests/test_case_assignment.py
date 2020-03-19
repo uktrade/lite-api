@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from test_helpers.clients import DataTestClient
 from lite_content.lite_api.strings import Cases
 
@@ -39,7 +40,7 @@ class CaseAssignmentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["queues_removed"], [self.queue.name])
-        self.assertTrue(Audit.objects.exists())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.UNASSIGNED_QUEUES).exists())
 
     def test_put_unassign_different_case_success(self):
         case = self.create_standard_application_case(self.organisation)
@@ -49,7 +50,7 @@ class CaseAssignmentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["queues_removed"], [])
-        self.assertFalse(Audit.objects.exists())
+        self.assertFalse(Audit.objects.filter(verb=AuditType.UNASSIGNED_QUEUES).exists())
 
     def test_put_unassign_different_queue_success(self):
         self.create_case_assignment(self.other_queue, self.case, users=[self.gov_user])
@@ -58,7 +59,7 @@ class CaseAssignmentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["queues_removed"], [])
-        self.assertFalse(Audit.objects.exists())
+        self.assertFalse(Audit.objects.filter(verb=AuditType.UNASSIGNED_QUEUES).exists())
 
     def test_put_unassign_different_user_success(self):
         self.create_case_assignment(self.queue, self.case, users=[self.other_user])
@@ -67,14 +68,14 @@ class CaseAssignmentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["queues_removed"], [])
-        self.assertFalse(Audit.objects.exists())
+        self.assertFalse(Audit.objects.filter(verb=AuditType.UNASSIGNED_QUEUES).exists())
 
     def test_put_unassign_no_assignments_success(self):
         response = self.client.put(self.url, **self.gov_headers, data={"queues": [self.queue.id]})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["queues_removed"], [])
-        self.assertFalse(Audit.objects.exists())
+        self.assertFalse(Audit.objects.filter(verb=AuditType.UNASSIGNED).exists())
 
     def test_put_unassign_no_queues_failure(self):
         response = self.client.put(self.url, **self.gov_headers, data={"queues": []})
