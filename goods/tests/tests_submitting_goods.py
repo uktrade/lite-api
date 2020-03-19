@@ -5,7 +5,6 @@ from applications.models import GoodOnApplication
 from goods.enums import GoodStatus
 from goods.models import Good
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
@@ -27,7 +26,7 @@ class GoodTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response_data["application"]["status"],
-            {"key": CaseStatusEnum.SUBMITTED, "value": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED)},
+            {"key": CaseStatusEnum.DRAFT, "value": "draft"},
         )
         good = Good.objects.get()
         self.assertEqual(good.status, GoodStatus.SUBMITTED)
