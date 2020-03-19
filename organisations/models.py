@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from addresses.models import Address
+from addresses.models import Address, ForeignAddress
 from common.models import TimestampableModel
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
@@ -72,11 +72,13 @@ class SiteManager(models.Manager):
 class Site(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
-    address = models.ForeignKey(Address, related_name="site", on_delete=models.CASCADE)
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True, related_name="site", on_delete=models.CASCADE,
     )
     users = models.ManyToManyField(UserOrganisationRelationship, related_name="sites")
+
+    address = models.ForeignKey(Address, related_name="site", on_delete=models.CASCADE, null=True)
+    foreign_address = models.ForeignKey(ForeignAddress, related_name="site", on_delete=models.CASCADE, null=True)
 
     objects = SiteManager()
 

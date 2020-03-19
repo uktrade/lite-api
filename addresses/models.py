@@ -17,3 +17,13 @@ class Address(models.Model):
     postcode = models.CharField(max_length=10)
     city = models.TextField(default=None, blank=False)
     country = models.ForeignKey(Country, blank=False, null=False, on_delete=models.CASCADE)
+
+
+class ForeignAddress(models.Model):
+    """
+    Used for foreign address fields
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    address = models.TextField(default=None, blank=False)
+    country = models.ForeignKey(Country, blank=False, null=False, on_delete=models.CASCADE)
