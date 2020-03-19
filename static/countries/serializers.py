@@ -19,8 +19,6 @@ class CountryWithFlagsSerializer(CountrySerializer):
     flags = serializers.SerializerMethodField()
 
     def get_flags(self, instance):
-        # When returning flags for a country to view we only want active flags,
-        # from what I can see this serializer is only used to view data not save any
         return list(instance.flags.filter(status=FlagStatuses.ACTIVE).values("id", "name"))
 
     class Meta:
