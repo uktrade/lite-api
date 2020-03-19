@@ -28,7 +28,7 @@ def apply_flagging_rules_to_case(case):
 
 
 def apply_case_rules(case):
-    flags = list(
+    flags = (
         active_flagging_rules_for_level(FlagLevels.CASE)
         .filter(matching_value=case.case_type.reference)
         .values_list("flag_id", flat=True)
@@ -57,7 +57,7 @@ def apply_destination_rules_for_case(case, flagging_rule=None):
 def apply_destination_rule_on_party(party: Party, flagging_rules=None):
     if not flagging_rules:
         flagging_rules = active_flagging_rules_for_level(FlagLevels.DESTINATION)
-    flags = list(flagging_rules.filter(matching_value=party.country.id).values_list("flag_id", flat=True))
+    flags = flagging_rules.filter(matching_value=party.country.id).values_list("flag_id", flat=True)
 
     if flags:
         party.flags.add(*flags)
@@ -85,7 +85,7 @@ def apply_good_flagging_rules_for_case(case, flagging_rule=None):
 def apply_goods_rules_for_good(good, flagging_rules=None):
     if not flagging_rules:
         flagging_rules = active_flagging_rules_for_level(FlagLevels.GOOD)
-    flags = list(flagging_rules.filter(matching_value__iexact=good.control_code).values_list("flag_id", flat=True))
+    flags = flagging_rules.filter(matching_value__iexact=good.control_code).values_list("flag_id", flat=True)
 
     if flags:
         good.flags.add(*flags)
