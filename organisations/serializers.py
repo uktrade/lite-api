@@ -37,6 +37,19 @@ class SiteSerializer(serializers.ModelSerializer):
         #         self.address = None
         #         self.Meta.fields = ("id", "name", "foreign_address", "organisation")
 
+    def validate(self, data):
+        validated_data = super().validate(data)
+
+        # You have to have either an address or foreign address
+        if "address" not in validated_data and "foreign_address" not in validated_data:
+            raise serializers.ValidationError({"address": "You have to have an address!"})
+
+        # Sites have to have either address or foreign address
+        if "address" in validated_data and "foreign_address" in validated_data:
+            raise serializers.ValidationError({"address": "You cant have both!"})
+
+        return validated_data
+
     @transaction.atomic
     def create(self, validated_data):
         if "address" in validated_data:
@@ -224,8 +237,24 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         return organisation
 
 
-class SiteViewSerializer(serializers.ModelSerializer):
+class SiteListSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
+    foreign_address = ForeignAddressSerializer()
+
+    def to_representation(self, value):
+        repr_dict = super(SiteListSerializer, self).to_representation(value)
+        if not repr_dict["address"]:
+            del repr_dict["address"]
+        if not repr_dict["foreign_address"]:
+            del repr_dict["foreign_address"]
+        return repr_dict
+
+    class Meta:
+        model = Site
+        fields = ("id", "name", "address", "foreign_address")
+
+
+class SiteViewSerializer(SiteListSerializer):
     users = serializers.SerializerMethodField()
 
     def get_users(self, instance):
@@ -245,7 +274,7 @@ class SiteViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "users")
+        fields = ("id", "name", "address", "foreign_address", "users")
 
 
 class TinyOrganisationViewSerializer(serializers.ModelSerializer):
@@ -274,7 +303,7 @@ class OrganisationListSerializer(serializers.ModelSerializer):
 
 
 class OrganisationDetailSerializer(serializers.ModelSerializer):
-    primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteViewSerializer)
+    primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteListSerializer)
     type = KeyValueChoiceField(OrganisationType.choices)
     flags = serializers.SerializerMethodField()
     status = KeyValueChoiceField(OrganisationStatus.choices)

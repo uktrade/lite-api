@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import transaction, connection
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -7,9 +7,11 @@ from rest_framework.views import APIView
 from conf.authentication import SharedAuthentication
 from conf.constants import ExporterPermissions
 from conf.permissions import assert_user_has_permission
+from organisations import service
+from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Organisation, Site
-from organisations.serializers import SiteViewSerializer, SiteSerializer
+from organisations.serializers import SiteViewSerializer, SiteSerializer, SiteListSerializer
 from users.libraries.get_user import get_user_organisation_relationship
 from users.models import ExporterUser
 
@@ -27,20 +29,18 @@ class SitesList(APIView):
         filtered on whether or not the user belongs to the site
         """
         if isinstance(request.user, ExporterUser):
-            user_organisation_relationship = get_user_organisation_relationship(request.user, org_pk)
-
-            sites = list(
-                Site.objects.get_by_user_organisation_relationship(user_organisation_relationship).exclude(
-                    address__country__id__in=request.GET.getlist("exclude")
-                )
+            sites = Site.objects.get_by_user_and_organisation(request.user, org_pk).exclude(
+                address__country__id__in=request.GET.getlist("exclude")
             )
         else:
-            sites = list(Site.objects.filter(organisation=org_pk))
+            sites = Site.objects.filter(organisation=org_pk)
 
+        sites = list(sites.select_related("address", "foreign_address"))
         sites.sort(key=lambda x: x.id == x.organisation.primary_site.id, reverse=True)
+        serializer_data = SiteListSerializer(sites, many=True).data
+        service.populate_users_count(org_pk, serializer_data)
 
-        serializer = SiteViewSerializer(sites, many=True)
-        return JsonResponse(data={"sites": serializer.data})
+        return JsonResponse(data={"sites": serializer_data})
 
     @transaction.atomic
     def post(self, request, org_pk):
@@ -56,7 +56,7 @@ class SitesList(APIView):
             site = serializer.save()
             return JsonResponse(data={"site": SiteViewSerializer(site).data}, status=status.HTTP_201_CREATED)
 
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SiteDetail(APIView):

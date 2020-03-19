@@ -1,7 +1,7 @@
 import operator
 from functools import reduce
 
-from django.db import transaction
+from django.db import transaction, connection
 from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -72,10 +72,16 @@ class OrganisationsList(generics.ListCreateAPIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class OrganisationsDetail(generics.RetrieveAPIView):
+class OrganisationsDetail(generics.RetrieveUpdateAPIView):
     authentication_classes = (SharedAuthentication,)
     queryset = Organisation.objects.all()
     serializer_class = OrganisationDetailSerializer
+
+    def get(self, request, *args, **kwargs):
+        print(len(connection.queries))
+        data = self.retrieve(request, *args, **kwargs)
+        print(len(connection.queries))
+        return data
 
     def put(self, request, pk):
         """ Edit details of an organisation. """

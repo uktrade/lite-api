@@ -1,3 +1,4 @@
+from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -6,6 +7,7 @@ from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
 
+@tag("only")
 class OrganisationSitesTests(DataTestClient):
     def test_site_list(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
@@ -22,7 +24,7 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(len(response_data["sites"]), 1)
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    def test_add_site(self):
+    def test_add_uk_site(self):
         url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
 
         data = {
@@ -40,6 +42,54 @@ class OrganisationSitesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
+
+    def test_add_foreign_site(self):
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "foreign_address": {"address": "a street", "country": "PL",},
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
+
+    def test_add_foreign_site_failure(self):
+        # TODO Adding a foreign site but syaing the country is in the uk
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "foreign_address": {"address": "a street", "country": "GB",},
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
+
+    def test_add_foreign_site_failure2(self):
+        # TODO Adding a foreign site but syaing the country is in the uk
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "address": {
+                "address_line_1": "a street",
+                "city": "london",
+                "postcode": "E14GH",
+                "region": "Hertfordshire",
+                "country": "GB",
+            },
+            "foreign_address": {"address": "a street", "country": "PL",},
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
 
     def test_edit_site(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
