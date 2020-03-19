@@ -10,7 +10,7 @@ class UserQueueAssignmentTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
-        self.new_status = get_next_non_terminal_status(self.case.status)
+        self.new_status = get_next_non_terminal_status(self.case)
         self.queue = self.create_queue("Abc", self.team)
 
     def test_no_queues_or_case_assignments(self):
@@ -84,8 +84,14 @@ class UserQueueAssignmentTests(DataTestClient):
 
 
 class NextStatusTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.case = self.create_standard_application_case(self.organisation)
+
     def test_next_status_ignores_non_applicable_states(self):
-        result = get_next_non_terminal_status(CaseStatus.objects.get(status=CaseStatusEnum.DRAFT))
+        self.case.status = CaseStatus.objects.get(status=CaseStatusEnum.DRAFT)
+        self.case.save()
+        result = get_next_non_terminal_status(self.case)
         self.assertIsNone(result)
 
     @parameterized.expand(
@@ -100,5 +106,26 @@ class NextStatusTests(DataTestClient):
         ]
     )
     def test_next_status_increments(self, old_status, new_status):
-        result = get_next_non_terminal_status(CaseStatus.objects.get(status=old_status))
+        self.case.status = CaseStatus.objects.get(status=old_status)
+        self.case.save()
+        result = get_next_non_terminal_status(self.case)
         self.assertEqual(result.status, new_status)
+
+
+class NextStatusGoodsQueryTests(DataTestClient):
+    def test_next_status_ignores_submitted(self):
+        case = self.create_goods_query("abc", self.organisation, "clc", "pv")
+        result = get_next_non_terminal_status(case)
+        self.assertIsNone(result)
+
+    def test_next_status_moves_to_pv_if_clc_responded(self):
+        case = self.create_goods_query("abc", self.organisation, "clc", "pv")
+        case.clc_responded = True
+        case.save()
+        result = get_next_non_terminal_status(case)
+        self.assertEqual(result.status, CaseStatusEnum.PV)
+
+    def test_next_status_moves_to_pv_if_no_clc(self):
+        case = self.create_goods_query("abc", self.organisation, None, "pv")
+        result = get_next_non_terminal_status(case)
+        self.assertEqual(result.status, CaseStatusEnum.PV)
