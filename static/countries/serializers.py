@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from flags.enums import FlagStatuses
 from static.countries.models import Country
 
 
@@ -18,7 +19,9 @@ class CountryWithFlagsSerializer(CountrySerializer):
     flags = serializers.SerializerMethodField()
 
     def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
+        # When returning flags for a country to view we only want active flags,
+        # from what I can see this serializer is only used to view data not save any
+        return list(instance.flags.filter(status=FlagStatuses.ACTIVE).values("id", "name"))
 
     class Meta:
         model = Country
