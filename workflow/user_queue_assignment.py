@@ -1,6 +1,5 @@
 from cases.models import Case, CaseAssignment
 from queues.models import Queue
-from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 
 
