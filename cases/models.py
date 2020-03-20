@@ -103,7 +103,14 @@ class Case(TimestampableModel):
 
         for case_assignment in case_assignments:
             user = case_assignment.user
-            users.extend({"first_name": user.first_name, "last_name": user.last_name, "email": user.email, "queue": case_assignment.queue.name,})
+            users.extend(
+                {
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "email": user.email,
+                    "queue": case_assignment.queue.name,
+                }
+            )
 
         return users
 
@@ -147,6 +154,7 @@ class CaseAssignment(TimestampableModel):
     """
     Assigns users to a case on a particular queue
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="case_assignments")
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE, related_name="case_assignments")

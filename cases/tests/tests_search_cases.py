@@ -176,7 +176,9 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases when the assigned user is set to themselves
         Then only cases with that assigned user are returned
         """
-        case_assignment = CaseAssignment.objects.create(queue=self.queue, case=self.application_cases[0], user=self.gov_user)
+        case_assignment = CaseAssignment.objects.create(
+            queue=self.queue, case=self.application_cases[0], user=self.gov_user
+        )
         url = f'{reverse("cases:search")}?assigned_user={self.gov_user.id}'
 
         response = self.client.get(url, **self.gov_headers)
@@ -193,7 +195,9 @@ class FilterAndSortTests(DataTestClient):
         Then only cases with no assigned users are returned
         """
         all_cases = self.application_cases + self.clc_cases
-        case_assignment = CaseAssignment.objects.create(queue=self.queue, case=self.application_cases[0], user=self.gov_user)
+        case_assignment = CaseAssignment.objects.create(
+            queue=self.queue, case=self.application_cases[0], user=self.gov_user
+        )
         url = f'{reverse("cases:search")}?assigned_user=not_assigned'
 
         response = self.client.get(url, **self.gov_headers)
@@ -354,7 +358,9 @@ class FilterUserAssignedCasesQueueTests(DataTestClient):
 
         self.user_assigned_case = self.create_standard_application_case(self.organisation).get_case()
         self.user_assigned_case.queues.set([self.queue])
-        self.case_assignment = CaseAssignment.objects.create(case=self.user_assigned_case, queue=self.queue, user=self.gov_user)
+        self.case_assignment = CaseAssignment.objects.create(
+            case=self.user_assigned_case, queue=self.queue, user=self.gov_user
+        )
 
         self.url = f'{reverse("cases:search")}?queue_id={MY_ASSIGNED_CASES_QUEUE_ID}'
 

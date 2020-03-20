@@ -7,24 +7,28 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0003_auto_20200311_1124'),
-        ('cases', '0008_casedocument_visible_to_exporter'),
+        ("users", "0003_auto_20200311_1124"),
+        ("cases", "0008_casedocument_visible_to_exporter"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='caseassignment',
-            name='users',
-        ),
+        migrations.RemoveField(model_name="caseassignment", name="users",),
         migrations.AddField(
-            model_name='caseassignment',
-            name='user',
-            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='case_assignments', to='users.GovUser'),
+            model_name="caseassignment",
+            name="user",
+            field=models.ForeignKey(
+                default=None,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="case_assignments",
+                to="users.GovUser",
+            ),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='caseassignment',
-            name='queue',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='case_assignments', to='queues.Queue'),
+            model_name="caseassignment",
+            name="queue",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="case_assignments", to="queues.Queue"
+            ),
         ),
     ]
