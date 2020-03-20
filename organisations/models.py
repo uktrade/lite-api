@@ -53,7 +53,11 @@ class Organisation(TimestampableModel):
 
 class SiteManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related("address", "foreign_address", "address__country", "foreign_address__country")
+        return (
+            super()
+            .get_queryset()
+            .select_related("address", "foreign_address", "address__country", "foreign_address__country")
+        )
 
     def get_by_organisation(self, organisation):
         return self.filter(organisation=organisation)

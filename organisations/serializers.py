@@ -71,7 +71,7 @@ class SiteCreateSerializer(serializers.ModelSerializer):
         # TODO CLEAN UP!
         # hard set address country to GB
         if hasattr(self, "initial_data") and "address" in self.initial_data:
-            print('hard setting the country!!')
+            print("hard setting the country!!")
             self.initial_data["address"]["country"] = "GB"
 
     def validate(self, data):

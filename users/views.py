@@ -23,8 +23,11 @@ from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from queues.models import Queue
-from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship, \
-    get_user_organisation_relationships
+from users.libraries.get_user import (
+    get_user_by_pk,
+    get_user_organisation_relationship,
+    get_user_organisation_relationships,
+)
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, ExporterNotification, GovUser, UserOrganisationRelationship
 from users.serializers import (
@@ -147,7 +150,8 @@ class UserMeDetail(APIView):
             "id": request.user.id,
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
-            "organisations": [{
+            "organisations": [
+                {
                     "id": organisation.id,
                     "name": organisation.name,
                     "joined_at": organisation.created_at,
@@ -155,7 +159,9 @@ class UserMeDetail(APIView):
                         "key": organisation.status,
                         "value": get_value_from_enum(organisation.status, OrganisationStatus),
                     },
-                } for organisation in organisations]
+                }
+                for organisation in organisations
+            ],
         }
 
         if org_pk != "None":

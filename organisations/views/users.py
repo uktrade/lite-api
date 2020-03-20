@@ -89,14 +89,16 @@ class UserDetail(APIView):
         relationship = get_user_organisation_relationship(user_pk, org_pk)
         sites = Site.objects.get_by_user_organisation_relationship(relationship)
 
-        return JsonResponse(data={
-            "first_name": relationship.user.first_name,
-            "last_name": relationship.user.last_name,
-            "email": relationship.user.email,
-            "status": relationship.status,
-            "role": RoleListSerializer(relationship.role).data,
-            "sites": SiteListSerializer(sites, many=True).data
-        })
+        return JsonResponse(
+            data={
+                "first_name": relationship.user.first_name,
+                "last_name": relationship.user.last_name,
+                "email": relationship.user.email,
+                "status": relationship.status,
+                "role": RoleListSerializer(relationship.role).data,
+                "sites": SiteListSerializer(sites, many=True).data,
+            }
+        )
 
     def put(self, request, org_pk, user_pk):
         """
