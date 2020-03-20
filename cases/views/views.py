@@ -663,13 +663,13 @@ class AssignedQueues(APIView):
                 # Only a single queue ID can be passed
                 if len(queues) != 1:
                     return JsonResponse(
-                        data={"errors": {"done": [Cases.UnassignQueues.NOT_ASSIGNED_MULTIPLE_QUEUES]}},
+                        data={"errors": {"queues": [Cases.UnassignQueues.NOT_ASSIGNED_MULTIPLE_QUEUES]}},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 # Check queue belongs to that users team
                 if not Queue.objects.filter(id=queues[0], team=request.user.team).exists():
                     return JsonResponse(
-                        data={"errors": {"done": [Cases.UnassignQueues.INVALID_TEAM]}},
+                        data={"errors": {"queues": [Cases.UnassignQueues.INVALID_TEAM]}},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 user_queue_assignment_workflow([], case)
