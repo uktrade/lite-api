@@ -20,11 +20,7 @@ from applications.libraries.application_helpers import (
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
 )
-from applications.libraries.edit_applications import (
-    edit_end_use_details,
-    save_and_audit_have_you_been_informed_ref,
-    save_and_audit_end_use_details,
-)
+from applications.libraries.edit_applications import save_and_audit_have_you_been_informed_ref
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
@@ -161,11 +157,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         data = request.data.copy()
         serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
-        # Prevent minor edits of the end use details
-        end_use_details_error = edit_end_use_details(application, request)
-        if end_use_details_error:
-            return end_use_details_error
-
         # Prevent minor edits of the goods categories
         if not application.is_major_editable() and request.data.get("goods_categories"):
             return JsonResponse(
@@ -229,12 +220,8 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 )
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            save_and_audit_end_use_details(request, application, serializer)
-        elif application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            is_updated = save_and_audit_end_use_details(request, application, serializer)
-            if not is_updated:
-                save_and_audit_have_you_been_informed_ref(request, application, serializer)
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            save_and_audit_have_you_been_informed_ref(request, application, serializer)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -414,6 +401,7 @@ class ApplicationFinaliseView(APIView):
 
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
             serializer.save()
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
@@ -530,6 +518,7 @@ class ApplicationCopy(APIView):
             "is_eu_military",
             "is_compliant_limitations_eu",
             "compliant_limitations_eu_ref",
+            "intended_end_use",
         ]
         for attribute in set_none:
             setattr(self.new_application, attribute, None)

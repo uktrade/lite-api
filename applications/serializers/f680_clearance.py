@@ -48,6 +48,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
             "types",
             "clearance_level",
             "questions",
+            "intended_end_use",
         )
 
 
