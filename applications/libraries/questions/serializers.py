@@ -33,7 +33,6 @@ class F680JsonSerializer(serializers.Serializer):
 
     def validate(self, data):
         validated_data = super().validate(data)
-
         if validated_data.get("expedited"):
             if not validated_data.get("expedited_date"):
                 raise ValidationError({"expedited_date": ["Date required."]})
