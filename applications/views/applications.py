@@ -20,6 +20,7 @@ from applications.libraries.application_helpers import (
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
 )
+from applications.libraries.case_status_helpers import submit_and_set_sla
 from applications.libraries.edit_applications import (
     edit_end_use_details,
     save_and_audit_have_you_been_informed_ref,
@@ -273,7 +274,7 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.EUA,
             CaseTypeSubTypeEnum.GOODS,
         ]:
-            application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+            submit_and_set_sla(application)
 
         errors = validate_application_ready_for_submission(application)
         if errors:
@@ -303,12 +304,7 @@ class ApplicationDeclaration(APIView):
 
         previous_application_status = application.status
 
-        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        application.submitted_at = timezone.now()
-        application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
-        application.sla_days = 0
-        application.save()
-
+        submit_and_set_sla(application)
         update_submitted_application_good_statuses_and_flags(application)
 
         # Serialize for the response message
