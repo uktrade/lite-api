@@ -295,7 +295,7 @@ class ApplicationDeclaration(APIView):
     @transaction.atomic
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
-    def put(self, request, application):
+    def post(self, request, application):
         errors = {}
         errors = _validate_agree_to_tsc(request, errors)
         if errors:
