@@ -51,6 +51,7 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents, Cases
+from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
@@ -633,9 +634,7 @@ class AssignedQueues(APIView):
 
     def get(self, request, pk):
         # Get all queues where this user is assigned to this case
-        assignments = CaseAssignment.objects.filter(user=self.request.user, case__id=pk)
-        # TODO figure out how to do this the django way
-        queues = [assignment.queue for assignment in assignments]
+        queues = Queue.objects.filter(case_assignments__user=request.user.pk, case_assignments__case=pk)
         serializer = TinyQueueSerializer(queues, many=True)
         return JsonResponse(data={"queues": serializer.data}, status=status.HTTP_200_OK)
 
@@ -644,7 +643,9 @@ class AssignedQueues(APIView):
         queues = request.data.get("queues")
         if queues:
             queue_names = []
-            assignments = CaseAssignment.objects.filter(user=request.user, case__id=pk, queue__id__in=queues)
+            assignments = CaseAssignment.objects.select_related("queue").filter(
+                user=request.user, case__id=pk, queue__id__in=queues
+            )
             case = get_case(pk)
 
             if assignments:
