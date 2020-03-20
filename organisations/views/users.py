@@ -91,6 +91,7 @@ class UserDetail(APIView):
 
         return JsonResponse(
             data={
+                "id": relationship.user.id,
                 "first_name": relationship.user.first_name,
                 "last_name": relationship.user.last_name,
                 "email": relationship.user.email,

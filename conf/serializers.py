@@ -35,12 +35,11 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
         return self.serializer(value).data
 
 
-class CountrySerializerField(PrimaryKeyRelatedField):
+class CountrySerializerField(PrimaryKeyRelatedSerializerField):
     def __init__(self, **kwargs):
         self.queryset = Country.objects.all()
         self.error_messages = {"null": strings.Addresses.NULL_COUNTRY}
-        self.serializer = CountrySerializer
-        super(CountrySerializerField, self).__init__(**kwargs)
+        super().__init__(serializer=CountrySerializer, **kwargs)
 
     def validate_empty_values(self, data):
         """
