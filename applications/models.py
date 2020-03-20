@@ -150,11 +150,13 @@ class BaseApplication(ApplicationPartyMixin, Case):
     informed_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
 
     is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
-    suspected_wmd_ref = models.TextField(default=None, blank=True, null=True, max_length=2200)
+    suspected_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
 
     is_eu_military = models.BooleanField(blank=True, default=None, null=True)
     is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
-    compliant_limitations_eu_ref = models.TextField(default=None, blank=True, null=True, max_length=2200)
+    compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
+
+    intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
 
     objects = BaseApplicationManager()
 
