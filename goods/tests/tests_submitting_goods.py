@@ -25,8 +25,7 @@ class GoodTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response_data["application"]["status"],
-            {"key": CaseStatusEnum.DRAFT, "value": "draft"},
+            response_data["application"]["status"], {"key": CaseStatusEnum.DRAFT, "value": "draft"},
         )
         good = Good.objects.get()
         self.assertEqual(good.status, GoodStatus.SUBMITTED)
