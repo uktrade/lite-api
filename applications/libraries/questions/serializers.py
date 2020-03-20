@@ -1,9 +1,11 @@
+from datetime import timedelta
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from applications.enums import MTCRAnswers, ServiceEquipmentType
 from conf.serializers import KeyValueChoiceField
-
+from django.utils import timezone
 
 class F680JsonSerializer(serializers.Serializer):
     expedited = serializers.BooleanField(required=False)
@@ -35,6 +37,11 @@ class F680JsonSerializer(serializers.Serializer):
             if not validated_data.get("expedited_date"):
                 raise ValidationError({"expedited_date": ["Date required."]})
             else:
+                today = timezone.now().date()
+                limit = (timezone.now() + timedelta(days=30)).date()
+                if today >= validated_data["expedited_date"] or validated_data["expedited_date"] > limit:
+                    raise ValidationError({"expedited_date": ["Date must be within 30 days."]})
+
                 validated_data["expedited_date"] = str(validated_data["expedited_date"])
 
         if validated_data.get("foreign_technology") and not validated_data.get("foreign_technology_description"):
