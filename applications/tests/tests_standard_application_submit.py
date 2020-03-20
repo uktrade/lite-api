@@ -222,3 +222,13 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_submit_standard_application_without_end_use_details_failure(self):
+        self.draft.intended_end_use = ""
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertContains(
+            response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
+        )
