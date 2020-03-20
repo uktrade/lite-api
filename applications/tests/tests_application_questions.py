@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from applications.enums import ServiceEquipmentType
@@ -73,14 +74,14 @@ class ApplicationQuestionsTest(DataTestClient):
 
     def test_update_f680_questions_with_conditional_success(self):
         self.assertIsNone(self.draft.questions)
-
+        date = timezone.now().date()
         data = {
             "expedited": True,
-            "expedited_date": "2020-11-10",
+            "expedited_date": f"{date.year}-{date.month}-{date.day}",
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
-
+        print(response.json())
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

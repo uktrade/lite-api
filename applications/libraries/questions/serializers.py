@@ -39,7 +39,7 @@ class F680JsonSerializer(serializers.Serializer):
             else:
                 today = timezone.now().date()
                 limit = (timezone.now() + timedelta(days=30)).date()
-                if today >= validated_data["expedited_date"] or validated_data["expedited_date"] > limit:
+                if today > validated_data["expedited_date"] or validated_data["expedited_date"] > limit:
                     raise ValidationError({"expedited_date": ["Date must be within 30 days."]})
 
                 validated_data["expedited_date"] = str(validated_data["expedited_date"])
