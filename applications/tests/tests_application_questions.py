@@ -28,7 +28,7 @@ class ApplicationQuestionsTest(DataTestClient):
     def test_update_f680_questions_failure(self):
         self.assertIsNone(self.draft.questions)
 
-        data = {"foreign_technology": ['Must be a valid boolean.']}
+        data = {"foreign_technology": ["Must be a valid boolean."]}
 
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -58,7 +58,7 @@ class ApplicationQuestionsTest(DataTestClient):
 
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {'errors': {'expedited_date': ['Date required.']}})
+        self.assertEqual(response.json(), {"errors": {"expedited_date": ["Date required."]}})
 
     def test_update_f680_questions_success_34(self):
         self.assertIsNone(self.draft.questions)
@@ -93,12 +93,12 @@ class ApplicationQuestionsTest(DataTestClient):
         }
 
         expected_response = {
-            'questions': {
-                'uk_service_equipment': True,
-                'uk_service_equipment_type': {
-                    'key': ServiceEquipmentType.MOD_FUNDED.value,
-                    'value': ServiceEquipmentType.MOD_FUNDED.to_representation(),
-                }
+            "questions": {
+                "uk_service_equipment": True,
+                "uk_service_equipment_type": {
+                    "key": ServiceEquipmentType.MOD_FUNDED.value,
+                    "value": ServiceEquipmentType.MOD_FUNDED.to_representation(),
+                },
             }
         }
 

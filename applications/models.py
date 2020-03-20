@@ -207,6 +207,7 @@ class F680ClearanceApplication(BaseApplication):
     def get_questions(self):
         return questions.serialize(self.case_type.sub_type, self.questions) if self.questions else {}
 
+
 # Queries
 class HmrcQuery(BaseApplication):
     hmrc_organisation = models.ForeignKey(Organisation, default=None, on_delete=models.PROTECT)

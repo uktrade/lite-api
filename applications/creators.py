@@ -165,8 +165,13 @@ def _validate_questions(draft, errors):
         errors.update(serializer.errors)
 
     required_fields_for_submission = [
-        "expedited", "foreign_technology", "locally_manufactured", "mtcr_type", "electronic_warfare_requirement",
-        "uk_service_equipment", "value"
+        "expedited",
+        "foreign_technology",
+        "locally_manufactured",
+        "mtcr_type",
+        "electronic_warfare_requirement",
+        "uk_service_equipment",
+        "value",
     ]
 
     if any([serializer.validated_data.get(field) is None for field in required_fields_for_submission]):

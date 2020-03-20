@@ -22,7 +22,9 @@ class F680JsonSerializer(serializers.Serializer):
 
     uk_service_equipment = serializers.BooleanField(required=False)
     uk_service_equipment_description = serializers.CharField(max_length=256, allow_blank=True, required=False)
-    uk_service_equipment_type = KeyValueChoiceField(choices=ServiceEquipmentType.choices(), allow_blank=True, required=False)
+    uk_service_equipment_type = KeyValueChoiceField(
+        choices=ServiceEquipmentType.choices(), allow_blank=True, required=False
+    )
 
     value = serializers.IntegerField(required=False)
 
