@@ -77,6 +77,18 @@ class CaseAssignmentTests(DataTestClient):
         self.assertEqual(response.json()["queues_removed"], [])
         self.assertTrue(Audit.objects.filter(verb=AuditType.UNASSIGNED.value).exists())
 
+    def test_put_unassign_no_assignments_multiple_queues_failure(self):
+        response = self.client.put(self.url, **self.gov_headers, data={"queues": [self.queue.id, self.other_queue.id]})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": {"done": [Cases.UnassignQueues.NOT_ASSIGNED_MULTIPLE_QUEUES]}})
+
+    def test_put_unassign_no_assignments_non_team_queue_failure(self):
+        response = self.client.put(self.url, **self.gov_headers, data={"queues": [self.other_queue.id]})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": {"done": [Cases.UnassignQueues.INVALID_TEAM]}})
+
     def test_put_unassign_no_queues_failure(self):
         response = self.client.put(self.url, **self.gov_headers, data={"queues": []})
 

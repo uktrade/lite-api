@@ -25,6 +25,8 @@ def get_next_status_in_workflow_sequence(case):
             try:
                 return CaseStatus.objects.get(workflow_sequence=next_status_id, is_terminal=False)
             except CaseStatus.DoesNotExist:
+                # If case workflow does have not have a next status
+                # Try/catch also verifies that multiple statuses do not exist for a given sequence ID
                 pass
 
         return None
