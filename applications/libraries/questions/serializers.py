@@ -8,20 +8,20 @@ from conf.serializers import KeyValueChoiceField
 class F680JsonSerializer(serializers.Serializer):
     expedited = serializers.BooleanField(required=False)
     expedited_date = serializers.DateField(required=False, format="DD-MM-YYYY")
-    expedited_description = serializers.CharField(max_length=256, allow_blank=True, required=False)
+    expedited_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
 
     foreign_technology = serializers.BooleanField(required=False)
-    foreign_technology_description = serializers.CharField(max_length=256, allow_blank=True, required=False)
+    foreign_technology_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
 
     locally_manufactured = serializers.BooleanField(required=False)
-    locally_manufactured_description = serializers.CharField(max_length=256, allow_blank=True, required=False)
+    locally_manufactured_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
 
     mtcr_type = KeyValueChoiceField(choices=MTCRAnswers.choices(), allow_blank=True, required=False)
 
     electronic_warfare_requirement = serializers.BooleanField(required=False)
 
     uk_service_equipment = serializers.BooleanField(required=False)
-    uk_service_equipment_description = serializers.CharField(max_length=256, allow_blank=True, required=False)
+    uk_service_equipment_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
     uk_service_equipment_type = KeyValueChoiceField(
         choices=ServiceEquipmentType.choices(), allow_blank=True, required=False
     )
