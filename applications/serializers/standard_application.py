@@ -10,6 +10,7 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
+from applications.serializers.licence import LicenceViewSerializer
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -54,8 +55,8 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
         )
 
     def get_licence(self, instance):
-        licence_duration = Licence.objects.filter(application=instance).values_list("duration").first()
-        return {"duration": licence_duration}
+        licence = Licence.objects.filter(application=instance).first()
+        return LicenceViewSerializer(licence).data
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):

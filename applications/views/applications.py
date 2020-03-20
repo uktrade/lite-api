@@ -400,6 +400,7 @@ class ApplicationFinaliseView(APIView):
 
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
             serializer.save()
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 

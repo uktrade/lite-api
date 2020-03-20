@@ -6,6 +6,7 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
+from applications.serializers.licence import LicenceViewSerializer
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from static.countries.models import Country
@@ -46,8 +47,8 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         return {"type": "countries", "data": serializer.data}
 
     def get_licence(self, instance):
-        licence_duration = Licence.objects.filter(application=instance).values_list("duration").first()
-        return {"duration": licence_duration}
+        licence = Licence.objects.filter(application=instance).first()
+        return LicenceViewSerializer(licence).data
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
