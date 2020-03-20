@@ -3,14 +3,16 @@ class PartyType:
     END_USER = "end_user"
     ULTIMATE_END_USER = "ultimate_end_user"
     THIRD_PARTY = "third_party"
+    ADDITIONAL_CONTACT = "additional_contact"
 
     INACTIVE_PARTIES = "inactive_parties"
 
     choices = [
         (CONSIGNEE, "Consignee"),
-        (END_USER, "End User"),
-        (ULTIMATE_END_USER, "Ultimate End User"),
-        (THIRD_PARTY, "Third Party"),
+        (END_USER, "End user"),
+        (ULTIMATE_END_USER, "Ultimate end user"),
+        (THIRD_PARTY, "Third party"),
+        (ADDITIONAL_CONTACT, "Additional contact"),
     ]
 
     @classmethod

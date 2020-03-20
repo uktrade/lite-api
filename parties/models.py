@@ -12,6 +12,12 @@ from static.countries.models import Country
 
 
 class PartyManager(models.Manager):
+    def all(self):
+        return self.get_queryset().exclude(type=PartyType.ADDITIONAL_CONTACT)
+
+    def additional_contacts(self):
+        return self.get_queryset().filter(type=PartyType.ADDITIONAL_CONTACT)
+
     def copy_detail(self, pk):
         """
         Copies the details of a party.
@@ -30,7 +36,7 @@ class Party(TimestampableModel):
     name = models.TextField(default=None, blank=True)
     address = models.TextField(default=None, blank=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    website = models.URLField(default=None, blank=True)
+    website = models.URLField(default=None, blank=True, null=True)
     type = models.CharField(choices=PartyType.choices, max_length=20)
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True, related_name="organisation_party", on_delete=models.DO_NOTHING,
@@ -46,6 +52,9 @@ class Party(TimestampableModel):
     descriptors = models.CharField(max_length=256, null=True, help_text="Clearance descriptors, caveats and codewords")
     # FK is self referencing
     copy_of = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
+    phone_number = models.CharField(null=True, blank=True, max_length=50)
+    email = models.EmailField(null=True, blank=True)
+    details = models.TextField(null=True, blank=True)
 
     objects = PartyManager()
 
