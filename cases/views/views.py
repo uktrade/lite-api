@@ -645,12 +645,12 @@ class AssignedQueues(APIView):
             queue_names = []
             assignments = CaseAssignment.objects.select_related("queue").filter(
                 user=request.user, case__id=pk, queue__id__in=queues
-            )
+            ).order_by("queue__name")
             case = get_case(pk)
 
             if assignments:
                 queues = [assignment.queue for assignment in assignments]
-                queue_names = sorted([queue.name for queue in queues])
+                queue_names = [queue.name for queue in queues]
                 assignments.delete()
                 user_queue_assignment_workflow(queues, case)
                 audit_trail_service.create(
