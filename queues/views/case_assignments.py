@@ -47,13 +47,9 @@ class CaseAssignments(views.APIView):
             case = get_case(assignment["case_id"])
             users = [get_user_by_pk(i) for i in assignment["users"]]
 
-            # Delete existing case assignments
-            CaseAssignment.objects.filter(case=case, queue=queue).delete()
-
             # Create a new case assignment object between that case and those users
-            case_assignment = CaseAssignment(case=case, queue=queue)
-            case_assignment.users.set(users)
-            case_assignment.save()
+            for user in users:
+                CaseAssignment.objects.create(case=case, queue=queue, user=user)
 
             # Add to queue
             case.queues.add(queue)

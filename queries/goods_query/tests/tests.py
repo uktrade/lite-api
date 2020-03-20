@@ -32,8 +32,7 @@ class GoodsQueryManageStatusTests(DataTestClient):
         query.case_officer = self.gov_user
         query.save()
         query.queues.set([self.queue])
-        case_assignment = CaseAssignment.objects.create(case=query, queue=self.queue)
-        case_assignment.users.set([self.gov_user])
+        CaseAssignment.objects.create(case=query, queue=self.queue, user=self.gov_user)
         url = reverse("queries:goods_queries:manage_status", kwargs={"pk": query.pk})
         data = {"status": "withdrawn"}
 

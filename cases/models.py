@@ -96,19 +96,14 @@ class Case(TimestampableModel):
             CaseAssignment.objects.filter(case=self)
             .select_related("queue")
             .order_by("queue__name")
-            .prefetch_related("users")
+            .prefetch_related("user")
         )
         if queue:
             case_assignments = case_assignments.filter(queue=queue)
 
         for case_assignment in case_assignments:
-            queue_users = [
-                {"first_name": first_name, "last_name": last_name, "email": email, "queue": case_assignment.queue.name,}
-                for first_name, last_name, email in case_assignment.users.values_list(
-                    "first_name", "last_name", "email"
-                )
-            ]
-            users.extend(queue_users)
+            user = case_assignment.user
+            users.extend({"first_name": user.first_name, "last_name": user.last_name, "email": user.email, "queue": case_assignment.queue.name,})
 
         return users
 
@@ -152,11 +147,10 @@ class CaseAssignment(TimestampableModel):
     """
     Assigns users to a case on a particular queue
     """
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="case_assignments")
-    users = models.ManyToManyField(GovUser, related_name="case_assignments")
-    queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+    user = models.ForeignKey(GovUser, on_delete=models.CASCADE, related_name="case_assignments")
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, related_name="case_assignments")
 
 
 class CaseDocument(Document):

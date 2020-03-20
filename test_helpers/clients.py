@@ -354,10 +354,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_case_assignment(queue, case, users):
-        case_assignment = CaseAssignment(queue=queue, case=case)
-        case_assignment.users.set(users)
-        case_assignment.save()
-        return case_assignment
+        if isinstance(users, list):
+            case_assignments = []
+            for user in users:
+                case_assignments.append(CaseAssignment.objects.create(queue=queue, case=case, user=user))
+            return case_assignments
+        else:
+            return CaseAssignment.objects.create(queue=queue, case=case, user=users)
 
     @staticmethod
     def create_goods_type(application):

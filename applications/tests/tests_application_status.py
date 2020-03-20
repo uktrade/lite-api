@@ -79,8 +79,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.case_officer = self.gov_user
         self.standard_application.save()
         self.standard_application.queues.set([self.queue])
-        case_assignment = CaseAssignment.objects.create(case=self.standard_application, queue=self.queue)
-        case_assignment.users.set([self.gov_user])
+        case_assignment = CaseAssignment.objects.create(case=self.standard_application, queue=self.queue, user=self.gov_user)
         data = {"status": case_status}
 
         response = self.client.put(self.url, data, **self.gov_headers)
