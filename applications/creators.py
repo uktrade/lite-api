@@ -1,3 +1,4 @@
+from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 from applications.models import (
     CountryOnApplication,
@@ -159,7 +160,7 @@ def _validate_end_use_details(draft, errors, application_type):
 
 
 def _validate_agree_to_tsc(request, errors):
-    if request.data.get("agreed_to_declaration") is not True:
+    if str_to_bool(request.data.get("agreed_to_declaration")) is not True:
         errors["agreed_to_declaration"] = strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED
 
     return errors
