@@ -16,7 +16,47 @@ from users.models import GovUser, UserOrganisationRelationship, Permission, Expo
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
-class SiteSerializer(serializers.ModelSerializer):
+class SiteListSerializer(serializers.ModelSerializer):
+    address = AddressSerializer()
+    foreign_address = ForeignAddressSerializer()
+
+    def to_representation(self, value):
+        repr_dict = super(SiteListSerializer, self).to_representation(value)
+        if not repr_dict["address"]:
+            del repr_dict["address"]
+        if not repr_dict["foreign_address"]:
+            del repr_dict["foreign_address"]
+        return repr_dict
+
+    class Meta:
+        model = Site
+        fields = ("id", "name", "address", "foreign_address")
+
+
+class SiteViewSerializer(SiteListSerializer):
+    users = serializers.SerializerMethodField()
+
+    def get_users(self, instance):
+        users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__exact=instance.id)])
+        permission = Permission.objects.get(id=ExporterPermissions.ADMINISTER_SITES.name)
+        users_with_permission = set(
+            [
+                x.user
+                for x in UserOrganisationRelationship.objects.filter(
+                    organisation=instance.organisation, role__permissions__id=permission.id
+                )
+            ]
+        )
+        users_union = users.union(users_with_permission)
+        users_union = sorted(users_union, key=lambda x: x.first_name)
+        return ExporterUserSimpleSerializer(users_union, many=True).data
+
+    class Meta:
+        model = Site
+        fields = ("id", "name", "address", "foreign_address", "users")
+
+
+class SiteCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages={"blank": "Enter a name for your site"}, write_only=True)
     address = AddressSerializer(write_only=True, required=False)
     foreign_address = ForeignAddressSerializer(write_only=True, required=False)
@@ -28,17 +68,9 @@ class SiteSerializer(serializers.ModelSerializer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # if hasattr(self, "initial_data"):
-        #     if "address" in self.initial_data:
-        #         self.foreign_address = None
-        #         self.Meta.fields = ("id", "name", "address", "organisation")
-        #     if "foreign_address" in self.initial_data:
-        #         self.address = None
-        #         self.Meta.fields = ("id", "name", "foreign_address", "organisation")
 
     def validate(self, data):
         validated_data = super().validate(data)
-
         # You have to have either an address or foreign address
         if "address" not in validated_data and "foreign_address" not in validated_data:
             raise serializers.ValidationError({"address": "You have to have an address!"})
@@ -46,6 +78,11 @@ class SiteSerializer(serializers.ModelSerializer):
         # Sites have to have either address or foreign address
         if "address" in validated_data and "foreign_address" in validated_data:
             raise serializers.ValidationError({"address": "You cant have both!"})
+
+        if "address" in validated_data and "country" in validated_data["address"] and not validated_data["address"]["country"]:
+            # Hard setting the country
+            print('hard setting the country!!')
+            validated_data["address"]["country"] = "GB"
 
         return validated_data
 
@@ -145,7 +182,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         },
     )
     user = ExporterUserCreateUpdateSerializer(write_only=True)
-    site = SiteSerializer(write_only=True)
+    site = SiteCreateSerializer(write_only=True)
 
     def __init__(self, *args, **kwargs):
         if kwargs.get("data").get("user"):
@@ -215,7 +252,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         else:
             site_data["foreign_address"]["country"] = site_data["foreign_address"]["country"].id
 
-        site_serializer = SiteSerializer(data=site_data)
+        site_serializer = SiteCreateSerializer(data=site_data)
         if site_serializer.is_valid():
             site = site_serializer.save()
         else:
@@ -234,46 +271,6 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         organisation.primary_site.save()
 
         return organisation
-
-
-class SiteListSerializer(serializers.ModelSerializer):
-    address = AddressSerializer()
-    foreign_address = ForeignAddressSerializer()
-
-    def to_representation(self, value):
-        repr_dict = super(SiteListSerializer, self).to_representation(value)
-        if not repr_dict["address"]:
-            del repr_dict["address"]
-        if not repr_dict["foreign_address"]:
-            del repr_dict["foreign_address"]
-        return repr_dict
-
-    class Meta:
-        model = Site
-        fields = ("id", "name", "address", "foreign_address")
-
-
-class SiteViewSerializer(SiteListSerializer):
-    users = serializers.SerializerMethodField()
-
-    def get_users(self, instance):
-        users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__exact=instance.id)])
-        permission = Permission.objects.get(id=ExporterPermissions.ADMINISTER_SITES.name)
-        users_with_permission = set(
-            [
-                x.user
-                for x in UserOrganisationRelationship.objects.filter(
-                    organisation=instance.organisation, role__permissions__id=permission.id
-                )
-            ]
-        )
-        users_union = users.union(users_with_permission)
-        users_union = sorted(users_union, key=lambda x: x.first_name)
-        return ExporterUserSimpleSerializer(users_union, many=True).data
-
-    class Meta:
-        model = Site
-        fields = ("id", "name", "address", "foreign_address", "users")
 
 
 class TinyOrganisationViewSerializer(serializers.ModelSerializer):

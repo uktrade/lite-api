@@ -1,3 +1,4 @@
+from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -6,6 +7,7 @@ from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
 
+@tag("only")
 class OrganisationSitesTests(DataTestClient):
     def test_site_list(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
@@ -50,6 +52,11 @@ class OrganisationSitesTests(DataTestClient):
         }
 
         response = self.client.post(url, data, **self.gov_headers)
+
+        print('\n')
+        print('response')
+        print(response.json())
+        print('\n')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)

@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
 from addresses.models import Address, ForeignAddress
-from conf.serializers import CountrySerializerField
+from conf.serializers import CountrySerializerField, PrimaryKeyRelatedSerializerField
 from static.countries.helpers import get_country
+from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
 
@@ -15,7 +16,7 @@ class AddressSerializer(serializers.ModelSerializer):
     postcode = serializers.CharField(max_length=10, error_messages={"blank": "Enter a real postcode"})
     city = serializers.CharField(error_messages={"blank": "Enter a real city"})
     region = serializers.CharField(error_messages={"blank": "Enter a real region"})
-    country = CountrySerializer()
+    country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(), serializer=CountrySerializer)
 
     class Meta:
         model = Address
@@ -36,7 +37,11 @@ class ForeignAddressSerializer(serializers.ModelSerializer):
     """
 
     address = serializers.CharField(error_messages={"blank": "Enter a real building and street name"})
-    country = CountrySerializer()
+    country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(), serializer=CountrySerializer)
+
+    def validate_country(self, value):
+        if value == "GB":
+            raise serializers.ValidationError({"country": "Cant be GB!"})
 
     class Meta:
         model = ForeignAddress

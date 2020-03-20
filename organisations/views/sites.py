@@ -1,7 +1,6 @@
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
@@ -10,8 +9,8 @@ from conf.permissions import assert_user_has_permission
 from organisations import service
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
-from organisations.models import Organisation, Site
-from organisations.serializers import SiteViewSerializer, SiteSerializer, SiteListSerializer
+from organisations.models import Site
+from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, SiteListSerializer
 from users.models import ExporterUser
 
 
@@ -50,16 +49,13 @@ class SitesList(APIView):
         if isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, org_pk)
 
-        organisation = Organisation.objects.get(pk=org_pk)
-        data = JSONParser().parse(request)
-        data["organisation"] = organisation.id
-        serializer = SiteSerializer(data=data)
+        data = request.data
+        data["organisation"] = org_pk
+        serializer = SiteCreateSerializer(data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             site = serializer.save()
             return JsonResponse(data={"site": SiteViewSerializer(site).data}, status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SiteDetail(APIView):
@@ -83,10 +79,7 @@ class SiteDetail(APIView):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, org_pk)
         site = get_site(site_pk, org_pk)
 
-        serializer = SiteSerializer(instance=site, data=request.data, partial=True)
-        if serializer.is_valid():
+        serializer = SiteCreateSerializer(instance=site, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
-
             return JsonResponse(data={"site": serializer.data}, status=status.HTTP_200_OK)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=400)
