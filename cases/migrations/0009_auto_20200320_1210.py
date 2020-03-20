@@ -4,16 +4,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
-def convert_users(apps, schema_editor):
-    CaseAssignment = apps.get_model("cases", "CaseAssignment")
-    db_alias = schema_editor.connection.alias
-    case_assignments = CaseAssignment.objects.using(db_alias).all()
-    for assignment in case_assignments:
-        for user in assignment.users.all():
-            CaseAssignment.objects.create(case=assignment.case, queue=assignment.queue, user=user)
-        assignment.delete()
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -34,5 +24,4 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE, related_name="case_assignments", to="queues.Queue"
             ),
         ),
-        migrations.RunPython(convert_users),
     ]
