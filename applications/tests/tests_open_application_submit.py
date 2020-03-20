@@ -22,7 +22,7 @@ class OpenApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get()
         self.assertEqual(case.id, self.draft.id)
-        self.assertIsNotNone(case.submitted_at)
+        self.assertIsNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
 
     def test_submit_open_application_without_site_or_external_location_failure(self):
@@ -55,19 +55,29 @@ class OpenApplicationTests(DataTestClient):
     def test_standard_application_declaration_submit_success(self):
         data = {
             "agreed_to_declaration": True,
+            "agreed_to_foi": True,
         }
 
         url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
-        response = self.client.put(url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        case = Case.objects.get()
+        self.assertEqual(case.id, self.draft.id)
+        self.assertIsNotNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
         data = {
             "agreed_to_declaration": False,
+            "agreed_to_foi": True,
         }
 
         url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
-        response = self.client.put(url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        errors = response.json()["errors"]
+        self.assertEqual(errors["agreed_to_declaration"], strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED)

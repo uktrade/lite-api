@@ -275,6 +275,7 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.GOODS,
         ]:
             submit_and_set_sla(application)
+            application.save()
 
         errors = validate_application_ready_for_submission(application)
         if errors:
@@ -305,6 +306,7 @@ class ApplicationDeclaration(APIView):
         previous_application_status = application.status
 
         submit_and_set_sla(application)
+        application.save()
         update_submitted_application_good_statuses_and_flags(application)
 
         # Serialize for the response message

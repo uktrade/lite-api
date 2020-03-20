@@ -25,10 +25,10 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get(id=self.draft.id)
-        self.assertIsNotNone(case.submitted_at)
+        self.assertIsNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
-            self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
+            self.assertEqual(good_on_application.good.status, GoodStatus.DRAFT)
         # 'Draft' applications should not create audit entries when submitted
         self.assertEqual(Audit.objects.all().count(), 0)
 
@@ -40,7 +40,7 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get(id=draft.id)
-        self.assertIsNotNone(case.submitted_at)
+        self.assertIsNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
 
     def test_submit_standard_application_with_invalid_id_failure(self):
@@ -179,8 +179,17 @@ class StandardApplicationTests(DataTestClient):
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
-        url = reverse("applications:application_submit", kwargs={"pk": standard_application.id})
-        response = self.client.put(url, **self.exporter_headers)
+        # url = reverse("applications:application_submit", kwargs={"pk": standard_application.id})
+        # response = self.client.put(url, **self.exporter_headers)
+
+        data = {
+            "agreed_to_declaration": True,
+            "agreed_to_foi": True
+        }
+
+        url = reverse("applications:declaration", kwargs={"pk": standard_application.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
 
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -233,17 +242,27 @@ class StandardApplicationTests(DataTestClient):
         }
 
         url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
-        response = self.client.put(url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        case = Case.objects.get(id=self.draft.id)
+        self.assertIsNotNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        for good_on_application in GoodOnApplication.objects.filter(application=case):
+            self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
 
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
         data = {
-            "agreed_to_declaration": False,
+            "agreed_to_declaration": True,
+            "agreed_to_foi": True
         }
 
         url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
-        response = self.client.put(url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        errors = response.json()["errors"]
+        self.assertEqual(errors["agreed_to_declaration"], strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED)
