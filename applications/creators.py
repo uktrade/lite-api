@@ -170,8 +170,13 @@ def _validate_end_use_details(draft, errors, application_type):
 
 
 def _validate_agree_to_tsc(request, errors):
+    """ Checks the exporter has agreed to the T&Cs of the licence """
+
     if str_to_bool(request.data.get("agreed_to_declaration")) is not True:
-        errors["agreed_to_declaration"] = strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED
+        errors["agreed_to_declaration"] = [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED]
+
+    if not request.data.get("agreed_to_foi"):
+        errors["agreed_to_foi"] = [strings.Applications.Generic.AGREEMENT_TO_FOI_REQUIRED]
 
     return errors
 
