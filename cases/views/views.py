@@ -643,9 +643,11 @@ class AssignedQueues(APIView):
         queues = request.data.get("queues")
         if queues:
             queue_names = []
-            assignments = CaseAssignment.objects.select_related("queue").filter(
-                user=request.user, case__id=pk, queue__id__in=queues
-            ).order_by("queue__name")
+            assignments = (
+                CaseAssignment.objects.select_related("queue")
+                .filter(user=request.user, case__id=pk, queue__id__in=queues)
+                .order_by("queue__name")
+            )
             case = get_case(pk)
 
             if assignments:

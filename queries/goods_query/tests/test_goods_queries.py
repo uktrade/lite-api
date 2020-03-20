@@ -84,8 +84,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         goods_query = GoodsQuery.objects.get()
         self.assertEqual(goods_query.status.status, CaseStatusEnum.CLC)
         self.assertEqual(
-            [str(id) for id in goods_query.flags.values_list("id", flat=True)],
-            [SystemFlags.GOOD_CLC_QUERY_ID],
+            [str(id) for id in goods_query.flags.values_list("id", flat=True)], [SystemFlags.GOOD_CLC_QUERY_ID],
         )
 
     def test_cannot_create_control_list_classification_query_on_good_when_good_already_exists(self):
@@ -257,8 +256,7 @@ class PvGradingQueryCreateTests(DataTestClient):
         self.assertEqual(goods_query.status.status, CaseStatusEnum.PV)
         self.assertEqual(goods_query.pv_grading_raised_reasons, pv_grading_raised_reasons)
         self.assertEqual(
-            [str(id) for id in goods_query.flags.values_list("id", flat=True)],
-            [SystemFlags.GOOD_PV_GRADING_QUERY_ID],
+            [str(id) for id in goods_query.flags.values_list("id", flat=True)], [SystemFlags.GOOD_PV_GRADING_QUERY_ID],
         )
 
     def test_given_a_pv_graded_good_exists_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
