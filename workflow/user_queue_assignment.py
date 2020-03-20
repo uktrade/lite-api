@@ -1,12 +1,12 @@
 from cases.enums import CaseTypeEnum
-from cases.models import Case, CaseAssignment
+from cases.models import Case
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 
 
 def get_queues_with_case_assignments(case: Case):
-    return {assignment.queue for assignment in CaseAssignment.objects.filter(case=case).distinct("queue")}
+    return set(Queue.objects.filter(case_assignments__case=case).distinct())
 
 
 def get_next_goods_query_status(case):
@@ -15,7 +15,7 @@ def get_next_goods_query_status(case):
     return None
 
 
-def get_next_non_terminal_status(case):
+def get_next_status_in_workflow_sequence(case):
     if case.case_type.reference == CaseTypeEnum.GOODS.reference:
         return get_next_goods_query_status(case)
     else:
@@ -37,7 +37,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
 
     # Move case to next non-terminal state if unassigned from all queues
     if case.queues.count() == 0:
-        next_status = get_next_non_terminal_status(case)
+        next_status = get_next_status_in_workflow_sequence(case)
         if next_status:
             case.status = next_status
             case.save()
