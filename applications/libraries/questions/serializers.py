@@ -7,6 +7,7 @@ from applications.enums import MTCRAnswers, ServiceEquipmentType
 from conf.serializers import KeyValueChoiceField
 from django.utils import timezone
 
+
 class F680JsonSerializer(serializers.Serializer):
     expedited = serializers.BooleanField(required=False)
     expedited_date = serializers.DateField(required=False, format="DD-MM-YYYY")
