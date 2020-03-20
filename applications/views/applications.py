@@ -59,6 +59,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
+from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
 class ApplicationList(ListCreateAPIView):
@@ -266,6 +267,8 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
+        apply_flagging_rules_to_case(application)
+
         update_submitted_application_good_statuses_and_flags(application)
 
         # Serialize for the response message
@@ -330,6 +333,7 @@ class ApplicationManageStatus(APIView):
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
+        old_status = application.status
 
         serializer = get_application_update_serializer(application)
         serializer = serializer(application, data=data, partial=True)
@@ -337,7 +341,11 @@ class ApplicationManageStatus(APIView):
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
+        application = serializer.save()
+
+        if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(application.status.status):
+            # we reapply flagging rules if the status is reopened from a terminal state
+            apply_flagging_rules_to_case(application)
 
         audit_trail_service.create(
             actor=request.user,
