@@ -14,6 +14,7 @@ from goods.enums import GoodControlled, GoodStatus, GoodPvGraded, PvGrading
 from goods.models import Good
 from lite_content.lite_api import strings
 from picklists.enums import PicklistType, PickListStatus
+from queries.goods_query.helpers import get_starting_status
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -80,8 +81,10 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
         self.assertEqual(GoodsQuery.objects.count(), 1)
+        goods_query = GoodsQuery.objects.get()
+        self.assertEqual(goods_query.status.status, CaseStatusEnum.CLC)
         self.assertEqual(
-            [str(id) for id in GoodsQuery.objects.get().flags.values_list("id", flat=True)],
+            [str(id) for id in goods_query.flags.values_list("id", flat=True)],
             [SystemFlags.GOOD_CLC_QUERY_ID],
         )
 
@@ -92,6 +95,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(strings.GoodsQuery.A_QUERY_ALREADY_EXISTS_FOR_THIS_GOOD_ERROR in response.json()["errors"],)
         self.assertEqual(GoodsQuery.objects.count(), 1)
+        self.assertEqual(GoodsQuery.objects.get().status.status, CaseStatusEnum.CLC)
 
 
 class ControlListClassificationsQueryRespondTests(DataTestClient):
@@ -249,9 +253,11 @@ class PvGradingQueryCreateTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["id"], str(GoodsQuery.objects.get().id))
         self.assertEqual(GoodsQuery.objects.count(), 1)
-        self.assertEqual(GoodsQuery.objects.get().pv_grading_raised_reasons, pv_grading_raised_reasons)
+        goods_query = GoodsQuery.objects.get()
+        self.assertEqual(goods_query.status.status, CaseStatusEnum.PV)
+        self.assertEqual(goods_query.pv_grading_raised_reasons, pv_grading_raised_reasons)
         self.assertEqual(
-            [str(id) for id in GoodsQuery.objects.get().flags.values_list("id", flat=True)],
+            [str(id) for id in goods_query.flags.values_list("id", flat=True)],
             [SystemFlags.GOOD_PV_GRADING_QUERY_ID],
         )
 
@@ -332,7 +338,7 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
             good=self.pv_graded_and_controlled_good,
             organisation=self.organisation,
             case_type_id=CaseTypeEnum.GOODS.id,
-            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            status=get_starting_status(is_clc_required=True),
         )
         self.clc_and_pv_query.flags.set(
             [
@@ -364,6 +370,8 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
         self.assertTrue(SystemFlags.GOOD_PV_GRADING_QUERY_ID in remaining_flags)
         self.assertFalse(case.query.goodsquery.pv_grading_responded)
         self.assertEqual(self.clc_and_pv_query.good.status, GoodStatus.VERIFIED)
+        # CLC status takes priority over PV
+        self.assertEqual(self.clc_and_pv_query.status.status, CaseStatusEnum.CLC)
 
         # Check that an audit item has been added
         audit_qs = Audit.objects.filter(
@@ -392,6 +400,8 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
         self.assertTrue(SystemFlags.GOOD_PV_GRADING_QUERY_ID in remaining_flags)
         self.assertTrue(case.query.goodsquery.pv_grading_responded)
         self.assertNotEqual(self.clc_and_pv_query.good.status, GoodStatus.VERIFIED)
+        # CLC status takes priority over PV
+        self.assertEqual(self.clc_and_pv_query.status.status, CaseStatusEnum.CLC)
 
         # Check that an audit item has been added
         audit_qs = Audit.objects.filter(
