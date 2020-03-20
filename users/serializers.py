@@ -35,32 +35,32 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
 
 
 class ExporterUserViewSerializer(serializers.ModelSerializer):
-    # status = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
-    # sites = serializers.SerializerMethodField()
+    sites = serializers.SerializerMethodField()
 
     class Meta:
         model = ExporterUser
         fields = "__all__"
 
-    # def get_status(self, instance):
-    #     if hasattr(instance, "status"):
-    #         return instance.status
-    #
-    #     return None
-    #
+    def get_status(self, instance):
+        if hasattr(instance, "status"):
+            return instance.status
+
+        return None
+
     def get_role(self, _):
         if "role" in self.context:
             return RoleSerializer(self.context["role"]).data
         return None
 
-    # def get_sites(self, instance):
-    #     from organisations.serializers import SiteViewSerializer
-    #
-    #     if self.context:
-    #         sites = Site.objects.get_by_user_and_organisation(instance, self.context)
-    #         return SiteViewSerializer(sites, many=True).data
-    #     return None
+    def get_sites(self, instance):
+        from organisations.serializers import SiteViewSerializer
+
+        if self.context:
+            sites = Site.objects.get_by_user_and_organisation(instance, self.context)
+            return SiteViewSerializer(sites, many=True).data
+        return None
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):
