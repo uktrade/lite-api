@@ -19,7 +19,7 @@ class CountryWithFlagsSerializer(CountrySerializer):
     flags = serializers.SerializerMethodField()
 
     def get_flags(self, instance):
-        if self.context.get("active_flags"):
+        if self.context.get("active_flags_only"):
             return list(instance.flags.filter(status=FlagStatuses.ACTIVE).values("id", "name"))
         else:
             return list(instance.flags.values("id", "name"))
