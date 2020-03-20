@@ -47,7 +47,7 @@ class ApplicationQuestionsTest(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {'errors': {'Additional details': ["This isn't possible on a minor edit"]}})
+        self.assertEqual(response.json(), {"errors": {"Additional details": ["This isn't possible on a minor edit"]}})
 
     def test_update_f680_questions_bad_data_failure(self):
         self.assertIsNone(self.draft.questions)
