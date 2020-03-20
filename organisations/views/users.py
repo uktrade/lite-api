@@ -12,11 +12,13 @@ from rest_framework.views import APIView
 from conf.authentication import SharedAuthentication
 from conf.constants import Roles, ExporterPermissions
 from conf.permissions import assert_user_has_permission
+from gov_users.serializers import RoleSerializer, RoleListSerializer
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_organisation_by_pk
-from organisations.serializers import OrganisationUserListView
+from organisations.models import Site
+from organisations.serializers import OrganisationUserListView, SiteViewSerializer, SiteListSerializer
 from users.enums import UserStatuses
-from users.libraries.get_user import get_user_by_pk
+from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.models import ExporterUser, Role
 from users.serializers import (
     ExporterUserViewSerializer,
@@ -84,15 +86,17 @@ class UserDetail(APIView):
         if not is_self and isinstance(request.user, ExporterUser):
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
 
-        user = get_user_by_pk(user_pk)
-        org = get_organisation_by_pk(org_pk)
+        relationship = get_user_organisation_relationship(user_pk, org_pk)
+        sites = Site.objects.get_by_user_organisation_relationship(relationship)
 
-        # Set the user's status in that org
-        user_relationship = org.get_user_relationship(user)
-        user.status = user_relationship.status
-
-        view_serializer = ExporterUserViewSerializer(user, context=org_pk)
-        return JsonResponse(data={"user": view_serializer.data})
+        return JsonResponse(data={
+            "first_name": relationship.user.first_name,
+            "last_name": relationship.user.last_name,
+            "email": relationship.user.email,
+            "status": relationship.status,
+            "role": RoleListSerializer(relationship.role).data,
+            "sites": SiteListSerializer(sites, many=True).data
+        })
 
     def put(self, request, org_pk, user_pk):
         """

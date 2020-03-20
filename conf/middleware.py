@@ -5,6 +5,8 @@ from datetime import datetime
 
 from django.db import connection
 
+from test_helpers.colours import bold
+
 
 class LoggingMiddleware:
     def __init__(self, get_response=None):
@@ -17,16 +19,16 @@ class LoggingMiddleware:
             correlation = request.META["HTTP_X_CORRELATION_ID"]
         request.correlation = correlation or uuid.uuid4().hex
         response = self.get_response(request)
-        logging.info(
-            {
-                "message": "liteolog api",
-                "corrID": request.correlation,
-                "type": "http response",
-                "method": request.method,
-                "url": request.path,
-                "elapsed_time": time.time() - start,
-            }
-        )
+        # logging.info(
+        #     {
+        #         "message": "liteolog api",
+        #         "corrID": request.correlation,
+        #         "type": "http response",
+        #         "method": request.method,
+        #         "url": request.path,
+        #         "elapsed_time": time.time() - start,
+        #     }
+        # )
 
         return response
 
@@ -39,15 +41,17 @@ class DBLoggingMiddleware:
         start = datetime.now()
         initial_queries = connection.queries
 
-        print(f"\nInitial query count: {len(initial_queries)}")
-
         response = self.get_response(request)
         final_queries = connection.queries
 
         elapsed_time = datetime.now() - start
 
-        print(f"Time taken for {request.path}: {round(elapsed_time.microseconds / 100000, 2)}s")
-        print(f"Final query count: {len(final_queries)}\n")
+        _type = request.method.upper()
+        duration = round(elapsed_time.microseconds / 100000, 2)
+        queries = len(final_queries)
+
+        print(f"\n{_type} {bold(request.path)} - ⏱  {duration}s  🗂  {queries} queries\n")
+
         # logging.info(
         #     {
         #         "message": "liteolog db",

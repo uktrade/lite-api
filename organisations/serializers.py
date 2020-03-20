@@ -68,6 +68,11 @@ class SiteCreateSerializer(serializers.ModelSerializer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # TODO CLEAN UP!
+        # hard set address country to GB
+        if hasattr(self, "initial_data") and "address" in self.initial_data:
+            print('hard setting the country!!')
+            self.initial_data["address"]["country"] = "GB"
 
     def validate(self, data):
         validated_data = super().validate(data)
@@ -79,25 +84,18 @@ class SiteCreateSerializer(serializers.ModelSerializer):
         if "address" in validated_data and "foreign_address" in validated_data:
             raise serializers.ValidationError({"address": "You cant have both!"})
 
-        if "address" in validated_data and "country" in validated_data["address"] and not validated_data["address"]["country"]:
-            # Hard setting the country
-            print('hard setting the country!!')
-            validated_data["address"]["country"] = "GB"
-
         return validated_data
 
     @transaction.atomic
     def create(self, validated_data):
         if "address" in validated_data:
             address_data = validated_data.pop("address")
-            address_data["country"] = address_data["country"].id
+            address_data["country"] = "GB"
 
             address_serializer = AddressSerializer(data=address_data)
-            if address_serializer.is_valid():
+            if address_serializer.is_valid(raise_exception=True):
                 address = Address(**address_serializer.validated_data)
                 address.save()
-            else:
-                return address_serializer.errors
 
             site = Site.objects.create(address=address, **validated_data)
         else:
@@ -108,8 +106,6 @@ class SiteCreateSerializer(serializers.ModelSerializer):
             if foreign_address_serializer.is_valid(raise_exception=True):
                 foreign_address = ForeignAddress(**foreign_address_serializer.validated_data)
                 foreign_address.save()
-            else:
-                return foreign_address_serializer.errors
 
             site = Site.objects.create(foreign_address=foreign_address, **validated_data)
 

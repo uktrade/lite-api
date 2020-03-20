@@ -40,8 +40,9 @@ class ForeignAddressSerializer(serializers.ModelSerializer):
     country = PrimaryKeyRelatedSerializerField(queryset=Country.objects.all(), serializer=CountrySerializer)
 
     def validate_country(self, value):
-        if value == "GB":
+        if value == get_country("GB"):  # TODO CLEANUP
             raise serializers.ValidationError({"country": "Cant be GB!"})
+        return value
 
     class Meta:
         model = ForeignAddress

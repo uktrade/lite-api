@@ -20,12 +20,6 @@ from static.countries.serializers import CountrySerializer
 
 
 class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
-    """
-    A PrimaryKeyRelatedField which serialises full objects when producing output.
-
-    That is, you can POST or PUT IDs, but GET will serialize the full object.
-    """
-
     def __init__(self, **kwargs):
         self.serializer = kwargs.pop("serializer", None)
 
@@ -34,8 +28,11 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
 
         super(PrimaryKeyRelatedSerializerField, self).__init__(**kwargs)
 
+    def use_pk_only_optimization(self):
+        return False
+
     def to_representation(self, value):
-        return self.serializer(self.queryset.get(pk=value.pk)).data
+        return self.serializer(value).data
 
 
 class CountrySerializerField(PrimaryKeyRelatedField):

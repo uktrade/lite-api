@@ -15,16 +15,18 @@ from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
-from conf.helpers import convert_queryset_to_str
+from conf.helpers import convert_queryset_to_str, get_value_from_enum
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import Users
+from organisations.enums import OrganisationStatus
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from queues.models import Queue
-from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
+from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship, \
+    get_user_organisation_relationships
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser, ExporterNotification, GovUser
+from users.models import ExporterUser, ExporterNotification, GovUser, UserOrganisationRelationship
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
@@ -138,19 +140,26 @@ class UserMeDetail(APIView):
 
     def get(self, request):
         org_pk = request.headers["Organisation-Id"]
-        print(connection.queries)
         user = request.user
-        relationship = get_user_organisation_relationship(user, org_pk)
-
-        # time.sleep(3)
+        organisations = [x.organisation for x in UserOrganisationRelationship.objects.filter(user=user)]
 
         data = {
             "id": request.user.id,
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
+            "organisations": [{
+                    "id": organisation.id,
+                    "name": organisation.name,
+                    "joined_at": organisation.created_at,
+                    "status": {
+                        "key": organisation.status,
+                        "value": get_value_from_enum(organisation.status, OrganisationStatus),
+                    },
+                } for organisation in organisations]
         }
 
-        if relationship:
+        if org_pk != "None":
+            relationship = get_user_organisation_relationship(user, org_pk)
             data.update(
                 {
                     "role": {
@@ -162,7 +171,7 @@ class UserMeDetail(APIView):
                 }
             )
 
-        return JsonResponse(data={"user": data})
+        return JsonResponse(data=data)
 
 
 class NotificationViewSet(APIView):

@@ -36,7 +36,7 @@ class SitesList(APIView):
         else:
             sites = Site.objects.filter(organisation=organisation)
 
-        sites = list(sites.select_related("address", "foreign_address", "address__country", "foreign_address__country"))
+        sites = list(sites)
         sites.sort(key=lambda x: x.id == primary_site_id, reverse=True)
         serializer_data = SiteListSerializer(sites, many=True).data
 

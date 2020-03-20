@@ -29,6 +29,11 @@ class Permission(models.Model):
         ordering = ["name"]
 
 
+class RoleManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("permissions")
+
+
 class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
@@ -39,6 +44,8 @@ class Role(models.Model):
 
     class Meta:
         ordering = ["name"]
+
+    objects = RoleManager()
 
 
 class CustomUserManager(BaseUserManager):
