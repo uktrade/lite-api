@@ -525,7 +525,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             "locally_manufactured": False,
             "uk_service_equipment": False,
             "electronic_warfare_requirement": False,
-            "value": 100.0
+            "value": 100.0,
         }
         application.save()
 

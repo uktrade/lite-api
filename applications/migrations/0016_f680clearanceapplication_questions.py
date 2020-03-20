@@ -7,13 +7,11 @@ import jsonfield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0015_licence'),
+        ("applications", "0015_licence"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='f680clearanceapplication',
-            name='questions',
-            field=jsonfield.fields.JSONField(null=True),
+            model_name="f680clearanceapplication", name="questions", field=jsonfield.fields.JSONField(null=True),
         ),
     ]
