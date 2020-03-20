@@ -42,7 +42,7 @@ class NotFoundError(APIException):
         if not isinstance(detail, dict) and not isinstance(detail, list):
             detail = [detail]
 
-        self.detail = _get_error_details({"errors": detail}, code)
+        self.detail = _get_error_details(detail, code)
 
 
 class PermissionDeniedError(APIException):
@@ -57,7 +57,7 @@ class PermissionDeniedError(APIException):
         if code is None:
             code = self.default_code
 
-        self.detail = _get_error_details({"errors": {"error": detail}}, code)
+        self.detail = _get_error_details({"error": detail}, code)
 
 
 class BadRequestError(APIException):
@@ -77,4 +77,4 @@ class BadRequestError(APIException):
         if not isinstance(detail, dict) and not isinstance(detail, list):
             detail = [detail]
 
-        self.detail = _get_error_details({"errors": detail}, code)
+        self.detail = _get_error_details(detail, code)

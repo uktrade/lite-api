@@ -12,6 +12,7 @@ urlpatterns = [
     path("<uuid:pk>/case-notes/", case_notes.CaseNoteList.as_view(), name="case_notes"),
     path("<uuid:pk>/case-officer/", views.CaseOfficer.as_view(), name="case_officer"),
     path("<uuid:pk>/activity/", activity.Activity.as_view(), name="activity"),
+    path("<uuid:pk>/additional-contacts/", views.AdditionalContacts.as_view(), name="additional_contacts"),
     path("<uuid:pk>/documents/", views.CaseDocuments.as_view(), name="documents"),
     path("<uuid:pk>/documents/<str:s3_key>/", views.CaseDocumentDetail.as_view(), name="document",),
     path(

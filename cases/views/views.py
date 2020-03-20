@@ -2,7 +2,7 @@ from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404
+from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -53,6 +53,8 @@ from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents, Cases
 from parties.serializers import PartySerializer
 from queues.serializers import TinyQueueSerializer
+from parties.models import Party
+from parties.serializers import PartySerializer, AdditionalContactSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -666,3 +668,22 @@ class AssignedQueues(APIView):
             return JsonResponse(
                 data={"errors": {"queues": [Cases.UnassignQueues.NO_QUEUES]}}, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class AdditionalContacts(ListCreateAPIView):
+    queryset = Party.objects.additional_contacts()
+    serializer_class = AdditionalContactSerializer
+    pagination_class = None
+    authentication_classes = (GovAuthentication,)
+
+    def get_serializer_context(self):
+        return {"organisation_pk": get_case(self.kwargs["pk"]).organisation.id}
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        audit_trail_service.create(
+            actor=self.request.user,
+            verb=AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE,
+            target=get_case(self.kwargs["pk"]),
+            payload={"contact": serializer.data["name"]},
+        )

@@ -23,6 +23,7 @@ class AuditType(Enum):
     ADD_EXTERNAL_LOCATIONS_TO_APPLICATION = "added external locations: {locations}"
     REMOVED_COUNTRIES_FROM_APPLICATION = "removed countries: {countries}"
     ADD_COUNTRIES_TO_APPLICATION = "added countries: {countries}"
+    ADD_ADDITIONAL_CONTACT_TO_CASE = "added an additional contact: {contact}"
     MOVE_CASE = "moved the case to: {queues}"
     REMOVE_CASE = "removed case from queues: {queues}"
     CLC_RESPONSE = "responded to the case"
