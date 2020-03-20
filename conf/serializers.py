@@ -39,6 +39,7 @@ class CountrySerializerField(PrimaryKeyRelatedField):
     def __init__(self, **kwargs):
         self.queryset = Country.objects.all()
         self.error_messages = {"null": strings.Addresses.NULL_COUNTRY}
+        self.serializer = CountrySerializer
         super(CountrySerializerField, self).__init__(**kwargs)
 
     def validate_empty_values(self, data):
@@ -83,12 +84,6 @@ class CountrySerializerField(PrimaryKeyRelatedField):
             raise serializers.ValidationError(strings.Addresses.NULL_COUNTRY)
         except (TypeError, ValueError):
             self.fail("incorrect_type", data_type=type(data).__name__)
-
-    def to_representation(self, value):
-        if isinstance(value, str):
-            return CountrySerializer(self.queryset.get(pk=value)).data
-
-        return CountrySerializer(self.queryset.get(pk=value.pk)).data
 
 
 class KeyValueChoiceField(Field):
