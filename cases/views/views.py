@@ -672,7 +672,7 @@ class AssignedQueues(APIView):
                         data={"errors": {"queues": [Cases.UnassignQueues.INVALID_TEAM]}},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
-                user_queue_assignment_workflow([], case)
+                user_queue_assignment_workflow(queues, case)
                 audit_trail_service.create(
                     actor=request.user, verb=AuditType.UNASSIGNED, target=case,
                 )
