@@ -7,7 +7,7 @@ from cases.models import CaseAssignment
 
 
 def forwards_func(apps, schema_editor):
-    CaseAssignment.objects.all().delete()
+    CaseAssignment.objects.all.delete()
 
 
 class Migration(migrations.Migration):
