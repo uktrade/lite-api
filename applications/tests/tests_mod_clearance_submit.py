@@ -235,6 +235,7 @@ class F680ClearanceTests(DataTestClient):
         self.assertIsNone(application.submitted_at)
         self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertIsNotNone(application.goods.get())
+        self.assertIsNotNone(application.intended_end_use)
 
     def test_submit_F680_with_end_user_and_without_third_party_success(self):
         self.draft.third_parties.all().delete()
@@ -301,6 +302,17 @@ class F680ClearanceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["types"], strings.Applications.F680.NO_CLEARANCE_TYPE)
+
+    def test_submit_F680_clearance_without_end_use_details_failure(self):
+        self.draft.intended_end_use = ""
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.draft.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(response.json()["errors"]), 1)
+        self.assertEqual(response.json()["errors"]["end_use_details"], strings.Applications.Generic.NO_END_USE_DETAILS)
 
     def test_f680_clearance_declaration_submit_success(self):
         data = {

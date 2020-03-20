@@ -128,9 +128,9 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
         errors["ultimate_end_user_documents"] = ultimate_end_user_documents_error
 
     if is_mandatory:
-        ultimate_end_user_required = False
-        if next(filter(lambda x: x.is_good_incorporated, GoodOnApplication.objects.filter(application=draft),), None,):
-            ultimate_end_user_required = True
+        ultimate_end_user_required = GoodOnApplication.objects.filter(
+            application=draft, is_good_incorporated=True
+        ).exists()
 
         if ultimate_end_user_required:
             if len(draft.ultimate_end_users.values_list()) == 0:
@@ -147,14 +147,24 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
 
 
 def _validate_end_use_details(draft, errors, application_type):
-    if application_type == CaseTypeSubTypeEnum.STANDARD:
-        if draft.is_eu_military is None:
-            errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
-        elif draft.is_eu_military and draft.is_compliant_limitations_eu is None:
+    if application_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+        if (
+            draft.is_military_end_use_controls is None
+            or draft.is_informed_wmd is None
+            or draft.is_suspected_wmd is None
+            or not draft.intended_end_use
+        ):
             errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
 
-    if draft.is_military_end_use_controls is None or draft.is_informed_wmd is None or draft.is_suspected_wmd is None:
-        errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+        if application_type == CaseTypeSubTypeEnum.STANDARD:
+            if draft.is_eu_military is None:
+                errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+            elif draft.is_eu_military and draft.is_compliant_limitations_eu is None:
+                errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+
+    elif application_type == CaseTypeSubTypeEnum.F680:
+        if not draft.intended_end_use:
+            errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
 
     return errors
 
@@ -255,6 +265,7 @@ def _validate_f680_clearance(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
+    errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
 
     if not draft.end_user and not draft.third_parties.exists():
         errors["party"] = strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY

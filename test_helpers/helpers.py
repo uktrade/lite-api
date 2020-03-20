@@ -1,6 +1,7 @@
 from faker import Faker
 
 from flags.enums import SystemFlags
+from static.countries.models import Country
 from users.models import ExporterUser, UserOrganisationRelationship
 
 
@@ -13,6 +14,13 @@ def generate_key_value_pair(key, choices):
     """
     value = next(v for k, v in choices if k == key)
     return {"key": key, "value": value}
+
+
+def generate_country_dict(country: Country):
+    """
+    Returns a dictionary representing a country, useful for comparison tests
+    """
+    return {"id": country.id, "name": country.name, "is_eu": country.is_eu, "type": country.type}
 
 
 def date_to_drf_date(date):

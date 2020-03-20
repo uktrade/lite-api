@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
+from rest_framework.exceptions import APIException
 from separatedvaluesfield.models import SeparatedValuesField
 
 from applications.enums import (
@@ -18,7 +19,7 @@ from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
 
-from lite_content.lite_api.strings import Parties
+from lite_content.lite_api.strings import PartyErrors
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
 from parties.models import Party
@@ -30,8 +31,8 @@ from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.units.enums import Units
 
 
-class ApplicationException(Exception):
-    def __init__(self, data=None, *args, **kwargs):
+class ApplicationException(APIException):
+    def __init__(self, data):
         super().__init__(data)
         self.data = data
 
@@ -40,7 +41,7 @@ class ApplicationPartyMixin:
     def add_party(self, party):
 
         if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
-            raise ApplicationException({"errors": {"bad_request": Parties.BAD_CASE_TYPE}})
+            raise ApplicationException({"bad_request": PartyErrors.BAD_CASE_TYPE})
 
         old_poa = None
 
@@ -56,7 +57,7 @@ class ApplicationPartyMixin:
         elif party.type == PartyType.THIRD_PARTY:
             # Rule: Append
             if not party.role:
-                raise ApplicationException({"errors": {"required": Parties.ThirdParty.NULL_ROLE}})
+                raise ApplicationException({"required": PartyErrors.ROLE["null"]})
 
         poa = PartyOnApplication.objects.create(application=self, party=party)
 
@@ -149,11 +150,13 @@ class BaseApplication(ApplicationPartyMixin, Case):
     informed_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
 
     is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
-    suspected_wmd_ref = models.TextField(default=None, blank=True, null=True, max_length=2200)
+    suspected_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
 
     is_eu_military = models.BooleanField(blank=True, default=None, null=True)
     is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
-    compliant_limitations_eu_ref = models.TextField(default=None, blank=True, null=True, max_length=2200)
+    compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
+
+    intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
     is_agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
 
     objects = BaseApplicationManager()

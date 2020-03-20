@@ -5,7 +5,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import PartyOnApplication
-from lite_content.lite_api.strings import Parties
+from lite_content.lite_api.strings import PartyErrors
 from parties.enums import PartyType
 from parties.models import PartyDocument
 from static.countries.helpers import get_country
@@ -297,7 +297,7 @@ class ConsigneeOnDraftTests(DataTestClient):
         response = self.client.post(self.url, end_user, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"name": [Parties.NULL_NAME]}})
+        self.assertEqual(response.json(), {"errors": {"name": [PartyErrors.NAME["null"]]}})
 
     def test_consignee_copy_of_success(self):
         consignee = {
