@@ -13,6 +13,7 @@ from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import PartyDocument
+from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -64,6 +65,8 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(list(application.third_parties.all()), [])
         self.assertIsNone(application.end_user)
         self.assertIsNone(application.consignee)
+        self.assertIsNone(application.submitted_at)
+        self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertIsNotNone(application.goods.get())
 
     def test_submit_exhibition_clearance_without_location_failure(self):
@@ -91,6 +94,35 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["goods"], strings.Applications.Standard.NO_GOODS_SET)
 
+    def test_exhibition_clearance_declaration_submit_success(self):
+        data = {
+            "agreed_to_declaration": True,
+            "agreed_to_foi": True,
+        }
+
+        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        application = ExhibitionClearanceApplication.objects.get()
+        self.assertIsNotNone(application.submitted_at)
+        self.assertEqual(application.status.status, CaseStatusEnum.SUBMITTED)
+
+    def test_exhibition_clearance_declaration_submit_tcs_false_failure(self):
+        data = {
+            "agreed_to_declaration": False,
+            "agreed_to_foi": True,
+        }
+
+        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        errors = response.json()["errors"]
+        self.assertEqual(errors["agreed_to_declaration"], strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED)
+
 
 class GiftingClearanceTests(DataTestClient):
     def setUp(self):
@@ -108,6 +140,8 @@ class GiftingClearanceTests(DataTestClient):
         self.assertEqual(GiftingClearanceApplication.objects.count(), 1)
         self.assertIsNotNone(application.third_parties.get())
         self.assertIsNotNone(application.end_user)
+        self.assertIsNone(application.submitted_at)
+        self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertIsNotNone(application.goods.get())
 
     def test_submit_gifting_clearance_without_end_user_failure(self):
@@ -152,6 +186,35 @@ class GiftingClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["location"], strings.Applications.Gifting.LOCATIONS)
 
+    def test_gifting_clearance_declaration_submit_success(self):
+        data = {
+            "agreed_to_declaration": True,
+            "agreed_to_foi": True,
+        }
+
+        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        application = GiftingClearanceApplication.objects.get()
+        self.assertIsNotNone(application.submitted_at)
+        self.assertEqual(application.status.status, CaseStatusEnum.SUBMITTED)
+
+    def test_gifting_clearance_declaration_submit_tcs_false_failure(self):
+        data = {
+            "agreed_to_declaration": False,
+            "agreed_to_foi": True,
+        }
+
+        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        errors = response.json()["errors"]
+        self.assertEqual(errors["agreed_to_declaration"], strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED)
+
 
 class F680ClearanceTests(DataTestClient):
     def setUp(self):
@@ -169,6 +232,8 @@ class F680ClearanceTests(DataTestClient):
         self.assertEqual(F680ClearanceApplication.objects.count(), 1)
         self.assertIsNotNone(application.third_parties.get())
         self.assertIsNotNone(application.end_user)
+        self.assertIsNone(application.submitted_at)
+        self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertIsNotNone(application.goods.get())
 
     def test_submit_F680_with_end_user_and_without_third_party_success(self):
@@ -237,22 +302,31 @@ class F680ClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["types"], strings.Applications.F680.NO_CLEARANCE_TYPE)
 
-    def test_standard_application_declaration_submit_success(self):
+    def test_f680_clearance_declaration_submit_success(self):
         data = {
             "agreed_to_declaration": True,
+            "agreed_to_foi": True,
         }
 
         url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
-        response = self.client.put(url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_standard_application_declaration_submit_tcs_false_failure(self):
+        application = F680ClearanceApplication.objects.get()
+        self.assertIsNotNone(application.submitted_at)
+        self.assertEqual(application.status.status, CaseStatusEnum.SUBMITTED)
+
+    def test_f680_clearance_declaration_submit_tcs_false_failure(self):
         data = {
             "agreed_to_declaration": False,
+            "agreed_to_foi": True,
         }
 
         url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
-        response = self.client.put(url, data, **self.exporter_headers)
+        response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        errors = response.json()["errors"]
+        self.assertEqual(errors["agreed_to_declaration"], strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED)
