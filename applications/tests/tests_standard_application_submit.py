@@ -224,14 +224,19 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_standard_application_declaration_submit_success(self):
+        self.draft.is_agreed_to_foi = True
+        self.draft.save()
+
         data = {
             "agreed_to_declaration": True,
+            "agreed_to_foi": True
         }
 
         url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
         data = {

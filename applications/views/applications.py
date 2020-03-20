@@ -275,12 +275,35 @@ class ApplicationSubmission(APIView):
         ]:
             application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
 
-        previous_application_status = application.status
-
         errors = validate_application_ready_for_submission(application)
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Serialize for the response message
+        serializer = get_application_view_serializer(application)
+        serializer = serializer(application)
+
+        data = {"application": {"reference_code": application.reference_code, **serializer.data}}
+
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+
+class ApplicationDeclaration(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @transaction.atomic
+    @application_in_major_editable_state()
+    @authorised_users(ExporterUser)
+    def put(self, request, application):
+        errors = {}
+        errors = _validate_agree_to_tsc(request, errors)
+        if errors:
+
+            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        previous_application_status = application.status
+
+        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.submitted_at = timezone.now()
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.sla_days = 0
@@ -305,25 +328,10 @@ class ApplicationSubmission(APIView):
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
-
-class ApplicationDeclaration(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    @transaction.atomic
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def put(self, request, application):
-        errors = {}
-        errors = _validate_agree_to_tsc(request, errors)
-        if errors:
-
-            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-
-        return JsonResponse(
-            data={"data": get_application_view_serializer(application)(application).data}, status=status.HTTP_200_OK
-        )
+        #
+        # return JsonResponse(
+        #     data={"data": get_application_view_serializer(application)(application).data}, status=status.HTTP_200_OK
+        # )
 
 
 class ApplicationManageStatus(APIView):
