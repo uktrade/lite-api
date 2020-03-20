@@ -557,7 +557,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.PartyErrors.BAD_CASE_TYPE})
 
     def test_add_consignee_exhibition_clearance_failure(self):
         party = {
@@ -575,7 +575,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.PartyErrors.BAD_CASE_TYPE})
 
     def test_add_end_user_exhibition_clearance_failure(self):
         party = {
@@ -593,7 +593,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.PartyErrors.BAD_CASE_TYPE})
 
     def test_add_ultimate_end_user_exhibition_clearance_failure(self):
         party = {
@@ -611,4 +611,4 @@ class EditExhibitionApplicationsTests(DataTestClient):
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.PartyErrors.BAD_CASE_TYPE})
