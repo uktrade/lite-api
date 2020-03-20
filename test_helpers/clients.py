@@ -224,7 +224,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             "type": party_type,
             "country": get_country("GB"),
         }
-        # print(f'Creating {data}')
+
         if party_type == PartyType.THIRD_PARTY:
             data["role"] = PartyRole.AGENT
 
