@@ -1,3 +1,7 @@
+import operator
+from functools import reduce
+
+from django.db.models import Q, F
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
@@ -11,7 +15,8 @@ from conf.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.serializers import OrganisationUserListView
-from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationships
+from users.enums import UserStatuses
+from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser, Role
 from users.serializers import (
     ExporterUserViewSerializer,
@@ -23,35 +28,32 @@ from users.services import filter_roles_by_user_role
 
 class UsersList(generics.ListCreateAPIView):
     authentication_classes = (SharedAuthentication,)
+    serializer_class = OrganisationUserListView
 
-    def get(self, request, org_pk):
-        """
-        List all users from the specified organisation
-        """
-        status = request.GET.get("status")
+    def get_queryset(self):
+        _status = self.request.GET.get("status")
+        organisation_id = self.kwargs["org_pk"]
 
-        if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
+        if isinstance(self.request.user, ExporterUser):
+            assert_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_USERS, organisation_id)
 
-        user_relationships = get_user_organisation_relationships(org_pk, status)
+        query = [Q(relationship__organisation__id=organisation_id)]
 
-        if self.request.GET.get("disable_pagination"):
-            for relationship in user_relationships:
-                relationship.user.status = relationship.status
-                relationship.user.role = relationship.role
-            users = [relationship.user for relationship in user_relationships]
-            serializer = OrganisationUserListView(users, many=True)
-            return JsonResponse(data={"users": serializer.data})
+        if _status:
+            query.append(Q(relationship__status=UserStatuses.from_string(_status)))
 
-        page = self.paginate_queryset(user_relationships)
-
-        for p in page:
-            p.user.status = p.status
-            p.user.role = p.role
-
-        serializer = OrganisationUserListView([p.user for p in page], many=True)
-
-        return self.get_paginated_response({"users": serializer.data})
+        return (
+            ExporterUser.objects.filter(reduce(operator.and_, query))
+            .select_related("relationship__role")
+            .values(
+                "id",
+                "first_name",
+                "last_name",
+                "email",
+                status=F("relationship__status"),
+                role_name=F("relationship__role__name"),
+            )
+        )
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
     def post(self, request, org_pk):

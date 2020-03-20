@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from conf import settings
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 from users.libraries.get_user import get_users_from_organisation
@@ -22,7 +23,7 @@ class OrganisationUsersViewTests(DataTestClient):
         self.create_organisation_with_exporter_user("New Org")
 
         response = self.client.get(self.url, **self.exporter_headers)
-        response_data = response.json()["results"]["users"]
+        response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
@@ -64,11 +65,14 @@ class OrganisationUsersViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_view_all_users_belonging_to_organisation_without_pagination(self):
+        for _ in range(settings.REST_FRAMEWORK["PAGE_SIZE"]):
+            self.create_exporter_user(self.organisation)
+
         response = self.client.get(self.url + "?disable_pagination=True", **self.exporter_headers)
-        response_data = response.json()["users"]
+        response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 1)
+        self.assertEqual(len(response_data), settings.REST_FRAMEWORK["PAGE_SIZE"] + 1)  # +1 for the existing user
         self.assertEqual(response_data[0]["status"], UserStatuses.ACTIVE)
 
 

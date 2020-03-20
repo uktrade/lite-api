@@ -1,6 +1,5 @@
 from pprint import pprint
 
-from django.test import tag
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -110,7 +109,6 @@ class OrganisationTests(DataTestClient):
             [{"foreign_address": {"address": "123", "country": "PL"}}],
         ]
     )
-    @tag("only")
     def test_create_commercial_organisation_as_exporter_success(self, address):
         data = {
             "name": "Lemonworld Co",

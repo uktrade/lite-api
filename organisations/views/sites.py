@@ -1,4 +1,4 @@
-from django.db import transaction, connection
+from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -12,7 +12,6 @@ from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Organisation, Site
 from organisations.serializers import SiteViewSerializer, SiteSerializer, SiteListSerializer
-from users.libraries.get_user import get_user_organisation_relationship
 from users.models import ExporterUser
 
 
@@ -28,17 +27,21 @@ class SitesList(APIView):
         Endpoint for listing the sites of an organisation
         filtered on whether or not the user belongs to the site
         """
+        organisation = get_organisation_by_pk(org_pk)
+        primary_site_id = organisation.primary_site_id
+
         if isinstance(request.user, ExporterUser):
-            sites = Site.objects.get_by_user_and_organisation(request.user, org_pk).exclude(
+            sites = Site.objects.get_by_user_and_organisation(request.user, organisation).exclude(
                 address__country__id__in=request.GET.getlist("exclude")
             )
         else:
-            sites = Site.objects.filter(organisation=org_pk)
+            sites = Site.objects.filter(organisation=organisation)
 
-        sites = list(sites.select_related("address", "foreign_address"))
-        sites.sort(key=lambda x: x.id == x.organisation.primary_site.id, reverse=True)
+        sites = list(sites.select_related("address", "foreign_address", "address__country", "foreign_address__country"))
+        sites.sort(key=lambda x: x.id == primary_site_id, reverse=True)
         serializer_data = SiteListSerializer(sites, many=True).data
-        service.populate_users_count(org_pk, serializer_data)
+
+        service.populate_assigned_users_count(org_pk, serializer_data)
 
         return JsonResponse(data={"sites": serializer_data})
 

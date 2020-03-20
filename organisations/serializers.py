@@ -9,7 +9,6 @@ from conf.serializers import (
     KeyValueChoiceField,
     CountrySerializerField,
 )
-from gov_users.serializers import RoleNameSerializer
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
@@ -333,8 +332,8 @@ class ExternalLocationSerializer(serializers.ModelSerializer):
 
 
 class OrganisationUserListView(serializers.ModelSerializer):
-    status = serializers.CharField()
-    role = RoleNameSerializer()
+    role_name = serializers.CharField(read_only=True)
+    status = serializers.CharField(read_only=True)
 
     class Meta:
         model = ExporterUser
@@ -343,6 +342,6 @@ class OrganisationUserListView(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
-            "role",
+            "role_name",
             "status",
         )

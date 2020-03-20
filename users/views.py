@@ -1,5 +1,7 @@
+import time
 from uuid import UUID
 
+from django.db import connection
 from django.db.models import Count, CharField, Value, QuerySet
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -13,6 +15,7 @@ from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
+from conf.helpers import convert_queryset_to_str
 from conf.permissions import assert_user_has_permission
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
@@ -134,11 +137,31 @@ class UserMeDetail(APIView):
 
     def get(self, request):
         org_pk = request.headers["Organisation-Id"]
-        if org_pk != "None":
-            serializer = ExporterUserViewSerializer(request.user, context=org_pk)
-        else:
-            serializer = ExporterUserViewSerializer(request.user)
-        return JsonResponse(data={"user": serializer.data})
+        print(connection.queries)
+        user = request.user
+        relationship = get_user_organisation_relationship(user, org_pk)
+
+        # time.sleep(3)
+
+        data = {
+            "id": request.user.id,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+        }
+
+        if relationship:
+            data.update(
+                {
+                    "role": {
+                        "id": relationship.role.id,
+                        "permissions": convert_queryset_to_str(
+                            relationship.role.permissions.values_list("id", flat=True)
+                        ),
+                    }
+                }
+            )
+
+        return JsonResponse(data={"user": data})
 
 
 class NotificationViewSet(APIView):

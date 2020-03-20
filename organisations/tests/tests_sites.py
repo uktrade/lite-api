@@ -1,4 +1,3 @@
-from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -7,7 +6,6 @@ from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 
 
-@tag("only")
 class OrganisationSitesTests(DataTestClient):
     def test_site_list(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)

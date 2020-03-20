@@ -133,10 +133,10 @@ class ExporterUser(BaseUser):
         )
 
     def get_role(self, organisation):
-        return self.userorganisationrelationship_set.get(organisation=organisation).role
+        return self.relationship.get(organisation=organisation).role
 
     def set_role(self, organisation, role):
-        uor = self.userorganisationrelationship_set.get(organisation=organisation)
+        uor = self.relationship.get(organisation=organisation)
         uor.role = role
         uor.save()
 
@@ -191,3 +191,6 @@ class UserOrganisationRelationship(TimestampableModel):
 
     def send_notification(self, content_object, case):
         self.user.send_notification(organisation=self.organisation, content_object=content_object, case=case)
+
+    class Meta:
+        default_related_name = "relationship"

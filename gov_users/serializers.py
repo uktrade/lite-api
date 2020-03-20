@@ -24,15 +24,6 @@ class PermissionSerializer(serializers.ModelSerializer):
         )
 
 
-class RoleNameSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Role
-        fields = (
-            "id",
-            "name",
-        )
-
-
 class RoleSerializer(serializers.ModelSerializer):
     permissions = PrimaryKeyRelatedField(queryset=Permission.objects.all(), many=True, required=False)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False, allow_null=True)

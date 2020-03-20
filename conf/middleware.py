@@ -1,6 +1,8 @@
 import logging
 import time
 import uuid
+from datetime import datetime
+
 from django.db import connection
 
 
@@ -34,12 +36,18 @@ class DBLoggingMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        start = time.time()
+        start = datetime.now()
         initial_queries = connection.queries
+
+        print(f"\nInitial query count: {len(initial_queries)}")
+
         response = self.get_response(request)
         final_queries = connection.queries
 
-        elapsed_time = time.time() - start
+        elapsed_time = datetime.now() - start
+
+        print(f"Time taken for {request.path}: {round(elapsed_time.microseconds / 100000, 2)}s")
+        print(f"Final query count: {len(final_queries)}\n")
         # logging.info(
         #     {
         #         "message": "liteolog db",

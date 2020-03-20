@@ -88,6 +88,9 @@ class CountrySerializerField(PrimaryKeyRelatedField):
             self.fail("incorrect_type", data_type=type(data).__name__)
 
     def to_representation(self, value):
+        if isinstance(value, str):
+            return CountrySerializer(self.queryset.get(pk=value)).data
+
         return CountrySerializer(self.queryset.get(pk=value.pk)).data
 
 

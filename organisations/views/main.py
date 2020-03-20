@@ -1,4 +1,5 @@
 import operator
+from datetime import datetime
 from functools import reduce
 
 from django.db import transaction, connection
@@ -76,12 +77,6 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
     authentication_classes = (SharedAuthentication,)
     queryset = Organisation.objects.all()
     serializer_class = OrganisationDetailSerializer
-
-    def get(self, request, *args, **kwargs):
-        print(len(connection.queries))
-        data = self.retrieve(request, *args, **kwargs)
-        print(len(connection.queries))
-        return data
 
     def put(self, request, pk):
         """ Edit details of an organisation. """
