@@ -517,6 +517,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_document_for_party(application.consignee.party, safe=safe_document)
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
 
+    def add_additional_information(self, application):
+        application.questions = {
+            "expedited": False,
+            "mtcr_type": "mtcr_category_2",
+            "foreign_technology": False,
+            "locally_manufactured": False,
+            "uk_service_equipment": False,
+            "electronic_warfare_requirement": False,
+            "value": 100.0
+        }
+        application.save()
+
     def create_draft_standard_application(
         self,
         organisation: Organisation,
@@ -601,6 +613,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
             self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
+            self.add_additional_information(application)
         else:
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)

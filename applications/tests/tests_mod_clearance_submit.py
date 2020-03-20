@@ -163,7 +163,6 @@ class F680ClearanceTests(DataTestClient):
     def test_submit_F680_clearance_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
         application = F680ClearanceApplication.objects.get()
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"]["name"], self.draft.name)
         self.assertEqual(F680ClearanceApplication.objects.count(), 1)
