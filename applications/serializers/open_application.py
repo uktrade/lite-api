@@ -6,8 +6,6 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from applications.serializers.licence import LicenceSerializer
-from conf.serializers import PrimaryKeyRelatedSerializerField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from static.countries.models import Country
@@ -18,7 +16,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
-    licence = PrimaryKeyRelatedSerializerField(queryset=Licence.objects.all(), serializer=LicenceSerializer)
+    licence = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
@@ -46,6 +44,10 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         countries = Country.objects.filter(countries_on_application__application=application)
         serializer = CountryWithFlagsSerializer(countries, many=True)
         return {"type": "countries", "data": serializer.data}
+
+    def get_licence(self, instance):
+        licence_duration = Licence.objects.filter(application=instance).values_list("duration").first()
+        return {"duration": licence_duration}
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):

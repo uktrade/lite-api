@@ -10,8 +10,6 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from applications.serializers.licence import LicenceSerializer
-from conf.serializers import PrimaryKeyRelatedSerializerField
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -19,7 +17,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     goods_categories = serializers.SerializerMethodField()
-    licence = PrimaryKeyRelatedSerializerField(queryset=Licence.objects.all(), serializer=LicenceSerializer)
+    licence = serializers.SerializerMethodField()
 
     def get_goods_categories(self, instance):
         # Return a formatted key, value format of GoodsCategories
@@ -54,6 +52,10 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "licence",
             )
         )
+
+    def get_licence(self, instance):
+        licence_duration = Licence.objects.filter(application=instance).values_list("duration").first()
+        return {"duration": licence_duration}
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
