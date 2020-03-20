@@ -580,7 +580,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_mod_clearance_application(
-        self, organisation, case_type, reference_name="MOD Clearance Draft", safe_document=True, additional_information=True,
+        self,
+        organisation,
+        case_type,
+        reference_name="MOD Clearance Draft",
+        safe_document=True,
+        additional_information=True,
     ):
         if case_type == CaseTypeEnum.F680:
             model = F680ClearanceApplication
