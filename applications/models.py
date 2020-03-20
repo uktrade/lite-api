@@ -1,27 +1,26 @@
 import uuid
 
-from jsonfield import JSONField
-
-from applications.libraries.questions import questions
-from common.models import TimestampableModel
 from django.db import models
 from django.utils import timezone
-from lite_content.lite_api.strings import Parties
+from jsonfield import JSONField
+from rest_framework.exceptions import APIException
 from separatedvaluesfield.models import SeparatedValuesField
-from static.statuses.libraries.case_status_validate import is_case_status_draft
 
 from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsCategory,
 )
+from applications.libraries.questions import questions
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
 from cases.models import Case
+from common.models import TimestampableModel
 from documents.models import Document
 from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
+from lite_content.lite_api.strings import PartyErrors
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
 from parties.models import Party
@@ -29,11 +28,12 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.f680_clearance_types.models import F680ClearanceType
 from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.units.enums import Units
 
 
-class ApplicationException(Exception):
-    def __init__(self, data=None, *args, **kwargs):
+class ApplicationException(APIException):
+    def __init__(self, data):
         super().__init__(data)
         self.data = data
 
@@ -42,7 +42,7 @@ class ApplicationPartyMixin:
     def add_party(self, party):
 
         if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
-            raise ApplicationException({"errors": {"bad_request": Parties.BAD_CASE_TYPE}})
+            raise ApplicationException({"bad_request": PartyErrors.BAD_CASE_TYPE})
 
         old_poa = None
 
@@ -58,7 +58,7 @@ class ApplicationPartyMixin:
         elif party.type == PartyType.THIRD_PARTY:
             # Rule: Append
             if not party.role:
-                raise ApplicationException({"errors": {"required": Parties.ThirdParty.NULL_ROLE}})
+                raise ApplicationException({"required": PartyErrors.ROLE["null"]})
 
         poa = PartyOnApplication.objects.create(application=self, party=party)
 
