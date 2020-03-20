@@ -142,7 +142,6 @@ class BaseApplication(ApplicationPartyMixin, Case):
     name = models.TextField(default=None, blank=True, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
-    licence_duration = models.IntegerField(default=None, null=True, help_text="Set when application finalised")
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
 
     is_military_end_use_controls = models.BooleanField(blank=True, default=None, null=True)
@@ -298,3 +297,13 @@ class PartyOnApplication(TimestampableModel):
     def delete(self, *args, **kwargs):
         self.deleted_at = timezone.now()
         self.save()
+
+
+class Licence(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(
+        BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licence"
+    )
+    start_date = models.DateField(blank=False, null=False)
+    duration = models.PositiveSmallIntegerField(blank=False, null=False)
+    is_complete = models.BooleanField(default=False, null=False, blank=False)

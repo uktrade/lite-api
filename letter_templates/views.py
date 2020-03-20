@@ -5,7 +5,6 @@ from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from audit_trail.serializers import AuditSerializer
 from cases.enums import CaseTypeEnum
-from cases.generated_documents.helpers import get_letter_templates_for_case
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import GovAuthentication
@@ -16,6 +15,8 @@ from letter_templates.models import LetterTemplate
 from letter_templates.serializers import LetterTemplateSerializer
 from picklists.enums import PicklistType
 from picklists.models import PicklistItem
+from cases.enums import AdviceType
+from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout
 
 
@@ -30,12 +31,22 @@ class LetterTemplatesList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         case = self.request.GET.get("case")
-        return get_letter_templates_for_case(get_case(pk=case)) if case else self.queryset
+        decision = self.request.GET.get("decision")
+        if decision:
+            case = get_case(pk=case)
+            decision = Decision.objects.get(name=decision)
+            return LetterTemplate.objects.filter(case_types=case.case_type, decisions=decision)
+        elif case:
+            case = get_case(pk=case)
+            return LetterTemplate.objects.filter(case_types=case.case_type, decisions__isnull=True)
+        else:
+            return self.queryset
 
     def post(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
         data = request.data
         data["case_types"] = CaseTypeEnum.references_to_ids(data.get("case_types"))
+        data["decisions"] = [AdviceType.ids[decision] for decision in data.get("decisions", [])]
         serializer = self.serializer_class(data=data)
 
         if serializer.is_valid():
@@ -88,14 +99,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         new_case_types = set(request.data.get("case_types", old_case_types))
         request.data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
 
-        old_decisions = set(template_object.decisions or ["no decisions"])
-        new_decisions = request.data.get("decisions")
-        if new_decisions is None:
-            new_decisions = old_decisions
-        elif new_decisions == []:
-            new_decisions = {"no decisions"}
-        else:
-            new_decisions = set(new_decisions)
+        old_decisions = set(template_object.decisions.values_list("name", flat=True))
+        new_decisions = set(request.data.get("decisions", old_decisions))
+        request.data["decisions"] = AdviceType.get_ids(new_decisions)
 
         old_layout = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
@@ -117,20 +123,50 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                 )
 
             if new_case_types != old_case_types:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
-                    target=serializer.instance,
-                    payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types)},
-                )
+                if not old_case_types:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.ADDED_LETTER_TEMPLATE_CASE_TYPES,
+                        target=serializer.instance,
+                        payload={"new_case_types": sorted(new_case_types)},
+                    )
+                elif not new_case_types:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REMOVED_LETTER_TEMPLATE_CASE_TYPES,
+                        target=serializer.instance,
+                        payload={"old_case_types": sorted(old_case_types)},
+                    )
+                else:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES,
+                        target=serializer.instance,
+                        payload={"old_case_types": sorted(old_case_types), "new_case_types": sorted(new_case_types)},
+                    )
 
             if new_decisions != old_decisions:
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATED_LETTER_TEMPLATE_DECISIONS,
-                    target=serializer.instance,
-                    payload={"old_decisions": sorted(old_decisions), "new_decisions": sorted(new_decisions)},
-                )
+                if not old_decisions:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.ADDED_LETTER_TEMPLATE_DECISIONS,
+                        target=serializer.instance,
+                        payload={"new_decisions": sorted(new_decisions)},
+                    )
+                elif not new_decisions:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REMOVED_LETTER_TEMPLATE_DECISIONS,
+                        target=serializer.instance,
+                        payload={"old_decisions": sorted(old_decisions)},
+                    )
+                else:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_LETTER_TEMPLATE_DECISIONS,
+                        target=serializer.instance,
+                        payload={"old_decisions": sorted(old_decisions), "new_decisions": sorted(new_decisions)},
+                    )
 
             if new_layout != old_layout:
                 audit_trail_service.create(

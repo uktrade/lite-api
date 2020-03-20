@@ -10,6 +10,8 @@ from flags.models import Flag
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
+from cases.enums import AdviceType
+from static.decisions.models import Decision
 from static.denial_reasons.models import DenialReason
 from static.letter_layouts.models import LetterLayout
 from static.management.SeedCommand import SeedCommandTest
@@ -24,6 +26,7 @@ from static.management.commands import (
     seedinternaladminusers,
     seedflags,
     seeddemodata,
+    seeddecisions,
 )
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 from teams.models import Team
@@ -97,3 +100,12 @@ class SeedingTests(SeedCommandTest):
             self.assertTrue(Queue.objects.filter(name=queue["name"]).exists(), f"Queue {queue['name']} does not exist")
         for flag in seeddemodata.Command.read_csv(seeddemodata.FLAGS_FILE):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
+
+    def test_seed_decisions(self):
+        self.seed_command(seeddecisions.Command)
+        enum = AdviceType.choices
+        self.assertEqual(Decision.objects.count(), len(enum))
+        for key, _ in enum:
+            self.assertTrue(
+                Decision.objects.filter(id=AdviceType.ids[key], name=key).exists(), f"Decision {key} does not exist"
+            )

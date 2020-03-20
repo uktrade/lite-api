@@ -4,6 +4,8 @@ from rest_framework.reverse import reverse
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from letter_templates.models import LetterTemplate
 from picklists.enums import PickListStatus, PicklistType
+from cases.enums import AdviceType
+from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 
@@ -52,12 +54,28 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertIsNotNone(response_data.get("created_at"))
         self.assertIsNotNone(response_data.get("updated_at"))
 
+    def test_get_letter_templates_for_decision_success(self):
+        decision = AdviceType.APPROVE
+        url = reverse("letter_templates:letter_templates")
+        self.letter_template.decisions.set([Decision.objects.get(name=decision)])
+        self.letter_template.case_types.set([CaseTypeEnum.SIEL.id])
+        case = self.create_standard_application_case(self.organisation)
+
+        response = self.client.get(url + "?case=" + str(case.id) + "&decision=" + decision, **self.gov_headers)
+        response_data = response.json()["results"][0]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["id"], str(self.letter_template.id))
+        self.assertEqual(response_data["name"], self.letter_template.name)
+        self.assertEqual(response_data["layout"]["id"], str(self.letter_layout.id))
+        self.assertEqual(response_data["letter_paragraphs"], [str(self.picklist_item.id)])
+
     def test_get_letter_templates_for_case_doesnt_show_templates_with_decisions_success(self):
         self.letter_template.case_types.set([CaseTypeEnum.SIEL.id])
 
         self.letter_template_with_decisions = LetterTemplate.objects.create(name="SIEL_2", layout=self.letter_layout)
         self.letter_template_with_decisions.case_types.set([CaseTypeEnum.SIEL.id])
-        self.letter_template_with_decisions.decisions = ["approve"]
+        self.letter_template_with_decisions.decisions.set([Decision.objects.get(name="approve")])
         self.letter_template_with_decisions.save()
         self.letter_template_with_decisions.letter_paragraphs.add(self.picklist_item)
 

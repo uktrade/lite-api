@@ -5,10 +5,11 @@ from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseTypeReference
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from letter_templates.enums import Decisions
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from picklists.models import PicklistItem
+from static.decisions.models import Decision
+from static.decisions.serializers import DecisionSerializer
 from static.letter_layouts.models import LetterLayout
 from static.letter_layouts.serializers import LetterLayoutSerializer
 
@@ -38,8 +39,8 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
         error_messages={"required": strings.LetterTemplates.SELECT_THE_LAYOUT},
     )
 
-    decisions = serializers.MultipleChoiceField(
-        choices=Decisions.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
+    decisions = PrimaryKeyRelatedSerializerField(
+        queryset=Decision.objects.all(), serializer=DecisionSerializer, required=False, many=True
     )
 
     class Meta:
@@ -78,10 +79,3 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
                 )
 
         return validated_data
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        decisions = data.get("decisions")
-        if decisions:
-            data["decisions"] = [{"key": decision, "value": Decisions.get_text(decision)} for decision in decisions]
-        return data

@@ -17,6 +17,7 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.models import Case
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.decorators import authorised_users
+from conf.helpers import str_to_bool
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
 from users.enums import UserType
@@ -39,9 +40,12 @@ class GeneratedDocuments(generics.ListAPIView):
         case = Case.objects.get(id=self.kwargs["pk"])
         user = self.request.user
 
-        documents = GeneratedCaseDocument.objects.filter(case=case)
         if user.type == UserType.EXPORTER:
+            documents = GeneratedCaseDocument.objects.filter(case=case, visible_to_exporter=True)
             delete_exporter_notifications(user=user, organisation=user.organisation, objects=documents)
+        else:
+            documents = GeneratedCaseDocument.objects.filter(case=case)
+
         return documents
 
     @transaction.atomic
@@ -76,6 +80,8 @@ class GeneratedDocuments(generics.ListAPIView):
                     case=document.case,
                     template=document.template,
                     text=document.text,
+                    visible_to_exporter=str_to_bool(request.data.get("visible_to_exporter")),
+                    advice_type=request.data.get("advice_type"),
                 )
 
                 audit_trail_service.create(

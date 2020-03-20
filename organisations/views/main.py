@@ -16,11 +16,13 @@ from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus, OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
+from static.statuses.enums import CaseStatusEnum
 from organisations.serializers import (
     OrganisationDetailSerializer,
     OrganisationCreateSerializer,
     OrganisationListSerializer,
 )
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from users.enums import UserType
 
@@ -112,6 +114,6 @@ class OrganisationsDetail(generics.RetrieveAPIView):
         """
         reopened_due_to_org_changes_status = CaseStatus.objects.get(status="reopened_due_to_org_changes")
 
-        BaseApplication.objects.filter(organisation=organisation, licence_duration__isnull=False).update(
-            status_id=reopened_due_to_org_changes_status
-        )
+        BaseApplication.objects.filter(
+            organisation=organisation, status=get_case_status_by_status(CaseStatusEnum.FINALISED)
+        ).update(status_id=reopened_due_to_org_changes_status)
