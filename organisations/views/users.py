@@ -12,16 +12,15 @@ from rest_framework.views import APIView
 from conf.authentication import SharedAuthentication
 from conf.constants import Roles, ExporterPermissions
 from conf.permissions import assert_user_has_permission
-from gov_users.serializers import RoleSerializer, RoleListSerializer
+from gov_users.serializers import RoleListSerializer
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Site
-from organisations.serializers import OrganisationUserListView, SiteViewSerializer, SiteListSerializer
+from organisations.serializers import OrganisationUserListView, SiteListSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
 from users.models import ExporterUser, Role
 from users.serializers import (
-    ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
     UserOrganisationRelationshipSerializer,
 )
@@ -34,6 +33,7 @@ class UsersList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         _status = self.request.GET.get("status")
+        exclude_permission = self.request.GET.get("exclude_permission")
         organisation_id = self.kwargs["org_pk"]
 
         if isinstance(self.request.user, ExporterUser):
@@ -46,8 +46,9 @@ class UsersList(generics.ListCreateAPIView):
 
         return (
             ExporterUser.objects.filter(reduce(operator.and_, query))
-            .select_related("relationship__role")
-            .values(
+                .exclude(relationship__role__permissions__in=[exclude_permission])
+                .select_related("relationship__role")
+                .values(
                 "id",
                 "first_name",
                 "last_name",
@@ -118,8 +119,8 @@ class UserDetail(APIView):
 
         # Cannot perform actions on another super user without super user role
         if (
-            data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
-            or user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
+                data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
+                or user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
         ) and not request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 

@@ -11,6 +11,7 @@ from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, SiteListSerializer
+from users.libraries.get_user import get_user_organisation_relationship
 from users.models import ExporterUser
 
 
@@ -54,8 +55,10 @@ class SitesList(APIView):
         serializer = SiteCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
-            site = serializer.save()
-            return JsonResponse(data={"site": SiteViewSerializer(site).data}, status=status.HTTP_201_CREATED)
+            if "validate_only" not in data or data["validate_only"] == "False":
+                site = serializer.save()
+                return JsonResponse(data={"site": SiteViewSerializer(site).data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={})
 
 
 class SiteDetail(APIView):

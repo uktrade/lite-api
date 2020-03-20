@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from conf import settings
+from conf.constants import ExporterPermissions
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 from users.libraries.get_user import get_users_from_organisation
@@ -41,6 +42,13 @@ class OrganisationUsersViewTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["status"], UserStatuses.ACTIVE)
+
+    def test_exclude_users_with_permission(self):
+        response = self.client.get(self.url + "?exclude_permission=" + ExporterPermissions.ADMINISTER_SITES.name,
+                                   **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 0)
 
     def test_cannot_see_users_without_permission(self):
         self.exporter_user.set_role(self.organisation, self.exporter_default_role)

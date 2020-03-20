@@ -12,6 +12,7 @@ from conf.serializers import (
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
+from users.libraries.get_user import get_user_organisation_relationship
 from users.models import GovUser, UserOrganisationRelationship, Permission, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
@@ -61,17 +62,16 @@ class SiteCreateSerializer(serializers.ModelSerializer):
     address = AddressSerializer(write_only=True, required=False)
     foreign_address = ForeignAddressSerializer(write_only=True, required=False)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
+    users = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all(), many=True, required=False)
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "foreign_address", "organisation")
+        fields = ("id", "name", "address", "foreign_address", "organisation", "users")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # TODO CLEAN UP!
-        # hard set address country to GB
+        # Override any user entered country to GB for UK addresses
         if hasattr(self, "initial_data") and "address" in self.initial_data:
-            print("hard setting the country!!")
             self.initial_data["address"]["country"] = "GB"
 
     def validate(self, data):
@@ -88,6 +88,10 @@ class SiteCreateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        users = []
+        if "users" in validated_data:
+            users = validated_data.pop("users")
+
         if "address" in validated_data:
             address_data = validated_data.pop("address")
             address_data["country"] = "GB"
@@ -108,6 +112,10 @@ class SiteCreateSerializer(serializers.ModelSerializer):
                 foreign_address.save()
 
             site = Site.objects.create(foreign_address=foreign_address, **validated_data)
+
+        if users:
+            site.users.set([get_user_organisation_relationship(user, validated_data["organisation"])
+                            for user in users])
 
         return site
 
