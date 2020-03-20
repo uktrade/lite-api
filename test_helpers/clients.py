@@ -580,7 +580,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_mod_clearance_application(
-        self, organisation, case_type, reference_name="MOD Clearance Draft", safe_document=True,
+        self, organisation, case_type, reference_name="MOD Clearance Draft", safe_document=True, additional_information=True,
     ):
         if case_type == CaseTypeEnum.F680:
             model = F680ClearanceApplication
@@ -613,7 +613,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
             self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
-            self.add_additional_information(application)
+            if additional_information:
+                self.add_additional_information(application)
         else:
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)

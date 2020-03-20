@@ -11,7 +11,7 @@ from test_helpers.clients import DataTestClient
 class ApplicationQuestionsTest(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.draft = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
+        self.draft = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680, additional_information=False)
         self.url = reverse("applications:application_questions", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
