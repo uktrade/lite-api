@@ -91,7 +91,6 @@ class Case(TimestampableModel):
         return Case.objects.get(id=self.id)
 
     def get_users(self, queue=None):
-        users = []
         case_assignments = (
             CaseAssignment.objects.filter(case=self)
             .select_related("queue")
@@ -101,16 +100,15 @@ class Case(TimestampableModel):
         if queue:
             case_assignments = case_assignments.filter(queue=queue)
 
-        for case_assignment in case_assignments:
-            user = case_assignment.user
-            users.extend(
-                {
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "email": user.email,
-                    "queue": case_assignment.queue.name,
-                }
-            )
+        users = [
+            {
+                "first_name": case_assignment.user.first_name,
+                "last_name": case_assignment.user.last_name,
+                "email": case_assignment.user.email,
+                "queue": case_assignment.queue.name,
+            }
+            for case_assignment in case_assignments
+        ]
 
         return users
 
