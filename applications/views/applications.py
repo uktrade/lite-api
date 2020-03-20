@@ -689,6 +689,11 @@ class ApplicationQuestionsView(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         try:
+            if not application.is_major_editable():
+                return JsonResponse(
+                    data={"errors": {"Additional details": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             application.update_questions(request.data)
         except QuestionsError as e:
             return JsonResponse(data={"errors": e.errors}, status=status.HTTP_400_BAD_REQUEST)

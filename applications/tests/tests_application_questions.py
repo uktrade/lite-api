@@ -1,10 +1,10 @@
-import uuid
-
 from django.urls import reverse
 from rest_framework import status
 
 from applications.enums import ServiceEquipmentType
 from cases.enums import CaseTypeEnum
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -17,7 +17,7 @@ class ApplicationQuestionsTest(DataTestClient):
         self.url = reverse("applications:application_questions", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    def test_update_f680_questions(self):
+    def test_update_f680_questions_success(self):
         self.assertIsNone(self.draft.questions)
 
         data = {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."}
@@ -27,7 +27,29 @@ class ApplicationQuestionsTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.draft.questions, data)
 
-    def test_update_f680_questions_failure(self):
+    def test_update_questions_major_edit_success(self):
+        self.draft.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        self.draft.save()
+
+        data = {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."}
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.draft.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.draft.questions, data)
+
+    def test_update_questions_minor_edit_fail(self):
+        self.draft.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        self.draft.save()
+
+        data = {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."}
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        self.draft.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {'errors': {'Additional details': ["This isn't possible on a minor edit"]}})
+
+    def test_update_f680_questions_bad_data_failure(self):
         self.assertIsNone(self.draft.questions)
 
         data = {"foreign_technology": ["Must be a valid boolean."]}
@@ -36,20 +58,7 @@ class ApplicationQuestionsTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": data})
 
-    def test_update_f680_questions_2(self):
-        self.assertIsNone(self.draft.questions)
-
-        data = {
-            "electronic_warfare_requirement": False,
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-
-        self.draft.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.draft.questions, data)
-
-    def test_update_f680_questions_success_3(self):
+    def test_update_f680_questions_without_conditional_fail(self):
         self.assertIsNone(self.draft.questions)
 
         data = {
@@ -62,7 +71,7 @@ class ApplicationQuestionsTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": {"expedited_date": ["Date required."]}})
 
-    def test_update_f680_questions_success_34(self):
+    def test_update_f680_questions_with_conditional_success(self):
         self.assertIsNone(self.draft.questions)
 
         data = {
@@ -75,7 +84,7 @@ class ApplicationQuestionsTest(DataTestClient):
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_update_f680_questions_enum_success_34(self):
+    def test_update_f680_questions_enum_success_type(self):
         self.assertIsNone(self.draft.questions)
 
         data = {
