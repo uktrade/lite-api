@@ -262,10 +262,9 @@ class StandardApplicationTests(DataTestClient):
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
 
-
     def test_standard_application_declaration_submit_tcs_false_failure(self):
         data = {
-            "agreed_to_declaration": True,
+            "agreed_to_declaration": False,
             "agreed_to_foi": True
         }
 
@@ -275,4 +274,4 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         errors = response.json()["errors"]
-        self.assertEqual(errors["agreed_to_declaration"], strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED)
+        self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])

@@ -121,7 +121,7 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         errors = response.json()["errors"]
-        self.assertEqual(errors["agreed_to_declaration"], strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED)
+        self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
 
 
 class GiftingClearanceTests(DataTestClient):
@@ -213,7 +213,7 @@ class GiftingClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         errors = response.json()["errors"]
-        self.assertEqual(errors["agreed_to_declaration"], strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED)
+        self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
 
 
 class F680ClearanceTests(DataTestClient):
@@ -341,4 +341,4 @@ class F680ClearanceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         errors = response.json()["errors"]
-        self.assertEqual(errors["agreed_to_declaration"], strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED)
+        self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
