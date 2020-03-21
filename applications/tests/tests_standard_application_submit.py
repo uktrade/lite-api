@@ -179,9 +179,6 @@ class StandardApplicationTests(DataTestClient):
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
-        # url = reverse("applications:application_submit", kwargs={"pk": standard_application.id})
-        # response = self.client.put(url, **self.exporter_headers)
-
         data = {
             "agreed_to_declaration": True,
             "agreed_to_foi": True
@@ -194,7 +191,7 @@ class StandardApplicationTests(DataTestClient):
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            standard_application.status, get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING),
+            standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
 
