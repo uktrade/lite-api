@@ -39,7 +39,7 @@ class SitesList(APIView):
 
         sites.sort(key=lambda x: x.id == x.organisation.primary_site.id, reverse=True)
 
-        serializer = SiteViewSerializer(sites, many=True)
+        serializer = SiteViewSerializer(sites, many=True, context={"users_count": True})
         return JsonResponse(data={"sites": serializer.data})
 
     @transaction.atomic
