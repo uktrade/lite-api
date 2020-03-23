@@ -123,44 +123,6 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
-
-        if "address" in validated_data:
-            address_data = validated_data.pop("address")
-            address_data["country"] = address_data["country"].id
-            address_serializer = AddressSerializer(instance.address, partial=True, data=address_data)
-            if address_serializer.is_valid(raise_exception=True):
-                if instance.foreign_address:
-                    instance.foreign_address = None
-
-                instance.address.address_line_1 = address_serializer.validated_data.get(
-                    "address_line_1", instance.address.address_line_1
-                )
-                instance.address.address_line_2 = address_serializer.validated_data.get(
-                    "address_line_2", instance.address.address_line_2
-                )
-                instance.address.region = address_serializer.validated_data.get("region", instance.address.region)
-                instance.address.postcode = address_serializer.validated_data.get("postcode", instance.address.postcode)
-                instance.address.city = address_serializer.validated_data.get("city", instance.address.city)
-                instance.address.country = address_serializer.validated_data.get("country", instance.address.country)
-                instance.address.save()
-        elif "foreign_address" in validated_data:
-            foreign_address_data = validated_data.pop("foreign_address")
-            foreign_address_data["country"] = foreign_address_data["country"].id
-            foreign_address_serializer = ForeignAddressSerializer(
-                instance.address, partial=True, data=foreign_address_data
-            )
-            if foreign_address_serializer.is_valid(raise_exception=True):
-                if instance.address:
-                    instance.address = None
-
-                instance.foreign_address.address = foreign_address_serializer.validated_data.get(
-                    "address", instance.foreign_address.address
-                )
-                instance.foreign_address.country = foreign_address_serializer.validated_data.get(
-                    "country", instance.foreign_address.country
-                )
-                instance.foreign_address.save()
-
         instance.save()
         return instance
 
