@@ -484,6 +484,26 @@ class ApplicationCopy(APIView):
         # Deepcopy so new_application is not a pointer to old_application
         # (if not deepcopied, any changes done on one applies to the other)
         self.new_application = deepcopy(old_application)
+
+        if self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+            fields = [
+                "expedited",
+                "expedited_date",
+                "expedited_description",
+                "foreign_technology",
+                "foreign_technology_description",
+                "locally_manufactured",
+                "locally_manufactured_description",
+                "mtcr_type",
+                "electronic_warfare_requirement",
+                "uk_service_equipment",
+                "uk_service_equipment_description",
+                "uk_service_equipment_type",
+                "prospect_value",
+            ]
+            for field in fields:
+                setattr(self.new_application, field, None)
+
         # Clear references to parent objects, and current application instance object
         self.strip_id_for_application_copy()
 
