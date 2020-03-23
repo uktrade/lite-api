@@ -7,6 +7,7 @@ from cases.libraries.get_case import get_case
 from cases.models import CaseAssignment
 from cases.serializers import CaseAssignmentSerializer
 from conf.authentication import GovAuthentication
+from conf.helpers import str_to_bool
 from queues.constants import ALL_CASES_QUEUE_ID, OPEN_CASES_QUEUE_ID
 from queues.helpers import get_queue
 from users.libraries.get_user import get_user_by_pk
@@ -46,6 +47,9 @@ class CaseAssignments(views.APIView):
         for assignment in data.get("case_assignments"):
             case = get_case(assignment["case_id"])
             users = [get_user_by_pk(i) for i in assignment["users"]]
+
+            if str_to_bool(data.get("remove_existing_assignments")):
+                CaseAssignment.objects.filter(case=case, queue=queue).delete()
 
             # Create a new case assignment object between that case and those users
             for user in users:
