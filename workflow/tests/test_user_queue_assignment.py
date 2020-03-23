@@ -134,3 +134,10 @@ class NextStatusGoodsQueryTests(DataTestClient):
         case = self.create_goods_query("abc", self.organisation, "clc", "pv")
         result = get_next_status_in_workflow_sequence(case)
         self.assertIsNone(result)
+
+    def test_status_doesnt_move_if_no_pv_responded(self):
+        case = self.create_goods_query("abc", self.organisation, "clc", None)
+        case.clc_responded = True
+        case.save()
+        result = get_next_status_in_workflow_sequence(case)
+        self.assertIsNone(result)
