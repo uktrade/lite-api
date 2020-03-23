@@ -518,15 +518,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
 
     def add_additional_information(self, application):
-        application.questions = {
+        additional_information = {
             "expedited": False,
             "mtcr_type": "mtcr_category_2",
             "foreign_technology": False,
             "locally_manufactured": False,
             "uk_service_equipment": False,
             "electronic_warfare_requirement": False,
-            "value": 100.0,
+            "prospect_value": 100.0,
         }
+        for key, item in additional_information.items():
+            setattr(application, key, item)
+
         application.save()
 
     def create_draft_standard_application(
