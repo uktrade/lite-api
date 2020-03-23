@@ -1,16 +1,16 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.enums import GoodsCategory
+from applications.enums import GoodsCategory, YesNoChoiceType
 from applications.mixins.serializers import PartiesSerializerMixin
-from applications.models import StandardApplication
+from applications.models import StandardApplication, Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from lite_content.lite_api import strings
+from applications.serializers.licence import LicenceViewSerializer
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -18,6 +18,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     goods_categories = serializers.SerializerMethodField()
+    licence = serializers.SerializerMethodField()
 
     def get_goods_categories(self, instance):
         # Return a formatted key, value format of GoodsCategories
@@ -39,8 +40,23 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "usage",
                 "destinations",
                 "additional_documents",
+                "is_military_end_use_controls",
+                "military_end_use_controls_ref",
+                "is_informed_wmd",
+                "informed_wmd_ref",
+                "is_suspected_wmd",
+                "suspected_wmd_ref",
+                "is_eu_military",
+                "is_compliant_limitations_eu",
+                "compliant_limitations_eu_ref",
+                "intended_end_use",
+                "licence",
             )
         )
+
+    def get_licence(self, instance):
+        licence = Licence.objects.filter(application=instance).first()
+        return LicenceViewSerializer(licence).data
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
@@ -64,13 +80,6 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
-    name = CharField(
-        max_length=100,
-        required=True,
-        allow_blank=False,
-        allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
-    )
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
     goods_categories = serializers.MultipleChoiceField(
         choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
@@ -86,13 +95,22 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
     def update(self, instance, validated_data):
         if "goods_categories" in validated_data:
-            instance.goods_categories = validated_data["goods_categories"]
-        instance.have_you_been_informed = validated_data.get("have_you_been_informed", instance.have_you_been_informed)
-        if instance.have_you_been_informed == "yes":
-            instance.reference_number_on_information_form = validated_data.get(
-                "reference_number_on_information_form", instance.reference_number_on_information_form,
-            )
-        else:
-            instance.reference_number_on_information_form = None
+            instance.goods_categories = validated_data.pop("goods_categories")
+
+        self._update_have_you_been_informed_linked_fields(instance, validated_data)
+
         instance = super().update(instance, validated_data)
         return instance
+
+    @classmethod
+    def _update_have_you_been_informed_linked_fields(cls, instance, validated_data):
+        instance.have_you_been_informed = validated_data.pop("have_you_been_informed", instance.have_you_been_informed)
+
+        reference_number_on_information_form = validated_data.pop(
+            "reference_number_on_information_form", instance.reference_number_on_information_form,
+        )
+
+        if instance.have_you_been_informed == YesNoChoiceType.YES:
+            instance.reference_number_on_information_form = reference_number_on_information_form
+        else:
+            instance.reference_number_on_information_form = None

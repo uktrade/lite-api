@@ -24,7 +24,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json().get("errors")[0], strings.Applications.Finalise.Error.GOV_SET_STATUS)
+        self.assertEqual(response.json().get("errors")[0], strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS)
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
     def test_set_application_status_on_application_not_in_users_organisation_failure(self):
@@ -139,8 +139,8 @@ class ApplicationManageStatusTests(DataTestClient):
 
     def test_exporter_set_application_status_surrendered_success(self):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        self.standard_application.licence_duration = 24
         self.standard_application.save()
+        self.create_licence(self.standard_application, is_complete=True)
         surrendered_status = get_case_status_by_status("surrendered")
 
         data = {"status": CaseStatusEnum.SURRENDERED}
@@ -169,7 +169,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": [strings.Applications.Finalise.Error.SURRENDER]})
+        self.assertEqual(response.json(), {"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]})
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.FINALISED))
 
     def test_exporter_set_application_status_surrendered_not_finalised_failure(self):
@@ -185,7 +185,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": [strings.Applications.Finalise.Error.EXPORTER_SET_STATUS]})
+        self.assertEqual(response.json(), {"errors": [strings.Applications.Generic.Finalise.Error.EXPORTER_SET_STATUS]})
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED))
 
     def test_exporter_cannot_set_status_to_finalised(self):
@@ -195,7 +195,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json().get("errors")[0], strings.Applications.Finalise.Error.SET_FINALISED)
+        self.assertEqual(response.json().get("errors")[0], strings.Applications.Generic.Finalise.Error.SET_FINALISED)
 
     def test_gov_set_status_to_applicant_editing_failure(self):
         data = {"status": CaseStatusEnum.APPLICANT_EDITING}
@@ -203,7 +203,7 @@ class ApplicationManageStatusTests(DataTestClient):
 
         self.standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json().get("errors")[0], strings.Applications.Finalise.Error.GOV_SET_STATUS)
+        self.assertEqual(response.json().get("errors")[0], strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS)
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )

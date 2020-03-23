@@ -27,6 +27,7 @@ from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
+from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
 class GoodsQueriesCreate(APIView):
@@ -92,6 +93,8 @@ class GoodsQueriesCreate(APIView):
         good.save()
         goods_query.save()
 
+        apply_flagging_rules_to_case(goods_query)
+
         return JsonResponse(data={"id": goods_query.id}, status=status.HTTP_201_CREATED)
 
 
@@ -109,7 +112,7 @@ class GoodQueryCLCResponse(APIView):
         query = get_exporter_query(pk)
         if CaseStatusEnum.is_terminal(query.status.status):
             return JsonResponse(
-                data={"errors": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -149,6 +152,7 @@ class GoodQueryCLCResponse(APIView):
 
                     query.good.flags.clear()
                     query.good.save()
+                    apply_flagging_rules_to_case(query)
 
                 audit_trail_service.create(
                     actor=request.user, verb=AuditType.CLC_RESPONSE, action_object=query.good, target=query.get_case(),
@@ -182,7 +186,7 @@ class GoodQueryPVGradingResponse(APIView):
         query = get_exporter_query(pk)
         if CaseStatusEnum.is_terminal(query.status.status):
             return JsonResponse(
-                data={"errors": [strings.Applications.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -250,8 +254,13 @@ class GoodQueryManageStatus(APIView):
                 data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
             )
 
+        old_status = query.status
+
         query.status = get_case_status_by_status(new_status)
         query.save()
+
+        if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(query.status.status):
+            apply_flagging_rules_to_case(query)
 
         audit_trail_service.create(
             actor=request.user,

@@ -2,9 +2,14 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
+from rest_framework.exceptions import APIException
 from separatedvaluesfield.models import SeparatedValuesField
 
-from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsCategory
+from applications.enums import (
+    ApplicationExportType,
+    ApplicationExportLicenceOfficialType,
+    GoodsCategory,
+)
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
 from cases.models import Case
@@ -14,7 +19,7 @@ from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
 
-from lite_content.lite_api.strings import Parties
+from lite_content.lite_api.strings import PartyErrors
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
 from parties.models import Party
@@ -26,8 +31,8 @@ from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.units.enums import Units
 
 
-class ApplicationException(Exception):
-    def __init__(self, data=None, *args, **kwargs):
+class ApplicationException(APIException):
+    def __init__(self, data):
         super().__init__(data)
         self.data = data
 
@@ -36,7 +41,7 @@ class ApplicationPartyMixin:
     def add_party(self, party):
 
         if self.case_type.id == CaseTypeEnum.EXHIBITION.id:
-            raise ApplicationException({"errors": {"bad_request": Parties.BAD_CASE_TYPE}})
+            raise ApplicationException({"bad_request": PartyErrors.BAD_CASE_TYPE})
 
         old_poa = None
 
@@ -52,7 +57,7 @@ class ApplicationPartyMixin:
         elif party.type == PartyType.THIRD_PARTY:
             # Rule: Append
             if not party.role:
-                raise ApplicationException({"errors": {"required": Parties.ThirdParty.NULL_ROLE}})
+                raise ApplicationException({"required": PartyErrors.ROLE["null"]})
 
         poa = PartyOnApplication.objects.create(application=self, party=party)
 
@@ -136,8 +141,22 @@ class BaseApplication(ApplicationPartyMixin, Case):
     name = models.TextField(default=None, blank=True, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
-    licence_duration = models.IntegerField(default=None, null=True, help_text="Set when application finalised")
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
+
+    is_military_end_use_controls = models.BooleanField(blank=True, default=None, null=True)
+    military_end_use_controls_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
+
+    is_informed_wmd = models.BooleanField(blank=True, default=None, null=True)
+    informed_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=255)
+
+    is_suspected_wmd = models.BooleanField(blank=True, default=None, null=True)
+    suspected_wmd_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
+
+    is_eu_military = models.BooleanField(blank=True, default=None, null=True)
+    is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
+    compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
+
+    intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
 
     objects = BaseApplicationManager()
 
@@ -145,7 +164,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
         ordering = ["created_at"]
 
 
-# Export Licence Applications
+# Licence Applications
 class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
@@ -270,3 +289,13 @@ class PartyOnApplication(TimestampableModel):
     def delete(self, *args, **kwargs):
         self.deleted_at = timezone.now()
         self.save()
+
+
+class Licence(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(
+        BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licence"
+    )
+    start_date = models.DateField(blank=False, null=False)
+    duration = models.PositiveSmallIntegerField(blank=False, null=False)
+    is_complete = models.BooleanField(default=False, null=False, blank=False)

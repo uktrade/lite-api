@@ -16,13 +16,16 @@ from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus, OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
+from static.statuses.enums import CaseStatusEnum
 from organisations.serializers import (
     OrganisationDetailSerializer,
     OrganisationCreateSerializer,
     OrganisationListSerializer,
 )
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from users.enums import UserType
+from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
 class OrganisationsList(generics.ListCreateAPIView):
@@ -112,6 +115,10 @@ class OrganisationsDetail(generics.RetrieveAPIView):
         """
         reopened_due_to_org_changes_status = CaseStatus.objects.get(status="reopened_due_to_org_changes")
 
-        BaseApplication.objects.filter(organisation=organisation, licence_duration__isnull=False).update(
-            status_id=reopened_due_to_org_changes_status
+        applications = BaseApplication.objects.filter(
+            organisation=organisation, status=get_case_status_by_status(CaseStatusEnum.FINALISED)
         )
+        applications.update(status_id=reopened_due_to_org_changes_status)
+
+        for application in applications:
+            apply_flagging_rules_to_case(application)

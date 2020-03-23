@@ -1,14 +1,12 @@
 import uuid
 
 from django.db import models
-from separatedvaluesfield.models import SeparatedValuesField
-
 from sortedm2m.fields import SortedManyToManyField
 
 from cases.models import CaseType
 from common.models import TimestampableModel
-from letter_templates.enums import Decisions
 from picklists.models import PicklistItem
+from static.decisions.models import Decision
 from static.letter_layouts.models import LetterLayout
 
 
@@ -18,7 +16,7 @@ class LetterTemplate(TimestampableModel):
     layout = models.ForeignKey(LetterLayout, on_delete=models.CASCADE, null=False)
     letter_paragraphs = SortedManyToManyField(PicklistItem)
     case_types = models.ManyToManyField(CaseType, related_name="letter_templates")
-    decisions = SeparatedValuesField(max_length=150, choices=Decisions.choices, blank=True, null=True, default=None)
+    decisions = models.ManyToManyField(Decision, related_name="letter_templates")
 
     class Meta:
         ordering = ["name"]

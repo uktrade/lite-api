@@ -10,6 +10,7 @@ from applications.views import (
     sites,
     countries,
     documents,
+    end_use_details,
 )
 
 app_name = "applications"
@@ -18,18 +19,19 @@ urlpatterns = [
     # Applications
     path("", applications.ApplicationList.as_view(), name="applications"),
     path("<uuid:pk>/", applications.ApplicationDetail.as_view(), name="application"),
-    path("<uuid:pk>/submit/", applications.ApplicationSubmission.as_view(), name="application_submit",),
-    path("<uuid:pk>/finalise/", applications.ApplicationFinaliseView.as_view(), name="finalise"),
+    path("<uuid:pk>/submit/", applications.ApplicationSubmission.as_view(), name="application_submit"),
+    path("<uuid:pk>/final-decision/", applications.ApplicationFinaliseView.as_view(), name="finalise"),
     path("<uuid:pk>/duration/", applications.ApplicationDurationView.as_view(), name="duration"),
-    path("<uuid:pk>/status/", applications.ApplicationManageStatus.as_view(), name="manage_status",),
+    path("<uuid:pk>/status/", applications.ApplicationManageStatus.as_view(), name="manage_status"),
     path("<uuid:pk>/copy/", applications.ApplicationCopy.as_view(), name="copy",),
+    path("<uuid:pk>/end-use-details/", end_use_details.EndUseDetails.as_view(), name="end_use_details"),
     # Goods
-    path("<uuid:pk>/goods/", goods.ApplicationGoodsOnApplication.as_view(), name="application_goods",),
+    path("<uuid:pk>/goods/", goods.ApplicationGoodsOnApplication.as_view(), name="application_goods"),
     path(
         "good-on-application/<uuid:obj_pk>/", goods.ApplicationGoodOnApplication.as_view(), name="good_on_application",
     ),
     # Goods types
-    path("<uuid:pk>/goodstypes/", goods.ApplicationGoodsTypes.as_view(), name="application_goodstypes",),
+    path("<uuid:pk>/goodstypes/", goods.ApplicationGoodsTypes.as_view(), name="application_goodstypes"),
     path(
         "<uuid:pk>/goodstype/<uuid:goodstype_pk>/", goods.ApplicationGoodsType.as_view(), name="application_goodstype",
     ),
@@ -64,15 +66,15 @@ urlpatterns = [
         external_locations.ApplicationRemoveExternalLocation.as_view(),
         name="application_remove_external_location",
     ),
-    path("<uuid:pk>/countries/", countries.ApplicationCountries.as_view(), name="countries",),
+    path("<uuid:pk>/countries/", countries.ApplicationCountries.as_view(), name="countries"),
     # Supporting Documents
-    path("<uuid:pk>/documents/", documents.ApplicationDocumentView.as_view(), name="application_documents",),
+    path("<uuid:pk>/documents/", documents.ApplicationDocumentView.as_view(), name="application_documents"),
     path(
         "<uuid:pk>/documents/<uuid:doc_pk>/",
         documents.ApplicationDocumentDetailView.as_view(),
         name="application_document",
     ),
     # Existing parties
-    path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties",),
+    path("<uuid:pk>/existing-parties/", existing_parties.ExistingParties.as_view(), name="existing_parties"),
     path("<uuid:pk>/exhibition-details/", applications.ExhibitionDetails.as_view(), name="exhibition"),
 ]

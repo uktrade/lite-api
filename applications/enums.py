@@ -1,6 +1,16 @@
 from enum import Enum
 
 
+class YesNoChoiceType:
+    YES = "yes"
+    NO = "no"
+
+    yes_no_choices = [
+        (YES, "Yes"),
+        (NO, "No"),
+    ]
+
+
 class ApplicationExportType:
     PERMANENT = "permanent"
     TEMPORARY = "temporary"

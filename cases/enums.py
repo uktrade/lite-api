@@ -192,7 +192,7 @@ class CaseTypeEnum:
     @classmethod
     def reference_to_class(cls, case_type_reference):
         if not case_type_reference:
-            raise ValidationError({"errors": {"case_type": [strings.Applications.SELECT_A_LICENCE_TYPE]}})
+            raise ValidationError({"case_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]})
 
         for case_type in cls.case_type_list:
             if case_type.reference == case_type_reference:
@@ -235,6 +235,33 @@ class AdviceType:
         (NOT_APPLICABLE, "Not Applicable"),
         (CONFLICTING, "Conflicting"),
     ]
+
+    ids = {
+        APPROVE: UUID("00000000-0000-0000-0000-000000000001"),
+        PROVISO: UUID("00000000-0000-0000-0000-000000000002"),
+        REFUSE: UUID("00000000-0000-0000-0000-000000000003"),
+        NO_LICENCE_REQUIRED: UUID("00000000-0000-0000-0000-000000000004"),
+        NOT_APPLICABLE: UUID("00000000-0000-0000-0000-000000000005"),
+        CONFLICTING: UUID("00000000-0000-0000-0000-000000000006"),
+    }
+
+    @classmethod
+    def get_text(cls, choice):
+        for key, value in cls.choices:
+            if key == choice:
+                return value
+
+    @classmethod
+    def to_representation(cls):
+        return [{"key": decision[0], "value": decision[1]} for decision in cls.choices]
+
+    @classmethod
+    def get_ids(cls, keys):
+        return [cls.ids[decision_key] for decision_key in keys]
+
+    @classmethod
+    def as_dict(cls):
+        return {choice[0]: choice[1] for choice in cls.choices}
 
 
 class CaseDocumentState:

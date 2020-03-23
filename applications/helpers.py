@@ -1,4 +1,9 @@
 from applications.models import BaseApplication
+from applications.serializers.end_use_details import (
+    F680EndUseDetailsUpdateSerializer,
+    OpenEndUseDetailsUpdateSerializer,
+    StandardEndUseDetailsUpdateSerializer,
+)
 from applications.serializers.f680_clearance import (
     F680ClearanceCreateSerializer,
     F680ClearanceViewSerializer,
@@ -72,7 +77,7 @@ def get_application_create_serializer(case_type):
     elif sub_type == CaseTypeSubTypeEnum.F680:
         return F680ClearanceCreateSerializer
     else:
-        raise BadRequestError({"application_type": [strings.Applications.SELECT_A_LICENCE_TYPE]})
+        raise BadRequestError({"application_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]})
 
 
 def get_application_update_serializer(application: BaseApplication):
@@ -92,6 +97,22 @@ def get_application_update_serializer(application: BaseApplication):
         raise BadRequestError(
             {
                 f"get_application_update_serializer does "
+                f"not support this application type: {application.case_type.sub_type}"
+            }
+        )
+
+
+def get_application_end_use_details_update_serializer(application: BaseApplication):
+    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+        return StandardEndUseDetailsUpdateSerializer
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+        return OpenEndUseDetailsUpdateSerializer
+    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+        return F680EndUseDetailsUpdateSerializer
+    else:
+        raise BadRequestError(
+            {
+                f"get_application_end_use_details_update_serializer does "
                 f"not support this application type: {application.case_type.sub_type}"
             }
         )

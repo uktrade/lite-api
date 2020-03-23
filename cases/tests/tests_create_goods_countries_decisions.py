@@ -13,7 +13,7 @@ from users.models import Role
 class CreateGoodsCountriesDecisions(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.open_draft = self.create_open_application(self.organisation)
+        self.open_draft = self.create_draft_open_application(self.organisation)
 
         role = Role(name="team_level")
         role.permissions.set(

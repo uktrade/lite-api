@@ -9,8 +9,8 @@ from cases.enums import CaseTypeEnum
 from goods.enums import PvGrading
 from lite_content.lite_api import strings
 from parties.enums import PartyType
-from static.statuses.enums import CaseStatusEnum
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -218,7 +218,9 @@ class EditF680ApplicationsTests(DataTestClient):
 
         response = self.client.put(url, data=data, **self.exporter_headers)
         self.application.refresh_from_db()
-        self.assertEqual(response.json()["errors"], {"clearance_level": ["This isn't possible on a minor edit"]})
+        self.assertEqual(
+            response.json()["errors"], {"clearance_level": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_edit_submitted_application_clearance_level_major_success(self):
@@ -247,7 +249,9 @@ class EditF680ApplicationsTests(DataTestClient):
         response = self.client.put(url, data=data, **self.exporter_headers)
 
         self.application.refresh_from_db()
-        self.assertEqual(response.json()["errors"], {"types": ["This isn't possible on a minor edit"]})
+        self.assertEqual(
+            response.json()["errors"], {"types": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_edit_submitted_application_clearance_type_major_success(self):
@@ -553,7 +557,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.PartyErrors.BAD_CASE_TYPE})
 
     def test_add_consignee_exhibition_clearance_failure(self):
         party = {
@@ -571,7 +575,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.PartyErrors.BAD_CASE_TYPE})
 
     def test_add_end_user_exhibition_clearance_failure(self):
         party = {
@@ -589,7 +593,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.PartyErrors.BAD_CASE_TYPE})
 
     def test_add_ultimate_end_user_exhibition_clearance_failure(self):
         party = {
@@ -607,4 +611,4 @@ class EditExhibitionApplicationsTests(DataTestClient):
         self.application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"bad_request": strings.Parties.BAD_CASE_TYPE})
+        self.assertEqual(response.json()["errors"], {"bad_request": strings.PartyErrors.BAD_CASE_TYPE})

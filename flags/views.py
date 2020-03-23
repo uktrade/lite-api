@@ -27,6 +27,7 @@ from parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country
+from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
 
 
 @permission_classes((permissions.AllowAny,))
@@ -104,7 +105,8 @@ class FlagDetail(APIView):
         serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
 
         if serializer.is_valid():
-            serializer.save()
+            flag = serializer.save()
+            apply_flagging_rule_for_flag(flag)
             return JsonResponse(data={"flag": serializer.data})
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -296,7 +298,8 @@ class FlaggingRules(ListCreateAPIView):
         serializer = FlaggingRuleSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            flagging_rule = serializer.save()
+            apply_flagging_rule_to_all_open_cases(flagging_rule)
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -321,7 +324,8 @@ class FlaggingRuleDetail(APIView):
         serializer = FlaggingRuleSerializer(instance=flagging_rule, data=request.data, partial=True)
 
         if serializer.is_valid():
-            serializer.save()
+            flagging_rule = serializer.save()
+            apply_flagging_rule_to_all_open_cases(flagging_rule)
             return JsonResponse(data={"flagging_rule": serializer.data})
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

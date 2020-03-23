@@ -104,7 +104,10 @@ class GovAuthentication(authentication.BaseAuthentication):
         When given a user token token validate that they're a government user
         and that their account is active
         """
-        gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
+        if request.META.get(GOV_USER_TOKEN_HEADER):
+            gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
+        else:
+            raise PermissionDeniedError("You must supply the correct token in your headers.")
 
         gov_user = get_user_by_pk(token_to_user_pk(gov_user_token))
 

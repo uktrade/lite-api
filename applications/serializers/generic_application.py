@@ -1,4 +1,5 @@
 import abc
+from django.utils import timezone
 
 from rest_framework import serializers
 from rest_framework.fields import CharField
@@ -7,7 +8,6 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
-    LicenceDuration,
 )
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
@@ -41,7 +41,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     case_type = serializers.SerializerMethodField()
     export_type = serializers.SerializerMethodField()
@@ -49,7 +49,6 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     organisation = OrganisationDetailSerializer()
     case = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
-    licence_duration = serializers.IntegerField(allow_null=True)
     is_major_editable = serializers.SerializerMethodField(required=False)
 
     class Meta:
@@ -66,7 +65,6 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "status",
             "case",
             "exporter_user_notification_count",
-            "licence_duration",
             "reference_code",
             "is_major_editable",
         )
@@ -165,7 +163,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     case_type = PrimaryKeyRelatedField(
         queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
@@ -199,12 +197,11 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": strings.Applications.MISSING_REFERENCE_NAME_ERROR},
+        error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},
     )
     reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, write_only=True)
     reason_details = serializers.CharField(required=False, allow_blank=True)
     status = serializers.PrimaryKeyRelatedField(queryset=CaseStatus.objects.all())
-    licence_duration = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = BaseApplication
@@ -213,7 +210,6 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
             "status",
             "reasons",
             "reason_details",
-            "licence_duration",
         )
 
     def update(self, instance, validated_data):
@@ -222,25 +218,15 @@ class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
         """
         instance.name = validated_data.get("name", instance.name)
         instance.status = validated_data.get("status", instance.status)
-        instance.licence_duration = validated_data.get("licence_duration", instance.licence_duration)
         instance.clearance_level = validated_data.get("clearance_level", instance.clearance_level)
 
         # Remove any previous denial reasons
         if validated_data.get("status") == get_case_status_by_status(CaseStatusEnum.FINALISED):
             ApplicationDenialReason.objects.filter(application=get_application(instance.id)).delete()
+            instance.last_closed_at = timezone.now()
 
-        instance.save()
+        instance = super().update(instance, validated_data)
         return instance
-
-    def validate(self, data):
-        """
-        Check that the start is before the stop.
-        """
-        if data.get("licence_duration") is not None and (
-            data["licence_duration"] > LicenceDuration.MAX.value or data["licence_duration"] < LicenceDuration.MIN.value
-        ):
-            raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
-        return data
 
 
 class GenericApplicationCopySerializer(serializers.ModelSerializer):

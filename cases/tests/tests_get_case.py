@@ -63,7 +63,7 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(actual_flags_on_goods, expected_flags)
 
     def test_case_returns_expected_goods_types_flags(self):
-        self.open_application = self.create_open_application(self.organisation)
+        self.open_application = self.create_draft_open_application(self.organisation)
         self.open_case = self.submit_application(self.open_application)
         self.open_case_url = reverse("cases:case", kwargs={"pk": self.open_case.id})
 
@@ -80,3 +80,17 @@ class CaseGetTests(DataTestClient):
 
         self.assertIn(actual_flags_on_case[0], expected_flags)
         self.assertEqual(actual_flags_on_goods_type, expected_flags)
+
+    def test_case_returns_has_advice(self):
+        case = self.submit_application(self.standard_application)
+        url = reverse("cases:case", kwargs={"pk": case.id})
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        has_advice_response_data = response.json()["case"]["has_advice"]
+        self.assertIn("user", has_advice_response_data)
+        self.assertIn("my_user", has_advice_response_data)
+        self.assertIn("team", has_advice_response_data)
+        self.assertIn("my_team", has_advice_response_data)
+        self.assertIn("final", has_advice_response_data)

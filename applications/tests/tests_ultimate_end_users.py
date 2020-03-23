@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import PartyOnApplication
-from lite_content.lite_api.strings import Parties
+from lite_content.lite_api.strings import PartyErrors
 from parties.enums import PartyType
 from parties.models import Party
 from parties.models import PartyDocument
@@ -67,7 +67,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, {"errors": {"sub_type": [Parties.NULL_TYPE]}})
+        self.assertEqual(response_data, {"errors": {"sub_type": [PartyErrors.SUB_TYPE["required"]]}})
 
     def test_get_ultimate_end_users(self):
         PartyOnApplication.objects.filter(application=self.draft, party__type=PartyType.ULTIMATE_END_USER).delete()
@@ -109,7 +109,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
             "type": PartyType.ULTIMATE_END_USER,
         }
 
-        open_draft = self.create_open_application(self.organisation)
+        open_draft = self.create_draft_open_application(self.organisation)
         url = reverse("applications:parties", kwargs={"pk": open_draft.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
@@ -266,7 +266,7 @@ class UltimateEndUsersOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(original_party_count, self.draft.ultimate_end_users.count())
-        self.assertEqual(response.json(), {"errors": {"name": [Parties.NULL_NAME]}})
+        self.assertEqual(response.json(), {"errors": {"name": [PartyErrors.NAME["null"]]}})
 
     def test_ultimate_end_user_copy_of_success(self):
         ultimate_end_user = {
