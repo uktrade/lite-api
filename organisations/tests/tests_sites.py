@@ -140,74 +140,24 @@ class OrganisationSitesTests(DataTestClient):
 class SitesUpdateTests(DataTestClient):
     def setUp(self):
         super().setUp()
+        self.data = {
+            "name": faker.word()
+        }
         self.url = reverse(
             "organisations:site", kwargs={"org_pk": self.organisation.id, "pk": self.organisation.primary_site.id}
         )
 
     def test_edit_site_name_success(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        data = {
-            "name": faker.word(),
-        }
 
-        response = self.client.patch(self.url, data, **self.exporter_headers)
+        response = self.client.patch(self.url, self.data, **self.exporter_headers)
         self.organisation.primary_site.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.organisation.primary_site.name, data["name"])
-
-    def test_edit_site_address_success(self):
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        data = {
-            "address": {
-                "address_line_1": faker.address(),
-                "city": faker.city(),
-                "postcode": faker.postcode(),
-                "region": faker.state(),
-            }
-        }
-
-        response = self.client.patch(self.url, data, **self.exporter_headers)
-        self.organisation.primary_site.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.organisation.primary_site.address.address_line_1, data["address"]["address_line_1"])
-
-    def test_edit_site_foreign_address_success(self):
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        data = {"foreign_address": {"address": faker.address(), "country": "PL",}}
-
-        response = self.client.patch(self.url, data, **self.exporter_headers)
-        self.organisation.primary_site.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.organisation.primary_site.foreign_address.address, data["foreign_address"]["address"])
-        self.assertEqual(self.organisation.primary_site.foreign_address.country.id, data["foreign_address"]["country"])
-        self.assertIsNone(self.organisation.primary_site.address)
+        self.assertEqual(self.organisation.primary_site.name, self.data["name"])
 
     def test_edit_site_without_permission_failure(self):
-        payload_name = faker.word()
-        data = {"name": payload_name}
-
-        response = self.client.patch(self.url, data, **self.exporter_headers)
+        response = self.client.patch(self.url, self.data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertNotEqual(self.organisation.primary_site.name, payload_name)
-
-    def test_edit_site_provide_two_addresses_failure(self):
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        data = {
-            "address": {
-                "address_line_1": faker.address(),
-                "city": faker.city(),
-                "postcode": faker.postcode(),
-                "region": faker.state(),
-            },
-            "foreign_address": {"address": faker.address(), "country": "PL",},
-        }
-
-        response = self.client.patch(self.url, data, **self.exporter_headers)
-        self.organisation.primary_site.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertNotEqual(self.organisation.primary_site.address.address_line_1, data["address"]["address_line_1"])
+        self.assertNotEqual(self.organisation.primary_site.name, self.data["name"])

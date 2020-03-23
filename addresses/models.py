@@ -20,7 +20,7 @@ class Address(models.Model):
 
 class ForeignAddress(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    address = models.CharField(default=None, blank=False, max_length=50)
+    address = models.CharField(default=None, blank=False, max_length=256)
     country = models.ForeignKey(Country, blank=False, null=False, on_delete=models.CASCADE)
 
     class Meta:

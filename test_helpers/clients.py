@@ -477,7 +477,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             org_type = OrganisationType.COMMERCIAL
 
         organisation = OrganisationFactory(name=name, type=org_type)
-        exporter_user = self.create_exporter_user(organisation)
 
         if not exporter_user:
             exporter_user = self.create_exporter_user(organisation)
