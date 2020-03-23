@@ -17,6 +17,7 @@ class LetterTemplate(TimestampableModel):
     letter_paragraphs = SortedManyToManyField(PicklistItem)
     case_types = models.ManyToManyField(CaseType, related_name="letter_templates")
     decisions = models.ManyToManyField(Decision, related_name="letter_templates")
+    visible_to_exporter = models.BooleanField(blank=False, null=False)
 
     class Meta:
         ordering = ["name"]
