@@ -72,7 +72,7 @@ jobs:
 
       - run:
           name: Run seeding tests
-          command: pipenv run ./manage.py test --tag=seeding --exclude-tag=performance
+          command: pipenv run ./manage.py test --tag=seeding
       - store_test_results:
           path: seed-test-results
 
