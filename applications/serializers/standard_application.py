@@ -48,6 +48,8 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "is_eu_military",
                 "is_compliant_limitations_eu",
                 "compliant_limitations_eu_ref",
+                "is_shipped_waybill_or_lading",
+                "non_waybill_or_lading_route_details",
             )
         )
 
@@ -101,7 +103,16 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "is_eu_military",
             "is_compliant_limitations_eu",
             "compliant_limitations_eu_ref",
+            "is_shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
         )
+
+    def __init__(self, *args, **kwargs):
+        super(StandardApplicationUpdateSerializer, self).__init__(*args, **kwargs)
+
+        if self.get_initial().get("is_shipped_waybill_or_lading") == "True":
+            if hasattr(self, "initial_data"):
+                self.initial_data["non_waybill_or_lading_route_details"] = None
 
     def update(self, instance, validated_data):
         if "goods_categories" in validated_data:
@@ -162,6 +173,7 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             setattr(instance, linked_reference_field, None)
 
     def validate(self, data):
+        # TODO validate the route of goods
         validated_data = super().validate(data)
         self._validate_linked_fields(
             validated_data, "military_end_use_controls", strings.Generic.EndUseDetails.Error.INFORMED_TO_APPLY

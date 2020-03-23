@@ -155,6 +155,9 @@ class BaseApplication(ApplicationPartyMixin, Case):
     is_compliant_limitations_eu = models.BooleanField(blank=True, default=None, null=True)
     compliant_limitations_eu_ref = models.TextField(default=None, blank=True, null=True, max_length=2200)
 
+    is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
+    non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
+
     objects = BaseApplicationManager()
 
     class Meta:

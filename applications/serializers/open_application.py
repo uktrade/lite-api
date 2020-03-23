@@ -32,6 +32,8 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "informed_wmd_ref",
             "is_suspected_wmd",
             "suspected_wmd_ref",
+            "is_shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
         )
 
     def get_goods_types(self, application):
@@ -73,7 +75,16 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "informed_wmd_ref",
             "is_suspected_wmd",
             "suspected_wmd_ref",
+            "is_shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
         )
+
+    def __init__(self, *args, **kwargs):
+        super(OpenApplicationUpdateSerializer, self).__init__(*args, **kwargs)
+
+        if self.get_initial().get("is_shipped_waybill_or_lading") == "True":
+            if hasattr(self, "initial_data"):
+                self.initial_data["non_waybill_or_lading_route_details"] = None
 
     def update(self, instance, validated_data):
         self._update_reference_field(instance, "military_end_use_controls", validated_data)
