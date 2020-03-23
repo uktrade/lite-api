@@ -6,6 +6,7 @@ from django.db import connection
 import django.utils.timezone
 from django.test import tag
 from django.conf import settings as conf_settings
+from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -168,10 +169,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
-        random_string = str(uuid.uuid4())
-
         exporter_user = ExporterUser(
-            first_name=first_name, last_name=last_name, email=f"{first_name}.{last_name}@{random_string}.com",
+            first_name=first_name, last_name=last_name, email=Faker().email(),
         )
         exporter_user.organisation = organisation
         exporter_user.save()
