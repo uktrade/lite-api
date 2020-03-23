@@ -667,7 +667,8 @@ class AssignedQueues(APIView):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 # Check queue belongs to that users team
-                if not Queue.objects.filter(id=queues[0], team=request.user.team).exists():
+                queues = Queue.objects.filter(id=queues[0], team=request.user.team)
+                if not queues.exists():
                     return JsonResponse(
                         data={"errors": {"queues": [Cases.UnassignQueues.INVALID_TEAM]}},
                         status=status.HTTP_400_BAD_REQUEST,
