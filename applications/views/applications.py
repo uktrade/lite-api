@@ -291,8 +291,6 @@ class ApplicationDeclaration(APIView):
 
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        previous_application_status = application.status
-
         submit_and_set_sla(application)
         application.save()
 
