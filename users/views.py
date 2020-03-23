@@ -110,8 +110,9 @@ class UserDetail(APIView):
         user = get_user_by_pk(pk)
         if request.user.id != pk:
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, request.user.organisation)
+        relationship = get_user_organisation_relationship(user, request.user.organisation)
 
-        serializer = ExporterUserViewSerializer(user, context=request.user.organisation)
+        serializer = ExporterUserViewSerializer(user, context=relationship)
         return JsonResponse(data={"user": serializer.data})
 
     @swagger_auto_schema(responses={400: "JSON parse error"})

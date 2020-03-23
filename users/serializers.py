@@ -50,15 +50,13 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
         return None
 
     def get_role(self, _):
-        if "role" in self.context:
-            return RoleSerializer(self.context["role"]).data
-        return None
+        return RoleSerializer(self.context.role).data
 
-    def get_sites(self, instance):
+    def get_sites(self, _):
         from organisations.serializers import SiteViewSerializer
 
         if self.context:
-            sites = Site.objects.get_by_user_and_organisation(instance, self.context)
+            sites = Site.objects.get_by_user_organisation_relationship(self.context)
             return SiteViewSerializer(sites, many=True).data
         return None
 
