@@ -472,7 +472,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_good_country_decision(case, goods_type, country, decision):
         GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
 
-
     def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
         if not org_type:
             org_type = OrganisationType.COMMERCIAL
@@ -484,7 +483,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             exporter_user = self.create_exporter_user(organisation)
         else:
             self.add_exporter_user_to_org(organisation, exporter_user)
-
 
         return organisation, exporter_user
 

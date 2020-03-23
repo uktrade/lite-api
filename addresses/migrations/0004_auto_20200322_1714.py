@@ -6,33 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('addresses', '0003_auto_20200322_1547'),
+        ("addresses", "0003_auto_20200322_1547"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='address',
-            name='address_line_1',
-            field=models.CharField(default=None, max_length=50),
+            model_name="address", name="address_line_1", field=models.CharField(default=None, max_length=50),
         ),
         migrations.AlterField(
-            model_name='address',
-            name='address_line_2',
+            model_name="address",
+            name="address_line_2",
             field=models.CharField(blank=True, default=None, max_length=50, null=True),
         ),
+        migrations.AlterField(model_name="address", name="city", field=models.CharField(default=None, max_length=50),),
         migrations.AlterField(
-            model_name='address',
-            name='city',
-            field=models.CharField(default=None, max_length=50),
+            model_name="address", name="region", field=models.CharField(default=None, max_length=50),
         ),
         migrations.AlterField(
-            model_name='address',
-            name='region',
-            field=models.CharField(default=None, max_length=50),
-        ),
-        migrations.AlterField(
-            model_name='foreignaddress',
-            name='address',
-            field=models.CharField(default=None, max_length=50),
+            model_name="foreignaddress", name="address", field=models.CharField(default=None, max_length=50),
         ),
     ]
