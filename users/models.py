@@ -97,6 +97,7 @@ class BaseUser(AbstractUser, TimestampableModel):
     REQUIRED_FIELDS = []
 
     class Meta:
+        ordering = ["first_name", "last_name"]
         unique_together = [["email", "type"]]
 
     def __str__(self):

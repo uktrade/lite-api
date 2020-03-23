@@ -57,7 +57,7 @@ class SiteViewSerializer(SiteListSerializer):
         fields = ("id", "name", "address", "foreign_address", "users")
 
 
-class SiteCreateSerializer(serializers.ModelSerializer):
+class SiteCreateUpdateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages={"blank": "Enter a name for your site"}, write_only=True)
     address = AddressSerializer(write_only=True, required=False)
     foreign_address = ForeignAddressSerializer(write_only=True, required=False)
@@ -68,17 +68,20 @@ class SiteCreateSerializer(serializers.ModelSerializer):
         model = Site
         fields = ("id", "name", "address", "foreign_address", "organisation", "users")
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # Override any user entered country to GB for UK addresses
-        if hasattr(self, "initial_data") and "address" in self.initial_data:
-            self.initial_data["address"]["country"] = "GB"
+        if hasattr(self, "initial_data"):
+            if "address" in self.initial_data:
+                self.initial_data["address"]["country"] = "GB"
 
     def validate(self, data):
         validated_data = super().validate(data)
-        # You have to have either an address or foreign address
-        if "address" not in validated_data and "foreign_address" not in validated_data:
-            raise serializers.ValidationError({"address": "You have to have an address!"})
+
+        # For creating you have to have provide an address or foreign address
+        if not self.partial:
+            if "address" not in validated_data and "foreign_address" not in validated_data:
+                raise serializers.ValidationError({"address": "You have to have an address!"})
 
         # Sites have to have either address or foreign address
         if "address" in validated_data and "foreign_address" in validated_data:
@@ -114,37 +117,55 @@ class SiteCreateSerializer(serializers.ModelSerializer):
             site = Site.objects.create(foreign_address=foreign_address, **validated_data)
 
         if users:
-            site.users.set([get_user_organisation_relationship(user, validated_data["organisation"])
-                            for user in users])
+            site.users.set([get_user_organisation_relationship(user, validated_data["organisation"]) for user in users])
 
         return site
 
     def update(self, instance, validated_data):
-        instance.name = validated_data["name"]
+        instance.name = validated_data.get("name", instance.name)
+
+        if "address" in validated_data:
+            address_data = validated_data.pop("address")
+            address_data["country"] = address_data["country"].id
+            address_serializer = AddressSerializer(instance.address, partial=True, data=address_data)
+            if address_serializer.is_valid(raise_exception=True):
+                if instance.foreign_address:
+                    instance.foreign_address = None
+
+                instance.address.address_line_1 = address_serializer.validated_data.get(
+                    "address_line_1", instance.address.address_line_1
+                )
+                instance.address.address_line_2 = address_serializer.validated_data.get(
+                    "address_line_2", instance.address.address_line_2
+                )
+                instance.address.region = address_serializer.validated_data.get("region", instance.address.region)
+                instance.address.postcode = address_serializer.validated_data.get("postcode", instance.address.postcode)
+                instance.address.city = address_serializer.validated_data.get("city", instance.address.city)
+                instance.address.country = address_serializer.validated_data.get("country", instance.address.country)
+                instance.address.save()
+        elif "foreign_address" in validated_data:
+            foreign_address_data = validated_data.pop("foreign_address")
+            foreign_address_data["country"] = foreign_address_data["country"].id
+            foreign_address_serializer = ForeignAddressSerializer(
+                instance.address, partial=True, data=foreign_address_data
+            )
+            if foreign_address_serializer.is_valid(raise_exception=True):
+                if instance.address:
+                    instance.address = None
+
+                instance.foreign_address.address = foreign_address_serializer.validated_data.get(
+                    "address", instance.foreign_address.address
+                )
+                instance.foreign_address.country = foreign_address_serializer.validated_data.get(
+                    "country", instance.foreign_address.country
+                )
+                instance.foreign_address.save()
+
         instance.save()
-
-        address_data = validated_data.pop("address") or validated_data.pop("foreign_address")
-        address_data["country"] = address_data["country"].id
-        address_serializer = AddressSerializer(instance.address, partial=True, data=address_data)
-        if address_serializer.is_valid():
-            instance.address.address_line_1 = address_serializer.validated_data.get(
-                "address_line_1", instance.address.address_line_1
-            )
-            instance.address.address_line_2 = address_serializer.validated_data.get(
-                "address_line_2", instance.address.address_line_2
-            )
-            instance.address.region = address_serializer.validated_data.get("region", instance.address.region)
-            instance.address.postcode = address_serializer.validated_data.get("postcode", instance.address.postcode)
-            instance.address.city = address_serializer.validated_data.get("city", instance.address.city)
-            instance.address.country = address_serializer.validated_data.get("country", instance.address.country)
-            instance.address.save()
-        else:
-            raise serializers.ValidationError(address_serializer.errors)
-
         return instance
 
 
-class OrganisationCreateSerializer(serializers.ModelSerializer):
+class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(error_messages={"blank": Organisations.Create.BLANK_NAME})
     type = KeyValueChoiceField(choices=OrganisationType.choices)
@@ -186,7 +207,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         },
     )
     user = ExporterUserCreateUpdateSerializer(write_only=True)
-    site = SiteCreateSerializer(write_only=True)
+    site = SiteCreateUpdateSerializer(write_only=True)
 
     def __init__(self, *args, **kwargs):
         if kwargs.get("data").get("user"):
@@ -256,7 +277,7 @@ class OrganisationCreateSerializer(serializers.ModelSerializer):
         else:
             site_data["foreign_address"]["country"] = site_data["foreign_address"]["country"].id
 
-        site_serializer = SiteCreateSerializer(data=site_data)
+        site_serializer = SiteCreateUpdateSerializer(data=site_data)
         if site_serializer.is_valid():
             site = site_serializer.save()
         else:

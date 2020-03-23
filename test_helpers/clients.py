@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import django.utils.timezone
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
+from addresses.factories import AddressFactory
 from addresses.models import Address
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
@@ -37,6 +38,7 @@ from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType, OrganisationStatus
+from organisations.factories import OrganisationFactory
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party
@@ -156,10 +158,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         assertion_func = self._getAssertEqualityFunc(first, second)
         assertion_func(first, second, msg=msg)
 
-    def get(self, path, data=None, follow=False, **extra):
-        response = self.client.get(path, data, follow, **extra)
-        return response.json(), response.status_code
-
     def create_exporter_user(self, organisation=None, first_name=None, last_name=None, role=None):
         if not first_name and not last_name:
             first_name, last_name = random_name()
@@ -185,21 +183,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not role:
             role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
         UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
-
-    @staticmethod
-    def create_site(name, org, country="GB"):
-        address = Address(
-            address_line_1="42 Road",
-            address_line_2="",
-            country=get_country(country),
-            city="London",
-            region="Buckinghamshire",
-            postcode="E14QW",
-        )
-        address.save()
-        site = Site(name=name, organisation=org, address=address)
-        site.save()
-        return site
 
     @staticmethod
     def create_external_location(name, org, country="GB"):
@@ -484,28 +467,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_good_country_decision(case, goods_type, country, decision):
         GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
 
-    def get(self, path, data=None, follow=False, **extra):
-        response = self.client.get(path, data, follow, **extra)
-        return response.json(), response.status_code
-
     def create_organisation_with_exporter_user(self, name="Organisation", org_type=None):
-        organisation = Organisation(
-            name=name,
-            eori_number="GB123456789000",
-            sic_number="2765",
-            vat_number="123456789",
-            registration_number="987654321",
-            status=OrganisationStatus.ACTIVE,
-        )
-        if org_type:
-            organisation.type = org_type
-        organisation.save()
+        if not org_type:
+            org_type = OrganisationType.COMMERCIAL
 
-        site = self.create_site("HQ", organisation)
-
-        organisation.primary_site = site
-        organisation.save()
-
+        organisation = OrganisationFactory(name=name, type=org_type)
         exporter_user = self.create_exporter_user(organisation)
 
         return organisation, exporter_user

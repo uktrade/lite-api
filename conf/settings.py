@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "drf_yasg",
     "documents",
+    "common",
     "flags",
     "goods",
     "goodstype",

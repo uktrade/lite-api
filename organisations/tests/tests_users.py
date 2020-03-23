@@ -38,14 +38,15 @@ class OrganisationUsersViewTests(DataTestClient):
         url = reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id})
 
         response = self.client.get(url, **self.exporter_headers)
-        response_data = response.json()["user"]
+        response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["status"], UserStatuses.ACTIVE)
 
     def test_exclude_users_with_permission(self):
-        response = self.client.get(self.url + "?exclude_permission=" + ExporterPermissions.ADMINISTER_SITES.name,
-                                   **self.exporter_headers)
+        response = self.client.get(
+            self.url + "?exclude_permission=" + ExporterPermissions.ADMINISTER_SITES.name, **self.exporter_headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 0)

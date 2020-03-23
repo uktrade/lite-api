@@ -14,13 +14,13 @@ class UserTests(DataTestClient):
         Tests the 'users/me' endpoint
         Ensures that the endpoint returns the correct details about the signed in user
         """
-        response, status_code = self.get(self.url, **self.exporter_headers)
+        response = self.client.get(self.url, **self.exporter_headers)
+        response_data = response.json()
 
-        self.assertEqual(status_code, status.HTTP_200_OK)
-
-        self.assertEqual(response["user"]["id"], str(self.exporter_user.id))
-        self.assertEqual(response["user"]["first_name"], self.exporter_user.first_name)
-        self.assertEqual(response["user"]["last_name"], self.exporter_user.last_name)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["id"], str(self.exporter_user.id))
+        self.assertEqual(response_data["first_name"], self.exporter_user.first_name)
+        self.assertEqual(response_data["last_name"], self.exporter_user.last_name)
 
     def test_retrieve_sites_that_a_user_belongs_to(self):
         """
@@ -29,8 +29,8 @@ class UserTests(DataTestClient):
         user_organisation_relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
         user_organisation_relationship.sites.set([self.organisation.primary_site])
 
-        response, _ = self.get(self.url, **self.exporter_headers)
-        site = response["user"]["sites"][0]
+        response = self.client.get(self.url, **self.exporter_headers)
+        site = response.json()["sites"][0]
 
         self.assertEquals(
             site["id"], str(self.organisation.primary_site.id),

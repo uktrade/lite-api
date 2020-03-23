@@ -1,8 +1,7 @@
 import operator
-from datetime import datetime
 from functools import reduce
 
-from django.db import transaction, connection
+from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -17,12 +16,12 @@ from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus, OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
-from static.statuses.enums import CaseStatusEnum
 from organisations.serializers import (
     OrganisationDetailSerializer,
-    OrganisationCreateSerializer,
+    OrganisationCreateUpdateSerializer,
     OrganisationListSerializer,
 )
+from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from users.enums import UserType
@@ -53,24 +52,23 @@ class OrganisationsList(generics.ListCreateAPIView):
         return result
 
     @transaction.atomic
-    @swagger_auto_schema(request_body=OrganisationCreateSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=OrganisationCreateUpdateSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """ Create a new organisation. """
         data = request.data.copy()
         validate_only = request.data.get("validate_only", False)
+
         data["status"] = (
             OrganisationStatus.ACTIVE
             if getattr(request.user, "type", None) == UserType.INTERNAL
             else OrganisationStatus.IN_REVIEW
         )
-        serializer = OrganisationCreateSerializer(data=data, context={"validate_only": validate_only})
+        serializer = OrganisationCreateUpdateSerializer(data=data, context={"validate_only": validate_only})
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             if not validate_only:
                 serializer.save()
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrganisationsDetail(generics.RetrieveUpdateAPIView):
@@ -93,19 +91,18 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
                     data={"errors": Organisations.NO_PERM_TO_EDIT_NAME}, status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        serializer = OrganisationCreateSerializer(instance=organisation, data=request.data, partial=True)
+        serializer = OrganisationCreateUpdateSerializer(instance=organisation, data=request.data, partial=True)
 
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid(raise_exception=True):
+            if str_to_bool(request.data.get("validate_only", False)):
+                return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
 
-        if str_to_bool(request.data.get("validate_only", False)):
-            return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
+            serializer.save()
 
-        serializer.save()
-        if org_name_changed:
-            self.reopen_closed_cases_for_organisation(organisation)
+            if org_name_changed:
+                self.reopen_closed_cases_for_organisation(organisation)
 
-        return JsonResponse(data={"organisation": serializer.validated_data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_201_CREATED)
 
     @staticmethod
     def reopen_closed_cases_for_organisation(organisation):

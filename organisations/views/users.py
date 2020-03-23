@@ -46,9 +46,9 @@ class UsersList(generics.ListCreateAPIView):
 
         return (
             ExporterUser.objects.filter(reduce(operator.and_, query))
-                .exclude(relationship__role__permissions__in=[exclude_permission])
-                .select_related("relationship__role")
-                .values(
+            .exclude(relationship__role__permissions__in=[exclude_permission])
+            .select_related("relationship__role")
+            .values(
                 "id",
                 "first_name",
                 "last_name",
@@ -119,8 +119,8 @@ class UserDetail(APIView):
 
         # Cannot perform actions on another super user without super user role
         if (
-                data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
-                or user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
+            data.get("role") == Roles.EXPORTER_SUPER_USER_ROLE_ID
+            or user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID
         ) and not request.user.get_role(org_pk).id == Roles.EXPORTER_SUPER_USER_ROLE_ID:
             raise PermissionDenied()
 

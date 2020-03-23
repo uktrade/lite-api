@@ -1,16 +1,16 @@
 from django.urls import path
 
-from organisations.views import main, sites, external_locations, users, roles
+from organisations.views import organisations, sites, external_locations, users, roles
 
 app_name = "organisations"
 
 urlpatterns = [
-    path("", main.OrganisationsList.as_view(), name="organisations"),
-    path("<uuid:pk>/", main.OrganisationsDetail.as_view(), name="organisation"),
+    path("", organisations.OrganisationsList.as_view(), name="organisations"),
+    path("<uuid:pk>/", organisations.OrganisationsDetail.as_view(), name="organisation"),
     path("<uuid:org_pk>/users/", users.UsersList.as_view(), name="users"),
     path("<uuid:org_pk>/users/<uuid:user_pk>/", users.UserDetail.as_view(), name="user"),
     path("<uuid:org_pk>/sites/", sites.SitesList.as_view(), name="sites"),
-    path("<uuid:org_pk>/sites/<uuid:site_pk>/", sites.SiteDetail.as_view(), name="site"),
+    path("<uuid:org_pk>/sites/<uuid:pk>/", sites.SiteRetrieveUpdate.as_view(), name="site"),
     path(
         "<uuid:org_pk>/external_locations/",
         external_locations.ExternalLocationList.as_view(),

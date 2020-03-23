@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
@@ -8,10 +9,8 @@ from conf.constants import ExporterPermissions
 from conf.permissions import assert_user_has_permission
 from organisations import service
 from organisations.libraries.get_organisation import get_organisation_by_pk
-from organisations.libraries.get_site import get_site
 from organisations.models import Site
-from organisations.serializers import SiteViewSerializer, SiteCreateSerializer, SiteListSerializer
-from users.libraries.get_user import get_user_organisation_relationship
+from organisations.serializers import SiteViewSerializer, SiteCreateUpdateSerializer, SiteListSerializer
 from users.models import ExporterUser
 
 
@@ -52,7 +51,7 @@ class SitesList(APIView):
 
         data = request.data
         data["organisation"] = org_pk
-        serializer = SiteCreateSerializer(data=data)
+        serializer = SiteCreateUpdateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
             if "validate_only" not in data or data["validate_only"] == "False":
@@ -61,28 +60,17 @@ class SitesList(APIView):
             return JsonResponse(data={})
 
 
-class SiteDetail(APIView):
-    """
-    Show details for for a specific site/edit site
-    """
-
+class SiteRetrieveUpdate(RetrieveUpdateAPIView):
     authentication_classes = (SharedAuthentication,)
 
-    def get(self, request, org_pk, site_pk):
-        if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, org_pk)
-        site = get_site(site_pk, org_pk)
+    def get_queryset(self):
+        return Site.objects.filter(organisation=get_organisation_by_pk(self.kwargs["org_pk"]))
 
-        serializer = SiteViewSerializer(site)
-        return JsonResponse(data={"site": serializer.data})
+    def get_serializer_class(self):
+        if isinstance(self.request.user, ExporterUser):
+            assert_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_SITES, self.kwargs["org_pk"])
 
-    @transaction.atomic
-    def put(self, request, org_pk, site_pk):
-        if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, org_pk)
-        site = get_site(site_pk, org_pk)
-
-        serializer = SiteCreateSerializer(instance=site, data=request.data, partial=True)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return JsonResponse(data={"site": serializer.data}, status=status.HTTP_200_OK)
+        if self.request.method.lower() == "get":
+            return SiteViewSerializer
+        else:
+            return SiteCreateUpdateSerializer

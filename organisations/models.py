@@ -47,7 +47,15 @@ class Organisation(TimestampableModel):
     def is_active(self):
         return self.status == OrganisationStatus.ACTIVE
 
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        # Update the primary site's organisation to link them
+        if self.primary_site:
+            self.primary_site.organisation = self
+            self.primary_site.save()
+
     class Meta:
+        db_table = "organisation"
         ordering = ["name"]
 
 
@@ -84,12 +92,13 @@ class Site(TimestampableModel):
     )
     users = models.ManyToManyField(UserOrganisationRelationship, related_name="sites")
 
-    address = models.ForeignKey(Address, related_name="site", on_delete=models.CASCADE, null=True)
-    foreign_address = models.ForeignKey(ForeignAddress, related_name="site", on_delete=models.CASCADE, null=True)
+    address = models.ForeignKey(Address, related_name="site", on_delete=models.DO_NOTHING, null=True)
+    foreign_address = models.ForeignKey(ForeignAddress, related_name="site", on_delete=models.DO_NOTHING, null=True)
 
     objects = SiteManager()
 
     class Meta:
+        db_table = "site"
         ordering = ["name"]
 
 

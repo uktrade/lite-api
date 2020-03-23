@@ -1,7 +1,5 @@
-import time
 from uuid import UUID
 
-from django.db import connection
 from django.db.models import Count, CharField, Value, QuerySet
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
@@ -26,7 +24,6 @@ from queues.models import Queue
 from users.libraries.get_user import (
     get_user_by_pk,
     get_user_organisation_relationship,
-    get_user_organisation_relationships,
 )
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, ExporterNotification, GovUser, UserOrganisationRelationship

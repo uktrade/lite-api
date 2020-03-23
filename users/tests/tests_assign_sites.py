@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
 from conf.constants import ExporterPermissions
+from organisations.factories import OrganisationFactory, SiteFactory
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_user_organisation_relationship
 
@@ -9,11 +10,11 @@ from users.libraries.get_user import get_user_organisation_relationship
 class AssignSitesTest(DataTestClient):
     def setUp(self):
         super(AssignSitesTest, self).setUp()
-        self.site_1 = self.create_site("HQ 2", self.organisation)
-        self.site_2 = self.create_site("HQ 3", self.organisation)
-        self.site_3 = self.create_site("HQ 4", self.organisation)
-        self.site_4 = self.create_site("HQ 5", self.organisation)
-        self.site_5 = self.create_site("HQ 6", self.organisation)
+        self.site_1 = SiteFactory(organisation=self.organisation)
+        self.site_2 = SiteFactory(organisation=self.organisation)
+        self.site_3 = SiteFactory(organisation=self.organisation)
+        self.site_4 = SiteFactory(organisation=self.organisation)
+        self.site_5 = SiteFactory(organisation=self.organisation)
 
         # Add default sites to the initial user
         user_organisation_relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
@@ -53,7 +54,7 @@ class AssignSitesTest(DataTestClient):
         self.assertEqual(user_organisation_relationship.sites.count(), 0)
 
     def test_user_cannot_be_assigned_to_site_in_another_organisation(self):
-        organisation_2, _ = self.create_organisation_with_exporter_user()
+        organisation_2 = OrganisationFactory()
         data = {"sites": [organisation_2.primary_site.id]}
 
         response = self.client.put(self.url, data, **self.exporter_headers)
