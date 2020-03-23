@@ -1,6 +1,4 @@
 from audit_trail import service as audit_trail_service
-from django.http import JsonResponse
-from rest_framework import status
 
 from audit_trail.payload import AuditType
 from conf.helpers import str_to_bool
@@ -16,22 +14,16 @@ END_USE_FIELDS = {
     "is_eu_military": strings.Generic.EndUseDetails.Audit.EU_MILITARY_TITLE,
     "is_compliant_limitations_eu": strings.Generic.EndUseDetails.Audit.COMPLIANT_LIMITATIONS_EU_TITLE,
     "compliant_limitations_eu_ref": strings.Generic.EndUseDetails.Audit.COMPLIANT_LIMITATIONS_EU_REF,
+    "intended_end_use": strings.Generic.EndUseDetails.Audit.INTENDED_END_USE_TITLE,
 }
 
 
-def edit_end_use_details(application, request):
-    if not application.is_major_editable():
-        for field in END_USE_FIELDS.keys():
-            response_error = end_use_helper(request, field)
-            if response_error:
-                return response_error
-
-
-def end_use_helper(request, field):
-    if field in request.data:
-        return JsonResponse(
-            data={"errors": {field: [strings.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}}, status=status.HTTP_400_BAD_REQUEST,
-        )
+def get_end_use_details_minor_edit_errors(request):
+    return {
+        end_use_field: [strings.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]
+        for end_use_field in END_USE_FIELDS.keys()
+        if end_use_field in request.data.keys()
+    }
 
 
 def get_old_end_use_details_fields(application):
@@ -74,14 +66,13 @@ def _transform_values(old_end_use_value, new_end_use_value):
 
 
 def save_and_audit_end_use_details(request, application, serializer):
-    old_end_use_details_fields = get_old_end_use_details_fields(application)
     new_end_use_details_fields = get_new_end_use_details_fields(serializer.validated_data)
     if new_end_use_details_fields:
+        old_end_use_details_fields = get_old_end_use_details_fields(application)
         serializer.save()
         audit_end_use_details(
             request.user, application.get_case(), old_end_use_details_fields, new_end_use_details_fields
         )
-        return True
 
 
 def save_and_audit_have_you_been_informed_ref(request, application, serializer):
@@ -117,4 +108,3 @@ def save_and_audit_have_you_been_informed_ref(request, application, serializer):
                     target=application.get_case(),
                     payload={"new_ref_number": new_ref_number},
                 )
-        return True

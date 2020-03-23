@@ -2,7 +2,8 @@ from django.db import transaction
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404
+from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
+
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -51,7 +52,8 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents, Cases
-from parties.serializers import PartySerializer
+from parties.models import Party
+from parties.serializers import PartySerializer, AdditionalContactSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -288,24 +290,18 @@ class FinalAdviceDocuments(APIView):
         """
         Gets all advice types and any documents generated for those types of advice.
         """
-        # Get advice documents
-        advice_documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case__id=pk)
-        advice_documents = FinalAdviceDocumentGovSerializer(advice_documents, many=True,).data
-        advice_documents = {
-            document["advice_type"]["key"]: {"document": document, "value": document["advice_type"]["value"]}
-            for document in advice_documents
-        }
-
-        # Add any final advice that doesn't have documents
+        # Get all advice
         advice_values = AdviceType.as_dict()
-        advice_without_documents = (
-            FinalAdvice.objects.filter(case__id=pk)
-            .exclude(type__in=advice_documents.keys())
-            .distinct("type")
-            .values_list("type", flat=True)
-        )
-        for advice_type in advice_without_documents:
-            advice_documents[advice_type] = {"value": advice_values[advice_type]}
+        final_advice = FinalAdvice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
+        advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
+
+        # Add advice documents
+        generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
+        generated_advice_documents = FinalAdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
+        for document in generated_advice_documents:
+            advice_type = document["advice_type"]["key"]
+            advice_documents[advice_type]["document"] = document
+
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
 
@@ -628,3 +624,22 @@ class FinaliseView(RetrieveUpdateAPIView):
             document.send_exporter_notifications()
 
         return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
+
+
+class AdditionalContacts(ListCreateAPIView):
+    queryset = Party.objects.additional_contacts()
+    serializer_class = AdditionalContactSerializer
+    pagination_class = None
+    authentication_classes = (GovAuthentication,)
+
+    def get_serializer_context(self):
+        return {"organisation_pk": get_case(self.kwargs["pk"]).organisation.id}
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        audit_trail_service.create(
+            actor=self.request.user,
+            verb=AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE,
+            target=get_case(self.kwargs["pk"]),
+            payload={"contact": serializer.data["name"]},
+        )
