@@ -69,6 +69,7 @@ class GeneratedDocuments(generics.ListAPIView):
         document_name = f"{s3_key[:len(document.template.name) + 6]}.pdf"
 
         visible_to_exporter = str_to_bool(request.data.get("visible_to_exporter"))
+        # If the template is not visible to exporter this supersedes what is given for the document
         if not document.template.visible_to_exporter:
             visible_to_exporter = False
 
