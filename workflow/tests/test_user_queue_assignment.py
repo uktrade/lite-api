@@ -129,3 +129,8 @@ class NextStatusGoodsQueryTests(DataTestClient):
         case = self.create_goods_query("abc", self.organisation, None, "pv")
         result = get_next_status_in_workflow_sequence(case)
         self.assertEqual(result.status, CaseStatusEnum.PV)
+
+    def test_statues_doesnt_move_if_clc_not_responded(self):
+        case = self.create_goods_query("abc", self.organisation, "clc", "pv")
+        result = get_next_status_in_workflow_sequence(case)
+        self.assertIsNone(result)
