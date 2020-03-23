@@ -68,6 +68,10 @@ class GeneratedDocuments(generics.ListAPIView):
         # base the document name on the template name and a portion of the UUID generated for the s3 key
         document_name = f"{s3_key[:len(document.template.name) + 6]}.pdf"
 
+        visible_to_exporter = str_to_bool(request.data.get("visible_to_exporter"))
+        if not document.template.visible_to_exporter:
+            visible_to_exporter = False
+
         try:
             with transaction.atomic():
                 generated_doc = GeneratedCaseDocument.objects.create(
@@ -80,7 +84,7 @@ class GeneratedDocuments(generics.ListAPIView):
                     case=document.case,
                     template=document.template,
                     text=document.text,
-                    visible_to_exporter=str_to_bool(request.data.get("visible_to_exporter")),
+                    visible_to_exporter=visible_to_exporter,
                     advice_type=request.data.get("advice_type"),
                 )
 
