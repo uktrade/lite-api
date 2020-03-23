@@ -181,18 +181,19 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
             "expedited": "expedited_date",
             "locally_manufactured": "locally_manufactured_description",
         }
+        error_strings = strings.Applications.F680.AdditionalInformation.Errors
         error_messages = {
-            "expedited": "Select yes if you need the F680 clearance in less than 30 days",
-            "expedited_date": "Enter the date you need the clearance",
-            "foreign_technology": "Select yes if any foreign technology or information involved in the release",
-            "foreign_technology_description": "Enter details",
-            "locally_manufactured": "Select yes if local assembly or manufacture is required",
-            "locally_manufactured_description": "Enter details",
-            "mtcr_type": "Select yes if you believe the products are rated under the MTCR",
-            "electronic_warfare_requirement": "Select yes if there’s a requirement to release UK MOD owned EW data or information in support of the export",
-            "uk_service_equipment": "Select yes if the equipment is in service with the UK armed forces",
-            "uk_service_equipment_type": "Select how the product is funded",
-            "prospect_value": "Please enter value",
+            "expedited": error_strings.EXPEDITED,
+            "expedited_date": error_strings.EXPEDITED_DATE,
+            "foreign_technology": error_strings.FOREIGN_TECHNOLOGY,
+            "foreign_technology_description": error_strings.FOREIGN_TECHNOLOGY_DESCRIPTION,
+            "locally_manufactured": error_strings.LOCALLY_MANUFACTURED,
+            "locally_manufactured_description": error_strings.LOCALLY_MANUFACTURED_DESCRIPTION,
+            "mtcr_type": error_strings.MTCR_TYPE,
+            "electronic_warfare_requirement": error_strings.ELECTRONIC_WARFARE_REQUIREMENT,
+            "uk_service_equipment": error_strings.UK_SERVICE_EQUIPMENT,
+            "uk_service_equipment_type": error_strings.UK_SERVICE_EQUIPMENT_TYPE,
+            "prospect_value": error_strings.PROSPECT_VALUE,
         }
         for field in required_fields:
             if field in self.initial_data:
@@ -212,7 +213,7 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
             today = timezone.now().date()
             limit = (timezone.now() + timedelta(days=30)).date()
             if today > validated_data["expedited_date"] or validated_data["expedited_date"] > limit:
-                raise serializers.ValidationError({"expedited_date": ["Date must be within 30 days."]})
+                raise serializers.ValidationError({"expedited_date": [error_strings.EXPEDITED_DATE_RANGE]})
 
             validated_data["expedited_date"] = str(validated_data["expedited_date"])
 

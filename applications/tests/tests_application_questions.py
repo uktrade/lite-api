@@ -54,7 +54,7 @@ class ApplicationQuestionsTest(DataTestClient):
 
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"expedited_date": ["Please select option"]}})
+        self.assertEqual(response.json(), {"errors": {"expedited_date": ["Enter the date you need the clearance"]}})
 
     def test_update_f680_questions_with_conditional_success(self):
         date = timezone.now().date()
