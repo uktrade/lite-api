@@ -17,6 +17,13 @@ END_USE_FIELDS = {
     "intended_end_use": strings.Generic.EndUseDetails.Audit.INTENDED_END_USE_TITLE,
 }
 
+TEMP_EXPORT_DETAILS_FIELD = {
+    "temp_export_details": "Temp export details",
+    "is_temp_direct_control": "Is direct control",
+    "temp_direct_control_details": "Direct control details",
+    "proposed_return_date": "Proposed return date",
+}
+
 
 def get_end_use_details_minor_edit_errors(request):
     return {
@@ -73,6 +80,34 @@ def save_and_audit_end_use_details(request, application, serializer):
         audit_end_use_details(
             request.user, application.get_case(), old_end_use_details_fields, new_end_use_details_fields
         )
+
+
+def save_and_audit_temporary_export_details(request, application, serializer):
+    validated_data = serializer.validated_data
+    new_temp_export_details = {}
+    for temp_export_field in TEMP_EXPORT_DETAILS_FIELD.keys():
+        if temp_export_field in validated_data:
+            new_temp_export_details[temp_export_field] = validated_data[temp_export_field]
+
+    if new_temp_export_details:
+        old_temp_export_details = {temp_export_field: application.temp_export_field for temp_export_field in
+                                   TEMP_EXPORT_DETAILS_FIELD.keys()}
+        serializer.save()
+
+        for key, new_temp_export_val in new_temp_export_details.items():
+            old_temp_export_val = old_temp_export_details[key]
+            if new_temp_export_val != old_temp_export_val:
+                old_temp_export_val, new_temp_export_val = _transform_values(old_temp_export_val, new_temp_export_val)
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATE_APPLICATION_END_USE_DETAIL,
+                    target=application.get_case(),
+                    payload={
+                        "end_use_detail": TEMP_EXPORT_DETAILS_FIELD[key],
+                        "old_end_use_detail": old_temp_export_val,
+                        "new_end_use_detail": new_temp_export_val,
+                    },
+                )
 
 
 def save_and_audit_have_you_been_informed_ref(request, application, serializer):

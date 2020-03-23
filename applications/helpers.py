@@ -1,3 +1,4 @@
+from applications.enums import ApplicationExportType
 from applications.models import BaseApplication
 from applications.serializers.end_use_details import (
     F680EndUseDetailsUpdateSerializer,
@@ -34,6 +35,7 @@ from applications.serializers.exhibition_clearance import (
     ExhibitionClearanceViewSerializer,
     ExhibitionClearanceUpdateSerializer,
 )
+from applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from conf.exceptions import BadRequestError
 from lite_content.lite_api import strings
@@ -114,5 +116,17 @@ def get_application_end_use_details_update_serializer(application: BaseApplicati
             {
                 f"get_application_end_use_details_update_serializer does "
                 f"not support this application type: {application.case_type.sub_type}"
+            }
+        )
+
+
+def get_temp_export_details_update_serializer(export_type):
+    if export_type == ApplicationExportType.TEMPORARY:
+        return TemporaryExportDetailsUpdateSerializer
+    else:
+        raise BadRequestError(
+            {
+                f"get_temp_export_details_update_serializer does "
+                f"not support this export type: {export_type}"
             }
         )

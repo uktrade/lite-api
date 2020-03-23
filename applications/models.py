@@ -174,10 +174,18 @@ class StandardApplication(BaseApplication):
     goods_categories = SeparatedValuesField(
         max_length=150, choices=GoodsCategory.choices, blank=True, null=True, default=None
     )
+    temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
+    is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
+    temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
+    proposed_return_date = models.DateField(blank=True, null=True)
 
 
 class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
+    temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
+    is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
+    temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
+    proposed_return_date = models.DateField(blank=True, null=True)
 
 
 # MOD Clearances Applications

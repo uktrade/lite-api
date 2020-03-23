@@ -1,3 +1,4 @@
+from applications.enums import ApplicationExportType
 from lite_content.lite_api import strings
 from applications.models import (
     CountryOnApplication,
@@ -168,6 +169,19 @@ def _validate_end_use_details(draft, errors, application_type):
     return errors
 
 
+def _validate_temporary_export_details(draft, errors):
+    if draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+        if draft.export_type == ApplicationExportType.TEMPORARY:
+            if(
+                not draft.temp_export_details
+                or draft.is_temp_direct_control is None
+                or draft.proposed_return_date is None
+            ):
+                errors["temporary_export_details"] = "To complete the application, complete the Temp Export Details"
+
+    return errors
+
+
 def _validate_third_parties(draft, errors, is_mandatory):
     """ Checks all third parties have documents if is_mandatory is True """
 
@@ -217,6 +231,7 @@ def _validate_standard_licence(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
+    errors = _validate_temporary_export_details(draft, errors)
 
     return errors
 
@@ -284,6 +299,7 @@ def _validate_open_licence(draft, errors):
     errors = _validate_countries(draft, errors, is_mandatory=True)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
+    errors = _validate_temporary_export_details(draft, errors)
 
     return errors
 

@@ -526,6 +526,10 @@ class ApplicationCopy(APIView):
             "is_compliant_limitations_eu",
             "compliant_limitations_eu_ref",
             "intended_end_use",
+            "temp_export_details",
+            "is_temp_direct_control",
+            "temp_direct_control_details",
+            "proposed_return_date",
         ]
         for attribute in set_none:
             setattr(self.new_application, attribute, None)

@@ -1,3 +1,4 @@
+from applications.enums import ApplicationExportType
 from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
@@ -60,4 +61,43 @@ class OpenApplicationTests(DataTestClient):
 
         self.assertContains(
             response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def test_submit_open_application_temporary_with_temp_export_details_success(self):
+        self.draft.export_type = ApplicationExportType.TEMPORARY
+        self.draft.temp_export_details = "reasons why this export is a temporary one"
+        self.draft.is_temp_direct_control = False
+        self.draft.proposed_return_date = "2020-05-11"
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_submit_open_application_temporary_without_temp_export_details_failure(self):
+        self.draft.export_type = ApplicationExportType.TEMPORARY
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        # TODO strings
+        self.assertContains(
+            response,
+            text="To complete the application, complete the Temp Export Details",
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    def test_submit_open_application_temporary_with_partial_temp_export_details_failure(self):
+        self.draft.export_type = ApplicationExportType.TEMPORARY
+        self.draft.temp_export_details = "reasons why this export is a temporary one"
+        self.draft.proposed_return_date = "2020-05-11"
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        # TODO strings
+        self.assertContains(
+            response,
+            text="To complete the application, complete the Temp Export Details",
+            status_code=status.HTTP_400_BAD_REQUEST
         )

@@ -51,6 +51,10 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "compliant_limitations_eu_ref",
                 "intended_end_use",
                 "licence",
+                "temp_export_details",
+                "is_temp_direct_control",
+                "temp_direct_control_details",
+                "proposed_return_date",
             )
         )
 
