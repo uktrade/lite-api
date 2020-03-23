@@ -25,3 +25,13 @@ class LicenceSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return data
+
+
+class LicenceViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Licence
+        fields = (
+            "start_date",
+            "duration",
+            "is_complete",
+        )

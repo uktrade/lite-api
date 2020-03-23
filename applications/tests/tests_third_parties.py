@@ -1,12 +1,11 @@
 from unittest import mock
 
 from django.urls import reverse
-from parameterized import parameterized
 from rest_framework import status
 
 from applications.models import PartyOnApplication
 from audit_trail.models import Audit
-from lite_content.lite_api.strings import Parties
+from lite_content.lite_api.strings import PartyErrors
 from parties.enums import PartyType
 from parties.models import Party, PartyDocument
 from test_helpers.clients import DataTestClient
@@ -76,39 +75,23 @@ class ThirdPartiesOnDraft(DataTestClient):
         self.assertEqual(audit_qs.count(), 0)
         self.assertEqual(self.draft.third_parties.count(), len(parties))
 
-    @parameterized.expand(
-        [
-            [
-                {},
-                {
-                    "errors": {
-                        "name": [Parties.NULL_NAME],
-                        "address": [Parties.NULL_ADDRESS],
-                        "country": [Parties.NULL_COUNTRY],
-                        "sub_type": [Parties.NULL_SUB_TYPE],
-                        "type": [Parties.NULL_TYPE],
-                    }
-                },
-            ],
-            [
-                {
-                    "name": "UK Government",
-                    "address": "Westminster, London SW1A 0AA",
-                    "country": "GB",
-                    "website": "https://www.gov.uk",
-                    "type": PartyType.THIRD_PARTY,
-                },
-                {"errors": {"sub_type": [Parties.NULL_TYPE], "role": [Parties.ThirdParty.NULL_ROLE]}},
-            ],
-        ]
-    )
-    def test_unsuccessful_add_third_party(self, data, errors):
+    def test_unsuccessful_add_third_party(self):
         """
         Given a standard draft has been created
         And the draft does not yet contain a third party
         When attempting to add an invalid third party
         Then the third party is not added to the draft
         """
+        data = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "website": "https://www.gov.uk",
+            "type": PartyType.THIRD_PARTY,
+        }
+
+        errors = {"errors": {"sub_type": [PartyErrors.SUB_TYPE["required"]], "role": [PartyErrors.ROLE["required"]]}}
+
         response = self.client.post(self.url, data, **self.exporter_headers)
         response_data = response.json()
 
@@ -305,7 +288,7 @@ class ThirdPartiesOnDraft(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(original_party_count, self.draft.third_parties.count())
-        self.assertEqual(response.json(), {"errors": {"role": [Parties.ThirdParty.NULL_ROLE]}})
+        self.assertEqual(response.json(), {"errors": {"role": [PartyErrors.ROLE["required"]]}})
 
     def test_third_party_copy_of_success(self):
         third_party = {
