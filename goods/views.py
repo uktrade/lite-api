@@ -38,6 +38,7 @@ from lite_content.lite_api import strings
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
+from workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
 
 class GoodsListControlCode(APIView):
@@ -101,6 +102,8 @@ class GoodsListControlCode(APIView):
                 errors += serializer.errors
             except Http404:
                 errors += f"{strings.Goods.GOOD_NOT_FOUND_ERROR}: {pk}"
+
+        apply_good_flagging_rules_for_case(case)
 
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)

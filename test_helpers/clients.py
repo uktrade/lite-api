@@ -1,7 +1,11 @@
+import timeit
 import uuid
 from datetime import datetime, timezone
+from django.db import connection
 
 import django.utils.timezone
+from django.test import tag
+from django.conf import settings as conf_settings
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.factories import AddressFactory
@@ -182,7 +186,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def add_exporter_user_to_org(organisation, exporter_user, role=None):
         if not role:
             role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
-        UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
+        relation = UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
+        return relation
 
     @staticmethod
     def create_external_location(name, org, country="GB"):
@@ -467,12 +472,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_good_country_decision(case, goods_type, country, decision):
         GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
 
-    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None):
+
+    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
         if not org_type:
             org_type = OrganisationType.COMMERCIAL
 
         organisation = OrganisationFactory(name=name, type=org_type)
         exporter_user = self.create_exporter_user(organisation)
+
+        if not exporter_user:
+            exporter_user = self.create_exporter_user(organisation)
+        else:
+            self.add_exporter_user_to_org(organisation, exporter_user)
+
 
         return organisation, exporter_user
 
@@ -783,3 +795,39 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             duration=get_default_duration(application),
             is_complete=is_complete,
         )
+
+
+@tag("performance")
+class PerformanceTestClient(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        print("\n---------------")
+        print(self._testMethodName)
+        # we need to set debug to true otherwise we can't see the amount of queries
+        conf_settings.DEBUG = True
+        settings.SUPPRESS_TEST_OUTPUT = True
+
+    def timeit(self, request, amount=1):
+        time = timeit.timeit(request, number=amount)
+        print(f"queries: {len(connection.queries)}")
+        print(f"time to hit endpoint: {time}")
+
+        return time
+
+    def create_organisations_multiple_users(self, required_user, organisations: int = 1, users_per_org: int = 10):
+        for i in range(organisations):
+            organisation, _ = self.create_organisation_with_exporter_user(exporter_user=required_user)
+            for j in range(users_per_org):
+                self.create_exporter_user(organisation=organisation)
+
+    def create_multiple_sites_for_an_organisation(self, organisation, sites_count: int = 10, users_per_site: int = 1):
+        users = [UserOrganisationRelationship.objects.get(user=self.exporter_user)]
+        organisation = self.organisation if not organisation else organisation
+
+        for i in range(users_per_site):
+            user = self.create_exporter_user(self.organisation)
+            users.append(UserOrganisationRelationship.objects.get(user=user))
+
+        for i in range(sites_count):
+            site = self.create_site(name=random_name(), org=organisation)
+            site.users.set(users)

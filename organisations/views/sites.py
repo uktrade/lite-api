@@ -44,6 +44,7 @@ class SitesList(APIView):
 
         return JsonResponse(data={"sites": serializer_data})
 
+
     @transaction.atomic
     def post(self, request, org_pk):
         if isinstance(request.user, ExporterUser):

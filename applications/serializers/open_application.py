@@ -43,7 +43,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)
-        serializer = CountryWithFlagsSerializer(countries, many=True)
+        serializer = CountryWithFlagsSerializer(countries, many=True, context={"active_flags_only": True})
         return {"type": "countries", "data": serializer.data}
 
     def get_licence(self, instance):
