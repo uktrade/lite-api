@@ -25,6 +25,7 @@ from organisations.serializers import (
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from users.enums import UserType
+from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
 class OrganisationsList(generics.ListCreateAPIView):
@@ -114,6 +115,10 @@ class OrganisationsDetail(generics.RetrieveAPIView):
         """
         reopened_due_to_org_changes_status = CaseStatus.objects.get(status="reopened_due_to_org_changes")
 
-        BaseApplication.objects.filter(
+        applications = BaseApplication.objects.filter(
             organisation=organisation, status=get_case_status_by_status(CaseStatusEnum.FINALISED)
-        ).update(status_id=reopened_due_to_org_changes_status)
+        )
+        applications.update(status_id=reopened_due_to_org_changes_status)
+
+        for application in applications:
+            apply_flagging_rules_to_case(application)
