@@ -1,5 +1,5 @@
-from applications.libraries.questions.serializers import F680JsonSerializer
-from lite_content.lite_api import strings
+from django.utils import timezone
+
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
@@ -9,6 +9,7 @@ from applications.models import (
 from cases.enums import CaseTypeSubTypeEnum
 from documents.models import Document
 from goodstype.models import GoodsType
+from lite_content.lite_api import strings
 from parties.models import PartyDocument
 
 
@@ -169,23 +170,34 @@ def _validate_end_use_details(draft, errors, application_type):
     return errors
 
 
-def _validate_questions(draft, errors):
-    serializer = F680JsonSerializer(data=draft.questions)
-    if not serializer.is_valid():
-        errors.update(serializer.errors)
-
-    required_fields_for_submission = [
+def _validate_additional_information(draft, errors):
+    required_fields = [
         "expedited",
         "foreign_technology",
         "locally_manufactured",
         "mtcr_type",
         "electronic_warfare_requirement",
         "uk_service_equipment",
-        "value",
+        "prospect_value"
     ]
+    required_secondary_fields = {
+        "foreign_technology": "foreign_technology_description",
+        "expedited": "expedited_date",
+        "locally_manufactured": "locally_manufactured_description",
+    }
 
-    if any([serializer.validated_data.get(field) is None for field in required_fields_for_submission]):
-        errors["questions"] = "Questions must be completed"
+    for field in required_fields:
+        if getattr(draft, field) is None or getattr(draft, field) == '':
+            errors["additional_information"] = "Additional information must be completed"
+        if getattr(draft, field) is True:
+            secondary_field = required_secondary_fields.get(field, False)
+            if secondary_field and not getattr(draft, secondary_field):
+                errors["additional_information"] = "Additional information must be completed"
+
+    today = timezone.now().date()
+
+    if getattr(draft, "expedited_date") and getattr(draft, "expedited_date") < today:
+        errors["questions"] = "Expedited date is in the past"
 
     return errors
 
@@ -279,7 +291,7 @@ def _validate_f680_clearance(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_questions(draft, errors)
+    errors = _validate_additional_information(draft, errors)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
 
     if not draft.end_user and not draft.third_parties.exists():

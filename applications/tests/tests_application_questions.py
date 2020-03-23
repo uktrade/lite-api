@@ -15,29 +15,17 @@ class ApplicationQuestionsTest(DataTestClient):
         self.draft = self.create_mod_clearance_application(
             self.organisation, CaseTypeEnum.F680, additional_information=False
         )
-        self.url = reverse("applications:application_questions", kwargs={"pk": self.draft.id})
+        self.url = reverse("applications:application", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
     def test_update_f680_questions_success(self):
-        self.assertIsNone(self.draft.questions)
-
         data = {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."}
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.put(self.url, data, **self.exporter_headers)
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.draft.questions, data)
-
-    def test_update_questions_major_edit_success(self):
-        self.draft.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
-        self.draft.save()
-
-        data = {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."}
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-        self.draft.refresh_from_db()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.draft.questions, data)
+        self.assertEqual(self.draft.foreign_technology, data["foreign_technology"])
+        self.assertEqual(self.draft.foreign_technology_description, data["foreign_technology_description"])
 
     def test_update_questions_minor_edit_fail(self):
         self.draft.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
@@ -45,78 +33,50 @@ class ApplicationQuestionsTest(DataTestClient):
 
         data = {"foreign_technology": True, "foreign_technology_description": "This is going to Norway."}
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.put(self.url, data, **self.exporter_headers)
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": {"Additional details": ["This isn't possible on a minor edit"]}})
 
     def test_update_f680_questions_bad_data_failure(self):
-        self.assertIsNone(self.draft.questions)
+        data = {"foreign_technology": "FAKE DATA"}
 
-        data = {"foreign_technology": ["Must be a valid boolean."]}
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.put(self.url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": data})
+        self.assertEqual(response.json(), {"errors": {"foreign_technology": ["Must be a valid boolean."]}})
 
     def test_update_f680_questions_without_conditional_fail(self):
-        self.assertIsNone(self.draft.questions)
-
         data = {
             "expedited": True,
         }
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.put(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"expedited_date": ["Date required."]}})
+        self.assertEqual(response.json(), {"errors": {"expedited_date": ["Please select option"]}})
 
     def test_update_f680_questions_with_conditional_success(self):
-        self.assertIsNone(self.draft.questions)
         date = timezone.now().date()
         data = {
             "expedited": True,
-            "expedited_date": f"{date.year}-{date.month}-{date.day}",
+            "expedited_date": f"{date.year}-{str(date.month).zfill(2)}-{date.day}",
         }
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
-        print(response.json())
+        response = self.client.put(self.url, data, **self.exporter_headers)
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.draft.expedited, data["expedited"])
+        self.assertEqual(str(self.draft.expedited_date), data["expedited_date"])
+
 
     def test_update_f680_questions_enum_success_type(self):
-        self.assertIsNone(self.draft.questions)
-
         data = {
             "uk_service_equipment": True,
             "uk_service_equipment_type": ServiceEquipmentType.MOD_FUNDED.value,
         }
 
-        response = self.client.post(self.url, data, **self.exporter_headers)
+        response = self.client.put(self.url, data, **self.exporter_headers)
 
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_retrieve_questions(self):
-        data = {
-            "uk_service_equipment": True,
-            "uk_service_equipment_type": ServiceEquipmentType.MOD_FUNDED.value,
-        }
-
-        expected_response = {
-            "questions": {
-                "uk_service_equipment": True,
-                "uk_service_equipment_type": {
-                    "key": ServiceEquipmentType.MOD_FUNDED.value,
-                    "value": ServiceEquipmentType.MOD_FUNDED.to_representation(),
-                },
-            }
-        }
-
-        self.draft.questions = data
-        self.draft.save()
-
-        response = self.client.get(self.url, **self.exporter_headers)
-
-        self.assertEqual(response.json(), expected_response)

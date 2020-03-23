@@ -24,7 +24,6 @@ from applications.libraries.edit_applications import save_and_audit_have_you_bee
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
-from applications.libraries.questions.questions import QuestionsError
 from applications.models import (
     BaseApplication,
     HmrcQuery,
@@ -144,7 +143,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         serializer = get_application_view_serializer(application)
         data = serializer(application, context={"exporter_user": request.user}).data
-
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
@@ -172,10 +170,30 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        additional_information_fields = [
+            "expedited",
+            "foreign_technology",
+            "locally_manufactured",
+            "mtcr_type",
+            "electronic_warfare_requirement",
+            "uk_service_equipment",
+            "prospect_value",
+            "foreign_technology_description",
+            "expedited_date",
+            "locally_manufactured_description",
+        ]
+
         # Prevent minor edits of the f680 clearance types
         if not application.is_major_editable() and request.data.get("types"):
             return JsonResponse(
                 data={"errors": {"types": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Prevent minor edits of additional_information
+        if not application.is_major_editable() and any([request.data.get(field) for field in additional_information_fields]):
+            return JsonResponse(
+                data={"errors": {"Additional details": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -205,21 +223,24 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680 and request.data.get("types"):
-            old_types = [
-                F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
-            ]
-            new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
-            serializer.save()
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+            if request.data.get("types"):
+                old_types = [
+                    F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
+                ]
+                new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
+                serializer.save()
 
-            if set(old_types) != set(new_types):
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
-                    target=case,
-                    payload={"old_types": old_types, "new_types": new_types},
-                )
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
+                if set(old_types) != set(new_types):
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
+                        target=case,
+                        payload={"old_types": old_types, "new_types": new_types},
+                    )
+                return JsonResponse(data={}, status=status.HTTP_200_OK)
+            else:
+                serializer.save()
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             save_and_audit_have_you_been_informed_ref(request, application, serializer)
@@ -678,24 +699,3 @@ class ExhibitionDetails(ListCreateAPIView):
             return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ApplicationQuestionsView(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
-        try:
-            if not application.is_major_editable():
-                return JsonResponse(
-                    data={"errors": {"Additional details": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            application.update_questions(request.data)
-        except QuestionsError as e:
-            return JsonResponse(data={"errors": e.errors}, status=status.HTTP_400_BAD_REQUEST)
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
-        return JsonResponse(data={"questions": application.get_questions()}, status=status.HTTP_200_OK)

@@ -2,7 +2,6 @@ import uuid
 
 from django.db import models
 from django.utils import timezone
-from jsonfield import JSONField
 from rest_framework.exceptions import APIException
 from separatedvaluesfield.models import SeparatedValuesField
 
@@ -10,8 +9,7 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsCategory,
-)
-from applications.libraries.questions import questions
+    ServiceEquipmentType, MTCRAnswers)
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
 from cases.models import Case
@@ -199,14 +197,25 @@ class GiftingClearanceApplication(BaseApplication):
 class F680ClearanceApplication(BaseApplication):
     types = models.ManyToManyField(F680ClearanceType, related_name="f680_clearance_application")
 
-    questions = JSONField(null=True)
+    expedited = models.NullBooleanField(blank=True, default=None)
+    expedited_date = models.DateField(blank=True, null=True, default=None)
+    expedited_description = models.CharField(max_length=2200, blank=True, null=True)
 
-    def update_questions(self, data):
-        self.questions = questions.update(self.case_type.sub_type, self.questions or {}, data)
-        self.save()
+    foreign_technology = models.NullBooleanField(blank=True, default=None)
+    foreign_technology_description = models.CharField(max_length=2200, blank=True, null=True)
 
-    def get_questions(self):
-        return questions.serialize(self.case_type.sub_type, self.questions) if self.questions else {}
+    locally_manufactured = models.NullBooleanField(blank=True, default=None)
+    locally_manufactured_description = models.CharField(max_length=2200, blank=True, null=True)
+
+    mtcr_type = models.CharField(choices=MTCRAnswers.choices(), null=True, blank=True, max_length=50)
+
+    electronic_warfare_requirement = models.NullBooleanField(blank=True, default=None)
+
+    uk_service_equipment = models.NullBooleanField(blank=True, default=None)
+    uk_service_equipment_description = models.CharField(max_length=2200, blank=True, null=True)
+    uk_service_equipment_type = models.CharField(choices=ServiceEquipmentType.choices(), null=True, blank=True, max_length=50)
+
+    prospect_value = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
 
 
 # Queries
