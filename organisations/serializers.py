@@ -200,6 +200,8 @@ class SiteViewSerializer(serializers.ModelSerializer):
     users = serializers.SerializerMethodField()
 
     def get_users(self, instance):
+        if not self.context.get("with_users", True):
+            return None
         users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__exact=instance.id)])
         permission = Permission.objects.get(id=ExporterPermissions.ADMINISTER_SITES.name)
         users_with_permission = set(
@@ -211,6 +213,10 @@ class SiteViewSerializer(serializers.ModelSerializer):
             ]
         )
         users_union = users.union(users_with_permission)
+
+        if self.context.get("users_count"):
+            return users_union
+
         users_union = sorted(users_union, key=lambda x: x.first_name)
         return ExporterUserSimpleSerializer(users_union, many=True).data
 

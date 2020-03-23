@@ -186,7 +186,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def add_exporter_user_to_org(organisation, exporter_user, role=None):
         if not role:
             role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
-        UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
+        relation = UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
+        return relation
 
     @staticmethod
     def create_site(name, org, country="GB"):
@@ -838,3 +839,15 @@ class PerformanceTestClient(DataTestClient):
             organisation, _ = self.create_organisation_with_exporter_user(exporter_user=required_user)
             for j in range(users_per_org):
                 self.create_exporter_user(organisation=organisation)
+
+    def create_multiple_sites_for_an_organisation(self, organisation, sites_count: int = 10, users_per_site: int = 1):
+        users = [UserOrganisationRelationship.objects.get(user=self.exporter_user)]
+        organisation = self.organisation if not organisation else organisation
+
+        for i in range(users_per_site):
+            user = self.create_exporter_user(self.organisation)
+            users.append(UserOrganisationRelationship.objects.get(user=user))
+
+        for i in range(sites_count):
+            site = self.create_site(name=random_name(), org=organisation)
+            site.users.set(users)

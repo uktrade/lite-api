@@ -85,7 +85,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
         if self.context:
             sites = Site.objects.get_by_user_and_organisation(instance, self.context)
-            return SiteViewSerializer(sites, many=True).data
+            return SiteViewSerializer(sites, many=True, context={"with_users": False}).data
         return None
 
 
