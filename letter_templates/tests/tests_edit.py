@@ -5,11 +5,9 @@ from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from conf import constants
-from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from picklists.enums import PickListStatus, PicklistType
 from static.decisions.models import Decision
-from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 
 
@@ -21,9 +19,8 @@ class LetterTemplateEditTests(DataTestClient):
         self.picklist_item = self.create_picklist_item(
             "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
         )
-        self.letter_layout = LetterLayout.objects.first()
 
-        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
+        self.letter_template = self.create_letter_template(name="SIEL")
         self.letter_template.case_types.set([CaseTypeEnum.SIEL.id, CaseTypeEnum.OGEL.id])
         self.letter_template.decisions.set(
             [Decision.objects.get(name="refuse"), Decision.objects.get(name="no_licence_required")]

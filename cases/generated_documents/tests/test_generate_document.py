@@ -7,10 +7,8 @@ from rest_framework.reverse import reverse
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 from picklists.enums import PickListStatus, PicklistType
-from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 from users.models import ExporterNotification
 
@@ -21,9 +19,8 @@ class GenerateDocumentTests(DataTestClient):
         self.picklist_item = self.create_picklist_item(
             "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
         )
-        self.letter_layout = LetterLayout.objects.first()
 
-        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
+        self.letter_template = self.create_letter_template(name="SIEL")
         self.letter_template.case_types.add(CaseTypeEnum.SIEL.id)
         self.letter_template.letter_paragraphs.add(self.picklist_item)
 
@@ -176,8 +173,7 @@ class GenerateDocumentTests(DataTestClient):
 class GetGeneratedDocumentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.letter_layout = LetterLayout.objects.first()
-        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
+        self.letter_template = self.create_letter_template(name="SIEL")
         self.letter_template.case_types.add(CaseTypeEnum.SIEL.id)
         self.case = self.create_standard_application_case(self.organisation)
         self.generated_case_document = self.create_generated_case_document(self.case, template=self.letter_template)
