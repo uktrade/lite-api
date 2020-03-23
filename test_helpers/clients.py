@@ -1,5 +1,7 @@
+import timeit
 import uuid
 from datetime import datetime, timezone
+from django.db import connection
 
 import django.utils.timezone
 from django.test import tag
@@ -827,12 +829,20 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
 @tag("performance")
 class PerformanceTestClient(DataTestClient):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
+    def setUp(self):
+        super().setUp()
+        print("\n---------------")
+        print(self._testMethodName)
         # we need to set debug to true otherwise we can't see the amount of queries
         conf_settings.DEBUG = True
+        settings.SUPPRESS_TEST_OUTPUT = True
+
+    def timeit(self, request, amount=1):
+        time = timeit.timeit(request, number=amount)
+        print(f"queries: {len(connection.queries)}")
+        print(f"time to hit endpoint: {time}")
+
+        return time
 
     def create_organisations_multiple_users(self, required_user, organisations: int = 1, users_per_org: int = 10):
         for i in range(organisations):
