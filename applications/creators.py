@@ -188,16 +188,18 @@ def _validate_additional_information(draft, errors):
 
     for field in required_fields:
         if getattr(draft, field) is None or getattr(draft, field) == '':
-            errors["additional_information"] = "Additional information must be completed"
+            errors["additional_information"] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
         if getattr(draft, field) is True:
             secondary_field = required_secondary_fields.get(field, False)
             if secondary_field and not getattr(draft, secondary_field):
-                errors["additional_information"] = "Additional information must be completed"
+                errors["additional_information"] = (
+                    strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+                )
 
     today = timezone.now().date()
 
     if getattr(draft, "expedited_date") and getattr(draft, "expedited_date") < today:
-        errors["questions"] = "Expedited date is in the past"
+        errors["questions"] = strings.Applications.F680.AdditionalInformation.Errors.PAST_DATE
 
     return errors
 
