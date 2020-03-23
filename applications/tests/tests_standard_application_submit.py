@@ -179,10 +179,7 @@ class StandardApplicationTests(DataTestClient):
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
-        data = {
-            "agreed_to_declaration": True,
-            "agreed_to_foi": True
-        }
+        data = {"agreed_to_declaration": True, "agreed_to_foi": True}
 
         url = reverse("applications:declaration", kwargs={"pk": standard_application.id})
 
@@ -243,10 +240,7 @@ class StandardApplicationTests(DataTestClient):
         self.draft.is_agreed_to_foi = True
         self.draft.save()
 
-        data = {
-            "agreed_to_declaration": True,
-            "agreed_to_foi": True
-        }
+        data = {"agreed_to_declaration": True, "agreed_to_foi": True}
 
         url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
@@ -260,10 +254,7 @@ class StandardApplicationTests(DataTestClient):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
-        data = {
-            "agreed_to_declaration": False,
-            "agreed_to_foi": True
-        }
+        data = {"agreed_to_declaration": False, "agreed_to_foi": True}
 
         url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)

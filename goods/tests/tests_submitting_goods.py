@@ -18,14 +18,18 @@ class GoodTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         draft = self.create_draft_standard_application(self.organisation)
         self.assertEqual(Good.objects.get().status, "draft")
-        url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
-        response = self.client.put(url, **self.exporter_headers)
+        data = {"agreed_to_declaration": True, "agreed_to_foi": True}
+
+        url = reverse("applications:declaration", kwargs={"pk": draft.id})
+        response = self.client.post(url, data, **self.exporter_headers)
+
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response_data["application"]["status"], {"key": CaseStatusEnum.DRAFT, "value": "draft"},
+            response_data["application"]["status"],
+            {"key": CaseStatusEnum.SUBMITTED, "value": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED)},
         )
         good = Good.objects.get()
         self.assertEqual(good.status, GoodStatus.SUBMITTED)
