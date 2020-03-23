@@ -169,9 +169,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
-        exporter_user = ExporterUser(
-            first_name=first_name, last_name=last_name, email=Faker().email(),
-        )
+        exporter_user = ExporterUser(first_name=first_name, last_name=last_name, email=Faker().email(),)
         exporter_user.organisation = organisation
         exporter_user.save()
 
