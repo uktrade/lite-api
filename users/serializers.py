@@ -52,7 +52,9 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
     def get_organisations(self, instance):
         try:
-            user_organisation_relationships = UserOrganisationRelationship.objects.filter(user=instance)
+            user_organisation_relationships = UserOrganisationRelationship.objects.filter(user=instance).select_related(
+                "organisation"
+            )
             return_value = []
 
             for relationship in user_organisation_relationships:
@@ -83,7 +85,7 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
         if self.context:
             sites = Site.objects.get_by_user_and_organisation(instance, self.context)
-            return SiteViewSerializer(sites, many=True).data
+            return SiteViewSerializer(sites, many=True, context={"with_users": False}).data
         return None
 
 
