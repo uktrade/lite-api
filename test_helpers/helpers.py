@@ -23,14 +23,6 @@ def generate_country_dict(country: Country):
     return {"id": country.id, "name": country.name, "is_eu": country.is_eu, "type": country.type}
 
 
-def date_to_drf_date(date):
-    """
-    Given a date, returns a correctly formatted string instance of it
-    suitable for comparison to rest framework datetimes
-    """
-    return date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-
-
 def random_name():
     """
     :return: A randomly generated first name and last name

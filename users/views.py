@@ -13,7 +13,7 @@ from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
-from conf.helpers import convert_queryset_to_str, get_value_from_enum
+from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import Users
 from organisations.enums import OrganisationStatus
@@ -21,6 +21,7 @@ from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from queues.models import Queue
+from users.enums import UserStatuses
 from users.libraries.get_user import (
     get_user_by_pk,
     get_user_organisation_relationship,
@@ -142,7 +143,7 @@ class UserMeDetail(APIView):
     def get(self, request):
         org_pk = request.headers["Organisation-Id"]
         user = request.user
-        organisations = [x.organisation for x in UserOrganisationRelationship.objects.filter(user=user)]
+        relationships = UserOrganisationRelationship.objects.filter(user=user)
 
         data = {
             "id": request.user.id,
@@ -150,15 +151,15 @@ class UserMeDetail(APIView):
             "last_name": request.user.last_name,
             "organisations": [
                 {
-                    "id": organisation.id,
-                    "name": organisation.name,
-                    "joined_at": organisation.created_at,
+                    "id": relationship.organisation.id,
+                    "name": relationship.organisation.name,
+                    "joined_at": date_to_drf_date(relationship.created_at),
                     "status": {
-                        "key": organisation.status,
-                        "value": get_value_from_enum(organisation.status, OrganisationStatus),
+                        "key": relationship.status,
+                        "value": get_value_from_enum(relationship.status, UserStatuses),
                     },
                 }
-                for organisation in organisations
+                for relationship in relationships
             ],
         }
 

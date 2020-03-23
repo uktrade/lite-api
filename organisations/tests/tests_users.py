@@ -5,7 +5,7 @@ from conf import settings
 from conf.constants import ExporterPermissions
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
-from users.libraries.get_user import get_users_from_organisation
+from users.libraries.get_user import get_users_from_organisation, get_user_organisation_relationship
 from users.models import ExporterUser, UserOrganisationRelationship
 
 
@@ -83,6 +83,27 @@ class OrganisationUsersViewTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), settings.REST_FRAMEWORK["PAGE_SIZE"] + 1)  # +1 for the existing user
         self.assertEqual(response_data[0]["status"], UserStatuses.ACTIVE)
+
+    def test_retrieve_sites_that_a_user_belongs_to(self):
+        """
+        Ensure that the sites that a user is assigned to is returned when viewing their information
+        """
+        user_organisation_relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
+        user_organisation_relationship.sites.set([self.organisation.primary_site])
+
+        response = self.client.get(
+            reverse("organisations:user", kwargs={"org_pk": self.organisation.id, "user_pk": self.exporter_user.id}),
+            **self.exporter_headers,
+        )
+
+        site = response.json()["sites"][0]
+
+        self.assertEquals(
+            site["id"], str(self.organisation.primary_site.id),
+        )
+        self.assertEquals(
+            site["name"], str(self.organisation.primary_site.name),
+        )
 
 
 class OrganisationUsersCreateTests(DataTestClient):

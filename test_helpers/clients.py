@@ -42,7 +42,7 @@ from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType, OrganisationStatus
-from organisations.factories import OrganisationFactory
+from organisations.factories import OrganisationFactory, SiteFactory
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party
@@ -826,5 +826,5 @@ class PerformanceTestClient(DataTestClient):
             users.append(UserOrganisationRelationship.objects.get(user=user))
 
         for i in range(sites_count):
-            site = self.create_site(name=random_name(), org=organisation)
+            site = SiteFactory(organisation=organisation)
             site.users.set(users)

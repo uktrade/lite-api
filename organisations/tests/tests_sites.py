@@ -140,9 +140,7 @@ class OrganisationSitesTests(DataTestClient):
 class SitesUpdateTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.data = {
-            "name": faker.word()
-        }
+        self.data = {"name": faker.word()}
         self.url = reverse(
             "organisations:site", kwargs={"org_pk": self.organisation.id, "pk": self.organisation.primary_site.id}
         )
