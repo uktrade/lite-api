@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0016_baseapplication_is_agreed_to_foi'),
-        ('applications', '0017_auto_20200320_1109'),
+        ("applications", "0016_baseapplication_is_agreed_to_foi"),
+        ("applications", "0017_auto_20200320_1109"),
     ]
 
-    operations = [
-    ]
+    operations = []
