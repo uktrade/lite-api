@@ -44,7 +44,7 @@ class UsersPerformanceTests(PerformanceTestClient):
         print(f"sites: {sites} time: {time}")
 
     @parameterized.expand([(1, 10), (1, 100), (1, 1000)])
-    def test_users_me_performance_by_users(self, sites, users):
+    def test_users_me_performance_by_users_per_site(self, sites, users):
         """
         Tests the performance of the 'users/me' endpoint
         """
