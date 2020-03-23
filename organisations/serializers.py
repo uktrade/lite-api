@@ -215,7 +215,7 @@ class SiteViewSerializer(serializers.ModelSerializer):
         users_union = users.union(users_with_permission)
 
         if self.context.get("users_count"):
-            return users_union
+            return len(users_union)
 
         users_union = sorted(users_union, key=lambda x: x.first_name)
         return ExporterUserSimpleSerializer(users_union, many=True).data
