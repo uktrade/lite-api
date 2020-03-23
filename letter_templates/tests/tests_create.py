@@ -57,9 +57,9 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         Fail as the name is not unique
         """
-        self.letter_template = self.create_letter_template(name="SIEL")
-        self.letter_template.case_types.set([CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id])
-        self.letter_template.letter_paragraphs.add(self.picklist_item_1)
+        self.letter_template = self.create_letter_template(
+            name="SIEL", case_types=[CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id], letter_paragraph=self.picklist_item_1
+        )
 
         data = {
             "name": "SIEL",

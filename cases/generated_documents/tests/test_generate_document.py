@@ -8,7 +8,6 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
 from lite_content.lite_api import strings
-from picklists.enums import PickListStatus, PicklistType
 from test_helpers.clients import DataTestClient
 from users.models import ExporterNotification
 
@@ -16,13 +15,7 @@ from users.models import ExporterNotification
 class GenerateDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.picklist_item = self.create_picklist_item(
-            "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
-        )
-
-        self.letter_template = self.create_letter_template(name="SIEL")
-        self.letter_template.case_types.add(CaseTypeEnum.SIEL.id)
-        self.letter_template.letter_paragraphs.add(self.picklist_item)
+        self.letter_template = self.create_letter_template(name="SIEL", case_types=[CaseTypeEnum.SIEL.id])
 
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id), "text": "sample", "visible_to_exporter": True}
@@ -173,8 +166,7 @@ class GenerateDocumentTests(DataTestClient):
 class GetGeneratedDocumentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.letter_template = self.create_letter_template(name="SIEL")
-        self.letter_template.case_types.add(CaseTypeEnum.SIEL.id)
+        self.letter_template = self.create_letter_template(name="SIEL", case_types=[CaseTypeEnum.SIEL.id])
         self.case = self.create_standard_application_case(self.organisation)
         self.generated_case_document = self.create_generated_case_document(self.case, template=self.letter_template)
         self.url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)},)

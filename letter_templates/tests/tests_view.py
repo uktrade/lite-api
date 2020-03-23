@@ -3,7 +3,6 @@ from rest_framework.reverse import reverse
 
 from cases.enums import AdviceType
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
-from picklists.enums import PickListStatus, PicklistType
 from static.decisions.models import Decision
 from test_helpers.clients import DataTestClient
 
@@ -11,8 +10,9 @@ from test_helpers.clients import DataTestClient
 class LetterTemplatesListTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.letter_template = self.create_letter_template(name="SIEL")
-        self.letter_template.case_types.set([CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id])
+        self.letter_template = self.create_letter_template(
+            name="SIEL", case_types=[CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id]
+        )
 
     def test_get_letter_templates_success(self):
         url = reverse("letter_templates:letter_templates")
@@ -65,12 +65,9 @@ class LetterTemplatesListTests(DataTestClient):
 
     def test_get_letter_templates_for_case_doesnt_show_templates_with_decisions_success(self):
         self.letter_template.case_types.set([CaseTypeEnum.SIEL.id])
-
-        self.letter_template_with_decisions = self.create_letter_template(name="SIEL_2")
-        self.letter_template_with_decisions.case_types.set([CaseTypeEnum.SIEL.id])
-        self.letter_template_with_decisions.decisions.set([Decision.objects.get(name="approve")])
-        self.letter_template_with_decisions.save()
-        self.letter_template_with_decisions.letter_paragraphs.add(self.picklist_item)
+        self.letter_template_with_decisions = self.create_letter_template(
+            name="SIEL_2", case_types=[CaseTypeEnum.SIEL.id], decisions=[Decision.objects.get(name="approve")]
+        )
 
         case = self.create_standard_application_case(self.organisation)
 
@@ -110,7 +107,7 @@ class LetterTemplatesListTests(DataTestClient):
         preview = response_data["preview"]
         for tag in ["<style>", "</style>"]:
             self.assertTrue(tag in preview)
-        self.assertTrue(self.picklist_item.text in preview)
+        self.assertTrue(self.letter_template.letter_paragraphs.first().text in preview)
 
     def test_get_letter_template_with_text_success(self):
         url = reverse("letter_templates:letter_template", kwargs={"pk": str(self.letter_template.id)})
@@ -121,4 +118,4 @@ class LetterTemplatesListTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue("text" in response_data)
-        self.assertTrue(self.picklist_item.text in response_data["text"])
+        self.assertTrue(self.letter_template.letter_paragraphs.first().text in response_data["text"])
