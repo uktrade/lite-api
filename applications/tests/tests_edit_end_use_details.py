@@ -202,7 +202,7 @@ class EditStandardApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][key], [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT])
+        self.assertEqual(response.json()["errors"], [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT])
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)
@@ -468,7 +468,7 @@ class EditOpenApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"][key], [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT])
+        self.assertEqual(response.json()["errors"], [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT])
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, old_attribute)

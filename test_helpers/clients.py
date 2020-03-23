@@ -10,7 +10,8 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
+from applications.libraries.edit_applications import add_case_flags_to_submitted_application
+from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from applications.libraries.licence import get_default_duration
 from applications.models import (
     BaseApplication,
@@ -274,7 +275,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        update_submitted_application_good_statuses_and_flags(application)
+        add_case_flags_to_submitted_application(application)
+        add_goods_flags_to_submitted_application(application)
 
         return application
 

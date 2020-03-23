@@ -1,7 +1,13 @@
+from django.db.models import Case
+
+from applications.enums import GoodsCategory, ApplicationExportLicenceOfficialType
+from applications.models import BaseApplication, StandardApplication
 from audit_trail import service as audit_trail_service
 
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeSubTypeEnum
 from conf.helpers import str_to_bool
+from flags.enums import SystemFlags
 from lite_content.lite_api.strings import Applications as strings
 
 END_USE_FIELDS = {
@@ -16,14 +22,6 @@ END_USE_FIELDS = {
     "compliant_limitations_eu_ref": strings.Generic.EndUseDetails.Audit.COMPLIANT_LIMITATIONS_EU_REF,
     "intended_end_use": strings.Generic.EndUseDetails.Audit.INTENDED_END_USE_TITLE,
 }
-
-
-def get_end_use_details_minor_edit_errors(request):
-    return {
-        end_use_field: [strings.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]
-        for end_use_field in END_USE_FIELDS.keys()
-        if end_use_field in request.data.keys()
-    }
 
 
 def get_old_end_use_details_fields(application):
@@ -108,3 +106,39 @@ def save_and_audit_have_you_been_informed_ref(request, application, serializer):
                     target=application.get_case(),
                     payload={"new_ref_number": new_ref_number},
                 )
+
+
+def add_case_flags_to_submitted_application(application: BaseApplication):
+    if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+        case = application.get_case()
+
+        _add_or_remove_flag_from_case(SystemFlags.MILITARY_END_USE_ID, case, application.is_military_end_use_controls)
+        _add_or_remove_flag_from_case(
+            SystemFlags.WMD_END_USE_ID, case, application.is_suspected_wmd or application.is_informed_wmd
+        )
+
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            standard_application_only_details = StandardApplication.objects.only(
+                "have_you_been_informed", "goods_categories"
+            ).get(pk=application.pk)
+
+            have_you_been_informed = standard_application_only_details.have_you_been_informed
+            goods_categories = standard_application_only_details.goods_categories or []
+
+            _add_or_remove_flag_from_case(
+                SystemFlags.MILITARY_END_USE_ID,
+                case,
+                have_you_been_informed == ApplicationExportLicenceOfficialType.YES,
+            )
+            _add_or_remove_flag_from_case(
+                SystemFlags.MARITIME_ANTI_PIRACY_ID, case, GoodsCategory.MARITIME_ANTI_PIRACY in goods_categories
+            )
+            _add_or_remove_flag_from_case(SystemFlags.FIREARMS_ID, case, GoodsCategory.FIREARMS in goods_categories)
+
+
+def _add_or_remove_flag_from_case(flag_id, case: Case, add_to_case: bool):
+    if add_to_case:
+        if not case.flags.filter(id=flag_id).exists():
+            case.flags.add(flag_id)
+    else:
+        case.flags.remove(flag_id)

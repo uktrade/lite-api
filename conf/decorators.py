@@ -69,12 +69,7 @@ def application_in_major_editable_state():
 
             if not application.is_major_editable():
                 return JsonResponse(
-                    data={
-                        "errors": [
-                            f"You can only perform this operation when the application is "
-                            f"in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state"
-                        ]
-                    },
+                    data={"errors": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
