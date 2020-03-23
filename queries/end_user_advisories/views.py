@@ -17,6 +17,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisoryListSerializer, EndUserAdvisoryViewSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
 class EndUserAdvisoriesList(APIView):
@@ -48,7 +49,8 @@ class EndUserAdvisoriesList(APIView):
         try:
             if serializer.is_valid():
                 if "validate_only" not in data or data["validate_only"] == "False":
-                    serializer.save()
+                    eua = serializer.save()
+                    apply_flagging_rules_to_case(eua)
                     return JsonResponse(data={"end_user_advisory": serializer.data}, status=status.HTTP_201_CREATED)
                 else:
                     return JsonResponse(data={}, status=status.HTTP_200_OK)
