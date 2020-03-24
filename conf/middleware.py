@@ -47,7 +47,7 @@ class DBLoggingMiddleware:
         elapsed_time = datetime.now() - start
 
         _type = request.method.upper()
-        duration = round(elapsed_time.microseconds / 100000, 2)
+        duration = round(elapsed_time.microseconds / 100000, 2)  # noqa
         queries = len(final_queries)
 
         print(f"\n{_type} {bold(request.path)} - ⏱  {duration}s  🗂  {queries} queries\n")
