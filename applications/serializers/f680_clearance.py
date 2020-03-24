@@ -39,7 +39,6 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
 
     expedited = serializers.BooleanField(required=False)
     expedited_date = serializers.DateField(required=False)
-    expedited_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
 
     foreign_technology = serializers.BooleanField(required=False)
     foreign_technology_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
@@ -114,7 +113,6 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         required=False,
         error_messages={"invalid": strings.Applications.F680.AdditionalInformation.Errors.EXPEDITED_DATE_RANGE},
     )
-    expedited_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
 
     foreign_technology = serializers.BooleanField(required=False, allow_null=True)
     foreign_technology_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
@@ -150,20 +148,6 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
             ]
 
     def validate(self, data):
-        required_fields = [
-            "expedited",
-            "foreign_technology",
-            "locally_manufactured",
-            "mtcr_type",
-            "electronic_warfare_requirement",
-            "uk_service_equipment",
-            "prospect_value",
-        ]
-        required_secondary_fields = {
-            "foreign_technology": "foreign_technology_description",
-            "expedited": "expedited_date",
-            "locally_manufactured": "locally_manufactured_description",
-        }
         error_strings = strings.Applications.F680.AdditionalInformation.Errors
         error_messages = {
             "expedited": error_strings.EXPEDITED,
@@ -178,12 +162,12 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
             "uk_service_equipment_type": error_strings.UK_SERVICE_EQUIPMENT_TYPE,
             "prospect_value": error_strings.PROSPECT_VALUE,
         }
-        for field in required_fields:
+        for field in constants.F680.REQUIRED_FIELDS:
             if field in self.initial_data:
                 if self.initial_data[field] is None or self.initial_data[field] == "":
                     raise serializers.ValidationError({field: [error_messages[field]]})
                 if self.initial_data[field] is True:
-                    secondary_field = required_secondary_fields.get(field, False)
+                    secondary_field = constants.F680.REQUIRED_SECONDARY_FIELDS.get(field, False)
                     if secondary_field and not self.initial_data.get(secondary_field):
                         raise serializers.ValidationError({secondary_field: [error_messages[secondary_field]]})
 

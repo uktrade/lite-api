@@ -1,5 +1,6 @@
 from django.utils import timezone
 
+from applications import constants
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
@@ -171,26 +172,11 @@ def _validate_end_use_details(draft, errors, application_type):
 
 
 def _validate_additional_information(draft, errors):
-    required_fields = [
-        "expedited",
-        "foreign_technology",
-        "locally_manufactured",
-        "mtcr_type",
-        "electronic_warfare_requirement",
-        "uk_service_equipment",
-        "prospect_value",
-    ]
-    required_secondary_fields = {
-        "foreign_technology": "foreign_technology_description",
-        "expedited": "expedited_date",
-        "locally_manufactured": "locally_manufactured_description",
-    }
-
-    for field in required_fields:
+    for field in constants.F680.REQUIRED_FIELDS:
         if getattr(draft, field) is None or getattr(draft, field) == "":
             errors["additional_information"] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
         if getattr(draft, field) is True:
-            secondary_field = required_secondary_fields.get(field, False)
+            secondary_field = constants.F680.REQUIRED_SECONDARY_FIELDS.get(field, False)
             if secondary_field and not getattr(draft, secondary_field):
                 errors[
                     "additional_information"
