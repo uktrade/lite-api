@@ -18,8 +18,6 @@ class UserTests(DataTestClient):
         response_data = response.json()
         relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
 
-        self.maxDiff = None
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response_data,
