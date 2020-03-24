@@ -160,7 +160,7 @@ class GovUser(BaseUser):
         """
         Remove gov user from all cases
         """
-        self.case_assignments.clear()
+        self.case_assignments.filter(user=self).delete()
 
     def send_notification(self, content_object, case):
         from audit_trail.models import Audit
