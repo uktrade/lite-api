@@ -122,8 +122,13 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             instance.reference_number_on_information_form = None
 
     def validate(self, data):
-        _validate_field(data, "is_shipped_waybill_or_lading", strings.Applications.Generic.RouteOfGoods.IS_SHIPPED_AIR_WAY_BILL_OR_LADING)
-        if data.get( "is_shipped_waybill_or_lading") == False:
-            _validate_field(data, "non_waybill_or_lading_route_details", strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS)
+        _validate_field(
+            data,
+            "is_shipped_waybill_or_lading",
+            strings.Applications.Generic.RouteOfGoods.IS_SHIPPED_AIR_WAY_BILL_OR_LADING,
+        )
+        if data.get("is_shipped_waybill_or_lading") == False:
+            _validate_field(
+                data, "non_waybill_or_lading_route_details", strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS
+            )
         return super().validate(data)
-

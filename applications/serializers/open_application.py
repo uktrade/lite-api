@@ -71,12 +71,19 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields + ("is_shipped_waybill_or_lading", "non_waybill_or_lading_route_details",)
+        fields = GenericApplicationUpdateSerializer.Meta.fields + (
+            "is_shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
+        )
 
     def validate(self, data):
-        _validate_field(data, "is_shipped_waybill_or_lading",
-                        strings.Applications.Generic.RouteOfGoods.IS_SHIPPED_AIR_WAY_BILL_OR_LADING)
+        _validate_field(
+            data,
+            "is_shipped_waybill_or_lading",
+            strings.Applications.Generic.RouteOfGoods.IS_SHIPPED_AIR_WAY_BILL_OR_LADING,
+        )
         if data.get("is_shipped_waybill_or_lading") == False:
-            _validate_field(data, "non_waybill_or_lading_route_details",
-                            strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS)
+            _validate_field(
+                data, "non_waybill_or_lading_route_details", strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS
+            )
         return super().validate(data)

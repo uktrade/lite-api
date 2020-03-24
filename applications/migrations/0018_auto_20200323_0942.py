@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0017_auto_20200320_1109'),
+        ("applications", "0017_auto_20200320_1109"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='baseapplication',
-            name='is_shipped_waybill_or_lading',
+            model_name="baseapplication",
+            name="is_shipped_waybill_or_lading",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='baseapplication',
-            name='non_waybill_or_lading_route_details',
+            model_name="baseapplication",
+            name="non_waybill_or_lading_route_details",
             field=models.TextField(blank=True, default=None, max_length=2000, null=True),
         ),
     ]

@@ -40,7 +40,6 @@ class AddingRouteOfGoodsTests(DataTestClient):
         self.assertTrue(case.is_shipped_waybill_or_lading)
         self.assertEqual(case.non_waybill_or_lading_route_details, None)
 
-
     def test_can_(self, case_type):
         if case_type == CaseTypeSubTypeEnum.OPEN:
             case = self.create_draft_open_application(self.organisation)
