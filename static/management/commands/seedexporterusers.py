@@ -107,7 +107,7 @@ class Command(SeedCommand):
         except ValueError:
             raise ValueError(
                 f"{env_variable} has incorrect format;"
-                f"\nexpected format: [{{'email': '', 'organisation': '', 'role': ''}}]"
+                f'\nexpected format: [{{"email": "", "organisation": "", "role": ""}}]'
                 f"\nbut got: {users}"
             )
 

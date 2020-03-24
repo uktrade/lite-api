@@ -8,7 +8,6 @@ from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
 from cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
-from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 
@@ -69,12 +68,7 @@ def application_in_major_editable_state():
 
             if not application.is_major_editable():
                 return JsonResponse(
-                    data={
-                        "errors": [
-                            f"You can only perform this operation when the application is "
-                            f"in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state"
-                        ]
-                    },
+                    data={"errors": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

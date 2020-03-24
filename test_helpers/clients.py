@@ -9,7 +9,8 @@ from django.test import tag
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
+from applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
+from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from applications.libraries.licence import get_default_duration
 from applications.models import (
     BaseApplication,
@@ -25,7 +26,7 @@ from applications.models import (
     F680ClearanceApplication,
     Licence,
 )
-from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum
+from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
 from cases.sla import get_application_target_sla
@@ -253,7 +254,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        update_submitted_application_good_statuses_and_flags(application)
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+            set_case_flags_on_submitted_standard_or_open_application(application)
+
+        add_goods_flags_to_submitted_application(application)
 
         return application
 
