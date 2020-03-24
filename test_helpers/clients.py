@@ -356,10 +356,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_case_assignment(queue, case, users):
-        case_assignment = CaseAssignment(queue=queue, case=case)
-        case_assignment.users.set(users)
-        case_assignment.save()
-        return case_assignment
+        if isinstance(users, list):
+            case_assignments = []
+            for user in users:
+                case_assignments.append(CaseAssignment.objects.create(queue=queue, case=case, user=user))
+            return case_assignments
+        else:
+            return CaseAssignment.objects.create(queue=queue, case=case, user=users)
 
     @staticmethod
     def create_goods_type(application):
@@ -418,6 +421,24 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         good.save()
         return good
+
+    @staticmethod
+    def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
+
+        goods_query = GoodsQuery.objects.create(
+            clc_raised_reasons=clc_reason,
+            pv_grading_raised_reasons=pv_reason,
+            good=good,
+            organisation=organisation,
+            case_type_id=CaseTypeEnum.GOODS.id,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=django.utils.timezone.now(),
+        )
+        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
+        goods_query.save()
+        return goods_query
 
     @staticmethod
     def create_clc_query(description, organisation) -> GoodsQuery:
