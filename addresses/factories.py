@@ -11,7 +11,7 @@ class AddressFactory(factory.django.DjangoModelFactory):
     region = factory.Faker("state")
     postcode = factory.Faker("postcode")
     city = factory.Faker("city")
-    country = factory.LazyFunction(get_country("GB"))
+    country = get_country("GB")
 
     class Meta:
         model = Address
