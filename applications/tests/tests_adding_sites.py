@@ -11,6 +11,7 @@ from applications.models import (
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations
 from organisations.factories import SiteFactory
+from static.countries.helpers import get_country
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
@@ -116,7 +117,7 @@ class SitesOnDraftTests(DataTestClient):
         Cannot add additional site to a submitted application unless the additional site
         is located in a country that is already on the application
         """
-        site_to_add = SiteFactory(organisation=self.organisation)
+        site_to_add = SiteFactory(organisation=self.organisation, address__country=get_country("PL"))
         data = {"sites": [self.primary_site.id, site_to_add.id]}
         self.submit_application(self.application)
 
