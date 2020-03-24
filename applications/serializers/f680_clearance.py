@@ -172,7 +172,7 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
             if field in self.initial_data:
                 if self.initial_data[field] is None or self.initial_data[field] == "":
                     raise serializers.ValidationError({field: [error_messages[field]]})
-                if self.initial_data[field] is True:
+                if self.initial_data[field] is True or self.initial_data[field] == "True":
                     secondary_field = constants.F680.REQUIRED_SECONDARY_FIELDS.get(field, False)
                     if secondary_field and not self.initial_data.get(secondary_field):
                         raise serializers.ValidationError({secondary_field: [error_messages[secondary_field]]})
