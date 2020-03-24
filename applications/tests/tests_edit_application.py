@@ -518,9 +518,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response_data[0],
-            f"You can only perform this operation when the application is in a `draft` or "
-            f"`{CaseStatusEnum.APPLICANT_EDITING}` state",
+            response_data, [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT],
         )
 
     def test_can_edit_exhibition_details_in_major_edit(self):
