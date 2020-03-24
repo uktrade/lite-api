@@ -28,7 +28,7 @@ from applications.models import (
     F680ClearanceApplication,
     Licence,
 )
-from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum
+from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
 from cases.sla import get_application_target_sla
@@ -272,7 +272,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        set_case_flags_on_submitted_standard_or_open_application(application)
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+            set_case_flags_on_submitted_standard_or_open_application(application)
+
         add_goods_flags_to_submitted_application(application)
 
         return application
