@@ -107,34 +107,33 @@ def save_and_audit_have_you_been_informed_ref(request, application, serializer):
                 )
 
 
-def set_case_flags_on_submitted_application(application: BaseApplication):
-    if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
-        case = application.get_case()
+def set_case_flags_on_submitted_standard_or_open_application(application: BaseApplication):
+    case = application.get_case()
+
+    _add_or_remove_flag(
+        case=case,
+        flag_id=SystemFlags.MILITARY_END_USE_ID,
+        is_adding=application.is_military_end_use_controls or application.is_eu_military,
+    )
+    _add_or_remove_flag(
+        case=case,
+        flag_id=SystemFlags.WMD_END_USE_ID,
+        is_adding=application.is_informed_wmd or application.is_suspected_wmd,
+    )
+
+    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+        goods_categories = (
+            StandardApplication.objects.values_list("goods_categories", flat=True).get(pk=application.pk) or []
+        )
 
         _add_or_remove_flag(
             case=case,
-            flag_id=SystemFlags.MILITARY_END_USE_ID,
-            is_adding=application.is_military_end_use_controls or application.is_eu_military,
+            flag_id=SystemFlags.MARITIME_ANTI_PIRACY_ID,
+            is_adding=GoodsCategory.MARITIME_ANTI_PIRACY in goods_categories,
         )
         _add_or_remove_flag(
-            case=case,
-            flag_id=SystemFlags.WMD_END_USE_ID,
-            is_adding=application.is_informed_wmd or application.is_suspected_wmd,
+            case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=GoodsCategory.FIREARMS in goods_categories,
         )
-
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            goods_categories = (
-                StandardApplication.objects.values_list("goods_categories", flat=True).get(pk=application.pk) or []
-            )
-
-            _add_or_remove_flag(
-                case=case,
-                flag_id=SystemFlags.MARITIME_ANTI_PIRACY_ID,
-                is_adding=GoodsCategory.MARITIME_ANTI_PIRACY in goods_categories,
-            )
-            _add_or_remove_flag(
-                case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=GoodsCategory.FIREARMS in goods_categories,
-            )
 
 
 def _add_or_remove_flag(case: Case, flag_id: str, is_adding: bool):

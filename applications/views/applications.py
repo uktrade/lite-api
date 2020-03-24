@@ -22,7 +22,7 @@ from applications.libraries.application_helpers import (
 )
 from applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
-    set_case_flags_on_submitted_application,
+    set_case_flags_on_submitted_standard_or_open_application,
 )
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
@@ -270,9 +270,10 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        set_case_flags_on_submitted_application(application)
-        add_goods_flags_to_submitted_application(application)
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+            set_case_flags_on_submitted_standard_or_open_application(application)
 
+        add_goods_flags_to_submitted_application(application)
         apply_flagging_rules_to_case(application)
 
         # Serialize for the response message
