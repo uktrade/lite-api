@@ -27,7 +27,7 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision
+from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision, CaseAssignment
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -52,6 +52,8 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents, Cases
+from queues.models import Queue
+from queues.serializers import TinyQueueSerializer
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from static.countries.helpers import get_country
@@ -61,6 +63,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
+from workflow.user_queue_assignment import user_queue_assignment_workflow
 
 
 class CaseDetail(APIView):
@@ -624,6 +627,63 @@ class FinaliseView(RetrieveUpdateAPIView):
             document.send_exporter_notifications()
 
         return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
+
+
+class AssignedQueues(APIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = TinyQueueSerializer
+
+    def get(self, request, pk):
+        # Get all queues where this user is assigned to this case
+        queues = Queue.objects.filter(case_assignments__user=request.user.pk, case_assignments__case=pk)
+        serializer = TinyQueueSerializer(queues, many=True)
+        return JsonResponse(data={"queues": serializer.data}, status=status.HTTP_200_OK)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        queues = request.data.get("queues")
+        if queues:
+            queue_names = []
+            assignments = (
+                CaseAssignment.objects.select_related("queue")
+                .filter(user=request.user, case__id=pk, queue__id__in=queues)
+                .order_by("queue__name")
+            )
+            case = get_case(pk)
+
+            if assignments:
+                queues = [assignment.queue for assignment in assignments]
+                queue_names = [queue.name for queue in queues]
+                assignments.delete()
+                user_queue_assignment_workflow(queues, case)
+                audit_trail_service.create(
+                    actor=request.user, verb=AuditType.UNASSIGNED_QUEUES, target=case, payload={"queues": queue_names},
+                )
+            else:
+                # When users click done without queue assignments
+                # Only a single queue ID can be passed
+                if len(queues) != 1:
+                    return JsonResponse(
+                        data={"errors": {"queues": [Cases.UnassignQueues.NOT_ASSIGNED_MULTIPLE_QUEUES]}},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                # Check queue belongs to that users team
+                queues = Queue.objects.filter(id=queues[0], team=request.user.team)
+                if not queues.exists():
+                    return JsonResponse(
+                        data={"errors": {"queues": [Cases.UnassignQueues.INVALID_TEAM]}},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                user_queue_assignment_workflow(queues, case)
+                audit_trail_service.create(
+                    actor=request.user, verb=AuditType.UNASSIGNED, target=case,
+                )
+
+            return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
+        else:
+            return JsonResponse(
+                data={"errors": {"queues": [Cases.UnassignQueues.NO_QUEUES]}}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class AdditionalContacts(ListCreateAPIView):

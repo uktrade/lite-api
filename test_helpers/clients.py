@@ -1,7 +1,12 @@
+import timeit
 import uuid
 from datetime import datetime, timezone
+from django.db import connection
 
 import django.utils.timezone
+from django.test import tag
+from django.conf import settings as conf_settings
+from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
@@ -164,11 +169,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
-        random_string = str(uuid.uuid4())
-
-        exporter_user = ExporterUser(
-            first_name=first_name, last_name=last_name, email=f"{first_name}.{last_name}@{random_string}.com",
-        )
+        exporter_user = ExporterUser(first_name=first_name, last_name=last_name, email=Faker().email(),)
         exporter_user.organisation = organisation
         exporter_user.save()
 
@@ -184,7 +185,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def add_exporter_user_to_org(organisation, exporter_user, role=None):
         if not role:
             role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
-        UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
+        relation = UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
+        return relation
 
     @staticmethod
     def create_site(name, org, country="GB"):
@@ -354,10 +356,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_case_assignment(queue, case, users):
-        case_assignment = CaseAssignment(queue=queue, case=case)
-        case_assignment.users.set(users)
-        case_assignment.save()
-        return case_assignment
+        if isinstance(users, list):
+            case_assignments = []
+            for user in users:
+                case_assignments.append(CaseAssignment.objects.create(queue=queue, case=case, user=user))
+            return case_assignments
+        else:
+            return CaseAssignment.objects.create(queue=queue, case=case, user=users)
 
     @staticmethod
     def create_goods_type(application):
@@ -416,6 +421,24 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         good.save()
         return good
+
+    @staticmethod
+    def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
+
+        goods_query = GoodsQuery.objects.create(
+            clc_raised_reasons=clc_reason,
+            pv_grading_raised_reasons=pv_reason,
+            good=good,
+            organisation=organisation,
+            case_type_id=CaseTypeEnum.GOODS.id,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=django.utils.timezone.now(),
+        )
+        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
+        goods_query.save()
+        return goods_query
 
     @staticmethod
     def create_clc_query(description, organisation) -> GoodsQuery:
@@ -488,7 +511,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         response = self.client.get(path, data, follow, **extra)
         return response.json(), response.status_code
 
-    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None):
+    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
         organisation = Organisation(
             name=name,
             eori_number="GB123456789000",
@@ -506,7 +529,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         organisation.primary_site = site
         organisation.save()
 
-        exporter_user = self.create_exporter_user(organisation)
+        if not exporter_user:
+            exporter_user = self.create_exporter_user(organisation)
+        else:
+            self.add_exporter_user_to_org(organisation, exporter_user)
 
         return organisation, exporter_user
 
@@ -817,3 +843,39 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             duration=get_default_duration(application),
             is_complete=is_complete,
         )
+
+
+@tag("performance")
+class PerformanceTestClient(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        print("\n---------------")
+        print(self._testMethodName)
+        # we need to set debug to true otherwise we can't see the amount of queries
+        conf_settings.DEBUG = True
+        settings.SUPPRESS_TEST_OUTPUT = True
+
+    def timeit(self, request, amount=1):
+        time = timeit.timeit(request, number=amount)
+        print(f"queries: {len(connection.queries)}")
+        print(f"time to hit endpoint: {time}")
+
+        return time
+
+    def create_organisations_multiple_users(self, required_user, organisations: int = 1, users_per_org: int = 10):
+        for i in range(organisations):
+            organisation, _ = self.create_organisation_with_exporter_user(exporter_user=required_user)
+            for j in range(users_per_org):
+                self.create_exporter_user(organisation=organisation)
+
+    def create_multiple_sites_for_an_organisation(self, organisation, sites_count: int = 10, users_per_site: int = 1):
+        users = [UserOrganisationRelationship.objects.get(user=self.exporter_user)]
+        organisation = self.organisation if not organisation else organisation
+
+        for i in range(users_per_site):
+            user = self.create_exporter_user(self.organisation)
+            users.append(UserOrganisationRelationship.objects.get(user=user))
+
+        for i in range(sites_count):
+            site = self.create_site(name=random_name(), org=organisation)
+            site.users.set(users)
