@@ -3,6 +3,7 @@ import random
 from faker.providers import BaseProvider
 
 
+# pylint: disable=B311
 class OrganisationProvider(BaseProvider):
     def eori_number(self):
         return str(random.randint(0, 99999999999999999))
