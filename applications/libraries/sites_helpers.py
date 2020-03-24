@@ -1,12 +1,13 @@
-from typing import Sequence, Union, List
+from typing import Union, List
 
-from django.db.models import Q, QuerySet
+from django.db.models import QuerySet
 from django.db.models.functions import Coalesce
 from rest_framework.exceptions import ValidationError
 
 from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES
-from audit_trail import service as audit_trail_service
+from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import BaseApplication, SiteOnApplication, ExternalLocationOnApplication
+from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeReferenceEnum
 from lite_content.lite_api.strings import ExternalLocations
@@ -18,7 +19,7 @@ TRADING = "Trading"
 
 def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List[Site]], application: BaseApplication):
     """
-    TODO!
+    Add sites to an application, handle validation and audit
     """
     sites_on_application = SiteOnApplication.objects.filter(application=application)
 
@@ -29,12 +30,16 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
     if getattr(application, "have_goods_departed", False):
         raise ValidationError({"sites": ["Your goods have already departed"]})
 
+    # Sites can't be set if the case is in a read only state
+    if application.status.status in get_case_statuses(read_only=True):
+        raise ValidationError({"sites": [f"Application status {application.status.status} is read-only"]})
+
     # Transhipment applications can't have sites based in certain countries
     if application.case_type.reference == CaseTypeReferenceEnum.SITL:
         is_site_in_banned_location = (
             new_sites.annotate(country=Coalesce("address__country_id", "foreign_address__country_id"))
             .values_list("country")
-            .filter(country_id__in=TRANSHIPMENT_BANNED_COUNTRIES)
+            .filter(country__in=TRANSHIPMENT_BANNED_COUNTRIES)
             .count()
         )
         if is_site_in_banned_location:

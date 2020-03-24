@@ -62,13 +62,8 @@ class SitesOnDraftTests(DataTestClient):
         url = reverse("applications:application_sites", kwargs={"pk": self.application.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-        url = reverse("applications:application_sites", kwargs={"pk": self.application.id})
-        response = self.client.get(url, **self.exporter_headers)
-        response_data = response.json()
-
-        self.assertEqual(len(response_data["sites"]), 1)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(SiteOnApplication.objects.filter(application=self.application).count(), 1)
 
     def test_add_a_site_to_a_draft_deletes_existing_sites(self):
         url = reverse("applications:application_sites", kwargs={"pk": self.application.id})
