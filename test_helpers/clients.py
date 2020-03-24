@@ -532,6 +532,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             "foreign_technology": False,
             "locally_manufactured": False,
             "uk_service_equipment": False,
+            "uk_service_equipment_type": "mod_funded",
             "electronic_warfare_requirement": False,
             "prospect_value": 100.0,
         }
