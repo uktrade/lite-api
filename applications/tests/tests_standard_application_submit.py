@@ -1,4 +1,4 @@
-from applications.enums import ApplicationExportLicenceOfficialType, GoodsCategory
+from applications.enums import GoodsCategory
 from audit_trail.models import Audit
 from flags.enums import SystemFlags
 from lite_content.lite_api import strings
@@ -238,7 +238,6 @@ class StandardApplicationTests(DataTestClient):
     def test_submit_standard_application_adds_system_case_flags_success(self):
         self.draft.is_military_end_use_controls = True
         self.draft.is_suspected_wmd = True
-        self.draft.have_you_been_informed = ApplicationExportLicenceOfficialType.YES
         self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
         self.draft.save()
 
@@ -256,7 +255,6 @@ class StandardApplicationTests(DataTestClient):
         # Create draft application with properties that have associated system flags
         self.draft.is_military_end_use_controls = True
         self.draft.is_suspected_wmd = True
-        self.draft.have_you_been_informed = ApplicationExportLicenceOfficialType.YES
         self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
         self.draft.save()
 
@@ -270,7 +268,6 @@ class StandardApplicationTests(DataTestClient):
         # Update application properties
         self.draft.is_military_end_use_controls = False
         self.draft.is_suspected_wmd = False
-        self.draft.have_you_been_informed = ApplicationExportLicenceOfficialType.NO
         self.draft.goods_categories = None
         self.draft.save()
 
