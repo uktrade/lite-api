@@ -12,7 +12,6 @@ from conf.serializers import (
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
-from static.countries.helpers import get_country
 from users.libraries.get_user import get_user_organisation_relationship
 from users.models import GovUser, UserOrganisationRelationship, Permission, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
