@@ -10,7 +10,6 @@ from applications.models import Licence
 from applications.serializers.licence import LicenceSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases import service
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import FinalAdviceDocumentGovSerializer
@@ -53,6 +52,7 @@ from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents, Cases
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
+from queues.models import Queue
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -74,23 +74,38 @@ class CaseDetail(APIView):
 
         return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={400: 'Input error, "queues" should be an array with at least one existing queue'})
+
+class SetQueues(APIView):
+    authentication_classes = (GovAuthentication,)
+
     @transaction.atomic
     def put(self, request, pk):
-        """
-        Change the queues a case belongs to
-        """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(
-            case, data=request.data, user=request.user, team=request.user.team, partial=True
-        )
-        if serializer.is_valid():
-            service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
-            serializer.save()
+        queues = set(request.data.get("queues", []))
+        initial_queues = set(case.queues.values_list("name", flat=True))
+        new_queues = Queue.objects.filter(id__in=queues)
 
-            return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
+        if len(queues) > len(new_queues):
+            queues_not_found = queues - set(str(id) for id in new_queues.values_list("id", flat=True))
+            return JsonResponse(
+                data={"errors": {"queues": [f"Queues not found: {queues_not_found}"]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        new_queues = set(new_queues.values_list("name", flat=True))
+        case.queues.set(queues)
+
+        removed_queues = initial_queues - new_queues
+        new_queues = new_queues - initial_queues
+        if removed_queues:
+            audit_trail_service.create(
+                actor=request.user, verb=AuditType.REMOVE_CASE, target=case, payload={"queues": sorted(removed_queues)},
+            )
+        if new_queues:
+            audit_trail_service.create(
+                actor=request.user, verb=AuditType.MOVE_CASE, target=case, payload={"queues": sorted(new_queues)}
+            )
+        return JsonResponse(data={"queues": list(queues)}, status=status.HTTP_200_OK)
 
 
 class CaseDocuments(APIView):
