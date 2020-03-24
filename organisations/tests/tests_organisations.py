@@ -60,7 +60,6 @@ class OrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                    "country": "GB",
                 },
             },
             "user": {"email": "trinity@bsg.com"},
@@ -92,7 +91,7 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+        self.assertEqualIgnoreType(site.address.country.id, "GB")
 
     @parameterized.expand(
         [
@@ -104,7 +103,6 @@ class OrganisationTests(DataTestClient):
                         "region": "Hertfordshire",
                         "postcode": "AL1 4GT",
                         "city": "St Albans",
-                        "country": "GB",
                     }
                 }
             ],
@@ -124,7 +122,7 @@ class OrganisationTests(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user)})
-        organisation = Organisation.objects.get(name=data["name"])
+        organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
 
@@ -151,7 +149,7 @@ class OrganisationTests(DataTestClient):
             self.assertEqual(site.address.region, data["site"]["address"]["region"])
             self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
             self.assertEqual(site.address.city, data["site"]["address"]["city"])
-            self.assertEqualIgnoreType(site.address.country.id, data["site"]["address"]["country"])
+            self.assertEqualIgnoreType(site.address.country.id, "GB")
         else:
             self.assertEqual(site.foreign_address.address, data["site"]["foreign_address"]["address"])
             self.assertEqualIgnoreType(site.foreign_address.country.id, data["site"]["foreign_address"]["country"])
@@ -167,7 +165,6 @@ class OrganisationTests(DataTestClient):
             "site": {
                 "name": None,
                 "address": {
-                    "country": None,
                     "address_line_1": None,
                     "address_line_2": None,
                     "region": None,
@@ -206,7 +203,6 @@ class OrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                    "country": "GB",
                 },
             },
             "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
@@ -231,7 +227,6 @@ class OrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                    "country": "GB",
                 },
             },
             "user": {"email": "john@smith.com"},
@@ -255,7 +250,7 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+        self.assertEqualIgnoreType(site.address.country.id, "GB")
 
     def test_create_hmrc_organisation(self):
         data = {
@@ -269,13 +264,13 @@ class OrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                    "country": "GB",
                 },
             },
             "user": {"email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
+
         organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
@@ -292,7 +287,7 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+        self.assertEqualIgnoreType(site.address.country.id, "GB")
 
     @parameterized.expand(
         [

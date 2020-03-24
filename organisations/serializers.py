@@ -12,6 +12,7 @@ from conf.serializers import (
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
+from static.countries.helpers import get_country
 from users.libraries.get_user import get_user_organisation_relationship
 from users.models import GovUser, UserOrganisationRelationship, Permission, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
@@ -68,13 +69,6 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         model = Site
         fields = ("id", "name", "address", "foreign_address", "organisation", "users")
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Override any user entered country to GB for UK addresses
-        if hasattr(self, "initial_data"):
-            if "address" in self.initial_data:
-                self.initial_data["address"]["country"] = "GB"
-
     def validate(self, data):
         validated_data = super().validate(data)
 
@@ -97,7 +91,7 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
 
         if "address" in validated_data:
             address_data = validated_data.pop("address")
-            address_data["country"] = "GB"
+            address_data["country"] = address_data["country"].id
 
             address_serializer = AddressSerializer(data=address_data)
             if address_serializer.is_valid(raise_exception=True):
@@ -172,9 +166,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     site = SiteCreateUpdateSerializer(write_only=True)
 
     def __init__(self, *args, **kwargs):
-        if kwargs.get("data").get("user"):
-            kwargs["data"]["user"]["sites"] = kwargs["data"]["user"].get("sites", [])
-
+        if "data" in kwargs:
+            if "user" in kwargs["data"]:
+                kwargs["data"]["user"]["sites"] = kwargs["data"]["user"].get("sites", [])
         super().__init__(*args, **kwargs)
 
     class Meta:
@@ -240,16 +234,12 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             site_data["foreign_address"]["country"] = site_data["foreign_address"]["country"].id
 
         site_serializer = SiteCreateUpdateSerializer(data=site_data)
-        if site_serializer.is_valid():
+        if site_serializer.is_valid(raise_exception=True):
             site = site_serializer.save()
-        else:
-            raise serializers.ValidationError(site_serializer.errors)
 
         user_serializer = ExporterUserCreateUpdateSerializer(data={"sites": [site.id], **user_data})
-        if user_serializer.is_valid():
+        if user_serializer.is_valid(raise_exception=True):
             user_serializer.save()
-        else:
-            raise serializers.ValidationError(user_serializer.errors)
 
         organisation.primary_site = site
         organisation.save()

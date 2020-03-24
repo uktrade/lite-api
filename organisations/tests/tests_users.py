@@ -165,7 +165,9 @@ class OrganisationUsersCreateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            "is already a member of this organisation.", response_data["errors"]["email"][0],
+            "is already a member of this organisation.",
+            response_data["errors"]["email"][0],
+            data["email"] + " isn't valid",
         )
         self.assertTrue(len(UserOrganisationRelationship.objects.all()), 1)
 

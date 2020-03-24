@@ -57,6 +57,9 @@ class OrganisationsList(generics.ListCreateAPIView):
     def post(self, request):
         """ Create a new organisation. """
         data = request.data.copy()
+        if data.get("site").get("address"):
+            data["site"]["address"]["country"] = "GB"
+
         validate_only = request.data.get("validate_only", False)
 
         data["status"] = (

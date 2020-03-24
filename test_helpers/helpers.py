@@ -4,6 +4,8 @@ from flags.enums import SystemFlags
 from static.countries.models import Country
 from users.models import ExporterUser, UserOrganisationRelationship
 
+faker = Faker()
+
 
 def generate_key_value_pair(key, choices):
     """
@@ -23,24 +25,11 @@ def generate_country_dict(country: Country):
     return {"id": country.id, "name": country.name, "is_eu": country.is_eu, "type": country.type}
 
 
-def random_name():
-    """
-    :return: A randomly generated first name and last name
-    """
-    fake = Faker()
-    name = fake.name().split(" ")  # Split the first and last name
-    return name[0], name[1]
-
-
 def create_exporter_users(organisation, quantity=1):
     users = []
 
     for i in range(quantity):
-        first_name, last_name = random_name()
-        email = f"{first_name}@{last_name}.com"
-        if ExporterUser.objects.filter(email=email).count() == 1:
-            email = first_name + "." + last_name + str(i) + "@" + organisation.name + ".com"
-        user = ExporterUser(first_name=first_name, last_name=last_name, email=email)
+        user = ExporterUser(first_name=faker.first_name(), last_name=faker.last_name(), email=faker.email())
         user.organisation = organisation
 
         UserOrganisationRelationship(user, organisation).save()

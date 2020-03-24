@@ -62,10 +62,10 @@ from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers import colours
-from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
+from faker import Faker
 
 
 class Static:
@@ -79,6 +79,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
+    faker = Faker()
 
     @classmethod
     def setUpClass(cls):
@@ -162,13 +163,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_exporter_user(self, organisation=None, first_name=None, last_name=None, role=None):
         if not first_name and not last_name:
-            first_name, last_name = random_name()
+            first_name = self.faker.first_name()
+            last_name = self.faker.last_name()
 
-        random_string = str(uuid.uuid4())
-
-        exporter_user = ExporterUser(
-            first_name=first_name, last_name=last_name, email=f"{first_name}.{last_name}@{random_string}.com",
-        )
+        exporter_user = ExporterUser(first_name=first_name, last_name=last_name, email=self.faker.email(),)
         exporter_user.organisation = organisation
         exporter_user.save()
 

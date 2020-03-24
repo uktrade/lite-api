@@ -38,7 +38,7 @@ class ForeignAddressSerializer(serializers.ModelSerializer):
     country = CountrySerializerField()
 
     def validate_country(self, value):
-        if value == get_country("GB"):  # TODO CLEANUP
+        if value == get_country("GB"):
             raise serializers.ValidationError({"country": "Cant be GB!"})
         return value
 
