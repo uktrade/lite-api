@@ -1,15 +1,13 @@
 import timeit
 import uuid
 from datetime import datetime, timezone
-from django.db import connection
 
 import django.utils.timezone
-from django.test import tag
 from django.conf import settings as conf_settings
+from django.db import connection
+from django.test import tag
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from addresses.factories import AddressFactory
-from addresses.models import Address
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
 from applications.libraries.licence import get_default_duration
@@ -41,9 +39,9 @@ from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
-from organisations.enums import OrganisationType, OrganisationStatus
+from organisations.enums import OrganisationType
 from organisations.factories import OrganisationFactory, SiteFactory
-from organisations.models import Organisation, Site, ExternalLocation
+from organisations.models import Organisation, ExternalLocation
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party
 from parties.models import PartyDocument
