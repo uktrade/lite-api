@@ -39,3 +39,18 @@ class AddingRouteOfGoodsTests(DataTestClient):
         case.refresh_from_db()
         self.assertTrue(case.is_shipped_waybill_or_lading)
         self.assertEqual(case.non_waybill_or_lading_route_details, None)
+
+
+    def test_can_(self, case_type):
+        if case_type == CaseTypeSubTypeEnum.OPEN:
+            case = self.create_draft_open_application(self.organisation)
+        else:
+            case = self.create_draft_standard_application(self.organisation)
+
+        url = reverse("applications:route_of_goods", kwargs={"pk": case.id})
+        response = self.client.put(url, self.data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        case.refresh_from_db()
+        self.assertTrue(case.is_shipped_waybill_or_lading)
+        self.assertEqual(case.non_waybill_or_lading_route_details, None)
