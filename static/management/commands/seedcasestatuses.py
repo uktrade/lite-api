@@ -35,6 +35,10 @@ class Command(SeedCommand):
         assert CaseType.objects.count(), "Case Types must be seeded first!"
 
         status_csv = self.read_csv(STATUSES_FILE)
+        for row in status_csv:
+            if row["workflow_sequence"] == "None":
+                row["workflow_sequence"] = None
+
         self.update_or_create(CaseStatus, status_csv)
         self.delete_unused_objects(CaseStatus, status_csv)
 

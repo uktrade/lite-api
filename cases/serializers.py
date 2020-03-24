@@ -290,13 +290,13 @@ class CaseNoteSerializer(serializers.ModelSerializer):
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):
-    users = GovUserSimpleSerializer(many=True)
+    user = GovUserSimpleSerializer()
 
     class Meta:
         model = CaseAssignment
         fields = (
             "case",
-            "users",
+            "user",
         )
 
 

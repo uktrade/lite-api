@@ -37,6 +37,15 @@ class QueueViewSerializer(serializers.ModelSerializer):
         )
 
 
+class TinyQueueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Queue
+        fields = (
+            "id",
+            "name",
+        )
+
+
 class QueueCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages={"blank": strings.Queues.BLANK_NAME,})
     cases = CaseSerializer(many=True, read_only=True, required=False)
