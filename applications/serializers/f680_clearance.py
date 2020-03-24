@@ -112,7 +112,7 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
     expedited = serializers.BooleanField(required=False, allow_null=True)
     expedited_date = serializers.DateField(
         required=False,
-        error_messages={"invalid": strings.Applications.F680.AdditionalInformation.Errors.EXPEDITED_DATE_RANGE}
+        error_messages={"invalid": strings.Applications.F680.AdditionalInformation.Errors.EXPEDITED_DATE_RANGE},
     )
     expedited_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
 
