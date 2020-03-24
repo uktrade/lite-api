@@ -291,8 +291,6 @@ class ApplicationDeclaration(APIView):
 
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        previous_application_status = application.status
-
         submit_and_set_sla(application)
         application.save()
 
@@ -306,14 +304,13 @@ class ApplicationDeclaration(APIView):
 
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
 
-        if not is_case_status_draft(previous_application_status.status):
-            # Only create the audit if the previous application status was not `Draft`
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.UPDATED_STATUS,
-                target=application.get_case(),
-                payload={"status": application.status.status},
-            )
+        # Always create the audit when application is submitted or edited
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=application.get_case(),
+            payload={"status": application.status.status},
+        )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
