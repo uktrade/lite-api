@@ -111,9 +111,7 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
     case = application.get_case()
 
     _add_or_remove_flag(
-        case=case,
-        flag_id=SystemFlags.MILITARY_END_USE_ID,
-        is_adding=application.is_military_end_use_controls or application.is_eu_military,
+        case=case, flag_id=SystemFlags.MILITARY_END_USE_ID, is_adding=application.is_military_end_use_controls,
     )
     _add_or_remove_flag(
         case=case,

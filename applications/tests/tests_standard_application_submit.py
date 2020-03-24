@@ -237,7 +237,7 @@ class StandardApplicationTests(DataTestClient):
 
     def test_submit_standard_application_adds_system_case_flags_success(self):
         self.draft.is_military_end_use_controls = True
-        self.draft.is_suspected_wmd = True
+        self.draft.is_informed_wmd = True
         self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
         self.draft.save()
 
