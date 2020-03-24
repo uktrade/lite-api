@@ -52,11 +52,11 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
             return RoleSerializer(self.context.role).data
 
     def get_sites(self, _):
-        from organisations.serializers import SiteViewSerializer
+        from organisations.serializers import SiteListSerializer
 
         if self.context:
             sites = Site.objects.get_by_user_organisation_relationship(self.context)
-            return SiteViewSerializer(sites, many=True).data
+            return SiteListSerializer(sites, many=True).data
         return None
 
 
