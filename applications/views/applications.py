@@ -22,7 +22,7 @@ from applications.libraries.application_helpers import (
 )
 from applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
-    add_case_flags_to_submitted_application,
+    set_case_flags_on_submitted_application,
 )
 from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
@@ -270,7 +270,7 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        add_case_flags_to_submitted_application(application)
+        set_case_flags_on_submitted_application(application)
         add_goods_flags_to_submitted_application(application)
 
         apply_flagging_rules_to_case(application)

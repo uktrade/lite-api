@@ -108,36 +108,44 @@ def save_and_audit_have_you_been_informed_ref(request, application, serializer):
                 )
 
 
-def add_case_flags_to_submitted_application(application: BaseApplication):
+def set_case_flags_on_submitted_application(application: BaseApplication):
     if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
         case = application.get_case()
 
-        _add_or_remove_flag_from_case(SystemFlags.MILITARY_END_USE_ID, case, application.is_military_end_use_controls)
-        _add_or_remove_flag_from_case(
-            SystemFlags.WMD_END_USE_ID, case, application.is_suspected_wmd or application.is_informed_wmd
+        _add_or_remove_flag(
+            case=case, flag_id=SystemFlags.MILITARY_END_USE_ID, is_adding=application.is_military_end_use_controls,
+        )
+        _add_or_remove_flag(
+            case=case,
+            flag_id=SystemFlags.WMD_END_USE_ID,
+            is_adding=application.is_suspected_wmd or application.is_informed_wmd,
         )
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            standard_application_only_details = StandardApplication.objects.only(
+            standard_application_details = StandardApplication.objects.only(
                 "have_you_been_informed", "goods_categories"
             ).get(pk=application.pk)
 
-            have_you_been_informed = standard_application_only_details.have_you_been_informed
-            goods_categories = standard_application_only_details.goods_categories or []
+            have_you_been_informed = standard_application_details.have_you_been_informed
+            goods_categories = standard_application_details.goods_categories or []
 
-            _add_or_remove_flag_from_case(
-                SystemFlags.MILITARY_END_USE_ID,
-                case,
-                have_you_been_informed == ApplicationExportLicenceOfficialType.YES,
+            _add_or_remove_flag(
+                case=case,
+                flag_id=SystemFlags.MILITARY_END_USE_ID,
+                is_adding=have_you_been_informed == ApplicationExportLicenceOfficialType.YES,
             )
-            _add_or_remove_flag_from_case(
-                SystemFlags.MARITIME_ANTI_PIRACY_ID, case, GoodsCategory.MARITIME_ANTI_PIRACY in goods_categories
+            _add_or_remove_flag(
+                case=case,
+                flag_id=SystemFlags.MARITIME_ANTI_PIRACY_ID,
+                is_adding=GoodsCategory.MARITIME_ANTI_PIRACY in goods_categories,
             )
-            _add_or_remove_flag_from_case(SystemFlags.FIREARMS_ID, case, GoodsCategory.FIREARMS in goods_categories)
+            _add_or_remove_flag(
+                case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=GoodsCategory.FIREARMS in goods_categories,
+            )
 
 
-def _add_or_remove_flag_from_case(flag_id, case: Case, add_to_case: bool):
-    if add_to_case:
+def _add_or_remove_flag(case: Case, flag_id: str, is_adding: bool):
+    if is_adding:
         if not case.flags.filter(id=flag_id).exists():
             case.flags.add(flag_id)
     else:
