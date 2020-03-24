@@ -1,5 +1,6 @@
 TRANSHIPMENT_BANNED_COUNTRIES = ["GB"]
 
+
 class F680:
     ADDITIONAL_INFORMATION_FIELDS = (
         "expedited",

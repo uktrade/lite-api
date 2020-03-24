@@ -9,7 +9,9 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsCategory,
-    ServiceEquipmentType, MTCRAnswers)
+    ServiceEquipmentType,
+    MTCRAnswers,
+)
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
 from cases.models import Case
@@ -213,7 +215,9 @@ class F680ClearanceApplication(BaseApplication):
 
     uk_service_equipment = models.NullBooleanField(blank=True, default=None)
     uk_service_equipment_description = models.CharField(max_length=2200, blank=True, null=True)
-    uk_service_equipment_type = models.CharField(choices=ServiceEquipmentType.choices(), null=True, blank=True, max_length=50)
+    uk_service_equipment_type = models.CharField(
+        choices=ServiceEquipmentType.choices(), null=True, blank=True, max_length=50
+    )
 
     prospect_value = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
 

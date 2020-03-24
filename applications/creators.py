@@ -178,7 +178,7 @@ def _validate_additional_information(draft, errors):
         "mtcr_type",
         "electronic_warfare_requirement",
         "uk_service_equipment",
-        "prospect_value"
+        "prospect_value",
     ]
     required_secondary_fields = {
         "foreign_technology": "foreign_technology_description",
@@ -187,14 +187,14 @@ def _validate_additional_information(draft, errors):
     }
 
     for field in required_fields:
-        if getattr(draft, field) is None or getattr(draft, field) == '':
+        if getattr(draft, field) is None or getattr(draft, field) == "":
             errors["additional_information"] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
         if getattr(draft, field) is True:
             secondary_field = required_secondary_fields.get(field, False)
             if secondary_field and not getattr(draft, secondary_field):
-                errors["additional_information"] = (
-                    strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
-                )
+                errors[
+                    "additional_information"
+                ] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
 
     today = timezone.now().date()
 

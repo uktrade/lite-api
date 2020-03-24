@@ -61,18 +61,22 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
 
     class Meta:
         model = F680ClearanceApplication
-        fields = GenericApplicationListSerializer.Meta.fields + constants.F680.ADDITIONAL_INFORMATION_FIELDS + (
-            "case_officer",
-            "end_user",
-            "third_parties",
-            "goods",
-            "activity",
-            "usage",
-            "destinations",
-            "additional_documents",
-            "types",
-            "clearance_level",
-            "intended_end_use",
+        fields = (
+            GenericApplicationListSerializer.Meta.fields
+            + constants.F680.ADDITIONAL_INFORMATION_FIELDS
+            + (
+                "case_officer",
+                "end_user",
+                "third_parties",
+                "goods",
+                "activity",
+                "usage",
+                "destinations",
+                "additional_documents",
+                "types",
+                "clearance_level",
+                "intended_end_use",
+            )
         )
 
 
@@ -129,9 +133,10 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
 
     class Meta:
         model = F680ClearanceApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields + constants.F680.ADDITIONAL_INFORMATION_FIELDS + (
-            "types",
-            "clearance_level",
+        fields = (
+            GenericApplicationUpdateSerializer.Meta.fields
+            + constants.F680.ADDITIONAL_INFORMATION_FIELDS
+            + ("types", "clearance_level",)
         )
 
     def __init__(self, *args, **kwargs):
@@ -149,7 +154,7 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
             "mtcr_type",
             "electronic_warfare_requirement",
             "uk_service_equipment",
-            "prospect_value"
+            "prospect_value",
         ]
         required_secondary_fields = {
             "foreign_technology": "foreign_technology_description",
@@ -172,7 +177,7 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         }
         for field in required_fields:
             if field in self.initial_data:
-                if self.initial_data[field] is None or self.initial_data[field] == '':
+                if self.initial_data[field] is None or self.initial_data[field] == "":
                     raise serializers.ValidationError({field: [error_messages[field]]})
                 if self.initial_data[field] is True:
                     secondary_field = required_secondary_fields.get(field, False)

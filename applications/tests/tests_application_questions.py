@@ -69,7 +69,6 @@ class ApplicationQuestionsTest(DataTestClient):
         self.assertEqual(self.draft.expedited, data["expedited"])
         self.assertEqual(str(self.draft.expedited_date), data["expedited_date"])
 
-
     def test_update_f680_questions_enum_success_type(self):
         data = {
             "uk_service_equipment": True,

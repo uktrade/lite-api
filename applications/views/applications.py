@@ -180,7 +180,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         # Prevent minor edits of additional_information
         if not application.is_major_editable() and any(
-                [request.data.get(field) for field in constants.F680.ADDITIONAL_INFORMATION_FIELDS]
+            [request.data.get(field) for field in constants.F680.ADDITIONAL_INFORMATION_FIELDS]
         ):
             return JsonResponse(
                 data={"errors": {"Additional details": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
