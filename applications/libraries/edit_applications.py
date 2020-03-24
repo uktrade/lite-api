@@ -1,11 +1,10 @@
-from django.db.models import Case
-
 from applications.enums import GoodsCategory, ApplicationExportLicenceOfficialType
 from applications.models import BaseApplication, StandardApplication
 from audit_trail import service as audit_trail_service
 
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeSubTypeEnum
+from cases.models import Case
 from conf.helpers import str_to_bool
 from flags.enums import SystemFlags
 from lite_content.lite_api.strings import Applications as strings
