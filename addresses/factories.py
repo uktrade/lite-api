@@ -11,7 +11,7 @@ class AddressFactory(factory.django.DjangoModelFactory):
     postcode = factory.Faker("postcode")
     city = factory.Faker("city")
     # This is intentional as CircleCI fails to find the Country table otherwise
-    country = Country.objects.get(id="GB")
+    country = factory.Iterator(Country.objects.filter(id="GB"))
 
     class Meta:
         model = Address
