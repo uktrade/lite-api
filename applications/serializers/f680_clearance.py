@@ -110,7 +110,10 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
     clearance_level = serializers.ChoiceField(choices=PvGrading.choices, allow_null=True)
 
     expedited = serializers.BooleanField(required=False, allow_null=True)
-    expedited_date = serializers.DateField(required=False)
+    expedited_date = serializers.DateField(
+        required=False,
+        error_messages={"invalid": strings.Applications.F680.AdditionalInformation.Errors.EXPEDITED_DATE_RANGE}
+    )
     expedited_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
 
     foreign_technology = serializers.BooleanField(required=False, allow_null=True)
