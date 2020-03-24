@@ -24,6 +24,7 @@ class F680:
         "mtcr_type",
         "electronic_warfare_requirement",
         "uk_service_equipment",
+        "uk_service_equipment_type",
         "prospect_value",
     ]
 

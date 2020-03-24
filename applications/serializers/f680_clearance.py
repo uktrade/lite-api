@@ -130,7 +130,13 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
         choices=ServiceEquipmentType.choices(), allow_blank=True, required=False
     )
 
-    prospect_value = serializers.DecimalField(required=False, allow_null=True, max_digits=15, decimal_places=2)
+    prospect_value = serializers.DecimalField(
+        required=False,
+        allow_null=True,
+        max_digits=15,
+        decimal_places=2,
+        error_messages={"invalid": strings.Applications.F680.AdditionalInformation.Errors.PROSPECT_VALUE},
+    )
 
     class Meta:
         model = F680ClearanceApplication
