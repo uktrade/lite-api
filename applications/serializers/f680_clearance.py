@@ -4,6 +4,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
+from applications import constants
 from applications.enums import MTCRAnswers, ServiceEquipmentType
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import F680ClearanceApplication
@@ -60,7 +61,7 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
 
     class Meta:
         model = F680ClearanceApplication
-        fields = GenericApplicationListSerializer.Meta.fields + (
+        fields = GenericApplicationListSerializer.Meta.fields + constants.F680.ADDITIONAL_INFORMATION_FIELDS + (
             "case_officer",
             "end_user",
             "third_parties",
@@ -72,19 +73,6 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
             "types",
             "clearance_level",
             "intended_end_use",
-            "expedited",
-            "expedited_date",
-            "expedited_description",
-            "foreign_technology",
-            "foreign_technology_description",
-            "locally_manufactured",
-            "locally_manufactured_description",
-            "mtcr_type",
-            "electronic_warfare_requirement",
-            "uk_service_equipment",
-            "uk_service_equipment_description",
-            "uk_service_equipment_type",
-            "prospect_value",
         )
 
 
@@ -141,22 +129,9 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
 
     class Meta:
         model = F680ClearanceApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields + (
+        fields = GenericApplicationUpdateSerializer.Meta.fields + constants.F680.ADDITIONAL_INFORMATION_FIELDS + (
             "types",
             "clearance_level",
-            "expedited",
-            "expedited_date",
-            "expedited_description",
-            "foreign_technology",
-            "foreign_technology_description",
-            "locally_manufactured",
-            "locally_manufactured_description",
-            "mtcr_type",
-            "electronic_warfare_requirement",
-            "uk_service_equipment",
-            "uk_service_equipment_description",
-            "uk_service_equipment_type",
-            "prospect_value",
         )
 
     def __init__(self, *args, **kwargs):

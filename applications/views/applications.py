@@ -9,6 +9,7 @@ from rest_framework.exceptions import PermissionDenied, ErrorDetail
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 
+from applications import constants
 from applications.creators import validate_application_ready_for_submission
 from applications.helpers import (
     get_application_create_serializer,
@@ -170,19 +171,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        additional_information_fields = [
-            "expedited",
-            "foreign_technology",
-            "locally_manufactured",
-            "mtcr_type",
-            "electronic_warfare_requirement",
-            "uk_service_equipment",
-            "prospect_value",
-            "foreign_technology_description",
-            "expedited_date",
-            "locally_manufactured_description",
-        ]
-
         # Prevent minor edits of the f680 clearance types
         if not application.is_major_editable() and request.data.get("types"):
             return JsonResponse(
@@ -191,7 +179,9 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             )
 
         # Prevent minor edits of additional_information
-        if not application.is_major_editable() and any([request.data.get(field) for field in additional_information_fields]):
+        if not application.is_major_editable() and any(
+                [request.data.get(field) for field in constants.F680.ADDITIONAL_INFORMATION_FIELDS]
+        ):
             return JsonResponse(
                 data={"errors": {"Additional details": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -486,22 +476,7 @@ class ApplicationCopy(APIView):
         self.new_application = deepcopy(old_application)
 
         if self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
-            fields = [
-                "expedited",
-                "expedited_date",
-                "expedited_description",
-                "foreign_technology",
-                "foreign_technology_description",
-                "locally_manufactured",
-                "locally_manufactured_description",
-                "mtcr_type",
-                "electronic_warfare_requirement",
-                "uk_service_equipment",
-                "uk_service_equipment_description",
-                "uk_service_equipment_type",
-                "prospect_value",
-            ]
-            for field in fields:
+            for field in constants.F680.ADDITIONAL_INFORMATION_FIELDS:
                 setattr(self.new_application, field, None)
 
         # Clear references to parent objects, and current application instance object
