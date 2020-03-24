@@ -26,10 +26,8 @@ class AllCasesQueueTests(DataTestClient):
         When a user requests the All Cases system queue
         Then all cases are returned regardless of the queues they are assigned to
         """
-        case_assignment = CaseAssignment(queue=self.queue1, case=self.case)
-        case_assignment.save()
-        case_assignment = CaseAssignment(queue=self.queue2, case=self.case_2)
-        case_assignment.save()
+        CaseAssignment.objects.create(queue=self.queue1, case=self.case, user=self.gov_user)
+        CaseAssignment.objects.create(queue=self.queue2, case=self.case_2, user=self.gov_user)
 
         url = reverse("queues:case_assignments", kwargs={"pk": OPEN_CASES_QUEUE_ID})
 
