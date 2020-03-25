@@ -76,6 +76,13 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "non_waybill_or_lading_route_details",
         )
 
+    def __init__(self, *args, **kwargs):
+        super(OpenApplicationUpdateSerializer, self).__init__(*args, **kwargs)
+
+        if self.get_initial().get("is_shipped_waybill_or_lading") == "True":
+            if hasattr(self, "initial_data"):
+                self.initial_data["non_waybill_or_lading_route_details"] = None
+
     def validate(self, data):
         _validate_field(
             data,

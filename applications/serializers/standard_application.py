@@ -99,6 +99,14 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "non_waybill_or_lading_route_details",
         )
 
+    def __init__(self, *args, **kwargs):
+        super(StandardApplicationUpdateSerializer, self).__init__(*args, **kwargs)
+
+        if self.get_initial().get("is_shipped_waybill_or_lading") == "True":
+            if hasattr(self, "initial_data"):
+                self.initial_data["non_waybill_or_lading_route_details"] = None
+
+
     def update(self, instance, validated_data):
         if "goods_categories" in validated_data:
             instance.goods_categories = validated_data.pop("goods_categories")
