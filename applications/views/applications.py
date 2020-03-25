@@ -61,7 +61,7 @@ from conf.decorators import (
     application_in_editable_state,
     allowed_application_types,
 )
-from conf.helpers import convert_date_to_string
+from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
@@ -732,13 +732,13 @@ class ApplicationRouteOfGoods(UpdateAPIView):
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        previous_answer_value = application.is_shipped_waybill_or_lading
-        new_answer_value = data.get("is_shipped_waybill_or_lading")
+        previous_answer = application.is_shipped_waybill_or_lading
+        new_answer = str_to_bool(data.get("is_shipped_waybill_or_lading"))
 
-        if previous_answer_value != new_answer_value:
-            self.add_audit_entry(request, case, "is shipped waybill or lading", previous_answer_value, new_answer_value)
+        if previous_answer != new_answer:
+            self.add_audit_entry(request, case, "is shipped waybill or lading", previous_answer, new_answer)
 
-        if new_answer_value == "False":
+        if not new_answer:
             previous_details = application.non_waybill_or_lading_route_details
             new_details = data.get("non_waybill_or_lading_route_details")
 
@@ -756,5 +756,5 @@ class ApplicationRouteOfGoods(UpdateAPIView):
             actor=request.user,
             verb=AuditType.UPDATED_ROUTE_OF_GOODS,
             target=case,
-            payload={"route_of_goods_field": field, "previous_value": previous_value, "new_value": new_value,},
+            payload={"route_of_goods_field": field, "previous_value": previous_value, "new_value": new_value},
         )
