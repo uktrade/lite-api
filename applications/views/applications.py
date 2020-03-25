@@ -9,7 +9,7 @@ from rest_framework.exceptions import PermissionDenied, ErrorDetail
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 
-from applications.creators import validate_application_ready_for_submission, _validate_agree_to_tsc
+from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -269,11 +269,31 @@ class ApplicationSubmission(APIView):
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
+        if application.case_type.sub_type in [
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
+            CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.EXHIBITION,
+        ]:
+            if request.data.get("submit_declaration"):
+                errors = {}
+                errors = _validate_agree_to_declaration(request, errors)
+                if errors:
+                    return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    submit_and_set_sla(application)
+                    application.save()
+                    apply_flagging_rules_to_case(application)
+                    update_submitted_application_good_statuses_and_flags(application)
+
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
         serializer = serializer(application)
 
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
+        if application.reference_code:
+            data["reference_code"] = application.reference_code
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
@@ -285,8 +305,9 @@ class ApplicationDeclaration(APIView):
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
+
         errors = {}
-        errors = _validate_agree_to_tsc(request, errors)
+        errors = _validate_agree_to_declaration(request, errors)
         if errors:
 
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
