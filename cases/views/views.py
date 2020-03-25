@@ -50,7 +50,6 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents, Cases
-from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
