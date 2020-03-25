@@ -59,6 +59,7 @@ class HmrcQueryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = HmrcQuery
         fields = (
+            "name",
             "reasoning",
             "case_type",
             "organisation",
