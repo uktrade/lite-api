@@ -1,4 +1,3 @@
-
 from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 from django.utils import timezone
@@ -143,9 +142,9 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
                 # We make sure that an ultimate end user is not also the end user
                 for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                     if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.party.id):
-                        errors[
-                            "ultimate_end_users"
-                        ] = [strings.Applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER]
+                        errors["ultimate_end_users"] = [
+                            strings.Applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
+                        ]
 
     return errors
 

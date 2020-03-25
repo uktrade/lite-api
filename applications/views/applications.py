@@ -299,10 +299,11 @@ class ApplicationSubmission(APIView):
                 if errors:
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
                 else:
+                    # If a valid declaration is provided, save the application
                     submit_and_set_sla(application)
                     application.save()
                     apply_flagging_rules_to_case(application)
-                    update_submitted_application_good_statuses_and_flags(application)
+                    add_goods_flags_to_submitted_application(application)
 
                     # Always create the audit when application is submitted or edited
                     audit_trail_service.create(
