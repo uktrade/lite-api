@@ -37,11 +37,6 @@ class ForeignAddressSerializer(serializers.ModelSerializer):
     address = serializers.CharField(error_messages={"blank": "Enter a real building and street name"})
     country = CountrySerializerField()
 
-    def validate_country(self, value):
-        if value == get_country("GB"):
-            raise serializers.ValidationError({"country": "Cant be GB!"})
-        return value
-
     class Meta:
         model = ForeignAddress
         fields = (
@@ -49,3 +44,8 @@ class ForeignAddressSerializer(serializers.ModelSerializer):
             "address",
             "country",
         )
+
+    def validate_country(self, value):
+        if value == get_country("GB"):
+            raise serializers.ValidationError({"country": "Cant be GB!"})
+        return value
