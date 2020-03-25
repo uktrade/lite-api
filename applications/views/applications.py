@@ -287,6 +287,14 @@ class ApplicationSubmission(APIView):
                     apply_flagging_rules_to_case(application)
                     update_submitted_application_good_statuses_and_flags(application)
 
+                    # Always create the audit when application is submitted or edited
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_STATUS,
+                        target=application.get_case(),
+                        payload={"status": application.status.status},
+                    )
+                    
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
         serializer = serializer(application)
