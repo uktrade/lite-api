@@ -6,13 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0012_merge_20200325_0723'),
+        ("cases", "0012_merge_20200325_0723"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='ecjuquery',
-            name='query_type',
-            field=models.CharField(choices=[('proviso', 'Proviso'), ('ecju_query', 'Standard ECJU Query'), ('letter_paragraph', 'Letter Paragraph'), ('report_summary', 'Report Summary'), ('standard_advice', 'Standard Advice'), ('footnotes', 'Footnotes'), ('pre_visit_questionnaire', 'Pre-Visit Questionnaire questions (ECJU Query)'), ('compliance_actions', 'Compliance Actions (ECJU Query)')], default='ecju_query', max_length=50),
+            model_name="ecjuquery",
+            name="query_type",
+            field=models.CharField(
+                choices=[
+                    ("proviso", "Proviso"),
+                    ("ecju_query", "Standard ECJU Query"),
+                    ("letter_paragraph", "Letter Paragraph"),
+                    ("report_summary", "Report Summary"),
+                    ("standard_advice", "Standard Advice"),
+                    ("footnotes", "Footnotes"),
+                    ("pre_visit_questionnaire", "Pre-Visit Questionnaire questions (ECJU Query)"),
+                    ("compliance_actions", "Compliance Actions (ECJU Query)"),
+                ],
+                default="ecju_query",
+                max_length=50,
+            ),
         ),
     ]
