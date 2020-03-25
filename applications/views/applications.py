@@ -9,6 +9,7 @@ from rest_framework.exceptions import PermissionDenied, ErrorDetail
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 
+from applications import constants
 from applications.creators import validate_application_ready_for_submission
 from applications.helpers import (
     get_application_create_serializer,
@@ -20,9 +21,12 @@ from applications.libraries.application_helpers import (
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
 )
-from applications.libraries.edit_applications import save_and_audit_have_you_been_informed_ref
+from applications.libraries.edit_applications import (
+    save_and_audit_have_you_been_informed_ref,
+    set_case_flags_on_submitted_standard_or_open_application,
+)
 from applications.libraries.get_applications import get_application
-from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
+from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from applications.libraries.licence import get_default_duration
 from applications.models import (
     BaseApplication,
@@ -143,7 +147,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         """
         serializer = get_application_view_serializer(application)
         data = serializer(application, context={"exporter_user": request.user}).data
-
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
@@ -178,6 +181,15 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Prevent minor edits of additional_information
+        if not application.is_major_editable() and any(
+            [request.data.get(field) for field in constants.F680.ADDITIONAL_INFORMATION_FIELDS]
+        ):
+            return JsonResponse(
+                data={"errors": {"Additional details": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -204,21 +216,24 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         # Audit block
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680 and request.data.get("types"):
-            old_types = [
-                F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
-            ]
-            new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
-            serializer.save()
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+            if request.data.get("types"):
+                old_types = [
+                    F680ClearanceTypeEnum.get_text(type) for type in application.types.values_list("name", flat=True)
+                ]
+                new_types = [F680ClearanceTypeEnum.get_text(type) for type in request.data.get("types")]
+                serializer.save()
 
-            if set(old_types) != set(new_types):
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
-                    target=case,
-                    payload={"old_types": old_types, "new_types": new_types},
-                )
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
+                if set(old_types) != set(new_types):
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES,
+                        target=case,
+                        payload={"old_types": old_types, "new_types": new_types},
+                    )
+                return JsonResponse(data={}, status=status.HTTP_200_OK)
+            else:
+                serializer.save()
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             save_and_audit_have_you_been_informed_ref(request, application, serializer)
@@ -267,9 +282,11 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        apply_flagging_rules_to_case(application)
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+            set_case_flags_on_submitted_standard_or_open_application(application)
 
-        update_submitted_application_good_statuses_and_flags(application)
+        add_goods_flags_to_submitted_application(application)
+        apply_flagging_rules_to_case(application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -462,6 +479,11 @@ class ApplicationCopy(APIView):
         # Deepcopy so new_application is not a pointer to old_application
         # (if not deepcopied, any changes done on one applies to the other)
         self.new_application = deepcopy(old_application)
+
+        if self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+            for field in constants.F680.ADDITIONAL_INFORMATION_FIELDS:
+                setattr(self.new_application, field, None)
+
         # Clear references to parent objects, and current application instance object
         self.strip_id_for_application_copy()
 
@@ -520,8 +542,11 @@ class ApplicationCopy(APIView):
             "submitted_at",
             "licence_duration",
             "is_informed_wmd",
+            "informed_wmd_ref",
             "is_suspected_wmd",
+            "suspected_wmd_ref",
             "is_military_end_use_controls",
+            "military_end_use_controls_ref",
             "is_eu_military",
             "is_compliant_limitations_eu",
             "compliant_limitations_eu_ref",

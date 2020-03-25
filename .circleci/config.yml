@@ -22,7 +22,6 @@ jobs:
     working_directory: ~/lite-api
 
     steps:
-      - jq/install
 
       - checkout
       - run:

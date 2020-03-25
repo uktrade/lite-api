@@ -6,11 +6,13 @@ from django.db import connection
 import django.utils.timezone
 from django.test import tag
 from django.conf import settings as conf_settings
+from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
+from applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
+from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from applications.libraries.licence import get_default_duration
 from applications.models import (
     BaseApplication,
@@ -26,7 +28,7 @@ from applications.models import (
     F680ClearanceApplication,
     Licence,
 )
-from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum
+from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
 from cases.sla import get_application_target_sla
@@ -168,11 +170,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not first_name and not last_name:
             first_name, last_name = random_name()
 
-        random_string = str(uuid.uuid4())
-
-        exporter_user = ExporterUser(
-            first_name=first_name, last_name=last_name, email=f"{first_name}.{last_name}@{random_string}.com",
-        )
+        exporter_user = ExporterUser(first_name=first_name, last_name=last_name, email=Faker().email(),)
         exporter_user.organisation = organisation
         exporter_user.save()
 
@@ -274,7 +272,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        update_submitted_application_good_statuses_and_flags(application)
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+            set_case_flags_on_submitted_standard_or_open_application(application)
+
+        add_goods_flags_to_submitted_application(application)
 
         return application
 
@@ -359,10 +360,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_case_assignment(queue, case, users):
-        case_assignment = CaseAssignment(queue=queue, case=case)
-        case_assignment.users.set(users)
-        case_assignment.save()
-        return case_assignment
+        if isinstance(users, list):
+            case_assignments = []
+            for user in users:
+                case_assignments.append(CaseAssignment.objects.create(queue=queue, case=case, user=user))
+            return case_assignments
+        else:
+            return CaseAssignment.objects.create(queue=queue, case=case, user=users)
 
     @staticmethod
     def create_goods_type(application):
@@ -421,6 +425,24 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         good.save()
         return good
+
+    @staticmethod
+    def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
+        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
+
+        goods_query = GoodsQuery.objects.create(
+            clc_raised_reasons=clc_reason,
+            pv_grading_raised_reasons=pv_reason,
+            good=good,
+            organisation=organisation,
+            case_type_id=CaseTypeEnum.GOODS.id,
+            status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+            submitted_at=django.utils.timezone.now(),
+        )
+        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
+        goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
+        goods_query.save()
+        return goods_query
 
     @staticmethod
     def create_clc_query(description, organisation) -> GoodsQuery:
@@ -525,6 +547,22 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_document_for_party(application.consignee.party, safe=safe_document)
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
 
+    def add_additional_information(self, application):
+        additional_information = {
+            "expedited": False,
+            "mtcr_type": "mtcr_category_2",
+            "foreign_technology": False,
+            "locally_manufactured": False,
+            "uk_service_equipment": False,
+            "uk_service_equipment_type": "mod_funded",
+            "electronic_warfare_requirement": False,
+            "prospect_value": 100.0,
+        }
+        for key, item in additional_information.items():
+            setattr(application, key, item)
+
+        application.save()
+
     def create_draft_standard_application(
         self,
         organisation: Organisation,
@@ -577,7 +615,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_mod_clearance_application(
-        self, organisation, case_type, reference_name="MOD Clearance Draft", safe_document=True,
+        self,
+        organisation,
+        case_type,
+        reference_name="MOD Clearance Draft",
+        safe_document=True,
+        additional_information=True,
     ):
         if case_type == CaseTypeEnum.F680:
             model = F680ClearanceApplication
@@ -610,6 +653,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
             self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
+            if additional_information:
+                self.add_additional_information(application)
             application.intended_end_use = "intended end use here"
             application.save()
         else:
