@@ -9,6 +9,8 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsCategory,
+    ServiceEquipmentType,
+    MTCRAnswers,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
@@ -18,7 +20,6 @@ from documents.models import Document
 from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
-
 from lite_content.lite_api.strings import PartyErrors
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
@@ -198,6 +199,25 @@ class GiftingClearanceApplication(BaseApplication):
 # F680 includes End User & Third parties
 class F680ClearanceApplication(BaseApplication):
     types = models.ManyToManyField(F680ClearanceType, related_name="f680_clearance_application")
+
+    expedited = models.NullBooleanField(default=None)
+    expedited_date = models.DateField(null=True, default=None)
+
+    foreign_technology = models.NullBooleanField(default=None)
+    foreign_technology_description = models.CharField(max_length=2200, null=True)
+
+    locally_manufactured = models.NullBooleanField(blank=True, default=None)
+    locally_manufactured_description = models.CharField(max_length=2200, null=True)
+
+    mtcr_type = models.CharField(choices=MTCRAnswers.choices(), null=True, max_length=50)
+
+    electronic_warfare_requirement = models.NullBooleanField(default=None)
+
+    uk_service_equipment = models.NullBooleanField(default=None)
+    uk_service_equipment_description = models.CharField(max_length=2200, null=True)
+    uk_service_equipment_type = models.CharField(choices=ServiceEquipmentType.choices(), null=True, max_length=50)
+
+    prospect_value = models.DecimalField(max_digits=15, decimal_places=2, null=True)
 
 
 # Queries

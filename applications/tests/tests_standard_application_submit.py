@@ -1,4 +1,6 @@
+from applications.enums import GoodsCategory
 from audit_trail.models import Audit
+from flags.enums import SystemFlags
 from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
@@ -263,3 +265,51 @@ class StandardApplicationTests(DataTestClient):
 
         errors = response.json()["errors"]
         self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
+
+    def test_submit_standard_application_adds_system_case_flags_success(self):
+        self.draft.is_military_end_use_controls = True
+        self.draft.is_informed_wmd = True
+        self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+        self.draft.refresh_from_db()
+        case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(SystemFlags.MILITARY_END_USE_ID, case_flags)
+        self.assertIn(SystemFlags.WMD_END_USE_ID, case_flags)
+        self.assertIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)
+        self.assertIn(SystemFlags.FIREARMS_ID, case_flags)
+
+    def test_resubmit_edited_standard_application_removes_system_case_flags_success(self):
+        # Create draft application with properties that have associated system flags
+        self.draft.is_military_end_use_controls = True
+        self.draft.is_suspected_wmd = True
+        self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
+        self.draft.save()
+
+        # Submit application (this function also adds system flags)
+        self.submit_application(self.draft)
+
+        # Set application status to 'Applicant Editing'
+        self.draft.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        self.draft.save()
+
+        # Update application properties
+        self.draft.is_military_end_use_controls = False
+        self.draft.is_suspected_wmd = False
+        self.draft.goods_categories = None
+        self.draft.save()
+
+        # Re-submit application
+        response = self.client.put(self.url, **self.exporter_headers)
+        self.draft.refresh_from_db()
+        case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
+
+        # Assert flags have been removed
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn(SystemFlags.MILITARY_END_USE_ID, case_flags)
+        self.assertNotIn(SystemFlags.WMD_END_USE_ID, case_flags)
+        self.assertNotIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)
+        self.assertNotIn(SystemFlags.FIREARMS_ID, case_flags)
