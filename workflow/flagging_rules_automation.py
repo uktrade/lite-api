@@ -119,21 +119,41 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
     if flagging_rule.status == FlagStatuses.ACTIVE and flagging_rule.flag.status == FlagStatuses.ACTIVE:
         open_cases = Case.objects.submitted().is_open()
         flagging_rule_queryset = FlaggingRule.objects.filter(id=flagging_rule.id)
+        from django.db import connection
 
         if flagging_rule.level == FlagLevels.CASE:
-            open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value).all()
-            for case in open_cases:
-                case.flags.add(flagging_rule.flag)
+
+            print("CASE BEFORE: " + str(len(connection.queries)))
+            open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value)
+
+            flagging_rule.flag.cases.add(*open_cases)
+            print("CASE AFTER: " + str(len(connection.queries)))
 
         elif flagging_rule.level == FlagLevels.GOOD:
+            print("GOOD BEFORE: " + str(len(connection.queries)))
+
             for case in open_cases:
                 apply_good_flagging_rules_for_case(case, flagging_rule_queryset)
 
+            print("GOOD AFTER: " + str(len(connection.queries)))
         elif flagging_rule.level == FlagLevels.DESTINATION:
-            for case in open_cases:
-                apply_destination_flagging_rules_for_case(case, flagging_rule_queryset)
+            print("DESTINATION BEFORE: " + str(len(connection.queries)))
 
+            open_other_cases = open_cases.exclude(case_type_id=CaseTypeEnum.EUA.id).values("id")
+
+            end_users = EndUserAdvisoryQuery.objects.exclude(
+                status__status__in=CaseStatusEnum.terminal_statuses() + [CaseStatusEnum.DRAFT]
+            ).values("end_user")
+            flagging_rule.flag.parties.add(*end_users)
+
+            parties = PartyOnApplication.objects.filter(
+                application_id__in=open_other_cases, party__country_id=flagging_rule.matching_value
+            ).values("party")
+            flagging_rule.flag.parties.add(*parties)
+
+            print("DESTINATION AFTER: " + str(len(connection.queries)))
             Country.objects.get(id=flagging_rule.matching_value).flags.add(flagging_rule.flag)
+            print("DESTINATION FINAL: " + str(len(connection.queries)))
 
 
 def apply_flagging_rule_for_flag(flag: Flag):
