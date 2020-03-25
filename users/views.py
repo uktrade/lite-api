@@ -16,11 +16,11 @@ from conf.exceptions import NotFoundError
 from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import Users
+from organisations.enums import OrganisationStatus
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from queues.models import Queue
-from users.enums import UserStatuses
 from users.libraries.get_user import (
     get_user_by_pk,
     get_user_organisation_relationship,
@@ -154,8 +154,8 @@ class UserMeDetail(APIView):
                     "name": relationship.organisation.name,
                     "joined_at": date_to_drf_date(relationship.created_at),
                     "status": {
-                        "key": relationship.status,
-                        "value": get_value_from_enum(relationship.status, UserStatuses),
+                        "key": relationship.organisation.status,
+                        "value": get_value_from_enum(relationship.organisation.status, OrganisationStatus),
                     },
                 }
                 for relationship in relationships

@@ -2,9 +2,9 @@ from django.urls import reverse
 from rest_framework import status
 
 from conf.helpers import convert_queryset_to_str, date_to_drf_date
+from organisations.enums import OrganisationStatus
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import generate_key_value_pair
-from users.enums import UserStatuses
 from users.libraries.get_user import get_user_organisation_relationship
 
 
@@ -30,7 +30,7 @@ class UserTests(DataTestClient):
                         "id": str(relationship.organisation.id),
                         "joined_at": date_to_drf_date(relationship.created_at),
                         "name": relationship.organisation.name,
-                        "status": generate_key_value_pair(relationship.status, UserStatuses.choices),
+                        "status": generate_key_value_pair(relationship.organisation.status, OrganisationStatus.choices),
                     }
                 ],
                 "role": {
