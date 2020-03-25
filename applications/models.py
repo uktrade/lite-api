@@ -139,7 +139,7 @@ class ApplicationPartyMixin:
 
 
 class BaseApplication(ApplicationPartyMixin, Case):
-    name = models.TextField(default=None, blank=True, null=True)
+    name = models.TextField(default=None, blank=False, null=False)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
