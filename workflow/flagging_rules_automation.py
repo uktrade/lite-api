@@ -118,19 +118,15 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
     """
     if flagging_rule.status == FlagStatuses.ACTIVE and flagging_rule.flag.status == FlagStatuses.ACTIVE:
         open_cases = Case.objects.submitted().is_open()
-        from django.db import connection
 
         if flagging_rule.level == FlagLevels.CASE:
-            print("CASE BEFORE: " + str(len(connection.queries)))
             open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value).values_list(
                 "id", flat=True
             )
 
             flagging_rule.flag.cases.add(*open_cases)
-            print("CASE AFTER: " + str(len(connection.queries)))
-        elif flagging_rule.level == FlagLevels.GOOD:
-            print("GOOD BEFORE: " + str(len(connection.queries)))
 
+        elif flagging_rule.level == FlagLevels.GOOD:
             good_in_query = GoodsQuery.objects.exclude(
                 status__status__in=CaseStatusEnum.terminal_statuses() + [CaseStatusEnum.DRAFT]
             ).values_list("good_id", flat=True)
@@ -142,10 +138,7 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
             goods = GoodOnApplication.objects.filter(application_id__in=open_cases).values_list("good_id", flat=True)
             flagging_rule.flag.goods.add(*goods)
 
-            print("GOOD AFTER: " + str(len(connection.queries)))
         elif flagging_rule.level == FlagLevels.DESTINATION:
-            print("DESTINATION BEFORE: " + str(len(connection.queries)))
-
             end_users = (
                 EndUserAdvisoryQuery.objects.filter(end_user__country_id=flagging_rule.matching_value)
                 .exclude(status__status__in=CaseStatusEnum.terminal_statuses() + [CaseStatusEnum.DRAFT])
@@ -161,7 +154,6 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
             flagging_rule.flag.parties.add(*parties)
 
             Country.objects.get(id=flagging_rule.matching_value).flags.add(flagging_rule.flag)
-            print("DESTINATION AFTER: " + str(len(connection.queries)))
 
 
 def apply_flagging_rule_for_flag(flag: Flag):
