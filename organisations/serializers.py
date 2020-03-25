@@ -210,14 +210,6 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             "site",
         )
 
-    def validate_eori_number(self, value):
-        if self.instance and self.instance.primary_site.foreign_address:
-            return value
-
-        if self.initial_data.get("type") != OrganisationType.HMRC and not value:
-            raise serializers.ValidationError(Organisations.Create.BLANK_EORI)
-        return value
-
     def validate_sic_number(self, value):
         if value:
             if not value.isdigit():
