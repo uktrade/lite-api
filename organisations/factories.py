@@ -3,7 +3,7 @@ import random
 import factory
 from django.utils import timezone
 
-from addresses.factories import ForeignAddressFactory, AddressFactory
+from addresses.factories import AddressFactory
 from organisations import models
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.providers import OrganisationProvider
@@ -12,8 +12,8 @@ factory.Faker.add_provider(OrganisationProvider)
 
 
 def get_organisation_type():
-    lt_choices = [x[0] for x in OrganisationType.choices]
-    return random.choice(lt_choices)
+    lt_choices = [x[0] for x in OrganisationType.choices]  # nosec
+    return random.choice(lt_choices)  # nosec
 
 
 class OrganisationFactory(factory.django.DjangoModelFactory):
