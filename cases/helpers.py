@@ -144,7 +144,7 @@ def create_grouped_advice(case, request, advice, level):
 def get_assigned_to_user_case_ids(user: GovUser):
     from cases.models import CaseAssignment
 
-    return CaseAssignment.objects.filter(users=user).values_list("case__id", flat=True)
+    return CaseAssignment.objects.filter(user=user).values_list("case__id", flat=True)
 
 
 def get_users_assigned_to_case(case_assignments):
