@@ -88,7 +88,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
         if not check_user_has_permission(request.user, GovPermissions.MANAGE_ORGANISATIONS):
             return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST,)
 
-        if request.data["name"] != organisation.name:
+        if request.data.get("name", organisation.name) != organisation.name:
             org_name_changed = True
             if not check_user_has_permission(request.user, GovPermissions.REOPEN_CLOSED_CASES):
                 return JsonResponse(
@@ -106,7 +106,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
             if org_name_changed:
                 self.reopen_closed_cases_for_organisation(organisation)
 
-            return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
 
     @staticmethod
     def reopen_closed_cases_for_organisation(organisation):

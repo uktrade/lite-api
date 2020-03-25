@@ -101,6 +101,12 @@ class Site(TimestampableModel):
         db_table = "site"
         ordering = ["name"]
 
+    def get_country(self):
+        if self.address:
+            return self.address.country
+        else:
+            return self.foreign_address.country
+
 
 class ExternalLocation(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

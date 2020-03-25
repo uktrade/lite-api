@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from addresses.factories import ForeignAddressFactory
 from conf.authentication import EXPORTER_USER_TOKEN_HEADER
 from conf.constants import Roles, GovPermissions
 from conf.helpers import date_to_drf_date
@@ -322,214 +323,152 @@ class EditOrganisationTests(DataTestClient):
     faker = Faker()
     faker.add_provider(OrganisationProvider)
 
-    def setUp(self):
-        super().setUp()
-        self.organisation = OrganisationFactory()
-        self.url = reverse("organisations:organisation", kwargs={"pk": self.organisation.id})
+    def _get_url(self, org_id):
+        return reverse("organisations:organisation", kwargs={"pk": org_id})
 
-        self.original_org_name = self.organisation.name
-        self.original_org_type = self.organisation.type
-        self.original_org_eori_number = self.organisation.eori_number
-        self.original_org_sic_number = self.organisation.sic_number
-        self.original_org_vat_number = self.organisation.vat_number
-        self.original_org_registration_number = self.organisation.registration_number
-
-        self.org_name = self.faker.company()
-        self.eori_number = self.faker.eori_number()
-        self.sic_number = self.faker.sic_number()
-        self.vat_number = self.faker.vat_number()
-        self.registration_number = self.faker.registration_number()
-
-        self.data = {
-            "name": self.org_name,
-            "eori_number": self.eori_number,
-            "sic_number": self.sic_number,
-            "vat_number": self.vat_number,
-            "registration_number": self.registration_number,
-        }
-
-    def test_can_edit_organisation_with_manage_org_permission(self):
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name,]
-        )
-
-        response = self.client.put(self.url, self.data, **self.gov_headers)
-        response_data = response.json()["organisation"]
-        self.organisation.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["name"], self.org_name)
-        self.assertEqual(
-            response_data["type"], generate_key_value_pair(self.original_org_type, OrganisationType.choices)
-        )
-        self.assertEqual(response_data["eori_number"], self.eori_number)
-        self.assertEqual(response_data["sic_number"], self.sic_number)
-        self.assertEqual(response_data["vat_number"], self.vat_number)
-        self.assertEqual(response_data["registration_number"], self.registration_number)
-
-        self.assertEqual(self.organisation.name, self.org_name)
-        self.assertEqual(self.organisation.type, self.original_org_type)
-        self.assertEqual(self.organisation.eori_number, self.eori_number)
-        self.assertEqual(self.organisation.sic_number, self.sic_number)
-        self.assertEqual(self.organisation.vat_number, self.vat_number)
-        self.assertEqual(self.organisation.registration_number, self.registration_number)
-
-    def test_cannot_edit_organisation_without_manage_org_permission(self):
-        self.gov_user.role.permissions.clear()
-
-        response = self.client.put(self.url, self.data, **self.gov_headers)
-        response_data = response.json()["errors"]
-        self.org_copy = self.organisation
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, Organisations.NO_PERM_TO_EDIT)
-
-        # Assert the organisation has not changed
-        self.assertEqual(self.organisation.name, self.original_org_name)
-        self.assertEqual(self.organisation.type, self.original_org_type)
-        self.assertEqual(self.organisation.eori_number, self.original_org_eori_number)
-        self.assertEqual(self.organisation.sic_number, self.original_org_sic_number)
-        self.assertEqual(self.organisation.vat_number, self.original_org_vat_number)
-        self.assertEqual(self.organisation.registration_number, self.original_org_registration_number)
-
-    def test_can_edit_all_org_details_with_manage_and_reopen_permissions(self):
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
-        )
-
-        data = {
-            "name": self.org_name,
-            "type": self.original_org_type,
-            "eori_number": self.eori_number,
-            "sic_number": self.sic_number,
-            "vat_number": self.vat_number,
-            "registration_number": self.registration_number,
-        }
-
-        response = self.client.put(self.url, data, **self.gov_headers)
-        response_data = response.json()["organisation"]
-        self.organisation.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["name"], self.org_name)
-        self.assertEqual(
-            response_data["type"], generate_key_value_pair(self.original_org_type, OrganisationType.choices)
-        )
-        self.assertEqual(response_data["eori_number"], self.eori_number)
-        self.assertEqual(response_data["sic_number"], self.sic_number)
-        self.assertEqual(response_data["vat_number"], self.vat_number)
-        self.assertEqual(response_data["registration_number"], self.registration_number)
-
-        self.assertEqual(self.organisation.name, self.org_name)
-        self.assertEqual(self.organisation.type, self.original_org_type)
-        self.assertEqual(self.organisation.eori_number, self.eori_number)
-        self.assertEqual(self.organisation.sic_number, self.sic_number)
-        self.assertEqual(self.organisation.vat_number, self.vat_number)
-        self.assertEqual(self.organisation.registration_number, self.registration_number)
-
-    def test_cannot_edit_org_name_without_all_required_permissions(self):
-        """ Test that an organisations name cannot be edited if the user does not have both the 'Manage organisations'
-        and 'Reopen closed cases' permissions.
-
+    def test_set_org_details_success(self):
         """
-        self.gov_user.role.permissions.clear()
+        Internal users can change an organisation's information
+        """
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
-
         data = {
-            "name": self.org_name,
-            "type": self.original_org_type,
-            "eori_number": self.eori_number,
-            "sic_number": self.sic_number,
-            "vat_number": self.vat_number,
-            "registration_number": self.registration_number,
-            "user": {"email": "trinity@bsg.com"},
+            "eori_number": self.faker.eori_number(),
+            "sic_number": self.faker.sic_number(),
+            "vat_number": self.faker.vat_number(),
+            "registration_number": self.faker.registration_number(),
         }
 
-        response = self.client.put(self.url, data, **self.gov_headers)
-        response_data = response.json()["errors"]
-        self.organisation.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, Organisations.NO_PERM_TO_EDIT_NAME)
-
-        # Assert the organisation has not changed
-        self.assertEqual(self.organisation.name, self.original_org_name)
-        self.assertEqual(self.organisation.type, self.original_org_type)
-        self.assertEqual(self.organisation.eori_number, self.original_org_eori_number)
-        self.assertEqual(self.organisation.sic_number, self.original_org_sic_number)
-        self.assertEqual(self.organisation.vat_number, self.original_org_vat_number)
-        self.assertEqual(self.organisation.registration_number, self.original_org_registration_number)
-
-    def test_when_validate_only_org_is_not_edited(self):
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
-        )
-
-        self.data["validate_only"] = True
-
-        response = self.client.put(self.url, self.data, **self.gov_headers)
-        response_data = response.json()["organisation"]
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["name"], self.organisation.name)
-        self.assertEqual(response_data["type"]["key"], self.organisation.type)
-        self.assertEqual(response_data["eori_number"], self.organisation.eori_number)
-        self.assertEqual(response_data["sic_number"], self.organisation.sic_number)
-        self.assertEqual(response_data["vat_number"], self.organisation.vat_number)
-        self.assertEqual(response_data["registration_number"], self.organisation.registration_number)
+        self.assertEqual(organisation.eori_number, data["eori_number"])
+        self.assertEqual(organisation.sic_number, data["sic_number"])
+        self.assertEqual(organisation.vat_number, data["vat_number"])
+        self.assertEqual(organisation.registration_number, data["registration_number"])
+
+    def test_set_org_details_to_none_uk_address_failure(self):
+        """
+        Organisations based in the UK need to provide all details about themselves
+        """
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
+        data = {
+            "eori_number": None,
+            "sic_number": None,
+            "vat_number": None,
+            "registration_number": None,
+        }
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIsNotNone(organisation.eori_number)
+        self.assertIsNotNone(organisation.sic_number)
+        self.assertIsNotNone(organisation.vat_number)
+        self.assertIsNotNone(organisation.registration_number)
+
+    def test_set_org_details_to_none_foreign_address_success(self):
+        """
+        Organisations based in foreign countries don't need to provide
+        all details about themselves
+        """
+        organisation = OrganisationFactory(
+            type=OrganisationType.COMMERCIAL,
+            primary_site__address=None,
+            primary_site__foreign_address=ForeignAddressFactory(),
+        )
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
+        data = {
+            "eori_number": None,
+            "sic_number": None,
+            "vat_number": None,
+            "registration_number": None,
+        }
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(organisation.eori_number)
+        self.assertIsNone(organisation.sic_number)
+        self.assertIsNone(organisation.vat_number)
+        self.assertIsNone(organisation.registration_number)
+
+    def test_cannot_edit_organisation_without_permission(self):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        self.gov_user.role.permissions.clear()
+        data = {"name": self.faker.company()}
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], Organisations.NO_PERM_TO_EDIT)
+        self.assertNotEqual(organisation.name, data["name"])
+
+    def test_can_edit_name_with_manage_and_reopen_permissions(self):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        self.gov_user.role.permissions.set(
+            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
+        )
+        data = {"name": self.faker.company()}
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["organisation"]["name"], data["name"])
+        self.assertEqual(organisation.name, data["name"])
 
     def test_no_name_change_to_org_does_not_reopen_finalised_cases(self):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
         self.gov_user.role.permissions.set(
             [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
         )
 
-        case_one = self.create_standard_application_case(self.organisation, reference_name="Case one")
-        case_two = self.create_standard_application_case(self.organisation, reference_name="Case two")
+        case_one = self.create_standard_application_case(organisation, reference_name="Case one")
+        case_two = self.create_standard_application_case(organisation, reference_name="Case two")
 
         # Set case to finalised and provide licence duration
         case_one.status = get_case_status_by_status("finalised")
         case_one.licence_duration = 12
         case_one.save()
 
-        self.data["name"] = self.original_org_name
-        response = self.client.put(self.url, self.data, **self.gov_headers)
+        self.data = {"name": organisation.name}
+        response = self.client.put(self._get_url(organisation.id), self.data, **self.gov_headers)
         case_one.refresh_from_db()
         case_two.refresh_from_db()
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check no case status were updated as the org's name was not changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.FINALISED)
         self.assertEqual(case_two.status.status, CaseStatusEnum.SUBMITTED)
 
     def test_name_change_to_org_reopens_finalised_cases(self):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
         self.gov_user.role.permissions.set(
             [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
         )
 
-        data = {
-            "name": self.org_name,
-            "type": self.original_org_type,
-            "eori_number": self.eori_number,
-            "sic_number": self.sic_number,
-            "vat_number": self.vat_number,
-            "registration_number": self.registration_number,
-            "user": {"email": "trinity@bsg.com"},
-        }
+        data = {"name": self.faker.company()}
 
-        case_one = self.create_standard_application_case(self.organisation, reference_name="Case one")
-        case_two = self.create_standard_application_case(self.organisation, reference_name="Case two")
+        case_one = self.create_standard_application_case(organisation, reference_name="Case one")
+        case_two = self.create_standard_application_case(organisation, reference_name="Case two")
 
         # Set case to finalised and provide licence duration
         case_one.status = get_case_status_by_status("finalised")
         case_one.licence_duration = 12
         case_one.save()
 
-        response = self.client.put(self.url, data, **self.gov_headers)
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
         case_one.refresh_from_db()
         case_two.refresh_from_db()
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check only the finalised case's status was changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES)

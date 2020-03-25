@@ -12,6 +12,7 @@ from conf.serializers import (
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
+from static.countries.helpers import get_country
 from users.libraries.get_user import get_user_organisation_relationship
 from users.models import GovUser, UserOrganisationRelationship, Permission, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
@@ -127,6 +128,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     eori_number = serializers.CharField(
         max_length=17,
         required=False,
+        allow_null=True,
         allow_blank=True,
         error_messages={"blank": Organisations.Create.BLANK_EORI, "max_length": Organisations.Create.LENGTH_EORI},
     )
@@ -134,6 +136,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         min_length=9,
         max_length=9,
         required=False,
+        allow_null=True,
         allow_blank=True,
         error_messages={
             "blank": Organisations.Create.BLANK_VAT,
@@ -143,7 +146,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     )
     sic_number = serializers.CharField(
         required=False,
-        min_length=5,
+        allow_null=True,
+        allow_blank=True,
+        min_length=4,
         max_length=5,
         error_messages={
             "blank": Organisations.Create.BLANK_SIC,
@@ -153,6 +158,8 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     )
     registration_number = serializers.CharField(
         required=False,
+        allow_null=True,
+        allow_blank=True,
         min_length=8,
         max_length=8,
         error_messages={
@@ -165,10 +172,28 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     site = SiteCreateUpdateSerializer(write_only=True)
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        organisation_type = self.initial_data.get("type") or self.instance.type
+        in_uk = self.initial_data.get("location", "united_kingdom") == "united_kingdom"
+
+        if self.instance:
+            in_uk = self.instance.primary_site.get_country() == get_country("GB")
+
+        if organisation_type != OrganisationType.HMRC and in_uk:
+            self.fields["eori_number"].allow_blank = False
+            self.fields["eori_number"].allow_null = False
+
+        if organisation_type == OrganisationType.COMMERCIAL and in_uk:
+            self.fields["vat_number"].allow_blank = False
+            self.fields["vat_number"].allow_null = False
+            self.fields["registration_number"].allow_blank = False
+            self.fields["registration_number"].allow_null = False
+            self.fields["sic_number"].allow_blank = False
+            self.fields["sic_number"].allow_null = False
+
         if "data" in kwargs:
             if "user" in kwargs["data"]:
                 kwargs["data"]["user"]["sites"] = kwargs["data"]["user"].get("sites", [])
-        super().__init__(*args, **kwargs)
 
     class Meta:
         model = Organisation
@@ -186,6 +211,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         )
 
     def validate_eori_number(self, value):
+        if self.instance and self.instance.primary_site.foreign_address:
+            return value
+
         if self.initial_data.get("type") != OrganisationType.HMRC and not value:
             raise serializers.ValidationError(Organisations.Create.BLANK_EORI)
         return value
@@ -198,23 +226,12 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             int_value = int(value)
             if int_value < 1110 or int_value > 99999:
                 raise serializers.ValidationError(Organisations.Create.INVALID_SIC)
-
-        if self.initial_data.get("type") == OrganisationType.COMMERCIAL and not value:
-            raise serializers.ValidationError(Organisations.Create.BLANK_SIC)
         return value
 
     def validate_vat_number(self, value):
         if value:
             if not value.startswith("GB"):
                 raise serializers.ValidationError(Organisations.Create.INVALID_VAT)
-
-        if self.initial_data.get("type") == OrganisationType.COMMERCIAL and not value:
-            raise serializers.ValidationError(Organisations.Create.BLANK_VAT)
-        return value
-
-    def validate_registration_number(self, value):
-        if self.initial_data.get("type") == OrganisationType.COMMERCIAL and not value:
-            raise serializers.ValidationError(Organisations.Create.BLANK_REGISTRATION_NUMBER)
         return value
 
     @transaction.atomic
