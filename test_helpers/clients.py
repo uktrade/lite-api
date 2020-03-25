@@ -513,6 +513,22 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_document_for_party(application.consignee.party, safe=safe_document)
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
 
+    def add_additional_information(self, application):
+        additional_information = {
+            "expedited": False,
+            "mtcr_type": "mtcr_category_2",
+            "foreign_technology": False,
+            "locally_manufactured": False,
+            "uk_service_equipment": False,
+            "uk_service_equipment_type": "mod_funded",
+            "electronic_warfare_requirement": False,
+            "prospect_value": 100.0,
+        }
+        for key, item in additional_information.items():
+            setattr(application, key, item)
+
+        application.save()
+
     def create_draft_standard_application(
         self,
         organisation: Organisation,
@@ -565,7 +581,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_mod_clearance_application(
-        self, organisation, case_type, reference_name="MOD Clearance Draft", safe_document=True,
+        self,
+        organisation,
+        case_type,
+        reference_name="MOD Clearance Draft",
+        safe_document=True,
+        additional_information=True,
     ):
         if case_type == CaseTypeEnum.F680:
             model = F680ClearanceApplication
@@ -598,6 +619,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
             self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
+            if additional_information:
+                self.add_additional_information(application)
             application.intended_end_use = "intended end use here"
             application.save()
         else:
