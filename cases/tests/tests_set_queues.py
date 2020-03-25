@@ -61,4 +61,4 @@ class AssignQueuesToCaseTests(DataTestClient):
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["queues"], [f"{Cases.Queue.NOT_FOUND}[{str(random_id)}]"])
+        self.assertEqual(response.json()["errors"]["queues"], [f"{Cases.Queue.NOT_FOUND}['{str(random_id)}']"])

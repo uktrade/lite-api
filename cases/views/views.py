@@ -91,7 +91,7 @@ class SetQueues(APIView):
         if len(queues) > len(new_queues):
             queues_not_found = list(queues - set(str(id) for id in new_queues.values_list("id", flat=True)))
             return JsonResponse(
-                data={"errors": {"queues": [Cases.Queue.NOT_FOUND+str(queues_not_found)]}},
+                data={"errors": {"queues": [Cases.Queue.NOT_FOUND + str(queues_not_found)]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -101,6 +101,8 @@ class SetQueues(APIView):
         removed_queues = initial_queues - new_queues
         new_queues = new_queues - initial_queues
         if removed_queues:
+            # Remove case assignments when the case is remove from the queue
+            CaseAssignment.objects.filter(case=case, queue__name__in=removed_queues).delete()
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.REMOVE_CASE, target=case, payload={"queues": sorted(removed_queues)},
             )
