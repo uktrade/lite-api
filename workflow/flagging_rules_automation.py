@@ -1,6 +1,6 @@
 from django.db.models import QuerySet
 
-from applications.models import PartyOnApplication
+from applications.models import PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from flags.enums import FlagLevels, FlagStatuses
@@ -118,42 +118,50 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
     """
     if flagging_rule.status == FlagStatuses.ACTIVE and flagging_rule.flag.status == FlagStatuses.ACTIVE:
         open_cases = Case.objects.submitted().is_open()
-        flagging_rule_queryset = FlaggingRule.objects.filter(id=flagging_rule.id)
         from django.db import connection
 
         if flagging_rule.level == FlagLevels.CASE:
-
             print("CASE BEFORE: " + str(len(connection.queries)))
-            open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value)
+            open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value).values_list(
+                "id", flat=True
+            )
 
             flagging_rule.flag.cases.add(*open_cases)
             print("CASE AFTER: " + str(len(connection.queries)))
-
         elif flagging_rule.level == FlagLevels.GOOD:
             print("GOOD BEFORE: " + str(len(connection.queries)))
 
-            for case in open_cases:
-                apply_good_flagging_rules_for_case(case, flagging_rule_queryset)
+            good_in_query = GoodsQuery.objects.exclude(
+                status__status__in=CaseStatusEnum.terminal_statuses() + [CaseStatusEnum.DRAFT]
+            ).values_list("good_id", flat=True)
+            flagging_rule.flag.goods.add(*good_in_query)
+
+            good_types = GoodsType.objects.filter(application_id__in=open_cases).values_list("id", flat=True)
+            flagging_rule.flag.goods_type.add(*good_types)
+
+            goods = GoodOnApplication.objects.filter(application_id__in=open_cases).values_list("good_id", flat=True)
+            flagging_rule.flag.goods.add(*goods)
 
             print("GOOD AFTER: " + str(len(connection.queries)))
         elif flagging_rule.level == FlagLevels.DESTINATION:
             print("DESTINATION BEFORE: " + str(len(connection.queries)))
 
-            open_other_cases = open_cases.exclude(case_type_id=CaseTypeEnum.EUA.id).values("id")
-
-            end_users = EndUserAdvisoryQuery.objects.exclude(
-                status__status__in=CaseStatusEnum.terminal_statuses() + [CaseStatusEnum.DRAFT]
-            ).values("end_user")
+            end_users = (
+                EndUserAdvisoryQuery.objects.filter(end_user__country_id=flagging_rule.matching_value)
+                .exclude(status__status__in=CaseStatusEnum.terminal_statuses() + [CaseStatusEnum.DRAFT])
+                .values_list("end_user_id", flat=True)
+            )
             flagging_rule.flag.parties.add(*end_users)
 
+            non_eua_open_cases = open_cases.exclude(case_type_id=CaseTypeEnum.EUA.id).values_list("id", flat=True)
+
             parties = PartyOnApplication.objects.filter(
-                application_id__in=open_other_cases, party__country_id=flagging_rule.matching_value
-            ).values("party")
+                application_id__in=non_eua_open_cases, party__country_id=flagging_rule.matching_value
+            ).values_list("party_id", flat=True)
             flagging_rule.flag.parties.add(*parties)
 
-            print("DESTINATION AFTER: " + str(len(connection.queries)))
             Country.objects.get(id=flagging_rule.matching_value).flags.add(flagging_rule.flag)
-            print("DESTINATION FINAL: " + str(len(connection.queries)))
+            print("DESTINATION AFTER: " + str(len(connection.queries)))
 
 
 def apply_flagging_rule_for_flag(flag: Flag):
