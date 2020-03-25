@@ -117,7 +117,8 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
     Takes a flagging rule and applies it's flag on objects as relevant
     """
     if flagging_rule.status == FlagStatuses.ACTIVE and flagging_rule.flag.status == FlagStatuses.ACTIVE:
-        open_cases = Case.objects.submitted().is_open()
+        submitted_and_open_statuses = [*CaseStatusEnum.terminal_statuses(), CaseStatusEnum.DRAFT]
+        open_cases = Case.objects.filter(status__status__in=submitted_and_open_statuses)
 
         if flagging_rule.level == FlagLevels.CASE:
             open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value).values_list(
@@ -127,9 +128,9 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
             flagging_rule.flag.cases.add(*open_cases)
 
         elif flagging_rule.level == FlagLevels.GOOD:
-            good_in_query = GoodsQuery.objects.exclude(
-                status__status__in=CaseStatusEnum.terminal_statuses() + [CaseStatusEnum.DRAFT]
-            ).values_list("good_id", flat=True)
+            good_in_query = GoodsQuery.objects.exclude(status__status__in=submitted_and_open_statuses).values_list(
+                "good_id", flat=True
+            )
             flagging_rule.flag.goods.add(*good_in_query)
 
             good_types = GoodsType.objects.filter(application_id__in=open_cases).values_list("id", flat=True)
@@ -141,7 +142,7 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
         elif flagging_rule.level == FlagLevels.DESTINATION:
             end_users = (
                 EndUserAdvisoryQuery.objects.filter(end_user__country_id=flagging_rule.matching_value)
-                .exclude(status__status__in=CaseStatusEnum.terminal_statuses() + [CaseStatusEnum.DRAFT])
+                .exclude(status__status__in=submitted_and_open_statuses)
                 .values_list("end_user_id", flat=True)
             )
             flagging_rule.flag.parties.add(*end_users)
