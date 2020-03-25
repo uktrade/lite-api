@@ -11,7 +11,8 @@ from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
 from addresses.models import Address
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
+from applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
+from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from applications.libraries.licence import get_default_duration
 from applications.models import (
     BaseApplication,
@@ -27,7 +28,7 @@ from applications.models import (
     F680ClearanceApplication,
     Licence,
 )
-from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum
+from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
 from cases.sla import get_application_target_sla
@@ -271,7 +272,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        update_submitted_application_good_statuses_and_flags(application)
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+            set_case_flags_on_submitted_standard_or_open_application(application)
+
+        add_goods_flags_to_submitted_application(application)
 
         return application
 
@@ -543,6 +547,22 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_document_for_party(application.consignee.party, safe=safe_document)
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
 
+    def add_additional_information(self, application):
+        additional_information = {
+            "expedited": False,
+            "mtcr_type": "mtcr_category_2",
+            "foreign_technology": False,
+            "locally_manufactured": False,
+            "uk_service_equipment": False,
+            "uk_service_equipment_type": "mod_funded",
+            "electronic_warfare_requirement": False,
+            "prospect_value": 100.0,
+        }
+        for key, item in additional_information.items():
+            setattr(application, key, item)
+
+        application.save()
+
     def create_draft_standard_application(
         self,
         organisation: Organisation,
@@ -595,7 +615,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_mod_clearance_application(
-        self, organisation, case_type, reference_name="MOD Clearance Draft", safe_document=True,
+        self,
+        organisation,
+        case_type,
+        reference_name="MOD Clearance Draft",
+        safe_document=True,
+        additional_information=True,
     ):
         if case_type == CaseTypeEnum.F680:
             model = F680ClearanceApplication
@@ -628,6 +653,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_party("End User", organisation, PartyType.END_USER, application)
             self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
             self.add_party_documents(application, safe_document, consignee=case_type == CaseTypeEnum.EXHIBITION)
+            if additional_information:
+                self.add_additional_information(application)
             application.intended_end_use = "intended end use here"
             application.save()
         else:

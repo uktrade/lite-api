@@ -1,4 +1,6 @@
-from lite_content.lite_api import strings
+from django.utils import timezone
+
+from applications import constants
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
@@ -8,6 +10,7 @@ from applications.models import (
 from cases.enums import CaseTypeSubTypeEnum
 from documents.models import Document
 from goodstype.models import GoodsType
+from lite_content.lite_api import strings
 from parties.models import PartyDocument
 
 
@@ -168,6 +171,25 @@ def _validate_end_use_details(draft, errors, application_type):
     return errors
 
 
+def _validate_additional_information(draft, errors):
+    for field in constants.F680.REQUIRED_FIELDS:
+        if getattr(draft, field) is None or getattr(draft, field) == "":
+            errors["additional_information"] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+        if getattr(draft, field) is True:
+            secondary_field = constants.F680.REQUIRED_SECONDARY_FIELDS.get(field, False)
+            if secondary_field and not getattr(draft, secondary_field):
+                errors[
+                    "additional_information"
+                ] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+
+    today = timezone.now().date()
+
+    if getattr(draft, "expedited_date") and getattr(draft, "expedited_date") < today:
+        errors["questions"] = strings.Applications.F680.AdditionalInformation.Errors.PAST_DATE
+
+    return errors
+
+
 def _validate_third_parties(draft, errors, is_mandatory):
     """ Checks all third parties have documents if is_mandatory is True """
 
@@ -258,6 +280,7 @@ def _validate_f680_clearance(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
+    errors = _validate_additional_information(draft, errors)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
 
     if not draft.end_user and not draft.third_parties.exists():
