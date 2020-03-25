@@ -1,7 +1,8 @@
-from audit_trail import service as audit_trail_service
+from datetime import date
 
+from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from conf.helpers import str_to_bool
+from conf.helpers import str_to_bool, convert_date_to_string
 from lite_content.lite_api.strings import Applications as strings
 
 END_USE_FIELDS = {
@@ -90,24 +91,43 @@ def save_and_audit_temporary_export_details(request, application, serializer):
             new_temp_export_details[temp_export_field] = validated_data[temp_export_field]
 
     if new_temp_export_details:
-        old_temp_export_details = {temp_export_field: application.temp_export_field for temp_export_field in
-                                   TEMP_EXPORT_DETAILS_FIELD.keys()}
+        old_temp_export_details = {
+            temp_export_field: getattr(application, temp_export_field)
+            for temp_export_field in TEMP_EXPORT_DETAILS_FIELD.keys()
+        }
         serializer.save()
 
         for key, new_temp_export_val in new_temp_export_details.items():
             old_temp_export_val = old_temp_export_details[key]
             if new_temp_export_val != old_temp_export_val:
-                old_temp_export_val, new_temp_export_val = _transform_values(old_temp_export_val, new_temp_export_val)
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UPDATE_APPLICATION_END_USE_DETAIL,
-                    target=application.get_case(),
-                    payload={
-                        "end_use_detail": TEMP_EXPORT_DETAILS_FIELD[key],
-                        "old_end_use_detail": old_temp_export_val,
-                        "new_end_use_detail": new_temp_export_val,
-                    },
-                )
+
+                if isinstance(new_temp_export_val, date):
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATE_APPLICATION_TEMPORARY_EXPORT,
+                        target=application.get_case(),
+                        payload={
+                            "temp_export_detail": TEMP_EXPORT_DETAILS_FIELD[key],
+                            "old_temp_export_detail": convert_date_to_string(old_temp_export_val)
+                            if old_temp_export_val
+                            else "",
+                            "new_temp_export_detail": convert_date_to_string(new_temp_export_val),
+                        },
+                    )
+                else:
+                    old_temp_export_val, new_temp_export_val = _transform_values(
+                        old_temp_export_val, new_temp_export_val
+                    )
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATE_APPLICATION_TEMPORARY_EXPORT,
+                        target=application.get_case(),
+                        payload={
+                            "temp_export_detail": TEMP_EXPORT_DETAILS_FIELD[key],
+                            "old_temp_export_detail": old_temp_export_val,
+                            "new_temp_export_detail": new_temp_export_val,
+                        },
+                    )
 
 
 def save_and_audit_have_you_been_informed_ref(request, application, serializer):

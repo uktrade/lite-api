@@ -84,7 +84,7 @@ class OpenApplicationTests(DataTestClient):
         self.assertContains(
             response,
             text="To complete the application, complete the Temp Export Details",
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_submit_open_application_temporary_with_partial_temp_export_details_failure(self):
@@ -99,5 +99,5 @@ class OpenApplicationTests(DataTestClient):
         self.assertContains(
             response,
             text="To complete the application, complete the Temp Export Details",
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_400_BAD_REQUEST,
         )

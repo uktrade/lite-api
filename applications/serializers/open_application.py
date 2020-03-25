@@ -19,6 +19,8 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     additional_documents = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
 
+    proposed_return_date = serializers.DateField(required=False)
+
     class Meta:
         model = OpenApplication
         fields = GenericApplicationViewSerializer.Meta.fields + (

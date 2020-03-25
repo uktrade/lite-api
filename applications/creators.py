@@ -172,7 +172,7 @@ def _validate_end_use_details(draft, errors, application_type):
 def _validate_temporary_export_details(draft, errors):
     if draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
         if draft.export_type == ApplicationExportType.TEMPORARY:
-            if(
+            if (
                 not draft.temp_export_details
                 or draft.is_temp_direct_control is None
                 or draft.proposed_return_date is None

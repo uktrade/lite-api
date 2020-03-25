@@ -125,8 +125,5 @@ def get_temp_export_details_update_serializer(export_type):
         return TemporaryExportDetailsUpdateSerializer
     else:
         raise BadRequestError(
-            {
-                f"get_temp_export_details_update_serializer does "
-                f"not support this export type: {export_type}"
-            }
+            {f"get_temp_export_details_update_serializer does " f"not support this export type: {export_type}"}
         )

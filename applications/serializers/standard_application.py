@@ -20,6 +20,8 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     goods_categories = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
 
+    proposed_return_date = serializers.DateField(required=False)
+
     def get_goods_categories(self, instance):
         # Return a formatted key, value format of GoodsCategories
         # Order according to the choices in GoodsCategory
