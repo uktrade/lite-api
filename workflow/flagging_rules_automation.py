@@ -118,7 +118,7 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
     """
     if flagging_rule.status == FlagStatuses.ACTIVE and flagging_rule.flag.status == FlagStatuses.ACTIVE:
         submitted_and_open_statuses = [*CaseStatusEnum.terminal_statuses(), CaseStatusEnum.DRAFT]
-        open_cases = Case.objects.filter(status__status__in=submitted_and_open_statuses)
+        open_cases = Case.objects.exclude(status__status__in=submitted_and_open_statuses)
 
         if flagging_rule.level == FlagLevels.CASE:
             open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value).values_list(
