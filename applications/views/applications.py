@@ -268,6 +268,7 @@ class ApplicationSubmission(APIView):
     def put(self, request, application):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
+        Depending on the application subtype, this will also submit the declaration of the licence
         """
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
             assert_user_has_permission(
@@ -320,46 +321,6 @@ class ApplicationSubmission(APIView):
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
         if application.reference_code:
             data["reference_code"] = application.reference_code
-
-        return JsonResponse(data=data, status=status.HTTP_200_OK)
-
-
-class ApplicationDeclaration(APIView):
-    authentication_classes = (ExporterAuthentication,)
-
-    @transaction.atomic
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
-
-        errors = {}
-        errors = _validate_agree_to_declaration(request, errors)
-        if errors:
-
-            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        submit_and_set_sla(application)
-        application.save()
-
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
-            set_case_flags_on_submitted_standard_or_open_application(application)
-
-        add_goods_flags_to_submitted_application(application)
-        apply_flagging_rules_to_case(application)
-
-        # Serialize for the response message
-        serializer = get_application_view_serializer(application)
-        serializer = serializer(application)
-
-        data = {"application": {"reference_code": application.reference_code, **serializer.data}}
-
-        # Always create the audit when application is submitted or edited
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=application.get_case(),
-            payload={"status": application.status.status},
-        )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
