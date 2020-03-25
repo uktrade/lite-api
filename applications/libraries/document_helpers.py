@@ -38,9 +38,7 @@ def get_application_document(doc_pk):
 
 def upload_application_document(application, data, user):
     data["application"] = application.id
-
     serializer = ApplicationDocumentSerializer(data=data)
-
     if not serializer.is_valid():
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
