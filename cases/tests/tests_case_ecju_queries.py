@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.models import EcjuQuery
+from picklists.enums import PicklistType
 from test_helpers.clients import DataTestClient
 
 
@@ -29,6 +30,7 @@ class CaseEcjuQueriesTests(DataTestClient):
             response="I have a response",
             raised_by_user=self.gov_user_2,
             responded_by_user=self.exporter_user,
+            query_type=PicklistType.ECJU,
         )
         ecju_query.save()
         ecju_query = EcjuQuery(question="ECJU Query 3", case=self.case2, raised_by_user=self.gov_user)
@@ -136,7 +138,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         """
         case = self.create_standard_application_case(self.organisation)
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
-        data = {"question": "Test ECJU Query question?"}
+        data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
 
         response = self.client.post(url, data, **self.gov_headers)
         response_data = json.loads(response.content)
@@ -154,7 +156,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         """
         case = self.create_clc_query("Query", self.organisation)
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
-        data = {"question": "Test ECJU Query question?"}
+        data = {"question": "Test ECJU Query question?", "query_type": PicklistType.COMPLIANCE_ACTIONS}
 
         # Act
         response = self.client.post(url, data, **self.gov_headers)
