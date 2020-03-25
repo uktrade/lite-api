@@ -67,7 +67,7 @@ class Command(SeedCommand):
         except ValueError:
             raise ValueError(
                 f"INTERNAL_ADMIN_TEAM_USERS has incorrect format;"
-                f"\nexpected format: [{{'email': '', 'role': ''}}]"
+                f'\nexpected format: [{{"email": "", "role": ""}}]'
                 f"\nbut got: {admin_users}"
             )
 

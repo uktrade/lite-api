@@ -20,9 +20,12 @@ from applications.libraries.application_helpers import (
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
 )
-from applications.libraries.edit_applications import save_and_audit_have_you_been_informed_ref
+from applications.libraries.edit_applications import (
+    save_and_audit_have_you_been_informed_ref,
+    set_case_flags_on_submitted_standard_or_open_application,
+)
 from applications.libraries.get_applications import get_application
-from applications.libraries.goods_on_applications import update_submitted_application_good_statuses_and_flags
+from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
 from applications.libraries.licence import get_default_duration
 from applications.models import (
     BaseApplication,
@@ -267,9 +270,11 @@ class ApplicationSubmission(APIView):
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         application.save()
 
-        apply_flagging_rules_to_case(application)
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+            set_case_flags_on_submitted_standard_or_open_application(application)
 
-        update_submitted_application_good_statuses_and_flags(application)
+        add_goods_flags_to_submitted_application(application)
+        apply_flagging_rules_to_case(application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -520,8 +525,11 @@ class ApplicationCopy(APIView):
             "submitted_at",
             "licence_duration",
             "is_informed_wmd",
+            "informed_wmd_ref",
             "is_suspected_wmd",
+            "suspected_wmd_ref",
             "is_military_end_use_controls",
+            "military_end_use_controls_ref",
             "is_eu_military",
             "is_compliant_limitations_eu",
             "compliant_limitations_eu_ref",
