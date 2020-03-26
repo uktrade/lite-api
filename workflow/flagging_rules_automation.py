@@ -131,7 +131,7 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
             flagging_rule.flag.cases.add(*open_cases)
 
         elif flagging_rule.level == FlagLevels.GOOD:
-            # Add flag to all Goods an open Goods Queries
+            # Add flag to all Goods on open Goods Queries
             good_in_query = GoodsQuery.objects.exclude(status__status__in=draft_and_terminal_statuses).values_list(
                 "good_id", flat=True
             )
