@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from rest_framework import serializers
 
 from addresses.models import Address, ForeignAddress
@@ -14,7 +15,7 @@ from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
 from users.libraries.get_user import get_user_organisation_relationship
-from users.models import GovUser, UserOrganisationRelationship, Permission, ExporterUser
+from users.models import GovUser, UserOrganisationRelationship, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
@@ -39,19 +40,11 @@ class SiteViewSerializer(SiteListSerializer):
     users = serializers.SerializerMethodField()
 
     def get_users(self, instance):
-        users = set([x.user for x in UserOrganisationRelationship.objects.filter(sites__id__exact=instance.id)])
-        permission = Permission.objects.get(id=ExporterPermissions.ADMINISTER_SITES.name)
-        users_with_permission = set(
-            [
-                x.user
-                for x in UserOrganisationRelationship.objects.filter(
-                    organisation=instance.organisation, role__permissions__id=permission.id
-                )
-            ]
-        )
-        users_union = users.union(users_with_permission)
-        users_union = sorted(users_union, key=lambda x: x.first_name)
-        return ExporterUserSimpleSerializer(users_union, many=True).data
+        users = UserOrganisationRelationship.objects.filter(
+            Q(sites__id__exact=instance.id)
+            | Q(organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name)
+        ).select_related("user")
+        return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
 
     class Meta:
         model = Site
