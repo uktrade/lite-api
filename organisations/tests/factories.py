@@ -24,7 +24,7 @@ class OrganisationFactory(factory.django.DjangoModelFactory):
     sic_number = factory.Faker("sic_number")
     vat_number = factory.Faker("vat_number")
     registration_number = factory.Faker("registration_number")
-    primary_site = factory.SubFactory("organisations.factories.SiteFactory", organisation=None)
+    primary_site = factory.SubFactory("organisations.tests.factories.SiteFactory", organisation=None)
     created_at = factory.LazyAttribute(lambda _: timezone.now())
     updated_at = factory.LazyAttribute(lambda _: timezone.now())
 
