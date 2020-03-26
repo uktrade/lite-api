@@ -2,6 +2,7 @@ from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
+from cases.enums import CaseTypeReferenceEnum
 from test_helpers.clients import PerformanceTestClient
 from parameterized import parameterized
 
@@ -15,7 +16,7 @@ class FlaggingRulesPerformanceTests(PerformanceTestClient):
         self.gov_user.save()
 
         flag = self.create_flag("test", "Case", self.team)
-        data = {"level": "Case", "flag": str(flag.id), "matching_value": "SIEL"}
+        data = {"level": "Case", "flag": str(flag.id), "matching_value": CaseTypeReferenceEnum.SIEL}
 
         response = self.client.post(self.url, data=data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -26,7 +27,8 @@ class FlaggingRulesPerformanceTests(PerformanceTestClient):
         Tests the performance of the 'flags/rules/' endpoint
         """
         for i in range(open_cases_count):
-            self.create_standard_application_case(organisation=self.organisation)
+            application = self.create_draft_open_application(organisation=self.organisation)
+            self.submit_application(application)
 
         print(f"open_cases: {open_cases_count}")
         self.timeit(self._create_flagging_rule_request)

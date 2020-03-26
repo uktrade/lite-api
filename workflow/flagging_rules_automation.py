@@ -132,17 +132,23 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
 
         elif flagging_rule.level == FlagLevels.GOOD:
             # Add flag to all Goods on open Goods Queries
-            good_in_query = GoodsQuery.objects.exclude(status__status__in=draft_and_terminal_statuses).values_list(
-                "good_id", flat=True
+            good_in_query = (
+                GoodsQuery.objects.filter(good__control_code=flagging_rule.matching_value)
+                .exclude(status__status__in=draft_and_terminal_statuses)
+                .values_list("good_id", flat=True)
             )
             flagging_rule.flag.goods.add(*good_in_query)
 
             # Add flag to all Goods Types
-            goods_types = GoodsType.objects.filter(application_id__in=open_cases).values_list("id", flat=True)
+            goods_types = GoodsType.objects.filter(
+                application_id__in=open_cases, control_code=flagging_rule.matching_value
+            ).values_list("id", flat=True)
             flagging_rule.flag.goods_type.add(*goods_types)
 
             # Add flag to all open Applications
-            goods = GoodOnApplication.objects.filter(application_id__in=open_cases).values_list("good_id", flat=True)
+            goods = GoodOnApplication.objects.filter(
+                application_id__in=open_cases, control_code=flagging_rule.matching_value
+            ).values_list("good_id", flat=True)
             flagging_rule.flag.goods.add(*goods)
 
         elif flagging_rule.level == FlagLevels.DESTINATION:
