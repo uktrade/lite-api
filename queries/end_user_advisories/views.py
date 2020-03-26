@@ -2,6 +2,7 @@ import json
 
 from django.http import JsonResponse
 from rest_framework import status, serializers
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -20,18 +21,12 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
-class EndUserAdvisoriesList(APIView):
+class EndUserAdvisoriesList(ListAPIView):
     authentication_classes = (ExporterAuthentication,)
+    serializer_class = EndUserAdvisoryListSerializer
 
-    def get(self, request):
-        """
-        View all end user advisories belonging to an organisation.
-        """
-        end_user_advisories = EndUserAdvisoryQuery.objects.filter(organisation=request.user.organisation)
-        serializer = EndUserAdvisoryListSerializer(
-            end_user_advisories, many=True, context={"exporter_user": request.user}
-        )
-        return JsonResponse(data={"end_user_advisories": serializer.data})
+    def get_queryset(self):
+        return EndUserAdvisoryQuery.objects.filter(organisation=self.request.user.organisation)
 
     def post(self, request):
         """

@@ -35,7 +35,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.exporter_user = kwargs.get("context").get("exporter_user")
+        self.exporter_user = kwargs["context"]["request"].user
 
     def get_exporter_user_notification_count(self, instance):
         return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
