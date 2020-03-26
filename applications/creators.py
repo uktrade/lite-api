@@ -252,6 +252,7 @@ def _validate_standard_licence(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
+    errors = _validate_route_of_goods(draft, errors)
 
     return errors
 
@@ -320,7 +321,14 @@ def _validate_open_licence(draft, errors):
     errors = _validate_countries(draft, errors, is_mandatory=True)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
+    errors = _validate_route_of_goods(draft, errors)
 
+    return errors
+
+
+def _validate_route_of_goods(draft, errors):
+    if draft.is_shipped_waybill_or_lading is None:
+        errors["route_of_goods"] = strings.Applications.Generic.NO_ROUTE_OF_GOODS
     return errors
 
 

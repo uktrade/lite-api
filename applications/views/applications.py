@@ -6,7 +6,11 @@ from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ErrorDetail
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
+)
 from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
@@ -54,8 +58,13 @@ from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
-from conf.decorators import authorised_users, application_in_major_editable_state, application_in_editable_state
-from conf.helpers import convert_date_to_string
+from conf.decorators import (
+    authorised_users,
+    application_in_major_editable_state,
+    application_in_editable_state,
+    allowed_application_types,
+)
+from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
@@ -569,6 +578,8 @@ class ApplicationCopy(APIView):
             "is_eu_military",
             "is_compliant_limitations_eu",
             "compliant_limitations_eu_ref",
+            "is_shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
             "intended_end_use",
         ]
         for attribute in set_none:
@@ -721,3 +732,48 @@ class ExhibitionDetails(ListCreateAPIView):
             return JsonResponse(data={"application": serializer.data}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ApplicationRouteOfGoods(UpdateAPIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @authorised_users(ExporterUser)
+    @application_in_major_editable_state()
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
+    def put(self, request, application):
+        """ Update an application instance with route of goods data. """
+
+        serializer = get_application_update_serializer(application)
+        case = application.get_case()
+        data = request.data.copy()
+
+        serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
+        if not serializer.is_valid():
+            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        previous_answer = application.is_shipped_waybill_or_lading
+        new_answer = str_to_bool(data.get("is_shipped_waybill_or_lading"))
+
+        if previous_answer != new_answer:
+            self.add_audit_entry(request, case, "is shipped waybill or lading", previous_answer, new_answer)
+
+        if not new_answer:
+            previous_details = application.non_waybill_or_lading_route_details
+            new_details = data.get("non_waybill_or_lading_route_details")
+
+            if previous_details != new_details:
+                self.add_audit_entry(
+                    request, case, "non_waybill_or_lading_route_details", previous_details, new_details
+                )
+
+        serializer.save()
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def add_audit_entry(request, case, field, previous_value, new_value):
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_ROUTE_OF_GOODS,
+            target=case,
+            payload={"route_of_goods_field": field, "previous_value": previous_value, "new_value": new_value},
+        )
