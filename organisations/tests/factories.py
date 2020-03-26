@@ -3,10 +3,10 @@ import random
 import factory
 from django.utils import timezone
 
-from addresses.factories import AddressFactory
+from addresses.tests.factories import AddressFactory
 from organisations import models
 from organisations.enums import OrganisationType, OrganisationStatus
-from organisations.providers import OrganisationProvider
+from organisations.tests.providers import OrganisationProvider
 
 factory.Faker.add_provider(OrganisationProvider)
 

@@ -41,7 +41,7 @@ from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
 from organisations.enums import OrganisationType
-from organisations.factories import OrganisationFactory, SiteFactory
+from organisations.tests.factories import OrganisationFactory, SiteFactory
 from organisations.models import Organisation, ExternalLocation
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party

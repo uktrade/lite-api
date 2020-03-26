@@ -1,9 +1,8 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from organisations.factories import OrganisationFactory
+from organisations.tests.factories import OrganisationFactory
 from organisations.models import Site
-from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
 from faker import Faker
 

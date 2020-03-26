@@ -11,7 +11,7 @@ from applications.models import (
 )
 from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
-from organisations.factories import SiteFactory
+from organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_user_organisation_relationship

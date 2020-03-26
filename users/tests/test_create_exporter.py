@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
 from conf.constants import Roles
-from organisations.factories import SiteFactory
+from organisations.tests.factories import SiteFactory
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
