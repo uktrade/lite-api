@@ -30,6 +30,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
             "reference_code",
             "exporter_user_notification_count",
         )
+        read_only_fields = fields
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
