@@ -83,22 +83,22 @@ class SetQueues(APIView):
     @transaction.atomic
     def put(self, request, pk):
         case = get_case(pk)
-        queues = set(request.data.get("queues", []))
+        request_queues = set(request.data.get("queues", []))
         initial_queues = set(case.queues.values_list("name", flat=True))
-        new_queues = Queue.objects.filter(id__in=queues)
+        queues = Queue.objects.filter(id__in=request_queues)
 
-        if len(queues) > len(new_queues):
-            queues_not_found = list(queues - set(str(id) for id in new_queues.values_list("id", flat=True)))
+        if len(request_queues) > len(queues):
+            queues_not_found = list(request_queues - set(str(id) for id in queues.values_list("id", flat=True)))
             return JsonResponse(
                 data={"errors": {"queues": [Cases.Queue.NOT_FOUND + str(queues_not_found)]}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        new_queues = set(new_queues.values_list("name", flat=True))
-        case.queues.set(queues)
+        queues = set(queues.values_list("name", flat=True))
+        case.queues.set(request_queues)
 
-        removed_queues = initial_queues - new_queues
-        new_queues = new_queues - initial_queues
+        removed_queues = initial_queues - queues
+        new_queues = queues - initial_queues
         if removed_queues:
             # Remove case assignments when the case is remove from the queue
             CaseAssignment.objects.filter(case=case, queue__name__in=removed_queues).delete()
@@ -109,7 +109,7 @@ class SetQueues(APIView):
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.MOVE_CASE, target=case, payload={"queues": sorted(new_queues)}
             )
-        return JsonResponse(data={"queues": list(queues)}, status=status.HTTP_200_OK)
+        return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
 
 class CaseDocuments(APIView):
