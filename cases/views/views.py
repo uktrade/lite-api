@@ -84,7 +84,6 @@ class SetQueues(APIView):
     def put(self, request, pk):
         case = get_case(pk)
         request_queues = set(request.data.get("queues", []))
-        initial_queues = set(case.queues.values_list("name", flat=True))
         queues = Queue.objects.filter(id__in=request_queues)
 
         if len(request_queues) > len(queues):
@@ -94,20 +93,21 @@ class SetQueues(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queues = set(queues.values_list("name", flat=True))
+        initial_queues = set(case.queues.all())
+        queues = set(queues)
         case.queues.set(request_queues)
 
         removed_queues = initial_queues - queues
         new_queues = queues - initial_queues
         if removed_queues:
             # Remove case assignments when the case is remove from the queue
-            CaseAssignment.objects.filter(case=case, queue__name__in=removed_queues).delete()
+            CaseAssignment.objects.filter(case=case, queue__in=removed_queues).delete()
             audit_trail_service.create(
-                actor=request.user, verb=AuditType.REMOVE_CASE, target=case, payload={"queues": sorted(removed_queues)},
+                actor=request.user, verb=AuditType.REMOVE_CASE, target=case, payload={"queues": sorted([queue.name for queue in removed_queues])},
             )
         if new_queues:
             audit_trail_service.create(
-                actor=request.user, verb=AuditType.MOVE_CASE, target=case, payload={"queues": sorted(new_queues)}
+                actor=request.user, verb=AuditType.MOVE_CASE, target=case, payload={"queues": sorted([queue.name for queue in new_queues])}
             )
         return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
