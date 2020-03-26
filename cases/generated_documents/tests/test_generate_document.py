@@ -7,10 +7,7 @@ from rest_framework.reverse import reverse
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
-from picklists.enums import PickListStatus, PicklistType
-from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
 from users.models import ExporterNotification
 
@@ -18,14 +15,7 @@ from users.models import ExporterNotification
 class GenerateDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.picklist_item = self.create_picklist_item(
-            "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
-        )
-        self.letter_layout = LetterLayout.objects.first()
-
-        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
-        self.letter_template.case_types.add(CaseTypeEnum.SIEL.id)
-        self.letter_template.letter_paragraphs.add(self.picklist_item)
+        self.letter_template = self.create_letter_template(name="SIEL", case_types=[CaseTypeEnum.SIEL.id])
 
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id), "text": "sample", "visible_to_exporter": True}
@@ -49,6 +39,28 @@ class GenerateDocumentTests(DataTestClient):
             ).count()
             == 1
         )
+
+    @mock.patch("cases.generated_documents.views.html_to_pdf")
+    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
+    def test_generate_document_with_hidden_template_success(self, upload_bytes_file_func, html_to_pdf_func):
+        html_to_pdf_func.return_value = None
+        upload_bytes_file_func.return_value = None
+        template = self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id], visible_to_exporter=False)
+        self.data["template"] = str(template.id)
+
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+        response = self.client.post(url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        upload_bytes_file_func.assert_called_once()
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
+        self.assertEqual(
+            ExporterNotification.objects.filter(
+                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+            ).count(),
+            0,
+        )
+        self.assertEqual(GeneratedCaseDocument.objects.get().visible_to_exporter, False)
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -176,9 +188,7 @@ class GenerateDocumentTests(DataTestClient):
 class GetGeneratedDocumentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.letter_layout = LetterLayout.objects.first()
-        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout,)
-        self.letter_template.case_types.add(CaseTypeEnum.SIEL.id)
+        self.letter_template = self.create_letter_template(name="SIEL", case_types=[CaseTypeEnum.SIEL.id])
         self.case = self.create_standard_application_case(self.organisation)
         self.generated_case_document = self.create_generated_case_document(self.case, template=self.letter_template)
         self.url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)},)

@@ -346,6 +346,7 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
             "created_at",
             "safe",
             "description",
+            "visible_to_exporter",
         )
 
 
