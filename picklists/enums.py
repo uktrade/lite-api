@@ -16,7 +16,7 @@ class PicklistType:
         (STANDARD_ADVICE, "Standard Advice"),
         (FOOTNOTES, "Footnotes"),
         (PRE_VISIT_QUESTIONNAIRE, "Pre-Visit Questionnaire questions (ECJU Query)"),
-        (COMPLIANCE_ACTIONS, "Compliance Actions (ECJU Query"),
+        (COMPLIANCE_ACTIONS, "Compliance Actions (ECJU Query)"),
     ]
 
 
