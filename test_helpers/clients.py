@@ -807,18 +807,24 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
         return generated_case_doc
 
-    def create_letter_template(self, name=None, case_type=CaseTypeEnum.case_type_list[0].id, decisions=None):
+    def create_letter_template(
+        self, case_types, name=None, decisions=None, visible_to_exporter=True, letter_paragraph=None
+    ):
         if not name:
             name = str(uuid.uuid4())[0:35]
-
-        picklist_item = self.create_picklist_item("#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE)
+        if not letter_paragraph:
+            letter_paragraph = self.create_picklist_item(
+                "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
+            )
         letter_layout = LetterLayout.objects.first()
 
-        letter_template = LetterTemplate.objects.create(name=name, layout=letter_layout)
+        letter_template = LetterTemplate.objects.create(
+            name=name, layout=letter_layout, visible_to_exporter=visible_to_exporter
+        )
         if decisions:
             letter_template.decisions.set(decisions)
-        letter_template.case_types.add(case_type)
-        letter_template.letter_paragraphs.add(picklist_item)
+        letter_template.case_types.set(case_types)
+        letter_template.letter_paragraphs.add(letter_paragraph)
         letter_template.save()
 
         return letter_template
