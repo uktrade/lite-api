@@ -107,14 +107,14 @@ class ApplicationExternalLocations(APIView):
                 return None, serializer.errors
 
         # Get sites to be removed if a site is being added
-        removed_sites = SiteOnApplication.objects.filter(application=application)
+        removed_sites = SiteOnApplication.objects.filter(application=application).values_list("site__name", flat=True)
 
         if removed_sites:
             audit_trail_service.create(
                 actor=user,
                 verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
                 target=application.get_case(),
-                payload={"sites": [site.site.name for site in removed_sites]},
+                payload={"sites": removed_sites},
             )
 
         if removed_locations:
