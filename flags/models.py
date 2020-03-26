@@ -1,6 +1,5 @@
 import uuid
 
-from django.contrib.postgres.indexes import BrinIndex
 from django.db import models
 
 from common.models import TimestampableModel
@@ -25,5 +24,5 @@ class FlaggingRule(TimestampableModel):
     matching_value = models.CharField(max_length=100)
 
     class Meta:
-        indexes = [BrinIndex(fields=["created_at"])]
+        indexes = [models.Index(fields=["created_at"])]
         ordering = ["team__name", "-created_at"]
