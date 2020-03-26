@@ -1,6 +1,6 @@
 import factory
 
-from addresses.models import Address, ForeignAddress
+from addresses.models import Address
 from static.countries.models import Country
 
 
@@ -22,4 +22,4 @@ class ForeignAddressFactory(factory.django.DjangoModelFactory):
     country = factory.Iterator(Country.objects.all())
 
     class Meta:
-        model = ForeignAddress
+        model = Address

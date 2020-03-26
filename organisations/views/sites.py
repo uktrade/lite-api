@@ -51,8 +51,6 @@ class SitesList(APIView):
 
         data = request.data
         data["organisation"] = org_pk
-        if "address" in data:
-            data["address"]["country"] = "GB"
         serializer = SiteCreateUpdateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):

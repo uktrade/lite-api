@@ -82,7 +82,7 @@ class OrganisationSitesTests(DataTestClient):
 
         data = {
             "name": "regional site",
-            "foreign_address": {"address": "a street", "country": "PL",},
+            "address": {"address": "a street", "country": "PL",},
         }
 
         response = self.client.post(url, data, **self.gov_headers)
@@ -91,12 +91,14 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
 
     def test_add_foreign_site_failure(self):
-        # TODO Adding a foreign site but syaing the country is in the uk
+        """
+        Fail as only supplying an address field with country set to GB
+        """
         url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
 
         data = {
             "name": "regional site",
-            "foreign_address": {"address": "a street", "country": "GB",},
+            "address": {"address": "a street", "country": "GB",},
         }
 
         response = self.client.post(url, data, **self.gov_headers)
@@ -104,8 +106,7 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
 
-    def test_add_foreign_site_failure2(self):
-        # TODO Adding a foreign site but syaing the country is in the uk
+    def test_add_uk_and_foreign_site_failure(self):
         url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
 
         data = {
@@ -116,8 +117,8 @@ class OrganisationSitesTests(DataTestClient):
                 "postcode": "E14GH",
                 "region": "Hertfordshire",
                 "country": "GB",
+                "address": "a street",
             },
-            "foreign_address": {"address": "a street", "country": "PL",},
         }
 
         response = self.client.post(url, data, **self.gov_headers)

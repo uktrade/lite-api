@@ -1,7 +1,6 @@
 from typing import Union, List
 
 from django.db.models import QuerySet
-from django.db.models.functions import Coalesce
 from rest_framework.exceptions import ValidationError
 
 from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES
@@ -36,25 +35,15 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
 
     # Transhipment applications can't have sites based in certain countries
     if application.case_type.reference == CaseTypeReferenceEnum.SITL:
-        is_site_in_banned_location = (
-            new_sites.annotate(country=Coalesce("address__country_id", "foreign_address__country_id"))
-            .values_list("country")
-            .filter(country__in=TRANSHIPMENT_BANNED_COUNTRIES)
-            .count()
-        )
+        is_site_in_banned_location = new_sites.filter(address__country__id__in=TRANSHIPMENT_BANNED_COUNTRIES).exists()
         if is_site_in_banned_location:
             raise ValidationError({"sites": [ExternalLocations.Errors.TRANSHIPMENT_GB]})
 
     # It's possible for users to modify sites as long as sites they add are in countries
     # already on the application
     if not application.is_major_editable():
-        old_countries = sites_on_application.annotate(
-            country=Coalesce("site__address__country_id", "site__foreign_address__country_id")
-        ).values_list("country")
-        new_countries = new_sites.annotate(
-            country=Coalesce("address__country_id", "foreign_address__country_id")
-        ).values_list("country")
-        difference = new_countries.exclude(country__in=old_countries)
+        old_countries = sites_on_application.values_list("site__address__country")
+        difference = new_sites.exclude(address__country__in=old_countries)
 
         if difference:
             raise ValidationError({"sites": ["Sites have to be in the same country on minor edits"]})

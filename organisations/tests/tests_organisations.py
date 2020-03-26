@@ -98,16 +98,14 @@ class OrganisationTests(DataTestClient):
         [
             [
                 {
-                    "address": {
-                        "address_line_1": "42 Industrial Estate",
-                        "address_line_2": "Queens Road",
-                        "region": "Hertfordshire",
-                        "postcode": "AL1 4GT",
-                        "city": "St Albans",
-                    }
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
                 }
             ],
-            [{"foreign_address": {"address": "123", "country": "PL"}}],
+            [{"address": "123", "country": "PL"}],
         ]
     )
     def test_create_commercial_organisation_as_exporter_success(self, address):
@@ -118,7 +116,7 @@ class OrganisationTests(DataTestClient):
             "sic_number": "01110",
             "vat_number": "GB1234567",
             "registration_number": "98765432",
-            "site": {"name": "Headquarters", **address},
+            "site": {"name": "Headquarters", "address": address},
             "user": {"email": "trinity@bsg.com"},
         }
 
@@ -144,7 +142,7 @@ class OrganisationTests(DataTestClient):
 
         self.assertEqual(site.name, data["site"]["name"])
 
-        if "address" in address:
+        if "address_line_1" in address:
             self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
             self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
             self.assertEqual(site.address.region, data["site"]["address"]["region"])
@@ -152,8 +150,8 @@ class OrganisationTests(DataTestClient):
             self.assertEqual(site.address.city, data["site"]["address"]["city"])
             self.assertEqualIgnoreType(site.address.country.id, "GB")
         else:
-            self.assertEqual(site.foreign_address.address, data["site"]["foreign_address"]["address"])
-            self.assertEqualIgnoreType(site.foreign_address.country.id, data["site"]["foreign_address"]["country"])
+            self.assertEqual(site.address.address, data["site"]["address"]["address"])
+            self.assertEqualIgnoreType(site.address.country.id, data["site"]["address"]["country"])
 
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
@@ -376,9 +374,7 @@ class EditOrganisationTests(DataTestClient):
         all details about themselves
         """
         organisation = OrganisationFactory(
-            type=OrganisationType.COMMERCIAL,
-            primary_site__address=None,
-            primary_site__foreign_address=ForeignAddressFactory(),
+            type=OrganisationType.COMMERCIAL, primary_site__address=ForeignAddressFactory(),
         )
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {

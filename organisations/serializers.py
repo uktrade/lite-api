@@ -2,8 +2,8 @@ from django.db import transaction
 from django.db.models import Q
 from rest_framework import serializers
 
-from addresses.models import Address, ForeignAddress
-from addresses.serializers import AddressSerializer, ForeignAddressSerializer
+from addresses.models import Address
+from addresses.serializers import AddressSerializer
 from conf.constants import ExporterPermissions
 from conf.serializers import (
     PrimaryKeyRelatedSerializerField,
@@ -21,19 +21,10 @@ from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSi
 
 class SiteListSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
-    foreign_address = ForeignAddressSerializer()
-
-    def to_representation(self, value):
-        repr_dict = super(SiteListSerializer, self).to_representation(value)
-        if not repr_dict["address"]:
-            del repr_dict["address"]
-        if not repr_dict["foreign_address"]:
-            del repr_dict["foreign_address"]
-        return repr_dict
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "foreign_address")
+        fields = ("id", "name", "address")
 
 
 class SiteViewSerializer(SiteListSerializer):
@@ -48,33 +39,18 @@ class SiteViewSerializer(SiteListSerializer):
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "foreign_address", "users")
+        fields = ("id", "name", "address", "users")
 
 
 class SiteCreateUpdateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages={"blank": "Enter a name for your site"}, write_only=True)
-    address = AddressSerializer(write_only=True, required=False)
-    foreign_address = ForeignAddressSerializer(write_only=True, required=False)
+    address = AddressSerializer()
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
     users = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all(), many=True, required=False)
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "foreign_address", "organisation", "users")
-
-    def validate(self, data):
-        validated_data = super().validate(data)
-
-        # For creating you have to have provide an address or foreign address
-        if not self.partial:
-            if "address" not in validated_data and "foreign_address" not in validated_data:
-                raise serializers.ValidationError({"address": "You have to have an address!"})
-
-        # Sites have to have either address or foreign address
-        if "address" in validated_data and "foreign_address" in validated_data:
-            raise serializers.ValidationError({"address": "You cant have both!"})
-
-        return validated_data
+        fields = ("id", "name", "address", "organisation", "users")
 
     @transaction.atomic
     def create(self, validated_data):
@@ -82,26 +58,15 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         if "users" in validated_data:
             users = validated_data.pop("users")
 
-        if "address" in validated_data:
-            address_data = validated_data.pop("address")
-            address_data["country"] = address_data["country"].id
+        address_data = validated_data.pop("address")
+        address_data["country"] = address_data["country"].id
 
-            address_serializer = AddressSerializer(data=address_data)
-            if address_serializer.is_valid(raise_exception=True):
-                address = Address(**address_serializer.validated_data)
-                address.save()
+        address_serializer = AddressSerializer(data=address_data)
+        if address_serializer.is_valid(raise_exception=True):
+            address = Address(**address_serializer.validated_data)
+            address.save()
 
-            site = Site.objects.create(address=address, **validated_data)
-        else:
-            foreign_address_data = validated_data.pop("foreign_address")
-            foreign_address_data["country"] = foreign_address_data["country"].id
-
-            foreign_address_serializer = ForeignAddressSerializer(data=foreign_address_data)
-            if foreign_address_serializer.is_valid(raise_exception=True):
-                foreign_address = ForeignAddress(**foreign_address_serializer.validated_data)
-                foreign_address.save()
-
-            site = Site.objects.create(foreign_address=foreign_address, **validated_data)
+        site = Site.objects.create(address=address, **validated_data)
 
         if users:
             site.users.set([get_user_organisation_relationship(user, validated_data["organisation"]) for user in users])
@@ -170,7 +135,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         in_uk = self.initial_data.get("location", "united_kingdom") == "united_kingdom"
 
         if self.instance:
-            in_uk = self.instance.primary_site.get_country() == get_country("GB")
+            in_uk = self.instance.primary_site.address.country == get_country("GB")
 
         if organisation_type != OrganisationType.HMRC and in_uk:
             self.fields["eori_number"].allow_blank = False
@@ -229,10 +194,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         organisation = Organisation.objects.create(**validated_data)
         user_data["organisation"] = organisation.id
 
-        if "address" in site_data:
-            site_data["address"]["country"] = site_data["address"]["country"].id
-        else:
-            site_data["foreign_address"]["country"] = site_data["foreign_address"]["country"].id
+        site_data["address"]["country"] = site_data["address"]["country"].id
 
         site_serializer = SiteCreateUpdateSerializer(data=site_data)
         if site_serializer.is_valid(raise_exception=True):

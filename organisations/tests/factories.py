@@ -36,7 +36,6 @@ class SiteFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("word")
     organisation = factory.SubFactory(OrganisationFactory)
     address = factory.SubFactory(AddressFactory)
-    foreign_address = None
 
     class Meta:
         model = models.Site

@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from addresses.models import Address, ForeignAddress
+from addresses.models import Address
 from common.models import TimestampableModel
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
@@ -61,11 +61,7 @@ class Organisation(TimestampableModel):
 
 class SiteManager(models.Manager):
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .select_related("address", "foreign_address", "address__country", "foreign_address__country")
-        )
+        return super().get_queryset().select_related("address", "address__country")
 
     def get_by_organisation(self, organisation):
         return self.filter(organisation=organisation)
@@ -91,21 +87,13 @@ class Site(TimestampableModel):
         Organisation, blank=True, null=True, related_name="site", on_delete=models.CASCADE,
     )
     users = models.ManyToManyField(UserOrganisationRelationship, related_name="sites")
-
-    address = models.ForeignKey(Address, related_name="site", on_delete=models.DO_NOTHING, null=True)
-    foreign_address = models.ForeignKey(ForeignAddress, related_name="site", on_delete=models.DO_NOTHING, null=True)
+    address = models.ForeignKey(Address, related_name="site", on_delete=models.DO_NOTHING)
 
     objects = SiteManager()
 
     class Meta:
         db_table = "site"
         ordering = ["name"]
-
-    def get_country(self):
-        if self.address:
-            return self.address.country
-        else:
-            return self.foreign_address.country
 
 
 class ExternalLocation(TimestampableModel):
