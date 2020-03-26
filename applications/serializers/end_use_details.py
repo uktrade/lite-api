@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from applications.models import BaseApplication
+from applications.serializers.serializer_helper import validate_field
 from lite_content.lite_api.strings import Applications as strings
 
 
@@ -12,7 +13,7 @@ class F680EndUseDetailsUpdateSerializer(serializers.ModelSerializer):
         fields = ("intended_end_use",)
 
     def validate(self, data):
-        _validate_field(data, "intended_end_use", strings.Generic.EndUseDetails.Error.INTENDED_END_USE)
+        validate_field(data, "intended_end_use", strings.Generic.EndUseDetails.Error.INTENDED_END_USE)
         return super().validate(data)
 
 
@@ -48,8 +49,8 @@ class StandardEndUseDetailsUpdateSerializer(serializers.ModelSerializer):
         )
         _validate_linked_fields(data, "informed_wmd", strings.Generic.EndUseDetails.Error.INFORMED_WMD)
         _validate_linked_fields(data, "suspected_wmd", strings.Generic.EndUseDetails.Error.SUSPECTED_WMD)
-        _validate_field(data, "intended_end_use", strings.Generic.EndUseDetails.Error.INTENDED_END_USE)
-        _validate_field(data, "is_eu_military", strings.Generic.EndUseDetails.Error.EU_MILITARY)
+        validate_field(data, "intended_end_use", strings.Generic.EndUseDetails.Error.INTENDED_END_USE)
+        validate_field(data, "is_eu_military", strings.Generic.EndUseDetails.Error.EU_MILITARY)
         _validate_eu_military_linked_fields(self.instance, data)
 
         return super().validate(data)
@@ -89,7 +90,7 @@ class OpenEndUseDetailsUpdateSerializer(serializers.ModelSerializer):
         )
         _validate_linked_fields(data, "informed_wmd", strings.Generic.EndUseDetails.Error.INFORMED_WMD)
         _validate_linked_fields(data, "suspected_wmd", strings.Generic.EndUseDetails.Error.SUSPECTED_WMD)
-        _validate_field(data, "intended_end_use", strings.Generic.EndUseDetails.Error.INTENDED_END_USE)
+        validate_field(data, "intended_end_use", strings.Generic.EndUseDetails.Error.INTENDED_END_USE)
 
         return super().validate(data)
 
@@ -103,32 +104,14 @@ class OpenEndUseDetailsUpdateSerializer(serializers.ModelSerializer):
 
 def _validate_linked_fields(data, linked_field, error):
     linked_boolean_field_name = "is_" + linked_field
-    linked_boolean_field = _validate_field(data, linked_boolean_field_name, error)
+    linked_boolean_field = validate_field(data, linked_boolean_field_name, error)
 
     if linked_boolean_field:
         linked_reference_field_name = linked_field + "_ref"
 
-        _validate_field(
+        validate_field(
             data, linked_reference_field_name, strings.Generic.EndUseDetails.Error.MISSING_DETAILS, required=True,
         )
-
-
-def _validate_field(data, field_name, error, required=False):
-    is_field_present = field_name in data
-
-    # Only validate the field if it is present in data
-    if is_field_present:
-        field_value = data.get(field_name)
-
-        # Raise an error if the field_value is falsy but not False (boolean fields may have a field_value of False)
-        if not field_value and field_value is not False:
-            raise serializers.ValidationError({field_name: error})
-
-        return field_value
-
-    # Raise an error if the field is required but is not present in data
-    if required:
-        raise serializers.ValidationError({field_name: error})
 
 
 def _validate_eu_military_linked_fields(instance, data):

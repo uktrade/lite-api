@@ -80,6 +80,7 @@ class AuditType(Enum):
     UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE = (
         'updated exhibition reason for clearance to "{new_reason_for_clearance}"'
     )
+    UPDATED_ROUTE_OF_GOODS = 'updated {route_of_goods_field} from "{previous_value}" to "{new_value}"'
 
     def format(self, payload):
         text = self.value.format(**payload)
