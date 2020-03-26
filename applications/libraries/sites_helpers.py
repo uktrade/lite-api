@@ -9,7 +9,7 @@ from applications.models import BaseApplication, SiteOnApplication, ExternalLoca
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeReferenceEnum
-from lite_content.lite_api.strings import ExternalLocations
+from lite_content.lite_api.strings import ExternalLocations, Applications
 from organisations.models import Site
 from users.models import ExporterUser
 
@@ -27,7 +27,7 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
 
     # Users don't specify their goods locations if they've already departed
     if getattr(application, "have_goods_departed", False):
-        raise ValidationError({"sites": ["Your goods have already departed"]})
+        raise ValidationError({"sites": [Applications.Generic.GOODS_ALREADY_DEPARTED]})
 
     # Sites can't be set if the case is in a read only state
     if application.status.status in get_case_statuses(read_only=True):

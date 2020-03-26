@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from addresses.models import Address
 from conf.serializers import CountrySerializerField
+from lite_content.lite_api.strings import Addresses
 from static.countries.helpers import get_country
 
 
@@ -10,13 +11,13 @@ class AddressSerializer(serializers.ModelSerializer):
     Used for serializing addresses
     """
 
-    address = serializers.CharField(max_length=256, required=False, error_messages={"blank": "Enter a valid address"})
+    address = serializers.CharField(max_length=256, required=False, error_messages={"blank": Addresses.ADDRESS})
     address_line_1 = serializers.CharField(
-        max_length=50, required=False, error_messages={"blank": "Enter a real building and street name"}
+        max_length=50, required=False, error_messages={"blank": Addresses.ADDRESS_LINE_1}
     )
-    postcode = serializers.CharField(max_length=10, required=False, error_messages={"blank": "Enter a real postcode"})
-    city = serializers.CharField(max_length=50, required=False, error_messages={"blank": "Enter a real city"})
-    region = serializers.CharField(max_length=50, required=False, error_messages={"blank": "Enter a real region"})
+    postcode = serializers.CharField(max_length=10, required=False, error_messages={"blank": Addresses.POSTCODE})
+    city = serializers.CharField(max_length=50, required=False, error_messages={"blank": Addresses.CITY})
+    region = serializers.CharField(max_length=50, required=False, error_messages={"blank": Addresses.REGION})
     country = CountrySerializerField(required=False)
 
     def validate(self, data):
@@ -57,8 +58,3 @@ class AddressSerializer(serializers.ModelSerializer):
             "postcode",
             "country",
         )
-
-    # def validate_country(self, value):
-    #     if value == get_country("GB"):
-    #         raise serializers.ValidationError({"country": "Cant be GB!"})
-    #     return value
