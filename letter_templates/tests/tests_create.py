@@ -3,8 +3,7 @@ from itertools import permutations
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from audit_trail.models import Audit
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, CaseTypeReferenceEnum
+from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from conf import constants
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
@@ -36,6 +35,7 @@ class LetterTemplateCreateTests(DataTestClient):
             "case_types": [CaseTypeEnum.GOODS.reference, CaseTypeEnum.EUA.reference],
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
+            "visible_to_exporter": "True",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -44,6 +44,7 @@ class LetterTemplateCreateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(letter_template.name, data["name"])
+        self.assertEqual(letter_template.visible_to_exporter, bool(data["visible_to_exporter"]))
         self.assertEqual(letter_template.layout.id, data["layout"])
         self.assertIn(
             CaseTypeEnum.GOODS.reference, letter_template.case_types.values_list("reference", flat=True),
@@ -56,9 +57,9 @@ class LetterTemplateCreateTests(DataTestClient):
         """
         Fail as the name is not unique
         """
-        self.letter_template = LetterTemplate.objects.create(name="SIEL", layout=self.letter_layout)
-        self.letter_template.case_types.set([CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id])
-        self.letter_template.letter_paragraphs.add(self.picklist_item_1)
+        self.letter_template = self.create_letter_template(
+            name="SIEL", case_types=[CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id], letter_paragraph=self.picklist_item_1
+        )
 
         data = {
             "name": "SIEL",
@@ -123,6 +124,7 @@ class LetterTemplateCreateTests(DataTestClient):
                 "case_types": [CaseTypeEnum.GOODS.reference, CaseTypeEnum.EUA.reference],
                 "layout": self.letter_layout.id,
                 "letter_paragraphs": [item.id for item in picklist_items],
+                "visible_to_exporter": "True",
             }
             self.client.post(self.url, data, **self.gov_headers)
             letter_template = LetterTemplate.objects.get(name=name)
@@ -138,6 +140,7 @@ class LetterTemplateCreateTests(DataTestClient):
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
             "decisions": ["proviso", "approve"],
+            "visible_to_exporter": "True",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -157,6 +160,7 @@ class LetterTemplateCreateTests(DataTestClient):
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
             "decisions": ["proviso", "approve"],
+            "visible_to_exporter": "True",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
