@@ -114,13 +114,16 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
 
 def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
     """
-    Takes a flagging rule and applies it's flag on objects as relevant
+    Takes a flagging rule and applies creates a relationship between its flag and all relevant entities
     """
     if flagging_rule.status == FlagStatuses.ACTIVE and flagging_rule.flag.status == FlagStatuses.ACTIVE:
-        submitted_and_open_statuses = [*CaseStatusEnum.terminal_statuses(), CaseStatusEnum.DRAFT]
-        open_cases = Case.objects.exclude(status__status__in=submitted_and_open_statuses)
+        # Flagging rules should only be applied to open cases
+        draft_and_terminal_statuses = [CaseStatusEnum.DRAFT, *CaseStatusEnum.terminal_statuses()]
+        open_cases = Case.objects.exclude(status__status__in=draft_and_terminal_statuses)
 
+        # Apply the flagging rule to different entities depending on the rule's level
         if flagging_rule.level == FlagLevels.CASE:
+            # Add flag to all open Cases
             open_cases = open_cases.filter(case_type__reference=flagging_rule.matching_value).values_list(
                 "id", flat=True
             )
@@ -128,29 +131,32 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
             flagging_rule.flag.cases.add(*open_cases)
 
         elif flagging_rule.level == FlagLevels.GOOD:
-            good_in_query = GoodsQuery.objects.exclude(status__status__in=submitted_and_open_statuses).values_list(
+            # Add flag to all Goods an open Goods Queries
+            good_in_query = GoodsQuery.objects.exclude(status__status__in=draft_and_terminal_statuses).values_list(
                 "good_id", flat=True
             )
             flagging_rule.flag.goods.add(*good_in_query)
 
-            good_types = GoodsType.objects.filter(application_id__in=open_cases).values_list("id", flat=True)
-            flagging_rule.flag.goods_type.add(*good_types)
+            # Add flag to all Goods Types
+            goods_types = GoodsType.objects.filter(application_id__in=open_cases).values_list("id", flat=True)
+            flagging_rule.flag.goods_type.add(*goods_types)
 
+            # Add flag to all open Applications
             goods = GoodOnApplication.objects.filter(application_id__in=open_cases).values_list("good_id", flat=True)
             flagging_rule.flag.goods.add(*goods)
 
         elif flagging_rule.level == FlagLevels.DESTINATION:
+            # Add flag to all End Users on open End User Advisory Queries
             end_users = (
                 EndUserAdvisoryQuery.objects.filter(end_user__country_id=flagging_rule.matching_value)
-                .exclude(status__status__in=submitted_and_open_statuses)
+                .exclude(status__status__in=draft_and_terminal_statuses)
                 .values_list("end_user_id", flat=True)
             )
             flagging_rule.flag.parties.add(*end_users)
 
-            non_eua_open_cases = open_cases.exclude(case_type_id=CaseTypeEnum.EUA.id).values_list("id", flat=True)
-
+            # Add flag to all Parties on open Applications
             parties = PartyOnApplication.objects.filter(
-                application_id__in=non_eua_open_cases, party__country_id=flagging_rule.matching_value
+                application_id__in=open_cases, party__country_id=flagging_rule.matching_value
             ).values_list("party_id", flat=True)
             flagging_rule.flag.parties.add(*parties)
 
