@@ -3,6 +3,7 @@ from django.urls import reverse_lazy
 from parameterized import parameterized
 from rest_framework import status
 
+from cases.enums import CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, EcjuQuery
 from test_helpers.clients import DataTestClient
@@ -28,7 +29,9 @@ class ExporterUserNotificationTests(DataTestClient):
         self.create_case_note(clc_query, "This is a test note 1", self.gov_user, True)
         self.create_case_note(clc_query, "This is a test note 2", self.gov_user, False)
         self.create_ecju_query(clc_query, "This is an ecju query")
-        self.create_generated_case_document(clc_query, template=self.create_letter_template())
+        self.create_generated_case_document(
+            clc_query, template=self.create_letter_template(case_types=[CaseTypeEnum.GOODS.id])
+        )
         return clc_query
 
     def _create_application_with_notifications(self):
@@ -36,7 +39,9 @@ class ExporterUserNotificationTests(DataTestClient):
         self.create_case_note(application, "This is a test note 1", self.gov_user, True)
         self.create_case_note(application, "This is a test note 2", self.gov_user, False)
         self.create_ecju_query(application, "This is an ecju query")
-        self.create_generated_case_document(application, template=self.create_letter_template())
+        self.create_generated_case_document(
+            application, template=self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id])
+        )
         return application
 
     def _create_end_user_advisory_query_with_notifications(self):
@@ -44,7 +49,9 @@ class ExporterUserNotificationTests(DataTestClient):
         self.create_case_note(eua_query, "This is a test note 1", self.gov_user, True)
         self.create_case_note(eua_query, "This is a test note 2", self.gov_user, False)
         self.create_ecju_query(eua_query, "This is an ecju query")
-        self.create_generated_case_document(eua_query, template=self.create_letter_template())
+        self.create_generated_case_document(
+            eua_query, template=self.create_letter_template(case_types=[CaseTypeEnum.EUA.id])
+        )
         return eua_query
 
     @parameterized.expand(
