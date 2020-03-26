@@ -269,11 +269,12 @@ class AssignFlags(APIView):
 
 class FlaggingRules(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
+    queryset = FlaggingRule.objects.all()
     serializer_class = FlaggingRuleSerializer
 
     def get_queryset(self):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
-        rules = FlaggingRule.objects.all().order_by("team__name")
+        rules = self.queryset
 
         include_deactivated = self.request.query_params.get("include_deactivated", "")
         if not include_deactivated:
