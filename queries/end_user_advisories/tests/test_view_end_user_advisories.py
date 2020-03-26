@@ -12,15 +12,12 @@ class EndUserAdvisoryViewTests(DataTestClient):
         query = self.create_end_user_advisory("a note", "because I am unsure", self.organisation)
 
         response = self.client.get(reverse("queries:end_user_advisories:end_user_advisories"), **self.exporter_headers)
-        response_data = response.json()["end_user_advisories"]
+        response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response_data), 1)
 
         response_data = response_data[0]
-        self.assertEqual(response_data["note"], query.note)
-        self.assertEqual(response_data["reasoning"], query.reasoning)
-
         end_user_data = response_data["end_user"]
         self.assertEqual(end_user_data["sub_type"]["key"], query.end_user.sub_type)
 
