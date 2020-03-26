@@ -103,11 +103,17 @@ class SetQueues(APIView):
             # Remove case assignments when the case is remove from the queue
             CaseAssignment.objects.filter(case=case, queue__in=removed_queues).delete()
             audit_trail_service.create(
-                actor=request.user, verb=AuditType.REMOVE_CASE, target=case, payload={"queues": sorted([queue.name for queue in removed_queues])},
+                actor=request.user,
+                verb=AuditType.REMOVE_CASE,
+                target=case,
+                payload={"queues": sorted([queue.name for queue in removed_queues])},
             )
         if new_queues:
             audit_trail_service.create(
-                actor=request.user, verb=AuditType.MOVE_CASE, target=case, payload={"queues": sorted([queue.name for queue in new_queues])}
+                actor=request.user,
+                verb=AuditType.MOVE_CASE,
+                target=case,
+                payload={"queues": sorted([queue.name for queue in new_queues])},
             )
         return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
