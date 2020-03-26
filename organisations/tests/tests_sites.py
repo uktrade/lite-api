@@ -1,11 +1,10 @@
+from faker import Faker
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from organisations.tests.factories import OrganisationFactory
 from organisations.models import Site
+from organisations.tests.factories import OrganisationFactory
 from test_helpers.clients import DataTestClient
-from faker import Faker
-
 
 faker = Faker()
 
@@ -35,7 +34,17 @@ class OrganisationSitesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["name"], self.organisation.primary_site.name)
-        self.assertEqual(len(response_data["users"]), 1)
+        self.assertEqual(
+            response_data["users"],
+            [
+                {
+                    "id": str(self.exporter_user.id),
+                    "first_name": self.exporter_user.first_name,
+                    "last_name": self.exporter_user.last_name,
+                    "email": self.exporter_user.email,
+                }
+            ],
+        )
 
     def test_add_uk_site(self):
         url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
