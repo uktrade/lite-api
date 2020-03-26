@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import GoodOnApplication
+from applications.models import GoodOnApplication, PartyOnApplication
 from cases.enums import CaseTypeReferenceEnum
 from flags.models import FlaggingRule
 from lite_content.lite_api import strings
@@ -62,6 +62,33 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(rule.level, "Good")
         self.assertEqual(rule.flag, flag)
         self.assertEqual(rule.matching_value, control_code)
+
+    def test_gov_user_can_create_flagging_rule_destination(self):
+        application = self.create_standard_application_case(self.organisation)
+        country_id = (
+            PartyOnApplication.objects.filter(application_id=application)
+            .values_list("party__country_id", flat=True)
+            .first()
+        )
+
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
+
+        flag = self.create_flag("test", "Destination", self.team)
+        data = {"level": "Destination", "flag": str(flag.id), "matching_value": country_id}
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["level"], "Destination")
+        self.assertEqual(response_data["flag"], str(flag.id))
+        self.assertEqual(response_data["matching_value"], country_id)
+
+        rule = FlaggingRule.objects.get()
+        self.assertEqual(rule.level, "Destination")
+        self.assertEqual(rule.flag, flag)
+        self.assertEqual(rule.matching_value, country_id)
 
     def test_create_flagging_rule_failure_duplicate(self):
         self.gov_user.role = self.super_user_role
