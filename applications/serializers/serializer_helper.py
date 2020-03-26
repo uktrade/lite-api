@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 
-def _validate_field(data, field_name, error, required=False):
+def validate_field(data, field_name, error, required=False):
     is_field_present = field_name in data
 
     # Only validate the field if it is present in data

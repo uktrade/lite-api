@@ -11,7 +11,7 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from applications.serializers.licence import LicenceViewSerializer
-from applications.serializers.serializer_helper import _validate_field
+from applications.serializers.serializer_helper import validate_field
 from lite_content.lite_api import strings
 
 
@@ -129,13 +129,13 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             instance.reference_number_on_information_form = None
 
     def validate(self, data):
-        _validate_field(
+        validate_field(
             data,
             "is_shipped_waybill_or_lading",
             strings.Applications.Generic.RouteOfGoods.IS_SHIPPED_AIR_WAY_BILL_OR_LADING,
         )
         if data.get("is_shipped_waybill_or_lading") == False:
-            _validate_field(
+            validate_field(
                 data,
                 "non_waybill_or_lading_route_details",
                 strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS,
