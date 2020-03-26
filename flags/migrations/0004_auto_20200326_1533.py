@@ -7,16 +7,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flags', '0003_flaggingrule'),
+        ("flags", "0003_flaggingrule"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='flaggingrule',
-            options={'ordering': ['team__name', '-created_at']},
-        ),
+        migrations.AlterModelOptions(name="flaggingrule", options={"ordering": ["team__name", "-created_at"]},),
         migrations.AddIndex(
-            model_name='flaggingrule',
-            index=django.contrib.postgres.indexes.BrinIndex(fields=['created_at'], name='flags_flagg_created_5a33aa_brin'),
+            model_name="flaggingrule",
+            index=django.contrib.postgres.indexes.BrinIndex(
+                fields=["created_at"], name="flags_flagg_created_5a33aa_brin"
+            ),
         ),
     ]
