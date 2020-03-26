@@ -157,6 +157,7 @@ class DraftTests(DataTestClient):
         Ensure we can create a new HMRC query draft object
         """
         data = {
+            "name": "Test",
             "application_type": CaseTypeReferenceEnum.CRE,
             "organisation": self.organisation.id,
         }
