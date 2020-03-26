@@ -31,6 +31,18 @@ class AssignQueuesToCaseTests(DataTestClient):
         self.assertTrue(Audit.objects.filter(verb=AuditType.MOVE_CASE.value).exists())
         self.assertFalse(Audit.objects.filter(verb=AuditType.REMOVE_CASE.value).exists())
 
+    def test_set_queues_with_initial_data_successful(self):
+        self.case.queues.set(self.queues[:2])
+        data = {"queues": [self.queues[2].id]}
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(sorted(response.json()["queues"]), sorted([str(id) for id in data["queues"]]))
+        self.assertEqual(set(self.case.queues.values_list("id", flat=True)), set(data["queues"]))
+        self.assertTrue(Audit.objects.filter(verb=AuditType.MOVE_CASE.value).exists())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE.value).exists())
+
     def test_remove_queues_successful(self):
         self.case.queues.set(self.queues)
         data = {"queues": [queue.id for queue in self.queues[:2]]}
