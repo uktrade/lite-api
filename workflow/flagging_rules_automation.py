@@ -147,7 +147,7 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
 
             # Add flag to all open Applications
             goods = GoodOnApplication.objects.filter(
-                application_id__in=open_cases, control_code=flagging_rule.matching_value
+                application_id__in=open_cases, good__control_code=flagging_rule.matching_value
             ).values_list("good_id", flat=True)
             flagging_rule.flag.goods.add(*goods)
 
