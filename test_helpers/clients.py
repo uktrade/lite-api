@@ -513,7 +513,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             self.create_document_for_party(application.consignee.party, safe=safe_document)
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
 
-    def add_additional_information(self, application):
+    @staticmethod
+    def add_additional_information(application):
         additional_information = {
             "expedited": False,
             "mtcr_type": "mtcr_category_2",
@@ -552,6 +553,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_eu_military=False,
             is_compliant_limitations_eu=None,
             intended_end_use="this is our intended end use",
+            is_shipped_waybill_or_lading=True,
+            non_waybill_or_lading_route_details=None,
         )
 
         application.save()
@@ -707,6 +710,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_informed_wmd=False,
             is_suspected_wmd=False,
             intended_end_use="intended end use is none of your business",
+            is_shipped_waybill_or_lading=True,
+            non_waybill_or_lading_route_details=None,
         )
 
         application.save()

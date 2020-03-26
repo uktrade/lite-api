@@ -280,30 +280,23 @@ class CopyApplicationSuccessTests(DataTestClient):
 
     def _validate_standard_application(self):
         self._validate_reset_data()
-
         self._validate_end_use_details()
-
         self._validate_good_on_application()
-
         self._validate_end_user()
         self._validate_consignee()
         self._validate_ultimate_end_user()
         self._validate_third_party()
-
         self._validate_case_data()
+        self._validate_route_of_goods()
 
     def _validate_open_application(self):
         self._validate_reset_data()
-
         self._validate_end_use_details()
-
         self._validate_goodstype()
-
         self._validate_site_on_application()
-
         self._validate_country_on_application()
-
         self._validate_case_data()
+        self._validate_route_of_goods()
 
     def _validate_exhibition_application(self):
         self._validate_reset_data()
@@ -374,6 +367,10 @@ class CopyApplicationSuccessTests(DataTestClient):
                 self.assertIsNone(self.copied_application.is_eu_military)
                 self.assertIsNone(self.copied_application.is_compliant_limitations_eu)
                 self.assertIsNone(self.copied_application.compliant_limitations_eu_ref)
+
+    def _validate_route_of_goods(self):
+        self.assertIsNone(self.copied_application.is_shipped_waybill_or_lading)
+        self.assertIsNone(self.copied_application.non_waybill_or_lading_route_details)
 
     def _validate_good_on_application(self):
         new_goods_on_app = self.copied_application.goods.all()
