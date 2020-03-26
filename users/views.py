@@ -144,6 +144,8 @@ class UserMeDetail(APIView):
         user = request.user
         relationships = UserOrganisationRelationship.objects.filter(user=user)
 
+        # Returning a dict over a serializer for performance reasons
+        # This endpoint is called often, so it needs to be as fast as possible
         data = {
             "id": request.user.id,
             "first_name": request.user.first_name,
