@@ -14,7 +14,7 @@ from conf.permissions import assert_user_has_permission
 from parties.enums import PartyType
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
-from queries.end_user_advisories.serializers import EndUserAdvisoryListSerializer, EndUserAdvisoryViewSerializer
+from queries.end_user_advisories.serializers import EndUserAdvisoryViewSerializer, EndUserAdvisoryListSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -44,7 +44,7 @@ class EndUserAdvisoriesList(APIView):
         data["end_user"]["organisation"] = request.user.organisation.id
         data["end_user"]["type"] = PartyType.END_USER
 
-        serializer = EndUserAdvisoryListSerializer(data=data)
+        serializer = EndUserAdvisoryViewSerializer(data=data)
 
         try:
             if serializer.is_valid():
