@@ -58,7 +58,7 @@ def allowed_application_types(application_types: [str]):
 def application_in_major_editable_state():
     """
     Checks if application is in a major-editable state;
-    A Major editable state is either APPLICANT_EDITING or NONE (An un-submitted application)
+    A Major editable state is either APPLICANT_EDITING or DRAFT
     """
 
     def decorator(func):

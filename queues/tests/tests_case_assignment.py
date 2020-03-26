@@ -54,12 +54,9 @@ class CaseAssignmentTests(DataTestClient):
         self.queue.cases.add(self.case)
         CaseAssignment.objects.create(queue=self.queue, case=self.case, user=self.gov_user)
 
-        new_queue = Queue(name="new queue", team=self.team)
-        new_queue.save()
+        self.url = reverse("cases:queues", kwargs={"pk": self.case.id})
 
-        self.url = reverse("cases:case", kwargs={"pk": self.case.id})
-
-        data = {"queues": [new_queue.id]}
+        data = {"queues": []}
 
         self.client.put(self.url, data=data, **self.gov_headers)
 
