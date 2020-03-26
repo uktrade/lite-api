@@ -1,11 +1,9 @@
-import abc
 from datetime import datetime, timezone
 
 from rest_framework import serializers
 
 from cases.enums import CaseTypeEnum
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from gov_users.serializers import GovUserSimpleSerializer
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
