@@ -2,6 +2,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from audit_trail.models import Audit
+from audit_trail.payload import AuditType
 from cases.enums import AdviceType
 from cases.models import Advice
 from conf.helpers import convert_queryset_to_str
@@ -75,6 +77,8 @@ class CreateCaseAdviceTests(DataTestClient):
                 convert_queryset_to_str(advice_object.denial_reasons.values_list("id", flat=True)),
                 data["denial_reasons"],
             )
+
+        self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE.value).exists())
 
     def test_cannot_create_empty_advice(self):
         """
