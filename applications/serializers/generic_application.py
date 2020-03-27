@@ -1,6 +1,6 @@
 import abc
-from django.utils import timezone
 
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.fields import CharField
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -19,7 +19,7 @@ from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation, Site, ExternalLocation
-from organisations.serializers import OrganisationDetailSerializer, SiteViewSerializer, ExternalLocationSerializer
+from organisations.serializers import OrganisationDetailSerializer, ExternalLocationSerializer, SiteListSerializer
 from parties.serializers import PartySerializer
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
@@ -129,7 +129,7 @@ class GenericApplicationViewSerializer(GenericApplicationListSerializer):
     def get_goods_locations(self, application):
         sites = Site.objects.filter(sites_on_application__application=application)
         if sites:
-            serializer = SiteViewSerializer(sites, many=True)
+            serializer = SiteListSerializer(sites, many=True)
             return {"type": "sites", "data": serializer.data}
 
         external_locations = ExternalLocation.objects.filter(external_locations_on_application__application=application)

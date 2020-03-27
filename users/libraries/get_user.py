@@ -60,8 +60,7 @@ def get_users_from_organisation(pk):
 
 def get_user_organisation_relationship(user, organisation):
     try:
-        user_organisation_relationship = UserOrganisationRelationship.objects.get(user=user, organisation=organisation)
-        return user_organisation_relationship
+        return UserOrganisationRelationship.objects.get(user=user, organisation=organisation)
     except UserOrganisationRelationship.DoesNotExist:
         raise NotFoundError({"user_organisation_relationship": "User Organisation Relationship not found"})
 

@@ -13,15 +13,20 @@ from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
+from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import Users
+from organisations.enums import OrganisationStatus
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from queues.models import Queue
-from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
+from users.libraries.get_user import (
+    get_user_by_pk,
+    get_user_organisation_relationship,
+)
 from users.libraries.user_to_token import user_to_token
-from users.models import ExporterUser, ExporterNotification, GovUser
+from users.models import ExporterUser, ExporterNotification, GovUser, UserOrganisationRelationship
 from users.serializers import (
     ExporterUserViewSerializer,
     ExporterUserCreateUpdateSerializer,
@@ -105,8 +110,9 @@ class UserDetail(APIView):
         user = get_user_by_pk(pk)
         if request.user.id != pk:
             assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, request.user.organisation)
+        relationship = get_user_organisation_relationship(user, request.user.organisation)
 
-        serializer = ExporterUserViewSerializer(user, context=request.user.organisation)
+        serializer = ExporterUserViewSerializer(user, context=relationship)
         return JsonResponse(data={"user": serializer.data})
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
@@ -135,11 +141,43 @@ class UserMeDetail(APIView):
 
     def get(self, request):
         org_pk = request.headers["Organisation-Id"]
+        user = request.user
+        relationships = UserOrganisationRelationship.objects.filter(user=user).select_related("organisation")
+
+        # Returning a dict over a serializer for performance reasons
+        # This endpoint is called often, so it needs to be as fast as possible
+        data = {
+            "id": request.user.id,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+            "organisations": [
+                {
+                    "id": relationship.organisation.id,
+                    "name": relationship.organisation.name,
+                    "joined_at": date_to_drf_date(relationship.created_at),
+                    "status": {
+                        "key": relationship.organisation.status,
+                        "value": get_value_from_enum(relationship.organisation.status, OrganisationStatus),
+                    },
+                }
+                for relationship in relationships
+            ],
+        }
+
         if org_pk != "None":
-            serializer = ExporterUserViewSerializer(request.user, context=org_pk)
-        else:
-            serializer = ExporterUserViewSerializer(request.user)
-        return JsonResponse(data={"user": serializer.data})
+            relationship = get_user_organisation_relationship(user, org_pk)
+            data.update(
+                {
+                    "role": {
+                        "id": relationship.role.id,
+                        "permissions": convert_queryset_to_str(
+                            relationship.role.permissions.values_list("id", flat=True)
+                        ),
+                    }
+                }
+            )
+
+        return JsonResponse(data=data)
 
 
 class NotificationViewSet(APIView):

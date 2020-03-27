@@ -2,15 +2,13 @@ from rest_framework import serializers
 
 from conf.constants import Roles
 from conf.exceptions import NotFoundError
-from conf.helpers import get_value_from_enum
 from conf.serializers import KeyValueChoiceField
 from gov_users.serializers import RoleSerializer
-from organisations.enums import OrganisationStatus
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation, Site
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses, UserType
-from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email, get_user_organisation_relationship
+from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
 from users.models import (
     ExporterUser,
     BaseUser,
@@ -36,7 +34,6 @@ class BaseUserViewSerializer(serializers.ModelSerializer):
 
 class ExporterUserViewSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
-    organisations = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
     sites = serializers.SerializerMethodField()
 
@@ -50,42 +47,16 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
 
         return None
 
-    def get_organisations(self, instance):
-        try:
-            user_organisation_relationships = UserOrganisationRelationship.objects.filter(user=instance).select_related(
-                "organisation"
-            )
-            return_value = []
-
-            for relationship in user_organisation_relationships:
-                return_value.append(
-                    {
-                        "id": relationship.organisation.id,
-                        "name": relationship.organisation.name,
-                        "joined_at": relationship.created_at,
-                        "status": {
-                            "key": relationship.organisation.status,
-                            "value": get_value_from_enum(relationship.organisation.status, OrganisationStatus),
-                        },
-                    }
-                )
-
-            return return_value
-        except UserOrganisationRelationship.DoesNotExist:
-            raise NotFoundError({"user": "User not found - " + str(instance.id)})
-
-    def get_role(self, instance):
+    def get_role(self, _):
         if self.context:
-            role = get_user_organisation_relationship(instance, self.context).role
-            return RoleSerializer(role).data
-        return None
+            return RoleSerializer(self.context.role).data
 
-    def get_sites(self, instance):
-        from organisations.serializers import SiteViewSerializer
+    def get_sites(self, _):
+        from organisations.serializers import SiteListSerializer
 
         if self.context:
-            sites = Site.objects.get_by_user_and_organisation(instance, self.context)
-            return SiteViewSerializer(sites, many=True, context={"with_users": False}).data
+            sites = Site.objects.get_by_user_organisation_relationship(self.context)
+            return SiteListSerializer(sites, many=True).data
         return None
 
 

@@ -1,15 +1,13 @@
 import timeit
 import uuid
 from datetime import datetime, timezone
-from django.db import connection
 
 import django.utils.timezone
-from django.test import tag
 from django.conf import settings as conf_settings
-from faker import Faker
+from django.db import connection
+from django.test import tag
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from addresses.models import Address
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
 from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
@@ -42,8 +40,9 @@ from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
-from organisations.enums import OrganisationType, OrganisationStatus
-from organisations.models import Organisation, Site, ExternalLocation
+from organisations.enums import OrganisationType
+from organisations.tests.factories import OrganisationFactory, SiteFactory
+from organisations.models import Organisation, ExternalLocation
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party
 from parties.models import PartyDocument
@@ -64,10 +63,10 @@ from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers import colours
-from test_helpers.helpers import random_name
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
+from faker import Faker
 
 
 class Static:
@@ -81,6 +80,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     urlpatterns = urlpatterns + static_urlpatterns
     client = APIClient
+    faker = Faker()
 
     @classmethod
     def setUpClass(cls):
@@ -162,15 +162,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         assertion_func = self._getAssertEqualityFunc(first, second)
         assertion_func(first, second, msg=msg)
 
-    def get(self, path, data=None, follow=False, **extra):
-        response = self.client.get(path, data, follow, **extra)
-        return response.json(), response.status_code
-
     def create_exporter_user(self, organisation=None, first_name=None, last_name=None, role=None):
         if not first_name and not last_name:
-            first_name, last_name = random_name()
+            first_name = self.faker.first_name()
+            last_name = self.faker.last_name()
 
-        exporter_user = ExporterUser(first_name=first_name, last_name=last_name, email=Faker().email(),)
+        exporter_user = ExporterUser(first_name=first_name, last_name=last_name, email=self.faker.email(),)
         exporter_user.organisation = organisation
         exporter_user.save()
 
@@ -188,21 +185,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
         relation = UserOrganisationRelationship(user=exporter_user, organisation=organisation, role=role).save()
         return relation
-
-    @staticmethod
-    def create_site(name, org, country="GB"):
-        address = Address(
-            address_line_1="42 Road",
-            address_line_2="",
-            country=get_country(country),
-            city="London",
-            region="Buckinghamshire",
-            postcode="E14QW",
-        )
-        address.save()
-        site = Site(name=name, organisation=org, address=address)
-        site.save()
-        return site
 
     @staticmethod
     def create_external_location(name, org, country="GB"):
@@ -511,27 +493,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_good_country_decision(case, goods_type, country, decision):
         GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
 
-    def get(self, path, data=None, follow=False, **extra):
-        response = self.client.get(path, data, follow, **extra)
-        return response.json(), response.status_code
-
     def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
-        organisation = Organisation(
-            name=name,
-            eori_number="GB123456789000",
-            sic_number="2765",
-            vat_number="123456789",
-            registration_number="987654321",
-            status=OrganisationStatus.ACTIVE,
-        )
-        if org_type:
-            organisation.type = org_type
-        organisation.save()
+        if not org_type:
+            org_type = OrganisationType.COMMERCIAL
 
-        site = self.create_site("HQ", organisation)
-
-        organisation.primary_site = site
-        organisation.save()
+        organisation = OrganisationFactory(name=name, type=org_type)
 
         if not exporter_user:
             exporter_user = self.create_exporter_user(organisation)
@@ -915,5 +881,5 @@ class PerformanceTestClient(DataTestClient):
             users.append(UserOrganisationRelationship.objects.get(user=user))
 
         for i in range(sites_count):
-            site = self.create_site(name=random_name(), org=organisation)
+            site = SiteFactory(organisation=organisation)
             site.users.set(users)
