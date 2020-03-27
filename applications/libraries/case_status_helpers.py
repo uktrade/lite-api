@@ -13,7 +13,7 @@ def get_case_statuses(read_only):
         return [status for status, value in CaseStatusEnum.choices if not CaseStatusEnum.is_read_only(status)]
 
 
-def submit_and_set_sla(application):
+def set_application_sla(application):
     application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
     application.submitted_at = timezone.now()
     application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)

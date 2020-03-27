@@ -183,7 +183,7 @@ class StandardApplicationTests(DataTestClient):
 
         data = {"agreed_to_declaration": True, "agreed_to_foi": True}
 
-        url = reverse("applications:declaration", kwargs={"pk": standard_application.id})
+        url = reverse("applications:application_submit", kwargs={"pk": standard_application.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
 
@@ -244,7 +244,7 @@ class StandardApplicationTests(DataTestClient):
 
         data = {"agreed_to_declaration": True, "agreed_to_foi": True}
 
-        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -258,7 +258,7 @@ class StandardApplicationTests(DataTestClient):
     def test_standard_application_declaration_submit_tcs_false_failure(self):
         data = {"agreed_to_declaration": False, "agreed_to_foi": True}
 
-        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -271,8 +271,9 @@ class StandardApplicationTests(DataTestClient):
         self.draft.is_informed_wmd = True
         self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
         self.draft.save()
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
 
-        response = self.client.put(self.url, **self.exporter_headers)
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()
         case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
 
@@ -303,7 +304,8 @@ class StandardApplicationTests(DataTestClient):
         self.draft.save()
 
         # Re-submit application
-        response = self.client.put(self.url, **self.exporter_headers)
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()
         case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
 

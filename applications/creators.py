@@ -328,7 +328,7 @@ def _validate_open_licence(draft, errors):
 
 def _validate_route_of_goods(draft, errors):
     if draft.is_shipped_waybill_or_lading is None:
-        errors["route_of_goods"] = strings.Applications.Generic.NO_ROUTE_OF_GOODS
+        errors["route_of_goods"] = [strings.Applications.Generic.NO_ROUTE_OF_GOODS]
     return errors
 
 

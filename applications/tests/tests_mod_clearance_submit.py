@@ -45,7 +45,7 @@ class MODClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["goods"], strings.Applications.Standard.NO_GOODS_SET)
+        self.assertEqual(response.json()["errors"]["goods"], [strings.Applications.Standard.NO_GOODS_SET])
 
 
 class ExhibitionClearanceTests(DataTestClient):
@@ -75,7 +75,7 @@ class ExhibitionClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["location"], strings.Applications.Generic.NO_LOCATION_SET)
+        self.assertEqual(response.json()["errors"]["location"], [strings.Applications.Generic.NO_LOCATION_SET])
 
     def test_submit_exhibition_clearance_without_details_failure(self):
         self.draft.title, self.draft.first_exhibition_date, self.draft.required_by_date = None, None, None
@@ -84,7 +84,7 @@ class ExhibitionClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["details"], strings.Applications.Exhibition.Error.NO_DETAILS)
+        self.assertEqual(response.json()["errors"]["details"], [strings.Applications.Exhibition.Error.NO_DETAILS])
 
     def test_submit_exhibition_clearance_without_goods_failure(self):
         GoodOnApplication.objects.get(application=self.draft).delete()
@@ -92,7 +92,7 @@ class ExhibitionClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["goods"], strings.Applications.Standard.NO_GOODS_SET)
+        self.assertEqual(response.json()["errors"]["goods"], [strings.Applications.Standard.NO_GOODS_SET])
 
     def test_exhibition_clearance_declaration_submit_success(self):
         data = {
@@ -100,7 +100,7 @@ class ExhibitionClearanceTests(DataTestClient):
             "agreed_to_foi": True,
         }
 
-        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -115,7 +115,7 @@ class ExhibitionClearanceTests(DataTestClient):
             "agreed_to_foi": True,
         }
 
-        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -150,7 +150,7 @@ class GiftingClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_SET)
+        self.assertEqual(response.json()["errors"]["end_user"], [strings.Applications.Standard.NO_END_USER_SET])
 
     def test_submit_gifting_clearance_without_end_user_document_failure(self):
         PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
@@ -158,7 +158,9 @@ class GiftingClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_DOCUMENT_SET)
+        self.assertEqual(
+            response.json()["errors"]["end_user"], [strings.Applications.Standard.NO_END_USER_DOCUMENT_SET]
+        )
 
     def test_submit_gifting_with_consignee_failure(self):
         self.create_party("Consignee", self.organisation, PartyType.CONSIGNEE, self.draft)
@@ -166,7 +168,7 @@ class GiftingClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["consignee"], strings.Applications.Gifting.CONSIGNEE)
+        self.assertEqual(response.json()["errors"]["consignee"], [strings.Applications.Gifting.CONSIGNEE])
 
     def test_submit_gifting_with_ultimate_end_user_failure(self):
         self.create_party("Ultimate End User", self.organisation, PartyType.ULTIMATE_END_USER, self.draft)
@@ -175,7 +177,7 @@ class GiftingClearanceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["ultimate_end_users"], strings.Applications.Gifting.ULTIMATE_END_USERS
+            response.json()["errors"]["ultimate_end_users"], [strings.Applications.Gifting.ULTIMATE_END_USERS]
         )
 
     def test_submit_gifting_clearance_with_location_failure(self):
@@ -184,7 +186,7 @@ class GiftingClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["location"], strings.Applications.Gifting.LOCATIONS)
+        self.assertEqual(response.json()["errors"]["location"], [strings.Applications.Gifting.LOCATIONS])
 
     def test_gifting_clearance_declaration_submit_success(self):
         data = {
@@ -192,7 +194,7 @@ class GiftingClearanceTests(DataTestClient):
             "agreed_to_foi": True,
         }
 
-        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -207,7 +209,7 @@ class GiftingClearanceTests(DataTestClient):
             "agreed_to_foi": True,
         }
 
-        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -260,7 +262,7 @@ class F680ClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["party"], strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY)
+        self.assertEqual(response.json()["errors"]["party"], [strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY])
 
     def test_submit_F680_without_end_user_document_failure(self):
         PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
@@ -268,7 +270,9 @@ class F680ClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["end_user"], strings.Applications.Standard.NO_END_USER_DOCUMENT_SET)
+        self.assertEqual(
+            response.json()["errors"]["end_user"], [strings.Applications.Standard.NO_END_USER_DOCUMENT_SET]
+        )
 
     def test_submit_F680_with_consignee_failure(self):
         self.create_party("Consignee", self.organisation, PartyType.CONSIGNEE, self.draft)
@@ -276,7 +280,7 @@ class F680ClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["consignee"], strings.Applications.F680.CONSIGNEE)
+        self.assertEqual(response.json()["errors"]["consignee"], [strings.Applications.F680.CONSIGNEE])
 
     def test_submit_F680_with_ultimate_end_user_failure(self):
         self.create_party("Ultimate End User", self.organisation, PartyType.ULTIMATE_END_USER, self.draft)
@@ -284,7 +288,9 @@ class F680ClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["ultimate_end_users"], strings.Applications.F680.ULTIMATE_END_USERS)
+        self.assertEqual(
+            response.json()["errors"]["ultimate_end_users"], [strings.Applications.F680.ULTIMATE_END_USERS]
+        )
 
     def test_submit_F680_clearance_with_location_failure(self):
         SiteOnApplication(site=self.organisation.primary_site, application=self.draft).save()
@@ -292,7 +298,7 @@ class F680ClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["location"], strings.Applications.F680.LOCATIONS)
+        self.assertEqual(response.json()["errors"]["location"], [strings.Applications.F680.LOCATIONS])
 
     def test_submit_F680_clearance_without_details_failure(self):
         self.draft.types.clear()
@@ -300,7 +306,7 @@ class F680ClearanceTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"]["types"], strings.Applications.F680.NO_CLEARANCE_TYPE)
+        self.assertEqual(response.json()["errors"]["types"], [strings.Applications.F680.NO_CLEARANCE_TYPE])
 
     def test_submit_F680_clearance_without_end_use_details_failure(self):
         self.draft.intended_end_use = ""
@@ -311,7 +317,9 @@ class F680ClearanceTests(DataTestClient):
         self.draft.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
-        self.assertEqual(response.json()["errors"]["end_use_details"], strings.Applications.Generic.NO_END_USE_DETAILS)
+        self.assertEqual(
+            response.json()["errors"]["end_use_details"], [strings.Applications.Generic.NO_END_USE_DETAILS]
+        )
 
     def test_f680_clearance_declaration_submit_success(self):
         data = {
@@ -319,7 +327,7 @@ class F680ClearanceTests(DataTestClient):
             "agreed_to_foi": True,
         }
 
-        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -334,7 +342,7 @@ class F680ClearanceTests(DataTestClient):
             "agreed_to_foi": True,
         }
 
-        url = reverse("applications:declaration", kwargs={"pk": self.draft.id})
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.post(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

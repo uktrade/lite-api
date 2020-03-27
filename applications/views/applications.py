@@ -26,7 +26,7 @@ from applications.libraries.application_helpers import (
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
 )
-from applications.libraries.case_status_helpers import submit_and_set_sla
+from applications.libraries.case_status_helpers import set_application_sla
 from applications.libraries.edit_applications import save_and_audit_have_you_been_informed_ref
 from applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
@@ -279,6 +279,8 @@ class ApplicationSubmission(APIView):
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         Depending on the application subtype, this will also submit the declaration of the licence
         """
+        previous_application_status = application.status
+
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
             assert_user_has_permission(
                 request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
@@ -289,8 +291,9 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.EUA,
             CaseTypeSubTypeEnum.GOODS,
         ]:
-            submit_and_set_sla(application)
+            set_application_sla(application)
             application.save()
+            self._create_submitted_audit(previous_application_status, request, application)
 
         errors = validate_application_ready_for_submission(application)
         if errors:
@@ -304,24 +307,22 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.EXHIBITION,
         ]:
             if request.data.get("submit_declaration"):
-                errors = {}
                 errors = _validate_agree_to_declaration(request, errors)
                 if errors:
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    # If a valid declaration is provided, save the application
-                    submit_and_set_sla(application)
-                    application.save()
-                    apply_flagging_rules_to_case(application)
-                    add_goods_flags_to_submitted_application(application)
 
-                    # Always create the audit when application is submitted or edited
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATED_STATUS,
-                        target=application.get_case(),
-                        payload={"status": application.status.status},
-                    )
+                # If a valid declaration is provided, save the application
+                application.is_agreed_to_foi = request.data.get("agreed_to_foi")
+                set_application_sla(application)
+                application.save()
+
+                if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+                    set_case_flags_on_submitted_standard_or_open_application(application)
+
+                add_goods_flags_to_submitted_application(application)
+                apply_flagging_rules_to_case(application)
+
+                self._create_submitted_audit(previous_application_status, request, application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -332,6 +333,17 @@ class ApplicationSubmission(APIView):
             data["reference_code"] = application.reference_code
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def _create_submitted_audit(previous_application_status, request, application):
+        if not is_case_status_draft(previous_application_status.status):
+            # Only create the audit if the previous application status was not `Draft`
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.UPDATED_STATUS,
+                target=application.get_case(),
+                payload={"status": application.status.status},
+            )
 
 
 class ApplicationManageStatus(APIView):
