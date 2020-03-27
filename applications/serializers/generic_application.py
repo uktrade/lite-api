@@ -40,9 +40,7 @@ class TinyCaseTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseType
-        fields = (
-            "sub_type",
-        )
+        fields = ("sub_type",)
         read_only_fields = fields
 
 
