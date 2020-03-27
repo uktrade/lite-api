@@ -158,7 +158,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
     compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
 
     intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
-    is_agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
+    agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
 
     objects = BaseApplicationManager()
 

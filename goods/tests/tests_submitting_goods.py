@@ -19,10 +19,10 @@ class GoodTests(DataTestClient):
         draft = self.create_draft_standard_application(self.organisation)
         self.assertEqual(Good.objects.get().status, "draft")
 
-        data = {"agreed_to_declaration": True, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
 
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
 
         response_data = response.json()
 

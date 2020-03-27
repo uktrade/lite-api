@@ -25,6 +25,7 @@ from applications.libraries.application_helpers import (
     optional_str_to_bool,
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
+    create_submitted_audit,
 )
 from applications.libraries.case_status_helpers import set_application_sla
 from applications.libraries.edit_applications import save_and_audit_have_you_been_informed_ref
@@ -293,7 +294,7 @@ class ApplicationSubmission(APIView):
         ]:
             set_application_sla(application)
             application.save()
-            self._create_submitted_audit(previous_application_status, request, application)
+            create_submitted_audit(previous_application_status, request, application)
 
         errors = validate_application_ready_for_submission(application)
         if errors:
@@ -312,7 +313,7 @@ class ApplicationSubmission(APIView):
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
                 # If a valid declaration is provided, save the application
-                application.is_agreed_to_foi = request.data.get("agreed_to_foi")
+                application.agreed_to_foi = request.data.get("agreed_to_foi")
                 set_application_sla(application)
                 application.save()
 
@@ -322,7 +323,7 @@ class ApplicationSubmission(APIView):
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
 
-                self._create_submitted_audit(previous_application_status, request, application)
+                create_submitted_audit(previous_application_status, request, application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -333,17 +334,6 @@ class ApplicationSubmission(APIView):
             data["reference_code"] = application.reference_code
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
-
-    @staticmethod
-    def _create_submitted_audit(previous_application_status, request, application):
-        if not is_case_status_draft(previous_application_status.status):
-            # Only create the audit if the previous application status was not `Draft`
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.UPDATED_STATUS,
-                target=application.get_case(),
-                payload={"status": application.status.status},
-            )
 
 
 class ApplicationManageStatus(APIView):

@@ -181,11 +181,11 @@ class StandardApplicationTests(DataTestClient):
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
-        data = {"agreed_to_declaration": True, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
 
         url = reverse("applications:application_submit", kwargs={"pk": standard_application.id})
 
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
 
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -239,13 +239,13 @@ class StandardApplicationTests(DataTestClient):
         )
 
     def test_standard_application_declaration_submit_success(self):
-        self.draft.is_agreed_to_foi = True
+        self.draft.agreed_to_foi = True
         self.draft.save()
 
-        data = {"agreed_to_declaration": True, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -256,10 +256,10 @@ class StandardApplicationTests(DataTestClient):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
-        data = {"agreed_to_declaration": False, "agreed_to_foi": True}
+        data = {"submit_declaration": True, "agreed_to_declaration": False, "agreed_to_foi": True}
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
