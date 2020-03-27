@@ -78,7 +78,7 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         return None
 
 
-class GenericApplicationSerializer(serializers.ModelSerializer):
+class GenericApplicationViewSerializer(serializers.ModelSerializer):
     name = CharField(
         max_length=100,
         required=True,
@@ -93,6 +93,8 @@ class GenericApplicationSerializer(serializers.ModelSerializer):
     case = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
     is_major_editable = serializers.SerializerMethodField(required=False)
+    goods_locations = serializers.SerializerMethodField()
+    case_officer = GovUserSimpleSerializer()
 
     class Meta:
         model = BaseApplication
@@ -110,6 +112,8 @@ class GenericApplicationSerializer(serializers.ModelSerializer):
             "exporter_user_notification_count",
             "reference_code",
             "is_major_editable",
+            "goods_locations",
+            "case_officer",
         )
 
     def __init__(self, *args, **kwargs):
@@ -142,32 +146,11 @@ class GenericApplicationSerializer(serializers.ModelSerializer):
     def get_case(self, instance):
         return instance.pk
 
-    @abc.abstractmethod
     def get_exporter_user_notification_count(self, instance):
-        """
-        This is used for list views only.
-        To get the count for each type of notification on an application,
-        override this function in child classes
-        """
-        return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
+        return get_exporter_user_notification_individual_count(exporter_user=self.exporter_user, case=instance)
 
     def get_is_major_editable(self, instance):
         return instance.is_major_editable()
-
-
-class GenericApplicationViewSerializer(GenericApplicationSerializer):
-    goods_locations = serializers.SerializerMethodField()
-    case_officer = GovUserSimpleSerializer()
-
-    class Meta:
-        model = BaseApplication
-        fields = GenericApplicationSerializer.Meta.fields + ("goods_locations", "case_officer",)
-
-    def get_exporter_user_notification_count(self, instance):
-        """
-        Overriding parent class
-        """
-        return get_exporter_user_notification_individual_count(exporter_user=self.exporter_user, case=instance)
 
     def get_goods_locations(self, application):
         sites = Site.objects.filter(sites_on_application__application=application)
@@ -188,10 +171,6 @@ class GenericApplicationViewSerializer(GenericApplicationSerializer):
             return {"type": "end_user", "data": serializer.data}
         else:
             return {"type": "end_user", "data": ""}
-
-    def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance)
-        return ApplicationDocumentSerializer(documents, many=True).data
 
 
 class GenericApplicationCreateSerializer(serializers.ModelSerializer):

@@ -12,7 +12,7 @@ from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationViewSerializer,
     GenericApplicationUpdateSerializer,
-    GenericApplicationSerializer,
+    GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
@@ -61,9 +61,9 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
     class Meta:
         model = F680ClearanceApplication
         fields = (
-            GenericApplicationSerializer.Meta.fields
-            + constants.F680.ADDITIONAL_INFORMATION_FIELDS
-            + (
+                GenericApplicationViewSerializer.Meta.fields
+                + constants.F680.ADDITIONAL_INFORMATION_FIELDS
+                + (
                 "case_officer",
                 "end_user",
                 "third_parties",
