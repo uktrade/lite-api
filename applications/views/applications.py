@@ -15,7 +15,6 @@ from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from applications import constants
-from applications.creators import validate_application_ready_for_submission
 from applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -28,7 +27,6 @@ from applications.libraries.application_helpers import (
     create_submitted_audit,
 )
 from applications.libraries.case_status_helpers import set_application_sla
-from applications.libraries.edit_applications import save_and_audit_have_you_been_informed_ref
 from applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
     set_case_flags_on_submitted_standard_or_open_application,

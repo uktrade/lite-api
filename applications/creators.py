@@ -1,5 +1,4 @@
 from conf.helpers import str_to_bool
-from lite_content.lite_api import strings
 from django.utils import timezone
 from applications import constants
 from applications.models import (
