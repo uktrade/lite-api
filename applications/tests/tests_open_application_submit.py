@@ -78,6 +78,7 @@ class OpenApplicationTests(DataTestClient):
         self.assertEqual(case.id, self.draft.id)
         self.assertIsNotNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.baseapplication.agreed_to_foi, True)
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
         data = {

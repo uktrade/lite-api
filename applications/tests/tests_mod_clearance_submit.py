@@ -109,6 +109,7 @@ class ExhibitionClearanceTests(DataTestClient):
         application = ExhibitionClearanceApplication.objects.get()
         self.assertIsNotNone(application.submitted_at)
         self.assertEqual(application.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(application.agreed_to_foi, True)
 
     def test_exhibition_clearance_declaration_submit_tcs_false_failure(self):
         data = {
@@ -205,6 +206,7 @@ class GiftingClearanceTests(DataTestClient):
         application = GiftingClearanceApplication.objects.get()
         self.assertIsNotNone(application.submitted_at)
         self.assertEqual(application.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(application.agreed_to_foi, True)
 
     def test_gifting_clearance_declaration_submit_tcs_false_failure(self):
         data = {
@@ -340,6 +342,7 @@ class F680ClearanceTests(DataTestClient):
         application = F680ClearanceApplication.objects.get()
         self.assertIsNotNone(application.submitted_at)
         self.assertEqual(application.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(application.agreed_to_foi, True)
 
     def test_f680_clearance_declaration_submit_tcs_false_failure(self):
         data = {

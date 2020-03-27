@@ -18,3 +18,4 @@ def set_application_sla(application):
     application.submitted_at = timezone.now()
     application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
     application.sla_days = 0
+    application.save()

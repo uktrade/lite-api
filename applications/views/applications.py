@@ -291,7 +291,6 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.GOODS,
         ]:
             set_application_sla(application)
-            application.save()
             create_submitted_audit(previous_application_status, request, application)
 
         errors = validate_application_ready_for_submission(application)
@@ -313,7 +312,6 @@ class ApplicationSubmission(APIView):
                 # If a valid declaration is provided, save the application
                 application.agreed_to_foi = request.data.get("agreed_to_foi")
                 set_application_sla(application)
-                application.save()
 
                 if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
                     set_case_flags_on_submitted_standard_or_open_application(application)

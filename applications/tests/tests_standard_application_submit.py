@@ -193,6 +193,7 @@ class StandardApplicationTests(DataTestClient):
             standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
+        self.assertEqual(standard_application.agreed_to_foi, True)
 
     def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self):
         standard_application = self.create_draft_standard_application(self.organisation)
@@ -252,6 +253,7 @@ class StandardApplicationTests(DataTestClient):
         case = Case.objects.get(id=self.draft.id)
         self.assertIsNotNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.baseapplication.agreed_to_foi, True)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
 
