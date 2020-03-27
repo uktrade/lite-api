@@ -29,6 +29,11 @@ class Permission(models.Model):
         ordering = ["name"]
 
 
+class RoleManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("permissions")
+
+
 class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
@@ -39,6 +44,8 @@ class Role(models.Model):
 
     class Meta:
         ordering = ["name"]
+
+    objects = RoleManager()
 
 
 class CustomUserManager(BaseUserManager):
@@ -90,6 +97,7 @@ class BaseUser(AbstractUser, TimestampableModel):
     REQUIRED_FIELDS = []
 
     class Meta:
+        ordering = ["first_name", "last_name"]
         unique_together = [["email", "type"]]
 
     def __str__(self):
@@ -133,10 +141,10 @@ class ExporterUser(BaseUser):
         )
 
     def get_role(self, organisation):
-        return self.userorganisationrelationship_set.get(organisation=organisation).role
+        return self.relationship.get(organisation=organisation).role
 
     def set_role(self, organisation, role):
-        uor = self.userorganisationrelationship_set.get(organisation=organisation)
+        uor = self.relationship.get(organisation=organisation)
         uor.role = role
         uor.save()
 
@@ -191,3 +199,6 @@ class UserOrganisationRelationship(TimestampableModel):
 
     def send_notification(self, content_object, case):
         self.user.send_notification(organisation=self.organisation, content_object=content_object, case=case)
+
+    class Meta:
+        default_related_name = "relationship"

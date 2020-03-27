@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from conf.authentication import ExporterAuthentication
 from conf.constants import Roles, ExporterPermissions
 from conf.permissions import assert_user_has_permission
-from gov_users.serializers import RoleSerializer, PermissionSerializer
+from gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
 from users.enums import UserType
 from users.libraries.get_role import get_role_by_pk
 from users.models import Role
@@ -17,10 +17,8 @@ from users.services import get_exporter_roles_by_organisation
 
 
 class RolesViews(ListCreateAPIView):
-
     authentication_classes = (ExporterAuthentication,)
-
-    serializer_class = RoleSerializer
+    serializer_class = RoleListSerializer
 
     def get_queryset(self):
         return get_exporter_roles_by_organisation(self.request, self.kwargs.get("org_pk"))
@@ -41,10 +39,9 @@ class RolesViews(ListCreateAPIView):
 
         serializer = RoleSerializer(data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return JsonResponse(data={"role": serializer.data}, status=status.HTTP_201_CREATED)
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RoleDetail(APIView):

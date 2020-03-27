@@ -48,3 +48,11 @@ def get_value_from_enum(value, enum):
 def convert_date_to_string(value):
     return_value = do_timezone(datetime.datetime.strptime(str(value), "%Y-%m-%d"), "Europe/London")
     return return_value.strftime("%d %B " "%Y")
+
+
+def date_to_drf_date(date):
+    """
+    Given a date, returns a correctly formatted string instance of it
+    suitable for comparison to rest framework datetimes
+    """
+    return date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
