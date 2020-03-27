@@ -6,48 +6,46 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0020_auto_20200326_1644'),
+        ("applications", "0020_auto_20200326_1644"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='openapplication',
-            name='is_temp_direct_control',
+            model_name="openapplication",
+            name="is_temp_direct_control",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='openapplication',
-            name='proposed_return_date',
-            field=models.DateField(blank=True, null=True),
+            model_name="openapplication", name="proposed_return_date", field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='openapplication',
-            name='temp_direct_control_details',
+            model_name="openapplication",
+            name="temp_direct_control_details",
             field=models.CharField(blank=True, default=None, max_length=2200, null=True),
         ),
         migrations.AddField(
-            model_name='openapplication',
-            name='temp_export_details',
+            model_name="openapplication",
+            name="temp_export_details",
             field=models.CharField(blank=True, default=None, max_length=2200, null=True),
         ),
         migrations.AddField(
-            model_name='standardapplication',
-            name='is_temp_direct_control',
+            model_name="standardapplication",
+            name="is_temp_direct_control",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
-            model_name='standardapplication',
-            name='proposed_return_date',
+            model_name="standardapplication",
+            name="proposed_return_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='standardapplication',
-            name='temp_direct_control_details',
+            model_name="standardapplication",
+            name="temp_direct_control_details",
             field=models.CharField(blank=True, default=None, max_length=2200, null=True),
         ),
         migrations.AddField(
-            model_name='standardapplication',
-            name='temp_export_details',
+            model_name="standardapplication",
+            name="temp_export_details",
             field=models.CharField(blank=True, default=None, max_length=2200, null=True),
         ),
     ]

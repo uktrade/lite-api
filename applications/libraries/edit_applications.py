@@ -31,13 +31,13 @@ TEMP_EXPORT_DETAILS_FIELDS = {
 }
 
 
-def get_old_end_use_details_fields(application):
-    return {end_use_field: getattr(application, end_use_field) for end_use_field in END_USE_FIELDS.keys()}
+def get_old_field_values(application, fields):
+    return {old_field: getattr(application, old_field) for old_field in fields.keys()}
 
 
-def get_new_end_use_details_fields(validated_data):
+def get_new_field_values(validated_data, fields):
     new_end_use_details = {}
-    for end_use_field in END_USE_FIELDS.keys():
+    for end_use_field in fields.keys():
         if end_use_field in validated_data:
             new_end_use_details[end_use_field] = validated_data[end_use_field]
     return new_end_use_details
@@ -71,9 +71,9 @@ def _transform_values(old_end_use_value, new_end_use_value):
 
 
 def save_and_audit_end_use_details(request, application, serializer):
-    new_end_use_details_fields = get_new_end_use_details_fields(serializer.validated_data)
+    new_end_use_details_fields = get_new_field_values(serializer.validated_data, END_USE_FIELDS)
     if new_end_use_details_fields:
-        old_end_use_details_fields = get_old_end_use_details_fields(application)
+        old_end_use_details_fields = get_old_field_values(application, END_USE_FIELDS)
         serializer.save()
         audit_end_use_details(
             request.user, application.get_case(), old_end_use_details_fields, new_end_use_details_fields
@@ -81,17 +81,9 @@ def save_and_audit_end_use_details(request, application, serializer):
 
 
 def save_and_audit_temporary_export_details(request, application, serializer):
-    validated_data = serializer.validated_data
-    new_temp_export_details = {}
-    for temp_export_field in TEMP_EXPORT_DETAILS_FIELDS.keys():
-        if temp_export_field in validated_data:
-            new_temp_export_details[temp_export_field] = validated_data[temp_export_field]
-
+    new_temp_export_details = get_new_field_values(serializer.validated_data, TEMP_EXPORT_DETAILS_FIELDS)
     if new_temp_export_details:
-        old_temp_export_details = {
-            temp_export_field: getattr(application, temp_export_field)
-            for temp_export_field in TEMP_EXPORT_DETAILS_FIELDS.keys()
-        }
+        old_temp_export_details = get_old_field_values(application, TEMP_EXPORT_DETAILS_FIELDS)
         serializer.save()
 
         for key, new_temp_export_val in new_temp_export_details.items():

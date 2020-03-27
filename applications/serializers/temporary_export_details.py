@@ -9,15 +9,14 @@ from lite_content.lite_api.strings import Applications as strings
 class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
     temp_export_details = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2200)
     is_temp_direct_control = serializers.BooleanField(
-        required=False, error_messages={"invalid": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL}
+        required=False,
+        error_messages={"invalid": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL},
     )
     temp_direct_control_details = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2200
     )
     proposed_return_date = serializers.DateField(
-        error_messages={
-            "invalid": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_INVALID,
-        },
+        error_messages={"invalid": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_INVALID,},
     )
 
     class Meta:
@@ -30,7 +29,9 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        validate_field(data, "temp_export_details", strings.Generic.TemporaryExportDetails.Error.TEMPORARY_EXPORT_DETAILS)
+        validate_field(
+            data, "temp_export_details", strings.Generic.TemporaryExportDetails.Error.TEMPORARY_EXPORT_DETAILS
+        )
         is_temp_direct_control_value = validate_field(
             data, "is_temp_direct_control", strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL
         )
@@ -38,7 +39,11 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         # Only validate temp_direct_control_details if its parent is_temp_direct_control is False
         if is_temp_direct_control_value is False:
             if not data.get("temp_direct_control_details"):
-                raise serializers.ValidationError({"temp_direct_control_details": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS})
+                raise serializers.ValidationError(
+                    {
+                        "temp_direct_control_details": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS
+                    }
+                )
 
         # Validate temp_direct_control_details if its parent is_temp_direct_control is False and exists on the instance
         if (
@@ -46,17 +51,25 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
             and not self.instance.temp_direct_control_details
             and not data.get("temp_direct_control_details")
         ):
-            raise serializers.ValidationError({"temp_direct_control_details": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS})
+            raise serializers.ValidationError(
+                {
+                    "temp_direct_control_details": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS
+                }
+            )
 
         validated_data = super().validate(data)
 
         today = timezone.now().date()
         if validated_data.get("proposed_return_date"):
             if validated_data["proposed_return_date"] < today:
-                raise serializers.ValidationError({"proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_DATE_NOT_IN_FUTURE})
+                raise serializers.ValidationError(
+                    {"proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_DATE_NOT_IN_FUTURE}
+                )
             validated_data["proposed_return_date"] = str(validated_data["proposed_return_date"])
         else:
-            raise serializers.ValidationError({"proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_BLANK})
+            raise serializers.ValidationError(
+                {"proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_BLANK}
+            )
 
         return validated_data
 
