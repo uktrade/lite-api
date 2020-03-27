@@ -4,6 +4,7 @@ from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
+from cases.views.search.queue import SearchQueue
 from conf.authentication import GovAuthentication
 from queues.helpers import get_queue
 from queues.models import Queue
@@ -42,9 +43,11 @@ class QueueDetail(APIView):
         """
         Retrieve a queue instance
         """
-        queue = get_queue(pk=pk)
+        queue = next((queue for queue in SearchQueue.system(user=request.user) if queue.id == str(pk)), None) \
+                or get_queue(pk=pk)
+
         serializer = QueueViewSerializer(queue)
-        return JsonResponse(data={"queue": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(data=serializer.data)
 
     @swagger_auto_schema(request_body=QueueCreateSerializer)
     def put(self, request, pk):

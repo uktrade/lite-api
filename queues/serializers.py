@@ -9,6 +9,22 @@ from teams.serializers import TeamSerializer
 
 
 class QueueViewSerializer(serializers.ModelSerializer):
+    is_system_queue = serializers.SerializerMethodField()
+
+    def get_is_system_queue(self, instance):
+        # System queues have the attribute 'is_system_queue',
+        # hence return whether it has the attribute or not
+        return hasattr(instance, "is_system_queue")
+
+    class Meta:
+        model = Queue
+        fields = (
+            "name",
+            "is_system_queue"
+        )
+
+
+class QueueListSerializer(serializers.ModelSerializer):
     team = TeamSerializer(required=False)
     cases_count = serializers.SerializerMethodField()
     is_system_queue = serializers.SerializerMethodField()
@@ -33,7 +49,6 @@ class QueueViewSerializer(serializers.ModelSerializer):
             "name",
             "team",
             "cases_count",
-            "is_system_queue",
         )
 
 
