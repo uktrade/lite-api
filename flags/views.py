@@ -273,7 +273,7 @@ class FlaggingRules(ListCreateAPIView):
 
     def get_queryset(self):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
-        rules = FlaggingRule.objects.all().order_by("team__name")
+        rules = FlaggingRule.objects.all()
 
         include_deactivated = self.request.query_params.get("include_deactivated", "")
         if not include_deactivated:
