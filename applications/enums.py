@@ -77,3 +77,48 @@ class DefaultDuration(Enum):
     PERMANENT_STANDARD = 2 * 12
     PERMANENT_OPEN_EU = 3 * 12
     PERMANENT_OPEN = 5 * 12
+
+
+class MTCRAnswers(Enum):
+    CATEGORY_1 = "mtcr_category_1"
+    CATEGORY_2 = "mtcr_category_2"
+    NO = "none"
+    UNKNOWN = "unknown"
+
+    @classmethod
+    def choices(cls):
+        return (
+            (cls.CATEGORY_1.value, cls.CATEGORY_1.to_representation()),
+            (cls.CATEGORY_2.value, cls.CATEGORY_2.to_representation()),
+            (cls.NO.value, cls.NO.to_representation()),
+            (cls.UNKNOWN.value, cls.UNKNOWN.to_representation()),
+        )
+
+    def to_representation(self):
+        return {
+            MTCRAnswers.CATEGORY_1: "MTCR Category 1",
+            MTCRAnswers.CATEGORY_2: "MTCR Category 2",
+            MTCRAnswers.NO: "No",
+            MTCRAnswers.UNKNOWN: "Unknown",
+        }[self]
+
+
+class ServiceEquipmentType(Enum):
+    MOD_FUNDED = "mod_funded"
+    PART_MOD_PART_PRIVATE_VENTURE = "part_mod_part_venture"
+    PRIVATE_VENTURE = "private_venture"
+
+    @classmethod
+    def choices(cls):
+        return (
+            (cls.MOD_FUNDED.value, cls.MOD_FUNDED.to_representation()),
+            (cls.PART_MOD_PART_PRIVATE_VENTURE.value, cls.PART_MOD_PART_PRIVATE_VENTURE.to_representation()),
+            (cls.PRIVATE_VENTURE.value, cls.PRIVATE_VENTURE.to_representation()),
+        )
+
+    def to_representation(self):
+        return {
+            ServiceEquipmentType.MOD_FUNDED: "MOD funded",
+            ServiceEquipmentType.PART_MOD_PART_PRIVATE_VENTURE: "Part MOD part private venture",
+            ServiceEquipmentType.PRIVATE_VENTURE: "Private venture",
+        }[self]

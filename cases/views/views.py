@@ -3,6 +3,7 @@ from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
+
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -10,7 +11,6 @@ from applications.models import Licence
 from applications.serializers.licence import LicenceSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases import service
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import FinalAdviceDocumentGovSerializer
@@ -26,7 +26,7 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision
+from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision, CaseAssignment
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -51,8 +51,10 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api.strings import Documents, Cases
+from queues.serializers import TinyQueueSerializer
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
+from queues.models import Queue
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -60,6 +62,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
+from workflow.user_queue_assignment import user_queue_assignment_workflow
 
 
 class CaseDetail(APIView):
@@ -74,23 +77,46 @@ class CaseDetail(APIView):
 
         return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={400: 'Input error, "queues" should be an array with at least one existing queue'})
+
+class SetQueues(APIView):
+    authentication_classes = (GovAuthentication,)
+
     @transaction.atomic
     def put(self, request, pk):
-        """
-        Change the queues a case belongs to
-        """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(
-            case, data=request.data, user=request.user, team=request.user.team, partial=True
-        )
-        if serializer.is_valid():
-            service.update_case_queues(user=request.user, case=case, queues=serializer.validated_data["queues"])
-            serializer.save()
+        request_queues = set(request.data.get("queues", []))
+        queues = Queue.objects.filter(id__in=request_queues)
 
-            return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
+        if len(request_queues) > len(queues):
+            queues_not_found = list(request_queues - set(str(id) for id in queues.values_list("id", flat=True)))
+            return JsonResponse(
+                data={"errors": {"queues": [Cases.Queue.NOT_FOUND + str(queues_not_found)]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        initial_queues = set(case.queues.all())
+        queues = set(queues)
+        case.queues.set(request_queues)
+
+        removed_queues = initial_queues - queues
+        new_queues = queues - initial_queues
+        if removed_queues:
+            # Remove case assignments when the case is remove from the queue
+            CaseAssignment.objects.filter(case=case, queue__in=removed_queues).delete()
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.REMOVE_CASE,
+                target=case,
+                payload={"queues": sorted([queue.name for queue in removed_queues])},
+            )
+        if new_queues:
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.MOVE_CASE,
+                target=case,
+                payload={"queues": sorted([queue.name for queue in new_queues])},
+            )
+        return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
 
 class CaseDocuments(APIView):
@@ -623,6 +649,63 @@ class FinaliseView(RetrieveUpdateAPIView):
             document.send_exporter_notifications()
 
         return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
+
+
+class AssignedQueues(APIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = TinyQueueSerializer
+
+    def get(self, request, pk):
+        # Get all queues where this user is assigned to this case
+        queues = Queue.objects.filter(case_assignments__user=request.user.pk, case_assignments__case=pk)
+        serializer = TinyQueueSerializer(queues, many=True)
+        return JsonResponse(data={"queues": serializer.data}, status=status.HTTP_200_OK)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        queues = request.data.get("queues")
+        if queues:
+            queue_names = []
+            assignments = (
+                CaseAssignment.objects.select_related("queue")
+                .filter(user=request.user, case__id=pk, queue__id__in=queues)
+                .order_by("queue__name")
+            )
+            case = get_case(pk)
+
+            if assignments:
+                queues = [assignment.queue for assignment in assignments]
+                queue_names = [queue.name for queue in queues]
+                assignments.delete()
+                user_queue_assignment_workflow(queues, case)
+                audit_trail_service.create(
+                    actor=request.user, verb=AuditType.UNASSIGNED_QUEUES, target=case, payload={"queues": queue_names},
+                )
+            else:
+                # When users click done without queue assignments
+                # Only a single queue ID can be passed
+                if len(queues) != 1:
+                    return JsonResponse(
+                        data={"errors": {"queues": [Cases.UnassignQueues.NOT_ASSIGNED_MULTIPLE_QUEUES]}},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                # Check queue belongs to that users team
+                queues = Queue.objects.filter(id=queues[0], team=request.user.team)
+                if not queues.exists():
+                    return JsonResponse(
+                        data={"errors": {"queues": [Cases.UnassignQueues.INVALID_TEAM]}},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                user_queue_assignment_workflow(queues, case)
+                audit_trail_service.create(
+                    actor=request.user, verb=AuditType.UNASSIGNED, target=case,
+                )
+
+            return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
+        else:
+            return JsonResponse(
+                data={"errors": {"queues": [Cases.UnassignQueues.NO_QUEUES]}}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class AdditionalContacts(ListCreateAPIView):

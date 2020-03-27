@@ -28,11 +28,10 @@ class CaseAssignmentTests(DataTestClient):
         response = self.client.put(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(CaseAssignment.objects.get().case.id, self.case.id)
-        self.assertEqual(CaseAssignment.objects.get().queue.id, self.queue.id)
-        self.assertEqual(
-            CaseAssignment.objects.get().users.values_list("id", flat=True)[0], data["case_assignments"][0]["users"][0],
-        )
+        case_assignment = CaseAssignment.objects.get()
+        self.assertEqual(case_assignment.case.id, self.case.id)
+        self.assertEqual(case_assignment.queue.id, self.queue.id)
+        self.assertEqual(case_assignment.user.id, self.gov_user.id)
 
     def test_can_assign_many_users_to_many_cases(self):
         data = {
@@ -46,32 +45,25 @@ class CaseAssignmentTests(DataTestClient):
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(CaseAssignment.objects.all()), 2)
-        self.assertEqual(len(CaseAssignment.objects.all()[0].users.values_list("id", flat=True)), 3)
-        self.assertEqual(len(CaseAssignment.objects.all()[1].users.values_list("id", flat=True)), 3)
+        self.assertEqual(CaseAssignment.objects.count(), 6)
+        for case in [self.case, self.case_2]:
+            for user in [self.gov_user, self.gov_user_2, self.gov_user_3]:
+                self.assertTrue(CaseAssignment.objects.filter(case=case, user=user).exists())
 
     def test_all_assignments_are_cleared_when_a_case_leaves_a_queue(self):
         self.queue.cases.add(self.case)
+        CaseAssignment.objects.create(queue=self.queue, case=self.case, user=self.gov_user)
 
-        case_assignment = CaseAssignment(queue=self.queue, case=self.case)
-        case_assignment.users.set([self.gov_user])
-        case_assignment.save()
+        self.url = reverse("cases:queues", kwargs={"pk": self.case.id})
 
-        new_queue = Queue(name="new queue", team=self.team)
-        new_queue.save()
-
-        self.url = reverse("cases:case", kwargs={"pk": self.case.id})
-
-        data = {"queues": [new_queue.id]}
+        data = {"queues": []}
 
         self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(len(CaseAssignment.objects.all()), 0)
 
     def test_assignments_persist_if_queue_is_not_removed_from_a_queue(self):
-        case_assignment = CaseAssignment(queue=self.queue, case=self.case)
-        case_assignment.users.set([self.gov_user])
-        case_assignment.save()
+        CaseAssignment.objects.create(queue=self.queue, case=self.case, user=self.gov_user)
 
         self.url = reverse("cases:case", kwargs={"pk": self.case.id})
 
@@ -84,15 +76,6 @@ class CaseAssignmentTests(DataTestClient):
 
         self.assertEqual(len(CaseAssignment.objects.all()), 1)
 
-    def test_empty_set_clears_assignments(self):
-        case_assignment = CaseAssignment(queue=self.queue, case=self.case)
-        case_assignment.users.set([self.gov_user])
-        case_assignment.save()
-
-        data = {"case_assignments": [{"case_id": self.case.id, "users": []}]}
-        self.client.put(self.url, data, **self.gov_headers)
-        self.assertEqual(len(CaseAssignment.objects.get().users.values_list("id")), 0)
-
     def test_can_see_lists_of_users_assigned_to_each_case(self):
         self.create_case_assignment(self.queue, self.case, [self.gov_user, self.gov_user_2, self.gov_user_3])
         self.create_case_assignment(self.queue, self.case_2, [self.gov_user, self.gov_user_2])
@@ -100,16 +83,16 @@ class CaseAssignmentTests(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["case_assignments"]
 
-        for case_assignment in response_data:
-            if case_assignment["case"] == str(self.case.id):
-                self.assertEqual(len(case_assignment["users"]), 3)
-            if case_assignment["case"] == str(self.case_2.id):
-                self.assertEqual(len(case_assignment["users"]), 2)
+        extract_case_and_user_id = [{"case": item["case"], "user": item["user"]["id"]} for item in response_data]
+        for user in [self.gov_user, self.gov_user_2, self.gov_user_3]:
+            self.assertTrue({"case": str(self.case.pk), "user": str(user.pk)} in extract_case_and_user_id)
+        for user in [self.gov_user, self.gov_user_2]:
+            self.assertTrue({"case": str(self.case_2.pk), "user": str(user.pk)} in extract_case_and_user_id)
 
     def test_deactivated_user_is_removed_from_assignments(self):
-        case_assignment = self.create_case_assignment(self.queue, self.case, [self.gov_user])
-        case_assignment_2 = self.create_case_assignment(self.queue, self.case_2, [self.gov_user, self.gov_user_2])
-        case_assignment_3 = self.create_case_assignment(self.queue, self.case_3, [self.gov_user_2])
+        self.create_case_assignment(self.queue, self.case, self.gov_user)
+        self.create_case_assignment(self.queue, self.case_2, [self.gov_user, self.gov_user_2])
+        self.create_case_assignment(self.queue, self.case_3, self.gov_user_2)
 
         # Deactivate initial gov user
         data = {"status": "Deactivated"}
@@ -118,6 +101,5 @@ class CaseAssignmentTests(DataTestClient):
 
         # Ensure that the deactivated user has been removed from all cases
         self.assertEqual(self.gov_user.case_assignments.count(), 0)
-        self.assertEqual(case_assignment.users.count(), 0)
-        self.assertEqual(case_assignment_2.users.count(), 1)
-        self.assertEqual(case_assignment_3.users.count(), 1)
+        self.assertFalse(CaseAssignment.objects.filter(user=self.gov_user).exists())
+        self.assertEqual(CaseAssignment.objects.filter(user=self.gov_user_2).count(), 2)

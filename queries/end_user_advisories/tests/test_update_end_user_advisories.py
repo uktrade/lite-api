@@ -17,8 +17,7 @@ class EndUserAdvisoryUpdate(DataTestClient):
         self.end_user_advisory.case_officer = self.gov_user
         self.end_user_advisory.save()
         self.end_user_advisory.queues.set([self.queue])
-        case_assignment = CaseAssignment.objects.create(case=self.end_user_advisory, queue=self.queue)
-        case_assignment.users.set([self.gov_user])
+        CaseAssignment.objects.create(case=self.end_user_advisory, queue=self.queue, user=self.gov_user)
 
     def test_update_end_user_advisory_status_to_withdrawn_success(self):
         """

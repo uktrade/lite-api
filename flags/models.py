@@ -22,3 +22,7 @@ class FlaggingRule(TimestampableModel):
     status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
     flag = models.ForeignKey(Flag, on_delete=models.CASCADE)
     matching_value = models.CharField(max_length=100)
+
+    class Meta:
+        indexes = [models.Index(fields=["created_at"])]
+        ordering = ["team__name", "-created_at"]

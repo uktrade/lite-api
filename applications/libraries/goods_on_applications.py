@@ -14,7 +14,7 @@ def get_good_on_application(pk):
         raise Http404
 
 
-def update_submitted_application_good_statuses_and_flags(application: BaseApplication):
+def add_goods_flags_to_submitted_application(application: BaseApplication):
     """
     When an application is submitted;
     The 'not yet verified' system flag must be added to its Goods or GoodsTypes

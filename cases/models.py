@@ -18,6 +18,7 @@ from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
 from organisations.models import Organisation
+from picklists.enums import PicklistType
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -91,24 +92,24 @@ class Case(TimestampableModel):
         return Case.objects.get(id=self.id)
 
     def get_users(self, queue=None):
-        users = []
         case_assignments = (
             CaseAssignment.objects.filter(case=self)
             .select_related("queue")
             .order_by("queue__name")
-            .prefetch_related("users")
+            .prefetch_related("user")
         )
         if queue:
             case_assignments = case_assignments.filter(queue=queue)
 
-        for case_assignment in case_assignments:
-            queue_users = [
-                {"first_name": first_name, "last_name": last_name, "email": email, "queue": case_assignment.queue.name,}
-                for first_name, last_name, email in case_assignment.users.values_list(
-                    "first_name", "last_name", "email"
-                )
-            ]
-            users.extend(queue_users)
+        users = [
+            {
+                "first_name": case_assignment.user.first_name,
+                "last_name": case_assignment.user.last_name,
+                "email": case_assignment.user.email,
+                "queue": case_assignment.queue.name,
+            }
+            for case_assignment in case_assignments
+        ]
 
         return users
 
@@ -155,8 +156,8 @@ class CaseAssignment(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="case_assignments")
-    users = models.ManyToManyField(GovUser, related_name="case_assignments")
-    queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+    user = models.ForeignKey(GovUser, on_delete=models.CASCADE, related_name="case_assignments")
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE, related_name="case_assignments")
 
 
 class CaseDocument(Document):
@@ -305,6 +306,9 @@ class EcjuQuery(TimestampableModel):
     )
     responded_by_user = models.ForeignKey(
         ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
+    )
+    query_type = models.CharField(
+        choices=PicklistType.choices, max_length=50, default=PicklistType.ECJU, null=False, blank=False
     )
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
