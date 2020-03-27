@@ -61,9 +61,9 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
     class Meta:
         model = F680ClearanceApplication
         fields = (
-                GenericApplicationSerializer.Meta.fields
-                + constants.F680.ADDITIONAL_INFORMATION_FIELDS
-                + (
+            GenericApplicationSerializer.Meta.fields
+            + constants.F680.ADDITIONAL_INFORMATION_FIELDS
+            + (
                 "case_officer",
                 "end_user",
                 "third_parties",
