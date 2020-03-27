@@ -42,7 +42,6 @@ times = static_endpoints_get(exporter, times)
 print(times)
 
 # TODO:
-# 2. Move all users used to separate env variable
 # 3. Split functionality up more
 # 4. Move to unit tests
 # 5. Caching of data such as standard_application, open_application, goods etc

@@ -23,8 +23,7 @@ def get_users(env_variable):
 
 def login_exporter():
     # TODO: move over to env defined individual user
-    exporter_users = get_users("EXPORTER_USERS")
-    exporter_user = exporter_users[0]
+    exporter_user = {"email": env("PERFORMANCE_EXPORTER_USER")}
 
     exporter_user = {
         "email": exporter_user["email"],
@@ -48,8 +47,7 @@ def login_exporter():
 
 def login_internal():
     # TODO: move over to env defined individual user
-    gov_users = get_users("INTERNAL_ADMIN_TEAM_USERS")
-    gov_user = gov_users[0]
+    gov_user = {"email": env("PERFORMANCE_GOV_USER")}
     gov_user["first_name"] = "test"
     gov_user["last_name"] = "er"
 
