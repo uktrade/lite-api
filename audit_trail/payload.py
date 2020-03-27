@@ -45,6 +45,7 @@ class AuditType(Enum):
     CLEARED_FINAL_ADVICE = "cleared final advice"
     CREATED_TEAM_ADVICE = "created team advice"
     CLEARED_TEAM_ADVICE = "cleared team advice"
+    CREATED_USER_ADVICE = "created user advice"
     ADD_PARTY = "added the {party_type} {party_name}"
     REMOVE_PARTY = "removed the {party_type} {party_name}"
     UPLOAD_PARTY_DOCUMENT = "uploaded the document {file_name} for {party_type} {party_name}"
@@ -57,6 +58,8 @@ class AuditType(Enum):
     REMOVE_CASE_OFFICER_FROM_CASE = "removed {case_officer} as the Case Officer"
     GRANTED_APPLICATION = "granted licence for {licence_duration} months starting from {start_date}"
     FINALISED_APPLICATION = "finalised the application"
+    UNASSIGNED_QUEUES = "marked themselves as done for this case on the following queues: {queues}"
+    UNASSIGNED = "marked themselves as done for this case"
 
     UPDATED_LETTER_TEMPLATE_NAME = "updated letter template name from {old_name} to {new_name}"
     ADDED_LETTER_TEMPLATE_CASE_TYPES = "added letter template types: {new_case_types}"
@@ -81,6 +84,7 @@ class AuditType(Enum):
     UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE = (
         'updated exhibition reason for clearance to "{new_reason_for_clearance}"'
     )
+    UPDATED_ROUTE_OF_GOODS = 'updated {route_of_goods_field} from "{previous_value}" to "{new_value}"'
 
     def format(self, payload):
         text = self.value.format(**payload)

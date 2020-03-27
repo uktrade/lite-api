@@ -7,8 +7,10 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.licence import LicenceViewSerializer
+from applications.serializers.serializer_helper import validate_field
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
+from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
 
@@ -37,6 +39,8 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "suspected_wmd_ref",
             "intended_end_use",
             "licence",
+            "is_shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
             "temp_export_details",
             "is_temp_direct_control",
             "temp_direct_control_details",
@@ -73,4 +77,26 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationUpdateSerializer.Meta.fields
+        fields = GenericApplicationUpdateSerializer.Meta.fields + (
+            "is_shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(OpenApplicationUpdateSerializer, self).__init__(*args, **kwargs)
+
+        if self.get_initial().get("is_shipped_waybill_or_lading") == "True":
+            if hasattr(self, "initial_data"):
+                self.initial_data["non_waybill_or_lading_route_details"] = None
+
+    def validate(self, data):
+        validate_field(
+            data,
+            "is_shipped_waybill_or_lading",
+            strings.Applications.Generic.RouteOfGoods.IS_SHIPPED_AIR_WAY_BILL_OR_LADING,
+        )
+        if data.get("is_shipped_waybill_or_lading") == False:
+            validate_field(
+                data, "non_waybill_or_lading_route_details", strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS
+            )
+        return super().validate(data)

@@ -9,6 +9,7 @@ urlpatterns = [
     path("", search_views.CasesSearchView.as_view(), name="search"),
     path("destinations/<str:pk>/", views.Destination.as_view(), name="destination"),
     path("<uuid:pk>/", views.CaseDetail.as_view(), name="case"),
+    path("<uuid:pk>/queues/", views.SetQueues.as_view(), name="queues"),
     path("<uuid:pk>/case-notes/", case_notes.CaseNoteList.as_view(), name="case_notes"),
     path("<uuid:pk>/case-officer/", views.CaseOfficer.as_view(), name="case_officer"),
     path("<uuid:pk>/activity/", activity.Activity.as_view(), name="activity"),
@@ -35,4 +36,5 @@ urlpatterns = [
     path("<uuid:pk>/ecju-queries/<uuid:ecju_pk>/", views.EcjuQueryDetail.as_view(), name="case_ecju_query",),
     path("<uuid:pk>/generated-documents/", include("cases.generated_documents.urls")),
     path("<uuid:pk>/finalise/", views.FinaliseView.as_view(), name="finalise"),
+    path("<uuid:pk>/assigned-queues/", views.AssignedQueues.as_view(), name="assigned_queues"),
 ]

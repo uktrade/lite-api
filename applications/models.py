@@ -9,6 +9,8 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsCategory,
+    ServiceEquipmentType,
+    MTCRAnswers,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
@@ -18,7 +20,6 @@ from documents.models import Document
 from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
-
 from lite_content.lite_api.strings import PartyErrors
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
@@ -138,7 +139,7 @@ class ApplicationPartyMixin:
 
 
 class BaseApplication(ApplicationPartyMixin, Case):
-    name = models.TextField(default=None, blank=True, null=True)
+    name = models.TextField(default=None, blank=False, null=True)
     activity = models.TextField(default=None, blank=True, null=True)
     usage = models.TextField(default=None, blank=True, null=True)
     clearance_level = models.CharField(choices=PvGrading.choices, max_length=30, null=True)
@@ -174,6 +175,8 @@ class StandardApplication(BaseApplication):
     goods_categories = SeparatedValuesField(
         max_length=150, choices=GoodsCategory.choices, blank=True, null=True, default=None
     )
+    is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
+    non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
     temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
     is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
     temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
@@ -182,6 +185,8 @@ class StandardApplication(BaseApplication):
 
 class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
+    is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
+    non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
     temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
     is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
     temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
@@ -205,6 +210,25 @@ class GiftingClearanceApplication(BaseApplication):
 # F680 includes End User & Third parties
 class F680ClearanceApplication(BaseApplication):
     types = models.ManyToManyField(F680ClearanceType, related_name="f680_clearance_application")
+
+    expedited = models.NullBooleanField(default=None)
+    expedited_date = models.DateField(null=True, default=None)
+
+    foreign_technology = models.NullBooleanField(default=None)
+    foreign_technology_description = models.CharField(max_length=2200, null=True)
+
+    locally_manufactured = models.NullBooleanField(blank=True, default=None)
+    locally_manufactured_description = models.CharField(max_length=2200, null=True)
+
+    mtcr_type = models.CharField(choices=MTCRAnswers.choices(), null=True, max_length=50)
+
+    electronic_warfare_requirement = models.NullBooleanField(default=None)
+
+    uk_service_equipment = models.NullBooleanField(default=None)
+    uk_service_equipment_description = models.CharField(max_length=2200, null=True)
+    uk_service_equipment_type = models.CharField(choices=ServiceEquipmentType.choices(), null=True, max_length=50)
+
+    prospect_value = models.DecimalField(max_digits=15, decimal_places=2, null=True)
 
 
 # Queries

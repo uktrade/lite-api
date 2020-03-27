@@ -1,5 +1,7 @@
 from applications.enums import ApplicationExportType
-from lite_content.lite_api import strings
+from django.utils import timezone
+
+from applications import constants
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
@@ -9,6 +11,7 @@ from applications.models import (
 from cases.enums import CaseTypeSubTypeEnum
 from documents.models import Document
 from goodstype.models import GoodsType
+from lite_content.lite_api import strings
 from parties.models import PartyDocument
 
 
@@ -169,6 +172,25 @@ def _validate_end_use_details(draft, errors, application_type):
     return errors
 
 
+def _validate_additional_information(draft, errors):
+    for field in constants.F680.REQUIRED_FIELDS:
+        if getattr(draft, field) is None or getattr(draft, field) == "":
+            errors["additional_information"] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+        if getattr(draft, field) is True:
+            secondary_field = constants.F680.REQUIRED_SECONDARY_FIELDS.get(field, False)
+            if secondary_field and not getattr(draft, secondary_field):
+                errors[
+                    "additional_information"
+                ] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+
+    today = timezone.now().date()
+
+    if getattr(draft, "expedited_date") and getattr(draft, "expedited_date") < today:
+        errors["questions"] = strings.Applications.F680.AdditionalInformation.Errors.PAST_DATE
+
+    return errors
+
+
 def _validate_temporary_export_details(draft, errors):
     if draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
         if draft.export_type == ApplicationExportType.TEMPORARY:
@@ -231,6 +253,7 @@ def _validate_standard_licence(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
+    errors = _validate_route_of_goods(draft, errors)
     errors = _validate_temporary_export_details(draft, errors)
 
     return errors
@@ -272,6 +295,7 @@ def _validate_f680_clearance(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
+    errors = _validate_additional_information(draft, errors)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
 
     if not draft.end_user and not draft.third_parties.exists():
@@ -299,9 +323,15 @@ def _validate_open_licence(draft, errors):
     errors = _validate_countries(draft, errors, is_mandatory=True)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
+    errors = _validate_route_of_goods(draft, errors)
     errors = _validate_temporary_export_details(draft, errors)
 
     return errors
+
+
+def _validate_route_of_goods(draft, errors):
+    if draft.is_shipped_waybill_or_lading is None:
+        errors["route_of_goods"] = strings.Applications.Generic.NO_ROUTE_OF_GOODS
 
 
 def _validate_hmrc_query(draft, errors):

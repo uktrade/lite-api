@@ -1,8 +1,9 @@
-from lite_content.lite_api import strings
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
+from audit_trail.payload import AuditType
+from audit_trail import service as audit_trail_service
 from cases.libraries.get_case import get_case
 from cases.models import FinalAdvice, TeamAdvice, Advice
 from conf import constants
@@ -10,6 +11,7 @@ from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
 from static.statuses.enums import CaseStatusEnum
+from lite_content.lite_api import strings
 
 
 def check_if_user_cannot_manage_team_advice(case, user):
@@ -67,6 +69,11 @@ def post_advice(request, case, serializer_object, team=False):
 
     if serializer.is_valid() and not refusal_error:
         serializer.save()
+        if not team:
+            # Only applies at user level advice
+            audit_trail_service.create(
+                actor=request.user, verb=AuditType.CREATED_USER_ADVICE, target=case,
+            )
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
     errors = [{}]

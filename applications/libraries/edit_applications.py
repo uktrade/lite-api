@@ -1,7 +1,12 @@
+from applications.enums import GoodsCategory
+from applications.models import BaseApplication, StandardApplication
 from datetime import date
 
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeSubTypeEnum
+from cases.models import Case
+from flags.enums import SystemFlags
 from conf.helpers import str_to_bool, convert_date_to_string
 from lite_content.lite_api.strings import Applications as strings
 
@@ -24,14 +29,6 @@ TEMP_EXPORT_DETAILS_FIELDS = {
     "temp_direct_control_details": "Direct control details",
     "proposed_return_date": "Proposed return date",
 }
-
-
-def get_end_use_details_minor_edit_errors(request):
-    return {
-        end_use_field: [strings.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]
-        for end_use_field in END_USE_FIELDS.keys()
-        if end_use_field in request.data.keys()
-    }
 
 
 def get_old_end_use_details_fields(application):
@@ -81,14 +78,6 @@ def save_and_audit_end_use_details(request, application, serializer):
         audit_end_use_details(
             request.user, application.get_case(), old_end_use_details_fields, new_end_use_details_fields
         )
-
-
-def get_temporary_export_details_minor_edit_errors(request):
-    return {
-        temp_export_field: [strings.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]
-        for temp_export_field in TEMP_EXPORT_DETAILS_FIELDS.keys()
-        if temp_export_field in request.data.keys()
-    }
 
 
 def save_and_audit_temporary_export_details(request, application, serializer):
@@ -171,3 +160,38 @@ def save_and_audit_have_you_been_informed_ref(request, application, serializer):
                     target=application.get_case(),
                     payload={"new_ref_number": new_ref_number},
                 )
+
+
+def set_case_flags_on_submitted_standard_or_open_application(application: BaseApplication):
+    case = application.get_case()
+
+    _add_or_remove_flag(
+        case=case, flag_id=SystemFlags.MILITARY_END_USE_ID, is_adding=application.is_military_end_use_controls,
+    )
+    _add_or_remove_flag(
+        case=case,
+        flag_id=SystemFlags.WMD_END_USE_ID,
+        is_adding=application.is_informed_wmd or application.is_suspected_wmd,
+    )
+
+    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+        goods_categories = (
+            StandardApplication.objects.values_list("goods_categories", flat=True).get(pk=application.pk) or []
+        )
+
+        _add_or_remove_flag(
+            case=case,
+            flag_id=SystemFlags.MARITIME_ANTI_PIRACY_ID,
+            is_adding=GoodsCategory.MARITIME_ANTI_PIRACY in goods_categories,
+        )
+        _add_or_remove_flag(
+            case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=GoodsCategory.FIREARMS in goods_categories,
+        )
+
+
+def _add_or_remove_flag(case: Case, flag_id: str, is_adding: bool):
+    if is_adding:
+        if not case.flags.filter(id=flag_id).exists():
+            case.flags.add(flag_id)
+    else:
+        case.flags.remove(flag_id)

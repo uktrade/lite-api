@@ -11,6 +11,8 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from applications.serializers.licence import LicenceViewSerializer
+from applications.serializers.serializer_helper import validate_field
+from lite_content.lite_api import strings
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -53,6 +55,8 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "compliant_limitations_eu_ref",
                 "intended_end_use",
                 "licence",
+                "is_shipped_waybill_or_lading",
+                "non_waybill_or_lading_route_details",
                 "temp_export_details",
                 "is_temp_direct_control",
                 "temp_direct_control_details",
@@ -97,7 +101,16 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             "have_you_been_informed",
             "reference_number_on_information_form",
             "goods_categories",
+            "is_shipped_waybill_or_lading",
+            "non_waybill_or_lading_route_details",
         )
+
+    def __init__(self, *args, **kwargs):
+        super(StandardApplicationUpdateSerializer, self).__init__(*args, **kwargs)
+
+        if self.get_initial().get("is_shipped_waybill_or_lading") == "True":
+            if hasattr(self, "initial_data"):
+                self.initial_data["non_waybill_or_lading_route_details"] = None
 
     def update(self, instance, validated_data):
         if "goods_categories" in validated_data:
@@ -120,3 +133,18 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             instance.reference_number_on_information_form = reference_number_on_information_form
         else:
             instance.reference_number_on_information_form = None
+
+    def validate(self, data):
+        validate_field(
+            data,
+            "is_shipped_waybill_or_lading",
+            strings.Applications.Generic.RouteOfGoods.IS_SHIPPED_AIR_WAY_BILL_OR_LADING,
+        )
+        if data.get("is_shipped_waybill_or_lading") == False:
+            validate_field(
+                data,
+                "non_waybill_or_lading_route_details",
+                strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS,
+                required=True,
+            )
+        return super().validate(data)

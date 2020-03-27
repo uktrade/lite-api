@@ -2,7 +2,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from applications.models import BaseApplication
-from applications.serializers.end_use_details import _validate_field
+from applications.serializers.serializer_helper import validate_field
 
 
 class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
@@ -30,8 +30,8 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        _validate_field(data, "temp_export_details", "Enter the temporary export details")
-        is_temp_direct_control_value = _validate_field(
+        validate_field(data, "temp_export_details", "Enter the temporary export details")
+        is_temp_direct_control_value = validate_field(
             data, "is_temp_direct_control", "Answer the question about direct controls with Yes or No"
         )
 
