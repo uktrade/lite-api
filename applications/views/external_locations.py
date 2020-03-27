@@ -114,7 +114,7 @@ class ApplicationExternalLocations(APIView):
                 actor=user,
                 verb=AuditType.REMOVED_SITES_FROM_APPLICATION,
                 target=application.get_case(),
-                payload={"sites": [site.site.name + " " + site.site.address.country.name for site in removed_sites]},
+                payload={"sites": [site.site.name for site in removed_sites]},
             )
 
         if removed_locations:

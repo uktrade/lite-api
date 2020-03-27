@@ -47,11 +47,22 @@ class Organisation(TimestampableModel):
     def is_active(self):
         return self.status == OrganisationStatus.ACTIVE
 
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        # Update the primary site's organisation to link them
+        if self.primary_site:
+            self.primary_site.organisation = self
+            self.primary_site.save()
+
     class Meta:
+        db_table = "organisation"
         ordering = ["name"]
 
 
 class SiteManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related("address", "address__country")
+
     def get_by_organisation(self, organisation):
         return self.filter(organisation=organisation)
 
@@ -72,15 +83,16 @@ class SiteManager(models.Manager):
 class Site(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField(default=None, blank=False)
-    address = models.ForeignKey(Address, related_name="site", on_delete=models.CASCADE)
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True, related_name="site", on_delete=models.CASCADE,
     )
     users = models.ManyToManyField(UserOrganisationRelationship, related_name="sites")
+    address = models.ForeignKey(Address, related_name="site", on_delete=models.DO_NOTHING)
 
     objects = SiteManager()
 
     class Meta:
+        db_table = "site"
         ordering = ["name"]
 
 

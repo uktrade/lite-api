@@ -3,36 +3,9 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.models import (
     BaseApplication,
-    SiteOnApplication,
     ExternalLocationOnApplication,
 )
-from organisations.models import Site, ExternalLocation
-from organisations.serializers import SiteViewSerializer
-
-
-class SiteOnApplicationCreateSerializer(serializers.ModelSerializer):
-    application = PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
-    site = PrimaryKeyRelatedField(queryset=Site.objects.all())
-
-    class Meta:
-        model = SiteOnApplication
-        fields = (
-            "id",
-            "site",
-            "application",
-        )
-
-
-class SiteOnApplicationViewSerializer(serializers.ModelSerializer):
-    site = SiteViewSerializer(read_only=True, many=True)
-
-    class Meta:
-        model = SiteOnApplication
-        fields = (
-            "id",
-            "site",
-            "application",
-        )
+from organisations.models import ExternalLocation
 
 
 class ExternalLocationOnApplicationSerializer(serializers.ModelSerializer):

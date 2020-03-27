@@ -1,16 +1,21 @@
+from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from addresses.tests.factories import ForeignAddressFactory
 from conf.authentication import EXPORTER_USER_TOKEN_HEADER
 from conf.constants import Roles, GovPermissions
+from conf.helpers import date_to_drf_date
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationType, OrganisationStatus
+from organisations.tests.factories import OrganisationFactory
 from organisations.models import Organisation
+from organisations.tests.providers import OrganisationProvider
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-from test_helpers.helpers import generate_key_value_pair, date_to_drf_date
+from test_helpers.helpers import generate_key_value_pair
 from users.libraries.get_user import get_users_from_organisation
 from users.libraries.user_to_token import user_to_token
 from users.models import UserOrganisationRelationship
@@ -20,9 +25,9 @@ class OrganisationTests(DataTestClient):
     url = reverse("organisations:organisations")
 
     def test_list_organisations(self):
-        organisation, _ = self.create_organisation_with_exporter_user("Anyone's Ghost Inc")
+        organisation = OrganisationFactory()
         response = self.client.get(self.url, **self.gov_headers)
-        response_data = response.json()["results"][0]
+        response_data = next(data for data in response.json()["results"] if data["id"] == str(organisation.id))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -56,7 +61,6 @@ class OrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                    "country": "GB",
                 },
             },
             "user": {"email": "trinity@bsg.com"},
@@ -88,9 +92,23 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+        self.assertEqualIgnoreType(site.address.country.id, "GB")
 
-    def test_create_commercial_organisation_as_exporter_success(self):
+    @parameterized.expand(
+        [
+            [
+                {
+                    "address_line_1": "42 Industrial Estate",
+                    "address_line_2": "Queens Road",
+                    "region": "Hertfordshire",
+                    "postcode": "AL1 4GT",
+                    "city": "St Albans",
+                }
+            ],
+            [{"address": "123", "country": "PL"}],
+        ]
+    )
+    def test_create_commercial_organisation_as_exporter_success(self, address):
         data = {
             "name": "Lemonworld Co",
             "type": OrganisationType.COMMERCIAL,
@@ -98,22 +116,12 @@ class OrganisationTests(DataTestClient):
             "sic_number": "01110",
             "vat_number": "GB1234567",
             "registration_number": "98765432",
-            "site": {
-                "name": "Headquarters",
-                "address": {
-                    "address_line_1": "42 Industrial Estate",
-                    "address_line_2": "Queens Road",
-                    "region": "Hertfordshire",
-                    "postcode": "AL1 4GT",
-                    "city": "St Albans",
-                    "country": "GB",
-                },
-            },
+            "site": {"name": "Headquarters", "address": address},
             "user": {"email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **{EXPORTER_USER_TOKEN_HEADER: user_to_token(self.exporter_user)})
-        organisation = Organisation.objects.get(name=data["name"])
+        organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
 
@@ -133,12 +141,17 @@ class OrganisationTests(DataTestClient):
         )
 
         self.assertEqual(site.name, data["site"]["name"])
-        self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
-        self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
-        self.assertEqual(site.address.region, data["site"]["address"]["region"])
-        self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
-        self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+
+        if "address_line_1" in address:
+            self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
+            self.assertEqual(site.address.address_line_2, data["site"]["address"]["address_line_2"])
+            self.assertEqual(site.address.region, data["site"]["address"]["region"])
+            self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
+            self.assertEqual(site.address.city, data["site"]["address"]["city"])
+            self.assertEqualIgnoreType(site.address.country.id, "GB")
+        else:
+            self.assertEqual(site.address.address, data["site"]["address"]["address"])
+            self.assertEqualIgnoreType(site.address.country.id, data["site"]["address"]["country"])
 
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
@@ -151,7 +164,6 @@ class OrganisationTests(DataTestClient):
             "site": {
                 "name": None,
                 "address": {
-                    "country": None,
                     "address_line_1": None,
                     "address_line_2": None,
                     "region": None,
@@ -190,7 +202,6 @@ class OrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                    "country": "GB",
                 },
             },
             "user": {"first_name": "Trinity", "last_name": "Fishburne", "email": "trinity@bsg.com"},
@@ -215,7 +226,6 @@ class OrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                    "country": "GB",
                 },
             },
             "user": {"email": "john@smith.com"},
@@ -239,7 +249,7 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+        self.assertEqualIgnoreType(site.address.country.id, "GB")
 
     def test_create_hmrc_organisation(self):
         data = {
@@ -253,13 +263,13 @@ class OrganisationTests(DataTestClient):
                     "region": "Hertfordshire",
                     "postcode": "AL1 4GT",
                     "city": "St Albans",
-                    "country": "GB",
                 },
             },
             "user": {"email": "trinity@bsg.com"},
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
+
         organisation = Organisation.objects.get(id=response.json()["id"])
         exporter_user = get_users_from_organisation(organisation)[0]
         site = organisation.primary_site
@@ -276,7 +286,7 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
-        self.assertEqual(str(site.address.country.id), data["site"]["address"]["country"])
+        self.assertEqualIgnoreType(site.address.country.id, "GB")
 
     @parameterized.expand(
         [
@@ -290,13 +300,13 @@ class OrganisationTests(DataTestClient):
             ["hmr", ["hmrc"], 2],
             ["hmr", ["commercial"], 0],
             ["al", ["commercial", "individual"], 2],  # multiple org types
-            ["9876", ["individual"], 1],  # CRN as search term
         ]
     )
     def test_list_filter_organisations_by_name_and_type(self, name, org_types, expected_result):
-        self.create_organisation_with_exporter_user("Individual", org_type="individual")
-        self.create_organisation_with_exporter_user("Commercial", org_type="commercial")
-        self.create_organisation_with_exporter_user("HMRC", org_type="hmrc")
+        # Add organisations to filter
+        OrganisationFactory(name="Individual", type=OrganisationType.INDIVIDUAL)
+        OrganisationFactory(name="Commercial", type=OrganisationType.COMMERCIAL)
+        OrganisationFactory(name="HMRC", type=OrganisationType.HMRC)
 
         org_types_param = ""
         for org_type in org_types:
@@ -308,210 +318,153 @@ class OrganisationTests(DataTestClient):
 
 
 class EditOrganisationTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-        self.organisation, _ = self.create_organisation_with_exporter_user("An organisation")
-        self.url = reverse("organisations:organisation", kwargs={"pk": self.organisation.id})
+    faker = Faker()
+    faker.add_provider(OrganisationProvider)
 
-        self.org_name = "An organisation"
-        self.new_org_name = "New org name"
-        self.type = "commercial"
-        self.eori_number = "123"
-        self.sic_number = "12345"
-        self.vat_number = "GB1234567"
-        self.registration_number = "12345678"
+    def _get_url(self, org_id):
+        return reverse("organisations:organisation", kwargs={"pk": org_id})
 
-        self.original_org_eori_number = self.organisation.eori_number
-        self.original_org_sic_number = self.organisation.sic_number
-        self.original_org_vat_number = self.organisation.vat_number
-        self.original_registration_number = self.organisation.registration_number
-
-        self.data = {
-            "name": self.org_name,
-            "type": self.type,
-            "eori_number": self.eori_number,
-            "sic_number": self.sic_number,
-            "vat_number": self.vat_number,
-            "registration_number": self.registration_number,
-            "user": {"email": "trinity@bsg.com"},
-        }
-
-    def test_can_edit_organisation_with_manage_org_permission(self):
-        self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
-
-        response = self.client.put(self.url, self.data, **self.gov_headers)
-        response_data = response.json()["organisation"]
-        self.organisation.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["name"], self.org_name)
-        self.assertEqual(response_data["type"], self.type)
-        self.assertEqual(response_data["eori_number"], self.eori_number)
-        self.assertEqual(response_data["sic_number"], self.sic_number)
-        self.assertEqual(response_data["vat_number"], self.vat_number)
-        self.assertEqual(response_data["registration_number"], self.registration_number)
-
-        self.assertEqual(self.organisation.name, self.org_name)
-        self.assertEqual(self.organisation.type, self.type)
-        self.assertEqual(self.organisation.eori_number, self.eori_number)
-        self.assertEqual(self.organisation.sic_number, self.sic_number)
-        self.assertEqual(self.organisation.vat_number, self.vat_number)
-        self.assertEqual(self.organisation.registration_number, self.registration_number)
-
-    def test_cannot_edit_organisation_without_manage_org_permission(self):
-        self.gov_user.role.permissions.clear()
-
-        response = self.client.put(self.url, self.data, **self.gov_headers)
-        response_data = response.json()["errors"]
-        self.org_copy = self.organisation
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, Organisations.NO_PERM_TO_EDIT)
-
-        # Assert the organisation has not changed
-        self.assertEqual(self.organisation.name, self.org_name)
-        self.assertEqual(self.organisation.type, self.type)
-        self.assertEqual(self.organisation.eori_number, self.original_org_eori_number)
-        self.assertEqual(self.organisation.sic_number, self.original_org_sic_number)
-        self.assertEqual(self.organisation.vat_number, self.original_org_vat_number)
-        self.assertEqual(self.organisation.registration_number, self.original_registration_number)
-
-    def test_can_edit_all_org_details_with_manage_and_reopen_permissions(self):
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
-        )
-
-        data = {
-            "name": self.new_org_name,
-            "type": self.type,
-            "eori_number": self.eori_number,
-            "sic_number": self.sic_number,
-            "vat_number": self.vat_number,
-            "registration_number": self.registration_number,
-            "user": {"email": "trinity@bsg.com"},
-        }
-
-        response = self.client.put(self.url, data, **self.gov_headers)
-        response_data = response.json()["organisation"]
-        self.organisation.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["name"], self.new_org_name)
-        self.assertEqual(response_data["type"], self.type)
-        self.assertEqual(response_data["eori_number"], self.eori_number)
-        self.assertEqual(response_data["sic_number"], self.sic_number)
-        self.assertEqual(response_data["vat_number"], self.vat_number)
-        self.assertEqual(response_data["registration_number"], self.registration_number)
-
-        self.assertEqual(self.organisation.name, self.new_org_name)
-        self.assertEqual(self.organisation.type, self.type)
-        self.assertEqual(self.organisation.eori_number, self.eori_number)
-        self.assertEqual(self.organisation.sic_number, self.sic_number)
-        self.assertEqual(self.organisation.vat_number, self.vat_number)
-        self.assertEqual(self.organisation.registration_number, self.registration_number)
-
-    def test_cannot_edit_org_name_without_all_required_permissions(self):
-        """ Test that an organisations name cannot be edited if the user does not have both the 'Manage organisations'
-        and 'Reopen closed cases' permissions.
-
+    def test_set_org_details_success(self):
         """
-        self.gov_user.role.permissions.clear()
+        Internal users can change an organisation's information
+        """
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
-
         data = {
-            "name": self.new_org_name,
-            "type": self.type,
-            "eori_number": self.eori_number,
-            "sic_number": self.sic_number,
-            "vat_number": self.vat_number,
-            "registration_number": self.registration_number,
-            "user": {"email": "trinity@bsg.com"},
+            "eori_number": self.faker.eori_number(),
+            "sic_number": self.faker.sic_number(),
+            "vat_number": self.faker.vat_number(),
+            "registration_number": self.faker.registration_number(),
         }
 
-        response = self.client.put(self.url, data, **self.gov_headers)
-        response_data = response.json()["errors"]
-        self.organisation.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data, Organisations.NO_PERM_TO_EDIT_NAME)
-
-        # Assert the organisation has not changed
-        self.assertEqual(self.organisation.name, self.org_name)
-        self.assertEqual(self.organisation.type, self.type)
-        self.assertEqual(self.organisation.eori_number, self.original_org_eori_number)
-        self.assertEqual(self.organisation.sic_number, self.original_org_sic_number)
-        self.assertEqual(self.organisation.vat_number, self.original_org_vat_number)
-        self.assertEqual(self.organisation.registration_number, self.original_registration_number)
-
-    def test_when_validate_only_org_is_not_edited(self):
-        self.gov_user.role.permissions.set(
-            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
-        )
-
-        self.data["validate_only"] = True
-
-        response = self.client.put(self.url, self.data, **self.gov_headers)
-        response_data = response.json()["organisation"]
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["name"], self.organisation.name)
-        self.assertEqual(response_data["type"]["key"], self.organisation.type)
-        self.assertEqual(response_data["eori_number"], self.organisation.eori_number)
-        self.assertEqual(response_data["sic_number"], self.organisation.sic_number)
-        self.assertEqual(response_data["vat_number"], self.organisation.vat_number)
-        self.assertEqual(response_data["registration_number"], self.organisation.registration_number)
+        self.assertEqual(organisation.eori_number, data["eori_number"])
+        self.assertEqual(organisation.sic_number, data["sic_number"])
+        self.assertEqual(organisation.vat_number, data["vat_number"])
+        self.assertEqual(organisation.registration_number, data["registration_number"])
+
+    def test_set_org_details_to_none_uk_address_failure(self):
+        """
+        Organisations based in the UK need to provide all details about themselves
+        """
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
+        data = {
+            "eori_number": None,
+            "sic_number": None,
+            "vat_number": None,
+            "registration_number": None,
+        }
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIsNotNone(organisation.eori_number)
+        self.assertIsNotNone(organisation.sic_number)
+        self.assertIsNotNone(organisation.vat_number)
+        self.assertIsNotNone(organisation.registration_number)
+
+    def test_set_org_details_to_none_foreign_address_success(self):
+        """
+        Organisations based in foreign countries don't need to provide
+        all details about themselves
+        """
+        organisation = OrganisationFactory(
+            type=OrganisationType.COMMERCIAL, primary_site__address=ForeignAddressFactory(),
+        )
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
+        data = {
+            "eori_number": None,
+            "sic_number": None,
+            "vat_number": None,
+            "registration_number": None,
+        }
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(organisation.eori_number)
+        self.assertIsNone(organisation.sic_number)
+        self.assertIsNone(organisation.vat_number)
+        self.assertIsNone(organisation.registration_number)
+
+    def test_cannot_edit_organisation_without_permission(self):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        self.gov_user.role.permissions.clear()
+        data = {"name": self.faker.company()}
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], Organisations.NO_PERM_TO_EDIT)
+        self.assertNotEqual(organisation.name, data["name"])
+
+    def test_can_edit_name_with_manage_and_reopen_permissions(self):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        self.gov_user.role.permissions.set(
+            [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
+        )
+        data = {"name": self.faker.company()}
+
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
+        organisation.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["organisation"]["name"], data["name"])
+        self.assertEqual(organisation.name, data["name"])
 
     def test_no_name_change_to_org_does_not_reopen_finalised_cases(self):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
         self.gov_user.role.permissions.set(
             [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
         )
 
-        case_one = self.create_standard_application_case(self.organisation, reference_name="Case one")
-        case_two = self.create_standard_application_case(self.organisation, reference_name="Case two")
+        case_one = self.create_standard_application_case(organisation, reference_name="Case one")
+        case_two = self.create_standard_application_case(organisation, reference_name="Case two")
 
         # Set case to finalised and provide licence duration
         case_one.status = get_case_status_by_status("finalised")
         case_one.licence_duration = 12
         case_one.save()
 
-        response = self.client.put(self.url, self.data, **self.gov_headers)
+        self.data = {"name": organisation.name}
+        response = self.client.put(self._get_url(organisation.id), self.data, **self.gov_headers)
         case_one.refresh_from_db()
         case_two.refresh_from_db()
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check no case status were updated as the org's name was not changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.FINALISED)
         self.assertEqual(case_two.status.status, CaseStatusEnum.SUBMITTED)
 
     def test_name_change_to_org_reopens_finalised_cases(self):
+        organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
         self.gov_user.role.permissions.set(
             [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
         )
 
-        data = {
-            "name": self.new_org_name,
-            "type": self.type,
-            "eori_number": self.eori_number,
-            "sic_number": self.sic_number,
-            "vat_number": self.vat_number,
-            "registration_number": self.registration_number,
-            "user": {"email": "trinity@bsg.com"},
-        }
+        data = {"name": self.faker.company()}
 
-        case_one = self.create_standard_application_case(self.organisation, reference_name="Case one")
-        case_two = self.create_standard_application_case(self.organisation, reference_name="Case two")
+        case_one = self.create_standard_application_case(organisation, reference_name="Case one")
+        case_two = self.create_standard_application_case(organisation, reference_name="Case two")
 
         # Set case to finalised and provide licence duration
         case_one.status = get_case_status_by_status("finalised")
         case_one.licence_duration = 12
         case_one.save()
 
-        response = self.client.put(self.url, data, **self.gov_headers)
+        response = self.client.put(self._get_url(organisation.id), data, **self.gov_headers)
         case_one.refresh_from_db()
         case_two.refresh_from_db()
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check only the finalised case's status was changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES)
