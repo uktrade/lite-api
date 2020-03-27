@@ -80,10 +80,9 @@ class OpenApplicationTests(DataTestClient):
 
         response = self.client.put(self.url, **self.exporter_headers)
 
-        # TODO strings
         self.assertContains(
             response,
-            text="To complete the application, complete the Temp Export Details",
+            text=strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -95,9 +94,8 @@ class OpenApplicationTests(DataTestClient):
 
         response = self.client.put(self.url, **self.exporter_headers)
 
-        # TODO strings
         self.assertContains(
             response,
-            text="To complete the application, complete the Temp Export Details",
+            text=strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS,
             status_code=status.HTTP_400_BAD_REQUEST,
         )

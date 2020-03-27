@@ -199,7 +199,7 @@ def _validate_temporary_export_details(draft, errors):
                 or draft.is_temp_direct_control is None
                 or draft.proposed_return_date is None
             ):
-                errors["temporary_export_details"] = "To submit the application, add temporary export details"
+                errors["temporary_export_details"] = strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS
 
     return errors
 
@@ -323,8 +323,8 @@ def _validate_open_licence(draft, errors):
     errors = _validate_countries(draft, errors, is_mandatory=True)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
-    errors = _validate_route_of_goods(draft, errors)
     errors = _validate_temporary_export_details(draft, errors)
+    errors = _validate_route_of_goods(draft, errors)
 
     return errors
 
@@ -332,6 +332,7 @@ def _validate_open_licence(draft, errors):
 def _validate_route_of_goods(draft, errors):
     if draft.is_shipped_waybill_or_lading is None:
         errors["route_of_goods"] = strings.Applications.Generic.NO_ROUTE_OF_GOODS
+    return errors
 
 
 def _validate_hmrc_query(draft, errors):

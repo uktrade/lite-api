@@ -3,20 +3,20 @@ from rest_framework import serializers
 
 from applications.models import BaseApplication
 from applications.serializers.serializer_helper import validate_field
+from lite_content.lite_api.strings import Applications as strings
 
 
 class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
     temp_export_details = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2200)
     is_temp_direct_control = serializers.BooleanField(
-        required=False, error_messages={"invalid": "Answer the question about direct controls with Yes or No"}
+        required=False, error_messages={"invalid": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL}
     )
     temp_direct_control_details = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, max_length=2200
     )
     proposed_return_date = serializers.DateField(
-        required=False,
         error_messages={
-            "invalid": "Enter the proposed date the products will return to the UK and include a day, a month, and a year",
+            "invalid": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_INVALID,
         },
     )
 
@@ -30,15 +30,15 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        validate_field(data, "temp_export_details", "Enter the temporary export details")
+        validate_field(data, "temp_export_details", strings.Generic.TemporaryExportDetails.Error.TEMPORARY_EXPORT_DETAILS)
         is_temp_direct_control_value = validate_field(
-            data, "is_temp_direct_control", "Answer the question about direct controls with Yes or No"
+            data, "is_temp_direct_control", strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL
         )
 
         # Only validate temp_direct_control_details if its parent is_temp_direct_control is False
         if is_temp_direct_control_value is False:
             if not data.get("temp_direct_control_details"):
-                raise serializers.ValidationError({"temp_direct_control_details": "Enter details for direct control"})
+                raise serializers.ValidationError({"temp_direct_control_details": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS})
 
         # Validate temp_direct_control_details if its parent is_temp_direct_control is False and exists on the instance
         if (
@@ -46,15 +46,17 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
             and not self.instance.temp_direct_control_details
             and not data.get("temp_direct_control_details")
         ):
-            raise serializers.ValidationError({"temp_direct_control_details": "Enter details for direct control"})
+            raise serializers.ValidationError({"temp_direct_control_details": strings.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS})
 
         validated_data = super().validate(data)
 
         today = timezone.now().date()
         if validated_data.get("proposed_return_date"):
             if validated_data["proposed_return_date"] < today:
-                raise serializers.ValidationError({"proposed_return_date": "The proposed date must be in the future"})
+                raise serializers.ValidationError({"proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_DATE_NOT_IN_FUTURE})
             validated_data["proposed_return_date"] = str(validated_data["proposed_return_date"])
+        else:
+            raise serializers.ValidationError({"proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_BLANK})
 
         return validated_data
 

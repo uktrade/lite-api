@@ -24,10 +24,10 @@ END_USE_FIELDS = {
 }
 
 TEMP_EXPORT_DETAILS_FIELDS = {
-    "temp_export_details": "Temp export details",
-    "is_temp_direct_control": "Is direct control",
-    "temp_direct_control_details": "Direct control details",
-    "proposed_return_date": "Proposed return date",
+    "temp_export_details": strings.Generic.TemporaryExportDetails.Audit.TEMPORARY_EXPORT_DETAILS,
+    "is_temp_direct_control": strings.Generic.TemporaryExportDetails.Audit.PRODUCTS_UNDER_DIRECT_CONTROL,
+    "temp_direct_control_details": strings.Generic.TemporaryExportDetails.Audit.PRODUCTS_UNDER_DIRECT_CONTROL_DETAILS,
+    "proposed_return_date": strings.Generic.TemporaryExportDetails.Audit.PROPOSED_RETURN_DATE,
 }
 
 
