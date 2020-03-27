@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c518c54bb789abfc398b53d6da9c36a1c2a679161a505d73461592a5ccc3ab82"
+            "sha256": "52e4c0bfaffce7b47a1aaf55f58721a172d379ceb2a6bfae36d17b2ba22a2522"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -18,18 +18,18 @@
     "default": {
         "boto3": {
             "hashes": [
-                "sha256:d58f322045fad89788bb6a035ae84a248f1bc243775f7cf34a033e669dbb28ee",
-                "sha256:d5dc9faf5c0ba17396cca5200807790cf7036173304100a008602b211d7bdedd"
+                "sha256:3f02c5ec585fe0c7c843026f0f3db3a7bb98a830072b0eb151456ed07ba8e46d",
+                "sha256:435fc7220e76894228f9ceebc19ab226de78f515652f8643e3e22581a7e08ed7"
             ],
             "index": "pypi",
-            "version": "==1.12.27"
+            "version": "==1.11.17"
         },
         "botocore": {
             "hashes": [
-                "sha256:5df5b59215902b68fe9a4f63608826661bfca321a94c927bd5d2d231441f9a66",
-                "sha256:bb1e86897c7393862a2a9b5ba9c68d9f20d2abd791d19e11d55d24e9d9388072"
+                "sha256:02fe4673ab0c62393dc81c85fe0c65ae84f66cf55b0e0dbda785cf3e68b25762",
+                "sha256:75c759fcd89c4b2c717b40c2bd43915716bf15cfb7fb5bfccdc9bd9f697ac75f"
             ],
-            "version": "==1.15.27"
+            "version": "==1.14.17"
         },
         "cairocffi": {
             "hashes": [
