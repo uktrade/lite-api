@@ -42,6 +42,7 @@ class AuditType(Enum):
     CLEARED_FINAL_ADVICE = "cleared final advice"
     CREATED_TEAM_ADVICE = "created team advice"
     CLEARED_TEAM_ADVICE = "cleared team advice"
+    CREATED_USER_ADVICE = "created user advice"
     ADD_PARTY = "added the {party_type} {party_name}"
     REMOVE_PARTY = "removed the {party_type} {party_name}"
     UPLOAD_PARTY_DOCUMENT = "uploaded the document {file_name} for {party_type} {party_name}"
