@@ -3,13 +3,10 @@ from rest_framework import status
 from rest_framework.generics import UpdateAPIView
 
 from applications.helpers import get_temp_export_details_update_serializer
-from applications.libraries.edit_applications import (
-    save_and_audit_temporary_export_details,
-)
+from applications.libraries.edit_applications import save_and_audit_temporary_export_details
 from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users, allowed_application_types, \
-    application_in_major_editable_state
+from conf.decorators import authorised_users, allowed_application_types, application_in_major_editable_state
 from users.models import ExporterUser
 
 
