@@ -4,6 +4,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from applications.enums import ApplicationExportType
+from lite_content.lite_api import strings
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from static.statuses.enums import CaseStatusEnum
@@ -65,12 +66,22 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "temp_export_details", "error": "Enter the temporary export details"}],
-            [{"key": "is_temp_direct_control", "error": "Answer the question about direct controls with Yes or No"}],
+            [
+                {
+                    "key": "temp_export_details",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.TEMPORARY_EXPORT_DETAILS,
+                }
+            ],
+            [
+                {
+                    "key": "is_temp_direct_control",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL,
+                }
+            ],
             [
                 {
                     "key": "proposed_return_date",
-                    "error": "Enter the proposed date the products will return to the UK and include a day, a month, and a year",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_INVALID,
                 }
             ],
         ]
@@ -102,7 +113,8 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"]["temp_direct_control_details"], ["Enter details for direct control"],
+            response.json()["errors"]["temp_direct_control_details"],
+            [strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS],
         )
 
     def test_edit_unsubmitted_standard_application_empty_required_direct_control_details_failure(self):
@@ -117,7 +129,8 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"]["temp_direct_control_details"], ["Enter details for direct control"],
+            response.json()["errors"]["temp_direct_control_details"],
+            [strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS],
         )
         self.assertEqual(getattr(self.draft, "is_temp_direct_control"), old_is_temp_direct_control)
         self.assertEqual(getattr(self.draft, "temp_direct_control_details"), old_temp_direct_control_details)
@@ -187,7 +200,8 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"]["temp_direct_control_details"], ["Enter details for direct control"],
+            response.json()["errors"]["temp_direct_control_details"],
+            [strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS],
         )
 
     def test_edit_submitted_standard_application_proposed_return_date_not_future_failure(self):
@@ -202,17 +216,28 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"]["proposed_return_date"], ["The proposed date must be in the future"],
+            response.json()["errors"]["proposed_return_date"],
+            [strings.Applications.Generic.TemporaryExportDetails.Error.PROPOSED_DATE_NOT_IN_FUTURE],
         )
 
     @parameterized.expand(
         [
-            [{"key": "temp_export_details", "error": "Enter the temporary export details"}],
-            [{"key": "is_temp_direct_control", "error": "Answer the question about direct controls with Yes or No"}],
+            [
+                {
+                    "key": "temp_export_details",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.TEMPORARY_EXPORT_DETAILS,
+                }
+            ],
+            [
+                {
+                    "key": "is_temp_direct_control",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL,
+                }
+            ],
             [
                 {
                     "key": "proposed_return_date",
-                    "error": "Enter the proposed date the products will return to the UK and include a day, a month, and a year",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_INVALID,
                 }
             ],
         ]
@@ -267,12 +292,22 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
 
     @parameterized.expand(
         [
-            [{"key": "temp_export_details", "error": "Enter the temporary export details"}],
-            [{"key": "is_temp_direct_control", "error": "Answer the question about direct controls with Yes or No"}],
+            [
+                {
+                    "key": "temp_export_details",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.TEMPORARY_EXPORT_DETAILS,
+                }
+            ],
+            [
+                {
+                    "key": "is_temp_direct_control",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL,
+                }
+            ],
             [
                 {
                     "key": "proposed_return_date",
-                    "error": "Enter the proposed date the products will return to the UK and include a day, a month, and a year",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_INVALID,
                 }
             ],
         ]
@@ -304,7 +339,8 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"]["temp_direct_control_details"], ["Enter details for direct control"],
+            response.json()["errors"]["temp_direct_control_details"],
+            [strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS],
         )
 
     def test_edit_unsubmitted_open_application_empty_required_direct_control_details_failure(self):
@@ -319,7 +355,8 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"]["temp_direct_control_details"], ["Enter details for direct control"],
+            response.json()["errors"]["temp_direct_control_details"],
+            [strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS],
         )
         self.assertEqual(getattr(self.draft, "is_temp_direct_control"), old_is_temp_direct_control)
         self.assertEqual(getattr(self.draft, "temp_direct_control_details"), old_temp_direct_control_details)
@@ -389,7 +426,8 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"]["temp_direct_control_details"], ["Enter details for direct control"],
+            response.json()["errors"]["temp_direct_control_details"],
+            [strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL_MISSING_DETAILS],
         )
 
     def test_edit_submitted_open_application_proposed_return_date_not_future_failure(self):
@@ -404,17 +442,28 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(response.json()["errors"]), 1)
         self.assertEqual(
-            response.json()["errors"]["proposed_return_date"], ["The proposed date must be in the future"],
+            response.json()["errors"]["proposed_return_date"],
+            [strings.Applications.Generic.TemporaryExportDetails.Error.PROPOSED_DATE_NOT_IN_FUTURE],
         )
 
     @parameterized.expand(
         [
-            [{"key": "temp_export_details", "error": "Enter the temporary export details"}],
-            [{"key": "is_temp_direct_control", "error": "Answer the question about direct controls with Yes or No"}],
+            [
+                {
+                    "key": "temp_export_details",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.TEMPORARY_EXPORT_DETAILS,
+                }
+            ],
+            [
+                {
+                    "key": "is_temp_direct_control",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.PRODUCTS_UNDER_DIRECT_CONTROL,
+                }
+            ],
             [
                 {
                     "key": "proposed_return_date",
-                    "error": "Enter the proposed date the products will return to the UK and include a day, a month, and a year",
+                    "error": strings.Applications.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_INVALID,
                 }
             ],
         ]
