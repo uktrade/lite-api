@@ -5,7 +5,6 @@ from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import GiftingClearanceApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
-    GenericApplicationViewSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )

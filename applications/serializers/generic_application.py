@@ -1,6 +1,4 @@
-import abc
 from django.utils import timezone
-
 from rest_framework import serializers
 from rest_framework.fields import CharField
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -10,8 +8,7 @@ from applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from applications.libraries.get_applications import get_application
-from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
-from applications.serializers.document import ApplicationDocumentSerializer
+from applications.models import BaseApplication, ApplicationDenialReason
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import CaseType
 from conf.helpers import get_value_from_enum
