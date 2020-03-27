@@ -5,28 +5,21 @@ from json import loads as serialize
 
 
 def get_users(env_variable):
-    admin_users = env(env_variable)
+    user = env(env_variable)
     # The JSON representation of the variable is different on environments, so it needs to be parsed first
-    parsed_admin_users = admin_users.replace("=>", ":")
+    parsed_user = user.replace("=>", ":")
 
     try:
-        serialized_admin_users = serialize(parsed_admin_users)
+        serialized_user = serialize(parsed_user)
     except ValueError:
-        raise ValueError(
-            f"INTERNAL_ADMIN_TEAM_USERS has incorrect format;"
-            f"\nexpected format: [{{'email': '', 'role': ''}}]"
-            f"\nbut got: {admin_users}"
-        )
+        raise ValueError(f"{parsed_user} is an an acceptable value")
 
-    return serialized_admin_users
+    return serialized_user
 
 
 def login_exporter():
-    # TODO: move over to env defined individual user
-    exporter_user = {"email": env("PERFORMANCE_EXPORTER_USER")}
-
     exporter_user = {
-        "email": exporter_user["email"],
+        "email": env("PERFORMANCE_EXPORTER_USER"),
         "user_profile": {"first_name": "first_name", "last_name": "last_name"},
     }
 
@@ -38,18 +31,20 @@ def login_exporter():
     }
 
     response = get(request=exporter_user, appended_address=f"/users/me/", is_gov=False)
-    # TODO: have ability to select certain org
-    # TODO: have ability to choose HMRC/not
-    exporter_user["organisation-id"] = response.json()["user"]["organisations"][0]["id"]
+    organisation_name = env("PERFORMANCE_EXPORTER_ORGANISATION")
+    for organisation in response.json()["user"]["organisations"]:
+        if organisation["name"] == organisation_name:
+            exporter_user["organisation-id"] = organisation["id"]
+            break
+
+    if not exporter_user["organisation-id"]:
+        AttributeError("organisation with that name was not found")
 
     return exporter_user
 
 
 def login_internal():
-    # TODO: move over to env defined individual user
-    gov_user = {"email": env("PERFORMANCE_GOV_USER")}
-    gov_user["first_name"] = "test"
-    gov_user["last_name"] = "er"
+    gov_user = {"email": env("PERFORMANCE_GOV_USER"), "first_name": "test", "last_name": "er"}
 
     response, _ = post(request=None, appended_address="/gov-users/authenticate/", json=gov_user)
     gov_user = {
