@@ -11,6 +11,7 @@ from applications.models import (
 )
 from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
+from organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_user_organisation_relationship
@@ -62,7 +63,7 @@ class DraftTests(DataTestClient):
         """
         relationship = get_user_organisation_relationship(self.exporter_user, self.organisation)
         relationship.sites.set([self.organisation.primary_site])
-        site_2 = self.create_site("Site #2", self.organisation)
+        site_2 = SiteFactory(organisation=self.organisation)
         application = self.create_draft_standard_application(self.organisation)
         SiteOnApplication(site=site_2, application=application).save()
 
