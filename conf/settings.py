@@ -18,7 +18,6 @@ env = Env(
     BACKGROUND_TASK_ENABLED=(bool, False),
     SUPPRESS_TEST_OUTPUT=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
-    SHOW_VIEW_QUERIES=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -50,7 +49,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "drf_yasg",
     "documents",
-    "common",
     "flags",
     "goods",
     "goodstype",
