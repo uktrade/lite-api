@@ -34,9 +34,7 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], standard_application.name)
-        self.assertEqual(
-            response_data[0]["case_type"]["sub_type"]["key"], standard_application.case_type.sub_type
-        )
+        self.assertEqual(response_data[0]["case_type"]["sub_type"]["key"], standard_application.case_type.sub_type)
         self.assertIsNotNone(response_data[0]["updated_at"])
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
