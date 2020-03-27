@@ -35,7 +35,52 @@ from users.libraries.notifications import (
 from users.models import ExporterUser
 
 
+class TinyCaseTypeSerializer(serializers.ModelSerializer):
+    sub_type = KeyValueChoiceField(choices=CaseTypeSubTypeEnum.choices)
+
+    class Meta:
+        model = CaseType
+        fields = (
+            "sub_type",
+        )
+        read_only_fields = fields
+
+
 class GenericApplicationListSerializer(serializers.ModelSerializer):
+    exporter_user_notification_count = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    case_type = TinyCaseTypeSerializer()
+
+    class Meta:
+        model = BaseApplication
+        fields = (
+            "id",
+            "name",
+            "case_type",
+            "status",
+            "updated_at",
+            "reference_code",
+            "exporter_user_notification_count",
+        )
+        read_only_fields = fields
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exporter_user = kwargs["context"]["exporter_user"]
+
+    def get_exporter_user_notification_count(self, instance):
+        return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
+
+    def get_status(self, instance):
+        if instance.status:
+            return {
+                "key": instance.status.status,
+                "value": get_status_value_from_case_status_enum(instance.status.status),
+            }
+        return None
+
+
+class GenericApplicationSerializer(serializers.ModelSerializer):
     name = CharField(
         max_length=100,
         required=True,
@@ -112,13 +157,13 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
         return instance.is_major_editable()
 
 
-class GenericApplicationViewSerializer(GenericApplicationListSerializer):
+class GenericApplicationViewSerializer(GenericApplicationSerializer):
     goods_locations = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer()
 
     class Meta:
         model = BaseApplication
-        fields = GenericApplicationListSerializer.Meta.fields + ("goods_locations", "case_officer",)
+        fields = GenericApplicationSerializer.Meta.fields + ("goods_locations", "case_officer",)
 
     def get_exporter_user_notification_count(self, instance):
         """

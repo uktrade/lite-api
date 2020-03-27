@@ -7,7 +7,7 @@ from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationViewSerializer,
     GenericApplicationUpdateSerializer,
-    GenericApplicationListSerializer,
+    GenericApplicationSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from lite_content.lite_api import strings
@@ -20,7 +20,7 @@ class GiftingClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationV
 
     class Meta:
         model = GiftingClearanceApplication
-        fields = GenericApplicationListSerializer.Meta.fields + (
+        fields = GenericApplicationSerializer.Meta.fields + (
             "case_officer",
             "end_user",
             "third_parties",
