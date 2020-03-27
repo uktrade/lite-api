@@ -18,7 +18,7 @@ END_USE_FIELDS = {
     "intended_end_use": strings.Generic.EndUseDetails.Audit.INTENDED_END_USE_TITLE,
 }
 
-TEMP_EXPORT_DETAILS_FIELD = {
+TEMP_EXPORT_DETAILS_FIELDS = {
     "temp_export_details": "Temp export details",
     "is_temp_direct_control": "Is direct control",
     "temp_direct_control_details": "Direct control details",
@@ -83,17 +83,25 @@ def save_and_audit_end_use_details(request, application, serializer):
         )
 
 
+def get_temporary_export_details_minor_edit_errors(request):
+    return {
+        temp_export_field: [strings.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]
+        for temp_export_field in TEMP_EXPORT_DETAILS_FIELDS.keys()
+        if temp_export_field in request.data.keys()
+    }
+
+
 def save_and_audit_temporary_export_details(request, application, serializer):
     validated_data = serializer.validated_data
     new_temp_export_details = {}
-    for temp_export_field in TEMP_EXPORT_DETAILS_FIELD.keys():
+    for temp_export_field in TEMP_EXPORT_DETAILS_FIELDS.keys():
         if temp_export_field in validated_data:
             new_temp_export_details[temp_export_field] = validated_data[temp_export_field]
 
     if new_temp_export_details:
         old_temp_export_details = {
             temp_export_field: getattr(application, temp_export_field)
-            for temp_export_field in TEMP_EXPORT_DETAILS_FIELD.keys()
+            for temp_export_field in TEMP_EXPORT_DETAILS_FIELDS.keys()
         }
         serializer.save()
 
@@ -107,7 +115,7 @@ def save_and_audit_temporary_export_details(request, application, serializer):
                         verb=AuditType.UPDATE_APPLICATION_TEMPORARY_EXPORT,
                         target=application.get_case(),
                         payload={
-                            "temp_export_detail": TEMP_EXPORT_DETAILS_FIELD[key],
+                            "temp_export_detail": TEMP_EXPORT_DETAILS_FIELDS[key],
                             "old_temp_export_detail": convert_date_to_string(old_temp_export_val)
                             if old_temp_export_val
                             else "",
@@ -123,7 +131,7 @@ def save_and_audit_temporary_export_details(request, application, serializer):
                         verb=AuditType.UPDATE_APPLICATION_TEMPORARY_EXPORT,
                         target=application.get_case(),
                         payload={
-                            "temp_export_detail": TEMP_EXPORT_DETAILS_FIELD[key],
+                            "temp_export_detail": TEMP_EXPORT_DETAILS_FIELDS[key],
                             "old_temp_export_detail": old_temp_export_val,
                             "new_temp_export_detail": new_temp_export_val,
                         },

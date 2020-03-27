@@ -3,7 +3,10 @@ from rest_framework import status
 from rest_framework.generics import UpdateAPIView
 
 from applications.helpers import get_temp_export_details_update_serializer
-from applications.libraries.edit_applications import save_and_audit_temporary_export_details
+from applications.libraries.edit_applications import (
+    save_and_audit_temporary_export_details,
+    get_temporary_export_details_minor_edit_errors,
+)
 from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, application_in_editable_state, allowed_application_types
@@ -22,7 +25,7 @@ class TemporaryExportDetails(UpdateAPIView):
         # TODO major editable decorator instead?
         if not application.is_major_editable():
             return JsonResponse(
-                data={"errors": strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT},
+                data={"errors": get_temporary_export_details_minor_edit_errors(request)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

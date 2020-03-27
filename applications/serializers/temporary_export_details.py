@@ -48,24 +48,29 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError({"temp_direct_control_details": "Enter details for direct control"})
 
-        today = timezone.now().date()
-        if "proposed_return_date" in data:
-            if data["proposed_return_date"] < today:
-                raise serializers.ValidationError({"proposed_return_date": "The proposed date must be in the future"})
+        validated_data = super().validate(data)
 
-        return super().validate(data)
+        today = timezone.now().date()
+        if validated_data.get("proposed_return_date"):
+            if validated_data["proposed_return_date"] < today:
+                raise serializers.ValidationError({"proposed_return_date": "The proposed date must be in the future"})
+            validated_data["proposed_return_date"] = str(validated_data["proposed_return_date"])
+
+        return validated_data
 
     def update(self, instance, validated_data):
-        # skip temp_export_details
-        # skip proposed_return_date
+        standalone_fields = ["temp_export_details", "proposed_return_date"]
+
+        for field in standalone_fields:
+            updated_field = validated_data.pop(field, getattr(instance, field))
+            setattr(instance, field, updated_field)
+
         instance.temp_direct_control_details = validated_data.pop(
             "temp_direct_control_details", instance.temp_direct_control_details
         )
-
         instance.is_temp_direct_control = validated_data.pop("is_temp_direct_control", instance.is_temp_direct_control)
-        # if true then details should be none
+        # if true then dependent details field should be set to none
         if instance.is_temp_direct_control:
             instance.temp_direct_control_details = None
 
-        # TODO proposed_return_date
         return super().update(instance, validated_data)

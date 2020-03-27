@@ -177,7 +177,7 @@ def _validate_temporary_export_details(draft, errors):
                 or draft.is_temp_direct_control is None
                 or draft.proposed_return_date is None
             ):
-                errors["temporary_export_details"] = "To complete the application, complete the Temp Export Details"
+                errors["temporary_export_details"] = "To submit the application, add temporary export details"
 
     return errors
 
