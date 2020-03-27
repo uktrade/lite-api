@@ -169,6 +169,10 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
         else:
             return {"type": "end_user", "data": ""}
 
+    def get_additional_documents(self, instance):
+        documents = ApplicationDocument.objects.filter(application=instance)
+        return ApplicationDocumentSerializer(documents, many=True).data
+
 
 class GenericApplicationCreateSerializer(serializers.ModelSerializer):
     def __init__(self, case_type_id, **kwargs):
