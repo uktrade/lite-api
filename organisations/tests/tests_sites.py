@@ -1,9 +1,12 @@
+from faker import Faker
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from organisations.models import Site
-from static.countries.helpers import get_country
+from organisations.tests.factories import OrganisationFactory
 from test_helpers.clients import DataTestClient
+
+faker = Faker()
 
 
 class OrganisationSitesTests(DataTestClient):
@@ -11,18 +14,108 @@ class OrganisationSitesTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
 
-        # Create an additional organisation and site to ensure
-        # that only sites from the first organisation are shown
-        self.create_organisation_with_exporter_user("New Org")
+        # Create an additional organisation and site to ensure that only sites from the first organisation are shown
+        OrganisationFactory()
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["sites"]), 1)
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    def test_add_site(self):
+    def test_view_site(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        url = reverse(
+            "organisations:site", kwargs={"org_pk": self.organisation.id, "pk": self.organisation.primary_site_id}
+        )
+
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["name"], self.organisation.primary_site.name)
+        self.assertEqual(
+            response_data["users"],
+            [
+                {
+                    "id": str(self.exporter_user.id),
+                    "first_name": self.exporter_user.first_name,
+                    "last_name": self.exporter_user.last_name,
+                    "email": self.exporter_user.email,
+                }
+            ],
+        )
+
+    def test_add_uk_site(self):
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "address": {
+                "address_line_1": "a street",
+                "city": "london",
+                "postcode": "E14GH",
+                "region": "Hertfordshire",
+            },
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
+
+    def test_add_uk_site_and_assign_users(self):
+        exporter_user = self.create_exporter_user(self.organisation)
+        exporter_user_2 = self.create_exporter_user(self.organisation)
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "address": {
+                "address_line_1": "a street",
+                "city": "london",
+                "postcode": "E14GH",
+                "region": "Hertfordshire",
+            },
+            "users": [exporter_user.id, exporter_user_2.id],
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        site = Site.objects.get(name=data["name"])
+        self.assertEqual(site.users.count(), 2)
+
+    def test_add_foreign_site(self):
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "address": {"address": "a street", "country": "PL",},
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
+
+    def test_add_foreign_site_failure(self):
+        """
+        Fail as only supplying an address field with country set to GB
+        """
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "address": {"address": "a street", "country": "GB",},
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
+
+    def test_add_uk_and_foreign_site_failure(self):
         url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
 
         data = {
@@ -33,35 +126,14 @@ class OrganisationSitesTests(DataTestClient):
                 "postcode": "E14GH",
                 "region": "Hertfordshire",
                 "country": "GB",
+                "address": "a street",
             },
         }
 
         response = self.client.post(url, data, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
-
-    def test_edit_site(self):
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        url = reverse(
-            "organisations:site", kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site.id}
-        )
-
-        data = {
-            "name": "regional site",
-            "address": {"address_line_1": "43 Commercial Road", "address_line_2": "The place", "country": "GB"},
-        }
-        response = self.client.put(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        site = self.organisation.primary_site
-        site.refresh_from_db()
-
-        self.assertEqual(site.name, data["name"])
-        self.assertEqual(site.address.address_line_1, data["address"]["address_line_1"])
-        self.assertEqual(site.address.address_line_2, data["address"]["address_line_2"])
-        self.assertEqual(site.address.country, get_country(data["address"]["country"]))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
 
     def test_cannot_add_site_without_permission(self):
         number_of_initial_sites = Site.objects.count()
@@ -73,27 +145,26 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Site.objects.count(), number_of_initial_sites)
 
-    def test_view_site(self):
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        url = reverse(
-            "organisations:site", kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site_id}
+
+class SitesUpdateTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.data = {"name": faker.word()}
+        self.url = reverse(
+            "organisations:site", kwargs={"org_pk": self.organisation.id, "pk": self.organisation.primary_site.id}
         )
 
-        response = self.client.get(url, **self.exporter_headers)
-        response_data = response.json()["site"]
+    def test_edit_site_name_success(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+
+        response = self.client.patch(self.url, self.data, **self.exporter_headers)
+        self.organisation.primary_site.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["name"], self.organisation.primary_site.name)
-        self.assertEqual(len(response_data["users"]), 1)
+        self.assertEqual(self.organisation.primary_site.name, self.data["name"])
 
-    def test_cannot_edit_site_without_permission(self):
-        url = reverse(
-            "organisations:site", kwargs={"org_pk": self.organisation.id, "site_pk": self.organisation.primary_site_id}
-        )
-        payload_name = "Not headquarters"
-        data = {"name": payload_name}
-
-        response = self.client.put(url, data, **self.exporter_headers)
+    def test_edit_site_without_permission_failure(self):
+        response = self.client.patch(self.url, self.data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertNotEqual(self.organisation.primary_site.name, payload_name)
+        self.assertNotEqual(self.organisation.primary_site.name, self.data["name"])

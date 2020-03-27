@@ -20,12 +20,6 @@ from static.countries.serializers import CountrySerializer
 
 
 class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
-    """
-    A PrimaryKeyRelatedField which serialises full objects when producing output.
-
-    That is, you can POST or PUT IDs, but GET will serialize the full object.
-    """
-
     def __init__(self, **kwargs):
         self.serializer = kwargs.pop("serializer", None)
 
@@ -34,15 +28,18 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
 
         super(PrimaryKeyRelatedSerializerField, self).__init__(**kwargs)
 
+    def use_pk_only_optimization(self):
+        return False
+
     def to_representation(self, value):
-        return self.serializer(self.queryset.get(pk=value.pk)).data
+        return self.serializer(value).data
 
 
-class CountrySerializerField(PrimaryKeyRelatedField):
+class CountrySerializerField(PrimaryKeyRelatedSerializerField):
     def __init__(self, **kwargs):
         self.queryset = Country.objects.all()
         self.error_messages = {"null": strings.Addresses.NULL_COUNTRY}
-        super(CountrySerializerField, self).__init__(**kwargs)
+        super().__init__(serializer=CountrySerializer, **kwargs)
 
     def validate_empty_values(self, data):
         """
@@ -86,9 +83,6 @@ class CountrySerializerField(PrimaryKeyRelatedField):
             raise serializers.ValidationError(strings.Addresses.NULL_COUNTRY)
         except (TypeError, ValueError):
             self.fail("incorrect_type", data_type=type(data).__name__)
-
-    def to_representation(self, value):
-        return CountrySerializer(self.queryset.get(pk=value.pk)).data
 
 
 class KeyValueChoiceField(Field):

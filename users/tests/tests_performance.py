@@ -13,8 +13,8 @@ class UsersPerformanceTests(PerformanceTestClient):
         """
         Need to wrap the get in a class method to get 'self' context into timeit
         """
-        _, status_code = self.get(self.url, **self.exporter_headers)
-        self.assertTrue(status_code == status.HTTP_200_OK)
+        response = self.client.get(self.url, **self.exporter_headers)
+        self.assertTrue(response.status_code == status.HTTP_200_OK)
 
     @parameterized.expand([(10, 0), (100, 0), (1000, 0)])
     def test_users_me_performance_by_organisation(self, org_count, users):

@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
 from conf.constants import Roles
+from organisations.tests.factories import SiteFactory
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser
@@ -10,7 +11,7 @@ from users.models import ExporterUser
 class CreateExporterUser(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.site = self.create_site("HQ", self.organisation)
+        self.site = SiteFactory(organisation=self.organisation)
 
         self.data = {
             "email": "email@email.com",
