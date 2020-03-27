@@ -8,7 +8,8 @@ from applications.enums import (
     ApplicationExportLicenceOfficialType,
 )
 from applications.libraries.get_applications import get_application
-from applications.models import BaseApplication, ApplicationDenialReason
+from applications.models import BaseApplication, ApplicationDenialReason, ApplicationDocument
+from applications.serializers.document import ApplicationDocumentSerializer
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import CaseType
 from conf.helpers import get_value_from_enum
