@@ -49,12 +49,23 @@ class Audit(TimestampableModel):
 
     payload = JSONField()
 
+    visible = models.NullBooleanField(default=True)
+
     objects = AuditManager()
 
     notifications = GenericRelation(GovNotification, related_query_name="audit")
 
     class Meta:
         ordering = ("-created_at",)
+
+    def as_dict(self):
+        return {
+            "actor": str(self.actor),
+            "verb": str(self.verb),
+            "action_object": str(self.action_object),
+            "target": str(self.target),
+            "age": str(self.age()),
+        }
 
     def __str__(self):
         context = {

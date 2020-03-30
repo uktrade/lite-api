@@ -44,12 +44,20 @@ class CaseType(models.Model):
     )
 
 
+class LiteUUIDField(models.UUIDField):
+    def get_prep_value(self, value):
+        value = super().get_prep_value(value)
+        if value is None:
+            return None
+        return self.to_python(value)
+
+
 class Case(TimestampableModel):
     """
     Base model for applications and queries
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = LiteUUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, null=True, blank=False, editable=False, default=None)
     case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=False, blank=False)
     queues = models.ManyToManyField(Queue, related_name="cases")

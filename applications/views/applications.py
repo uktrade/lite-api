@@ -143,6 +143,12 @@ class ApplicationList(ListCreateAPIView):
 
         application = serializer.save()
 
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.CREATED,
+            action_object=application.get_case(),
+        )
+
         return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
 
 
@@ -303,14 +309,12 @@ class ApplicationSubmission(APIView):
 
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
 
-        if not is_case_status_draft(previous_application_status.status):
-            # Only create the audit if the previous application status was not `Draft`
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.UPDATED_STATUS,
-                target=application.get_case(),
-                payload={"status": application.status.status},
-            )
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=application.get_case(),
+            payload={"status": application.status.status},
+        )
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 

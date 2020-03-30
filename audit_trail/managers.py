@@ -11,7 +11,7 @@ class AuditQuerySet(GFKQuerySet):
 
 class AuditManager(GFKManager):
     def get_query_set(self):
-        return AuditQuerySet(self.model)
+        return GFKQuerySet(self.model)
 
     get_queryset = get_query_set
 
@@ -35,7 +35,9 @@ class AuditManager(GFKManager):
 
                 return audit
 
-            return None
+            # For audits that should not appear in a feed
+            kwargs["visible"] = False
+
         if "ignore_case_status" in kwargs:
             kwargs.pop("ignore_case_status")
         return super(AuditManager, self).create(*args, **kwargs)
