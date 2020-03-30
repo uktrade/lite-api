@@ -1,21 +1,24 @@
 import datetime
+import csv
 
 from django.test import SimpleTestCase, tag
 from cases.enums import CaseTypeEnum
+from conf.settings import env
 from test_helpers.test_endpoints.client import get
 from test_helpers.test_endpoints.user_setup import login_exporter, login_internal
 
 
-# TODO:
-# 7. Save output into a file for use later
-
-times = {"date_time": datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}
+times = [["date_time", datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")]]
 
 
-@tag("performance2")
+@tag("performance", "endpoints-performance")
 class EndPointTests(SimpleTestCase):
+    csv = None
     exporter = None
     gov_user = None
+    time = None
+    appended_address = None
+
     standard_application_id = None
     open_application_id = None
     goods_type_id = None
@@ -43,13 +46,36 @@ class EndPointTests(SimpleTestCase):
         response = get(user, appended_address, is_gov)
 
         if save:
-            times[appended_address] = response.elapsed.total_seconds()
+            # TODO: move appended address allocation into each test
+            self.appended_address = appended_address
+            self.time = response.elapsed.total_seconds()
 
         return response
 
+    @classmethod
+    def setUpClass(cls):
+        if len(times) <= 2:
+            times.append(["env", env("PERFORMANCE_TEST_HOST")])
+            times.append([])
+            times.append(["url", "response_time"])
+
+        super().setUpClass()
+
     def tearDown(self):
-        print(times)
+        if self.time:
+            times.append([self.appended_address, self.time])
+        else:
+            times.append([self._testMethodName, "Error"])
+
         super().tearDown()
+
+    @classmethod
+    def tearDownClass(cls):
+        with open("test_helpers/test_endpoints/results/" + times[0][1] + ".csv", "w", newline="\n") as file:
+            writer = csv.writer(file)
+            writer.writerows(times)
+
+        super().tearDownClass()
 
     def get_exporter(self):
         if not self.exporter:
