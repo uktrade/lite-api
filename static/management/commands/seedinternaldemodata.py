@@ -13,18 +13,16 @@ TEAMS_FILE = "lite_content/lite_api/demo_teams.csv"
 
 class Command(SeedCommand):
     """
-    pipenv run ./manage.py seeddemodata
+    pipenv run ./manage.py seedinternaldemodata
     """
 
-    help = "Seeds demo teams, queues and flags"
-    info = "Seeding demo teams, queues and flags"
-    success = "Successfully seeded demo teams, queues and flags"
-    seed_command = "seeddemodata"
+    help = "Seeds internal teams, queues and flags to demo with"
+    info = "Seeding internal teams, queues and flags to demo with"
+    success = "Successfully seeded internal teams, queues and flags"
+    seed_command = "seedinternaldemodata"
 
     @transaction.atomic
     def operation(self, *args, **options):
-        assert Team.objects.filter(id=Teams.ADMIN_TEAM_ID), "Admin team must be seeded first!"
-
         teams = self.seed_teams()
         self.seed_queues(teams)
         self.seed_flags(teams)
