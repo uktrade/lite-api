@@ -44,7 +44,7 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         )
 
     def test_edit_unsubmitted_standard_application_all_temporary_export_details_success(self):
-        date = timezone.now().date()
+        date = timezone.now().date() + timezone.timedelta(days=2)
 
         updated_at = self.draft.updated_at
 
@@ -158,7 +158,7 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.draft.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         self.draft.save()
 
-        date = timezone.now().date()
+        date = timezone.now().date() + timezone.timedelta(days=2)
         key = attributes["key"]
         value = attributes["value"]
 
@@ -270,7 +270,7 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.url = reverse("applications:temporary_export_details", kwargs={"pk": self.draft.id})
 
     def test_edit_unsubmitted_open_application_all_temporary_export_details_success(self):
-        date = timezone.now().date()
+        date = timezone.now().date() + timezone.timedelta(days=2)
 
         updated_at = self.draft.updated_at
 
@@ -384,7 +384,7 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.draft.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         self.draft.save()
 
-        date = timezone.now().date()
+        date = timezone.now().date() + timezone.timedelta(days=2)
         key = attributes["key"]
         value = attributes["value"]
 

@@ -62,7 +62,7 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         today = timezone.now().date()
         if "proposed_return_date" in validated_data:
             if validated_data.get("proposed_return_date"):
-                if validated_data["proposed_return_date"] < today:
+                if validated_data["proposed_return_date"] <= today:
                     raise serializers.ValidationError(
                         {
                             "proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_DATE_NOT_IN_FUTURE
