@@ -96,7 +96,9 @@ class EndPointTests(SimpleTestCase):
                         self.standard_application_id = application
                         break
                 else:
-                    # TODO: get next page
+                    response = self.call_endpoint(
+                        self.get_exporter(), "/applications/page=" + str(page + 1), save=False
+                    ).json()
                     continue
 
                 break
@@ -112,7 +114,9 @@ class EndPointTests(SimpleTestCase):
                         self.open_application_id = application
                         break
                 else:
-                    # TODO: get next page
+                    response = self.call_endpoint(
+                        self.get_exporter(), "/applications/page=" + str(page + 1), save=False
+                    ).json()
                     continue
 
                 break
