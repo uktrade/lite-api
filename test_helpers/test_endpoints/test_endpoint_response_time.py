@@ -13,12 +13,20 @@ times = [["date_time", datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")]]
 
 @tag("performance", "endpoints-performance")
 class EndPointTests(SimpleTestCase):
-    csv = None
+    """
+    Class to run tests against different endpoints, to determine their response times.
+    Will output a csv with the urls and response times.
+    """
+
+    # request headers
     exporter = None
     gov_user = None
+
+    # output variables
     time = None
     appended_address = None
 
+    # stored variables for requests, so no need to get the data multiple times across tests
     standard_application_id = None
     open_application_id = None
     goods_type_id = None
@@ -46,6 +54,7 @@ class EndPointTests(SimpleTestCase):
         response = get(user, appended_address, is_gov)
 
         if save:
+            # if save is set this is the final endpoint we which to hit, and we want to store the time against
             self.appended_address = appended_address
             self.time = response.elapsed.total_seconds()
 
@@ -54,6 +63,7 @@ class EndPointTests(SimpleTestCase):
     @classmethod
     def setUpClass(cls):
         if len(times) <= 2:
+            # set up headers data in csv if not already done
             times.append(["env", env("PERFORMANCE_TEST_HOST")])
             times.append([])
             times.append(["url", "response_time"])
@@ -66,6 +76,7 @@ class EndPointTests(SimpleTestCase):
         else:
             times.append([self._testMethodName, "Error"])
 
+        # print out the function and time function took to run
         print("\n" + self._testMethodName + ", " + str(self.time) if self.time else "Error")
 
         super().tearDown()
@@ -73,22 +84,37 @@ class EndPointTests(SimpleTestCase):
     @classmethod
     def tearDownClass(cls):
         with open("test_helpers/test_endpoints/results/" + times[0][1] + ".csv", "w", newline="\n") as file:
+            # write a new csv file named after the current date, outputting all the times for each case
             writer = csv.writer(file)
             writer.writerows(times)
 
         super().tearDownClass()
 
     def get_exporter(self):
+        """
+        Will try and get or fetch the exporter headers
+        :return: exporter headers
+        """
         if not self.exporter:
             self.exporter = login_exporter()
         return self.exporter
 
     def get_gov_user(self):
+        """
+        Will try and get or fetch the gov user headers
+        :return: gov user headers
+        """
         if not self.gov_user:
             self.gov_user = login_internal()
         return self.gov_user
 
     def get_standard_application(self):
+        """
+        Function to get or fetch a standard applications id.
+        If id is not already set, will request against the "/applications/"
+            endpoint one page at a time until it gets one.
+        :return: standard_application_id
+        """
         if not self.standard_application_id:
             response = self.call_endpoint(self.get_exporter(), "/applications/", save=False).json()
             for page in range(1, response["total_pages"]):
@@ -107,6 +133,12 @@ class EndPointTests(SimpleTestCase):
         return self.standard_application_id
 
     def get_open_application(self):
+        """
+        Function to get or fetch a open applications id.
+        If id is not already set, will request against the "/applications/"
+            endpoint one page at a time until it gets one.
+        :return: open_application_id
+        """
         if not self.open_application_id:
             response = self.call_endpoint(self.get_exporter(), "/applications/", save=False).json()
             for page in range(1, response["total_pages"]):

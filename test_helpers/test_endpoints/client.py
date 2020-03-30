@@ -4,6 +4,12 @@ from conf.settings import env
 
 
 def get(request, appended_address, is_gov):
+    """
+    :param request: user headers/meta for the api to look at
+    :param appended_address: the end of url which we wish to send request against e.g. "/cases/"
+    :param is_gov: boolean field for if a request is being made by gov user or exporter user
+    :return: request response from server
+    """
     if request:
         if is_gov:
             headers = request
