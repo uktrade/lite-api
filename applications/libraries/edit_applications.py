@@ -91,15 +91,14 @@ def save_and_audit_temporary_export_details(request, application, serializer):
             if new_temp_export_val != old_temp_export_val:
 
                 if isinstance(new_temp_export_val, date):
+                    old_date_string = convert_date_to_string(old_temp_export_val) if old_temp_export_val else ""
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.UPDATE_APPLICATION_TEMPORARY_EXPORT,
                         target=application.get_case(),
                         payload={
                             "temp_export_detail": TEMP_EXPORT_DETAILS_FIELDS[key],
-                            "old_temp_export_detail": convert_date_to_string(old_temp_export_val)
-                            if old_temp_export_val
-                            else "",
+                            "old_temp_export_detail": old_date_string,
                             "new_temp_export_detail": convert_date_to_string(new_temp_export_val),
                         },
                     )

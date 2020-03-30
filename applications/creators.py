@@ -192,14 +192,12 @@ def _validate_additional_information(draft, errors):
 
 
 def _validate_temporary_export_details(draft, errors):
-    if draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
-        if draft.export_type == ApplicationExportType.TEMPORARY:
-            if (
-                not draft.temp_export_details
-                or draft.is_temp_direct_control is None
-                or draft.proposed_return_date is None
-            ):
-                errors["temporary_export_details"] = strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS
+    if (
+        draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]
+        and draft.export_type == ApplicationExportType.TEMPORARY
+    ):
+        if not draft.temp_export_details or draft.is_temp_direct_control is None or draft.proposed_return_date is None:
+            errors["temporary_export_details"] = strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS
 
     return errors
 
