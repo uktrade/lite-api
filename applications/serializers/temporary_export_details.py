@@ -60,16 +60,19 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         validated_data = super().validate(data)
 
         today = timezone.now().date()
-        if validated_data.get("proposed_return_date"):
-            if validated_data["proposed_return_date"] < today:
+        if "proposed_return_date" in validated_data:
+            if validated_data.get("proposed_return_date"):
+                if validated_data["proposed_return_date"] < today:
+                    raise serializers.ValidationError(
+                        {
+                            "proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_DATE_NOT_IN_FUTURE
+                        }
+                    )
+                validated_data["proposed_return_date"] = str(validated_data["proposed_return_date"])
+            else:
                 raise serializers.ValidationError(
-                    {"proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_DATE_NOT_IN_FUTURE}
+                    {"proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_BLANK}
                 )
-            validated_data["proposed_return_date"] = str(validated_data["proposed_return_date"])
-        else:
-            raise serializers.ValidationError(
-                {"proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_RETURN_DATE_BLANK}
-            )
 
         return validated_data
 
