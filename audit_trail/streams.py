@@ -29,7 +29,7 @@ VERB_MAPPING = {
 }
 
 
-PAGE_SIZE = 4
+PAGE_SIZE = 20
 
 
 def case_record_json(audit):
