@@ -20,8 +20,6 @@ class TemporaryExportDetails(UpdateAPIView):
         serializer = get_temp_export_details_update_serializer(application.export_type)
         serializer = serializer(application, data=request.data, partial=True)
 
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        save_and_audit_temporary_export_details(request, application, serializer)
-        return JsonResponse(data=serializer.validated_data, status=status.HTTP_200_OK)
+        if serializer.is_valid(raise_exception=True):
+            save_and_audit_temporary_export_details(request, application, serializer)
+            return JsonResponse(data=serializer.validated_data, status=status.HTTP_200_OK)
