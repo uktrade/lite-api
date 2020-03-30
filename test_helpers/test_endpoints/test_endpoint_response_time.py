@@ -66,6 +66,8 @@ class EndPointTests(SimpleTestCase):
         else:
             times.append([self._testMethodName, "Error"])
 
+        print("\n" + self._testMethodName + ", " + str(self.time) if self.time else "Error")
+
         super().tearDown()
 
     @classmethod
