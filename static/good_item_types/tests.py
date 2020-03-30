@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 
 from goods.enums import ItemType
 from test_helpers.clients import DataTestClient
+from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 
 
 class ItemTypeTests(DataTestClient):
@@ -16,3 +17,11 @@ class ItemTypeTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(types["equipment"], "Equipment")
         self.assertEqual(len(types), len(ItemType.choices))
+
+
+class GoodItemTypesResponseTests(EndPointTests):
+
+    url = "/static/item-types/"
+
+    def test_item_types(self):
+        self.call_endpoint(self.get_exporter(), self.url)

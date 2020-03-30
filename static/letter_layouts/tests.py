@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 
 from static.letter_layouts.models import LetterLayout
 from test_helpers.clients import DataTestClient
+from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 
 
 class LetterLayoutsTests(DataTestClient):
@@ -29,3 +30,11 @@ class LetterLayoutsTests(DataTestClient):
         self.assertEqual(response_data["id"], str(self.letter_layout.id))
         self.assertEqual(response_data["filename"], self.letter_layout.filename)
         self.assertEqual(response_data["name"], self.letter_layout.name)
+
+
+class LetterLayoutsResponseTests(EndPointTests):
+
+    url = "/static/letter-layouts/"
+
+    def test_letter_layouts(self):
+        self.call_endpoint(self.get_exporter(), self.url)

@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 
 from goods.enums import PvGrading
 from test_helpers.clients import DataTestClient
+from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 
 
 class PrivateVentureGradingsTests(DataTestClient):
@@ -23,3 +24,11 @@ class PrivateVentureGradingsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for choice in PvGrading.gov_choices:
             self.assertIn({choice[0]: choice[1]}, gradings)
+
+
+class PrivateVentureGradingsResponseTests(EndPointTests):
+
+    url = "/static/private-venture-gradings/"
+
+    def test_private_venture_gradings(self):
+        self.call_endpoint(self.get_exporter(), self.url)
