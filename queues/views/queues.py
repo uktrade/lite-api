@@ -8,7 +8,7 @@ from cases.views.search.queue import SearchQueue
 from conf.authentication import GovAuthentication
 from queues.helpers import get_queue
 from queues.models import Queue
-from queues.serializers import QueueCreateSerializer, QueueViewSerializer
+from queues.serializers import QueueCreateSerializer, QueueViewSerializer, QueueListSerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -20,7 +20,7 @@ class QueuesList(APIView):
         Returns all queues
         """
         queues = Queue.objects.all()
-        serializer = QueueViewSerializer(queues, many=True)
+        serializer = QueueListSerializer(queues, many=True)
         return JsonResponse(data={"queues": serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request):
