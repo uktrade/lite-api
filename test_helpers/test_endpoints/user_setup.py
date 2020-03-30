@@ -32,7 +32,7 @@ def login_exporter():
 
     response = get(request=exporter_user, appended_address=f"/users/me/", is_gov=False)
     organisation_name = env("PERFORMANCE_EXPORTER_ORGANISATION")
-    for organisation in response.json()["user"]["organisations"]:
+    for organisation in response.json()["organisations"]:
         if organisation["name"] == organisation_name:
             exporter_user["organisation-id"] = organisation["id"]
             break

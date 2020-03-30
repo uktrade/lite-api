@@ -92,7 +92,7 @@ class EndPointTests(SimpleTestCase):
             response = self.call_endpoint(self.get_exporter(), "/applications/", save=False).json()
             for page in range(1, response["total_pages"]):
                 for application in response["results"]:
-                    if application["case_type"]["reference"]["key"] == CaseTypeEnum.SIEL.reference:
+                    if application["case_type"]["sub_type"]["key"] == CaseTypeEnum.SIEL.sub_type:
                         self.standard_application_id = application
                         break
                 else:
@@ -108,7 +108,7 @@ class EndPointTests(SimpleTestCase):
             response = self.call_endpoint(self.get_exporter(), "/applications/", save=False).json()
             for page in range(1, response["total_pages"]):
                 for application in response["results"]:
-                    if application["case_type"]["reference"]["key"] == CaseTypeEnum.OIEL.reference:
+                    if application["case_type"]["sub_type"]["key"] == CaseTypeEnum.OIEL.sub_type:
                         self.open_application_id = application
                         break
                 else:
@@ -161,7 +161,7 @@ class EndPointTests(SimpleTestCase):
                 self.get_exporter(), "/organisations/" + self.get_exporter()["organisation-id"] + "/users/", save=False
             )
 
-            self.organisation_user_id = response.json()["results"]["users"][0]["id"]
+            self.organisation_user_id = response.json()["results"][0]["id"]
 
         return self.organisation_user_id
 
@@ -189,7 +189,7 @@ class EndPointTests(SimpleTestCase):
         if not self.end_user_advisory_id:
             response = self.call_endpoint(self.get_exporter(), "/queries/end-user-advisories/", save=False)
 
-            self.end_user_advisory_id = response.json()["end_user_advisories"][0]["id"]
+            self.end_user_advisory_id = response.json()["results"][0]["id"]
 
         return self.end_user_advisory_id
 
