@@ -291,7 +291,7 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.GOODS,
         ]:
             set_application_sla(application)
-            create_submitted_audit(previous_application_status, request, application)
+            create_submitted_audit(request, application)
 
         errors = validate_application_ready_for_submission(application)
         if errors:
