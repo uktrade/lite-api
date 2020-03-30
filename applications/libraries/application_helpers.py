@@ -3,7 +3,6 @@ from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
 from static.statuses.enums import CaseStatusEnum
 from audit_trail import service as audit_trail_service
-from static.statuses.libraries.case_status_validate import is_case_status_draft
 
 
 def optional_str_to_bool(optional_string: str):

@@ -278,7 +278,6 @@ class ApplicationSubmission(APIView):
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         Depending on the application subtype, this will also submit the declaration of the licence
         """
-        previous_application_status = application.status
 
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
             assert_user_has_permission(
