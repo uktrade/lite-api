@@ -35,13 +35,8 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], standard_application.name)
-        self.assertEqual(
-            response_data[0]["case_type"]["reference"]["key"], standard_application.case_type.reference,
-        )
-        self.assertEqual(response_data[0]["export_type"]["key"], standard_application.export_type)
-        self.assertIsNotNone(response_data[0]["created_at"])
+        self.assertEqual(response_data[0]["case_type"]["sub_type"]["key"], standard_application.case_type.sub_type)
         self.assertIsNotNone(response_data[0]["updated_at"])
-        self.assertIsNone(response_data[0]["submitted_at"])
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_ensure_user_cannot_see_applications_they_dont_have_access_to(self):
@@ -95,12 +90,8 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], hmrc_query.name)
-        self.assertEqual(response_data[0]["case_type"]["reference"]["key"], hmrc_query.case_type.reference)
-        self.assertEqual(response_data[0]["organisation"]["name"], hmrc_query.organisation.name)
-        self.assertIsNone(response_data[0]["export_type"])
-        self.assertIsNotNone(response_data[0]["created_at"])
+        self.assertEqual(response_data[0]["case_type"]["sub_type"]["key"], hmrc_query.case_type.sub_type)
         self.assertIsNotNone(response_data[0]["updated_at"])
-        self.assertIsNone(response_data[0]["submitted_at"])
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_view_draft_standard_application_as_exporter_success(self):
@@ -160,11 +151,9 @@ class DraftTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], application.name)
         self.assertEqual(
-            response_data[0]["case_type"]["reference"]["key"], application.case_type.reference,
+            response_data[0]["case_type"]["sub_type"]["key"], application.case_type.sub_type,
         )
-        self.assertIsNotNone(response_data[0]["created_at"])
         self.assertIsNotNone(response_data[0]["updated_at"])
-        self.assertIsNone(response_data[0]["submitted_at"])
         self.assertEqual(response_data[0]["status"]["key"], CaseStatusEnum.DRAFT)
 
     def test_view_draft_exhibition_clearance_as_exporter_success(self):
