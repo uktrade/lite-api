@@ -57,12 +57,10 @@ def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, i
     return True
 
 
-def create_submitted_audit(previous_application_status, request, application):
-    if not is_case_status_draft(previous_application_status.status):
-        # Only create the audit if the previous application status was not `Draft`
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=application.get_case(),
-            payload={"status": application.status.status},
-        )
+def create_submitted_audit(request, application):
+    audit_trail_service.create(
+        actor=request.user,
+        verb=AuditType.UPDATED_STATUS,
+        target=application.get_case(),
+        payload={"status": application.status.status},
+    )

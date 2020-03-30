@@ -319,7 +319,7 @@ class ApplicationSubmission(APIView):
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
 
-                create_submitted_audit(previous_application_status, request, application)
+                create_submitted_audit(request, application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
