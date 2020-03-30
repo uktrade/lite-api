@@ -31,7 +31,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.DRAFT)
-        self.assertEqual(Audit.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.all().count(), 0)
 
     def test_submit_standard_application_with_incorporated_good_success(self):
         draft = self.create_standard_application_with_incorporated_good(self.organisation)
@@ -255,6 +255,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
+        self.assertEqual(Audit.objects.all().count(), 1)
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
         data = {"submit_declaration": True, "agreed_to_declaration": False, "agreed_to_foi": True}
