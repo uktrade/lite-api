@@ -8,6 +8,12 @@ class CasesResponseTests(EndPointTests):
     def test_cases_list(self):
         self.call_endpoint(self.get_gov_user(), self.url, is_gov=True)
 
+    def test_sort_by_status(self):
+        self.call_endpoint(self.get_gov_user(), self.url + "?sort=status", is_gov=True)
+
+    def test_sort_by_status_reverse(self):
+        self.call_endpoint(self.get_gov_user(), self.url + "?sort=-status", is_gov=True)
+
     def test_case_destination(self):
         self.call_endpoint(self.get_gov_user(), self.url + "destination/GB/", is_gov=True)
 

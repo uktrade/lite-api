@@ -8,7 +8,7 @@ from test_helpers.test_endpoints.client import get
 from test_helpers.test_endpoints.user_setup import login_exporter, login_internal
 
 
-times = [["date_time", datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")]]
+times = [["date_time", datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")]]
 
 
 @tag("performance", "endpoints-performance")
@@ -46,7 +46,6 @@ class EndPointTests(SimpleTestCase):
         response = get(user, appended_address, is_gov)
 
         if save:
-            # TODO: move appended address allocation into each test
             self.appended_address = appended_address
             self.time = response.elapsed.total_seconds()
 
