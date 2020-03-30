@@ -1,11 +1,9 @@
-import abc
 from datetime import datetime, timezone
 
 from rest_framework import serializers
 
 from cases.enums import CaseTypeEnum
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from gov_users.serializers import GovUserSimpleSerializer
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
@@ -21,6 +19,28 @@ from users.models import ExporterUser
 
 
 class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
+    end_user = PartySerializer()
+    exporter_user_notification_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EndUserAdvisoryQuery
+        fields = (
+            "id",
+            "end_user",
+            "reference_code",
+            "exporter_user_notification_count",
+        )
+        read_only_fields = fields
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exporter_user = kwargs["context"]["request"].user
+
+    def get_exporter_user_notification_count(self, instance):
+        return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
+
+
+class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
@@ -50,6 +70,7 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
             "status",
             "exporter_user_notification_count",
             "reference_code",
+            "case_officer",
         )
 
     def __init__(self, *args, **kwargs):
@@ -104,25 +125,5 @@ class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
 
         return end_user_advisory_query
 
-    @abc.abstractmethod
     def get_exporter_user_notification_count(self, instance):
-        """
-        This is used for list views only.
-        To get the count for each type of notification on an end user advisory query,
-        override this function in child classes
-        """
-        return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
-
-
-class EndUserAdvisoryViewSerializer(EndUserAdvisoryListSerializer):
-    case_officer = GovUserSimpleSerializer()
-
-    class Meta:
-        model = EndUserAdvisoryQuery
-        fields = EndUserAdvisoryListSerializer.Meta.fields + ("case_officer",)
-
-    def get_exporter_user_notification_count(self, instance):
-        """
-        Overriding parent class
-        """
         return get_exporter_user_notification_individual_count(exporter_user=self.exporter_user, case=instance)

@@ -191,7 +191,7 @@ class ExporterUserNotificationTests(DataTestClient):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        eua_query_response_data = response.json()["end_user_advisories"][0]
+        eua_query_response_data = response.json()["results"][0]
         self.assertIn("exporter_user_notification_count", eua_query_response_data)
         self.assertEqual(eua_query_response_data["exporter_user_notification_count"]["total"], 3)
 
