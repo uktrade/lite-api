@@ -62,7 +62,7 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         today = timezone.now().date()
         if "proposed_return_date" in validated_data:
             if validated_data.get("proposed_return_date"):
-                if validated_data["proposed_return_date"] <= today:
+                if validated_data["proposed_return_date"] < today:
                     raise serializers.ValidationError(
                         {
                             "proposed_return_date": strings.Generic.TemporaryExportDetails.Error.PROPOSED_DATE_NOT_IN_FUTURE
@@ -77,12 +77,8 @@ class TemporaryExportDetailsUpdateSerializer(serializers.ModelSerializer):
         return validated_data
 
     def update(self, instance, validated_data):
-        standalone_fields = ["temp_export_details", "proposed_return_date"]
-
-        for field in standalone_fields:
-            updated_field = validated_data.pop(field, getattr(instance, field))
-            setattr(instance, field, updated_field)
-
+        instance.temp_export_details = validated_data.pop("temp_export_details", instance.temp_export_details)
+        instance.proposed_return_date = validated_data.pop("proposed_return_date", instance.proposed_return_date)
         instance.temp_direct_control_details = validated_data.pop(
             "temp_direct_control_details", instance.temp_direct_control_details
         )

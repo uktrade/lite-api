@@ -91,31 +91,22 @@ def save_and_audit_temporary_export_details(request, application, serializer):
             if new_temp_export_val != old_temp_export_val:
 
                 if isinstance(new_temp_export_val, date) or isinstance(old_temp_export_val, date):
-                    old_date_string = convert_date_to_string(old_temp_export_val) if old_temp_export_val else ""
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATE_APPLICATION_TEMPORARY_EXPORT,
-                        target=application.get_case(),
-                        payload={
-                            "temp_export_detail": TEMP_EXPORT_DETAILS_FIELDS[key],
-                            "old_temp_export_detail": old_date_string,
-                            "new_temp_export_detail": convert_date_to_string(new_temp_export_val),
-                        },
-                    )
+                    old_temp_export_val = convert_date_to_string(old_temp_export_val) if old_temp_export_val else ""
+                    new_temp_export_val = convert_date_to_string(new_temp_export_val)
                 else:
                     old_temp_export_val, new_temp_export_val = _transform_values(
                         old_temp_export_val, new_temp_export_val
                     )
-                    audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.UPDATE_APPLICATION_TEMPORARY_EXPORT,
-                        target=application.get_case(),
-                        payload={
-                            "temp_export_detail": TEMP_EXPORT_DETAILS_FIELDS[key],
-                            "old_temp_export_detail": old_temp_export_val,
-                            "new_temp_export_detail": new_temp_export_val,
-                        },
-                    )
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATE_APPLICATION_TEMPORARY_EXPORT,
+                    target=application.get_case(),
+                    payload={
+                        "temp_export_detail": TEMP_EXPORT_DETAILS_FIELDS[key],
+                        "old_temp_export_detail": old_temp_export_val,
+                        "new_temp_export_detail": new_temp_export_val,
+                    },
+                )
 
 
 def save_and_audit_have_you_been_informed_ref(request, application, serializer):
