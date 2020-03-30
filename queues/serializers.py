@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from cases.models import Case
 from cases.serializers import CaseSerializer
+from queues.constants import SYSTEM_QUEUES
 from queues.models import Queue
 from teams.models import Team
 from teams.serializers import TeamSerializer
@@ -12,9 +13,7 @@ class QueueViewSerializer(serializers.ModelSerializer):
     is_system_queue = serializers.SerializerMethodField()
 
     def get_is_system_queue(self, instance):
-        # System queues have the attribute 'is_system_queue',
-        # hence return whether it has the attribute or not
-        return hasattr(instance, "is_system_queue")
+        return instance.id in SYSTEM_QUEUES
 
     class Meta:
         model = Queue
@@ -31,9 +30,7 @@ class QueueListSerializer(serializers.ModelSerializer):
     is_system_queue = serializers.SerializerMethodField()
 
     def get_is_system_queue(self, instance):
-        # System queues have the attribute 'is_system_queue',
-        # hence return whether it has the attribute or not
-        return hasattr(instance, "is_system_queue")
+        return instance.id in SYSTEM_QUEUES
 
     def get_cases_count(self, instance):
         # System queues have a cases count attribute - use that
