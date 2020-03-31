@@ -32,13 +32,17 @@ def login_exporter():
 
     response = get(request=exporter_user, appended_address=f"/users/me/", is_gov=False)
     organisation_name = env("PERFORMANCE_EXPORTER_ORGANISATION")
-    for organisation in response.json()["organisations"]:
-        if organisation["name"] == organisation_name:
-            exporter_user["organisation-id"] = organisation["id"]
-            break
+    if organisation_name:
+        for organisation in response.json()["organisations"]:
+            if organisation["name"] == organisation_name:
+                exporter_user["organisation-id"] = organisation["id"]
+                break
 
-    if not exporter_user["organisation-id"]:
-        AttributeError("organisation with that name was not found")
+        if not exporter_user["organisation-id"]:
+            AttributeError("organisation with that name was not found")
+
+    else:
+        exporter_user["organisation-id"] = response.json()["organisations"][0]["id"]
 
     return exporter_user
 
