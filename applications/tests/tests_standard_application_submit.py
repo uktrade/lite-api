@@ -23,16 +23,15 @@ class StandardApplicationTests(DataTestClient):
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    def test_submit_standard_application_success(self):
+    def test_submit_standard_application_before_declaration_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get(id=self.draft.id)
-        self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertIsNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
-            self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
-        # 'Draft' applications should not create audit entries when submitted
+            self.assertEqual(good_on_application.good.status, GoodStatus.DRAFT)
         self.assertEqual(Audit.objects.all().count(), 0)
 
     def test_submit_standard_application_with_incorporated_good_success(self):
@@ -43,8 +42,8 @@ class StandardApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get(id=draft.id)
-        self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertIsNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
 
     def test_submit_standard_application_with_invalid_id_failure(self):
         draft_id = "90D6C724-0339-425A-99D2-9D2B8E864EC7"
@@ -182,8 +181,11 @@ class StandardApplicationTests(DataTestClient):
         standard_application.save()
         previous_submitted_at = standard_application.submitted_at
 
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+
         url = reverse("applications:application_submit", kwargs={"pk": standard_application.id})
-        response = self.client.put(url, **self.exporter_headers)
+
+        response = self.client.put(url, data, **self.exporter_headers)
 
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -191,6 +193,7 @@ class StandardApplicationTests(DataTestClient):
             standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
+        self.assertEqual(standard_application.agreed_to_foi, True)
 
     def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self):
         standard_application = self.create_draft_standard_application(self.organisation)
@@ -236,13 +239,44 @@ class StandardApplicationTests(DataTestClient):
             response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
+    def test_standard_application_declaration_submit_success(self):
+        self.draft.agreed_to_foi = True
+        self.draft.save()
+
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        case = Case.objects.get(id=self.draft.id)
+        self.assertIsNotNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.baseapplication.agreed_to_foi, True)
+        for good_on_application in GoodOnApplication.objects.filter(application=case):
+            self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
+        self.assertEqual(Audit.objects.all().count(), 1)
+
+    def test_standard_application_declaration_submit_tcs_false_failure(self):
+        data = {"submit_declaration": True, "agreed_to_declaration": False, "agreed_to_foi": True}
+
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        errors = response.json()["errors"]
+        self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
+
     def test_submit_standard_application_adds_system_case_flags_success(self):
         self.draft.is_military_end_use_controls = True
         self.draft.is_informed_wmd = True
         self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
         self.draft.save()
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
 
-        response = self.client.put(self.url, **self.exporter_headers)
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()
         case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
 
@@ -273,7 +307,8 @@ class StandardApplicationTests(DataTestClient):
         self.draft.save()
 
         # Re-submit application
-        response = self.client.put(self.url, **self.exporter_headers)
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()
         case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
 
