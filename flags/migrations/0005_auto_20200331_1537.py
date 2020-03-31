@@ -6,23 +6,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flags', '0004_auto_20200326_1548'),
+        ("flags", "0004_auto_20200326_1548"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='flag',
-            name='colour',
-            field=models.CharField(choices=[('default', 'Default'), ('red', 'Red'), ('yellow', 'Yellow'), ('green', 'Green'), ('blue', 'Blue'), ('purple', 'Purple'), ('orange', 'Orange'), ('brown', 'Brown'), ('turquoise', 'Turquoise'), ('pink', 'Pink')], default='default', max_length=20),
+            model_name="flag",
+            name="colour",
+            field=models.CharField(
+                choices=[
+                    ("default", "Default"),
+                    ("red", "Red"),
+                    ("yellow", "Yellow"),
+                    ("green", "Green"),
+                    ("blue", "Blue"),
+                    ("purple", "Purple"),
+                    ("orange", "Orange"),
+                    ("brown", "Brown"),
+                    ("turquoise", "Turquoise"),
+                    ("pink", "Pink"),
+                ],
+                default="default",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='flag',
-            name='label',
-            field=models.CharField(blank=True, max_length=15, null=True),
+            model_name="flag", name="label", field=models.CharField(blank=True, max_length=15, null=True),
         ),
-        migrations.AddField(
-            model_name='flag',
-            name='priority',
-            field=models.IntegerField(default=0),
-        ),
+        migrations.AddField(model_name="flag", name="priority", field=models.IntegerField(default=0),),
     ]
