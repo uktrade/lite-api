@@ -42,6 +42,7 @@ def login_exporter():
             AttributeError("organisation with that name was not found")
 
     else:
+        # if no organisation name is defined, the first organisation is selected
         exporter_user["organisation-id"] = response.json()["organisations"][0]["id"]
 
     return exporter_user
