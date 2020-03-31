@@ -43,8 +43,9 @@ class QueueDetail(APIView):
         """
         Retrieve a queue instance
         """
-        queue = next((queue for queue in SearchQueue.system(user=request.user) if queue.id == str(pk)), None) \
-                or get_queue(pk=pk)
+        queue = next(
+            (queue for queue in SearchQueue.system(user=request.user) if queue.id == str(pk)), None
+        ) or get_queue(pk=pk)
 
         serializer = QueueViewSerializer(queue)
         return JsonResponse(data=serializer.data)
