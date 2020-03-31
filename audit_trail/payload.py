@@ -17,6 +17,9 @@ class AuditType(Enum):
     ADD_GOOD_TYPE_TO_APPLICATION = "added good type: {good_type_name}"
     REMOVE_GOOD_TYPE_FROM_APPLICATION = "removed good type: {good_type_name}"
     UPDATE_APPLICATION_END_USE_DETAIL = 'updated {end_use_detail} from "{old_end_use_detail}" to "{new_end_use_detail}"'
+    UPDATE_APPLICATION_TEMPORARY_EXPORT = (
+        'updated {temp_export_detail} from "{old_temp_export_detail}" to "{new_temp_export_detail}"'
+    )
     REMOVED_SITES_FROM_APPLICATION = "removed sites: {sites}"
     ADD_SITES_TO_APPLICATION = "added sites: {sites}"
     REMOVED_EXTERNAL_LOCATIONS_FROM_APPLICATION = "removed external locations: {locations}"
