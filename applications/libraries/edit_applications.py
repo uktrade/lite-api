@@ -1,12 +1,13 @@
 from applications.enums import GoodsCategory
 from applications.models import BaseApplication, StandardApplication
-from audit_trail import service as audit_trail_service
+from datetime import date
 
+from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
-from conf.helpers import str_to_bool
 from flags.enums import SystemFlags
+from conf.helpers import str_to_bool, convert_date_to_string
 from lite_content.lite_api.strings import Applications as strings
 
 END_USE_FIELDS = {
@@ -22,14 +23,21 @@ END_USE_FIELDS = {
     "intended_end_use": strings.Generic.EndUseDetails.Audit.INTENDED_END_USE_TITLE,
 }
 
+TEMP_EXPORT_DETAILS_FIELDS = {
+    "temp_export_details": strings.Generic.TemporaryExportDetails.Audit.TEMPORARY_EXPORT_DETAILS,
+    "is_temp_direct_control": strings.Generic.TemporaryExportDetails.Audit.PRODUCTS_UNDER_DIRECT_CONTROL,
+    "temp_direct_control_details": strings.Generic.TemporaryExportDetails.Audit.PRODUCTS_UNDER_DIRECT_CONTROL_DETAILS,
+    "proposed_return_date": strings.Generic.TemporaryExportDetails.Audit.PROPOSED_RETURN_DATE,
+}
 
-def get_old_end_use_details_fields(application):
-    return {end_use_field: getattr(application, end_use_field) for end_use_field in END_USE_FIELDS.keys()}
+
+def get_old_field_values(application, fields):
+    return {old_field: getattr(application, old_field) for old_field in fields.keys()}
 
 
-def get_new_end_use_details_fields(validated_data):
+def get_new_field_values(validated_data, fields):
     new_end_use_details = {}
-    for end_use_field in END_USE_FIELDS.keys():
+    for end_use_field in fields.keys():
         if end_use_field in validated_data:
             new_end_use_details[end_use_field] = validated_data[end_use_field]
     return new_end_use_details
@@ -63,13 +71,42 @@ def _transform_values(old_end_use_value, new_end_use_value):
 
 
 def save_and_audit_end_use_details(request, application, serializer):
-    new_end_use_details_fields = get_new_end_use_details_fields(serializer.validated_data)
+    new_end_use_details_fields = get_new_field_values(serializer.validated_data, END_USE_FIELDS)
     if new_end_use_details_fields:
-        old_end_use_details_fields = get_old_end_use_details_fields(application)
+        old_end_use_details_fields = get_old_field_values(application, END_USE_FIELDS)
         serializer.save()
         audit_end_use_details(
             request.user, application.get_case(), old_end_use_details_fields, new_end_use_details_fields
         )
+
+
+def save_and_audit_temporary_export_details(request, application, serializer):
+    new_temp_export_details = get_new_field_values(serializer.validated_data, TEMP_EXPORT_DETAILS_FIELDS)
+    if new_temp_export_details:
+        old_temp_export_details = get_old_field_values(application, TEMP_EXPORT_DETAILS_FIELDS)
+        serializer.save()
+
+        for key, new_temp_export_val in new_temp_export_details.items():
+            old_temp_export_val = old_temp_export_details[key]
+            if new_temp_export_val != old_temp_export_val:
+
+                if isinstance(new_temp_export_val, date) or isinstance(old_temp_export_val, date):
+                    old_temp_export_val = convert_date_to_string(old_temp_export_val) if old_temp_export_val else ""
+                    new_temp_export_val = convert_date_to_string(new_temp_export_val)
+                else:
+                    old_temp_export_val, new_temp_export_val = _transform_values(
+                        old_temp_export_val, new_temp_export_val
+                    )
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATE_APPLICATION_TEMPORARY_EXPORT,
+                    target=application.get_case(),
+                    payload={
+                        "temp_export_detail": TEMP_EXPORT_DETAILS_FIELDS[key],
+                        "old_temp_export_detail": old_temp_export_val,
+                        "new_temp_export_detail": new_temp_export_val,
+                    },
+                )
 
 
 def save_and_audit_have_you_been_informed_ref(request, application, serializer):
