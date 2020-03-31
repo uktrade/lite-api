@@ -23,10 +23,20 @@ class FlagSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.Flags.BLANK_NAME},
     )
     colour = serializers.ChoiceField(choices=FlagColours.choices, default=FlagColours.DEFAULT)
+    priority = serializers.IntegerField(default=0)
 
     class Meta:
         model = Flag
-        fields = ("id", "name", "level", "team", "status", "label", "colour")
+        fields = (
+            "id",
+            "name",
+            "level",
+            "team",
+            "status",
+            "label",
+            "colour",
+            "priority",
+        )
 
     def validate(self, data):
         colour_not_default = data.get("is_good_controlled") != FlagColours.DEFAULT
@@ -40,6 +50,7 @@ class FlagSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get("name", instance.name)
         instance.label = validated_data.get("label", instance.label)
         instance.colour = validated_data.get("colour", instance.colour)
+        instance.priority = validated_data.get("priority", instance.priority)
         instance.save()
         return instance
 

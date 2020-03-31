@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -10,6 +11,7 @@ class FlagsCreateTest(DataTestClient):
 
     url = reverse("flags:flags")
 
+    @tag("1258")
     def test_gov_user_can_create_flags(self):
         data = {
             "name": "new flag",
@@ -18,6 +20,8 @@ class FlagsCreateTest(DataTestClient):
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()
+
+        print(response)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["flag"]["name"], "new flag")

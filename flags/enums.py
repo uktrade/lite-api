@@ -23,16 +23,16 @@ class FlagStatuses:
 
 
 class FlagColours:
-    DEFAULT = "Default"
-    RED = "Red"
-    YELLOW = "Yellow"
-    GREEN = "Green"
-    BLUE = "Blue"
-    PURPLE = "Purple"
-    ORANGE = "Orange"
-    BROWN = "Brown"
-    TURQUOISE = "Turquoise"
-    PINK = "Pink"
+    DEFAULT = "default"
+    RED = "red"
+    YELLOW = "yellow"
+    GREEN = "green"
+    BLUE = "blue"
+    PURPLE = "purple"
+    ORANGE = "orange"
+    BROWN = "brown"
+    TURQUOISE = "turquoise"
+    PINK = "pink"
 
     choices = [
         (DEFAULT, "Default"),
