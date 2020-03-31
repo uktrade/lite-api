@@ -30,6 +30,6 @@ class QueuesViewTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["id"], queue.id)
+        self.assertEqualIgnoreType(response_data["id"], queue.id)
         self.assertEqual(response_data["name"], queue.name)
         self.assertEqual(response_data["is_system_queue"], False)
