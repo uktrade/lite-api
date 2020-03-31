@@ -1,5 +1,5 @@
+from conf.helpers import str_to_bool
 from django.utils import timezone
-
 from applications import constants
 from applications.models import (
     CountryOnApplication,
@@ -21,7 +21,7 @@ def _validate_locations(application, errors):
         and not ExternalLocationOnApplication.objects.filter(application=application).exists()
         and not getattr(application, "have_goods_departed", False)
     ):
-        errors["location"] = strings.Applications.Generic.NO_LOCATION_SET
+        errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
 
     return errors
 
@@ -78,7 +78,7 @@ def _validate_end_user(draft, errors, is_mandatory):
         is_document_mandatory=True,
     )
     if end_user_errors:
-        errors["end_user"] = end_user_errors
+        errors["end_user"] = [end_user_errors]
 
     return errors
 
@@ -93,7 +93,7 @@ def _validate_consignee(draft, errors, is_mandatory):
         is_document_mandatory=True,
     )
     if consignee_errors:
-        errors["consignee"] = consignee_errors
+        errors["consignee"] = [consignee_errors]
 
     return errors
 
@@ -103,7 +103,7 @@ def _validate_countries(draft, errors, is_mandatory):
 
     if is_mandatory:
         if len(CountryOnApplication.objects.filter(application=draft)) == 0:
-            errors["countries"] = strings.Applications.Open.NO_COUNTRIES_SET
+            errors["countries"] = [strings.Applications.Open.NO_COUNTRIES_SET]
 
     return errors
 
@@ -114,7 +114,7 @@ def _validate_goods_types(draft, errors, is_mandatory):
     if is_mandatory:
         results = GoodsType.objects.filter(application=draft)
         if not results:
-            errors["goods"] = strings.Applications.Open.NO_GOODS_SET
+            errors["goods"] = [strings.Applications.Open.NO_GOODS_SET]
 
     return errors
 
@@ -127,7 +127,7 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
 
     ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory)
     if ultimate_end_user_documents_error:
-        errors["ultimate_end_user_documents"] = ultimate_end_user_documents_error
+        errors["ultimate_end_user_documents"] = [ultimate_end_user_documents_error]
 
     if is_mandatory:
         ultimate_end_user_required = GoodOnApplication.objects.filter(
@@ -136,14 +136,14 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
 
         if ultimate_end_user_required:
             if len(draft.ultimate_end_users.values_list()) == 0:
-                errors["ultimate_end_users"] = strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET
+                errors["ultimate_end_users"] = [strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET]
             else:
                 # We make sure that an ultimate end user is not also the end user
                 for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                     if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.party.id):
-                        errors[
-                            "ultimate_end_users"
-                        ] = strings.Applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
+                        errors["ultimate_end_users"] = [
+                            strings.Applications.Standard.MATCHING_END_USER_AND_ULTIMATE_END_USER
+                        ]
 
     return errors
 
@@ -156,17 +156,29 @@ def _validate_end_use_details(draft, errors, application_type):
             or draft.is_suspected_wmd is None
             or not draft.intended_end_use
         ):
-            errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+            errors["end_use_details"] = [strings.Applications.Generic.NO_END_USE_DETAILS]
 
         if application_type == CaseTypeSubTypeEnum.STANDARD:
             if draft.is_eu_military is None:
-                errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+                errors["end_use_details"] = [strings.Applications.Generic.NO_END_USE_DETAILS]
             elif draft.is_eu_military and draft.is_compliant_limitations_eu is None:
-                errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+                errors["end_use_details"] = [strings.Applications.Generic.NO_END_USE_DETAILS]
 
     elif application_type == CaseTypeSubTypeEnum.F680:
         if not draft.intended_end_use:
-            errors["end_use_details"] = strings.Applications.Generic.NO_END_USE_DETAILS
+            errors["end_use_details"] = [strings.Applications.Generic.NO_END_USE_DETAILS]
+
+    return errors
+
+
+def _validate_agree_to_declaration(request, errors):
+    """ Checks the exporter has agreed to the T&Cs of the licence """
+
+    if not str_to_bool(request.data.get("agreed_to_declaration")):
+        errors["agreed_to_declaration"] = [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED]
+
+    if not request.data.get("agreed_to_foi"):
+        errors["agreed_to_foi"] = [strings.Applications.Generic.AGREEMENT_TO_FOI_REQUIRED]
 
     return errors
 
@@ -195,7 +207,7 @@ def _validate_third_parties(draft, errors, is_mandatory):
 
     third_parties_documents_error = check_parties_documents(draft.third_parties.all(), is_mandatory)
     if third_parties_documents_error:
-        errors["third_parties_documents"] = third_parties_documents_error
+        errors["third_parties_documents"] = [third_parties_documents_error]
 
     return errors
 
@@ -205,7 +217,7 @@ def _validate_has_goods(draft, errors, is_mandatory):
 
     if is_mandatory:
         if not GoodOnApplication.objects.filter(application=draft):
-            errors["goods"] = strings.Applications.Standard.NO_GOODS_SET
+            errors["goods"] = [strings.Applications.Standard.NO_GOODS_SET]
 
     return errors
 
@@ -215,7 +227,7 @@ def _validate_has_clearance_level(draft, errors, is_mandatory):
 
     if is_mandatory:
         if not draft.clearance_level:
-            errors["clearance_level"] = strings.Applications.Standard.NO_CLEARANCE_LEVEL
+            errors["clearance_level"] = [strings.Applications.Standard.NO_CLEARANCE_LEVEL]
 
     return errors
 
@@ -224,7 +236,7 @@ def _validate_exhibition_details(draft, errors):
     """ Checks that an exhibition clearance has details """
 
     if not all(getattr(draft, attribute) for attribute in ["title", "first_exhibition_date", "required_by_date"]):
-        errors["details"] = strings.Applications.Exhibition.Error.NO_DETAILS
+        errors["details"] = [strings.Applications.Exhibition.Error.NO_DETAILS]
 
     return errors
 
@@ -262,13 +274,13 @@ def _validate_gifting_clearance(draft, errors):
     errors = _validate_has_goods(draft, errors, is_mandatory=True)
 
     if draft.consignee:
-        errors["consignee"] = strings.Applications.Gifting.CONSIGNEE
+        errors["consignee"] = [strings.Applications.Gifting.CONSIGNEE]
 
     if draft.ultimate_end_users:
-        errors["ultimate_end_users"] = strings.Applications.Gifting.ULTIMATE_END_USERS
+        errors["ultimate_end_users"] = [strings.Applications.Gifting.ULTIMATE_END_USERS]
 
     if SiteOnApplication.objects.filter(application=draft).exists():
-        errors["location"] = strings.Applications.Gifting.LOCATIONS
+        errors["location"] = [strings.Applications.Gifting.LOCATIONS]
 
     return errors
 
@@ -284,19 +296,19 @@ def _validate_f680_clearance(draft, errors):
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
 
     if not draft.end_user and not draft.third_parties.exists():
-        errors["party"] = strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY
+        errors["party"] = [strings.Applications.F680.NO_END_USER_OR_THIRD_PARTY]
 
     if draft.consignee:
-        errors["consignee"] = strings.Applications.F680.CONSIGNEE
+        errors["consignee"] = [strings.Applications.F680.CONSIGNEE]
 
     if draft.ultimate_end_users:
-        errors["ultimate_end_users"] = strings.Applications.F680.ULTIMATE_END_USERS
+        errors["ultimate_end_users"] = [strings.Applications.F680.ULTIMATE_END_USERS]
 
     if SiteOnApplication.objects.filter(application=draft).exists():
-        errors["location"] = strings.Applications.F680.LOCATIONS
+        errors["location"] = [strings.Applications.F680.LOCATIONS]
 
     if not draft.types.exists():
-        errors["types"] = strings.Applications.F680.NO_CLEARANCE_TYPE
+        errors["types"] = [strings.Applications.F680.NO_CLEARANCE_TYPE]
 
     return errors
 
@@ -315,7 +327,7 @@ def _validate_open_licence(draft, errors):
 
 def _validate_route_of_goods(draft, errors):
     if draft.is_shipped_waybill_or_lading is None:
-        errors["route_of_goods"] = strings.Applications.Generic.NO_ROUTE_OF_GOODS
+        errors["route_of_goods"] = [strings.Applications.Generic.NO_ROUTE_OF_GOODS]
     return errors
 
 
@@ -346,6 +358,6 @@ def validate_application_ready_for_submission(application):
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
         _validate_f680_clearance(application, errors)
     else:
-        errors["unsupported_application"] = "You can only validate a supported application type"
+        errors["unsupported_application"] = ["You can only validate a supported application type"]
 
     return errors
