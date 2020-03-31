@@ -27,10 +27,9 @@ class QueuesViewTests(DataTestClient):
         url = reverse("queues:queue", kwargs={"pk": queue.id})
 
         response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["queue"]
+        response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["id"], queue.id)
         self.assertEqual(response_data["name"], queue.name)
         self.assertEqual(response_data["is_system_queue"], False)
-        self.assertEqual(response_data["team"]["id"], str(queue.team.id))
-        self.assertEqual(response_data["cases_count"], 0)
