@@ -3,7 +3,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from flags.enums import FlagLevels, FlagStatuses
+from flags.enums import FlagLevels, FlagStatuses, FlagColours
 from flags.models import Flag, FlaggingRule
 from lite_content.lite_api import strings
 from teams.models import Team
@@ -22,20 +22,24 @@ class FlagSerializer(serializers.ModelSerializer):
         validators=[UniqueValidator(queryset=Flag.objects.all(), lookup="iexact", message=strings.Flags.NON_UNIQUE)],
         error_messages={"blank": strings.Flags.BLANK_NAME},
     )
+    colour = serializers.ChoiceField(choices=FlagColours.choices, default=FlagColours.DEFAULT)
 
     class Meta:
         model = Flag
-        fields = (
-            "id",
-            "name",
-            "level",
-            "team",
-            "status",
-        )
+        fields = ("id", "name", "level", "team", "status", "label", "colour")
+
+    def validate(self, data):
+        colour_not_default = data.get("is_good_controlled") != FlagColours.DEFAULT
+        if colour_not_default and not data.get("label"):
+            raise serializers.ValidationError("Label must be set when flag colour is specified")
+
+        return data
 
     def update(self, instance, validated_data):
         instance.status = validated_data.get("status", instance.status)
         instance.name = validated_data.get("name", instance.name)
+        instance.label = validated_data.get("label", instance.label)
+        instance.colour = validated_data.get("colour", instance.colour)
         instance.save()
         return instance
 
