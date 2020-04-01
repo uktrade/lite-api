@@ -422,7 +422,7 @@ class ApplicationFinaliseView(APIView):
         data = deepcopy(request.data)
         action = data.get("action")
 
-        if action == AdviceType.APPROVE:
+        if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
             default_licence_duration = get_default_duration(application)
             data["duration"] = data.get("duration", default_licence_duration)
 
