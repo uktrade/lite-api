@@ -7,6 +7,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.libraries.application_helpers import optional_str_to_bool
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
@@ -34,15 +35,23 @@ class FlagsListCreateView(ListCreateAPIView):
 
     def get_queryset(self):
         flags = Flag.objects.all()
+        name = self.request.GET.get("name")
         level = self.request.GET.get("level")
+        priority = self.request.GET.get("priority")
         team = self.request.GET.get("team")
-        only_show_deactivated = self.request.GET.get("only_show_deactivated", False)
+        only_show_deactivated = optional_str_to_bool(self.request.GET.get("only_show_deactivated", False))
+
+        if name:
+            flags = flags.filter(name__icontains=name)
 
         if level:
             flags = flags.filter(level=level)
 
-        if team:
-            flags = flags.filter(team=self.request.user.team.id)
+        if priority:
+            flags = flags.filter(priority=priority)
+
+        if team and team != "None":
+            flags = flags.filter(team=team)
 
         if only_show_deactivated:
             flags = flags.filter(status=FlagStatuses.DEACTIVATED)
