@@ -34,21 +34,28 @@ class Command(SeedCommand):
         self.seed_organisation(org_name, sites)
 
     @classmethod
-    def seed_organisation(cls, org_name=None, sites=1):
+    def seed_organisation(cls, org_name=None, sites=None):
         org_name = org_name or faker.company()
+        sites = sites or 1
+
         if not Organisation.objects.filter(name__iexact=org_name).exists():
             organisation = OrganisationFactory(name=org_name)
 
             data = dict(name=organisation.name, type=organisation.type, primary_site=organisation.primary_site.name)
             cls.print_created_or_updated(Organisation, data, is_created=True)
+            cls._print_site(organisation.primary_site)
 
             # OrganisationFactory creates a primary_site, so seed 1 less site
             for _ in range(sites - 1):
                 site = SiteFactory(organisation=organisation)
-                data = dict(
-                    name=site.name,
-                    address=dict(
-                        address_line_1=site.address.address_line_1, city=site.address.city, region=site.address.region
-                    ),
-                )
-                cls.print_created_or_updated(Site, data, is_created=True)
+                cls._print_site(site)
+
+    @classmethod
+    def _print_site(cls, site):
+        data = dict(
+            name=site.name,
+            address=dict(
+                address_line_1=site.address.address_line_1, city=site.address.city, region=site.address.region
+            ),
+        )
+        cls.print_created_or_updated(Site, data, is_created=True)
