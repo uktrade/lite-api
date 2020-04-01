@@ -1,5 +1,6 @@
 from faker import Faker
 
+from conf.constants import Roles
 from flags.enums import SystemFlags
 from static.countries.models import Country
 from users.models import ExporterUser, UserOrganisationRelationship
@@ -25,15 +26,14 @@ def generate_country_dict(country: Country):
     return {"id": country.id, "name": country.name, "is_eu": country.is_eu, "type": country.type}
 
 
-def create_exporter_users(organisation, quantity=1):
+def create_exporter_users(organisation, quantity=1, role_id=Roles.EXPORTER_DEFAULT_ROLE_ID):
     users = []
 
     for i in range(quantity):
-        user = ExporterUser(first_name=faker.first_name(), last_name=faker.last_name(), email=faker.email())
-        user.organisation = organisation
-
-        UserOrganisationRelationship(user, organisation).save()
-        user.save()
+        user = ExporterUser.objects.create(
+            first_name=faker.first_name(), last_name=faker.last_name(), email=faker.email()
+        )
+        UserOrganisationRelationship(user=user, organisation=organisation, role_id=role_id).save()
 
         if quantity == 1:
             return user
