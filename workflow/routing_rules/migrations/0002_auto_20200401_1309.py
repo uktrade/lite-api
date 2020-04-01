@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('routing_rules', '0001_initial'),
+        ("routing_rules", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='routingrule',
-            name='case_types',
-            field=models.ManyToManyField(blank=True, related_name='routing_case_types', to='cases.CaseType'),
+            model_name="routingrule",
+            name="case_types",
+            field=models.ManyToManyField(blank=True, related_name="routing_case_types", to="cases.CaseType"),
         ),
         migrations.AlterField(
-            model_name='routingrule',
-            name='flags',
-            field=models.ManyToManyField(blank=True, related_name='routing_flags', to='flags.Flag'),
+            model_name="routingrule",
+            name="flags",
+            field=models.ManyToManyField(blank=True, related_name="routing_flags", to="flags.Flag"),
         ),
     ]

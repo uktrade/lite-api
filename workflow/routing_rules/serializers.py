@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
+from cases.models import CaseType
+from cases.serializers import CaseTypeSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField, CountrySerializerField
+from flags.models import Flag
+from flags.serializers import FlagSerializer
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from static.statuses.models import CaseStatus
@@ -20,10 +24,12 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
 
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserViewSerializer)
 
-    case_types = None
-    flag = None
+    case_types = PrimaryKeyRelatedSerializerField(
+        queryset=CaseType.objects.all(), serializer=CaseTypeSerializer, many=True
+    )
+    flags = PrimaryKeyRelatedSerializerField(queryset=Flag.objects.all(), serializer=FlagSerializer, many=True)
     country = CountrySerializerField()
 
     class Meta:
         model = RoutingRule
-        fields = ("id", "team", "queue", "status", "tier", "user", "case_types")
+        fields = ("id", "team", "queue", "status", "tier", "user", "case_types", "country", "flags", "case_types")
