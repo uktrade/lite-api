@@ -2,7 +2,7 @@ from django.db import transaction
 
 from conf.constants import Roles
 from organisations.enums import OrganisationType
-from organisations.models import Organisation, Site
+from organisations.models import Organisation
 from organisations.tests.factories import OrganisationFactory, SiteFactory
 from organisations.tests.providers import OrganisationProvider
 from static.management.SeedCommand import SeedCommand
@@ -51,7 +51,7 @@ class Command(SeedCommand):
             exporter_users += create_exporter_users(organisation, no_of_users - 1)
 
             sites = [organisation.primary_site]
-            # Since OrganisationFactory has already created a site, subtract 1 from total number of sites to seed
+            # Since OrganisationFactory has already created a Site, subtract 1 from total number of sites to seed
             sites += [SiteFactory(organisation=organisation) for _ in range(no_of_sites - 1)]
 
             cls._print_organisation_to_console(organisation, exporter_users[0])
