@@ -83,6 +83,7 @@ class FlagsCreateTest(DataTestClient):
             "name": "new flag",
             "level": "Organisation",
             "colour": FlagColours.ORANGE,
+            "label": "",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)

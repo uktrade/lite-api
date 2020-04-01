@@ -20,7 +20,13 @@ class FlagSerializer(serializers.ModelSerializer):
     level = serializers.ChoiceField(
         choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.BLANK_LEVEL},
     )
-    label = serializers.CharField(max_length=15, required=False, allow_blank=True, allow_null=True)
+    label = serializers.CharField(
+        max_length=15,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        error_messages={"blank": strings.Flags.ValidationErrors.LABEL_MISSING,},
+    )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     priority = serializers.IntegerField(
         default=0,
@@ -41,7 +47,7 @@ class FlagSerializer(serializers.ModelSerializer):
             self.initial_data["team"] = self.context.get("request").user.team_id
 
         if "initial_data" in self.__dict__:
-            if self.initial_data["colour"] != FlagColours.DEFAULT:
+            if self.initial_data.get("colour") != FlagColours.DEFAULT:
                 self.fields["label"].required = True
                 self.fields["label"].allow_blank = False
                 self.fields["label"].allow_null = False
