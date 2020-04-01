@@ -30,6 +30,7 @@ class Licences(ListCreateAPIView):
         reference = self.request.GET.get("reference")
         clc = self.request.GET.get("clc")
         country = self.request.GET.get("country")
+        end_user = self.request.GET.get("end_user")
 
         licences = Licence.objects.filter(application__organisation=self.request.user.organisation, is_complete=True)
 
@@ -47,6 +48,12 @@ class Licences(ListCreateAPIView):
         if country:
             licences = licences.filter(
                 application__parties__party__country_id=country, application__parties__party__type=PartyType.END_USER
+            )
+
+        if end_user:
+            licences = licences.filter(
+                application__parties__party__name__contains=end_user,
+                application__parties__party__type=PartyType.END_USER,
             )
 
         return licences
