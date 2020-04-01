@@ -58,6 +58,7 @@ from queues.models import Queue
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
+from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
@@ -629,6 +630,7 @@ class FinaliseView(RetrieveUpdateAPIView):
         if Licence.objects.filter(application=case).exists():
             licence = Licence.objects.get(application=case)
             licence.is_complete = True
+            licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.save()
             return_payload["licence"] = licence.id
             audit_trail_service.create(

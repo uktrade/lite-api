@@ -3,7 +3,9 @@ import uuid
 from django.db import models
 
 from applications.models import BaseApplication
+from cases.models import FinalAdvice
 from common.models import TimestampableModel
+from static.decisions.models import Decision
 
 
 class Licence(TimestampableModel):
@@ -14,3 +16,4 @@ class Licence(TimestampableModel):
     start_date = models.DateField(blank=False, null=False)
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
     is_complete = models.BooleanField(default=False, null=False, blank=False)
+    decisions = models.ManyToManyField(Decision, related_name="licence")
