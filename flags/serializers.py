@@ -24,7 +24,6 @@ class FlagSerializer(serializers.ModelSerializer):
         max_length=15,
         required=False,
         allow_blank=True,
-        allow_null=True,
         error_messages={"blank": strings.Flags.ValidationErrors.LABEL_MISSING,},
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
@@ -50,7 +49,6 @@ class FlagSerializer(serializers.ModelSerializer):
             if self.initial_data.get("colour") != FlagColours.DEFAULT:
                 self.fields["label"].required = True
                 self.fields["label"].allow_blank = False
-                self.fields["label"].allow_null = False
 
     class Meta:
         model = Flag
