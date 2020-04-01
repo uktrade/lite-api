@@ -101,7 +101,9 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
         fields = ("id", "reference_code", "end_user", "goods", "status", "documents")
 
     def get_documents(self, instance):
-        documents = GeneratedCaseDocument.objects.filter(case=instance, advice_type__isnull=False)
+        documents = GeneratedCaseDocument.objects.filter(
+            case=instance, advice_type__isnull=False, visible_to_exporter=True
+        )
         return DocumentLicenceListSerializer(documents, many=True).data
 
 
