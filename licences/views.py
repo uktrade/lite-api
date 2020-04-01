@@ -26,6 +26,7 @@ class Licences(ListCreateAPIView):
     def get_queryset(self):
         # Get params
         licence_type = self.request.GET.get("type", LicenceType.LICENCE)
+        reference = self.request.GET.get("reference")
 
         licences = Licence.objects.filter(application__organisation=self.request.user.organisation, is_complete=True)
 
@@ -33,5 +34,8 @@ class Licences(ListCreateAPIView):
             licences = licences.filter(application__case_type__in=LicenceType.ids[licence_type])
         elif licence_type == LicenceType.NLR:
             licences = licences.filter(decisions=Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED))
+
+        if reference:
+            licences = licences.filter(application__reference_code__contains=reference)
 
         return licences
