@@ -13,24 +13,24 @@ faker.add_provider(OrganisationProvider)
 
 class Command(SeedCommand):
     """
-    pipenv run ./manage.py seedorganisations
+    pipenv run ./manage.py seedorganisation
     """
 
     help = "Seeds and organisation with a number of sites"
     info = "Seeding organisation"
     success = "Successfully seeded organisation"
-    seed_command = "seedorganisations"
+    seed_command = "seedorganisation"
 
     @transaction.atomic
     def operation(self, *args, **options):
-        org_name = options.get("organisation")
+        org_name = options.get("name")
         sites = options.get("sites")
 
         self.seed_organisation(org_name, sites)
 
     def add_arguments(self, parser):
         # Named (optional) arguments
-        parser.add_argument("--organisation", help="Name of organisation to add", type=str)
+        parser.add_argument("--name", help="Name of organisation to add", type=str)
         parser.add_argument("--sites", help="Number of sites to add", type=int)
 
     @classmethod
