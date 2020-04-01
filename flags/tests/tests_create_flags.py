@@ -57,7 +57,7 @@ class FlagsCreateTest(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data["errors"]["priority"], strings.Flags.ValidationErrors.PRIORITY_NEGATIVE)
+        self.assertIn(strings.Flags.ValidationErrors.PRIORITY_NEGATIVE, response_data["errors"]["priority"])
 
     @tag("only")
     def test_cannot_set_priority_to_greater_than_100(self):
@@ -71,4 +71,4 @@ class FlagsCreateTest(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data["errors"]["priority"], strings.Flags.ValidationErrors.PRIORITY_TOO_LARGE)
+        self.assertIn(strings.Flags.ValidationErrors.PRIORITY_TOO_LARGE, response_data["errors"]["priority"])
