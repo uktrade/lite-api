@@ -15,6 +15,7 @@ from test_helpers.colours import bold
 #
 #
 
+
 class LoggingMiddleware:
     def __init__(self, get_response=None):
         self.get_response = get_response

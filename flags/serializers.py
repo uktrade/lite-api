@@ -11,17 +11,17 @@ from teams.serializers import TeamSerializer
 
 
 class FlagSerializer(serializers.ModelSerializer):
-    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
-    level = serializers.ChoiceField(
-        choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.BLANK_LEVEL},
-    )
-    status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     name = serializers.CharField(
         max_length=25,
         validators=[UniqueValidator(queryset=Flag.objects.all(), lookup="iexact", message=strings.Flags.NON_UNIQUE)],
         error_messages={"blank": strings.Flags.BLANK_NAME},
     )
     colour = serializers.ChoiceField(choices=FlagColours.choices, default=FlagColours.DEFAULT)
+    level = serializers.ChoiceField(
+        choices=FlagLevels.choices, error_messages={"invalid_choice": strings.Flags.BLANK_LEVEL},
+    )
+    label = serializers.CharField(max_length=15, required=False, allow_blank=True, allow_null=True)
+    status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     priority = serializers.IntegerField(
         default=0,
         min_value=0,
@@ -32,11 +32,19 @@ class FlagSerializer(serializers.ModelSerializer):
             "min_value": strings.Flags.ValidationErrors.PRIORITY_NEGATIVE,
         },
     )
+    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
 
     def __init__(self, *args, **kwargs):
-        super(FlagSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
         if self.context and not self.context.get("request").method == "GET":
             self.initial_data["team"] = self.context.get("request").user.team_id
+
+        if "initial_data" in self.__dict__:
+            if self.initial_data["colour"] != FlagColours.DEFAULT:
+                self.fields["label"].required = True
+                self.fields["label"].allow_blank = False
+                self.fields["label"].allow_null = False
 
     class Meta:
         model = Flag
