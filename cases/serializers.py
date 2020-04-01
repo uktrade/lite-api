@@ -213,7 +213,7 @@ class CaseDetailSerializer(CaseSerializer):
             return serializer(application).data
 
     def get_flags(self, instance):
-        return list(instance.flags.all().values("id", "name"))
+        return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))

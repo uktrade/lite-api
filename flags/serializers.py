@@ -17,8 +17,7 @@ class FlagSerializer(serializers.ModelSerializer):
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     name = serializers.CharField(
-        max_length=20,
-        trim_whitespace=True,
+        max_length=25,
         validators=[UniqueValidator(queryset=Flag.objects.all(), lookup="iexact", message=strings.Flags.NON_UNIQUE)],
         error_messages={"blank": strings.Flags.BLANK_NAME},
     )
@@ -51,11 +50,11 @@ class FlagSerializer(serializers.ModelSerializer):
         return data
 
     def update(self, instance, validated_data):
-        instance.status = validated_data.get("status", instance.status)
         instance.name = validated_data.get("name", instance.name)
         instance.label = validated_data.get("label", instance.label)
         instance.colour = validated_data.get("colour", instance.colour)
         instance.priority = validated_data.get("priority", instance.priority)
+        instance.status = validated_data.get("status", instance.status)
         instance.save()
         return instance
 
@@ -79,6 +78,9 @@ class CaseListFlagSerializer(serializers.ModelSerializer):
         fields = (
             "name",
             "team",
+            "colour",
+            "label",
+            "priority"
         )
 
 
