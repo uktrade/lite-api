@@ -1,7 +1,3 @@
-from datetime import timedelta
-
-from django.utils import timezone
-
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -29,7 +25,6 @@ from cases.models import (
     GoodCountryDecision,
     CaseType,
 )
-from common.dates import is_working_day, number_of_hours_since
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
@@ -122,7 +117,6 @@ class CaseListSerializer(serializers.Serializer):
     flags = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
-    sla_hours = serializers.SerializerMethodField()
     sla_remaining_days = serializers.IntegerField()
     open_team_ecju_queries = serializers.SerializerMethodField()
 
@@ -158,9 +152,6 @@ class CaseListSerializer(serializers.Serializer):
                 .filter(case_id=instance.id, raised_by_user__team_id=self.team, responded_at__isnull=True)
                 .exists()
             )
-
-    def get_sla_hours(self, instance):
-        return number_of_hours_since(instance.submitted_at, timezone.now())
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):

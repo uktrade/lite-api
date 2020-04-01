@@ -49,6 +49,7 @@ class CasesSearchView(generics.ListAPIView):
         ).data
 
         service.populate_is_recently_updated(cases)
+        service.get_hmrc_sla_hours(cases)
 
         queue = next(q for q in queues if q["id"] == queue_id)
 

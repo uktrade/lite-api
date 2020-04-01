@@ -8,10 +8,11 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 from django.utils import timezone
 
+from applications.models import HmrcQuery
 from audit_trail.models import Audit
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.models import Case
-from common.dates import working_days_in_range, number_of_days_since
+from common.dates import working_days_in_range, number_of_days_since, number_of_hours_since
 from cases.views.search.queue import SearchQueue
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
@@ -39,7 +40,7 @@ def get_gov_users_list():
     ]
 
 
-def populate_is_recently_updated(cases: Dict):
+def populate_is_recently_updated(cases: List[Dict]):
     """
     Given a dictionary of cases, annotate each one with the field "is_recently_updated"
     If the case was submitted less than settings.RECENTLY_UPDATED_WORKING_DAYS ago, set the field to True
@@ -70,3 +71,14 @@ def populate_is_recently_updated(cases: Dict):
             working_days_in_range(case["submitted_at"], now) < settings.RECENTLY_UPDATED_WORKING_DAYS
             or audit_dict.get(case["id"])
         )
+
+
+def get_hmrc_sla_hours(cases: List[Dict]):
+    hmrc_cases = [case["id"] for case in cases if case["case_type"]["sub_type"] == CaseTypeSubTypeEnum.HMRC]
+    goods_left_country_hmrc_cases = HmrcQuery.objects.filter(id__in=hmrc_cases, have_goods_departed=False).values_list(
+        "id", flat=True
+    )
+
+    for case in cases:
+        if case["id"] in goods_left_country_hmrc_cases:
+            case["sla_hours"] = number_of_hours_since(case["submitted_at"], timezone.now())
