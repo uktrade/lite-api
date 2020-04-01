@@ -46,12 +46,12 @@ class Command(SeedCommand):
         if not Organisation.objects.filter(name__iexact=org_name).exists():
             organisation = OrganisationFactory(name=org_name, type=org_type)
 
-            # Since we always seed one Super User, subtract 1 from total number of users to seed
             exporter_users = [create_exporter_users(organisation, 1, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID)]
+            # Since a Super User has already been created, subtract 1 from total number of users to seed
             exporter_users += create_exporter_users(organisation, no_of_users - 1)
 
-            # OrganisationFactory creates a primary_site, so subtract 1 from total number of sites to seed
             sites = [organisation.primary_site]
+            # Since OrganisationFactory has already created a site, subtract 1 from total number of sites to seed
             sites += [SiteFactory(organisation=organisation) for _ in range(no_of_sites - 1)]
 
             cls._print_organisation_to_console(organisation, exporter_users[0])
