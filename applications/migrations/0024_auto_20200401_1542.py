@@ -7,18 +7,22 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0023_delete_licence'),
+        ("applications", "0023_delete_licence"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='partyonapplication',
-            name='application',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parties', to='applications.BaseApplication'),
+            model_name="partyonapplication",
+            name="application",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="parties", to="applications.BaseApplication"
+            ),
         ),
         migrations.AlterField(
-            model_name='partyonapplication',
-            name='party',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='parties_on_application', to='parties.Party'),
+            model_name="partyonapplication",
+            name="party",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, related_name="parties_on_application", to="parties.Party"
+            ),
         ),
     ]

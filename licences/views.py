@@ -5,6 +5,7 @@ from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
 from licences.models import Licence
 from licences.serializers import LicenceListSerializer
+from parties.enums import PartyType
 from static.decisions.models import Decision
 
 
@@ -28,6 +29,7 @@ class Licences(ListCreateAPIView):
         licence_type = self.request.GET.get("type", LicenceType.LICENCE)
         reference = self.request.GET.get("reference")
         clc = self.request.GET.get("clc")
+        country = self.request.GET.get("country")
 
         licences = Licence.objects.filter(application__organisation=self.request.user.organisation, is_complete=True)
 
@@ -41,5 +43,10 @@ class Licences(ListCreateAPIView):
 
         if clc:
             licences = licences.filter(application__goods__good__control_code=clc)
+
+        if country:
+            licences = licences.filter(
+                application__parties__party__country_id=country, application__parties__party__type=PartyType.END_USER
+            )
 
         return licences
