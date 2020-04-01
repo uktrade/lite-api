@@ -32,7 +32,7 @@ from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_c
 
 class FlagsList(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer = FlagSerializer
+    serializer_class = FlagSerializer
 
     def get_queryset(self):
         level = self.request.GET.get("level")
@@ -54,7 +54,7 @@ class FlagsList(ListCreateAPIView):
 
 class FlagDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer = FlagSerializer
+    serializer_class = FlagSerializer
 
     def get_queryset(self):
         return Flag.objects.filter(team=self.request.user.team)
