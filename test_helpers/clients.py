@@ -35,6 +35,7 @@ from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.enums import SystemFlags, FlagStatuses
 from flags.models import Flag, FlaggingRule
+from flags.tests.factories import FlagFactory
 from goods.enums import GoodControlled, GoodPvGraded, PvGrading
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
@@ -328,9 +329,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_flag(name: str, level: str, team: Team):
-        flag = Flag(name=name, level=level, team=team)
-        flag.save()
-        return flag
+        return FlagFactory(name=name, level=level, team=team)
 
     @staticmethod
     def create_flagging_rule(

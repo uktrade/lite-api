@@ -1,14 +1,15 @@
 from django.urls import reverse
 from rest_framework import status
 
-from flags.enums import FlagStatuses, FlagColours
+from flags.enums import FlagStatuses, FlagColours, FlagLevels
+from flags.tests.factories import FlagFactory
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
 
 class FlagsUpdateTest(DataTestClient):
     def test_flag_can_be_deactivated(self):
-        flag = self.create_flag("New Flag", "Case", self.team)
+        flag = FlagFactory(team=self.team)
 
         data = {
             "status": FlagStatuses.DEACTIVATED,
@@ -23,7 +24,7 @@ class FlagsUpdateTest(DataTestClient):
 
     def test_flag_cannot_be_deactivated_by_a_user_outside_flags_team(self):
         team = self.create_team("Secondary team")
-        flag = self.create_flag("New Flag", "Case", team)
+        flag = FlagFactory(team=team)
 
         data = {
             "status": FlagStatuses.DEACTIVATED,
@@ -37,7 +38,7 @@ class FlagsUpdateTest(DataTestClient):
 
     def test_flag_level_cannot_be_changed(self):
         team = self.create_team("Secondary team")
-        flag = self.create_flag("New Flag", "Case", team)
+        flag = FlagFactory(team=team, level=FlagLevels.CASE)
 
         data = {
             "level": "Good",
@@ -49,7 +50,7 @@ class FlagsUpdateTest(DataTestClient):
         self.assertEqual(flag.level, "Case")
 
     def test_colour_can_be_changed_from_default(self):
-        flag = self.create_flag("New Flag", "Case", self.team)
+        flag = FlagFactory(team=self.team)
         label_text = "This a label"
 
         data = {"colour": FlagColours.ORANGE, "label": label_text}
@@ -63,7 +64,7 @@ class FlagsUpdateTest(DataTestClient):
         self.assertEqual(response_data["label"], label_text)
 
     def test_colour_cannot_be_changed_from_default_without_adding_a_label(self):
-        flag = self.create_flag("New Flag", "Case", self.team)
+        flag = FlagFactory(team=self.team)
 
         data = {"colour": FlagColours.ORANGE, "label": ""}
 
@@ -78,7 +79,7 @@ class FlagsUpdateTest(DataTestClient):
         self.assertEqual(flag.label, None)
 
     def test_priority_can_be_updated(self):
-        flag = self.create_flag("New Flag", "Case", self.team)
+        flag = FlagFactory(team=self.team)
 
         data = {"priority": 1}
 
