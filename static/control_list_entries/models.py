@@ -29,4 +29,4 @@ class ControlListOnGood(models.Model):
     good = models.ForeignKey(GoodsType, on_delete=models.CASCADE)
 
     class Meta:
-        models.UniqueConstraint(fields=['control_list_entry', 'good'], name="unique clc good relation")
+        models.UniqueConstraint(fields=["control_list_entry", "good"], name="unique clc good relation")
