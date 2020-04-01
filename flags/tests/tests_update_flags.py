@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -63,7 +62,6 @@ class FlagsUpdateTest(DataTestClient):
         self.assertEqual(response_data["colour"], FlagColours.ORANGE)
         self.assertEqual(response_data["label"], label_text)
 
-    @tag("only")
     def test_colour_cannot_be_changed_from_default_without_adding_a_label(self):
         flag = self.create_flag("New Flag", "Case", self.team)
 

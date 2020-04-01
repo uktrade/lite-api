@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -12,7 +11,6 @@ class FlagsCreateTest(DataTestClient):
 
     url = reverse("flags:flags")
 
-    @tag("1258", "only")
     def test_gov_user_can_create_flags(self):
         data = {
             "name": "new flag",
@@ -49,7 +47,6 @@ class FlagsCreateTest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @tag("only")
     def test_cannot_set_priority_to_less_than_0(self):
         data = {
             "name": "new flag",
@@ -63,7 +60,6 @@ class FlagsCreateTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Flags.ValidationErrors.PRIORITY_NEGATIVE, response_data["errors"]["priority"])
 
-    @tag("only")
     def test_cannot_set_priority_to_greater_than_100(self):
         data = {
             "name": "new flag",
@@ -77,7 +73,6 @@ class FlagsCreateTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Flags.ValidationErrors.PRIORITY_TOO_LARGE, response_data["errors"]["priority"])
 
-    @tag("only")
     def test_cannot_create_flag_with_colour_and_no_label(self):
         data = {
             "name": "new flag",
