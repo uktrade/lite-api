@@ -25,7 +25,7 @@ from parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country
-from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases
+from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
 
 
 class FlagsListCreateView(ListCreateAPIView):
@@ -58,32 +58,9 @@ class FlagsRetrieveUpdateView(RetrieveUpdateAPIView):
     def get_queryset(self):
         return Flag.objects.filter(team=self.request.user.team)
 
-    # def get(self, request, pk):
-    #     """
-    #     Returns details of a specific flag
-    #     """
-    #     flag = get_flag(pk)
-    #     serializer = FlagSerializer(flag)
-    #     return JsonResponse(data={"flag": serializer.data})
-
-    # def put(self, request, pk):
-    #     """
-    #     Edit details of a specific flag
-    #     """
-    #     flag = get_flag(pk)
-    #
-    #     # Prevent a user changing a flag if it does not belong to their team
-    #     if request.user.team != flag.team:
-    #         return JsonResponse(data={"errors": strings.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN)
-    #
-    #     serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
-    #
-    # if serializer.is_valid():
-    #     flag = serializer.save()
-    #     apply_flagging_rule_for_flag(flag)
-    #     return JsonResponse(data={"flag": serializer.data})
-    #
-    #     return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    def perform_update(self, serializer):
+        serializer.save()
+        apply_flagging_rule_for_flag(self.kwargs["pk"])
 
 
 class AssignFlags(APIView):
