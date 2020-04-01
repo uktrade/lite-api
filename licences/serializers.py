@@ -2,8 +2,9 @@ from rest_framework import serializers
 
 from applications.enums import LicenceDuration
 from applications.models import BaseApplication, GoodOnApplication, PartyOnApplication
+from cases.enums import AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from conf.serializers import CountrySerializerField
+from conf.serializers import CountrySerializerField, KeyValueChoiceField
 from goods.models import Good
 from licences.models import Licence
 from lite_content.lite_api import strings
@@ -79,6 +80,8 @@ class DestinationLicenceListSerializer(serializers.ModelSerializer):
 
 
 class DocumentLicenceListSerializer(serializers.ModelSerializer):
+    advice_type = KeyValueChoiceField(choices=AdviceType.choices)
+
     class Meta:
         model = GeneratedCaseDocument
         fields = (
@@ -95,7 +98,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = ("reference_code", "end_user", "goods", "status", "documents")
+        fields = ("id", "reference_code", "end_user", "goods", "status", "documents")
 
     def get_documents(self, instance):
         documents = GeneratedCaseDocument.objects.filter(case=instance, advice_type__isnull=False)
