@@ -33,11 +33,11 @@ class FlagsListCreateView(ListCreateAPIView):
     serializer_class = FlagSerializer
 
     def get_queryset(self):
+        flags = Flag.objects.all()
         level = self.request.GET.get("level")
         team = self.request.GET.get("team")
         only_show_deactivated = self.request.GET.get("only_show_deactivated", False)
 
-        flags = Flag.objects.all()
         if level:
             flags = flags.filter(level=level)
         if team:
