@@ -16,7 +16,7 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedorganisation
     """
 
-    help = "Seeds and organisation with a number of sites"
+    help = "Seeds an organisation with a number of sites"
     info = "Seeding organisation"
     success = "Successfully seeded organisation"
     seed_command = "seedorganisation"
