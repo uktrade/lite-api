@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
+from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 
 
 class CountriesTests(DataTestClient):
@@ -40,3 +41,10 @@ class CountriesTests(DataTestClient):
         self.assertEqual(response_data["name"], country.name)
         self.assertEqual(response_data["type"], country.type)
         self.assertEqual(response_data["is_eu"], country.is_eu)
+
+
+class CountriesResponseTests(EndPointTests):
+    url = "/static/countries/"
+
+    def test_countries(self):
+        self.call_endpoint(self.get_exporter(), self.url)

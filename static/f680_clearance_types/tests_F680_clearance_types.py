@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from test_helpers.clients import DataTestClient
+from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 
 
 class F680ClearanceTypesTests(DataTestClient):
@@ -17,3 +18,10 @@ class F680ClearanceTypesTests(DataTestClient):
 
         for choice in F680ClearanceTypeEnum.choices:
             self.assertIn(choice[0], str(response_data))
+
+
+class F680ClearanceTypesResponseTests(EndPointTests):
+    url = "/static/f680-clearance-types/"
+
+    def test_F680_clearance_types(self):
+        self.call_endpoint(self.get_exporter(), self.url)
