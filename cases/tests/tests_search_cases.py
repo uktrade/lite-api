@@ -26,23 +26,34 @@ class FilterAndSortTests(DataTestClient):
 
         self.application_cases = []
         statuses = [CaseStatusEnum.SUBMITTED, CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN]
-        for app_status in statuses:
+        for status in statuses:
             case = self.create_standard_application_case(self.organisation, "Example Application")
-            case.status = get_case_status_by_status(app_status)
+            case.status = get_case_status_by_status(status)
             case.save()
             self.queue.cases.add(case)
             self.queue.save()
             self.application_cases.append(case)
 
-        # CLC applicable case statuses
-        self.clc_cases = []
-        for clc_status in statuses:
-            clc_query = self.create_clc_query("Example CLC Query", self.organisation)
-            clc_query.status = get_case_status_by_status(clc_status)
-            clc_query.save()
-            self.queue.cases.add(clc_query)
+        # Goods query applicable case statuses
+        self.goods_query_cases = []
+        for status in statuses:
+            goods_query = self.create_goods_query("Example Goods Query", self.organisation)
+            goods_query.status = get_case_status_by_status(status)
+            goods_query.save()
+            self.queue.cases.add(goods_query)
             self.queue.save()
-            self.clc_cases.append(clc_query)
+            self.goods_query_cases.append(goods_query)
+
+        # HMRC query applicable case statuses
+        self.hmrc_query_cases = []
+        for status in statuses:
+            hmrc_query = self.create_hmrc_query(self.organisation)
+            self.submit_application(hmrc_query)
+            hmrc_query.status = get_case_status_by_status(status)
+            hmrc_query.save()
+            self.queue.cases.add(hmrc_query)
+            self.queue.save()
+            self.hmrc_query_cases.append(hmrc_query)
 
     def test_get_cases_no_filter(self):
         """
@@ -50,7 +61,7 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view all Cases with no filter
         Then all Cases are returned
         """
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases + self.goods_query_cases + self.hmrc_query_cases
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["results"]
@@ -76,10 +87,10 @@ class FilterAndSortTests(DataTestClient):
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
             self.assertEqual(case_type_reference, CaseTypeEnum.SIEL.reference)
 
-    def test_get_clc_type_cases(self):
+    def test_get_goods_query_type_cases(self):
         """
         Given multiple Cases exist with different statuses and case-types
-        When a user requests to view all Cases of type 'CLC query'
+        When a user requests to view all Cases of type 'Goods query'
         Then only Cases of that type are returned
         """
         url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
@@ -88,7 +99,7 @@ class FilterAndSortTests(DataTestClient):
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self.clc_cases), len(response_data["cases"]))
+        self.assertEqual(len(self.goods_query_cases), len(response_data["cases"]))
 
         # Assert Case Type
         for case in response_data["cases"]:
@@ -98,7 +109,7 @@ class FilterAndSortTests(DataTestClient):
     def test_get_submitted_status_cases(self):
         """
         Given multiple Cases exist with different statuses and case-types
-        When a user requests to view all Cases of type 'CLC query'
+        When a user requests to view all Cases of type 'Goods query'
         Then only Cases of that type are returned
         """
         url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
@@ -107,27 +118,27 @@ class FilterAndSortTests(DataTestClient):
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self.clc_cases), len(response_data["cases"]))
+        self.assertEqual(len(self.goods_query_cases), len(response_data["cases"]))
         # Assert Case Type
         for case in response_data["cases"]:
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
             self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
-    def test_get_all_cases_queue_submitted_status_and_clc_type_cases(self):
+    def test_get_all_cases_queue_submitted_status_and_goods_query_type_cases(self):
         """
         Given multiple cases exist with different statuses and case-types
-        When a user requests to view All Cases of type 'CLC query'
+        When a user requests to view All Cases of type 'Goods query'
         Then only cases of that type are returned
         """
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
+        goods_query_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.goods_query_cases))
         url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}&sort=status'
 
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
+        self.assertEqual(len(goods_query_submitted_cases), len(response_data["cases"]))
         # Assert Case Type
         for case in response_data["cases"]:
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
@@ -156,7 +167,7 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases with no assigned case officer
         Then only cases without an assigned case officer are returned
         """
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases + self.goods_query_cases + self.hmrc_query_cases
         self.application_cases[0].case_officer = self.gov_user
         self.application_cases[0].save()
         url = f'{reverse("cases:search")}?case_officer=not_assigned'
@@ -194,7 +205,7 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view All Cases which have no assigned users
         Then only cases with no assigned users are returned
         """
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases + self.goods_query_cases + self.hmrc_query_cases
         case_assignment = CaseAssignment.objects.create(
             queue=self.queue, case=self.application_cases[0], user=self.gov_user
         )
@@ -209,21 +220,21 @@ class FilterAndSortTests(DataTestClient):
         cases_returned = [x["id"] for x in response_data]
         self.assertNotIn(assigned_case, cases_returned)
 
-    def test_get_submitted_status_and_clc_type_cases(self):
+    def test_get_submitted_status_and_goods_query_type_cases(self):
         """
         Given multiple Cases exist with different statuses and case-types
-        When a user requests to view Cases of type 'CLC query'
+        When a user requests to view Cases of type 'Goods query'
         Then only Cases of that type are returned
         """
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        clc_submitted_cases = list(filter(lambda case: case.status == case_status, self.clc_cases))
+        goods_query_submitted_cases = list(filter(lambda case: case.status == case_status, self.goods_query_cases))
         url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}"
 
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
+        self.assertEqual(len(goods_query_submitted_cases), len(response_data["cases"]))
         # Assert Case Type
         for case in response_data["cases"]:
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
@@ -235,7 +246,7 @@ class FilterAndSortTests(DataTestClient):
         When a user requests to view all Cases sorted by case_type
         Then all Cases are sorted in ascending order and returned
         """
-        all_cases = self.application_cases + self.clc_cases
+        all_cases = self.application_cases + self.goods_query_cases + self.hmrc_query_cases
         all_cases = [{"status": case.status.status, "status_ordering": case.status.priority,} for case in all_cases]
         all_cases_sorted = sorted(all_cases, key=lambda k: k["status_ordering"])
         url = f"{self.url}?sort=status"
@@ -425,14 +436,14 @@ class TestQueueOrdering(DataTestClient):
     def test_all_cases_queue_returns_cases_in_expected_order(self):
         url = reverse("cases:search")
         """Test All cases queue returns cases in expected order (newest first). """
-        clc_query = self.create_clc_query("Example CLC Query", self.organisation)
+        goods_query_query = self.create_goods_query("Example Goods Query", self.organisation)
         standard_app = self.create_standard_application_case(self.organisation, "Example Application")
-        clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
-        expected_case_ids = [str(clc_query_2.id), str(standard_app.id), str(clc_query.id)]
+        goods_query_query_2 = self.create_goods_query("Example Goods Query 2", self.organisation)
+        expected_case_ids = [str(goods_query_query_2.id), str(standard_app.id), str(goods_query_query.id)]
 
-        self.queue.cases.add(clc_query)
+        self.queue.cases.add(goods_query_query)
         self.queue.cases.add(standard_app)
-        self.queue.cases.add(clc_query_2)
+        self.queue.cases.add(goods_query_query_2)
         self.queue.save()
 
         response = self.client.get(url, **self.gov_headers)

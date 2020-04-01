@@ -2,8 +2,10 @@ from datetime import time, datetime
 from unittest import mock
 from unittest.mock import patch
 
+from django.urls import reverse
 from django.utils import timezone
 from parameterized import parameterized
+from rest_framework import status
 
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.models import Case, EcjuQuery
@@ -38,7 +40,7 @@ class SlaCaseTests(DataTestClient):
             ),
             CaseTypeSubTypeEnum.F680: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680),
             CaseTypeSubTypeEnum.GIFTING: self.create_mod_clearance_application(self.organisation, CaseTypeEnum.GIFTING),
-            CaseTypeSubTypeEnum.GOODS: self.create_clc_query("abc", self.organisation),
+            CaseTypeSubTypeEnum.GOODS: self.create_goods_query("abc", self.organisation),
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
 
@@ -196,3 +198,28 @@ class WorkingDayTests(DataTestClient):
 
         # Expecting update_cases_sla to be ran, but no cases found
         self.assertEqual(result, 0)
+
+
+class SlaHmrcCaseTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.hmrc_query = self.create_hmrc_query(self.organisation)
+        self.submit_application(self.hmrc_query)
+        self.url = reverse("cases:search")
+
+    def test_sla_hours_appears_on_hmrc_queries_when_goods_not_yet_left_country(self):
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertIn("sla_hours", response_data[0])
+
+    def test_sla_hours_does_not_appear_on_hmrc_queries_when_goods_have_left_country(self):
+        self.hmrc_query.have_goods_departed = True
+        self.hmrc_query.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertNotIn("sla_hours", response_data[0])

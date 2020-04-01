@@ -74,11 +74,12 @@ def populate_is_recently_updated(cases: List[Dict]):
 
 
 def get_hmrc_sla_hours(cases: List[Dict]):
-    hmrc_cases = [case["id"] for case in cases if case["case_type"]["sub_type"] == CaseTypeSubTypeEnum.HMRC]
-    goods_left_country_hmrc_cases = HmrcQuery.objects.filter(id__in=hmrc_cases, have_goods_departed=False).values_list(
-        "id", flat=True
-    )
+    hmrc_cases = [case["id"] for case in cases if case["case_type"]["sub_type"]["key"] == CaseTypeSubTypeEnum.HMRC]
+    hmrc_cases_goods_not_left_country = [
+        str(id)
+        for id in HmrcQuery.objects.filter(id__in=hmrc_cases, have_goods_departed=False).values_list("id", flat=True)
+    ]
 
     for case in cases:
-        if case["id"] in goods_left_country_hmrc_cases:
+        if case["id"] in hmrc_cases_goods_not_left_country:
             case["sla_hours"] = number_of_hours_since(case["submitted_at"], timezone.now())

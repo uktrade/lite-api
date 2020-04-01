@@ -409,7 +409,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return good
 
     @staticmethod
-    def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
+    def create_goods_query(description, organisation, clc_reason="clc reason", pv_reason="pv reason") -> GoodsQuery:
         good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
 
         goods_query = GoodsQuery.objects.create(
@@ -740,6 +740,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             hmrc_organisation=self.hmrc_organisation,
             reasoning="I Am Easy to Find",
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            have_goods_departed=False,
         )
         application.save()
 
