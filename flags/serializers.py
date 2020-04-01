@@ -63,13 +63,6 @@ class FlagSerializer(serializers.ModelSerializer):
             "priority",
         )
 
-    def validate(self, data):
-        colour_is_default = data.get("colour") == FlagColours.DEFAULT or not data.get("colour")
-        if not colour_is_default and not data.get("label"):
-            raise serializers.ValidationError({"label": [strings.Flags.ValidationErrors.LABEL_MISSING]})
-
-        return data
-
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
         instance.label = validated_data.get("label", instance.label)
