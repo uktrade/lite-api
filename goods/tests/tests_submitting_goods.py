@@ -5,7 +5,6 @@ from applications.models import GoodOnApplication
 from goods.enums import GoodStatus
 from goods.models import Good
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
@@ -19,9 +18,12 @@ class GoodTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         draft = self.create_draft_standard_application(self.organisation)
         self.assertEqual(Good.objects.get().status, "draft")
-        url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
-        response = self.client.put(url, **self.exporter_headers)
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+
+        url = reverse("applications:application_submit", kwargs={"pk": draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
