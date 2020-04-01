@@ -11,6 +11,7 @@ from applications.views import (
     countries,
     documents,
     end_use_details,
+    temporary_export_details,
 )
 
 app_name = "applications"
@@ -26,6 +27,11 @@ urlpatterns = [
     path("<uuid:pk>/status/", applications.ApplicationManageStatus.as_view(), name="manage_status"),
     path("<uuid:pk>/copy/", applications.ApplicationCopy.as_view(), name="copy",),
     path("<uuid:pk>/end-use-details/", end_use_details.EndUseDetails.as_view(), name="end_use_details"),
+    path(
+        "<uuid:pk>/temporary-export-details/",
+        temporary_export_details.TemporaryExportDetails.as_view(),
+        name="temporary_export_details",
+    ),
     # Goods
     path("<uuid:pk>/goods/", goods.ApplicationGoodsOnApplication.as_view(), name="application_goods"),
     path(

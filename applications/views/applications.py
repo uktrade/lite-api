@@ -578,6 +578,10 @@ class ApplicationCopy(APIView):
             "is_shipped_waybill_or_lading",
             "non_waybill_or_lading_route_details",
             "intended_end_use",
+            "temp_export_details",
+            "is_temp_direct_control",
+            "temp_direct_control_details",
+            "proposed_return_date",
         ]
         for attribute in set_none:
             setattr(self.new_application, attribute, None)

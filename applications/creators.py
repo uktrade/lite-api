@@ -1,4 +1,5 @@
 from conf.helpers import str_to_bool
+from applications.enums import ApplicationExportType
 from django.utils import timezone
 from applications import constants
 from applications.models import (
@@ -202,6 +203,17 @@ def _validate_additional_information(draft, errors):
     return errors
 
 
+def _validate_temporary_export_details(draft, errors):
+    if (
+        draft.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]
+        and draft.export_type == ApplicationExportType.TEMPORARY
+    ):
+        if not draft.temp_export_details or draft.is_temp_direct_control is None or draft.proposed_return_date is None:
+            errors["temporary_export_details"] = strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS
+
+    return errors
+
+
 def _validate_third_parties(draft, errors, is_mandatory):
     """ Checks all third parties have documents if is_mandatory is True """
 
@@ -252,6 +264,7 @@ def _validate_standard_licence(draft, errors):
     errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
     errors = _validate_route_of_goods(draft, errors)
+    errors = _validate_temporary_export_details(draft, errors)
 
     return errors
 
@@ -320,6 +333,7 @@ def _validate_open_licence(draft, errors):
     errors = _validate_countries(draft, errors, is_mandatory=True)
     errors = _validate_goods_types(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
+    errors = _validate_temporary_export_details(draft, errors)
     errors = _validate_route_of_goods(draft, errors)
 
     return errors

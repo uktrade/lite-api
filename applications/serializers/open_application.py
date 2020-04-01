@@ -22,6 +22,8 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     additional_documents = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
 
+    proposed_return_date = serializers.DateField(required=False)
+
     class Meta:
         model = OpenApplication
         fields = GenericApplicationViewSerializer.Meta.fields + (
@@ -40,6 +42,10 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "licence",
             "is_shipped_waybill_or_lading",
             "non_waybill_or_lading_route_details",
+            "temp_export_details",
+            "is_temp_direct_control",
+            "temp_direct_control_details",
+            "proposed_return_date",
         )
 
     def get_goods_types(self, application):
