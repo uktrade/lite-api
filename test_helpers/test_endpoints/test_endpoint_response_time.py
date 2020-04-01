@@ -8,7 +8,7 @@ from test_helpers.test_endpoints.client import get
 from test_helpers.test_endpoints.user_setup import login_exporter, login_internal
 
 
-times = [["date_time", datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")]]
+csv_data = [["date_time", datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")]]
 
 
 @tag("performance", "endpoints-performance")
@@ -50,10 +50,10 @@ class EndPointTests(SimpleTestCase):
     case_document = None
     case_ecju_query_id = None
 
-    def call_endpoint(self, user, appended_address, save=True):
+    def call_endpoint(self, user, appended_address, save_results=True):
         response = get(user, appended_address)
 
-        if save:
+        if save_results:
             # if save is set this is the final endpoint we wish to hit, and we want to store the time against
             self.appended_address = appended_address
             self.time = response.elapsed.total_seconds()
@@ -62,19 +62,19 @@ class EndPointTests(SimpleTestCase):
 
     @classmethod
     def setUpClass(cls):
-        if len(times) <= 2:
+        if len(csv_data) <= 2:
             # set up headers data in csv if not already done
-            times.append(["env", env("PERFORMANCE_TEST_HOST")])
-            times.append([])
-            times.append(["url", "response_time"])
+            csv_data.append(["env", env("PERFORMANCE_TEST_HOST")])
+            csv_data.append([])
+            csv_data.append(["url", "response_time"])
 
         super().setUpClass()
 
     def tearDown(self):
         if self.time:
-            times.append([self.appended_address, self.time])
+            csv_data.append([self.appended_address, self.time])
         else:
-            times.append([self._testMethodName, "Error"])
+            csv_data.append([self._testMethodName, "Error"])
 
         # print out the function and time function took to run
         print("\n" + self._testMethodName + ", " + str(self.time) if self.time else "Error")
@@ -83,10 +83,10 @@ class EndPointTests(SimpleTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        with open("test_helpers/test_endpoints/results/" + times[0][1] + ".csv", "w", newline="\n") as file:
+        with open("test_helpers/test_endpoints/results/" + csv_data[0][1] + ".csv", "w", newline="\n") as file:
             # write a new csv file named after the current date, outputting all the times for each case
             writer = csv.writer(file)
-            writer.writerows(times)
+            writer.writerows(csv_data)
 
         super().tearDownClass()
 
@@ -116,19 +116,7 @@ class EndPointTests(SimpleTestCase):
         :return: standard_application_id
         """
         if not self.standard_application_id:
-            response = self.call_endpoint(self.get_exporter(), "/applications/", save=False).json()
-            for page in range(1, response["total_pages"]):
-                for application in response["results"]:
-                    if application["case_type"]["sub_type"]["key"] == CaseTypeEnum.SIEL.sub_type:
-                        self.standard_application_id = application
-                        break
-                else:
-                    response = self.call_endpoint(
-                        self.get_exporter(), "/applications/page=" + str(page + 1), save=False
-                    ).json()
-                    continue
-
-                break
+            self._get_application_by_case_type(CaseTypeEnum.SIEL.sub_type, "standard_application_id")
 
         return self.standard_application_id
 
@@ -140,26 +128,31 @@ class EndPointTests(SimpleTestCase):
         :return: open_application_id
         """
         if not self.open_application_id:
-            response = self.call_endpoint(self.get_exporter(), "/applications/", save=False).json()
-            for page in range(1, response["total_pages"]):
-                for application in response["results"]:
-                    if application["case_type"]["sub_type"]["key"] == CaseTypeEnum.OIEL.sub_type:
-                        self.open_application_id = application
-                        break
-                else:
-                    response = self.call_endpoint(
-                        self.get_exporter(), "/applications/page=" + str(page + 1), save=False
-                    ).json()
-                    continue
-
-                break
+            self._get_application_by_case_type(CaseTypeEnum.OIEL.sub_type, "open_application_id")
 
         return self.open_application_id
+
+    def _get_application_by_case_type(self, case_type, attribute):
+        response = self.call_endpoint(self.get_exporter(), "/applications/", save_results=False).json()
+        for page in range(1, response["total_pages"]):
+            for application in response["results"]:
+                if application["case_type"]["sub_type"]["key"] == case_type:
+                    self.__setattr__(attribute, application)
+                    break
+            else:
+                response = self.call_endpoint(
+                    self.get_exporter(), "/applications/page=" + str(page + 1), save_results=False
+                ).json()
+                continue
+
+            break
 
     def get_application_goodstype_id(self):
         if not self.goods_type_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/applications/" + self.get_open_application()["id"] + "/goodstypes/", save=False
+                self.get_exporter(),
+                "/applications/" + self.get_open_application()["id"] + "/goodstypes/",
+                save_results=False,
             )
             self.goods_type_id = response.json()["goods"][0]["id"]
 
@@ -168,7 +161,9 @@ class EndPointTests(SimpleTestCase):
     def get_party_on_application_id(self):
         if not self.application_party_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/applications/" + self.get_standard_application()["id"] + "/parties/", save=False
+                self.get_exporter(),
+                "/applications/" + self.get_standard_application()["id"] + "/parties/",
+                save_results=False,
             )
 
             self.application_party_id = response.json()["parties"][0]["id"]
@@ -177,7 +172,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_good_id(self):
         if not self.good_id:
-            response = self.call_endpoint(self.get_exporter(), "/goods/", save=False)
+            response = self.call_endpoint(self.get_exporter(), "/goods/", save_results=False)
 
             self.good_id = response.json()["results"][0]["id"]
 
@@ -186,7 +181,7 @@ class EndPointTests(SimpleTestCase):
     def get_good_document_id(self):
         if not self.good_document_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/goods/" + self.get_good_id() + "/documents/", save=False
+                self.get_exporter(), "/goods/" + self.get_good_id() + "/documents/", save_results=False
             )
 
             self.good_document_id = response.json()["documents"][0]["id"]
@@ -195,7 +190,9 @@ class EndPointTests(SimpleTestCase):
     def get_organisation_user_id(self):
         if not self.organisation_user_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/users/", save=False
+                self.get_exporter(),
+                "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/users/",
+                save_results=False,
             )
 
             self.organisation_user_id = response.json()["results"][0]["id"]
@@ -205,7 +202,9 @@ class EndPointTests(SimpleTestCase):
     def get_organisation_role_id(self):
         if not self.organisation_role_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/roles/", save=False
+                self.get_exporter(),
+                "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/roles/",
+                save_results=False,
             )
 
             self.organisation_role_id = response.json()["results"][0]["id"]
@@ -215,7 +214,9 @@ class EndPointTests(SimpleTestCase):
     def get_organisation_site_id(self):
         if not self.organisation_site_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/sites/", save=False
+                self.get_exporter(),
+                "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/sites/",
+                save_results=False,
             )
 
             self.organisation_site_id = response.json()["sites"][0]["id"]
@@ -224,7 +225,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_end_user_advisory_id(self):
         if not self.end_user_advisory_id:
-            response = self.call_endpoint(self.get_exporter(), "/queries/end-user-advisories/", save=False)
+            response = self.call_endpoint(self.get_exporter(), "/queries/end-user-advisories/", save_results=False)
 
             self.end_user_advisory_id = response.json()["results"][0]["id"]
 
@@ -232,7 +233,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_users_id(self):
         if not self.users_id:
-            response = self.call_endpoint(self.get_exporter(), "/users/", save=False)
+            response = self.call_endpoint(self.get_exporter(), "/users/", save_results=False)
 
             self.users_id = response.json()["users"][0]["id"]
 
@@ -240,7 +241,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_team_id(self):
         if not self.team_id:
-            response = self.call_endpoint(self.get_gov_user(), "/teams/", save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/teams/", save_results=False)
 
             self.team_id = response.json()["teams"][0]["id"]
 
@@ -248,7 +249,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_queue_id(self):
         if not self.queue_id:
-            response = self.call_endpoint(self.get_gov_user(), "/queues/", save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/queues/", save_results=False)
 
             self.queue_id = response.json()["queues"][0]["id"]
 
@@ -256,7 +257,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_picklist_id(self):
         if not self.picklist_id:
-            response = self.call_endpoint(self.get_gov_user(), "/picklist/", save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/picklist/", save_results=False)
 
             self.picklist_id = response.json()["picklist_items"][0]["id"]
 
@@ -264,7 +265,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_letter_template_id(self):
         if not self.letter_template_id:
-            response = self.call_endpoint(self.get_gov_user(), "/letter-templates/", save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/letter-templates/", save_results=False)
 
             self.letter_template_id = response.json()["results"][0]["id"]
 
@@ -272,7 +273,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_gov_user_id(self):
         if not self.gov_user_id:
-            response = self.call_endpoint(self.get_gov_user(), "/gov-users/", save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/gov-users/", save_results=False)
 
             self.gov_user_id = response.json()["results"][0]["id"]
 
@@ -280,7 +281,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_gov_user_role_id(self):
         if not self.gov_user_role_id:
-            response = self.call_endpoint(self.get_gov_user(), "/gov-users/roles/", save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/gov-users/roles/", save_results=False)
 
             self.gov_user_role_id = response.json()["roles"][0]["id"]
 
@@ -288,7 +289,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_flag_id(self):
         if not self.flag_id:
-            response = self.call_endpoint(self.get_gov_user(), "/flags/", save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/flags/", save_results=False)
 
             self.flag_id = response.json()["flags"][0]["id"]
 
@@ -296,7 +297,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_flagging_rules_id(self):
         if not self.flagging_rule_id:
-            response = self.call_endpoint(self.get_gov_user(), "/flags/rules/", save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/flags/rules/", save_results=False)
 
             self.flagging_rule_id = response.json()["results"][0]["id"]
 
@@ -304,7 +305,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_case_id(self):
         if not self.case_id:
-            response = self.call_endpoint(self.get_gov_user(), "/cases/", save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/cases/", save_results=False)
 
             self.case_id = response.json()["results"]["cases"][0]["id"]
 
@@ -313,7 +314,7 @@ class EndPointTests(SimpleTestCase):
     def get_case_document(self):
         if not self.case_document:
             response = self.call_endpoint(
-                self.get_gov_user(), "/cases/" + self.get_case_id() + "/documents/", save=False
+                self.get_gov_user(), "/cases/" + self.get_case_id() + "/documents/", save_results=False
             )
             self.case_document = response.json()["documents"][0]
 
@@ -322,7 +323,7 @@ class EndPointTests(SimpleTestCase):
     def get_case_ecju_query_id(self):
         if not self.case_ecju_query_id:
             response = self.call_endpoint(
-                self.get_gov_user(), self.url + self.get_case_id() + "/ecju-queries/", save=False
+                self.get_gov_user(), self.url + self.get_case_id() + "/ecju-queries/", save_results=False
             )
 
             self.case_ecju_query_id = response.json()["ecju_queries"][0]["id"]
