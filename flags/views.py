@@ -30,29 +30,30 @@ from static.countries.models import Country
 from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
 
 
-class FlagsList(ListCreateAPIView):
+class FlagsListCreateView(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = FlagSerializer
 
     def get_queryset(self):
         level = self.request.GET.get("level")
         team = self.request.GET.get("team")
-        include_deactivated = self.request.GET.get("include_deactivated")
+        only_show_deactivated = self.request.GET.get("only_show_deactivated", False)
 
         flags = Flag.objects.all()
         if level:
             flags = flags.filter(level=level)
         if team:
             flags = flags.filter(team=self.request.user.team.id)
-        if not str_to_bool(include_deactivated, invert_none=True):
-            flags = flags.exclude(status=FlagStatuses.DEACTIVATED)
+
+        if only_show_deactivated:
+            flags = flags.filter(status=FlagStatuses.DEACTIVATED)
         else:
-            flags = flags.exclude(status=FlagStatuses.ACTIVE)
+            flags = flags.filter(status=FlagStatuses.ACTIVE)
 
         return flags.order_by("name")
 
 
-class FlagDetail(RetrieveUpdateAPIView):
+class FlagsRetrieveUpdateView(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = FlagSerializer
 
