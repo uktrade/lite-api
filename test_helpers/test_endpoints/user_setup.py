@@ -28,22 +28,23 @@ def login_exporter():
         "email": exporter_user["email"],
         "EXPORTER-USER-TOKEN": response["token"],
         "user_id": response["lite_api_user_id"],
+        "ORGANISATION-ID": "None",
     }
 
-    response = get(request=exporter_user, appended_address=f"/users/me/", is_gov=False)
+    response = get(request=exporter_user, appended_address=f"/users/me/")
     organisation_name = env("PERFORMANCE_EXPORTER_ORGANISATION")
     if organisation_name:
         for organisation in response.json()["organisations"]:
             if organisation["name"] == organisation_name:
-                exporter_user["organisation-id"] = organisation["id"]
+                exporter_user["ORGANISATION-ID"] = organisation["id"]
                 break
 
-        if not exporter_user["organisation-id"]:
+        if exporter_user["ORGANISATION-ID"] == "None":
             AttributeError("organisation with that name was not found")
 
     else:
         # if no organisation name is defined, the first organisation is selected
-        exporter_user["organisation-id"] = response.json()["organisations"][0]["id"]
+        exporter_user["ORGANISATION-ID"] = response.json()["organisations"][0]["id"]
 
     return exporter_user
 

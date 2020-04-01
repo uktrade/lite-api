@@ -6,10 +6,10 @@ class TeamsResponseTests(EndPointTests):
     url = "/teams/"
 
     def test_teams_list(self):
-        self.call_endpoint(self.get_gov_user(), self.url, is_gov=True)
+        self.call_endpoint(self.get_gov_user(), self.url)
 
     def test_team_detail(self):
-        self.call_endpoint(self.get_gov_user(), self.url + self.get_team_id(), is_gov=True)
+        self.call_endpoint(self.get_gov_user(), self.url + self.get_team_id())
 
     def test_teams_users(self):
-        self.call_endpoint(self.get_gov_user(), self.url + self.get_team_id() + "/users/", is_gov=True)
+        self.call_endpoint(self.get_gov_user(), self.url + self.get_team_id() + "/users/")

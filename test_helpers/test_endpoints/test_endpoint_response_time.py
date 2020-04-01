@@ -50,11 +50,11 @@ class EndPointTests(SimpleTestCase):
     case_document = None
     case_ecju_query_id = None
 
-    def call_endpoint(self, user, appended_address, is_gov=False, save=True):
-        response = get(user, appended_address, is_gov)
+    def call_endpoint(self, user, appended_address, save=True):
+        response = get(user, appended_address)
 
         if save:
-            # if save is set this is the final endpoint we which to hit, and we want to store the time against
+            # if save is set this is the final endpoint we wish to hit, and we want to store the time against
             self.appended_address = appended_address
             self.time = response.elapsed.total_seconds()
 
@@ -195,7 +195,7 @@ class EndPointTests(SimpleTestCase):
     def get_organisation_user_id(self):
         if not self.organisation_user_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/organisations/" + self.get_exporter()["organisation-id"] + "/users/", save=False
+                self.get_exporter(), "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/users/", save=False
             )
 
             self.organisation_user_id = response.json()["results"][0]["id"]
@@ -205,7 +205,7 @@ class EndPointTests(SimpleTestCase):
     def get_organisation_role_id(self):
         if not self.organisation_role_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/organisations/" + self.get_exporter()["organisation-id"] + "/roles/", save=False
+                self.get_exporter(), "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/roles/", save=False
             )
 
             self.organisation_role_id = response.json()["results"][0]["id"]
@@ -215,7 +215,7 @@ class EndPointTests(SimpleTestCase):
     def get_organisation_site_id(self):
         if not self.organisation_site_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/organisations/" + self.get_exporter()["organisation-id"] + "/sites/", save=False
+                self.get_exporter(), "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/sites/", save=False
             )
 
             self.organisation_site_id = response.json()["sites"][0]["id"]
@@ -240,7 +240,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_team_id(self):
         if not self.team_id:
-            response = self.call_endpoint(self.get_gov_user(), "/teams/", is_gov=True, save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/teams/", save=False)
 
             self.team_id = response.json()["teams"][0]["id"]
 
@@ -248,7 +248,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_queue_id(self):
         if not self.queue_id:
-            response = self.call_endpoint(self.get_gov_user(), "/queues/", is_gov=True, save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/queues/", save=False)
 
             self.queue_id = response.json()["queues"][0]["id"]
 
@@ -256,7 +256,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_picklist_id(self):
         if not self.picklist_id:
-            response = self.call_endpoint(self.get_gov_user(), "/picklist/", is_gov=True, save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/picklist/", save=False)
 
             self.picklist_id = response.json()["picklist_items"][0]["id"]
 
@@ -264,7 +264,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_letter_template_id(self):
         if not self.letter_template_id:
-            response = self.call_endpoint(self.get_gov_user(), "/letter-templates/", is_gov=True, save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/letter-templates/", save=False)
 
             self.letter_template_id = response.json()["results"][0]["id"]
 
@@ -272,7 +272,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_gov_user_id(self):
         if not self.gov_user_id:
-            response = self.call_endpoint(self.get_gov_user(), "/gov-users/", is_gov=True, save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/gov-users/", save=False)
 
             self.gov_user_id = response.json()["results"][0]["id"]
 
@@ -280,7 +280,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_gov_user_role_id(self):
         if not self.gov_user_role_id:
-            response = self.call_endpoint(self.get_gov_user(), "/gov-users/roles/", is_gov=True, save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/gov-users/roles/", save=False)
 
             self.gov_user_role_id = response.json()["roles"][0]["id"]
 
@@ -288,7 +288,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_flag_id(self):
         if not self.flag_id:
-            response = self.call_endpoint(self.get_gov_user(), "/flags/", is_gov=True, save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/flags/", save=False)
 
             self.flag_id = response.json()["flags"][0]["id"]
 
@@ -296,7 +296,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_flagging_rules_id(self):
         if not self.flagging_rule_id:
-            response = self.call_endpoint(self.get_gov_user(), "/flags/rules/", is_gov=True, save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/flags/rules/", save=False)
 
             self.flagging_rule_id = response.json()["results"][0]["id"]
 
@@ -304,7 +304,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_case_id(self):
         if not self.case_id:
-            response = self.call_endpoint(self.get_gov_user(), "/cases/", is_gov=True, save=False)
+            response = self.call_endpoint(self.get_gov_user(), "/cases/", save=False)
 
             self.case_id = response.json()["results"]["cases"][0]["id"]
 
@@ -313,7 +313,7 @@ class EndPointTests(SimpleTestCase):
     def get_case_document(self):
         if not self.case_document:
             response = self.call_endpoint(
-                self.get_gov_user(), "/cases/" + self.get_case_id() + "/documents/", is_gov=True, save=False
+                self.get_gov_user(), "/cases/" + self.get_case_id() + "/documents/", save=False
             )
             self.case_document = response.json()["documents"][0]
 
@@ -322,7 +322,7 @@ class EndPointTests(SimpleTestCase):
     def get_case_ecju_query_id(self):
         if not self.case_ecju_query_id:
             response = self.call_endpoint(
-                self.get_gov_user(), self.url + self.get_case_id() + "/ecju-queries/", is_gov=True, save=False
+                self.get_gov_user(), self.url + self.get_case_id() + "/ecju-queries/", save=False
             )
 
             self.case_ecju_query_id = response.json()["ecju_queries"][0]["id"]
