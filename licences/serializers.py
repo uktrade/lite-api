@@ -69,18 +69,13 @@ class DestinationLicenceListSerializer(serializers.ModelSerializer):
 
         class Meta:
             model = Party
-            fields = (
-                "name",
-                "country"
-            )
+            fields = ("name", "country")
 
     party = PartyLicenceSerializer()
 
     class Meta:
         model = PartyOnApplication
-        fields = (
-            "party",
-        )
+        fields = ("party",)
 
 
 class DocumentLicenceListSerializer(serializers.ModelSerializer):
@@ -100,13 +95,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = (
-            "reference_code",
-            "end_user",
-            "goods",
-            "status",
-            "documents"
-        )
+        fields = ("reference_code", "end_user", "goods", "status", "documents")
 
     def get_documents(self, instance):
         documents = GeneratedCaseDocument.objects.filter(case=instance, advice_type__isnull=False)
@@ -118,6 +107,4 @@ class LicenceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Licence
-        fields = (
-            "application",
-        )
+        fields = ("application",)
