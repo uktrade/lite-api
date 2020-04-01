@@ -21,13 +21,11 @@ class FlagsCreateTest(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()
 
-        print(response)
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["flag"]["name"], "new flag")
-        self.assertEqual(response_data["flag"]["level"], "Organisation")
+        self.assertEqual(response_data["name"], "new flag")
+        self.assertEqual(response_data["level"], "Organisation")
         self.assertEqual(
-            response_data["flag"]["team"], {"id": str(self.team.id), "name": self.team.name},
+            response_data["team"], {"id": str(self.team.id), "name": self.team.name},
         )
 
     @parameterized.expand(

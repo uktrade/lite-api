@@ -25,6 +25,11 @@ class FlagSerializer(serializers.ModelSerializer):
     colour = serializers.ChoiceField(choices=FlagColours.choices, default=FlagColours.DEFAULT)
     priority = serializers.IntegerField(default=0)
 
+    def __init__(self, *args, **kwargs):
+        super(FlagSerializer, self).__init__(*args, **kwargs)
+        if self.context:
+            self.initial_data["team"] = self.context.get("request").user.team_id
+
     class Meta:
         model = Flag
         fields = (
@@ -39,7 +44,7 @@ class FlagSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        colour_not_default = data.get("is_good_controlled") != FlagColours.DEFAULT
+        colour_not_default = data.get("colour") != FlagColours.DEFAULT or not data.get("colour")
         if colour_not_default and not data.get("label"):
             raise serializers.ValidationError("Label must be set when flag colour is specified")
 

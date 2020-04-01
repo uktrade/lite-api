@@ -32,7 +32,7 @@ class FlagsListTests(DataTestClient):
 
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        returned_flags = [flag["id"] for flag in response_data["flags"]]
+        returned_flags = [flag["id"] for flag in response_data["results"]]
         self.assertIn(str(flag1.id), returned_flags)
         self.assertNotIn(str(org_level_flag.id), returned_flags)
         self.assertNotIn(str(other_team_flag.id), returned_flags)

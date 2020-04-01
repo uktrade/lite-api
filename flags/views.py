@@ -2,8 +2,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
-from rest_framework.decorators import permission_classes
+from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -14,11 +13,10 @@ from audit_trail.payload import AuditType
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
-from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses
 from flags.helpers import get_object_of_level
-from flags.libraries.get_flag import get_flag, get_flagging_rule
+from flags.libraries.get_flag import get_flagging_rule
 from flags.models import Flag, FlaggingRule
 from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer
 from goods.models import Good
@@ -27,7 +25,7 @@ from parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country
-from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
+from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases
 
 
 class FlagsListCreateView(ListCreateAPIView):
