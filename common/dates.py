@@ -10,6 +10,10 @@ BACKUP_FILE_NAME = "bank-holidays.csv"
 LOG_PREFIX = "update_cases_sla background task:"
 
 
+def is_working_day(date):
+    return not is_weekend(date) and not is_bank_holiday(date)
+
+
 def is_weekend(date):
     # Weekdays are 0 indexed so Saturday is 5 and Sunday is 6
     return date.weekday() > 4
@@ -87,3 +91,22 @@ def number_of_days_since(date, num_working_days):
         date = date - timedelta(days=1)
 
     return days
+
+
+def number_of_hours_since(start_date, end_date):
+    hours_count = 0
+
+    if is_working_day(start_date):
+        hours_count += 24 - start_date.hour
+
+    if is_working_day(end_date):
+        hours_count += end_date.hour
+
+    elapsed_days = end_date.day - start_date.day - 1  # number of days between today and submitted_at
+
+    for i in range(elapsed_days):
+        day = start_date + timedelta(days=i + 1)
+        if is_working_day(day):
+            hours_count += 24
+
+    return hours_count

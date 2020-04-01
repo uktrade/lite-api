@@ -1,7 +1,7 @@
-from django.utils.datetime_safe import date
+from django.utils.datetime_safe import date, datetime
 from parameterized import parameterized
 
-from common.dates import is_weekend, is_bank_holiday, number_of_days_since
+from common.dates import is_weekend, is_bank_holiday, number_of_days_since, number_of_hours_since
 from test_helpers.clients import DataTestClient
 
 
@@ -43,5 +43,44 @@ class DatesTests(DataTestClient):
     )
     def test_num_working_days_since(self, test_date, num_working_days, expected_result):
         result = number_of_days_since(test_date, num_working_days)
+
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (datetime(2020, 4, 1), datetime(2020, 4, 3), 48),
+            (datetime(2020, 4, 1, 14), datetime(2020, 4, 3, 14), 48),
+            (datetime(2020, 4, 1, 14), datetime(2020, 4, 3), 34),
+            (datetime(2020, 4, 1), datetime(2020, 4, 3, 14), 62),
+        ]
+    )
+    def test_num_working_hours_during_working_week(self, start_date, end_date, expected_result):
+        result = number_of_hours_since(start_date, end_date)
+
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (datetime(2020, 4, 3), datetime(2020, 4, 5), 24),
+            (datetime(2020, 4, 3), datetime(2020, 4, 6), 24),
+            (datetime(2020, 4, 3), datetime(2020, 4, 6, 1), 25),
+            (datetime(2020, 4, 3), datetime(2020, 4, 7, 1), 49),
+        ]
+    )
+    def test_num_working_hours_over_weekend(self, start_date, end_date, expected_result):
+        result = number_of_hours_since(start_date, end_date)
+
+        self.assertEqual(result, expected_result)
+
+    @parameterized.expand(
+        [
+            (datetime(2020, 4, 10), datetime(2020, 4, 14), 0),
+            (datetime(2020, 4, 9), datetime(2020, 4, 14), 24),
+            (datetime(2020, 4, 9, 12), datetime(2020, 4, 14), 12),
+            (datetime(2020, 4, 9, 12), datetime(2020, 4, 14, 15), 27),
+        ]
+    )
+    def test_num_working_hours_over_bank_holidays(self, start_date, end_date, expected_result):
+        result = number_of_hours_since(start_date, end_date)
 
         self.assertEqual(result, expected_result)
