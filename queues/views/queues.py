@@ -35,7 +35,6 @@ class QueuesList(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@permission_classes((permissions.AllowAny,))
 class QueueDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
@@ -44,7 +43,8 @@ class QueueDetail(APIView):
         Retrieve a queue instance (be that a system queue or a team queue)
         """
         queue = next(
-            (queue for queue in SearchQueue.system(user=request.user) if queue.id == str(pk)), None
+            (queue for queue in SearchQueue.system(user=request.user, include_extras=False) if queue.id == str(pk)),
+            None,
         ) or get_queue(pk=pk)
 
         serializer = QueueViewSerializer(queue)

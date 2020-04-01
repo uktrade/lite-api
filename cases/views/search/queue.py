@@ -28,46 +28,49 @@ class SearchQueue:
         )
 
     @classmethod
-    def system(cls, user, case_qs=None) -> List["SearchQueue"]:
+    def system(cls, user, case_qs=None, include_extras=True) -> List["SearchQueue"]:
         if not case_qs:
             case_qs = Case.objects.submitted()
+        team = Team.objects.get(name="Admin") if include_extras else None
 
         return [
             cls(
                 id=queues.ALL_CASES_QUEUE_ID,
                 name=queues.ALL_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.count(),
+                team=team,
+                case_count=case_qs.count() if include_extras else None,
             ),
             cls(
                 id=queues.OPEN_CASES_QUEUE_ID,
                 name=queues.OPEN_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.is_open().count(),
+                team=team,
+                case_count=case_qs.is_open().count() if include_extras else None,
             ),
             cls(
                 id=queues.MY_TEAMS_QUEUES_CASES_ID,
                 name=queues.MY_TEAMS_QUEUES_CASES_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.in_team(team_id=user.team.id).count(),
+                team=team,
+                case_count=case_qs.in_team(team_id=user.team.id).count() if include_extras else None,
             ),
             cls(
                 id=queues.MY_ASSIGNED_CASES_QUEUE_ID,
                 name=queues.MY_ASSIGNED_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.assigned_to_user(user=user).not_terminal().count(),
+                team=team,
+                case_count=case_qs.assigned_to_user(user=user).not_terminal().count() if include_extras else None,
             ),
             cls(
                 id=queues.MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
                 name=queues.MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.assigned_as_case_officer(user=user).not_terminal().count(),
+                team=team,
+                case_count=case_qs.assigned_as_case_officer(user=user).not_terminal().count()
+                if include_extras
+                else None,
             ),
             cls(
                 id=queues.UPDATED_CASES_QUEUE_ID,
                 name=queues.UPDATED_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.is_updated(user=user).count(),
+                team=team,
+                case_count=case_qs.is_updated(user=user).count() if include_extras else None,
             ),
         ]
 

@@ -58,9 +58,19 @@ class RoleListSerializer(serializers.ModelSerializer):
         )
 
 
+class RoleListStatusesSerializer(RoleListSerializer):
+    statuses = PrimaryKeyRelatedSerializerField(
+        queryset=CaseStatus.objects.all(), many=True, required=False, serializer=CaseStatusSerializer
+    )
+
+    class Meta:
+        model = Role
+        fields = ("id", "name", "permissions", "statuses")
+
+
 class GovUserViewSerializer(serializers.ModelSerializer):
     team = TeamSerializer()
-    role = RoleListSerializer()
+    role = RoleListStatusesSerializer()
 
     class Meta:
         model = GovUser
