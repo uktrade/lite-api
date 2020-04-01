@@ -30,52 +30,26 @@ from static.countries.models import Country
 from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
 
 
-@permission_classes((permissions.AllowAny,))
-class FlagsList(APIView):
-    """
-    List all flags and perform actions on the list
-    """
-
+class FlagsList(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
+    serializer = FlagSerializer
 
-    def get(self, request):
-        """
-        Returns list of all flags
-        """
-        level = request.GET.get("level")  # Case, Good
-        team = request.GET.get("team")  # True, False
-        include_deactivated = request.GET.get("include_deactivated")  # will be True/False
+    def get_queryset(self):
+        level = self.request.GET.get("level")
+        team = self.request.GET.get("team")
+        include_deactivated = self.request.GET.get("include_deactivated")
 
         flags = Flag.objects.all()
-
         if level:
             flags = flags.filter(level=level)
-
         if team:
-            flags = flags.filter(team=request.user.team.id)
-
+            flags = flags.filter(team=self.request.user.team.id)
         if not str_to_bool(include_deactivated, invert_none=True):
             flags = flags.exclude(status=FlagStatuses.DEACTIVATED)
         else:
             flags = flags.exclude(status=FlagStatuses.ACTIVE)
 
-        flags = flags.order_by("name")
-        serializer = FlagSerializer(flags, many=True)
-        return JsonResponse(data={"flags": serializer.data})
-
-    def post(self, request):
-        """
-        Add a new flag
-        """
-        data = JSONParser().parse(request)
-        data["team"] = request.user.team.id
-        serializer = FlagSerializer(data=data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={"flag": serializer.data}, status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return flags.order_by("name")
 
 
 class FlagDetail(RetrieveUpdateAPIView):
