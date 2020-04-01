@@ -75,13 +75,7 @@ class FlagAssignmentSerializer(serializers.Serializer):
 class CaseListFlagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flag
-        fields = (
-            "name",
-            "team",
-            "colour",
-            "label",
-            "priority"
-        )
+        fields = ("name", "team", "colour", "label", "priority")
 
 
 class FlaggingRuleSerializer(serializers.ModelSerializer):

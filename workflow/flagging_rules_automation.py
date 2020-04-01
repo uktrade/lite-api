@@ -173,6 +173,6 @@ def apply_flagging_rule_for_flag(flag: Flag):
     """
     gets the flagging rules relating to a flag and applies them
     """
-    flagging_rules = FlaggingRule.objects.filter(flag_id=flag.id)
+    flagging_rules = FlaggingRule.objects.filter(flag=flag)
     for rule in flagging_rules:
         apply_flagging_rule_to_all_open_cases(rule)
