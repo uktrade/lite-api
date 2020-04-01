@@ -56,6 +56,8 @@ class FlagsList(APIView):
 
         if not str_to_bool(include_deactivated, invert_none=True):
             flags = flags.exclude(status=FlagStatuses.DEACTIVATED)
+        else:
+            flags = flags.exclude(status=FlagStatuses.ACTIVE)
 
         flags = flags.order_by("name")
         serializer = FlagSerializer(flags, many=True)
