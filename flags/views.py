@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import permission_classes
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -78,40 +78,39 @@ class FlagsList(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@permission_classes((permissions.AllowAny,))
-class FlagDetail(APIView):
-    """
-    Details of a specific flag
-    """
-
+class FlagDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
+    serializer = FlagSerializer
 
-    def get(self, request, pk):
-        """
-        Returns details of a specific flag
-        """
-        flag = get_flag(pk)
-        serializer = FlagSerializer(flag)
-        return JsonResponse(data={"flag": serializer.data})
+    def get_queryset(self):
+        return Flag.objects.filter(team=self.request.user.team)
 
-    def put(self, request, pk):
-        """
-        Edit details of a specific flag
-        """
-        flag = get_flag(pk)
+    # def get(self, request, pk):
+    #     """
+    #     Returns details of a specific flag
+    #     """
+    #     flag = get_flag(pk)
+    #     serializer = FlagSerializer(flag)
+    #     return JsonResponse(data={"flag": serializer.data})
 
-        # Prevent a user changing a flag if it does not belong to their team
-        if request.user.team != flag.team:
-            return JsonResponse(data={"errors": strings.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            flag = serializer.save()
-            apply_flagging_rule_for_flag(flag)
-            return JsonResponse(data={"flag": serializer.data})
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    # def put(self, request, pk):
+    #     """
+    #     Edit details of a specific flag
+    #     """
+    #     flag = get_flag(pk)
+    #
+    #     # Prevent a user changing a flag if it does not belong to their team
+    #     if request.user.team != flag.team:
+    #         return JsonResponse(data={"errors": strings.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN)
+    #
+    #     serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
+    #
+    # if serializer.is_valid():
+    #     flag = serializer.save()
+    #     apply_flagging_rule_for_flag(flag)
+    #     return JsonResponse(data={"flag": serializer.data})
+    #
+    #     return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AssignFlags(APIView):
