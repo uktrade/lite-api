@@ -67,7 +67,7 @@ class FlagsUpdateTest(DataTestClient):
     def test_colour_cannot_be_changed_from_default_without_adding_a_label(self):
         flag = self.create_flag("New Flag", "Case", self.team)
 
-        data = {"colour": FlagColours.ORANGE}
+        data = {"colour": FlagColours.ORANGE, "label": ""}
 
         url = reverse("flags:flag", kwargs={"pk": flag.id})
         response = self.client.patch(url, data, **self.gov_headers)
