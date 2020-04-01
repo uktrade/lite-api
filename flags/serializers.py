@@ -45,7 +45,7 @@ class FlagSerializer(serializers.ModelSerializer):
         if self.context and not self.context.get("request").method == "GET":
             self.initial_data["team"] = self.context.get("request").user.team_id
 
-        if "initial_data" in self.__dict__:
+        if hasattr(self, "initial_data"):
             if self.initial_data.get("colour") != FlagColours.DEFAULT:
                 self.fields["label"].required = True
                 self.fields["label"].allow_blank = False
