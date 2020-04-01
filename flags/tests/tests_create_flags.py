@@ -3,7 +3,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from flags.enums import FlagLevels
+from flags.enums import FlagLevels, FlagColours
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -12,11 +12,13 @@ class FlagsCreateTest(DataTestClient):
 
     url = reverse("flags:flags")
 
-    @tag("1258")
+    @tag("1258", "only")
     def test_gov_user_can_create_flags(self):
         data = {
             "name": "new flag",
             "level": "Organisation",
+            "colour": FlagColours.ORANGE,
+            "label": "This is label",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -25,6 +27,8 @@ class FlagsCreateTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["name"], "new flag")
         self.assertEqual(response_data["level"], "Organisation")
+        self.assertEqual(response_data["colour"], FlagColours.ORANGE)
+        self.assertEqual(response_data["label"], "This is label")
         self.assertEqual(
             response_data["team"], {"id": str(self.team.id), "name": self.team.name},
         )
@@ -72,3 +76,16 @@ class FlagsCreateTest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Flags.ValidationErrors.PRIORITY_TOO_LARGE, response_data["errors"]["priority"])
+
+    @tag("only")
+    def test_cannot_create_flag_with_colour_and_no_label(self):
+        data = {
+            "name": "new flag",
+            "level": "Organisation",
+            "colour": FlagColours.ORANGE,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(strings.Flags.ValidationErrors.LABEL_MISSING, response.json()["errors"]["label"])
