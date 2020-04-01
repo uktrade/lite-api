@@ -15,8 +15,8 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedexporterusers
     """
 
-    help = "Seeds exporter users to demo with"
-    info = "Seeding exporter users to demo with"
+    help = "Seeds exporter users"
+    info = "Seeding exporter users"
     success = "Successfully seeded exporter users"
     seed_command = "seedexporterusers"
 

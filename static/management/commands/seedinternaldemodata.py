@@ -16,8 +16,8 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedinternaldemodata
     """
 
-    help = "Seeds internal teams, queues and flags to demo with"
-    info = "Seeding internal teams, queues and flags to demo with"
+    help = "Seeds internal teams, queues and flagsh"
+    info = "Seeding internal teams, queues and flags"
     success = "Successfully seeded internal teams, queues and flags"
     seed_command = "seedinternaldemodata"
 
