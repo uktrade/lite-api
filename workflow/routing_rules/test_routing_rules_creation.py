@@ -6,15 +6,17 @@ from flags.enums import FlagLevels
 from static.countries.models import Country
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
+from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
 class RoutingRuleCreationTests(DataTestClient):
-    def test_all_data(self):
+    def test_all_data_works(self):
         flag = self.create_flag("flag", FlagLevels.GOOD, self.team)
         data = {
             "team": self.team.id,
             "queue": self.queue.id,
             "tier": 1,
+            "additional_rules": [*[k for k, v in RoutingRulesAdditionalFields.choices]],
             "user": self.gov_user.id,
             "flags": [flag.id],
             "status": CaseStatus.objects.first().id,
