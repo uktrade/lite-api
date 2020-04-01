@@ -4,6 +4,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from flags.enums import FlagLevels
+from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
 
@@ -43,3 +44,31 @@ class FlagsCreateTest(DataTestClient):
         response = self.client.post(self.url, {"name": name}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @tag("only")
+    def test_cannot_set_priority_to_less_than_0(self):
+        data = {
+            "name": "new flag",
+            "level": "Organisation",
+            "priority": -1,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data["errors"]["priority"], strings.Flags.ValidationErrors.PRIORITY_NEGATIVE)
+
+    @tag("only")
+    def test_cannot_set_priority_to_greater_than_100(self):
+        data = {
+            "name": "new flag",
+            "level": "Organisation",
+            "priority": 101,
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data["errors"]["priority"], strings.Flags.ValidationErrors.PRIORITY_TOO_LARGE)

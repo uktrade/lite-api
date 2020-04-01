@@ -1,7 +1,9 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
 from flags.enums import FlagStatuses, FlagColours
+from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
 
@@ -61,6 +63,7 @@ class FlagsUpdateTest(DataTestClient):
         self.assertEqual(response_data["colour"], FlagColours.ORANGE)
         self.assertEqual(response_data["label"], label_text)
 
+    @tag("only")
     def test_colour_cannot_be_changed_from_default_without_adding_a_label(self):
         flag = self.create_flag("New Flag", "Case", self.team)
 
@@ -70,6 +73,8 @@ class FlagsUpdateTest(DataTestClient):
         response = self.client.patch(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["label"], strings.Flags.ValidationErrors.LABEL_MISSING)
+
         flag.refresh_from_db()
         self.assertEqual(flag.colour, FlagColours.DEFAULT)
         self.assertEqual(flag.label, None)
