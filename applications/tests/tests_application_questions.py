@@ -60,7 +60,7 @@ class ApplicationQuestionsTest(DataTestClient):
         date = timezone.now().date()
         data = {
             "expedited": True,
-            "expedited_date": f"{date.year}-{str(date.month).zfill(2)}-{date.day}",
+            "expedited_date": f"{date.year}-{str(date.month).zfill(2)}-{str(date.day).zfill(2)}",
         }
 
         response = self.client.put(self.url, data, **self.exporter_headers)

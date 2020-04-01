@@ -71,6 +71,8 @@ class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
             "exporter_user_notification_count",
             "reference_code",
             "case_officer",
+            "created_at",
+            "updated_at",
         )
 
     def __init__(self, *args, **kwargs):

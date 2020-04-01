@@ -3,7 +3,7 @@ from uuid import uuid4
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
-from applications.enums import ApplicationExportLicenceOfficialType
+from applications.enums import ApplicationExportLicenceOfficialType, ApplicationExportType
 from applications.models import (
     StandardApplication,
     OpenApplication,
@@ -49,6 +49,35 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self._validate_standard_application()
 
+    def test_copy_draft_standard_temporary_application_successful(self):
+        """
+        Ensure we can copy a standard temporary application that is a draft
+        """
+        self.original_application = self.create_draft_standard_application(self.organisation)
+        self.original_application.export_type = ApplicationExportType.TEMPORARY
+        self.original_application.temp_export_details = "temporary export details"
+        self.original_application.is_temp_direct_control = True
+        self.original_application.proposed_return_date = "2025-05-11"
+        self.submit_application(self.original_application)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {
+            "name": "New application",
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "54321-12",
+        }
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = StandardApplication.objects.get(id=self.response_data)
+
+        self._validate_standard_application()
+
     def test_copy_submitted_standard_application_successful(self):
         """
         Ensure we can copy a standard application that has been submitted (ongoing or not)
@@ -73,11 +102,89 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self._validate_standard_application()
 
+    def test_copy_submitted_standard_temporary_application_successful(self):
+        """
+        Ensure we can copy a standard temporary application that has been submitted (ongoing or not)
+        """
+        self.original_application = self.create_draft_standard_application(self.organisation)
+        self.original_application.export_type = ApplicationExportType.TEMPORARY
+        self.original_application.temp_export_details = "temporary export details"
+        self.original_application.is_temp_direct_control = True
+        self.original_application.proposed_return_date = "2025-05-11"
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {
+            "name": "New application",
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "54321-12",
+        }
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = StandardApplication.objects.get(id=self.response_data)
+
+        self._validate_standard_application()
+
     def test_copy_draft_open_application_successful(self):
         """
         Ensure we can copy an open application that is a draft
         """
         self.original_application = self.create_draft_open_application(self.organisation)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = OpenApplication.objects.get(id=self.response_data)
+
+        self._validate_open_application()
+
+    def test_copy_draft_open_temporary_application_successful(self):
+        """
+        Ensure we can copy an open temporary application that is a draft
+        """
+        self.original_application = self.create_draft_open_application(self.organisation)
+        self.original_application.export_type = ApplicationExportType.TEMPORARY
+        self.original_application.temp_export_details = "temporary export details"
+        self.original_application.is_temp_direct_control = True
+        self.original_application.proposed_return_date = "2025-05-11"
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = OpenApplication.objects.get(id=self.response_data)
+
+        self._validate_open_application()
+
+    def test_copy_submitted_open_temporary_application_successful(self):
+        """
+        Ensure we can copy an open temporary application that is submitted (ongoing or otherwise)
+        """
+        self.original_application = self.create_draft_open_application(self.organisation)
+        self.original_application.export_type = ApplicationExportType.TEMPORARY
+        self.original_application.temp_export_details = "temporary export details"
+        self.original_application.is_temp_direct_control = True
+        self.original_application.proposed_return_date = "2025-05-11"
+
+        self.submit_application(self.original_application)
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -288,6 +395,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self._validate_third_party()
         self._validate_case_data()
         self._validate_route_of_goods()
+        self._validate_temporary_export_details()
 
     def _validate_open_application(self):
         self._validate_reset_data()
@@ -297,6 +405,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self._validate_country_on_application()
         self._validate_case_data()
         self._validate_route_of_goods()
+        self._validate_temporary_export_details()
 
     def _validate_exhibition_application(self):
         self._validate_reset_data()
@@ -371,6 +480,13 @@ class CopyApplicationSuccessTests(DataTestClient):
     def _validate_route_of_goods(self):
         self.assertIsNone(self.copied_application.is_shipped_waybill_or_lading)
         self.assertIsNone(self.copied_application.non_waybill_or_lading_route_details)
+
+    def _validate_temporary_export_details(self, export_type=None):
+        if export_type == ApplicationExportType.TEMPORARY:
+            self.assertIsNone(self.copied_application.temp_export_details)
+            self.assertIsNone(self.copied_application.is_temp_direct_control)
+            self.assertIsNone(self.copied_application.temp_direct_control_details)
+            self.assertIsNone(self.copied_application.proposed_return_date)
 
     def _validate_good_on_application(self):
         new_goods_on_app = self.copied_application.goods.all()

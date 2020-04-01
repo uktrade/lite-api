@@ -158,6 +158,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
     compliant_limitations_eu_ref = models.CharField(default=None, blank=True, null=True, max_length=2200)
 
     intended_end_use = models.CharField(default=None, blank=True, null=True, max_length=2200)
+    agreed_to_foi = models.BooleanField(blank=True, default=None, null=True)
 
     objects = BaseApplicationManager()
 
@@ -177,12 +178,20 @@ class StandardApplication(BaseApplication):
     )
     is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
     non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
+    temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
+    is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
+    temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
+    proposed_return_date = models.DateField(blank=True, null=True)
 
 
 class OpenApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
     non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
+    temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
+    is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
+    temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
+    proposed_return_date = models.DateField(blank=True, null=True)
 
 
 # MOD Clearances Applications

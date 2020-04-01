@@ -13,8 +13,8 @@ from rest_framework.generics import (
 )
 from rest_framework.views import APIView
 
+from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from applications import constants
-from applications.creators import validate_application_ready_for_submission
 from applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -24,7 +24,9 @@ from applications.libraries.application_helpers import (
     optional_str_to_bool,
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
+    create_submitted_audit,
 )
+from applications.libraries.case_status_helpers import set_application_sla
 from applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
     set_case_flags_on_submitted_standard_or_open_application,
@@ -274,43 +276,57 @@ class ApplicationSubmission(APIView):
     def put(self, request, application):
         """
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
+        Depending on the application subtype, this will also submit the declaration of the licence
         """
+
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
             assert_user_has_permission(
                 request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
             )
-        previous_application_status = application.status
+
+        if application.case_type.sub_type in [
+            CaseTypeSubTypeEnum.HMRC,
+            CaseTypeSubTypeEnum.EUA,
+            CaseTypeSubTypeEnum.GOODS,
+        ]:
+            set_application_sla(application)
+            create_submitted_audit(request, application)
 
         errors = validate_application_ready_for_submission(application)
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        application.submitted_at = timezone.now()
-        application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
-        application.sla_days = 0
-        application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        application.save()
+        if application.case_type.sub_type in [
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
+            CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.GIFTING,
+            CaseTypeSubTypeEnum.EXHIBITION,
+        ]:
+            if request.data.get("submit_declaration"):
+                errors = _validate_agree_to_declaration(request, errors)
+                if errors:
+                    return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
-            set_case_flags_on_submitted_standard_or_open_application(application)
+                # If a valid declaration is provided, save the application
+                application.agreed_to_foi = request.data.get("agreed_to_foi")
+                set_application_sla(application)
 
-        add_goods_flags_to_submitted_application(application)
-        apply_flagging_rules_to_case(application)
+                if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.OPEN]:
+                    set_case_flags_on_submitted_standard_or_open_application(application)
+
+                add_goods_flags_to_submitted_application(application)
+                apply_flagging_rules_to_case(application)
+
+                create_submitted_audit(request, application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
         serializer = serializer(application)
 
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
-
-        if not is_case_status_draft(previous_application_status.status):
-            # Only create the audit if the previous application status was not `Draft`
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.UPDATED_STATUS,
-                target=application.get_case(),
-                payload={"status": application.status.status},
-            )
+        if application.reference_code:
+            data["reference_code"] = application.reference_code
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
@@ -562,6 +578,10 @@ class ApplicationCopy(APIView):
             "is_shipped_waybill_or_lading",
             "non_waybill_or_lading_route_details",
             "intended_end_use",
+            "temp_export_details",
+            "is_temp_direct_control",
+            "temp_direct_control_details",
+            "proposed_return_date",
         ]
         for attribute in set_none:
             setattr(self.new_application, attribute, None)

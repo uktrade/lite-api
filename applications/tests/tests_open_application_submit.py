@@ -1,3 +1,4 @@
+from applications.enums import ApplicationExportType
 from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
@@ -16,14 +17,14 @@ class OpenApplicationTests(DataTestClient):
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
-    def test_submit_open_application_success(self):
+    def test_submit_open_application_before_declaration_success(self):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get()
         self.assertEqual(case.id, self.draft.id)
-        self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertIsNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
 
     def test_submit_open_application_without_site_or_external_location_failure(self):
         SiteOnApplication.objects.get(application=self.draft).delete()
@@ -60,4 +61,74 @@ class OpenApplicationTests(DataTestClient):
 
         self.assertContains(
             response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def test_standard_application_declaration_submit_success(self):
+        data = {
+            "submit_declaration": True,
+            "agreed_to_declaration": True,
+            "agreed_to_foi": True,
+        }
+
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        case = Case.objects.get()
+        self.assertEqual(case.id, self.draft.id)
+        self.assertIsNotNone(case.submitted_at)
+        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertEqual(case.baseapplication.agreed_to_foi, True)
+
+    def test_standard_application_declaration_submit_tcs_false_failure(self):
+        data = {
+            "submit_declaration": True,
+            "agreed_to_declaration": False,
+            "agreed_to_foi": True,
+        }
+
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        errors = response.json()["errors"]
+        self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
+
+    def test_submit_open_application_temporary_with_temp_export_details_success(self):
+        self.draft.export_type = ApplicationExportType.TEMPORARY
+        self.draft.temp_export_details = "reasons why this export is a temporary one"
+        self.draft.is_temp_direct_control = False
+        self.draft.proposed_return_date = "2020-05-11"
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_submit_open_application_temporary_without_temp_export_details_failure(self):
+        self.draft.export_type = ApplicationExportType.TEMPORARY
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertContains(
+            response,
+            text=strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def test_submit_open_application_temporary_with_partial_temp_export_details_failure(self):
+        self.draft.export_type = ApplicationExportType.TEMPORARY
+        self.draft.temp_export_details = "reasons why this export is a temporary one"
+        self.draft.proposed_return_date = "2020-05-11"
+        self.draft.save()
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertContains(
+            response,
+            text=strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
