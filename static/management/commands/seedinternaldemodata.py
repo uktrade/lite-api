@@ -1,6 +1,5 @@
 from django.db import transaction, models
 
-from conf.constants import Teams
 from flags.models import Flag
 from queues.models import Queue
 from static.management.SeedCommand import SeedCommand

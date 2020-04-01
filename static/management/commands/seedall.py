@@ -17,7 +17,7 @@ SEED_COMMANDS = {
         "seedflags",
         "seedf680clearancetypes",
     ],
-    "Dev": ["seedinternaldemodata", "seedorganisations", "seedexporterusers"],
+    "Dev": ["seedinternaldemodata", "seedexporterusers"],
     "Tests": [
         "seedcasetypes",
         "seedcasestatuses",
