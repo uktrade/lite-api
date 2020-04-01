@@ -22,7 +22,9 @@ class FlagSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.Flags.BLANK_NAME},
     )
     colour = serializers.ChoiceField(choices=FlagColours.choices, default=FlagColours.DEFAULT)
-    priority = serializers.IntegerField(default=0, min_value=0, max_value=100)
+    priority = serializers.IntegerField(
+        default=0, min_value=0, max_value=100, error_messages={"invalid": strings.Flags.ValidationErrors.PRIORITY}
+    )
 
     def __init__(self, *args, **kwargs):
         super(FlagSerializer, self).__init__(*args, **kwargs)
@@ -45,7 +47,7 @@ class FlagSerializer(serializers.ModelSerializer):
     def validate(self, data):
         colour_is_default = data.get("colour") == FlagColours.DEFAULT or not data.get("colour")
         if not colour_is_default and not data.get("label"):
-            raise serializers.ValidationError("Label must be set when flag colour is specified")
+            raise serializers.ValidationError(strings.Flags.ValidationErrors.LABEL_MISSING)
 
         return data
 
