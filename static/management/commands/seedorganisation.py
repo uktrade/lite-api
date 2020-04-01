@@ -21,17 +21,17 @@ class Command(SeedCommand):
     success = "Successfully seeded organisation"
     seed_command = "seedorganisation"
 
+    def add_arguments(self, parser):
+        # Named (optional) arguments
+        parser.add_argument("--name", help="Name of organisation to add", type=str)
+        parser.add_argument("--sites", help="Number of sites to add", type=int)
+
     @transaction.atomic
     def operation(self, *args, **options):
         org_name = options.get("name")
         sites = options.get("sites")
 
         self.seed_organisation(org_name, sites)
-
-    def add_arguments(self, parser):
-        # Named (optional) arguments
-        parser.add_argument("--name", help="Name of organisation to add", type=str)
-        parser.add_argument("--sites", help="Number of sites to add", type=int)
 
     @classmethod
     def seed_organisation(cls, org_name=None, sites=1):
