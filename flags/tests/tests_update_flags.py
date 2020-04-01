@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -6,6 +7,7 @@ from test_helpers.clients import DataTestClient
 
 
 class FlagsUpdateTest(DataTestClient):
+    @tag("only")
     def test_flag_can_be_deactivated(self):
         flag = self.create_flag("New Flag", "Case", self.team)
 
@@ -14,11 +16,11 @@ class FlagsUpdateTest(DataTestClient):
         }
 
         url = reverse("flags:flag", kwargs={"pk": flag.id})
-        response = self.client.put(url, data, **self.gov_headers)
+        response = self.client.patch(url, data, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["flag"]["status"], FlagStatuses.DEACTIVATED)
+        self.assertEqual(response_data["status"], FlagStatuses.DEACTIVATED)
 
     def test_flag_cannot_be_deactivated_by_a_user_outside_flags_team(self):
         team = self.create_team("Secondary team")

@@ -44,8 +44,8 @@ class FlagSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        colour_not_default = data.get("colour") != FlagColours.DEFAULT or not data.get("colour")
-        if colour_not_default and not data.get("label"):
+        colour_is_default = data.get("colour") == FlagColours.DEFAULT or not data.get("colour")
+        if not colour_is_default and not data.get("label"):
             raise serializers.ValidationError("Label must be set when flag colour is specified")
 
         return data
