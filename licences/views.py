@@ -5,6 +5,7 @@ from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
 from licences.models import Licence
 from licences.serializers import LicenceListSerializer
+from static.decisions.models import Decision
 
 
 class LicenceType:
@@ -30,5 +31,7 @@ class Licences(ListCreateAPIView):
 
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
             licences = licences.filter(application__case_type__in=LicenceType.ids[licence_type])
+        elif licence_type == LicenceType.NLR:
+            licences = licences.filter(decisions=Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED))
 
         return licences
