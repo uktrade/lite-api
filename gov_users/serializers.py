@@ -60,7 +60,7 @@ class RoleListSerializer(serializers.ModelSerializer):
 
 class GovUserViewSerializer(serializers.ModelSerializer):
     team = TeamSerializer()
-    role = RoleSerializer()
+    role = RoleListSerializer()
 
     class Meta:
         model = GovUser
