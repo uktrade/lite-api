@@ -24,8 +24,8 @@ from applications.models import (
     ExhibitionClearanceApplication,
     GiftingClearanceApplication,
     F680ClearanceApplication,
-    Licence,
 )
+from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery

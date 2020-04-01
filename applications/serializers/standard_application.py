@@ -3,14 +3,15 @@ from rest_framework.fields import CharField
 
 from applications.enums import GoodsCategory, YesNoChoiceType
 from applications.mixins.serializers import PartiesSerializerMixin
-from applications.models import StandardApplication, Licence
+from applications.models import StandardApplication
+from licences.models import Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from applications.serializers.licence import LicenceViewSerializer
+from licences.serializers import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from lite_content.lite_api import strings
 
@@ -60,7 +61,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 
     def get_licence(self, instance):
         licence = Licence.objects.filter(application=instance).first()
-        return LicenceViewSerializer(licence).data
+        return CaseLicenceViewSerializer(licence).data
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):

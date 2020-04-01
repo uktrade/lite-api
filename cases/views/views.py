@@ -7,8 +7,8 @@ from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, Li
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import Licence
-from applications.serializers.licence import LicenceSerializer
+from licences.models import Licence
+from licences.serializers import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
@@ -595,7 +595,7 @@ class CaseOfficer(APIView):
 
 class FinaliseView(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = LicenceSerializer
+    serializer_class = LicenceCreateSerializer
 
     def get_object(self):
         return get_object_or_404(Licence, application=self.kwargs["pk"])
