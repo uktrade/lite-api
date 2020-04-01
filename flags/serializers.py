@@ -27,7 +27,7 @@ class FlagSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(FlagSerializer, self).__init__(*args, **kwargs)
-        if self.context:
+        if self.context and not self.context.get("request").method == "GET":
             self.initial_data["team"] = self.context.get("request").user.team_id
 
     class Meta:
