@@ -301,10 +301,8 @@ class CountryOnApplication(models.Model):
 
 
 class PartyOnApplication(TimestampableModel):
-    application = models.ForeignKey(
-        BaseApplication, on_delete=models.CASCADE, related_name="parties", related_query_name="party",
-    )
-    party = models.ForeignKey(Party, on_delete=models.PROTECT)
+    application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="parties")
+    party = models.ForeignKey(Party, on_delete=models.PROTECT, related_name="parties_on_application")
     deleted_at = models.DateTimeField(null=True, default=None)
 
     objects = models.Manager()
