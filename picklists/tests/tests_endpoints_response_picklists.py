@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class PicklistsResponseTests(EndPointTests):
-
     url = "/picklist/"
 
     def test_picklist_list(self):

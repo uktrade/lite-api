@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class EUAResponseTests(EndPointTests):
-
     url = "/queries/end-user-advisories/"
 
     def test_end_user_advisory_list(self):

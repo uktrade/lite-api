@@ -20,7 +20,6 @@ class ItemTypeTests(DataTestClient):
 
 
 class GoodItemTypesResponseTests(EndPointTests):
-
     url = "/static/item-types/"
 
     def test_item_types(self):

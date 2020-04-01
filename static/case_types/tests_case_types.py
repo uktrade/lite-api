@@ -20,7 +20,6 @@ class CaseTypesTests(DataTestClient):
 
 
 class CaseTypesResponseTests(EndPointTests):
-
     url = "/static/case-types/"
 
     def test_case_types(self):

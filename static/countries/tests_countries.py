@@ -44,7 +44,6 @@ class CountriesTests(DataTestClient):
 
 
 class CountriesResponseTests(EndPointTests):
-
     url = "/static/countries/"
 
     def test_countries(self):

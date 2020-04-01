@@ -18,7 +18,6 @@ class UnitsTests(DataTestClient):
 
 
 class unitsResponseTests(EndPointTests):
-
     url = "/static/units/"
 
     def test_units(self):

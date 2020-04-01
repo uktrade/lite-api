@@ -26,7 +26,6 @@ class TriageStageTests(DataTestClient):
 
 
 class ControlListEntriesResponseTests(EndPointTests):
-
     url = "/static/control-list-entries/"
 
     def test_control_list_entries(self):

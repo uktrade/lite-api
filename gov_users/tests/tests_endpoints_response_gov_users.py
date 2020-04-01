@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class GovUsersResponseTests(EndPointTests):
-
     url = "/gov-users/"
 
     def test_gov_users_list(self):

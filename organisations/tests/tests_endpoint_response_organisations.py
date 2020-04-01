@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class OrganisationResponseTests(EndPointTests):
-
     url = "/organisations/"
 
     def test_organisation_users_list(self):

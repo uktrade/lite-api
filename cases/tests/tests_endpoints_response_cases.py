@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class CasesResponseTests(EndPointTests):
-
     url = "/cases/"
 
     def test_cases_list(self):

@@ -21,7 +21,6 @@ class F680ClearanceTypesTests(DataTestClient):
 
 
 class F680ClearanceTypesResponseTests(EndPointTests):
-
     url = "/static/f680-clearance-types/"
 
     def test_F680_clearance_types(self):

@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class QueuesResponseTests(EndPointTests):
-
     url = "/queues/"
 
     def test_queues_list(self):

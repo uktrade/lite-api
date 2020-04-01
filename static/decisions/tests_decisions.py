@@ -20,7 +20,6 @@ class DecisionsTests(DataTestClient):
 
 
 class DecisionsResponseTests(EndPointTests):
-
     url = "/static/decisions/"
 
     def test_decisions(self):

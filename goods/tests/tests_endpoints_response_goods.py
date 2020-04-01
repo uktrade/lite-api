@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class GoodResponseTests(EndPointTests):
-
     url = "/goods/"
 
     def test_goods_list(self):

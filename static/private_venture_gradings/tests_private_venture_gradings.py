@@ -27,7 +27,6 @@ class PrivateVentureGradingsTests(DataTestClient):
 
 
 class PrivateVentureGradingsResponseTests(EndPointTests):
-
     url = "/static/private-venture-gradings/"
 
     def test_private_venture_gradings(self):

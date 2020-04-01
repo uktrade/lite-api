@@ -21,7 +21,6 @@ class StatusesTests(DataTestClient):
 
 
 class StatusesResponseTests(EndPointTests):
-
     url = "/static/statuses/"
 
     def test_statuses(self):

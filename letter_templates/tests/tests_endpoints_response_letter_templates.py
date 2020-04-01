@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class LetterTemplatesResponseTests(EndPointTests):
-
     url = "/letter-templates/"
 
     def test_letter_templates_list(self):

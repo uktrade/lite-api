@@ -18,7 +18,6 @@ class DenialReasonsTests(DataTestClient):
 
 
 class DenialReasonsResponseTests(EndPointTests):
-
     url = "/static/denial-reasons/"
 
     def test_denial_reasons(self):

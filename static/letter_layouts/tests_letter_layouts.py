@@ -33,7 +33,6 @@ class LetterLayoutsTests(DataTestClient):
 
 
 class LetterLayoutsResponseTests(EndPointTests):
-
     url = "/static/letter-layouts/"
 
     def test_letter_layouts(self):

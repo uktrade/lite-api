@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class UserResponseTests(EndPointTests):
-
     url = "/users/"
 
     def test_users_list(self):

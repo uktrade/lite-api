@@ -2,7 +2,6 @@ from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTest
 
 
 class TeamsResponseTests(EndPointTests):
-
     url = "/teams/"
 
     def test_teams_list(self):

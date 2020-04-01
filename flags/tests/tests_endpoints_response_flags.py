@@ -1,8 +1,7 @@
 from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 
 
-class LetterTemplatesResponseTests(EndPointTests):
-
+class FlagsResponseTests(EndPointTests):
     url = "/flags/"
 
     def test_flags_list(self):
