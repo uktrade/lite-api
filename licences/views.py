@@ -27,6 +27,7 @@ class Licences(ListCreateAPIView):
         # Get params
         licence_type = self.request.GET.get("type", LicenceType.LICENCE)
         reference = self.request.GET.get("reference")
+        clc = self.request.GET.get("clc")
 
         licences = Licence.objects.filter(application__organisation=self.request.user.organisation, is_complete=True)
 
@@ -37,5 +38,8 @@ class Licences(ListCreateAPIView):
 
         if reference:
             licences = licences.filter(application__reference_code__contains=reference)
+
+        if clc:
+            licences = licences.filter(application__goods__good__control_code=clc)
 
         return licences
