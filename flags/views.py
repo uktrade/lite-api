@@ -25,7 +25,7 @@ from parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country
-from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases
+from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
 
 
 class FlagsListCreateView(ListCreateAPIView):
@@ -57,6 +57,10 @@ class FlagsRetrieveUpdateView(RetrieveUpdateAPIView):
 
     def get_queryset(self):
         return Flag.objects.filter(team=self.request.user.team)
+
+    def perform_update(self, serializer):
+        serializer.save()
+        apply_flagging_rule_for_flag(self.kwargs["pk"])
 
 
 class AssignFlags(APIView):
