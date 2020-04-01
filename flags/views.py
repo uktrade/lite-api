@@ -40,6 +40,7 @@ class FlagsListCreateView(ListCreateAPIView):
 
         if level:
             flags = flags.filter(level=level)
+
         if team:
             flags = flags.filter(team=self.request.user.team.id)
 
