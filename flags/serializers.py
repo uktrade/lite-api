@@ -22,7 +22,7 @@ class FlagSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.Flags.BLANK_NAME},
     )
     colour = serializers.ChoiceField(choices=FlagColours.choices, default=FlagColours.DEFAULT)
-    priority = serializers.IntegerField(default=0)
+    priority = serializers.IntegerField(default=0, min_value=0, max_value=100)
 
     def __init__(self, *args, **kwargs):
         super(FlagSerializer, self).__init__(*args, **kwargs)
