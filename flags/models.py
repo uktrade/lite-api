@@ -17,6 +17,9 @@ class Flag(TimestampableModel):
     colour = models.CharField(choices=FlagColours.choices, default=FlagColours.DEFAULT, max_length=20)
     priority = models.IntegerField(default=0)
 
+    class Meta:
+        db_table = "flag"
+
 
 class FlaggingRule(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -27,5 +30,6 @@ class FlaggingRule(TimestampableModel):
     matching_value = models.CharField(max_length=100)
 
     class Meta:
+        db_table = "flagging_rule"
         indexes = [models.Index(fields=["created_at"])]
         ordering = ["team__name", "-created_at"]
