@@ -1,7 +1,5 @@
 from django.http import JsonResponse
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
-from rest_framework.decorators import permission_classes
+from rest_framework import status
 from rest_framework.views import APIView
 
 from cases.views.search.queue import SearchQueue
@@ -11,7 +9,6 @@ from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer, QueueListSerializer
 
 
-@permission_classes((permissions.AllowAny,))
 class QueuesList(APIView):
     authentication_classes = (GovAuthentication,)
 
@@ -50,7 +47,6 @@ class QueueDetail(APIView):
         serializer = QueueViewSerializer(queue)
         return JsonResponse(data=serializer.data)
 
-    @swagger_auto_schema(request_body=QueueCreateSerializer)
     def put(self, request, pk):
         queue = get_queue(pk)
         data = request.data

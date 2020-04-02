@@ -1,12 +1,17 @@
-from lite_content.lite_api import strings
 from rest_framework import serializers
 
 from cases.models import Case
-from cases.serializers import CaseSerializer
+from lite_content.lite_api import strings
 from queues.constants import SYSTEM_QUEUES
 from queues.models import Queue
 from teams.models import Team
 from teams.serializers import TeamSerializer
+
+
+class QueueView2Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Queue
+        fields = ("id", "name")
 
 
 class QueueViewSerializer(serializers.ModelSerializer):
@@ -52,7 +57,6 @@ class TinyQueueSerializer(serializers.ModelSerializer):
 
 class QueueCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages={"blank": strings.Queues.BLANK_NAME,})
-    cases = CaseSerializer(many=True, read_only=True, required=False)
     team = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all())
 
     class Meta:
@@ -61,5 +65,4 @@ class QueueCreateSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "team",
-            "cases",
         )

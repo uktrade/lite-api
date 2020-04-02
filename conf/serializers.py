@@ -22,6 +22,7 @@ from static.countries.serializers import CountrySerializer
 class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
     def __init__(self, **kwargs):
         self.serializer = kwargs.pop("serializer", None)
+        self.many = kwargs.pop("many", False)
 
         if not self.serializer:
             raise Exception("PrimaryKeyRelatedSerializerField must define a 'serializer' attribute.")
@@ -32,7 +33,7 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
         return False
 
     def to_representation(self, value):
-        return self.serializer(value).data
+        return self.serializer(value, many=self.many).data
 
 
 class CountrySerializerField(PrimaryKeyRelatedSerializerField):
