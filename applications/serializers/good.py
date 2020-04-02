@@ -34,7 +34,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
         )
 
     def get_flags(self, instance):
-        return list(instance.good.flags.values("id", "name"))
+        return list(instance.good.flags.values("id", "name", "colour", "label"))
 
 
 class GoodOnApplicationCreateSerializer(serializers.ModelSerializer):
