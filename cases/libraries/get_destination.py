@@ -90,17 +90,15 @@ def get_ordered_flags(case: Case, team: Team):
     goods_flags = get_goods_flags(case)
     destination_flags = get_destination_flags(case)
 
-    flag_data = (
-        sort_flags_by_team_and_name(CaseListFlagSerializer(set(goods_flags), many=True).data, team)
-        + sort_flags_by_team_and_name(CaseListFlagSerializer(set(destination_flags), many=True).data, team)
-        + sort_flags_by_team_and_name(CaseListFlagSerializer(case_flags, many=True).data, team)
-        + sort_flags_by_team_and_name(CaseListFlagSerializer(org_flags, many=True).data, team)
-    )
-    return flag_data
+    tgf, ogf = sort_flags_by_team_and_name(CaseListFlagSerializer(set(goods_flags), many=True).data, team)
+    tdf, odf = sort_flags_by_team_and_name(CaseListFlagSerializer(set(destination_flags), many=True).data, team)
+    tcf, ocf = sort_flags_by_team_and_name(CaseListFlagSerializer(case_flags, many=True).data, team)
+    tof, oof = sort_flags_by_team_and_name(CaseListFlagSerializer(org_flags, many=True).data, team)
+    return tgf + tdf + tcf + tof + ogf + odf + ocf + oof
 
 
 def sort_flags_by_team_and_name(flag_data, team):
-    flag_data = sorted(flag_data, key=lambda x: x["name"])
+    flag_data = sorted(flag_data, key=lambda x: -x["priority"])
 
     if not team:
         return flag_data
@@ -110,4 +108,4 @@ def sort_flags_by_team_and_name(flag_data, team):
     for flag in flag_data:
         team_flags.append(flag) if flag["team"] == str(team.id) else non_team_flags.append(flag)
 
-    return team_flags + non_team_flags
+    return team_flags, non_team_flags
