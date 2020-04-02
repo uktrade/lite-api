@@ -96,11 +96,11 @@ def number_of_days_since(date, num_working_days):
 def number_of_hours_since(start_date, end_date):
     hours_count = 0
 
-    # If start_date is a working day, add the remaining hours on that day
+    # If start_date is a working day, add the remaining hours left on that day
     if is_working_day(start_date):
         hours_count += 24 - start_date.hour
 
-    # If end_date is a working day, add the remaining hours on that day
+    # If end_date is a working day, add the hours on that day
     if is_working_day(end_date):
         hours_count += end_date.hour
 
