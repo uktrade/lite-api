@@ -639,11 +639,15 @@ class FinaliseView(RetrieveUpdateAPIView):
             )
 
         # Finalise Case
+        old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
 
         audit_trail_service.create(
-            actor=request.user, verb=AuditType.UPDATED_STATUS, target=case, payload={"status": case.status.status},
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=case,
+            payload={"status": {"new": case.status.status, "old": old_status}},
         )
 
         # Show documents to exporter & notify

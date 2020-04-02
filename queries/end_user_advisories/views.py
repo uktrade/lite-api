@@ -90,15 +90,16 @@ class EndUserAdvisoryDetail(APIView):
 
         request.data["status"] = get_case_status_by_status(data.get("status"))
 
+        old_status = end_user_advisory.status.status
         serializer = EndUserAdvisoryViewSerializer(end_user_advisory, data=request.data, partial=True)
 
         if serializer.is_valid():
+            serializer.update(end_user_advisory, request.data)
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_STATUS,
                 target=end_user_advisory.get_case(),
-                payload={"status": data.get("status")},
+                payload={"status": {"new": data.get("status"), "old": old_status}},
             )
-            serializer.update(end_user_advisory, request.data)
             return JsonResponse(data={"end_user_advisory": serializer.data})
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

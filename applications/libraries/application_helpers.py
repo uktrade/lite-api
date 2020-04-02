@@ -54,12 +54,3 @@ def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, i
             if not assert_user_has_permission(user, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE):
                 return False
     return True
-
-
-def create_submitted_audit(request, application):
-    audit_trail_service.create(
-        actor=request.user,
-        verb=AuditType.UPDATED_STATUS,
-        target=application.get_case(),
-        payload={"status": application.status.status},
-    )

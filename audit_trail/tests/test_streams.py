@@ -40,13 +40,13 @@ class CasesAuditTrail(DataTestClient):
 
     def test_gov_set_application_status_to_applicant_editing_failure(self):
         data = {"status": CaseStatusEnum.APPLICANT_EDITING}
+        old_status = self.case.status.status
         self.client.put(self.status_url, data=data, **self.exporter_headers)
 
         response = self.client.get(self.url, **self.exporter_headers)
         stream = response.json()
 
         audit = Audit.objects.get(verb=AuditType.UPDATED_STATUS.value)
-
         self.assertEqual(2, len(stream["orderedItems"]))
         self.assertEqual(
             stream["orderedItems"][1],
@@ -57,6 +57,7 @@ class CasesAuditTrail(DataTestClient):
                 "object": {
                     "attributedTo": {"id": "dit:lite:case:standard:{id}".format(id=self.case.id)},
                     "dit:to": {"dit:lite:case:status": CaseStatusEnum.get_text(data["status"])},
+                    "dit:from": {"dit:lite:case:status": old_status},
                     "type": ["dit:lite:case:change", "dit:lite:activity", "dit:lite:case:change:status"],
                 },
                 "published": str(audit.created_at),

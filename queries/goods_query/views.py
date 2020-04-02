@@ -267,7 +267,7 @@ class GoodQueryManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=query.get_case(),
-            payload={"status": CaseStatusEnum.get_text(new_status)},
+            payload={"status": {"new": CaseStatusEnum.get_text(new_status), "old": old_status.status}},
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

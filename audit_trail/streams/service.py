@@ -73,9 +73,22 @@ def case_activity_json(audit):
             "dit:lite:activity",
             "dit:lite:case:change:{data_type}".format(data_type=data_type),
         ],
-        "dit:to": {"dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type],},
         "attributedTo": {"id": "dit:lite:case:{case_type}:{id}".format(case_type=case.case_type.sub_type, id=case.id),},
     }
+
+    # TODO: standardize audit payloads and clean
+    if isinstance(audit.payload[data_type], dict):
+        if "new" in audit.payload[data_type]:
+            object_data["dit:to"] = {
+                "dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type]["new"]
+            }
+        if "old" in audit.payload[data_type]:
+            object_data["dit:from"] = {
+                "dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type]["old"]
+            }
+    else:
+        object_data["dit:to"] = {"dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type]}
+
     return {
         "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}:{verb}".format(
             data_type=data_type, id=case.id, audit_id=audit.id, verb=verb
