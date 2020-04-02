@@ -17,6 +17,7 @@ from cases.sla import (
     SLA_UPDATE_CUTOFF_TIME,
     yesterday,
     today,
+    HMRC_QUERY_TARGET_DAYS,
 )
 from test_helpers.clients import DataTestClient
 
@@ -35,6 +36,7 @@ class SlaCaseTests(DataTestClient):
         self.case_types = {
             CaseTypeSubTypeEnum.STANDARD: self.create_draft_standard_application(self.organisation),
             CaseTypeSubTypeEnum.OPEN: self.create_draft_open_application(self.organisation),
+            CaseTypeSubTypeEnum.HMRC: self.create_hmrc_query(self.organisation),
             CaseTypeSubTypeEnum.EXHIBITION: self.create_mod_clearance_application(
                 self.organisation, CaseTypeEnum.EXHIBITION
             ),
@@ -48,6 +50,7 @@ class SlaCaseTests(DataTestClient):
         [
             (CaseTypeSubTypeEnum.STANDARD, STANDARD_APPLICATION_TARGET_DAYS),
             (CaseTypeSubTypeEnum.OPEN, OPEN_APPLICATION_TARGET_DAYS),
+            (CaseTypeSubTypeEnum.HMRC, HMRC_QUERY_TARGET_DAYS),
             (CaseTypeSubTypeEnum.EXHIBITION, MOD_CLEARANCE_TARGET_DAYS),
             (CaseTypeSubTypeEnum.F680, MOD_CLEARANCE_TARGET_DAYS),
             (CaseTypeSubTypeEnum.GIFTING, MOD_CLEARANCE_TARGET_DAYS),
@@ -212,7 +215,7 @@ class SlaHmrcCaseTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
-        self.assertIn("sla_hours", response_data[0])
+        self.assertIn("sla_hours_since_raised", response_data[0])
 
     def test_sla_hours_does_not_appear_on_hmrc_queries_when_goods_have_left_country(self):
         self.hmrc_query.have_goods_departed = True
@@ -222,7 +225,7 @@ class SlaHmrcCaseTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
-        self.assertNotIn("sla_hours", response_data[0])
+        self.assertNotIn("sla_hours_since_raised", response_data[0])
 
     def test_sla_hours_does_not_appear_on_other_cases(self):
         self.hmrc_query.delete()
@@ -232,4 +235,4 @@ class SlaHmrcCaseTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
-        self.assertNotIn("sla_hours", response_data[0])
+        self.assertNotIn("sla_hours_since_raised", response_data[0])

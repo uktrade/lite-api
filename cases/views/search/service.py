@@ -82,4 +82,4 @@ def get_hmrc_sla_hours(cases: List[Dict]):
 
     for case in cases:
         if case["id"] in hmrc_cases_goods_not_left_country:
-            case["sla_hours"] = working_hours_in_range(case["submitted_at"], timezone.now())
+            case["sla_hours_since_raised"] = working_hours_in_range(case["submitted_at"], timezone.now())
