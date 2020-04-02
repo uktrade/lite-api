@@ -1,5 +1,4 @@
 import logging
-import math
 from datetime import timedelta
 
 import requests
@@ -31,12 +30,12 @@ def working_hours_in_range(start_date, end_date):
     # If start_date is a working day, add the remaining hours left on that day
     if is_working_day(start_date):
         if start_date.date() == end_date.date():
-            return math.floor((end_date - start_date).seconds / 3600)
-        hours_count += math.floor(24 - (start_date.seconds / 3600))
+            return (end_date - start_date).seconds // 3600
+        hours_count += 24 - (start_date.seconds // 3600)
 
     # If end_date is a working day, add the hours on that day
     if is_working_day(end_date):
-        hours_count += math.floor(end_date.seconds / 3600)
+        hours_count += end_date.seconds // 3600
 
     elapsed_days = end_date.day - start_date.day
 
