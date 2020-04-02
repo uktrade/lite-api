@@ -642,6 +642,13 @@ class FinaliseView(RetrieveUpdateAPIView):
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
 
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=case,
+            payload={"status": case.status.status},
+        )
+
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)
         documents.update(visible_to_exporter=True)

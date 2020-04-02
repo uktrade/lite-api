@@ -1,6 +1,6 @@
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
-from cases.models import Case
+from common.models import prefetch_generic_relations
 from static.countries.models import Country
 
 STREAMED_AUDITS = [
@@ -29,11 +29,11 @@ VERB_MAPPING = {
 }
 
 
-PAGE_SIZE = 20
+PAGE_SIZE = 100
 
 
 def case_record_json(audit):
-    case = audit.target or audit.action_object
+    case = audit.action_object or audit.target
     countries = Country.objects.filter(countries_on_application__application=case.id).values_list("name", flat=True)
     return {
         "id": "dit:lite:case:application:{id}:{verb}".format(id=case.id, verb="create"),
@@ -45,7 +45,7 @@ def case_record_json(audit):
                 "dit:lite:case:application",
             ],
             "id": "dit:lite:case:application:{id}".format(id=case.id),
-            "dit:submittedDate": "{ts}".format(ts=case.submitted_at),
+            "dit:submittedDate": "{ts}".format(ts=case.submitted_at or ""),
             "dit:status": "{status}".format(status=case.status.status),
             "dit:caseOfficer": case.case_officer.email if case.case_officer else "",
             "dit:countries": list(countries)
@@ -72,7 +72,7 @@ def case_activity_json(audit):
     }
     return {
         "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}:{verb}".format(data_type=data_type, id=case.id, audit_id=audit.id, verb=verb),
-        "published": "{ts}".format(ts=case.created_at),
+        "published": "{ts}".format(ts=audit.created_at),
         "object": object_data,
     }
 
@@ -81,12 +81,13 @@ def get_stream(n):
     qs = (
         Audit.objects.filter(verb__in=STREAMED_AUDITS)
         .order_by("created_at")
-        .prefetch_related("actor", "target", "action_object")
     )[n*PAGE_SIZE: (n+1)*PAGE_SIZE]
+
+    qs = prefetch_generic_relations(qs)
 
     return [
         case_record_json(audit)
-        if (isinstance(audit.action_object, Case) or isinstance(audit.target, Case)) and audit.verb == AuditType.CREATED.value
+        if audit.verb == AuditType.CREATED.value
         else case_activity_json(audit)
         for audit in qs
     ]

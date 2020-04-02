@@ -12,7 +12,7 @@ def create(actor, verb, action_object=None, target=None, payload=None, ignore_ca
     if not payload:
         payload = {}
 
-    Audit.objects.create(
+    return Audit.objects.create(
         actor=actor,
         verb=verb.value,
         action_object=action_object,

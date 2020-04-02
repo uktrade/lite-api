@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 
-from audit_trail.streams import get_stream, PAGE_SIZE
+from audit_trail.streams.service import get_stream, PAGE_SIZE
 
 
 def get_next_page_url(request, n):

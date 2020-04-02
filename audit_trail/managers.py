@@ -11,7 +11,7 @@ class AuditQuerySet(GFKQuerySet):
 
 class AuditManager(GFKManager):
     def get_query_set(self):
-        return GFKQuerySet(self.model)
+        return AuditQuerySet(self.model)
 
     get_queryset = get_query_set
 
