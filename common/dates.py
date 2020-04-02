@@ -24,6 +24,29 @@ def working_days_in_range(start_date, end_date):
     return len([date for date in dates_in_range if not is_bank_holiday(date) or not is_weekend(date)])
 
 
+def working_hours_in_range(start_date, end_date):
+    hours_count = 0
+
+    # If start_date is a working day, add the remaining hours left on that day
+    if is_working_day(start_date):
+        hours_count += 24 - start_date.hour
+
+    # If end_date is a working day, add the hours on that day
+    if is_working_day(end_date):
+        hours_count += end_date.hour
+
+    elapsed_days = end_date.day - start_date.day
+
+    # Add 24 hours for every day that elapsed between (but not including) end_date and start_date
+    for i in range(1, elapsed_days):
+        day = start_date + timedelta(days=i)
+
+        if is_working_day(day):
+            hours_count += 24
+
+    return hours_count
+
+
 def get_backup_bank_holidays():
     try:
         with open(BACKUP_FILE_NAME, "r") as backup_file:
@@ -91,26 +114,3 @@ def number_of_days_since(date, num_working_days):
         date = date - timedelta(days=1)
 
     return days
-
-
-def number_of_hours_since(start_date, end_date):
-    hours_count = 0
-
-    # If start_date is a working day, add the remaining hours left on that day
-    if is_working_day(start_date):
-        hours_count += 24 - start_date.hour
-
-    # If end_date is a working day, add the hours on that day
-    if is_working_day(end_date):
-        hours_count += end_date.hour
-
-    elapsed_days = end_date.day - start_date.day
-
-    # Add 24 hours for every day that elapsed between (but not including) end_date and start_date
-    for i in range(1, elapsed_days):
-        day = start_date + timedelta(days=i)
-
-        if is_working_day(day):
-            hours_count += 24
-
-    return hours_count

@@ -12,7 +12,7 @@ from applications.models import HmrcQuery
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.models import Case
-from common.dates import working_days_in_range, number_of_days_since, number_of_hours_since
+from common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
 from cases.views.search.queue import SearchQueue
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
@@ -82,4 +82,4 @@ def get_hmrc_sla_hours(cases: List[Dict]):
 
     for case in cases:
         if case["id"] in hmrc_cases_goods_not_left_country:
-            case["sla_hours"] = number_of_hours_since(case["submitted_at"], timezone.now())
+            case["sla_hours"] = working_hours_in_range(case["submitted_at"], timezone.now())

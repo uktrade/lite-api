@@ -1,7 +1,7 @@
 from django.utils.datetime_safe import date, datetime
 from parameterized import parameterized
 
-from common.dates import is_weekend, is_bank_holiday, number_of_days_since, number_of_hours_since
+from common.dates import is_weekend, is_bank_holiday, number_of_days_since, working_hours_in_range
 from test_helpers.clients import DataTestClient
 
 
@@ -55,7 +55,7 @@ class DatesTests(DataTestClient):
         ]
     )
     def test_num_working_hours_during_working_week(self, start_date, end_date, expected_result):
-        result = number_of_hours_since(start_date, end_date)
+        result = working_hours_in_range(start_date, end_date)
 
         self.assertEqual(result, expected_result)
 
@@ -68,7 +68,7 @@ class DatesTests(DataTestClient):
         ]
     )
     def test_num_working_hours_over_weekend(self, start_date, end_date, expected_result):
-        result = number_of_hours_since(start_date, end_date)
+        result = working_hours_in_range(start_date, end_date)
 
         self.assertEqual(result, expected_result)
 
@@ -81,6 +81,6 @@ class DatesTests(DataTestClient):
         ]
     )
     def test_num_working_hours_over_bank_holidays(self, start_date, end_date, expected_result):
-        result = number_of_hours_since(start_date, end_date)
+        result = working_hours_in_range(start_date, end_date)
 
         self.assertEqual(result, expected_result)

@@ -223,3 +223,13 @@ class SlaHmrcCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
         self.assertNotIn("sla_hours", response_data[0])
+
+    def test_sla_hours_does_not_appear_on_other_cases(self):
+        self.hmrc_query.delete()
+        self.create_standard_application_case(self.organisation)
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertNotIn("sla_hours", response_data[0])
