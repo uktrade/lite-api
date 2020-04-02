@@ -51,7 +51,7 @@ class FlagsListCreateView(ListCreateAPIView):
             flags = flags.filter(priority=priority)
 
         if team and team != "None":
-            flags = flags.filter(team__name=team)
+            flags = flags.filter(team=team)
 
         if only_show_deactivated:
             flags = flags.filter(status=FlagStatuses.DEACTIVATED)

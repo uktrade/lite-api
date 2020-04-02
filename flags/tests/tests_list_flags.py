@@ -27,7 +27,7 @@ class FlagsListTests(DataTestClient):
         other_team_flag = self.create_flag("Flag3", "Case", other_team)
         flag4 = self.create_flag("Flag4", "Case", self.team)
 
-        url = f"{self.url}?level=Case&team={self.team.name}&include_deactivated=False"
+        url = f"{self.url}?level=Case&team={self.team.id}&include_deactivated=False"
         response = self.client.get(url, **self.gov_headers)
 
         response_data = response.json()
