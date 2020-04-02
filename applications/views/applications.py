@@ -144,9 +144,7 @@ class ApplicationList(ListCreateAPIView):
         application = serializer.save()
 
         audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.CREATED,
-            action_object=application.get_case(),
+            actor=request.user, verb=AuditType.CREATED, action_object=application.get_case(),
         )
 
         return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)

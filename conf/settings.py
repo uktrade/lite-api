@@ -18,6 +18,7 @@ env = Env(
     BACKGROUND_TASK_ENABLED=(bool, False),
     SUPPRESS_TEST_OUTPUT=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
+    STREAM_PAGE_SIZE=(int, 100)
 )
 
 # Quick-start development settings - unsuitable for production
@@ -205,4 +206,4 @@ RECENTLY_UPDATED_WORKING_DAYS = env(
 
 SECURE_BROWSER_XSS_FILTER = True
 
-STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE", 100)
+STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")

@@ -23,6 +23,7 @@ def prefetch_generic_relations(qs):
     """
     Prefetches the models attributed to all generic fields in a queryset
     """
+
     def get_content_type(content_type_id, cache={}):
         if content_type_id in cache:
             return cache[content_type_id]

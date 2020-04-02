@@ -11,7 +11,7 @@ STREAMED_AUDITS = [
     AuditType.REMOVE_CASE_OFFICER_FROM_CASE.value,
     AuditType.UPDATED_STATUS.value,
     AuditType.ADD_COUNTRIES_TO_APPLICATION.value,
-    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION.value
+    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION.value,
 ]
 
 TYPE_MAPPING = {
@@ -19,7 +19,7 @@ TYPE_MAPPING = {
     AuditType.REMOVE_CASE_OFFICER_FROM_CASE: "case_officer",
     AuditType.UPDATED_STATUS: "status",
     AuditType.ADD_COUNTRIES_TO_APPLICATION: "countries",
-    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "countries"
+    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "countries",
 }
 
 VERB_MAPPING = {
@@ -27,9 +27,8 @@ VERB_MAPPING = {
     AuditType.REMOVE_CASE_OFFICER_FROM_CASE: "remove",
     AuditType.UPDATED_STATUS: "update",
     AuditType.ADD_COUNTRIES_TO_APPLICATION: "add",
-    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "remove"
+    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "remove",
 }
-
 
 
 def case_record_json(audit):
@@ -39,16 +38,12 @@ def case_record_json(audit):
         "id": "dit:lite:case:application:{id}:{verb}".format(id=case.id, verb="create"),
         "published": "{ts}".format(ts=case.created_at),
         "object": {
-            "type": [
-                "dit:lite:case",
-                "dit:lite:record",
-                "dit:lite:case:application",
-            ],
+            "type": ["dit:lite:case", "dit:lite:record", "dit:lite:case:application",],
             "id": "dit:lite:case:application:{id}".format(id=case.id),
             "dit:submittedDate": "{ts}".format(ts=case.submitted_at or ""),
             "dit:status": "{status}".format(status=case.status.status),
             "dit:caseOfficer": case.case_officer.email if case.case_officer else "",
-            "dit:countries": list(countries)
+            "dit:countries": list(countries),
         },
     }
 
@@ -63,15 +58,13 @@ def case_activity_json(audit):
             "dit:lite:activity",
             "dit:lite:case:change:{data_type}".format(data_type=data_type),
         ],
-        "dit:to": {
-            "dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type],
-        },
-        "attributedTo": {
-            "id": "dit:lite:case:{case_type}:{id}".format(case_type=case.case_type.sub_type, id=case.id),
-        }
+        "dit:to": {"dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type],},
+        "attributedTo": {"id": "dit:lite:case:{case_type}:{id}".format(case_type=case.case_type.sub_type, id=case.id),},
     }
     return {
-        "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}:{verb}".format(data_type=data_type, id=case.id, audit_id=audit.id, verb=verb),
+        "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}:{verb}".format(
+            data_type=data_type, id=case.id, audit_id=audit.id, verb=verb
+        ),
         "published": "{ts}".format(ts=audit.created_at),
         "object": object_data,
     }
@@ -80,16 +73,10 @@ def case_activity_json(audit):
 def get_stream(n):
     PAGE_SIZE = settings.STREAM_PAGE_SIZE
 
-    qs = (
-        Audit.objects.filter(verb__in=STREAMED_AUDITS)
-        .order_by("created_at")
-    )[n*PAGE_SIZE: (n+1)*PAGE_SIZE]
+    qs = (Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at"))[n * PAGE_SIZE : (n + 1) * PAGE_SIZE]
 
     qs = prefetch_generic_relations(qs)
 
     return [
-        case_record_json(audit)
-        if audit.verb == AuditType.CREATED.value
-        else case_activity_json(audit)
-        for audit in qs
+        case_record_json(audit) if audit.verb == AuditType.CREATED.value else case_activity_json(audit) for audit in qs
     ]

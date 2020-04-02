@@ -643,10 +643,7 @@ class FinaliseView(RetrieveUpdateAPIView):
         case.save()
 
         audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=case,
-            payload={"status": case.status.status},
+            actor=request.user, verb=AuditType.UPDATED_STATUS, target=case, payload={"status": case.status.status},
         )
 
         # Show documents to exporter & notify

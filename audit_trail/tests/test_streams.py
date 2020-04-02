@@ -13,11 +13,7 @@ class CasesAuditTrail(DataTestClient):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
         self.user = self.exporter_user
-        self.audit = create(
-            actor=self.user,
-            verb=AuditType.CREATED,
-            action_object=self.case,
-        )
+        self.audit = create(actor=self.user, verb=AuditType.CREATED, action_object=self.case,)
         self.url = reverse("audit_trail:streams", kwargs={"n": 0})
         self.status_url = reverse("applications:manage_status", kwargs={"pk": self.case.id})
 
@@ -26,22 +22,21 @@ class CasesAuditTrail(DataTestClient):
         stream = response.json()
 
         self.assertEqual(1, len(stream["orderedItems"]))
-        self.assertEqual(stream["orderedItems"][0], {
-            'id': 'dit:lite:case:application:{id}:create'.format(id=self.case.id),
-            'object': {
-                'dit:caseOfficer': '',
-                'dit:countries': [],
-                'dit:status': self.case.status.status,
-                'dit:submittedDate': str(self.case.submitted_at),
-                'id': 'dit:lite:case:application:{id}'.format(id=self.case.id),
-                'type': [
-                    'dit:lite:case',
-                    'dit:lite:record',
-                    'dit:lite:case:application'
-                ]
+        self.assertEqual(
+            stream["orderedItems"][0],
+            {
+                "id": "dit:lite:case:application:{id}:create".format(id=self.case.id),
+                "object": {
+                    "dit:caseOfficer": "",
+                    "dit:countries": [],
+                    "dit:status": self.case.status.status,
+                    "dit:submittedDate": str(self.case.submitted_at),
+                    "id": "dit:lite:case:application:{id}".format(id=self.case.id),
+                    "type": ["dit:lite:case", "dit:lite:record", "dit:lite:case:application"],
+                },
+                "published": str(self.case.created_at),
             },
-            'published': str(self.case.created_at)
-        })
+        )
 
     def test_gov_set_application_status_to_applicant_editing_failure(self):
         data = {"status": CaseStatusEnum.APPLICANT_EDITING}
@@ -53,12 +48,17 @@ class CasesAuditTrail(DataTestClient):
         audit = Audit.objects.get(verb=AuditType.UPDATED_STATUS.value)
 
         self.assertEqual(2, len(stream["orderedItems"]))
-        self.assertEqual(stream["orderedItems"][1], {
-            'id': 'dit:lite:case:change:status:{case_id}:{audit_id}:update'.format(case_id=self.case.id, audit_id=audit.id),
-            'object': {
-                'attributedTo': {'id': 'dit:lite:case:standard:{id}'.format(id=self.case.id)},
-                'dit:to': {'dit:lite:case:status': CaseStatusEnum.get_text(data["status"])},
-                'type': ['dit:lite:case:change', 'dit:lite:activity', 'dit:lite:case:change:status']
+        self.assertEqual(
+            stream["orderedItems"][1],
+            {
+                "id": "dit:lite:case:change:status:{case_id}:{audit_id}:update".format(
+                    case_id=self.case.id, audit_id=audit.id
+                ),
+                "object": {
+                    "attributedTo": {"id": "dit:lite:case:standard:{id}".format(id=self.case.id)},
+                    "dit:to": {"dit:lite:case:status": CaseStatusEnum.get_text(data["status"])},
+                    "type": ["dit:lite:case:change", "dit:lite:activity", "dit:lite:case:change:status"],
+                },
+                "published": str(audit.created_at),
             },
-            'published': str(audit.created_at)
-        })
+        )

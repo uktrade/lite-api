@@ -49,8 +49,6 @@ class Audit(TimestampableModel):
 
     payload = JSONField()
 
-    visible = models.NullBooleanField(default=True)
-
     objects = AuditManager()
 
     notifications = GenericRelation(GovNotification, related_query_name="audit")
