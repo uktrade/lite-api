@@ -33,6 +33,9 @@ VERB_MAPPING = {
 
 def case_record_json(audit):
     case = audit.action_object or audit.target
+    if case is None:
+        # Some applications in draft status are being deleted
+        return {}
     countries = Country.objects.filter(countries_on_application__application=case.id).values_list("name", flat=True)
     return {
         "id": "dit:lite:case:application:{id}:{verb}".format(id=case.id, verb="create"),
@@ -50,6 +53,9 @@ def case_record_json(audit):
 
 def case_activity_json(audit):
     case = audit.target
+    if case is None:
+        # Some applications in draft status are being deleted
+        return {}
     data_type = TYPE_MAPPING[AuditType(audit.verb)]
     verb = VERB_MAPPING[AuditType(audit.verb)]
     object_data = {
@@ -77,6 +83,11 @@ def get_stream(n):
         Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")[n * PAGE_SIZE : (n + 1) * PAGE_SIZE]
     )
 
-    return [
-        case_record_json(audit) if audit.verb == AuditType.CREATED.value else case_activity_json(audit) for audit in qs
-    ]
+    stream = []
+
+    for audit in qs:
+        data = case_record_json(audit) if audit.verb == AuditType.CREATED.value else case_activity_json(audit)
+        if data:
+            stream.append(data)
+
+    return stream

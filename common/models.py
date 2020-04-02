@@ -19,14 +19,14 @@ class TimestampableModel(CreatedAt):
         abstract = True
 
 
-def prefetch_generic_relations(qs):
+def prefetch_generic_relations(qs):  # noqa
     """
     Prefetches the models attributed to all generic fields in a queryset
 
     From https://djangosnippets.org/snippets/2492/ with some tweaks.
     """
 
-    def get_content_type(content_type_id, cache={}):
+    def get_content_type(content_type_id, cache={}):  # noqa
         if content_type_id in cache:
             return cache[content_type_id]
         content_type = ContentType.objects.get_for_id(content_type_id)
