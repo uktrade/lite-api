@@ -2,7 +2,6 @@ from conf.exceptions import NotFoundError
 from queues.models import Queue
 
 
-@DeprecationWarning
 def get_queue(pk):
     """
     Returns the specified queue
