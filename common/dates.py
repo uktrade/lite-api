@@ -96,16 +96,20 @@ def number_of_days_since(date, num_working_days):
 def number_of_hours_since(start_date, end_date):
     hours_count = 0
 
+    # If start_date is a working day, add the remaining hours on that day
     if is_working_day(start_date):
         hours_count += 24 - start_date.hour
 
+    # If end_date is a working day, add the remaining hours on that day
     if is_working_day(end_date):
         hours_count += end_date.hour
 
-    elapsed_days = end_date.day - start_date.day - 1  # number of days between today and submitted_at
+    elapsed_days = end_date.day - start_date.day
 
-    for i in range(elapsed_days):
-        day = start_date + timedelta(days=i + 1)
+    # Add 24 hours for every day that elapsed between (but not including) end_date and start_date
+    for i in range(1, elapsed_days):
+        day = start_date + timedelta(days=i)
+
         if is_working_day(day):
             hours_count += 24
 
