@@ -92,11 +92,7 @@ class Case(TimestampableModel):
         return Case.objects.get(id=self.id)
 
     def get_users(self, queue=None):
-        case_assignments = (
-            self.case_assignments
-            .select_related("queue", "user")
-            .order_by("queue__name")
-        )
+        case_assignments = self.case_assignments.select_related("queue", "user").order_by("queue__name")
         if queue:
             case_assignments = case_assignments.filter(queue=queue)
 

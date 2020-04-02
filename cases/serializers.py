@@ -146,7 +146,9 @@ class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    queues = PrimaryKeyRelatedSerializerField(queryset=Queue.objects.all(), many=True, serializer=CasesQueueViewSerializer)
+    queues = PrimaryKeyRelatedSerializerField(
+        queryset=Queue.objects.all(), many=True, serializer=CasesQueueViewSerializer
+    )
     assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
     status = serializers.SerializerMethodField()
     # flags = serializers.SerializerMethodField()

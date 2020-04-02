@@ -7,6 +7,7 @@ class CaseAssignmentRelatedSerializerField(PrimaryKeyRelatedSerializerField):
     """
     Custom field serializer required for optional query filtering based on current queue
     """
+
     def __init__(self, **kwargs):
         from cases.serializers import QueueCaseAssignmentSerializer
 
@@ -29,6 +30,7 @@ class HasOpenECJUQueriesRelatedField(PrimaryKeyRelatedField):
     """
     Custom field serializer required to determine if a case has open ECJU queries
     """
+
     def use_pk_only_optimization(self):
         return False
 
@@ -37,9 +39,8 @@ class HasOpenECJUQueriesRelatedField(PrimaryKeyRelatedField):
         include_hidden = self.context["include_hidden"]
         team = self.context["team"]
         if include_hidden:
-            return (
-                queryset.select_related("raised_by_user__team_id")
-                .filter(raised_by_user__team_id=team, responded_at__isnull=True)
+            return queryset.select_related("raised_by_user__team_id").filter(
+                raised_by_user__team_id=team, responded_at__isnull=True
             )
 
     def to_representation(self, value):

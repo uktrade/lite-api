@@ -68,7 +68,11 @@ def get_goods_flags(case):
         CaseTypeSubTypeEnum.GIFTING,
         CaseTypeSubTypeEnum.F680,
     ]:
-        goods_on_application = GoodOnApplication.objects.select_related("good").prefetch_related("good__flags").filter(application_id=case.id)
+        goods_on_application = (
+            GoodOnApplication.objects.select_related("good")
+            .prefetch_related("good__flags")
+            .filter(application_id=case.id)
+        )
         for good_on_application in goods_on_application:
             goods_flags += good_on_application.good.flags.all()
     elif case_type in [
