@@ -52,7 +52,7 @@ def working_hours_in_range(start_date, end_date):
             seconds_count -= SECONDS_IN_DAY
 
     # Divide by number of seconds in an hour and cast to an int to floor value with no decimal points
-    return int(seconds_count / SECONDS_IN_HOUR)
+    return int(seconds_count // SECONDS_IN_HOUR)
 
 
 def get_backup_bank_holidays():
