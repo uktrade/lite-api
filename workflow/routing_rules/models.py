@@ -23,6 +23,7 @@ class RoutingRule(TimestampableModel):
     additional_rules = SeparatedValuesField(
         choices=RoutingRulesAdditionalFields.choices, max_length=100, blank=True, null=True, default=None
     )
+    active = models.BooleanField(default=True)
 
     # optional fields that entry is dependent on additional fields
     user = models.ForeignKey(GovUser, related_name="routing_users", on_delete=models.DO_NOTHING, blank=True, null=True)
