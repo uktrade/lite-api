@@ -14,10 +14,10 @@ class CaseAssignmentRelatedSerializerField(PrimaryKeyRelatedSerializerField):
         self.serializer = QueueCaseAssignmentSerializer
         self.many = True
 
-        super(PrimaryKeyRelatedSerializerField, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def get_queryset(self):
-        queryset = super(CaseAssignmentRelatedSerializerField, self).get_queryset()
+        queryset = super().get_queryset()
         queue = self.context["queue_id"] if not self.context["is_system_queue"] else None
 
         if queue:
