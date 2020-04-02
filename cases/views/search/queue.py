@@ -1,86 +1,13 @@
-from typing import List
-
-from cases.models import Case
-from queues.models import Queue
-from teams.models import Team
-
-import queues.constants as queues
-
-
 class SearchQueue:
     """
-    A SearchQueue is a representation of a Queue or a system Queue.
+    A SearchQueue is a representation of a Queue or a system Queue 😀
     """
 
-    def __init__(self, id, name, team, case_count):
+    def __init__(self, id, name, cases):
         self.id = id
         self.name = name
-        self.team = team
-        self.case_count = case_count
+        self.cases = cases
 
     @classmethod
-    def from_queue(cls, queue, case_qs=None) -> "SearchQueue":
-        if not case_qs:
-            case_qs = Case.objects.submitted()
-
-        return cls(
-            id=queue.id, name=queue.name, team=queue.team, case_count=case_qs.in_queue(queue_id=queue.id).count()
-        )
-
-    @classmethod
-    def system(cls, user, case_qs=None, include_extras=True) -> List["SearchQueue"]:
-        if not case_qs:
-            case_qs = Case.objects.submitted()
-        team = Team.objects.get(name="Admin") if include_extras else None
-
-        return [
-            cls(
-                id=queues.ALL_CASES_QUEUE_ID,
-                name=queues.ALL_CASES_QUEUE_NAME,
-                team=team,
-                case_count=case_qs.count() if include_extras else None,
-            ),
-            cls(
-                id=queues.OPEN_CASES_QUEUE_ID,
-                name=queues.OPEN_CASES_QUEUE_NAME,
-                team=team,
-                case_count=case_qs.is_open().count() if include_extras else None,
-            ),
-            cls(
-                id=queues.MY_TEAMS_QUEUES_CASES_ID,
-                name=queues.MY_TEAMS_QUEUES_CASES_NAME,
-                team=team,
-                case_count=case_qs.in_team(team_id=user.team.id).count() if include_extras else None,
-            ),
-            cls(
-                id=queues.MY_ASSIGNED_CASES_QUEUE_ID,
-                name=queues.MY_ASSIGNED_CASES_QUEUE_NAME,
-                team=team,
-                case_count=case_qs.assigned_to_user(user=user).not_terminal().count() if include_extras else None,
-            ),
-            cls(
-                id=queues.MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
-                name=queues.MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_NAME,
-                team=team,
-                case_count=case_qs.assigned_as_case_officer(user=user).not_terminal().count()
-                if include_extras
-                else None,
-            ),
-            cls(
-                id=queues.UPDATED_CASES_QUEUE_ID,
-                name=queues.UPDATED_CASES_QUEUE_NAME,
-                team=team,
-                case_count=case_qs.is_updated(user=user).count() if include_extras else None,
-            ),
-        ]
-
-    @classmethod
-    def all(cls, user, case_qs=None, queue_qs=None):
-        return cls.system(user=user, case_qs=case_qs) + cls.from_queue_qs(queue_qs)
-
-    @classmethod
-    def from_queue_qs(cls, queue_qs=None):
-        if not queue_qs:
-            queue_qs = Queue.objects.all()
-
-        return [cls.from_queue(queue) for queue in queue_qs]
+    def from_queue(cls, queue) -> "SearchQueue":
+        return cls(id=queue.id, name=queue.name, cases=queue.cases)
