@@ -13,9 +13,8 @@ SECONDS_IN_HOUR = 3600
 SECONDS_IN_MINUTE = 60
 
 
-def get_total_seconds_from_date_time(date):
-    # datetime's time in seconds
-    return (date.hour * SECONDS_IN_HOUR) + (date.minute * SECONDS_IN_MINUTE) + date.second
+def get_time_in_seconds_from_datetime(datetime):
+    return (datetime.hour * SECONDS_IN_HOUR) + (datetime.minute * SECONDS_IN_MINUTE) + datetime.second
 
 
 def is_working_day(date):
@@ -37,11 +36,11 @@ def working_hours_in_range(start_date, end_date):
 
     # If start_date is a non-working day, subtract the total seconds that were remaining on that day
     if not is_working_day(start_date):
-        seconds_count -= SECONDS_IN_DAY - get_total_seconds_from_date_time(start_date)
+        seconds_count -= SECONDS_IN_DAY - get_time_in_seconds_from_datetime(start_date)
 
     # If end_date is a non-working day, subtract the total seconds that occurred on that day
     if not is_working_day(end_date):
-        seconds_count -= get_total_seconds_from_date_time(end_date)
+        seconds_count -= get_time_in_seconds_from_datetime(end_date)
 
     elapsed_days = end_date.day - start_date.day
 

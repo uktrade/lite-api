@@ -98,12 +98,10 @@ class DatesTests(DataTestClient):
         result = working_hours_in_range(start_date, end_date)
         self.assertEqual(result, expected_result)
 
-    @parameterized.expand(
-        [
-            # Start day = Day before Good Friday(12:00), End day = Three weeks later(13:22:05), Expected hours = 324
-            (datetime(2020, 4, 9, 12), datetime(2020, 4, 30, 13, 22, 5), 313),
-        ]
-    )
-    def test_num_working_hours_over_working_days_weekends_bank_holidays(self, start_date, end_date, expected_result):
+    def test_num_working_hours_over_working_days_weekends_bank_holidays(self):
+        start_date = datetime(2020, 4, 9, 12)  # Day before Good Friday(12:00)
+        end_date = datetime(2020, 4, 30, 13, 22, 5)  # Three weeks later(13:22:05)
+        expected_result = 313  # 12hrs in start_date + 13hrs in end_date + (12 working days * 24hrs)
+
         result = working_hours_in_range(start_date, end_date)
         self.assertEqual(result, expected_result)
