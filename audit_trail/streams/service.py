@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from common.models import prefetch_generic_relations
@@ -28,8 +30,6 @@ VERB_MAPPING = {
     AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "remove"
 }
 
-
-PAGE_SIZE = 100
 
 
 def case_record_json(audit):
@@ -78,6 +78,8 @@ def case_activity_json(audit):
 
 
 def get_stream(n):
+    PAGE_SIZE = settings.STREAM_PAGE_SIZE
+
     qs = (
         Audit.objects.filter(verb__in=STREAMED_AUDITS)
         .order_by("created_at")
