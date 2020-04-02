@@ -12,19 +12,19 @@ class SearchQueue:
     A SearchQueue is a representation of a Queue or a system Queue.
     """
 
-    def __init__(self, id, name, team, case_count):
+    def __init__(self, id, name, team=None, case_count=None):
         self.id = id
         self.name = name
-        self.team = team
-        self.case_count = case_count
+        # self.team = team
+        self.case_count = 0
 
     @classmethod
     def from_queue(cls, queue, case_qs=None) -> "SearchQueue":
-        if not case_qs:
-            case_qs = Case.objects.submitted()
+        # if not case_qs:
+        #     case_qs = Case.objects.submitted()
 
         return cls(
-            id=queue.id, name=queue.name, team=queue.team, case_count=case_qs.in_queue(queue_id=queue.id).count()
+            id=queue.id, name=queue.name  #  team=queue.team, case_count=case_qs.in_queue(queue_id=queue.id).count()
         )
 
     @classmethod
@@ -36,38 +36,38 @@ class SearchQueue:
             cls(
                 id=queues.ALL_CASES_QUEUE_ID,
                 name=queues.ALL_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.count(),
+                # team=Team.objects.get(name="Admin"),
+                # case_count=case_qs.count(),
             ),
             cls(
                 id=queues.OPEN_CASES_QUEUE_ID,
                 name=queues.OPEN_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.is_open().count(),
+                # team=Team.objects.get(name="Admin"),
+                # case_count=case_qs.is_open().count(),
             ),
             cls(
                 id=queues.MY_TEAMS_QUEUES_CASES_ID,
                 name=queues.MY_TEAMS_QUEUES_CASES_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.in_team(team_id=user.team.id).count(),
+                # team=Team.objects.get(name="Admin"),
+                # case_count=case_qs.in_team(team_id=user.team.id).count(),
             ),
             cls(
                 id=queues.MY_ASSIGNED_CASES_QUEUE_ID,
                 name=queues.MY_ASSIGNED_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.assigned_to_user(user=user).not_terminal().count(),
+                # team=Team.objects.get(name="Admin"),
+                # case_count=case_qs.assigned_to_user(user=user).not_terminal().count(),
             ),
             cls(
                 id=queues.MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
                 name=queues.MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.assigned_as_case_officer(user=user).not_terminal().count(),
+                # team=Team.objects.get(name="Admin"),
+                # case_count=case_qs.assigned_as_case_officer(user=user).not_terminal().count(),
             ),
             cls(
                 id=queues.UPDATED_CASES_QUEUE_ID,
                 name=queues.UPDATED_CASES_QUEUE_NAME,
-                team=Team.objects.get(name="Admin"),
-                case_count=case_qs.is_updated(user=user).count(),
+                # team=Team.objects.get(name="Admin"),
+                # case_count=case_qs.is_updated(user=user).count(),
             ),
         ]
 
