@@ -3,6 +3,7 @@ from rest_framework import status
 
 from static.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
+from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 
 
 class TriageStageTests(DataTestClient):
@@ -22,3 +23,10 @@ class TriageStageTests(DataTestClient):
         self.assertEqual(response_data["rating"], parent_rating.rating)
         self.assertEqual(response_data["text"], parent_rating.text)
         self.assertEqual(len(response_data["children"]), 2)
+
+
+class ControlListEntriesResponseTests(EndPointTests):
+    url = "/static/control-list-entries/"
+
+    def test_control_list_entries(self):
+        self.call_endpoint(self.get_exporter(), self.url)
