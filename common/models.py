@@ -22,6 +22,8 @@ class TimestampableModel(CreatedAt):
 def prefetch_generic_relations(qs):
     """
     Prefetches the models attributed to all generic fields in a queryset
+
+    From https://djangosnippets.org/snippets/2492/ with some tweaks.
     """
 
     def get_content_type(content_type_id, cache={}):

@@ -73,9 +73,9 @@ def case_activity_json(audit):
 def get_stream(n):
     PAGE_SIZE = settings.STREAM_PAGE_SIZE
 
-    qs = (Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at"))[n * PAGE_SIZE : (n + 1) * PAGE_SIZE]
-
-    qs = prefetch_generic_relations(qs)
+    qs = prefetch_generic_relations(
+        Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")[n * PAGE_SIZE : (n + 1) * PAGE_SIZE]
+    )
 
     return [
         case_record_json(audit) if audit.verb == AuditType.CREATED.value else case_activity_json(audit) for audit in qs
