@@ -39,7 +39,7 @@ class FlagsListCreateView(ListCreateAPIView):
         level = self.request.GET.get("level")
         priority = self.request.GET.get("priority")
         team = self.request.GET.get("team")
-        only_show_deactivated = optional_str_to_bool(self.request.GET.get("only_show_deactivated", False))
+        only_show_deactivated = optional_str_to_bool(self.request.GET.get("only_show_deactivated"))
 
         if name:
             flags = flags.filter(name__icontains=name)
