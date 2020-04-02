@@ -90,11 +90,28 @@ def get_ordered_flags(case: Case, team: Team):
     goods_flags = get_goods_flags(case)
     destination_flags = get_destination_flags(case)
 
-    tgf, ogf = sort_flags_by_team_and_name(CaseListFlagSerializer(set(goods_flags), many=True).data, team)
-    tdf, odf = sort_flags_by_team_and_name(CaseListFlagSerializer(set(destination_flags), many=True).data, team)
-    tcf, ocf = sort_flags_by_team_and_name(CaseListFlagSerializer(case_flags, many=True).data, team)
-    tof, oof = sort_flags_by_team_and_name(CaseListFlagSerializer(org_flags, many=True).data, team)
-    return tgf + tdf + tcf + tof + ogf + odf + ocf + oof
+    team_goods_flags, other_goods_flags = sort_flags_by_team_and_name(
+        CaseListFlagSerializer(set(goods_flags), many=True).data, team
+    )
+    team_destination_flags, other_destination_flags = sort_flags_by_team_and_name(
+        CaseListFlagSerializer(set(destination_flags), many=True).data, team
+    )
+    team_case_flags, other_case_flags = sort_flags_by_team_and_name(
+        CaseListFlagSerializer(case_flags, many=True).data, team
+    )
+    team_organisation_flags, other_organisation_flags = sort_flags_by_team_and_name(
+        CaseListFlagSerializer(org_flags, many=True).data, team
+    )
+    return (
+        team_goods_flags
+        + team_destination_flags
+        + team_case_flags
+        + team_organisation_flags
+        + other_goods_flags
+        + other_destination_flags
+        + other_case_flags
+        + other_organisation_flags
+    )
 
 
 def sort_flags_by_team_and_name(flag_data, team):
