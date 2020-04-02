@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.generics import ListCreateAPIView
 
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
@@ -48,7 +49,9 @@ class Licences(ListCreateAPIView):
             licences = licences.filter(application__reference_code__contains=reference)
 
         if clc:
-            licences = licences.filter(application__goods__good__control_code=clc)
+            licences = licences.filter(
+                Q(application__goods__good__control_code=clc) | Q(application__goods_type__control_code=clc)
+            )
 
         if country:
             licences = licences.filter(
