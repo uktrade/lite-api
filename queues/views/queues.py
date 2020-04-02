@@ -32,7 +32,6 @@ class QueuesList(APIView):
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@permission_classes((permissions.AllowAny,))
 class QueueDetail(APIView):
     authentication_classes = (GovAuthentication,)
 
