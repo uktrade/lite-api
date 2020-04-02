@@ -4,10 +4,18 @@ from datetime import timedelta
 import requests
 from rest_framework import status
 
-
 BANK_HOLIDAY_API = "https://www.gov.uk/bank-holidays.json"
 BACKUP_FILE_NAME = "bank-holidays.csv"
 LOG_PREFIX = "update_cases_sla background task:"
+
+SECONDS_IN_DAY = 86400
+SECONDS_IN_HOUR = 3600
+SECONDS_IN_MINUTE = 60
+
+
+def get_total_seconds_from_date_time(date):
+    # datetime's time in seconds
+    return (date.hour * SECONDS_IN_HOUR) + (date.minute * SECONDS_IN_MINUTE) + date.second
 
 
 def is_working_day(date):
@@ -25,27 +33,26 @@ def working_days_in_range(start_date, end_date):
 
 
 def working_hours_in_range(start_date, end_date):
-    hours_count = 0
+    seconds_count = (end_date - start_date).total_seconds()
 
-    # If start_date is a working day, add the remaining hours left on that day
-    if is_working_day(start_date):
-        if start_date.date() == end_date.date():
-            return (end_date - start_date).seconds // 3600
-        hours_count += 24 - (start_date.seconds // 3600)
+    # If start_date is a non-working day, subtract the total seconds that were remaining on that day
+    if not is_working_day(start_date):
+        seconds_count -= SECONDS_IN_DAY - get_total_seconds_from_date_time(start_date)
 
-    # If end_date is a working day, add the hours on that day
-    if is_working_day(end_date):
-        hours_count += end_date.seconds // 3600
+    # If end_date is a non-working day, subtract the total seconds that occurred on that day
+    if not is_working_day(end_date):
+        seconds_count -= get_total_seconds_from_date_time(end_date)
 
     elapsed_days = end_date.day - start_date.day
 
-    # Add 24 hours for every working day that elapsed between (but not including) end_date and start_date
+    # Subtract 24 hours for every non-working day that occurred between (but not including) end_date and start_date
     for elapsed_day in range(1, elapsed_days):
         date = start_date + timedelta(days=elapsed_day)
-        if is_working_day(date):
-            hours_count += 24
+        if not is_working_day(date):
+            seconds_count -= SECONDS_IN_DAY
 
-    return hours_count
+    # Divide by number of seconds in an hour and cast to an int to floor value with no decimal points
+    return int(seconds_count / SECONDS_IN_HOUR)
 
 
 def get_backup_bank_holidays():
