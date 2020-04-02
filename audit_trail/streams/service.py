@@ -1,3 +1,6 @@
+"""
+MVP activity stream. To be extended appropriately as requirements are drawn up.
+"""
 from django.conf import settings
 
 from audit_trail.models import Audit
@@ -32,6 +35,9 @@ VERB_MAPPING = {
 
 
 def case_record_json(audit):
+    """
+    Creates an activity stream compatible record for an application
+    """
     case = audit.action_object or audit.target
     if case is None:
         # Some applications in draft status are being deleted
@@ -52,6 +58,9 @@ def case_record_json(audit):
 
 
 def case_activity_json(audit):
+    """
+    Creates an activity stream compatible record for an application activity
+    """
     case = audit.target
     if case is None:
         # Some applications in draft status are being deleted
@@ -77,6 +86,9 @@ def case_activity_json(audit):
 
 
 def get_stream(n):
+    """
+    Returns a paginated stream of activities.
+    """
     PAGE_SIZE = settings.STREAM_PAGE_SIZE
 
     qs = prefetch_generic_relations(
