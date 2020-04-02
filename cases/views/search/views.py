@@ -51,7 +51,7 @@ class CasesSearchView(generics.ListAPIView):
 
         service.populate_is_recently_updated(cases)
 
-        queue = next((q for q in queues if str(q["id"]) == str(queue_id)), queues[0])
+        queue = next((q for q in queues if str(q["id"]) == str(queue_id)))
 
         statuses = service.get_case_status_list()
         case_types = service.get_case_type_type_list()
