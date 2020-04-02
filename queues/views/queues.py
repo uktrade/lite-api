@@ -40,7 +40,7 @@ class QueueDetail(APIView):
         Retrieve a queue instance (be that a system queue or a team queue)
         """
         queue = next(
-            (queue for queue in SearchQueue.system(user=request.user) if queue.id == str(pk)), None
+            (queue for queue in SearchQueue.get_system_queues(user=request.user) if queue.id == str(pk)), None
         ) or get_queue(pk=pk)
 
         serializer = QueueViewSerializer(queue)

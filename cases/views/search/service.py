@@ -26,10 +26,6 @@ def get_case_type_type_list() -> List[Dict]:
     return CaseTypeEnum.case_types_to_representation()
 
 
-def get_search_queues(user):
-    return SearchQueue.all(user=user)
-
-
 def get_gov_users_list():
     return [
         {"key": full_name.lower(), "value": full_name}

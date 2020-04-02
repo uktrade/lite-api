@@ -5,10 +5,12 @@ from cases.enums import CaseTypeEnum
 from cases.models import Case
 from cases.serializers import CaseListSerializer
 from cases.views.search import service
-from cases.views.search.serializers import SearchQueueSerializer
+from cases.views.search.queue import SearchQueue
+from cases.views.search.serializers import queue_serializer
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, NON_WORK_QUEUES
+from queues.models import Queue
 
 
 class CasesSearchView(generics.ListAPIView):
@@ -44,14 +46,14 @@ class CasesSearchView(generics.ListAPIView):
                 include_hidden=include_hidden,
             )
         )
-        queues = SearchQueueSerializer(service.get_search_queues(user=request.user), many=True).data
+        queues = queue_serializer(SearchQueue.get_all_queues(user=request.user))
         cases = CaseListSerializer(
             page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
         ).data
 
         service.populate_is_recently_updated(cases)
 
-        queue = next(q for q in queues if q["id"] == queue_id)
+        queue = next((q for q in queues if str(q["id"]) == str(queue_id)), queues[0])
 
         statuses = service.get_case_status_list()
         case_types = service.get_case_type_type_list()
