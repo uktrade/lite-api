@@ -32,6 +32,12 @@ def working_days_in_range(start_date, end_date):
 
 
 def working_hours_in_range(start_date, end_date):
+    """
+    Use seconds to evaluate accurately how many hours have elapsed:
+    start_date = 2020-04-01 00:59:59
+    end_date = 2020-04-01 01:00:00
+    end_date.hour - start_date.hour would result with 1hr if minutes and seconds were ignored
+    """
     seconds_count = (end_date - start_date).total_seconds()
 
     # If start_date is a non-working day, subtract the total seconds that were remaining on that day
