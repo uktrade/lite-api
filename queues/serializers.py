@@ -8,7 +8,7 @@ from teams.models import Team
 from teams.serializers import TeamSerializer
 
 
-class QueueView2Serializer(serializers.ModelSerializer):
+class CasesQueueViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Queue
         fields = ("id", "name")
