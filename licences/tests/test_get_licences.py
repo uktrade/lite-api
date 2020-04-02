@@ -37,12 +37,16 @@ class GetLicencesTests(DataTestClient):
         licence = response_data[0]
         destination = self.standard_application.end_user.party
         good = self.standard_application.goods.first().good
-        self.assertEqual(licence["application"]["destinations"]["name"], destination.name)
+        good_on_app = good.goods_on_application.first()
+        self.assertEqual(licence["application"]["destinations"][0]["name"], destination.name)
         self.assertEqual(
-            licence["application"]["destinations"]["country"]["id"], destination.country_id,
+            licence["application"]["destinations"][0]["country"]["id"], destination.country_id,
         )
         self.assertEqual(
             licence["application"]["goods"][0]["good"]["description"], good.description,
+        )
+        self.assertEqual(
+            licence["application"]["goods"][0]["quantity"], good_on_app.quantity,
         )
         self.assertEqual(
             licence["application"]["goods"][0]["good"]["control_code"], good.control_code,
