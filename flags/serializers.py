@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
+from applications.serializers.serializer_helper import validate_field
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from flags.enums import FlagLevels, FlagStatuses
 from flags.models import Flag, FlaggingRule
@@ -73,6 +74,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
     matching_value = serializers.CharField(
         max_length=100, error_messages={"blank": strings.FlaggingRules.NO_MATCHING_VALUE}
     )
+    is_for_verified_goods_only = serializers.BooleanField(required=False)
 
     def get_flag_name(self, instance):
         return instance.flag.name
@@ -87,6 +89,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
             "flag_name",
             "status",
             "matching_value",
+            "is_for_verified_goods_only",
         )
         validators = [
             UniqueTogetherValidator(
@@ -102,3 +105,8 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         instance.flag = validated_data.get("flag", instance.flag)
         instance.save()
         return instance
+
+    def validate(self, data):
+        if data['level'] == 'Good' and 'is_for_verified_goods_only' not in data:
+            raise serializers.ValidationError({'is_for_verified_goods_only': strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY})
+        return super().validate(data)

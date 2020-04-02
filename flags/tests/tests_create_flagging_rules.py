@@ -48,7 +48,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.gov_user.save()
 
         flag = self.create_flag("test", "Good", self.team)
-        data = {"level": "Good", "flag": str(flag.id), "matching_value": control_code}
+        data = {"level": "Good", "flag": str(flag.id), "matching_value": control_code, "is_for_verified_goods_only": 'True'}
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()
@@ -57,6 +57,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(response_data["level"], "Good")
         self.assertEqual(response_data["flag"], str(flag.id))
         self.assertEqual(response_data["matching_value"], control_code)
+        self.assertTrue(response_data["is_for_verified_goods_only"])
 
         rule = FlaggingRule.objects.get()
         self.assertEqual(rule.level, "Good")
@@ -104,3 +105,23 @@ class FlaggingRulesCreateTest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.FlaggingRules.DUPLICATE_RULE, response.json()["errors"]["non_field_errors"])
+
+    def test_missing_data_create_good_rule_failure(self):
+        application = self.create_standard_application_case(self.organisation)
+        control_code = (
+            GoodOnApplication.objects.filter(application_id=application.id)
+                .values_list("good__control_code", flat=True)
+                .first()
+        )
+
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
+
+        flag = self.create_flag("test", "Good", self.team)
+        data = {"level": "Good", "flag": str(flag.id), "matching_value": control_code}
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data['errors']['is_for_verified_goods_only'], [strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY])
