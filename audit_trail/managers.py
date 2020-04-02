@@ -35,9 +35,6 @@ class AuditManager(GFKManager):
 
                 return audit
 
-            # For audits that should not appear in a feed
-            kwargs["visible"] = False
-
         if "ignore_case_status" in kwargs:
             kwargs.pop("ignore_case_status")
         return super(AuditManager, self).create(*args, **kwargs)
