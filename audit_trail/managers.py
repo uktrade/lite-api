@@ -14,7 +14,7 @@ class AuditManager(GFKManager):
         """
         Exclude hidden audits from regular business flow
         """
-        return AuditQuerySet(self.model).exclude(hidden=True)
+        return AuditQuerySet(self.model)
 
     get_queryset = get_query_set
 
@@ -38,18 +38,8 @@ class AuditManager(GFKManager):
 
                 return audit
 
-            kwargs["hidden"] = True
+            return None
 
         if "ignore_case_status" in kwargs:
             kwargs.pop("ignore_case_status")
         return super(AuditManager, self).create(*args, **kwargs)
-
-
-class StreamManager(GFKManager):
-    def get_query_set(self):
-        """
-        Streams include hidden audits
-        """
-        return AuditQuerySet(self.model)
-
-    get_queryset = get_query_set

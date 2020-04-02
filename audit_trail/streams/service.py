@@ -92,7 +92,7 @@ def get_stream(n):
     PAGE_SIZE = settings.STREAM_PAGE_SIZE
 
     qs = prefetch_generic_relations(
-        Audit.streams.filter(verb__in=STREAMED_AUDITS).order_by("created_at")[n * PAGE_SIZE : (n + 1) * PAGE_SIZE]
+        Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")[n * PAGE_SIZE : (n + 1) * PAGE_SIZE]
     )
 
     stream = []

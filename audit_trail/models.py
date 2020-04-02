@@ -7,7 +7,7 @@ from django.utils import timesince
 from django.utils.translation import ugettext as _
 from jsonfield import JSONField
 
-from audit_trail.managers import AuditManager, StreamManager
+from audit_trail.managers import AuditManager
 from common.models import TimestampableModel
 from users.models import GovNotification
 
@@ -47,13 +47,9 @@ class Audit(TimestampableModel):
     action_object_object_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     action_object = GenericForeignKey("action_object_content_type", "action_object_object_id")
 
-    hidden = models.NullBooleanField()
-
     payload = JSONField()
 
     objects = AuditManager()
-
-    streams = StreamManager()
 
     notifications = GenericRelation(GovNotification, related_query_name="audit")
 
