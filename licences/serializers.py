@@ -112,5 +112,5 @@ class LicenceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Licence
-        fields = ("application",)
+        fields = ("id", "application",)
         ordering = ["created_at"]
