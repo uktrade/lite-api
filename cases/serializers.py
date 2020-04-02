@@ -151,7 +151,7 @@ class CaseListSerializer(serializers.Serializer):
     )
     assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
     status = serializers.SerializerMethodField()
-    # flags = serializers.SerializerMethodField()
+    flags = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
