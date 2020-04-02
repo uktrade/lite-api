@@ -40,9 +40,9 @@ def working_hours_in_range(start_date, end_date):
     elapsed_days = end_date.day - start_date.day
 
     # Add 24 hours for every working day that elapsed between (but not including) end_date and start_date
-    for i in range(1, elapsed_days):
-        day = start_date + timedelta(days=i)
-        if is_working_day(day):
+    for elapsed_day in range(1, elapsed_days):
+        date = start_date + timedelta(days=elapsed_day)
+        if is_working_day(date):
             hours_count += 24
 
     return hours_count

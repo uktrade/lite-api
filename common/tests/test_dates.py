@@ -48,9 +48,13 @@ class DatesTests(DataTestClient):
 
     @parameterized.expand(
         [
+            # Start day = Wednesday(00:00), End day = Friday(00:00), Expected hours = 48
             (datetime(2020, 4, 1), datetime(2020, 4, 3), 48),
+            # Start day = Wednesday(14:00), End day = Friday(14:00), Expected hours = 48
             (datetime(2020, 4, 1, 14), datetime(2020, 4, 3, 14), 48),
+            # Start day = Wednesday(14:00), End day = Friday(00:00), Expected hours = 34
             (datetime(2020, 4, 1, 14), datetime(2020, 4, 3), 34),
+            # Start day = Wednesday(00:00), End day = Friday(14:00), Expected hours = 62
             (datetime(2020, 4, 1), datetime(2020, 4, 3, 14), 62),
         ]
     )
@@ -61,22 +65,30 @@ class DatesTests(DataTestClient):
 
     @parameterized.expand(
         [
+            # Start day = Friday(00:00), End day = Sunday(00:00), Expected hours = 24
             (datetime(2020, 4, 3), datetime(2020, 4, 5), 24),
+            # Start day = Friday(00:00), End day = Monday(00:00), Expected hours = 24
             (datetime(2020, 4, 3), datetime(2020, 4, 6), 24),
+            # Start day = Friday(00:00), End day = Monday(01:00), Expected hours = 25
             (datetime(2020, 4, 3), datetime(2020, 4, 6, 1), 25),
+            # Start day = Friday(00:00), End day = Tuesday(01:00), Expected hours = 49
             (datetime(2020, 4, 3), datetime(2020, 4, 7, 1), 49),
         ]
     )
-    def test_num_working_hours_over_weekend(self, start_date, end_date, expected_result):
+    def test_num_working_hours_over_weekends(self, start_date, end_date, expected_result):
         result = working_hours_in_range(start_date, end_date)
 
         self.assertEqual(result, expected_result)
 
     @parameterized.expand(
         [
+            # Start day = Good Friday(00:00), End day = Day after Easter Monday(00:00), Expected hours = 0
             (datetime(2020, 4, 10), datetime(2020, 4, 14), 0),
+            # Start day = Day before Good Friday(00:00), End day = Day after Easter Monday(00:00), Expected hours = 24
             (datetime(2020, 4, 9), datetime(2020, 4, 14), 24),
+            # Start day = Day before Good Friday(12:00), End day = Day after Easter Monday(00:00), Expected hours = 12
             (datetime(2020, 4, 9, 12), datetime(2020, 4, 14), 12),
+            # Start day = Day before Good Friday(12:00), End day = Day after Easter Monday(15:00), Expected hours = 27
             (datetime(2020, 4, 9, 12), datetime(2020, 4, 14, 15), 27),
         ]
     )
