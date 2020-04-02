@@ -12,7 +12,6 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from common.dates import working_days_in_range, number_of_days_since
-from cases.views.search.queue import SearchQueue
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
 from users.models import GovUser
@@ -24,10 +23,6 @@ def get_case_status_list() -> List[Dict]:
 
 def get_case_type_type_list() -> List[Dict]:
     return CaseTypeEnum.case_types_to_representation()
-
-
-def get_search_queues(user):
-    return SearchQueue.all(user=user)
 
 
 def get_gov_users_list():
