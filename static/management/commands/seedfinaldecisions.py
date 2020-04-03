@@ -12,7 +12,7 @@ class Command(SeedCommand):
 
     help = "Seeds all final decisions"
     info = "Seeding final decisions"
-    success = "Successfully seeded Final decisions"
+    success = "Successfully seeded final decisions"
     seed_command = "seedfinaldecisions"
 
     @transaction.atomic
