@@ -68,10 +68,7 @@ class GoodOnLicenceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodOnApplication
-        fields = (
-            "good",
-            "quantity",
-        )
+        fields = ("good",)
 
 
 class CountriesLicenceSerializer(serializers.ModelSerializer):
