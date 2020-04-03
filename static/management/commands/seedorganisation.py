@@ -33,7 +33,7 @@ class Command(SeedCommand):
         parser.add_argument("--sites", help="Total number of sites to seed", type=int)
         parser.add_argument("--users", help="Total number of users to seed", type=int)
         parser.add_argument(
-            "--super_user", help="Email of an ExporterUser to set as a Super User on the Organisation", type=str
+            "--super-user", help="Email of an ExporterUser to set as a Super User on the Organisation", type=str
         )
 
     @transaction.atomic
@@ -74,7 +74,7 @@ class Command(SeedCommand):
     @classmethod
     def _get_exporter_super_user(cls, super_user):
         try:
-            ExporterUser.objects.get(email__exact=super_user)
+            return ExporterUser.objects.get(email__exact=super_user)
         except ExporterUser.DoesNotExist:
             raise Exception(f"An ExporterUser with email '{super_user}' does not exist")
 
