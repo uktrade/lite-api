@@ -10,7 +10,7 @@ from static.management.SeedCommand import SeedCommand
 from faker import Faker
 
 from test_helpers.helpers import create_exporter_users
-from users.models import ExporterUser
+from users.models import ExporterUser, UserOrganisationRelationship
 
 faker = Faker()
 faker.add_provider(OrganisationProvider)
@@ -28,12 +28,12 @@ class Command(SeedCommand):
 
     def add_arguments(self, parser):
         # Named (optional) arguments
-        parser.add_argument("--name", help="Name of organisation to seed", type=str)
-        parser.add_argument("--type", help=f"Type of organisation to seed: {str(OrganisationType.as_list())}", type=str)
-        parser.add_argument("--sites", help="Total number of sites to seed", type=int)
-        parser.add_argument("--users", help="Total number of users to seed", type=int)
+        parser.add_argument("--name", help="Name of Organisation to seed", type=str)
+        parser.add_argument("--type", help=f"Type of Organisation to seed: {str(OrganisationType.as_list())}", type=str)
+        parser.add_argument("--sites", help="Total number of Sites to seed", type=int)
+        parser.add_argument("--users", help="Total number of Exporter Users to seed", type=int)
         parser.add_argument(
-            "--super-user", help="Email of an ExporterUser to set as a Super User on the Organisation", type=str
+            "--super-user", help="Email of an Exporter User to set as a Super User on the Organisation", type=str
         )
 
     @transaction.atomic
@@ -53,12 +53,8 @@ class Command(SeedCommand):
 
         organisation = OrganisationFactory(name=org_name, type=org_type)
 
-        # Set the Organisation's Exporter Super User or create one
-        super_user = (
-            cls._get_exporter_super_user(super_user)
-            if super_user
-            else create_exporter_users(organisation, 1, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
-        )
+        # Set the Organisation's Exporter Super User
+        super_user = cls._set_organisation_super_user(organisation, super_user)
 
         exporter_users = [super_user]
         # Since a Super User has already been created and/or set, subtract 1 from total number of users to seed
@@ -72,11 +68,20 @@ class Command(SeedCommand):
         return [("organisation", organisation), ("sites", sites), ("exporter_users", exporter_users)]
 
     @classmethod
-    def _get_exporter_super_user(cls, super_user):
+    def _set_organisation_super_user(cls, organisation, super_user):
+        if not super_user:
+            return create_exporter_users(organisation, 1, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+
         try:
-            return ExporterUser.objects.get(email__exact=super_user)
+            exporter_user = ExporterUser.objects.get(email__exact=super_user)
         except ExporterUser.DoesNotExist:
             raise Exception(f"An ExporterUser with email '{super_user}' does not exist")
+
+        UserOrganisationRelationship.objects.create(
+            organisation=organisation, user=exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID
+        )
+
+        return exporter_user
 
     @classmethod
     def _print_organisation_to_console(cls, organisation, org_super_user):
