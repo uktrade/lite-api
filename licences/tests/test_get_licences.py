@@ -149,7 +149,7 @@ class GetLicencesFilterTests(DataTestClient):
         self.assertEqual(response_data[0]["id"], str(self.standard_application_licence.id))
 
     def test_filter_by_reference(self):
-        response = self.client.get(self.url + "?reference=GBSIEL/2020/0000001/P", **self.exporter_headers)
+        response = self.client.get(self.url + "?reference=" + self.standard_application.name, **self.exporter_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(len(response_data), 1)

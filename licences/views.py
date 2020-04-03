@@ -47,7 +47,7 @@ class Licences(ListCreateAPIView):
             licences = licences.filter(decisions=Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED))
 
         if reference:
-            licences = licences.filter(application__reference_code__contains=reference)
+            licences = licences.filter(application__name__contains=reference)
 
         if clc:
             licences = licences.filter(
