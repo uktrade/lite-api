@@ -52,6 +52,7 @@ class GoodLicenceListSerializer(serializers.ModelSerializer):
             "description",
             "control_code",
         )
+        read_only_fields = fields
 
 
 class GoodsTypeOnLicenceListSerializer(serializers.ModelSerializer):
@@ -61,6 +62,7 @@ class GoodsTypeOnLicenceListSerializer(serializers.ModelSerializer):
             "description",
             "control_code",
         )
+        read_only_fields = fields
 
 
 class GoodOnLicenceListSerializer(serializers.ModelSerializer):
@@ -69,6 +71,7 @@ class GoodOnLicenceListSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodOnApplication
         fields = ("good",)
+        read_only_fields = fields
 
 
 class CountriesLicenceSerializer(serializers.ModelSerializer):
@@ -77,6 +80,7 @@ class CountriesLicenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = CountryOnApplication
         fields = ("country",)
+        read_only_fields = fields
 
 
 class PartyLicenceSerializer(serializers.ModelSerializer):
@@ -85,6 +89,7 @@ class PartyLicenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Party
         fields = ("name", "country")
+        read_only_fields = fields
 
 
 class DocumentLicenceListSerializer(serializers.ModelSerializer):
@@ -96,6 +101,7 @@ class DocumentLicenceListSerializer(serializers.ModelSerializer):
             "advice_type",
             "id",
         )
+        read_only_fields = fields
 
 
 class ApplicationLicenceListSerializer(serializers.ModelSerializer):
@@ -107,6 +113,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseApplication
         fields = ("id", "name", "reference_code", "destinations", "goods", "status", "documents")
+        read_only_fields = fields
 
     def get_documents(self, instance):
         documents = GeneratedCaseDocument.objects.filter(
@@ -140,4 +147,5 @@ class LicenceListSerializer(serializers.ModelSerializer):
             "id",
             "application",
         )
+        read_only_fields = fields
         ordering = ["created_at"]
