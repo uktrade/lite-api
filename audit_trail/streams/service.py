@@ -41,9 +41,6 @@ def case_record_json(case_id, last_created_at, countries):
     A record is only produced for a case with the last activity seen for a case.
     """
     case = Case.objects.select_related("status", "case_officer", "case_type").get(id=case_id)
-    if case is None:
-        # Some applications in draft status are being deleted
-        return {}
     return {
         "id": "dit:lite:case:{case_type}:{id}:{verb}".format(
             case_type=case.case_type.sub_type, id=case.id, verb="create"
@@ -69,7 +66,7 @@ def case_activity_json(audit, case_type):
     Creates an activity stream compatible record for an application activity
     """
     case = audit.target
-    if case is None:
+    if not case:
         # Some applications in draft status are being deleted
         return {}
     data_type = TYPE_MAPPING[AuditType(audit.verb)]
