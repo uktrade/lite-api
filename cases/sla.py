@@ -19,6 +19,7 @@ LOG_PREFIX = "update_cases_sla background task:"
 
 STANDARD_APPLICATION_TARGET_DAYS = 20
 OPEN_APPLICATION_TARGET_DAYS = 60
+HMRC_QUERY_TARGET_DAYS = 2
 MOD_CLEARANCE_TARGET_DAYS = 30
 
 
@@ -27,6 +28,8 @@ def get_application_target_sla(_type):
         return STANDARD_APPLICATION_TARGET_DAYS
     elif _type == CaseTypeSubTypeEnum.OPEN:
         return OPEN_APPLICATION_TARGET_DAYS
+    elif _type == CaseTypeSubTypeEnum.HMRC:
+        return HMRC_QUERY_TARGET_DAYS
     elif _type in [CaseTypeSubTypeEnum.EXHIBITION, CaseTypeSubTypeEnum.F680, CaseTypeSubTypeEnum.GIFTING]:
         return MOD_CLEARANCE_TARGET_DAYS
 
