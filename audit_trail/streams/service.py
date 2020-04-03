@@ -47,7 +47,6 @@ def get_stream_for_obj(obj):
     return audit_trail_qs
 
 
-
 def case_record_json(audit):
     """
     Creates an activity stream compatible record for an application
