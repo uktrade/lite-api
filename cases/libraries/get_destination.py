@@ -90,16 +90,16 @@ def get_ordered_flags(case: Case, team: Team):
     goods_flags = get_goods_flags(case)
     destination_flags = get_destination_flags(case)
 
-    team_goods_flags, other_goods_flags = sort_flags_by_team_and_name(
+    team_goods_flags, other_goods_flags = sort_flags_by_team_and_priority(
         CaseListFlagSerializer(set(goods_flags), many=True).data, team
     )
-    team_destination_flags, other_destination_flags = sort_flags_by_team_and_name(
+    team_destination_flags, other_destination_flags = sort_flags_by_team_and_priority(
         CaseListFlagSerializer(set(destination_flags), many=True).data, team
     )
-    team_case_flags, other_case_flags = sort_flags_by_team_and_name(
+    team_case_flags, other_case_flags = sort_flags_by_team_and_priority(
         CaseListFlagSerializer(case_flags, many=True).data, team
     )
-    team_organisation_flags, other_organisation_flags = sort_flags_by_team_and_name(
+    team_organisation_flags, other_organisation_flags = sort_flags_by_team_and_priority(
         CaseListFlagSerializer(org_flags, many=True).data, team
     )
     return (
@@ -114,7 +114,7 @@ def get_ordered_flags(case: Case, team: Team):
     )
 
 
-def sort_flags_by_team_and_name(flag_data, team):
+def sort_flags_by_team_and_priority(flag_data, team):
     flag_data = sorted(flag_data, key=lambda x: -x["priority"])
 
     if not team:
