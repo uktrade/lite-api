@@ -106,7 +106,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = ("id", "reference_code", "destinations", "goods", "status", "documents")
+        fields = ("id", "name", "reference_code", "destinations", "goods", "status", "documents")
 
     def get_documents(self, instance):
         documents = GeneratedCaseDocument.objects.filter(
