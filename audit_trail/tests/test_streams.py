@@ -56,7 +56,9 @@ class AuditTrailStreamTestCase(DataTestClient):
                     "dit:countries": [],
                     "dit:status": self.case.status.status,
                     "dit:submittedDate": str(self.case.submitted_at),
-                    "id": "dit:lite:case:application:{id}".format(id=self.case.id),
+                    "id": "dit:lite:case:{case_type}:{id}".format(
+                        case_type=self.case.case_type.sub_type, id=self.case.id
+                    ),
                     "type": ["dit:lite:case", "dit:lite:record", "dit:lite:case:application"],
                 },
                 "published": str(audit.created_at),

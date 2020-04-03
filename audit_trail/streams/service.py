@@ -109,7 +109,6 @@ def get_stream(n):
     """
     Returns a paginated stream of activities.
     """
-
     qs = prefetch_generic_relations(
         Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")[
             n * settings.STREAM_PAGE_SIZE : (n + 1) * settings.STREAM_PAGE_SIZE
@@ -148,4 +147,5 @@ def get_stream(n):
                 d["country__name"] for d in countries_on_applications if d["application_id"] == audit.target_object_id
             ]
             stream.append(case_record_json(audit.target_object_id, audit.created_at, countries))
+
     return stream
