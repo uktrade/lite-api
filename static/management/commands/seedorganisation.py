@@ -1,5 +1,3 @@
-from typing import List
-
 from django.db import transaction
 
 from conf.constants import Roles
@@ -67,7 +65,7 @@ class Command(SeedCommand):
         sites += [SiteFactory(organisation=organisation) for _ in range(no_of_sites - 1)]
 
         cls._print_organisation_to_console(organisation, primary_user)
-        return cls._create_org_obj(organisation, sites, exporter_users, primary_user)
+        return organisation, sites, exporter_users, primary_user
 
     @classmethod
     def _set_organisation_primary_user(cls, organisation: Organisation, primary_user: str):
@@ -93,25 +91,3 @@ class Command(SeedCommand):
             primary_user_id=str(primary_user.id),
         )
         cls.print_created_or_updated(Organisation, organisation_representation, is_created=True)
-
-    @classmethod
-    def _create_org_obj(
-        cls, organisation: Organisation, sites: List[Site], users: List[ExporterUser], primary_user: ExporterUser
-    ):
-        """
-        Returns an object containing an Organisation's properties, Sites and Users
-        """
-
-        class Org(object):
-            pass
-
-        org = Org()
-        org.primary_user = primary_user
-        org.sites = sites
-        org.users = users
-
-        for field in organisation._meta.fields:
-            key = field.name
-            org.key = getattr(organisation, key)
-
-        return org
