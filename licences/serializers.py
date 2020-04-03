@@ -1,13 +1,12 @@
 from rest_framework import serializers
 
 from applications.enums import LicenceDuration
-from applications.models import BaseApplication, GoodOnApplication, PartyOnApplication, CountryOnApplication
+from applications.models import BaseApplication, GoodOnApplication, CountryOnApplication
 from cases.enums import AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
 from conf.serializers import CountrySerializerField, KeyValueChoiceField
 from goods.models import Good
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer
 from licences.models import Licence
 from lite_content.lite_api import strings
 from parties.models import Party

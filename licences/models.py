@@ -3,7 +3,6 @@ import uuid
 from django.db import models
 
 from applications.models import BaseApplication
-from cases.models import FinalAdvice
 from common.models import TimestampableModel
 from static.decisions.models import Decision
 
