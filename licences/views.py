@@ -1,6 +1,7 @@
 from django.db.models import Q
 from rest_framework.generics import ListCreateAPIView
 
+from applications.models import CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
@@ -51,11 +52,16 @@ class Licences(ListCreateAPIView):
         if clc:
             licences = licences.filter(
                 Q(application__goods__good__control_code=clc) | Q(application__goods_type__control_code=clc)
-            )
+            ).distinct()
 
         if country:
             licences = licences.filter(
-                application__parties__party__country_id=country, application__parties__party__type=PartyType.END_USER
+                Q(application__parties__party__country_id=country, application__parties__party__type=PartyType.END_USER)
+                | Q(
+                    application__id__in=CountryOnApplication.objects.filter(country_id=country).values_list(
+                        "application", flat=True
+                    )
+                )
             )
 
         if end_user:

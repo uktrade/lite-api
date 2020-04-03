@@ -1,9 +1,13 @@
 from django.urls import reverse
 from rest_framework import status
 
+from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType
 from licences.views import LicenceType
+from static.countries.models import Country
 from static.decisions.models import Decision
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 
 
@@ -156,10 +160,10 @@ class GetLicencesFilterTests(DataTestClient):
 
     def test_filter_by_clc_standard_application(self):
         good = self.standard_application.goods.first().good
-        good.control_code = "ML1a"
+        good.control_code = "ML17"
         good.save()
 
-        response = self.client.get(self.url + "?clc=ML1a", **self.exporter_headers)
+        response = self.client.get(self.url + "?clc=ML17", **self.exporter_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(len(response_data), 1)
@@ -171,6 +175,50 @@ class GetLicencesFilterTests(DataTestClient):
         good.save()
 
         response = self.client.get(self.url + "?clc=ML1b", **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.open_application_licence.id))
+
+    def test_filter_by_country_standard_application(self):
+        country = Country.objects.first()
+        end_user = self.standard_application.end_user.party
+        end_user.country = country
+        end_user.save()
+
+        response = self.client.get(self.url + "?country=" + str(country.id), **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.standard_application_licence.id))
+
+    def test_filter_by_country_open_application(self):
+        country = Country.objects.first()
+        country_on_app = CountryOnApplication.objects.get(application=self.open_application)
+        country_on_app.country = country
+        country_on_app.save()
+
+        response = self.client.get(self.url + "?country=" + str(country.id), **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.open_application_licence.id))
+
+    def test_filter_by_end_user_standard_application(self):
+        # End user filter is N/A for open applications
+        end_user_name = self.standard_application.end_user.party.name
+
+        response = self.client.get(self.url + "?end_user=" + end_user_name, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.standard_application_licence.id))
+
+    def test_filter_by_active_only(self):
+        self.standard_application.status = CaseStatus.objects.get(status=CaseStatusEnum.SURRENDERED)
+        self.standard_application.save()
+
+        response = self.client.get(self.url + "?active_only=True", **self.exporter_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(len(response_data), 1)
