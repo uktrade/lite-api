@@ -45,7 +45,7 @@ def case_record_json(audit):
     countries = Country.objects.filter(countries_on_application__application=case.id).values_list("name", flat=True)
     return {
         "id": "dit:lite:case:application:{id}:{verb}".format(id=case.id, verb="create"),
-        "published": "{ts}".format(ts=case.created_at),
+        "published": "{ts}".format(ts=audit.created_at),
         "object": {
             "type": ["dit:lite:case", "dit:lite:record", "dit:lite:case:application",],
             "id": "dit:lite:case:application:{id}".format(id=case.id),
