@@ -72,9 +72,6 @@ class GetLicencesTests(DataTestClient):
                 licence["application"]["goods"][0]["good"]["description"], good.description,
             )
             self.assertEqual(
-                licence["application"]["goods"][0]["quantity"], good_on_app.quantity,
-            )
-            self.assertEqual(
                 licence["application"]["goods"][0]["good"]["control_code"], good.control_code,
             )
 
