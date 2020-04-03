@@ -105,23 +105,29 @@ def get_stream(n):
     """
 
     qs = prefetch_generic_relations(
-        Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")[n * settings.STREAM_PAGE_SIZE : (n + 1) * settings.STREAM_PAGE_SIZE]
+        Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")[
+            n * settings.STREAM_PAGE_SIZE : (n + 1) * settings.STREAM_PAGE_SIZE
+        ]
     )
 
     case_ids = [value["target_object_id"] for value in qs.values("target_object_id")]
 
     # Prefetch relevant information in bulk to be used for streams
-    countries_on_applications = CountryOnApplication.objects.filter(
-        application__id__in=case_ids
-    ).values("application_id", "country__name")
+    countries_on_applications = CountryOnApplication.objects.filter(application__id__in=case_ids).values(
+        "application_id", "country__name"
+    )
 
     case_types = Case.objects.filter(id__in=case_ids).select_related("case_type").values("id", "case_type__sub_type")
     case_types = {value["id"]: value["case_type__sub_type"] for value in case_types}
 
-    latest_case_audits = Audit.objects.filter(
-        target_object_id__in=case_ids,
-        target_content_type=ContentType.objects.get_for_model(Case),
-    ).order_by("target_object_id", "-created_at").distinct("target_object_id").values_list("id", flat=True)
+    latest_case_audits = (
+        Audit.objects.filter(
+            target_object_id__in=case_ids, target_content_type=ContentType.objects.get_for_model(Case),
+        )
+        .order_by("target_object_id", "-created_at")
+        .distinct("target_object_id")
+        .values_list("id", flat=True)
+    )
 
     # Create stream for each activity
     stream = []
@@ -132,6 +138,8 @@ def get_stream(n):
             stream.append(data)
         if audit.id in latest_case_audits:
             # Only create a case record for last seen activity for a given case.
-            countries = [d["country__name"] for d in countries_on_applications if d["application_id"] == audit.target_object_id]
+            countries = [
+                d["country__name"] for d in countries_on_applications if d["application_id"] == audit.target_object_id
+            ]
             stream.append(case_record_json(audit.target_object_id, audit.created_at, countries))
     return stream
