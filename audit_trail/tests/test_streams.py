@@ -61,7 +61,11 @@ class AuditTrailStreamTestCase(DataTestClient):
                     "id": "dit:lite:case:{case_type}:{id}".format(
                         case_type=self.case.case_type.sub_type, id=self.case.id
                     ),
-                    "type": ["dit:lite:case", "dit:lite:record", "dit:lite:case:application"],
+                    "type": [
+                        "dit:lite:case",
+                        "dit:lite:record",
+                        "dit:lite:case:{case_type}".format(case_type=self.case.case_type.sub_type),
+                    ],
                 },
                 "published": str(audit.created_at),
             },
