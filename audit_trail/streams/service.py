@@ -124,7 +124,9 @@ def get_stream(n):
 
     latest_case_audits = (
         Audit.objects.filter(
-            target_object_id__in=case_ids, target_content_type=ContentType.objects.get_for_model(Case),
+            target_object_id__in=case_ids,
+            target_content_type=ContentType.objects.get_for_model(Case),
+            verb__in=STREAMED_AUDITS
         )
         .order_by("target_object_id", "-created_at")
         .distinct("target_object_id")
