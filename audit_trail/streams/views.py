@@ -5,7 +5,7 @@ from audit_trail.streams.service import get_stream
 
 
 def get_next_page_url(request, n):
-    return request.build_absolute_uri("/").strip("/") + "/audit_trail/streams/{n}".format(n=n)
+    return request.build_absolute_uri("/").strip("/") + "/audit-trail/streams/{n}".format(n=n)
 
 
 @api_view(["GET"])
