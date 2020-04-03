@@ -28,17 +28,17 @@ class LoggingMiddleware:
         request.correlation = correlation or uuid.uuid4().hex
         response = self.get_response(request)
 
-        # if not env("SHOW_VIEW_QUERIES"):
-        #     logging.info(
-        #         {
-        #             "message": "liteolog api",
-        #             "corrID": request.correlation,
-        #             "type": "http response",
-        #             "method": request.method,
-        #             "url": request.path,
-        #             "elapsed_time": time.time() - start,
-        #         }
-        #     )
+        if not env("SHOW_VIEW_QUERIES"):
+            logging.info(
+                {
+                    "message": "liteolog api",
+                    "corrID": request.correlation,
+                    "type": "http response",
+                    "method": request.method,
+                    "url": request.path,
+                    "elapsed_time": time.time() - start,
+                }
+            )
 
         return response
 
