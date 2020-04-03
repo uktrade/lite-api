@@ -6,11 +6,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ErrorDetail
-from rest_framework.generics import (
-    ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView,
-    UpdateAPIView,
-)
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
 
 from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
@@ -146,6 +142,16 @@ class ApplicationList(ListCreateAPIView):
         application = serializer.save()
 
         return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
+
+
+class ApplicationsExisting(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request):
+        organisation = self.request.user.organisation
+        has_licences = Licence.objects.filter(application__organisation=organisation).exists()
+        has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
+        return JsonResponse(data={"licences": has_licences, "applications": has_applications})
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
