@@ -20,6 +20,6 @@ def streams(request, n):
                 {"dit": "https://www.trade.gov.uk/ns/activitystreams/v1"},
             ],
             "orderedItems": stream,
-            **({"next": get_next_page_url(request, n + 1)} if len(stream) == settings.STREAM_PAGE_SIZE else {}),
+            **({"next": get_next_page_url(request, n + 1)} if len(stream) > 0 else {}),
         }
     )
