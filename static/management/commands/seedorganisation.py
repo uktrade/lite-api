@@ -2,7 +2,7 @@ from django.db import transaction
 
 from conf.constants import Roles
 from organisations.enums import OrganisationType
-from organisations.models import Organisation, Site
+from organisations.models import Organisation
 from organisations.tests.factories import OrganisationFactory, SiteFactory
 from organisations.tests.providers import OrganisationProvider
 from static.management.SeedCommand import SeedCommand
@@ -75,7 +75,7 @@ class Command(SeedCommand):
         try:
             exporter_user = ExporterUser.objects.get(email__exact=primary_user)
         except ExporterUser.DoesNotExist:
-            raise Exception(f"An Exporter User with email '{primary_user}' does not exist")
+            raise Exception(f"An Exporter User with email: '{primary_user}' does not exist")
 
         UserOrganisationRelationship.objects.create(
             organisation=organisation, user=exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID
