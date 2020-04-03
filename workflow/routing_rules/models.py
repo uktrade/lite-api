@@ -35,4 +35,4 @@ class RoutingRule(TimestampableModel):
 
     class Meta:
         indexes = [models.Index(fields=["created_at", "tier"])]
-        ordering = ["team__name", "status__workflow_sequence", "tier", "-created_at"]
+        ordering = ["team__name", "tier", "-created_at"]
