@@ -45,10 +45,16 @@ def case_record_json(case_id, last_created_at, countries):
         # Some applications in draft status are being deleted
         return {}
     return {
-        "id": "dit:lite:case:{case_type}:{id}:{verb}".format(case_type=case.case_type.sub_type, id=case.id, verb="create"),
+        "id": "dit:lite:case:{case_type}:{id}:{verb}".format(
+            case_type=case.case_type.sub_type, id=case.id, verb="create"
+        ),
         "published": "{ts}".format(ts=last_created_at),
         "object": {
-            "type": ["dit:lite:case", "dit:lite:record", "dit:lite:case:{case_type}".format(case_type=case.case_type.sub_type)],
+            "type": [
+                "dit:lite:case",
+                "dit:lite:record",
+                "dit:lite:case:{case_type}".format(case_type=case.case_type.sub_type),
+            ],
             "id": "dit:lite:case:{case_type}:{id}".format(case_type=case.case_type.sub_type, id=case.id),
             "dit:submittedDate": "{ts}".format(ts=case.submitted_at or ""),
             "dit:status": "{status}".format(status=case.status.status),
