@@ -2,6 +2,8 @@
 MVP activity stream. To be extended appropriately as requirements are drawn up.
 """
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
@@ -34,6 +36,18 @@ VERB_MAPPING = {
 }
 
 
+def get_stream_for_obj(obj):
+    obj_content_type = ContentType.objects.get_for_model(obj)
+
+    obj_as_action_filter = Q(action_object_object_id=obj.id, action_object_content_type=obj_content_type)
+    obj_as_target_filter = Q(target_object_id=obj.id, target_content_type=obj_content_type)
+
+    audit_trail_qs = Audit.objects.filter(obj_as_action_filter | obj_as_target_filter)
+
+    return audit_trail_qs
+
+
+
 def case_record_json(audit):
     """
     Creates an activity stream compatible record for an application
@@ -43,9 +57,10 @@ def case_record_json(audit):
         # Some applications in draft status are being deleted
         return {}
     countries = Country.objects.filter(countries_on_application__application=case.id).values_list("name", flat=True)
+    last_case_audit = get_stream_for_obj(case).values("created_at").first()
     return {
         "id": "dit:lite:case:application:{id}:{verb}".format(id=case.id, verb="create"),
-        "published": "{ts}".format(ts=audit.created_at),
+        "published": "{ts}".format(ts=last_case_audit["created_at"]),
         "object": {
             "type": ["dit:lite:case", "dit:lite:record", "dit:lite:case:application",],
             "id": "dit:lite:case:application:{id}".format(id=case.id),
