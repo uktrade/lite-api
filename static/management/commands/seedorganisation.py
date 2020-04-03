@@ -18,10 +18,6 @@ faker = Faker()
 faker.add_provider(OrganisationProvider)
 
 
-class Org(object):
-    pass
-
-
 class Command(SeedCommand):
     """
     pipenv run ./manage.py seedorganisation
@@ -53,9 +49,7 @@ class Command(SeedCommand):
         self.seed_organisation(org_name, org_type, no_of_sites, no_of_users, primary_user)
 
     @classmethod
-    def seed_organisation(
-        cls, org_name: str, org_type: str, no_of_sites: int, no_of_users: int, primary_user: str
-    ) -> Org:
+    def seed_organisation(cls, org_name: str, org_type: str, no_of_sites: int, no_of_users: int, primary_user: str):
         if Organisation.objects.filter(name__iexact=org_name).exists():
             raise Exception(f"An Organisation with name: '{org_name}' already exists")
 
@@ -76,7 +70,7 @@ class Command(SeedCommand):
         return cls._create_org_obj(organisation, sites, exporter_users, primary_user)
 
     @classmethod
-    def _set_organisation_primary_user(cls, organisation: Organisation, primary_user: str) -> ExporterUser:
+    def _set_organisation_primary_user(cls, organisation: Organisation, primary_user: str):
         if not primary_user:
             return create_exporter_users(organisation, 1, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
 
@@ -103,14 +97,19 @@ class Command(SeedCommand):
     @classmethod
     def _create_org_obj(
         cls, organisation: Organisation, sites: List[Site], users: List[ExporterUser], primary_user: ExporterUser
-    ) -> Org:
+    ):
         """
         Returns an object containing an Organisation's properties, Sites and Users
         """
+
+        class Org(object):
+            pass
+
         org = Org()
         org.primary_user = primary_user
         org.sites = sites
         org.users = users
+
         for field in organisation._meta.fields:
             key = field.name
             org.key = getattr(organisation, key)
