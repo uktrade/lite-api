@@ -15,10 +15,11 @@ class Flag(TimestampableModel):
     status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
     label = models.CharField(max_length=15, null=True, blank=True)
     colour = models.CharField(choices=FlagColours.choices, default=FlagColours.DEFAULT, max_length=20)
-    priority = models.IntegerField(default=0)
+    priority = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         db_table = "flag"
+        ordering = ["team"]
 
 
 class FlaggingRule(TimestampableModel):
