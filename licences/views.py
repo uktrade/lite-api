@@ -73,4 +73,4 @@ class Licences(ListCreateAPIView):
         if active_only:
             licences = licences.exclude(application__status__in=self.non_active_states)
 
-        return licences
+        return licences.order_by("created_at")
