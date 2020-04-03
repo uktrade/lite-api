@@ -40,16 +40,16 @@ def case_record_json(case_id, last_created_at, countries):
     Creates an activity stream compatible record for an application.
     A record is only produced for a case with the last activity seen for a case.
     """
-    case = Case.objects.select_related("status", "case_officer").get(id=case_id)
+    case = Case.objects.select_related("status", "case_officer", "case_type").get(id=case_id)
     if case is None:
         # Some applications in draft status are being deleted
         return {}
     return {
-        "id": "dit:lite:case:application:{id}:{verb}".format(id=case.id, verb="create"),
+        "id": "dit:lite:case:{case_type}:{id}:{verb}".format(case_type=case.case_type.sub_type, id=case.id, verb="create"),
         "published": "{ts}".format(ts=last_created_at),
         "object": {
-            "type": ["dit:lite:case", "dit:lite:record", "dit:lite:case:application",],
-            "id": "dit:lite:case:application:{id}".format(id=case.id),
+            "type": ["dit:lite:case", "dit:lite:record", "dit:lite:case:{case_type}".format(case_type=case.case_type.sub_type)],
+            "id": "dit:lite:case:{case_type}:{id}".format(case_type=case.case_type.sub_type, id=case.id),
             "dit:submittedDate": "{ts}".format(ts=case.submitted_at or ""),
             "dit:status": "{status}".format(status=case.status.status),
             "dit:caseOfficer": case.case_officer.email if case.case_officer else "",
