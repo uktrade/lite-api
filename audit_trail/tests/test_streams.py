@@ -50,7 +50,9 @@ class AuditTrailStreamTestCase(DataTestClient):
         self.assertEqual(
             stream["orderedItems"][1],
             {
-                "id": "dit:lite:case:application:{id}:create".format(id=self.case.id),
+                "id": "dit:lite:case:{case_type}:{id}:create".format(
+                    case_type=self.case.case_type.sub_type, id=self.case.id
+                ),
                 "object": {
                     "dit:caseOfficer": "",
                     "dit:countries": [],
