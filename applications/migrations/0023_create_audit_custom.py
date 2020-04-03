@@ -11,7 +11,7 @@ def create_missing_application_audit(apps, schema_editor):
     ContentType = apps.get_model("contenttypes", "ContentType")
     Case = apps.get_model("cases", "Case")
     Audit = apps.get_model("audit_trail", "Audit")
-    case_qs = Case.objects.filter(status__status=CaseStatusEnum.DRAFT).values("id", "created_at")
+    case_qs = Case.objects.filter(status__status=CaseStatusEnum.DRAFT).values("id", "submitted_at")
 
     case_content_type = ContentType.objects.get_for_model(Case)
     for case in case_qs:
