@@ -137,6 +137,7 @@ class CaseManager(models.Manager):
             "status",
             "organisation__flags",
             "case_type",
+            "flags",
         )
         team_id = user.team.id
 
