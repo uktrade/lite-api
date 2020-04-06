@@ -77,9 +77,27 @@ class AuditTrailStreamTestCase(DataTestClient):
     @override_settings(STREAM_PAGE_SIZE=1)
     def test_duplicate_timestamp_appended(self):
         now = timezone.now()
-        Audit.objects.create(created_at=now - timedelta(days=1), actor=self.user, verb=AuditType.UPDATED_STATUS.value, target=self.case, payload={"status": {"new": "1", "old": "2"}})
-        Audit.objects.create(created_at=now, actor=self.user, verb=AuditType.UPDATED_STATUS.value, target=self.case, payload={"status": {"new": "3", "old": "1"}})
-        Audit.objects.create(created_at=now, actor=self.user, verb=AuditType.UPDATED_STATUS.value, target=self.case, payload={"status": {"new": "4", "old": "3"}})
+        Audit.objects.create(
+            created_at=now - timedelta(days=1),
+            actor=self.user,
+            verb=AuditType.UPDATED_STATUS.value,
+            target=self.case,
+            payload={"status": {"new": "1", "old": "2"}},
+        )
+        Audit.objects.create(
+            created_at=now,
+            actor=self.user,
+            verb=AuditType.UPDATED_STATUS.value,
+            target=self.case,
+            payload={"status": {"new": "3", "old": "1"}},
+        )
+        Audit.objects.create(
+            created_at=now,
+            actor=self.user,
+            verb=AuditType.UPDATED_STATUS.value,
+            target=self.case,
+            payload={"status": {"new": "4", "old": "3"}},
+        )
 
         response = self.client.get(self.url, **self.exporter_headers)
 
