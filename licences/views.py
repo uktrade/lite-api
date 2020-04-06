@@ -3,7 +3,6 @@ from rest_framework.generics import ListCreateAPIView
 
 from applications.models import CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
-from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
 from licences.models import Licence
