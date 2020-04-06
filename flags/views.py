@@ -45,7 +45,7 @@ class FlagsList(APIView):
         level = request.GET.get("level")  # Case, Good
         team = request.GET.get("team")  # True, False
         include_deactivated = request.GET.get("include_deactivated")  # will be True/False
-        include_system_flags = request.GET.get("include_system_flags")
+        include_system_flags = request.GET.get("include_system_flags")  # True, False
 
         flags = Flag.objects.all()
 
