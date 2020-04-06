@@ -15,6 +15,7 @@ from cases.models import Case
 from common.models import prefetch_generic_relations
 
 STREAMED_AUDITS = [
+    AuditType.CREATED.value,
     AuditType.ADD_CASE_OFFICER_TO_CASE.value,
     AuditType.REMOVE_CASE_OFFICER_FROM_CASE.value,
     AuditType.UPDATED_STATUS.value,
@@ -28,6 +29,7 @@ TYPE_MAPPING = {
     AuditType.UPDATED_STATUS: "status",
     AuditType.ADD_COUNTRIES_TO_APPLICATION: "countries",
     AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "countries",
+    AuditType.CREATED: "case"
 }
 
 VERB_MAPPING = {
@@ -36,6 +38,7 @@ VERB_MAPPING = {
     AuditType.UPDATED_STATUS: "update",
     AuditType.ADD_COUNTRIES_TO_APPLICATION: "add",
     AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "remove",
+    AuditType.CREATED: "create"
 }
 
 
@@ -69,7 +72,7 @@ def case_activity_json(audit, case_type):
     """
     Creates an activity stream compatible record for an application activity
     """
-    case = audit.target
+    case = audit.target or audit.action_object
     if not case:
         # Some applications in draft status are being deleted
         return {}
@@ -85,7 +88,13 @@ def case_activity_json(audit, case_type):
     }
 
     # TODO: standardize audit payloads and clean
-    if isinstance(audit.payload[data_type], dict):
+    if AuditType(audit.verb) == AuditType.CREATED:
+        object_data["dit:status"] = case.status.status
+        object_data["type"] = [
+            "dit:lite:case:create",
+            "dit:lite:activity",
+        ]
+    elif isinstance(audit.payload[data_type], dict):
         if "new" in audit.payload[data_type]:
             object_data["dit:to"] = {
                 "dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type]["new"]
@@ -106,13 +115,13 @@ def case_activity_json(audit, case_type):
     }
 
 
-def get_stream(n):
+def get_stream(timestamp):
     """
     Returns a paginated stream of activities.
     """
     audit_qs = Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")
-    if n > 0:
-        audit_qs = audit_qs.filter(created_at__gte=timezone.make_aware(datetime.fromtimestamp(n)))
+    if timestamp > 0:
+        audit_qs = audit_qs.filter(created_at__gte=timezone.make_aware(datetime.fromtimestamp(timestamp)))
     audit_qs = audit_qs[: settings.STREAM_PAGE_SIZE]
 
     if not audit_qs:
@@ -126,7 +135,10 @@ def get_stream(n):
 
     qs = prefetch_generic_relations(audit_qs)
 
-    case_ids = [value["target_object_id"] for value in qs.values("target_object_id")]
+    case_ids = [
+        value["target_object_id"] if value["verb"] != AuditType.CREATED.value else value["action_object_object_id"]
+        for value in qs.values("target_object_id", "verb", "action_object_object_id")
+    ]
 
     # Prefetch relevant information in bulk to be used for streams
     countries_on_applications = CountryOnApplication.objects.filter(application__id__in=case_ids).values(
@@ -151,7 +163,8 @@ def get_stream(n):
     stream = []
 
     for audit in qs:
-        data = case_activity_json(audit, case_types[audit.target_object_id])
+        case_id = audit.target_object_id if audit.verb != AuditType.CREATED.value else audit.action_object_object_id
+        data = case_activity_json(audit, case_types[case_id])
         if data:
             stream.append(data)
         if audit.id in latest_case_audits:

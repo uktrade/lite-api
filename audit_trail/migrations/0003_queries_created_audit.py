@@ -1,0 +1,43 @@
+from django.db import migrations
+
+from audit_trail.schema import AuditType
+from cases.enums import CaseTypeEnum
+
+
+def create_missing_create_audits(apps, schema_editor):
+    if schema_editor.connection.alias != "default":
+        return
+    ContentType = apps.get_model("contenttypes", "ContentType")
+    Case = apps.get_model("cases", "Case")
+    Audit = apps.get_model("audit_trail", "Audit")
+
+    for case in Case.objects.filter(case_type_id__in=[CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id]):
+        print("Running for case {id}".format(id=case.id))
+        content_type = ContentType.objects.get_for_model(case)
+        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS.value, target_object_id=case.id).order_by("created_at")
+
+        for audit in audits:
+            if audit and audit.payload["status"]["old"] == "draft":
+                print("Updating draft payload")
+                audit.payload["status"]["old"] = "clc_review"
+                audit.save()
+
+        Audit.objects.filter(verb=AuditType.CREATED.value, action_object_object_id=case.id).delete()
+
+        if not Audit.objects.filter(verb=AuditType.CREATED.value, action_object_object_id=case.id).exists():
+            print("Creating original audit")
+            Audit.objects.create(
+                created_at=case.created_at,
+                verb=AuditType.CREATED.value,
+                action_object_object_id=case.id,
+                action_object_content_type=content_type
+            )
+
+
+
+
+class Migration(migrations.Migration):
+    dependencies = [("applications", "0022_auto_20200331_1107"), ("audit_trail", "0002_migrate_old_status_payload")]
+    operations = [
+        migrations.RunPython(create_missing_create_audits),
+    ]

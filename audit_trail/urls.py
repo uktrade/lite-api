@@ -5,5 +5,5 @@ from audit_trail.streams import views
 app_name = "audit_trail"
 
 urlpatterns = [
-    path("streams/<int:n>", views.streams, name="streams"),
+    path("streams/<int:timestamp>", views.streams, name="streams"),
 ]

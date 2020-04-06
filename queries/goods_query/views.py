@@ -94,6 +94,12 @@ class GoodsQueriesCreate(APIView):
         good.save()
         goods_query.save()
 
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.CREATED,
+            action_object=goods_query.get_case(),
+        )
+
         apply_flagging_rules_to_case(goods_query)
 
         return JsonResponse(data={"id": goods_query.id}, status=status.HTTP_201_CREATED)
