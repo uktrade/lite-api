@@ -4,6 +4,8 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from conf.constants import GovPermissions
+from conf.permissions import assert_user_has_permission
 from workflow.routing_rules.models import RoutingRule
 from workflow.routing_rules.serializers import RoutingRuleSerializer, EditRoutingRuleSerializer
 
@@ -13,9 +15,25 @@ class RoutingRulesList(ListCreateAPIView):
     serializer_class = RoutingRuleSerializer
     queryset = RoutingRule.objects.all()
 
+    def get(self, request, *args, **kwargs):
+        assert_user_has_permission(request.user, GovPermissions.MANAGE_TEAM_ROUTING_RULES)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        assert_user_has_permission(request.user, GovPermissions.MANAGE_TEAM_ROUTING_RULES)
+        return super().post(request, *args, **kwargs)
+
 
 class RoutingRulesDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
+
+    def get(self, request, *args, **kwargs):
+        assert_user_has_permission(request.user, GovPermissions.MANAGE_TEAM_ROUTING_RULES)
+        return super().get(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        assert_user_has_permission(request.user, GovPermissions.MANAGE_TEAM_ROUTING_RULES)
+        return super().put(request, *args, **kwargs)
 
     def get_serializer_class(self):
         if self.request.method == "GET":
