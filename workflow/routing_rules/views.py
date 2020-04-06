@@ -15,6 +15,28 @@ class RoutingRulesList(ListCreateAPIView):
     serializer_class = RoutingRuleSerializer
     queryset = RoutingRule.objects.all()
 
+    def filter_queryset(self, queryset):
+        filtered_qs = queryset
+        # get each filter
+        filter_data = self.request.GET
+
+        if filter_data.get("case_status"):
+            filtered_qs = filtered_qs.filter(status_id=filter_data.get("case_status"))
+
+        if filter_data.get("team"):
+            filtered_qs = filtered_qs.filter(team_id=filter_data.get("team"))
+
+        if filter_data.get("queue"):
+            filtered_qs = filtered_qs.filter(queue_id=filter_data.get("queue"))
+
+        if filter_data.get("tier"):
+            filtered_qs = filtered_qs.filter(tier=filter_data.get("tier"))
+
+        if filter_data.get("only_active"):
+            filtered_qs = filtered_qs.filter(active=filter_data.get("only_active"))
+
+        return filtered_qs
+
     def get(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, GovPermissions.MANAGE_TEAM_ROUTING_RULES)
         return super().get(request, *args, **kwargs)
