@@ -109,7 +109,7 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
     # get a list of flag_id's where the flagging rule matching value is equivalent to the good control code
     flagging_rules = flagging_rules.filter(matching_value__iexact=good.control_code)
 
-    if isinstance(Good, good) and good.status != GoodStatus.VERIFIED:
+    if isinstance(good, Good) and good.status != GoodStatus.VERIFIED:
         flagging_rules = flagging_rules.exclude(is_for_verified_goods_only=True)
 
     flags = flagging_rules.values_list("flag_id", flat=True)
