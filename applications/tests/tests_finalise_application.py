@@ -4,7 +4,7 @@ from rest_framework import status
 
 from applications.enums import LicenceDuration
 from applications.libraries.licence import get_default_duration
-from applications.models import Licence
+from licences.models import Licence
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum
 from conf.constants import GovPermissions

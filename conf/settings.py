@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     "static.upload_document_for_tests",
     "teams",
     "users",
+    "licences",
 ]
 
 MIDDLEWARE = [
