@@ -31,7 +31,7 @@ class Licences(ListCreateAPIView):
 
     def get_queryset(self):
         # Get params
-        licence_type = self.request.GET.get("type")
+        licence_type = self.request.GET.get("licence_type")
         reference = self.request.GET.get("reference")
         clc = self.request.GET.get("clc")
         country = self.request.GET.get("country")
