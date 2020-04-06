@@ -16,7 +16,7 @@ from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
-from flags.enums import FlagStatuses
+from flags.enums import FlagStatuses, SystemFlags
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flag, get_flagging_rule
 from flags.models import Flag, FlaggingRule
@@ -45,6 +45,7 @@ class FlagsList(APIView):
         level = request.GET.get("level")  # Case, Good
         team = request.GET.get("team")  # True, False
         include_deactivated = request.GET.get("include_deactivated")  # will be True/False
+        include_system_flags = request.GET.get("include_system_flags")
 
         flags = Flag.objects.all()
 
@@ -58,6 +59,11 @@ class FlagsList(APIView):
             flags = flags.exclude(status=FlagStatuses.DEACTIVATED)
 
         flags = flags.order_by("name")
+
+        if str_to_bool(include_system_flags, invert_none=True):
+            system_flags = Flag.objects.filter(id__in=SystemFlags.list)
+            flags = set(system_flags).union(flags)
+
         serializer = FlagSerializer(flags, many=True)
         return JsonResponse(data={"flags": serializer.data})
 
