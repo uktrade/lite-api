@@ -115,7 +115,7 @@ def get_ordered_flags(case: Case, team: Team):
 
 
 def sort_flags_by_team_and_priority(flag_data, team):
-    flag_data = sorted(flag_data, key=lambda x: -x["priority"])
+    flag_data = sorted(flag_data, key=lambda x: x["priority"])
 
     if not team:
         return flag_data
