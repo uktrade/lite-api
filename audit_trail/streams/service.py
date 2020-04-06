@@ -115,6 +115,15 @@ def get_stream(n):
         audit_qs = audit_qs.filter(created_at__gte=datetime.fromtimestamp(n))
     audit_qs = audit_qs[: settings.STREAM_PAGE_SIZE]
 
+    if not audit_qs:
+        return {"data": [], "next_timestamp": None}
+
+    last_created_at = audit_qs[len(audit_qs) - 1].created_at
+    timestamp_qs = Audit.objects.filter(verb__in=STREAMED_AUDITS, created_at=last_created_at)
+
+    if timestamp_qs.count() > 1:
+        audit_qs = audit_qs | timestamp_qs
+
     qs = prefetch_generic_relations(audit_qs)
 
     case_ids = [value["target_object_id"] for value in qs.values("target_object_id")]
@@ -152,7 +161,4 @@ def get_stream(n):
             ]
             stream.append(case_record_json(audit.target_object_id, audit.created_at, countries))
 
-    last_audit = audit_qs[len(audit_qs) - 1] if audit_qs else None
-    next_timestamp = int(time.mktime(last_audit.created_at.timetuple())) if last_audit else None
-
-    return {"data": stream, "next_timestamp": next_timestamp}
+    return {"data": stream, "next_timestamp": int(time.mktime(last_created_at.timetuple())) + 1}

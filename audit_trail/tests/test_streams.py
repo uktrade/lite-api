@@ -1,4 +1,8 @@
+from datetime import timedelta
+
+from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
@@ -12,7 +16,6 @@ class AuditTrailStreamTestCase(DataTestClient):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
         self.user = self.exporter_user
-        self.audit = create(actor=self.user, verb=AuditType.CREATED, action_object=self.case,)
         self.url = reverse("audit_trail:streams", kwargs={"n": 0})
         self.status_url = reverse("applications:manage_status", kwargs={"pk": self.case.id})
 
@@ -70,3 +73,18 @@ class AuditTrailStreamTestCase(DataTestClient):
                 "published": str(audit.created_at),
             },
         )
+
+    @override_settings(STREAM_PAGE_SIZE=1)
+    def test_duplicate_timestamp_appended(self):
+        now = timezone.now()
+        Audit.objects.create(created_at=now - timedelta(days=1), actor=self.user, verb=AuditType.UPDATED_STATUS.value, target=self.case, payload={"status": {"new": "1", "old": "2"}})
+        Audit.objects.create(created_at=now, actor=self.user, verb=AuditType.UPDATED_STATUS.value, target=self.case, payload={"status": {"new": "3", "old": "1"}})
+        Audit.objects.create(created_at=now, actor=self.user, verb=AuditType.UPDATED_STATUS.value, target=self.case, payload={"status": {"new": "4", "old": "3"}})
+
+        response = self.client.get(self.url, **self.exporter_headers)
+
+        self.assertEqual(len(response.json()["orderedItems"]), 1)
+
+        next_response = self.client.get(response.json()["next"], **self.exporter_headers)
+
+        self.assertEqual(len(next_response.json()["orderedItems"]), 2)  # Pulled in duplicate timestamp audit
