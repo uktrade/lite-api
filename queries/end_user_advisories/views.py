@@ -93,7 +93,7 @@ class EndUserAdvisoryDetail(APIView):
         old_status = end_user_advisory.status.status
         serializer = EndUserAdvisoryViewSerializer(end_user_advisory, data=request.data, partial=True)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.update(end_user_advisory, request.data)
             audit_trail_service.create(
                 actor=request.user,
