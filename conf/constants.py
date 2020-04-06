@@ -15,6 +15,8 @@ class GovPermissions(Enum):
     MANAGE_LICENCE_DURATION = "Can edit licence duration"
     MANAGE_ORGANISATIONS = "Manage organisations"
     MANAGE_FLAGGING_RULES = "Manage flagging rules"
+    MANAGE_TEAM_ROUTING_RULES = "Mange team routing rules"
+    MANAGE_ALL_ROUTING_RULES = "Mange all routing rules"
 
 
 class ExporterPermissions(Enum):
