@@ -1,8 +1,9 @@
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework.generics import ListCreateAPIView
 
 from applications.models import CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
 from licences.models import Licence
@@ -37,14 +38,20 @@ class Licences(ListCreateAPIView):
         country = self.request.GET.get("country")
         end_user = self.request.GET.get("end_user")
         active_only = self.request.GET.get("active_only") == "True"
+        no_licence_required = Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED)
 
         licences = Licence.objects.filter(application__organisation=self.request.user.organisation, is_complete=True)
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
-            licences = licences.filter(application__case_type__in=LicenceType.ids[licence_type])
+            # Get all licences except those where the only decision is NLR
+            licences = (
+                licences.filter(application__case_type__in=LicenceType.ids[licence_type])
+                .annotate(num_decisions=Count("decisions"))
+                .exclude(decisions=no_licence_required, num_decisions=1)
+            )
         elif licence_type == LicenceType.NLR:
-            licences = licences.filter(decisions=Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED))
+            licences = licences.filter(decisions=no_licence_required)
 
         if reference:
             licences = licences.filter(
