@@ -84,7 +84,7 @@ class GetLicencesTests(DataTestClient):
         self.assertEqual(licence["application"]["destinations"][0]["country"]["id"], destination.country_id)
 
     def test_get_standard_licences_only(self):
-        response = self.client.get(self.url + "?type=" + LicenceType.LICENCE, **self.exporter_headers)
+        response = self.client.get(self.url + "?licence_type=" + LicenceType.LICENCE, **self.exporter_headers)
         response_data = response.json()["results"]
         ids = [licence["id"] for licence in response_data]
 
@@ -94,7 +94,7 @@ class GetLicencesTests(DataTestClient):
         self.assertTrue(str(self.licences[self.open_application].id) in ids)
 
     def test_get_clearance_licences_only(self):
-        response = self.client.get(self.url + "?type=" + LicenceType.CLEARANCE, **self.exporter_headers)
+        response = self.client.get(self.url + "?licence_type=" + LicenceType.CLEARANCE, **self.exporter_headers)
         response_data = response.json()["results"]
         ids = [licence["id"] for licence in response_data]
 
@@ -109,7 +109,7 @@ class GetLicencesTests(DataTestClient):
             [Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED)]
         )
 
-        response = self.client.get(self.url + "?type=" + LicenceType.NLR, **self.exporter_headers)
+        response = self.client.get(self.url + "?licence_type=" + LicenceType.NLR, **self.exporter_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
