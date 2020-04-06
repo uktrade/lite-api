@@ -10,7 +10,7 @@ def get_next_page_url(request, n):
 
 @api_view(["GET"])
 def streams(request, n):
-    stream = get_stream(n)
+    data = get_stream(n)
 
     return JsonResponse(
         {
@@ -18,7 +18,7 @@ def streams(request, n):
                 "https://www.w3.org/ns/ettystreams",
                 {"dit": "https://www.trade.gov.uk/ns/activitystreams/v1"},
             ],
-            "orderedItems": stream,
-            **({"next": get_next_page_url(request, n + 1)} if len(stream) > 0 else {}),
+            "orderedItems": data["data"],
+            **({"next": get_next_page_url(request, data["next_timestamp"])} if len(data["data"]) > 0 else {}),
         }
     )

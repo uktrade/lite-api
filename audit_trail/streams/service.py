@@ -1,6 +1,9 @@
 """
 MVP activity stream. To be extended appropriately as requirements are drawn up.
 """
+import time
+from datetime import datetime
+
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
@@ -9,6 +12,7 @@ from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.models import Case
 from common.models import prefetch_generic_relations
+
 
 STREAMED_AUDITS = [
     AuditType.ADD_CASE_OFFICER_TO_CASE.value,
@@ -106,11 +110,12 @@ def get_stream(n):
     """
     Returns a paginated stream of activities.
     """
-    qs = prefetch_generic_relations(
-        Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")[
-            n * settings.STREAM_PAGE_SIZE : (n + 1) * settings.STREAM_PAGE_SIZE
-        ]
-    )
+    audit_qs = Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")
+    if n > 0:
+        audit_qs = audit_qs.filter(created_at__gte=datetime.fromtimestamp(n))
+    audit_qs = audit_qs[: settings.STREAM_PAGE_SIZE]
+
+    qs = prefetch_generic_relations(audit_qs)
 
     case_ids = [value["target_object_id"] for value in qs.values("target_object_id")]
 
@@ -147,4 +152,7 @@ def get_stream(n):
             ]
             stream.append(case_record_json(audit.target_object_id, audit.created_at, countries))
 
-    return stream
+    last_audit = audit_qs[len(audit_qs) - 1] if audit_qs else None
+    next_timestamp = int(time.mktime(last_audit.created_at.timetuple())) if last_audit else None
+
+    return {"data": stream, "next_timestamp": next_timestamp}
