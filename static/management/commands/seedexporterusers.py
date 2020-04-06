@@ -37,8 +37,6 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        assert Role.objects.count(), "Role permissions must be seeded first!"
-
         self.seed_default_organisations()
         self.seed_exporter_users()
 

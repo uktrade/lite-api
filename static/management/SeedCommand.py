@@ -21,14 +21,6 @@ class SeedCommand(ABC, BaseCommand):
     success = None
     seed_command = None
 
-    @transaction.atomic
-    def operation(self, *args, **options):
-        """
-        operation should be overridden in child class
-        with the code required to execute the seed operation
-        """
-        pass
-
     def handle(self, *args, **options):
         if not settings.SUPPRESS_TEST_OUTPUT:
             self.stdout.write(
@@ -41,6 +33,14 @@ class SeedCommand(ABC, BaseCommand):
             exit(1)
         if not settings.SUPPRESS_TEST_OUTPUT:
             self.stdout.write(self.style.SUCCESS(f"\n{self.success}\n"))
+
+    @transaction.atomic
+    def operation(self, *args, **options):
+        """
+        operation should be overridden in child class
+        with the code required to execute the seed operation
+        """
+        pass
 
     @staticmethod
     def read_csv(filename: str):
