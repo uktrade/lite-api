@@ -6,13 +6,13 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
 from applications.models import CountryOnApplication
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.models import Case
 from common.models import prefetch_generic_relations
-
 
 STREAMED_AUDITS = [
     AuditType.ADD_CASE_OFFICER_TO_CASE.value,
@@ -112,7 +112,7 @@ def get_stream(n):
     """
     audit_qs = Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")
     if n > 0:
-        audit_qs = audit_qs.filter(created_at__gte=datetime.fromtimestamp(n))
+        audit_qs = audit_qs.filter(created_at__gte=timezone.make_aware(datetime.fromtimestamp(n)))
     audit_qs = audit_qs[: settings.STREAM_PAGE_SIZE]
 
     if not audit_qs:

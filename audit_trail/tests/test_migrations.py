@@ -1,25 +1,9 @@
-from unittest import TestCase
-
 import factory
 from django.contrib.contenttypes.models import ContentType
 
-from applications.enums import ApplicationExportType
-from applications.models import OpenApplication
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
-from cases.models import CaseType
-from organisations.models import Organisation
-from static.statuses.models import CaseStatus
-
-
-class CaseFactory(factory.django.DjangoModelFactory):
-    case_type = CaseType.objects.first()
-    export_type = ApplicationExportType.PERMANENT
-    status = CaseStatus.objects.first()
-    organisation = Organisation.objects.first()
-
-    class Meta:
-        model = OpenApplication
+from test_helpers.clients import DataTestClient
 
 
 class AuditFactory(factory.django.DjangoModelFactory):
@@ -30,7 +14,7 @@ class AuditFactory(factory.django.DjangoModelFactory):
 
 
 def migrate_status_audit_payloads_for_case(case):
-    """Duplicated logic from 0002 migration file."""
+    """Representative of 0002 migration file logic for migrating status payload."""
     content_type = ContentType.objects.get_for_model(case)
 
     activities = Audit.objects.filter(
@@ -55,9 +39,10 @@ def migrate_status_audit_payloads_for_case(case):
         last_status = activity.payload["status"]["new"]
 
 
-class TestSimpleAuditStatusMigration(TestCase):
+class TestSimpleAuditStatusMigration(DataTestClient):
     def setUp(self):
-        self.case = CaseFactory()
+        super().setUp()
+        self.case = self.create_draft_open_application(self.organisation)
         content_type = ContentType.objects.get_for_model(self.case)
 
         self.old_payloads = [
@@ -89,9 +74,10 @@ class TestSimpleAuditStatusMigration(TestCase):
             self.assertEqual(audit.payload, expected_payload)
 
 
-class TestMixedAuditStatusMigration(TestCase):
+class TestMixedAuditStatusMigration(DataTestClient):
     def setUp(self):
-        self.case = CaseFactory()
+        super().setUp()
+        self.case = self.create_draft_open_application(self.organisation)
         content_type = ContentType.objects.get_for_model(self.case)
 
         self.old_payloads = [
