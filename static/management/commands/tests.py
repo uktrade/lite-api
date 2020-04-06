@@ -25,8 +25,8 @@ from static.management.commands import (
     seedrolepermissions,
     seedinternaladminusers,
     seedflags,
-    seeddemodata,
-    seeddecisions,
+    seedinternaldemodata,
+    seedfinaldecisions,
 )
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 from teams.models import Team
@@ -93,16 +93,16 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_demo_data(self):
         seedinternaladminusers.Command.seed_admin_team()
-        self.seed_command(seeddemodata.Command)
-        for team in seeddemodata.Command.read_csv(seeddemodata.TEAMS_FILE):
+        self.seed_command(seedinternaldemodata.Command)
+        for team in seedinternaldemodata.Command.read_csv(seedinternaldemodata.TEAMS_FILE):
             self.assertTrue(Team.objects.filter(name=team["name"]).exists(), f"Team {team['name']} does not exist")
-        for queue in seeddemodata.Command.read_csv(seeddemodata.QUEUES_FILE):
+        for queue in seedinternaldemodata.Command.read_csv(seedinternaldemodata.QUEUES_FILE):
             self.assertTrue(Queue.objects.filter(name=queue["name"]).exists(), f"Queue {queue['name']} does not exist")
-        for flag in seeddemodata.Command.read_csv(seeddemodata.FLAGS_FILE):
+        for flag in seedinternaldemodata.Command.read_csv(seedinternaldemodata.FLAGS_FILE):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
 
     def test_seed_decisions(self):
-        self.seed_command(seeddecisions.Command)
+        self.seed_command(seedfinaldecisions.Command)
         enum = AdviceType.choices
         self.assertEqual(Decision.objects.count(), len(enum))
         for key, _ in enum:
