@@ -24,7 +24,7 @@ from applications.libraries.application_helpers import (
     optional_str_to_bool,
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
-)
+    create_submitted_audit)
 from applications.libraries.case_status_helpers import set_application_sla
 from applications.libraries.edit_applications import (
     save_and_audit_have_you_been_informed_ref,
@@ -294,6 +294,7 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.GOODS,
         ]:
             set_application_sla(application)
+            create_submitted_audit(request, application, old_status)
 
         errors = validate_application_ready_for_submission(application)
         if errors:
@@ -320,6 +321,7 @@ class ApplicationSubmission(APIView):
 
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
+                create_submitted_audit(request, application, old_status)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -330,12 +332,6 @@ class ApplicationSubmission(APIView):
         if application.reference_code:
             data["reference_code"] = application.reference_code
 
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=application.get_case(),
-            payload={"status": {"new": application.status.status, "old": old_status}},
-        )
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
 

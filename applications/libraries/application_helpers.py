@@ -1,3 +1,5 @@
+from audit_trail import service as audit_trail_service
+from audit_trail.payload import AuditType
 from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
 from static.statuses.enums import CaseStatusEnum
@@ -52,3 +54,12 @@ def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, i
             if not assert_user_has_permission(user, GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE):
                 return False
     return True
+
+
+def create_submitted_audit(request, application, old_status):
+    audit_trail_service.create(
+        actor=request.user,
+        verb=AuditType.UPDATED_STATUS,
+        target=application.get_case(),
+        payload={"status": {"new": application.status.status, "old": old_status}},
+    )
