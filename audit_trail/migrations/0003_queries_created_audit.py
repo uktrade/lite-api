@@ -24,8 +24,6 @@ def create_missing_create_audits(apps, schema_editor):
                 audit.payload["status"]["old"] = "clc_review"
                 audit.save()
 
-        Audit.objects.filter(verb=AuditType.CREATED.value, action_object_object_id=case.id).delete()
-
         if not Audit.objects.filter(verb=AuditType.CREATED.value, action_object_object_id=case.id).exists():
             print("Creating original audit")
             Audit.objects.create(
