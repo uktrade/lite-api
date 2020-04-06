@@ -71,12 +71,18 @@ def check_party_error(party, object_not_found_error, is_mandatory, is_document_m
 
 def _validate_end_user(draft, errors, is_mandatory):
     """ Checks there is an end user (with a document if is_document_mandatory) """
+    is_document_mandatory = True
+    if (
+        draft.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
+        and draft.export_type == ApplicationExportType.TEMPORARY
+    ):
+        is_document_mandatory = False
 
     end_user_errors = check_party_error(
         draft.end_user.party if draft.end_user else None,
         object_not_found_error=strings.Applications.Standard.NO_END_USER_SET,
         is_mandatory=is_mandatory,
-        is_document_mandatory=True,
+        is_document_mandatory=is_document_mandatory,
     )
     if end_user_errors:
         errors["end_user"] = [end_user_errors]
@@ -91,7 +97,7 @@ def _validate_consignee(draft, errors, is_mandatory):
         draft.consignee.party if draft.consignee else None,
         object_not_found_error=strings.Applications.Standard.NO_CONSIGNEE_SET,
         is_mandatory=is_mandatory,
-        is_document_mandatory=True,
+        is_document_mandatory=False,
     )
     if consignee_errors:
         errors["consignee"] = [consignee_errors]
@@ -125,8 +131,8 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
     Checks all ultimate end users have documents if is_mandatory is True.
     Also checks that at least one ultimate_end_user is present if there is an incorporated good
     """
-
-    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory)
+    # Document for the ultimate end user should always be optional
+    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory=False)
     if ultimate_end_user_documents_error:
         errors["ultimate_end_user_documents"] = [ultimate_end_user_documents_error]
 
