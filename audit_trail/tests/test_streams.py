@@ -6,7 +6,6 @@ from django.utils import timezone
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
-from audit_trail.service import create
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
