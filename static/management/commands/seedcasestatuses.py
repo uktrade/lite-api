@@ -1,7 +1,6 @@
 from django.db import transaction
 
 from cases.enums import CaseTypeEnum
-from cases.models import CaseType
 from static.management.SeedCommand import SeedCommand
 
 from static.statuses.models import CaseStatus, CaseStatusCaseType
@@ -32,8 +31,6 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        assert CaseType.objects.count(), "Case Types must be seeded first!"
-
         status_csv = self.read_csv(STATUSES_FILE)
         for row in status_csv:
             if row["workflow_sequence"] == "None":

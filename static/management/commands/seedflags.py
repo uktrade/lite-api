@@ -1,9 +1,7 @@
 from django.db import transaction
 
-from conf.constants import Teams
 from flags.models import Flag
 from static.management.SeedCommand import SeedCommand
-from teams.models import Team
 
 FLAGS_FILE = "lite_content/lite_api/system_flags.csv"
 
@@ -20,7 +18,5 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        assert Team.objects.filter(id=Teams.ADMIN_TEAM_ID).exists(), "Admin Team must be seeded first!"
-
         csv = self.read_csv(FLAGS_FILE)
         self.update_or_create(Flag, csv)
