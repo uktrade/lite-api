@@ -46,9 +46,7 @@ class EndUserAdvisoriesList(ListAPIView):
                 if "validate_only" not in data or data["validate_only"] == "False":
                     eua = serializer.save()
                     audit_trail_service.create(
-                        actor=request.user,
-                        verb=AuditType.CREATED,
-                        action_object=eua.get_case(),
+                        actor=request.user, verb=AuditType.CREATED, action_object=eua.get_case(),
                     )
                     apply_flagging_rules_to_case(eua)
                     return JsonResponse(data={"end_user_advisory": serializer.data}, status=status.HTTP_201_CREATED)

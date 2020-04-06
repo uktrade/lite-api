@@ -14,7 +14,9 @@ def create_missing_create_audits(apps, schema_editor):
     for case in Case.objects.filter(case_type_id__in=[CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id]):
         print("Running for case {id}".format(id=case.id))
         content_type = ContentType.objects.get_for_model(case)
-        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS.value, target_object_id=case.id).order_by("created_at")
+        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS.value, target_object_id=case.id).order_by(
+            "created_at"
+        )
 
         for audit in audits:
             if audit and audit.payload["status"]["old"] == "draft":
@@ -30,10 +32,8 @@ def create_missing_create_audits(apps, schema_editor):
                 created_at=case.created_at,
                 verb=AuditType.CREATED.value,
                 action_object_object_id=case.id,
-                action_object_content_type=content_type
+                action_object_content_type=content_type,
             )
-
-
 
 
 class Migration(migrations.Migration):

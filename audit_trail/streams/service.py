@@ -29,7 +29,7 @@ TYPE_MAPPING = {
     AuditType.UPDATED_STATUS: "status",
     AuditType.ADD_COUNTRIES_TO_APPLICATION: "countries",
     AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "countries",
-    AuditType.CREATED: "case"
+    AuditType.CREATED: "case",
 }
 
 VERB_MAPPING = {
@@ -38,7 +38,7 @@ VERB_MAPPING = {
     AuditType.UPDATED_STATUS: "update",
     AuditType.ADD_COUNTRIES_TO_APPLICATION: "add",
     AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "remove",
-    AuditType.CREATED: "create"
+    AuditType.CREATED: "create",
 }
 
 
