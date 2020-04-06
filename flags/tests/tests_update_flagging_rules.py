@@ -95,7 +95,9 @@ class FlaggingRulesUpdateTest(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
         flag = self.create_flag("New Flag", "Good", self.team)
-        flagging_rule = self.create_flagging_rule(level="Good", flag=flag, team=self.team, matching_value="ML1", is_for_verified_goods_only="False")
+        flagging_rule = self.create_flagging_rule(
+            level="Good", flag=flag, team=self.team, matching_value="ML1", is_for_verified_goods_only="False"
+        )
 
         data = {
             "is_for_verified_goods_only": "True",

@@ -138,9 +138,8 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
 
         elif flagging_rule.level == FlagLevels.GOOD:
             # Add flag to all Goods on open Goods Queries
-            goods_in_query = (
-                GoodsQuery.objects.filter(good__control_code=flagging_rule.matching_value)
-                .exclude(status__status__in=draft_and_terminal_statuses)
+            goods_in_query = GoodsQuery.objects.filter(good__control_code=flagging_rule.matching_value).exclude(
+                status__status__in=draft_and_terminal_statuses
             )
 
             if flagging_rule.is_for_verified_goods_only:

@@ -103,11 +103,15 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         instance.status = validated_data.get("status", instance.status)
         instance.matching_value = validated_data.get("matching_value", instance.matching_value)
         instance.flag = validated_data.get("flag", instance.flag)
-        instance.is_for_verified_goods_only = validated_data.get("is_for_verified_goods_only", instance.is_for_verified_goods_only)
+        instance.is_for_verified_goods_only = validated_data.get(
+            "is_for_verified_goods_only", instance.is_for_verified_goods_only
+        )
         instance.save()
         return instance
 
     def validate(self, data):
-        if 'level' in data and data['level'] == 'Good' and 'is_for_verified_goods_only' not in data:
-            raise serializers.ValidationError({'is_for_verified_goods_only': strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY})
+        if "level" in data and data["level"] == "Good" and "is_for_verified_goods_only" not in data:
+            raise serializers.ValidationError(
+                {"is_for_verified_goods_only": strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY}
+            )
         return super().validate(data)

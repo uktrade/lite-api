@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flags', '0004_auto_20200326_1548'),
+        ("flags", "0004_auto_20200326_1548"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='flaggingrule',
-            name='is_for_verified_goods_only',
+            model_name="flaggingrule",
+            name="is_for_verified_goods_only",
             field=models.BooleanField(blank=True, null=True),
         ),
     ]

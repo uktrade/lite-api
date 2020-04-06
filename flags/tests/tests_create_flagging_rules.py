@@ -48,7 +48,12 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.gov_user.save()
 
         flag = self.create_flag("test", "Good", self.team)
-        data = {"level": "Good", "flag": str(flag.id), "matching_value": control_code, "is_for_verified_goods_only": 'True'}
+        data = {
+            "level": "Good",
+            "flag": str(flag.id),
+            "matching_value": control_code,
+            "is_for_verified_goods_only": "True",
+        }
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()
@@ -110,8 +115,8 @@ class FlaggingRulesCreateTest(DataTestClient):
         application = self.create_standard_application_case(self.organisation)
         control_code = (
             GoodOnApplication.objects.filter(application_id=application.id)
-                .values_list("good__control_code", flat=True)
-                .first()
+            .values_list("good__control_code", flat=True)
+            .first()
         )
 
         self.gov_user.role = self.super_user_role
@@ -124,4 +129,6 @@ class FlaggingRulesCreateTest(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response_data['errors']['is_for_verified_goods_only'], [strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY])
+        self.assertEqual(
+            response_data["errors"]["is_for_verified_goods_only"], [strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY]
+        )
