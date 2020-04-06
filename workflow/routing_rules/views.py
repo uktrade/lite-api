@@ -43,8 +43,8 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
             # heavy serializer for validating, saving and getting list of objects
             return RoutingRuleSerializer
 
-    def get_object(self):
-        return RoutingRule.objects.get(id=self.kwargs["pk"])
+    def get_queryset(self):
+        return RoutingRule.objects.filter(id=self.kwargs["pk"])
 
     def perform_update(self, serializer):
         if not self.request.data.get("validate_only", False):
