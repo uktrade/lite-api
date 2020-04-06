@@ -43,14 +43,14 @@ from applications.models import (
     ExternalLocationOnApplication,
     PartyOnApplication,
     F680ClearanceApplication,
-    Licence,
 )
+from licences.models import Licence
 from applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
-from applications.serializers.licence import LicenceSerializer
+from licences.serializers import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
@@ -422,7 +422,7 @@ class ApplicationFinaliseView(APIView):
         data = deepcopy(request.data)
         action = data.get("action")
 
-        if action == AdviceType.APPROVE:
+        if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
             default_licence_duration = get_default_duration(application)
             data["duration"] = data.get("duration", default_licence_duration)
 
@@ -446,7 +446,7 @@ class ApplicationFinaliseView(APIView):
                 )
 
             data["application"] = application
-            serializer = LicenceSerializer(data=data)
+            serializer = LicenceCreateSerializer(data=data)
 
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
