@@ -49,7 +49,7 @@ class UsersList(generics.ListCreateAPIView):
             queryset = queryset.exclude(relationship__role__permissions__in=[exclude_permission])
 
         if email:
-            queryset = queryset.filter(email__contains=email)
+            queryset = queryset.filter(email__icontains=email)
 
         return queryset.select_related("relationship__role").values(
             "id",
