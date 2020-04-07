@@ -202,3 +202,4 @@ class UserOrganisationRelationship(TimestampableModel):
 
     class Meta:
         default_related_name = "relationship"
+        unique_together = (("user", "organisation"),)

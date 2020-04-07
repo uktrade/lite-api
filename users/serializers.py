@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from conf.constants import Roles
 from conf.exceptions import NotFoundError
@@ -70,9 +71,6 @@ class GovUserViewSerializer(serializers.ModelSerializer):
 
 
 class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}
-    )
     organisation = serializers.PrimaryKeyRelatedField(
         queryset=Organisation.objects.all(), required=False, write_only=True
     )
@@ -82,39 +80,11 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExporterUser
         fields = (
-            "id",
             "email",
             "role",
             "organisation",
             "sites",
         )
-
-    def validate_email(self, email):
-        if hasattr(self, "initial_data") and "organisation" in self.initial_data:
-            try:
-                organisation = get_organisation_by_pk(self.initial_data["organisation"])
-
-                if UserOrganisationRelationship.objects.get(
-                    user=get_exporter_user_by_email(self.initial_data["email"]), organisation=organisation
-                ):
-                    raise serializers.ValidationError(
-                        self.initial_data["email"] + " is already a member of this organisation."
-                    )
-            except (NotFoundError, UserOrganisationRelationship.DoesNotExist):
-                pass
-
-        return email
-
-    def validate_role(self, role):
-        if role:
-            if role.pk not in Roles.EXPORTER_PRESET_ROLES:
-                try:
-                    role = Role.objects.get(
-                        id=self.initial_data["role"], organisation_id=self.initial_data["organisation"]
-                    )
-                except Role.DoesNotExist:
-                    role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
-        return role
 
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
@@ -123,16 +93,11 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
 
         exporter, _ = ExporterUser.objects.get_or_create(email__iexact=validated_data["email"], defaults=validated_data)
 
-        if UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
-            relationship = UserOrganisationRelationship(user=exporter, organisation=organisation, role=role)
-            relationship.save()
-            relationship.sites.set(sites)
-        else:
-            relationship = UserOrganisationRelationship(
-                user=exporter, organisation=organisation, role=Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
-            )
-            relationship.save()
-            relationship.sites.set(sites)
+        if not UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
+            role = Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+
+        relationship, _ = UserOrganisationRelationship.objects.update_or_create(user=exporter, organisation=organisation, role=role)
+        relationship.sites.set(sites)
 
         return exporter
 
@@ -141,11 +106,9 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         Update and return an existing `User` instance, given the validated data.
         """
         email = validated_data.get("email")
-        if email:
-            exporter_user = ExporterUser.objects.filter(email__iexact=email)
-            if not exporter_user.exists():
-                instance.email = email
-                instance.save()
+        if email and not ExporterUser.objects.filter(email__iexact=email).exists():
+            instance.email = email
+            instance.save()
         return instance
 
 

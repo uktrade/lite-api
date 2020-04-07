@@ -5,7 +5,7 @@ from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
 from rest_framework.exceptions import ParseError, PermissionDenied
-from rest_framework.generics import UpdateAPIView, ListAPIView
+from rest_framework.generics import UpdateAPIView, ListAPIView, ListCreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
@@ -72,32 +72,17 @@ class AuthenticateExporterUser(APIView):
         )
 
 
-class UserList(APIView):
+class UserList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
+    queryset = ExporterUser.objects.all()
 
-    def get(self, request):
-        """
-        Returns a list of Exporter users
-        """
-        serializer = ExporterUserViewSerializer(ExporterUser.objects.all(), many=True)
-        return JsonResponse(data={"users": serializer.data})
-
-    @swagger_auto_schema(responses={400: "JSON parse error"})
-    def post(self, request):
-        """
-        Create Exporter within the same organisation that current user is logged into
-        """
-        data = request.data
-        data["organisation"] = request.user.organisation.id
-        data["role"] = UUID(data["role"])
-
-        serializer = ExporterUserCreateUpdateSerializer(data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={"user": serializer.data}, status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    def get_serializer(self, *args, **kwargs):
+        if self.request.method == "GET":
+            return ExporterUserViewSerializer
+        else:
+            data = self.request.data
+            data["organisation"] = self.request.user.organisation.id
+            return ExporterUserCreateUpdateSerializer(data=data)
 
 
 class UserDetail(APIView):
