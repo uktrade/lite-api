@@ -120,9 +120,7 @@ def get_stream(timestamp):
     """
     Returns a paginated stream of activities.
     """
-    case_content_type = ContentType.objects.get_for_model(Case)
     audit_qs = Audit.objects.filter(
-        Q(action_object_content_type=case_content_type) | Q(target_content_type=case_content_type),
         verb__in=STREAMED_AUDITS,
     ).order_by("created_at")
     if timestamp > 0:
@@ -169,7 +167,7 @@ def get_stream(timestamp):
 
     for audit in qs:
         case_id = audit.target_object_id if audit.verb != AuditType.CREATED.value else audit.action_object_object_id
-        data = case_activity_json(audit, case_types[case_id])
+        data = case_activity_json(audit, case_types.get(case_id))
         if data:
             stream.append(data)
         if audit.id in latest_case_audits:
