@@ -295,6 +295,7 @@ class FlaggingRules(ListCreateAPIView):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
         json = request.data
         json["team"] = self.request.user.team.id
+
         serializer = FlaggingRuleSerializer(data=request.data)
 
         if serializer.is_valid():

@@ -335,9 +335,21 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_flagging_rule(
-        level: str, team: Team, flag: Flag, matching_value: str, status: str = FlagStatuses.ACTIVE
+        level: str,
+        team: Team,
+        flag: Flag,
+        matching_value: str,
+        status: str = FlagStatuses.ACTIVE,
+        is_for_verified_goods_only=None,
     ):
-        flagging_rule = FlaggingRule(level=level, team=team, flag=flag, matching_value=matching_value, status=status)
+        flagging_rule = FlaggingRule(
+            level=level,
+            team=team,
+            flag=flag,
+            matching_value=matching_value,
+            status=status,
+            is_for_verified_goods_only=is_for_verified_goods_only,
+        )
         flagging_rule.save()
         return flagging_rule
 
