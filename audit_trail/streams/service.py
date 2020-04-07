@@ -6,6 +6,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from django.utils import timezone
 
 from applications.models import CountryOnApplication
@@ -119,7 +120,11 @@ def get_stream(timestamp):
     """
     Returns a paginated stream of activities.
     """
-    audit_qs = Audit.objects.filter(verb__in=STREAMED_AUDITS).order_by("created_at")
+    case_content_type = ContentType.objects.get_for_model(Case)
+    audit_qs = Audit.objects.filter(
+        Q(action_object_content_type=case_content_type) | Q(target_content_type=case_content_type),
+        verb__in=STREAMED_AUDITS,
+    ).order_by("created_at")
     if timestamp > 0:
         audit_qs = audit_qs.filter(created_at__gte=timezone.make_aware(datetime.fromtimestamp(timestamp)))
     audit_qs = audit_qs[: settings.STREAM_PAGE_SIZE]
