@@ -109,8 +109,6 @@ class StandardApplicationTests(DataTestClient):
             response, text=strings.Applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
     def test_submit_standard_application_without_good_failure(self):
         GoodOnApplication.objects.get(application=self.draft).delete()
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
@@ -138,18 +136,26 @@ class StandardApplicationTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_submit_draft_with_incorporated_good_and_without_ultimate_end_user_documents_failure(self):
+    def test_submit_draft_with_incorporated_good_and_without_ultimate_end_user_documents_success(self):
+        # Ultimate end user document are optional in all cases
         draft = self.create_standard_application_with_incorporated_good(self.organisation)
         PartyDocument.objects.filter(party__in=draft.ultimate_end_users.all().values("party")).delete()
         url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
 
-        self.assertContains(
-            response,
-            text=strings.Applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
+        self.assertNotContains(
+            response, text=strings.Applications.Standard.NO_ULTIMATE_END_USER_DOCUMENT_SET,
         )
+
+    def test_submit_draft_without_third_party_documents_success(self):
+        third_party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.THIRD_PARTY).party
+        PartyDocument.objects.filter(party=third_party).delete()
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+
+        response = self.client.put(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_status_code_post_with_untested_document_failure(self):
         draft = self.create_draft_standard_application(self.organisation, safe_document=None)
@@ -356,3 +362,46 @@ class StandardApplicationTests(DataTestClient):
             text=strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+    def test_submit_standard_application_temporary_without_end_user_document_success(self):
+        self.draft.export_type = ApplicationExportType.TEMPORARY
+        self.draft.temp_export_details = "reasons why this export is a temporary one"
+        self.draft.is_temp_direct_control = False
+        self.draft.proposed_return_date = "2020-05-11"
+
+        PartyDocument.objects.filter(party=self.draft.end_user.party).delete()
+        self.draft.save()
+
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        response = self.client.put(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_submit_standard_application_temporary_without_consignee_document_success(self):
+        self.draft.export_type = ApplicationExportType.TEMPORARY
+        self.draft.temp_export_details = "reasons why this export is a temporary one"
+        self.draft.is_temp_direct_control = False
+        self.draft.proposed_return_date = "2020-05-11"
+
+        PartyDocument.objects.filter(party=self.draft.consignee.party).delete()
+        self.draft.save()
+
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        response = self.client.put(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_submit_standard_application_temporary_without_third_party_documents_success(self):
+        self.draft.export_type = ApplicationExportType.TEMPORARY
+        self.draft.temp_export_details = "reasons why this export is a temporary one"
+        self.draft.is_temp_direct_control = False
+        self.draft.proposed_return_date = "2020-05-11"
+
+        third_party = PartyOnApplication.objects.get(application=self.draft, party__type=PartyType.THIRD_PARTY).party
+        PartyDocument.objects.filter(party=third_party).delete()
+        self.draft.save()
+
+        url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        response = self.client.put(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

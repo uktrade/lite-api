@@ -130,7 +130,7 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
     Checks all ultimate end users have documents if is_mandatory is True.
     Also checks that at least one ultimate_end_user is present if there is an incorporated good
     """
-    # Document is optional if no incorporated goods
+    # Document is always optional even if there are incorporated goods
     ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory=False)
     if ultimate_end_user_documents_error:
         errors["ultimate_end_user_documents"] = [ultimate_end_user_documents_error]
@@ -144,11 +144,6 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
             if len(draft.ultimate_end_users.values_list()) == 0:
                 errors["ultimate_end_users"] = [strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET]
             else:
-                # Document is mandatory if the good is incorporated
-                ultimate_end_user_mandatory_documents_error = check_parties_documents(draft.ultimate_end_users.all())
-                if ultimate_end_user_mandatory_documents_error:
-                    errors["ultimate_end_user_documents"] = [ultimate_end_user_mandatory_documents_error]
-
                 # We make sure that an ultimate end user is not also the end user
                 for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                     if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.party.id):
