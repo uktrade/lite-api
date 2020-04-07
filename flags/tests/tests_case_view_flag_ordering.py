@@ -1,5 +1,3 @@
-from django.test import tag
-
 from applications.models import GoodOnApplication, PartyOnApplication
 from cases.libraries.get_destination import get_ordered_flags
 from flags.tests.factories import FlagFactory
@@ -9,7 +7,6 @@ from test_helpers.clients import DataTestClient
 
 
 class FlagsOrderingOnCaseViewTests(DataTestClient):
-    @tag("only")
     def test_gov_user_can_see_all_flags(self):
         # create 16 flags, 2 of each level for two different teams with different priorities
         other_team = Team(name="Other")
@@ -20,35 +17,36 @@ class FlagsOrderingOnCaseViewTests(DataTestClient):
         flags = []
 
         for team in [self.team, other_team, third_team]:
-            for level in ["Case", "Good", "Destination", "Organisation"]:
+            for level in ["Good", "Destination", "Case", "Organisation"]:
                 for priority in [0, 1]:
                     flag = FlagFactory(
                         name=level + team.name + str(priority), level=level, priority=priority, team=team
                     )
                     flags.append(flag)
 
-        print(flags)
-        print("\n")
         case = self.create_standard_application_case(organisation=self.organisation)
         case.flags.set([flag for flag in flags if flag.level == "Case"])
-        print(case.flags.values_list("name"))
-        print("\n")
 
         good = GoodOnApplication.objects.get(application=case).good
         good.flags.set([flag for flag in flags if flag.level == "Good"])
-        print(good.flags.values_list("name"))
-        print("\n")
 
         end_user = PartyOnApplication.objects.get(application=case, party__type=PartyType.END_USER).party
         end_user.flags.set([flag for flag in flags if flag.level == "Destination"])
-        print(end_user.flags.values_list("name"))
-        print("\n")
 
         self.organisation.flags.set([flag for flag in flags if flag.level == "Organisation"])
-        print(self.organisation.flags.values_list("name"))
-        print("\n")
 
         ordered_flags = get_ordered_flags(case, self.team)
 
-        for flag in ordered_flags:
-            print(flag)
+        # This is the order of the original flags when displayed on a case
+        expected_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 16, 9, 17, 10, 18, 11, 19, 12, 20, 13, 21, 14, 22, 15, 23]
+
+        for i in range(0, 24):
+            if i <= 7:
+                self.assertIn(flags[expected_order[i]].name, str(ordered_flags[i]))
+            else:
+                # We don't know about the order here by team, it doesn't matter as long as its by priority and type correctly
+                if i % 2 == 0:
+                    self.assertIn(flags[expected_order[i]].name, str(ordered_flags[i]) + str(ordered_flags[i + 1]))
+                else:
+                    self.assertIn(flags[expected_order[i]].name, str(ordered_flags[i]) + str(ordered_flags[i - 1]))
+            i += 1
