@@ -1,14 +1,14 @@
-from applications.enums import GoodsCategory
-from applications.enums import ApplicationExportType
-from audit_trail.models import Audit
-from flags.enums import SystemFlags
-from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
 
+from applications.enums import ApplicationExportType
+from applications.enums import GoodsCategory
 from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
+from audit_trail.models import Audit
 from cases.models import Case
+from flags.enums import SystemFlags
 from goods.enums import GoodStatus
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
@@ -106,8 +106,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertNotContains(
-            response,
-            text=strings.Applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
+            response, text=strings.Applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
