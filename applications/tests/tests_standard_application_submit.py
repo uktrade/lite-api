@@ -98,17 +98,19 @@ class StandardApplicationTests(DataTestClient):
             response, text=strings.Applications.Standard.NO_CONSIGNEE_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_submit_standard_application_without_consignee_document_failure(self):
+    def test_submit_standard_application_without_consignee_document_success(self):
+        # Consignee document is optional
         PartyDocument.objects.filter(party=self.draft.consignee.party).delete()
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
 
         response = self.client.put(url, **self.exporter_headers)
 
-        self.assertContains(
+        self.assertNotContains(
             response,
             text=strings.Applications.Standard.NO_CONSIGNEE_DOCUMENT_SET,
-            status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_submit_standard_application_without_good_failure(self):
         GoodOnApplication.objects.get(application=self.draft).delete()
