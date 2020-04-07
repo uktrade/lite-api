@@ -32,30 +32,32 @@ class UsersList(generics.ListCreateAPIView):
     serializer_class = OrganisationUserListView
 
     def get_queryset(self):
-        _status = self.request.GET.get("status")
-        exclude_permission = self.request.GET.get("exclude_permission")
         organisation_id = self.kwargs["org_pk"]
-
         if isinstance(self.request.user, ExporterUser):
             assert_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_USERS, organisation_id)
 
-        query = [Q(relationship__organisation__id=organisation_id)]
+        status = self.request.GET.get("status")
+        email = self.request.GET.get("email")
+        exclude_permission = self.request.GET.get("exclude_permission")
 
-        if _status:
-            query.append(Q(relationship__status=UserStatuses.from_string(_status)))
+        queryset = ExporterUser.objects.filter(relationship__organisation__id=organisation_id)
 
-        return (
-            ExporterUser.objects.filter(reduce(operator.and_, query))
-            .exclude(relationship__role__permissions__in=[exclude_permission])
-            .select_related("relationship__role")
-            .values(
-                "id",
-                "first_name",
-                "last_name",
-                "email",
-                status=F("relationship__status"),
-                role_name=F("relationship__role__name"),
-            )
+        if status:
+            queryset = queryset.filter(relationship__status=UserStatuses.from_string(status))
+
+        if exclude_permission:
+            queryset = queryset.exclude(relationship__role__permissions__in=[exclude_permission])
+
+        if email:
+            queryset = queryset.filter(email__contains=email)
+
+        return queryset.select_related("relationship__role").values(
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            status=F("relationship__status"),
+            role_name=F("relationship__role__name"),
         )
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
