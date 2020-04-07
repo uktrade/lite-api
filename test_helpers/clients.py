@@ -24,8 +24,8 @@ from applications.models import (
     ExhibitionClearanceApplication,
     GiftingClearanceApplication,
     F680ClearanceApplication,
-    Licence,
 )
+from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
@@ -53,6 +53,7 @@ from queries.goods_query.models import GoodsQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
+from static.decisions.models import Decision
 from static.f680_clearance_types.models import F680ClearanceType
 from static.letter_layouts.models import LetterLayout
 from static.management.commands import seedall
@@ -740,6 +741,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
+    def create_open_application_case(self, organisation: Organisation, reference_name="Open Application Case"):
+        """
+        Creates a complete open application case
+        """
+        draft = self.create_draft_open_application(organisation, reference_name)
+
+        return self.submit_application(draft)
+
     def create_hmrc_query(
         self, organisation: Organisation, reference_name="HMRC Query", safe_document=True,
     ):
@@ -852,13 +861,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return ecju_query
 
     @staticmethod
-    def create_licence(application: BaseApplication, is_complete: bool):
-        return Licence.objects.create(
+    def create_licence(application: BaseApplication, is_complete: bool, decisions=None):
+        if not decisions:
+            decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
+
+        licence = Licence.objects.create(
             application=application,
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
             is_complete=is_complete,
         )
+        licence.decisions.set(decisions)
+        return licence
 
 
 @tag("performance")

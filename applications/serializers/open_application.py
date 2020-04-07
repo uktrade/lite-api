@@ -1,12 +1,13 @@
 from rest_framework import serializers
 
-from applications.models import OpenApplication, Licence
+from applications.models import OpenApplication
+from licences.models import Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from applications.serializers.licence import LicenceViewSerializer
+from licences.serializers import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
@@ -58,7 +59,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
     def get_licence(self, instance):
         licence = Licence.objects.filter(application=instance).first()
-        return LicenceViewSerializer(licence).data
+        return CaseLicenceViewSerializer(licence).data
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):

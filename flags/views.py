@@ -257,12 +257,12 @@ class AssignFlags(APIView):
 
     @staticmethod
     def _get_case_for_destination(party):
-        qs = StandardApplication.objects.filter(party__party=party)
+        qs = StandardApplication.objects.filter(parties__party=party)
         if not qs:
             qs = EndUserAdvisoryQuery.objects.filter(Q(end_user=party))
 
         if not qs:
-            qs = HmrcQuery.objects.filter(party__party=party)
+            qs = HmrcQuery.objects.filter(parties__party=party)
         if qs:
             return qs.first().get_case()
 
