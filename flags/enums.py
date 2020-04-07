@@ -22,6 +22,32 @@ class FlagStatuses:
     ]
 
 
+class FlagColours:
+    DEFAULT = "default"
+    RED = "red"
+    YELLOW = "yellow"
+    GREEN = "green"
+    BLUE = "blue"
+    PURPLE = "purple"
+    ORANGE = "orange"
+    BROWN = "brown"
+    TURQUOISE = "turquoise"
+    PINK = "pink"
+
+    choices = [
+        (DEFAULT, "Default"),
+        (RED, "Red"),
+        (YELLOW, "Yellow"),
+        (GREEN, "Green"),
+        (BLUE, "Blue"),
+        (PURPLE, "Purple"),
+        (ORANGE, "Orange"),
+        (BROWN, "Brown"),
+        (TURQUOISE, "Turquoise"),
+        (PINK, "Pink"),
+    ]
+
+
 class SystemFlags:
     REFUSAL_FLAG_ID = "00000000-0000-0000-0000-000000000001"
     GOOD_CLC_QUERY_ID = "00000000-0000-0000-0000-000000000002"
