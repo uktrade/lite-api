@@ -80,6 +80,9 @@ class CaseTypeSubTypeEnum:
         (F680, "MOD F680 Clearance"),
     ]
 
+    licence = [STANDARD, OPEN, HMRC]
+    mod = [F680, EXHIBITION, GIFTING]
+
     @classmethod
     def as_list(cls):
         return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
@@ -103,11 +106,7 @@ class CaseTypeSubTypeEnum:
         Check if the application type does not use an export type
         Useful for licence duration
         """
-        return application_type in [
-            CaseTypeSubTypeEnum.F680,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-        ]
+        return application_type in CaseTypeSubTypeEnum.mod
 
 
 class CaseTypeEnum:

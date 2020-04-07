@@ -9,6 +9,10 @@ class OrganisationType:
         (INDIVIDUAL, "Individual"),
     ]
 
+    @classmethod
+    def as_list(cls):
+        return [choice[0] for choice in cls.choices]
+
 
 class OrganisationStatus:
     ACTIVE = "active"
