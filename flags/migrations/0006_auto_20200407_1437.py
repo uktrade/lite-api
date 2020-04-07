@@ -6,43 +6,39 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flags', '0005_flaggingrule_is_for_verified_goods_only'),
+        ("flags", "0005_flaggingrule_is_for_verified_goods_only"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='flag',
-            options={'ordering': ['team']},
-        ),
-        migrations.RemoveIndex(
-            model_name='flaggingrule',
-            name='flags_flagg_created_0d8cd4_idx',
+        migrations.AlterModelOptions(name="flag", options={"ordering": ["team"]},),
+        migrations.RemoveIndex(model_name="flaggingrule", name="flags_flagg_created_0d8cd4_idx",),
+        migrations.AddField(
+            model_name="flag",
+            name="colour",
+            field=models.CharField(
+                choices=[
+                    ("default", "Default"),
+                    ("red", "Red"),
+                    ("yellow", "Yellow"),
+                    ("green", "Green"),
+                    ("blue", "Blue"),
+                    ("purple", "Purple"),
+                    ("orange", "Orange"),
+                    ("brown", "Brown"),
+                    ("turquoise", "Turquoise"),
+                    ("pink", "Pink"),
+                ],
+                default="default",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='flag',
-            name='colour',
-            field=models.CharField(choices=[('default', 'Default'), ('red', 'Red'), ('yellow', 'Yellow'), ('green', 'Green'), ('blue', 'Blue'), ('purple', 'Purple'), ('orange', 'Orange'), ('brown', 'Brown'), ('turquoise', 'Turquoise'), ('pink', 'Pink')], default='default', max_length=20),
+            model_name="flag", name="label", field=models.CharField(blank=True, max_length=15, null=True),
         ),
-        migrations.AddField(
-            model_name='flag',
-            name='label',
-            field=models.CharField(blank=True, max_length=15, null=True),
-        ),
-        migrations.AddField(
-            model_name='flag',
-            name='priority',
-            field=models.PositiveSmallIntegerField(default=0),
-        ),
+        migrations.AddField(model_name="flag", name="priority", field=models.PositiveSmallIntegerField(default=0),),
         migrations.AddIndex(
-            model_name='flaggingrule',
-            index=models.Index(fields=['created_at'], name='flagging_ru_created_7400b0_idx'),
+            model_name="flaggingrule", index=models.Index(fields=["created_at"], name="flagging_ru_created_7400b0_idx"),
         ),
-        migrations.AlterModelTable(
-            name='flag',
-            table='flag',
-        ),
-        migrations.AlterModelTable(
-            name='flaggingrule',
-            table='flagging_rule',
-        ),
+        migrations.AlterModelTable(name="flag", table="flag",),
+        migrations.AlterModelTable(name="flaggingrule", table="flagging_rule",),
     ]
