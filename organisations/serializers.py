@@ -248,9 +248,9 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
         # TODO remove try block when other end points adopt generics
         try:
             if isinstance(self.context.get("request").user, GovUser):
-                return list(instance.flags.values("id", "name"))
+                return list(instance.flags.values("id", "name", "colour", "label", "priority"))
         except AttributeError:
-            return list(instance.flags.values("id", "name"))
+            return list(instance.flags.values("id", "name", "colour", "label", "priority"))
 
     class Meta:
         model = Organisation
