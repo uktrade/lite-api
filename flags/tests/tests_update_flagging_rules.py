@@ -90,3 +90,22 @@ class FlaggingRulesUpdateTest(DataTestClient):
         flagging_rule.refresh_from_db()
 
         self.assertEqual(flagging_rule.matching_value, "OIEL")
+
+    def test_flagging_rule_can_change_verified_answer(self):
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
+        flag = self.create_flag("New Flag", "Good", self.team)
+        flagging_rule = self.create_flagging_rule(
+            level="Good", flag=flag, team=self.team, matching_value="ML1", is_for_verified_goods_only="False"
+        )
+
+        data = {
+            "is_for_verified_goods_only": "True",
+        }
+
+        url = reverse("flags:flagging_rule", kwargs={"pk": flagging_rule.id})
+        self.client.put(url, data, **self.gov_headers)
+
+        flagging_rule.refresh_from_db()
+
+        self.assertTrue(flagging_rule.is_for_verified_goods_only)
