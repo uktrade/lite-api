@@ -13,6 +13,7 @@ from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from cases.models import Case
 from common.models import prefetch_generic_relations
+from static.statuses.enums import CaseStatusEnum
 
 STREAMED_AUDITS = [
     AuditType.CREATED.value,
@@ -68,6 +69,11 @@ def case_record_json(case_id, last_created_at, countries):
     }
 
 
+def convert_status(status):
+    converted = CaseStatusEnum.get_value(status)
+    return converted if converted else status
+
+
 def case_activity_json(audit, case_type):
     """
     Creates an activity stream compatible record for an application activity
@@ -96,13 +102,15 @@ def case_activity_json(audit, case_type):
         ]
     elif isinstance(audit.payload[data_type], dict):
         if "new" in audit.payload[data_type]:
-            object_data["dit:to"] = {
-                "dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type]["new"]
-            }
+            new_value = audit.payload[data_type]["new"]
+            if audit.verb == AuditType.UPDATED_STATUS.value:
+                new_value = convert_status(new_value)
+            object_data["dit:to"] = {"dit:lite:case:{data_type}".format(data_type=data_type): new_value}
         if "old" in audit.payload[data_type]:
-            object_data["dit:from"] = {
-                "dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type]["old"]
-            }
+            old_value = audit.payload[data_type]["old"]
+            if audit.verb == AuditType.UPDATED_STATUS.value:
+                old_value = convert_status(old_value)
+            object_data["dit:from"] = {"dit:lite:case:{data_type}".format(data_type=data_type): old_value}
     else:
         object_data["dit:to"] = {"dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type]}
 
