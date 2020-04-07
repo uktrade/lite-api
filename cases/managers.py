@@ -128,15 +128,19 @@ class CaseManager(models.Manager):
         """
         Search for a user's available cases given a set of search parameters.
         """
-        case_qs = self.submitted().prefetch_related(
-            "queues",
-            "case_assignments",
-            "case_assignments__user",
-            "case_ecju_query",
-            "case_assignments__queue",
-            "status",
-            "organisation__flags",
-            "case_type",
+        case_qs = (
+            self.submitted()
+            .select_related("organisation", "status")
+            .prefetch_related(
+                "queues",
+                "case_assignments",
+                "case_assignments__user",
+                "case_ecju_query",
+                "case_assignments__queue",
+                "organisation__flags",
+                "case_type",
+                "flags",
+            )
         )
         team_id = user.team.id
 
