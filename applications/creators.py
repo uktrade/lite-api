@@ -72,9 +72,13 @@ def check_party_error(party, object_not_found_error, is_mandatory, is_document_m
 
 def _validate_end_user(draft, errors, is_mandatory):
     """ Checks there is an end user (with a document if is_document_mandatory) """
+    # Document is only mandatory if application is standard permanent or HMRC query
     is_document_mandatory = (
-        draft.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
-        and draft.export_type == ApplicationExportType.PERMANENT
+        (
+            draft.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
+            and draft.export_type == ApplicationExportType.PERMANENT
+        )
+        or draft.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
     ) or False
 
     end_user_errors = check_party_error(
