@@ -6,8 +6,9 @@ from rest_framework.views import APIView
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
+from workflow.routing_rules.helpers import get_routing_rule
 from workflow.routing_rules.models import RoutingRule
-from workflow.routing_rules.serializers import RoutingRuleSerializer, EditRoutingRuleSerializer
+from workflow.routing_rules.serializers import RoutingRuleSerializer, SmallRoutingRuleSerializer
 
 
 class RoutingRulesList(ListCreateAPIView):
@@ -60,7 +61,7 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
     def get_serializer_class(self):
         if self.request.method == "GET":
             # light weight serializer for editing
-            return EditRoutingRuleSerializer
+            return SmallRoutingRuleSerializer
         else:
             # heavy serializer for validating, saving and getting list of objects
             return RoutingRuleSerializer
@@ -81,7 +82,7 @@ class RoutingRulesActiveStatus(APIView):
 
         active_status = True if status == "reactivate" else False
 
-        routing_rule = RoutingRule.objects.get(id=pk)
+        routing_rule = get_routing_rule(id=pk)
 
         if routing_rule.active == active_status:
             return JsonResponse(status=HTTP_400_BAD_REQUEST, data={"error": "status already set"})
@@ -90,5 +91,5 @@ class RoutingRulesActiveStatus(APIView):
         routing_rule.save()
 
         return JsonResponse(
-            status=HTTP_200_OK, data={"routing_rule": RoutingRuleSerializer(instance=routing_rule).data}
+            status=HTTP_200_OK, data={"routing_rule": SmallRoutingRuleSerializer(instance=routing_rule).data}
         )

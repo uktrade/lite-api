@@ -65,7 +65,7 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
         )
 
     def __init__(self, *args, **kwargs):
-        # set fields to required or not depending on array passed forward
+        # set fields to required or not depending on additional rules passed forward
         super().__init__(*args, **kwargs)
         if kwargs.get("data"):
             if not kwargs["data"].get("team"):
@@ -118,7 +118,7 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
 
 
 # flattened serializer for editing purposes
-class EditRoutingRuleSerializer(serializers.ModelSerializer):
+class SmallRoutingRuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoutingRule
         fields = "__all__"

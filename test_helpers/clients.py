@@ -28,12 +28,12 @@ from applications.models import (
 )
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType
 from cases.sla import get_application_target_sla
 from conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
-from flags.enums import SystemFlags, FlagStatuses
+from flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from flags.models import Flag, FlaggingRule
 from goods.enums import GoodControlled, GoodPvGraded, PvGrading
 from goods.models import Good, GoodDocument, PvGradingDetails
@@ -53,6 +53,7 @@ from queries.goods_query.models import GoodsQuery
 from queues.models import Queue
 from static.control_list_entries.models import ControlListEntry
 from static.countries.helpers import get_country
+from static.countries.models import Country
 from static.f680_clearance_types.models import F680ClearanceType
 from static.letter_layouts.models import LetterLayout
 from static.management.commands import seedall
@@ -67,6 +68,9 @@ from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 from faker import Faker
+
+from workflow.routing_rules.enum import RoutingRulesAdditionalFields
+from workflow.routing_rules.models import RoutingRule
 
 
 class Static:
@@ -847,6 +851,36 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             duration=get_default_duration(application),
             is_complete=is_complete,
         )
+
+    def create_routing_rule(self, team_id, queue_id, tier, status_id, additional_rules: list):
+        user = self.gov_user.id if RoutingRulesAdditionalFields.USERS in additional_rules else None
+        flags = (
+            [self.create_flag("routing_flag", FlagLevels.CASE, self.team).id]
+            if RoutingRulesAdditionalFields.FLAGS in additional_rules
+            else None
+        )
+        case_types = (
+            [CaseType.objects.first().id] if RoutingRulesAdditionalFields.CASE_TYPES in additional_rules else None
+        )
+        country = Country.objects.first().id if RoutingRulesAdditionalFields.COUNTRY in additional_rules else None
+
+        rule = RoutingRule.objects.create(
+            team_id=team_id,
+            queue_id=queue_id,
+            tier=tier,
+            status_id=status_id,
+            additional_rules=additional_rules,
+            user_id=user,
+            country_id=country,
+        )
+
+        if case_types:
+            rule.case_types.add(*case_types)
+        if flags:
+            rule.flags.add(*flags)
+
+        rule.save()
+        return rule
 
 
 @tag("performance")
