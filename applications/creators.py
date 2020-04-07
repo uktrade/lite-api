@@ -1,7 +1,7 @@
-from conf.helpers import str_to_bool
-from applications.enums import ApplicationExportType
 from django.utils import timezone
+
 from applications import constants
+from applications.enums import ApplicationExportType
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
@@ -9,6 +9,7 @@ from applications.models import (
     ExternalLocationOnApplication,
 )
 from cases.enums import CaseTypeSubTypeEnum
+from conf.helpers import str_to_bool
 from documents.models import Document
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
@@ -71,12 +72,10 @@ def check_party_error(party, object_not_found_error, is_mandatory, is_document_m
 
 def _validate_end_user(draft, errors, is_mandatory):
     """ Checks there is an end user (with a document if is_document_mandatory) """
-    is_document_mandatory = True
-    if (
+    is_document_mandatory = (
         draft.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
-        and draft.export_type == ApplicationExportType.TEMPORARY
-    ):
-        is_document_mandatory = False
+        and draft.export_type == ApplicationExportType.PERMANENT
+    ) or False
 
     end_user_errors = check_party_error(
         draft.end_user.party if draft.end_user else None,
@@ -193,13 +192,15 @@ def _validate_agree_to_declaration(request, errors):
 def _validate_additional_information(draft, errors):
     for field in constants.F680.REQUIRED_FIELDS:
         if getattr(draft, field) is None or getattr(draft, field) == "":
-            errors["additional_information"] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+            errors["additional_information"] = [
+                strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+            ]
         if getattr(draft, field) is True:
             secondary_field = constants.F680.REQUIRED_SECONDARY_FIELDS.get(field, False)
             if secondary_field and not getattr(draft, secondary_field):
-                errors[
-                    "additional_information"
-                ] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+                errors["additional_information"] = [
+                    strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+                ]
 
     today = timezone.now().date()
 
@@ -215,7 +216,7 @@ def _validate_temporary_export_details(draft, errors):
         and draft.export_type == ApplicationExportType.TEMPORARY
     ):
         if not draft.temp_export_details or draft.is_temp_direct_control is None or draft.proposed_return_date is None:
-            errors["temporary_export_details"] = strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS
+            errors["temporary_export_details"] = [strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS]
 
     return errors
 
