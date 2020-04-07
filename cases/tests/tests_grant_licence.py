@@ -3,7 +3,7 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
-from applications.models import Licence
+from licences.models import Licence
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -40,7 +40,14 @@ class FinaliseCaseTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["licence"], str(licence.id))
-        self.assertEqual(Licence.objects.filter(application=self.standard_case, is_complete=True).count(), 1)
+        self.assertEqual(
+            Licence.objects.filter(
+                application=self.standard_case,
+                is_complete=True,
+                decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
+            ).count(),
+            1,
+        )
         self.assertEqual(self.standard_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)
@@ -70,6 +77,7 @@ class FinaliseCaseTests(DataTestClient):
     def test_grant_clearance_success(self, send_exporter_notifications_func):
         clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(clearance_case)
+        self.create_advice(self.gov_user, clearance_case, "good", AdviceType.APPROVE, FinalAdvice)
         self.url = reverse("cases:finalise", kwargs={"pk": clearance_case.id})
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
@@ -81,7 +89,14 @@ class FinaliseCaseTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["licence"], str(licence.id))
-        self.assertEqual(Licence.objects.filter(application=clearance_case, is_complete=True).count(), 1)
+        self.assertEqual(
+            Licence.objects.filter(
+                application=clearance_case,
+                is_complete=True,
+                decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
+            ).count(),
+            1,
+        )
         self.assertEqual(clearance_case.status, CaseStatus.objects.get(status=CaseStatusEnum.FINALISED))
         for document in GeneratedCaseDocument.objects.filter(advice_type__isnull=False):
             self.assertTrue(document.visible_to_exporter)

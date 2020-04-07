@@ -218,12 +218,12 @@ class AssignFlags(APIView):
 
     @staticmethod
     def _get_case_for_destination(party):
-        qs = StandardApplication.objects.filter(party__party=party)
+        qs = StandardApplication.objects.filter(parties__party=party)
         if not qs:
             qs = EndUserAdvisoryQuery.objects.filter(Q(end_user=party))
 
         if not qs:
-            qs = HmrcQuery.objects.filter(party__party=party)
+            qs = HmrcQuery.objects.filter(parties__party=party)
         if qs:
             return qs.first().get_case()
 
@@ -256,6 +256,7 @@ class FlaggingRules(ListCreateAPIView):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
         json = request.data
         json["team"] = self.request.user.team.id
+
         serializer = FlaggingRuleSerializer(data=request.data)
 
         if serializer.is_valid():

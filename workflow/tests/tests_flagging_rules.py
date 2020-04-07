@@ -3,6 +3,7 @@ from parameterized import parameterized
 from applications.models import GoodOnApplication, PartyOnApplication, CountryOnApplication
 from cases.enums import CaseTypeEnum
 from flags.enums import FlagLevels, FlagStatuses
+from goods.enums import GoodStatus
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -41,6 +42,48 @@ class FlaggingRulesAutomation(DataTestClient):
 
         good_flags = list(good.flags.all())
 
+        self.assertTrue(flag in good_flags)
+
+    def test_adding_goods_type_flag_from_case_with_verified_only_rule_failure(self):
+        """ Test flag not applied to good when flagging rule is for verified goods only. """
+        flag = self.create_flag(name="for verified good flag", level=FlagLevels.GOOD, team=self.team)
+        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
+        self.submit_application(case)
+        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
+
+        self.create_flagging_rule(
+            level=FlagLevels.GOOD,
+            team=self.team,
+            flag=flag,
+            matching_value=good.control_code,
+            is_for_verified_goods_only=True,
+        )
+
+        apply_flagging_rules_to_case(case)
+
+        good_flags = list(good.flags.all())
+        self.assertFalse(flag in good_flags)
+
+    def test_adding_goods_type_flag_from_case_with_verified_only_rule_success(self):
+        """ Test flag is applied to verified good when the flagging rule is applicable to only verified goods. """
+        flag = self.create_flag(name="for verified good flag", level=FlagLevels.GOOD, team=self.team)
+        case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
+        self.submit_application(case)
+        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
+        good.status = GoodStatus.VERIFIED
+        good.save()
+
+        self.create_flagging_rule(
+            level=FlagLevels.GOOD,
+            team=self.team,
+            flag=flag,
+            matching_value=good.control_code,
+            is_for_verified_goods_only=True,
+        )
+
+        apply_flagging_rules_to_case(case)
+
+        good_flags = list(good.flags.all())
         self.assertTrue(flag in good_flags)
 
     def test_adding_destination_type_flag_from_case(self):
@@ -215,6 +258,37 @@ class FlaggingRulesAutomation(DataTestClient):
         else:
             self.assertIn(flag, case.flags.all())
 
+    def test_apply_verified_goods_only_flagging_rule_to_open_cases_failure(self):
+        """ Test flag not applied to good when flagging rule is for verified goods only. """
+        case = self.create_standard_application_case(self.organisation)
+
+        flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
+        flagging_rule = self.create_flagging_rule(
+            FlagLevels.GOOD, self.team, flag, case.case_type.reference, is_for_verified_goods_only=True
+        )
+        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
+
+        apply_flagging_rule_to_all_open_cases(flagging_rule)
+
+        case.refresh_from_db()
+        self.assertNotIn(flag, case.flags.all())
+
+    def test_apply_verified_goods_only_flagging_rule_to_open_cases_success(self):
+        case = self.create_standard_application_case(self.organisation)
+
+        flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
+        flagging_rule = self.create_flagging_rule(
+            FlagLevels.GOOD, self.team, flag, case.case_type.reference, is_for_verified_goods_only=True
+        )
+        good = GoodOnApplication.objects.filter(application_id=case.id).first().good
+        good.status = GoodStatus.VERIFIED
+        good.save()
+
+        apply_flagging_rule_to_all_open_cases(flagging_rule)
+
+        case.refresh_from_db()
+        self.assertNotIn(flag, case.flags.all())
+
 
 class FlaggingRulesAutomationForEachCaseType(DataTestClient):
     def test_open_application_automation(self):
@@ -227,7 +301,13 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
 
         goods_type = GoodsType.objects.filter(application_id=application.id).first()
         good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=goods_type.control_code)
+        self.create_flagging_rule(
+            FlagLevels.GOOD,
+            self.team,
+            flag=good_flag,
+            matching_value=goods_type.control_code,
+            is_for_verified_goods_only=False,
+        )
 
         country = CountryOnApplication.objects.filter(application_id=application.id).first().country
         destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)

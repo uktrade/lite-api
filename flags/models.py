@@ -29,6 +29,7 @@ class FlaggingRule(TimestampableModel):
     status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
     flag = models.ForeignKey(Flag, on_delete=models.CASCADE)
     matching_value = models.CharField(max_length=100)
+    is_for_verified_goods_only = models.BooleanField(null=True, blank=True)
 
     class Meta:
         db_table = "flagging_rule"
