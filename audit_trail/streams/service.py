@@ -6,7 +6,6 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
 from django.utils import timezone
 
 from applications.models import CountryOnApplication
@@ -90,7 +89,7 @@ def case_activity_json(audit, case_type):
 
     # TODO: standardize audit payloads and clean
     if AuditType(audit.verb) == AuditType.CREATED:
-        object_data["dit:status"] = case.status.status
+        object_data["dit:status"] = "unknown"
         object_data["type"] = [
             "dit:lite:case:create",
             "dit:lite:activity",
