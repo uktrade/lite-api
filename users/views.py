@@ -74,15 +74,8 @@ class AuthenticateExporterUser(APIView):
 
 class UserList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterUserViewSerializer
     queryset = ExporterUser.objects.all()
-
-    def get_serializer(self, *args, **kwargs):
-        if self.request.method == "GET":
-            return ExporterUserViewSerializer
-        else:
-            data = self.request.data
-            data["organisation"] = self.request.user.organisation.id
-            return ExporterUserCreateUpdateSerializer(data=data)
 
 
 class UserDetail(APIView):

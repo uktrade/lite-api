@@ -29,7 +29,6 @@ from users.services import filter_roles_by_user_role
 
 class UsersList(generics.ListCreateAPIView):
     authentication_classes = (SharedAuthentication,)
-    serializer_class = OrganisationUserListView
 
     def get_queryset(self):
         organisation_id = self.kwargs["org_pk"]
@@ -60,22 +59,16 @@ class UsersList(generics.ListCreateAPIView):
             role_name=F("relationship__role__name"),
         )
 
-    @swagger_auto_schema(responses={400: "JSON parse error"})
-    def post(self, request, org_pk):
+    def get_serializer(self, *args, **kwargs):
         """
-        Create an exporter user within the specified organisation
+        Get or Create Exporter user(s)
         """
-        if isinstance(request.user, ExporterUser):
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, org_pk)
-        data = JSONParser().parse(request)
-        data["organisation"] = str(org_pk)
-        serializer = ExporterUserCreateUpdateSerializer(data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={"user": serializer.data}, status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if self.request.method == "GET":
+            return OrganisationUserListView
+        else:
+            data = self.request.data
+            data["organisation"] = self.request.user.organisation.id
+            return ExporterUserCreateUpdateSerializer(data=data)
 
 
 class UserDetail(APIView):
