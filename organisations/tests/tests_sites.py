@@ -5,6 +5,7 @@ from rest_framework.reverse import reverse
 from organisations.models import Site
 from organisations.tests.factories import OrganisationFactory
 from test_helpers.clients import DataTestClient
+from users.models import UserOrganisationRelationship
 
 faker = Faker()
 
@@ -24,6 +25,8 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(len(response_data["sites"]), 1)
 
     def test_view_site(self):
+        user = self.create_exporter_user(self.organisation)
+        UserOrganisationRelationship.objects.get(user=user).sites.add(self.organisation.primary_site)
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         url = reverse(
             "organisations:site", kwargs={"org_pk": self.organisation.id, "pk": self.organisation.primary_site_id}
@@ -36,6 +39,17 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(response_data["name"], self.organisation.primary_site.name)
         self.assertEqual(
             response_data["users"],
+            [
+                {
+                    "id": str(user.id),
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "email": user.email,
+                }
+            ],
+        )
+        self.assertEqual(
+            response_data["admin_users"],
             [
                 {
                     "id": str(self.exporter_user.id),
