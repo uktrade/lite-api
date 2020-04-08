@@ -11,7 +11,9 @@ def create_missing_case_create_audits(apps, schema_editor):
     Case = apps.get_model("cases", "Case")
     Audit = apps.get_model("audit_trail", "Audit")
 
-    for case in Case.objects.exclude(case_type_id__in=[CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id]).order_by("created_at"):
+    for case in Case.objects.exclude(case_type_id__in=[CaseTypeEnum.GOODS.id, CaseTypeEnum.EUA.id]).order_by(
+        "created_at"
+    ):
         print("Running for audit update for case {id}".format(id=case.id))
         content_type = ContentType.objects.get_for_model(case)
         audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS.value, target_object_id=case.id).order_by(
@@ -19,7 +21,9 @@ def create_missing_case_create_audits(apps, schema_editor):
         )
 
         first_audit = audits.first()
-        if first_audit and (first_audit.payload["status"]["old"] == "draft" and first_audit.payload["status"]["new"] != "submitted"):
+        if first_audit and (
+            first_audit.payload["status"]["old"] == "draft" and first_audit.payload["status"]["new"] != "submitted"
+        ):
             print(first_audit.payload)
 
             first_audit.payload["status"]["old"] = "submitted"

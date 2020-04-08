@@ -96,7 +96,9 @@ def case_activity_json(audit, case_type):
             "dit:lite:case:change:{data_type}".format(data_type=data_type),
         ],
         "attributedTo": {"id": "dit:lite:case:{case_type}:{id}".format(case_type=case_type, id=case.id)},
-        "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}".format(data_type=data_type, id=case.id, audit_id=audit.id)
+        "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}".format(
+            data_type=data_type, id=case.id, audit_id=audit.id
+        ),
     }
 
     # TODO: standardize audit payloads and clean
