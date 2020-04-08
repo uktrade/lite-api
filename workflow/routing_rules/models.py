@@ -16,7 +16,7 @@ from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 class RoutingRule(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, related_name="routing_rules", on_delete=models.CASCADE)
     queue = models.ForeignKey(Queue, related_name="routing_rules", on_delete=models.DO_NOTHING,)
     status = models.ForeignKey(CaseStatus, related_name="routing_rules", on_delete=models.DO_NOTHING,)
     tier = models.PositiveSmallIntegerField()  # positive whole number, that decides order routing rules are applied

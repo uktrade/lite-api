@@ -13,39 +13,91 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('teams', '0002_auto_20200307_1805'),
-        ('statuses', '0003_auto_20200318_1730'),
-        ('cases', '0013_auto_20200325_1544'),
-        ('users', '0005_auto_20200322_1547'),
-        ('queues', '0001_initial'),
-        ('flags', '0004_auto_20200326_1548'),
-        ('countries', '0001_initial'),
+        ("teams", "0002_auto_20200307_1805"),
+        ("statuses", "0003_auto_20200318_1730"),
+        ("cases", "0013_auto_20200325_1544"),
+        ("users", "0005_auto_20200322_1547"),
+        ("queues", "0001_initial"),
+        ("flags", "0004_auto_20200326_1548"),
+        ("countries", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RoutingRule',
+            name="RoutingRule",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('tier', models.PositiveSmallIntegerField()),
-                ('additional_rules', separatedvaluesfield.models.SeparatedValuesField(blank=True, choices=[('users', 'Users'), ('case_types', 'Case Types'), ('flags', 'flags'), ('country', 'Country')], default=None, max_length=100, null=True)),
-                ('active', models.BooleanField(default=True)),
-                ('case_types', models.ManyToManyField(blank=True, related_name='routing_rules', to='cases.CaseType')),
-                ('country', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='routing_rules', to='countries.Country')),
-                ('flags', models.ManyToManyField(blank=True, related_name='routing_rules', to='flags.Flag')),
-                ('queue', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='routing_rules', to='queues.Queue')),
-                ('status', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='routing_rules', to='statuses.CaseStatus')),
-                ('team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='teams.Team')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='routing_rules', to='users.GovUser')),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("tier", models.PositiveSmallIntegerField()),
+                (
+                    "additional_rules",
+                    separatedvaluesfield.models.SeparatedValuesField(
+                        blank=True,
+                        choices=[
+                            ("users", "Users"),
+                            ("case_types", "Case Types"),
+                            ("flags", "flags"),
+                            ("country", "Country"),
+                        ],
+                        default=None,
+                        max_length=100,
+                        null=True,
+                    ),
+                ),
+                ("active", models.BooleanField(default=True)),
+                ("case_types", models.ManyToManyField(blank=True, related_name="routing_rules", to="cases.CaseType")),
+                (
+                    "country",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="routing_rules",
+                        to="countries.Country",
+                    ),
+                ),
+                ("flags", models.ManyToManyField(blank=True, related_name="routing_rules", to="flags.Flag")),
+                (
+                    "queue",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING, related_name="routing_rules", to="queues.Queue"
+                    ),
+                ),
+                (
+                    "status",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="routing_rules",
+                        to="statuses.CaseStatus",
+                    ),
+                ),
+                ("team", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="teams.Team")),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="routing_rules",
+                        to="users.GovUser",
+                    ),
+                ),
             ],
-            options={
-                'ordering': ['team__name', 'tier', '-created_at'],
-            },
+            options={"ordering": ["team__name", "tier", "-created_at"],},
         ),
         migrations.AddIndex(
-            model_name='routingrule',
-            index=models.Index(fields=['created_at', 'tier'], name='routing_rul_created_70ce43_idx'),
+            model_name="routingrule",
+            index=models.Index(fields=["created_at", "tier"], name="routing_rul_created_70ce43_idx"),
         ),
     ]

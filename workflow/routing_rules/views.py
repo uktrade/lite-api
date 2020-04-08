@@ -80,7 +80,7 @@ class RoutingRulesActiveStatus(APIView):
         if status != "deactivate" and status != "reactivate":
             raise Http404
 
-        active_status = True if status == "reactivate" else False
+        active_status = status == "reactivate"
 
         routing_rule = get_routing_rule(id=pk)
 
