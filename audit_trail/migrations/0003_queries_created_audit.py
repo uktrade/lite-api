@@ -11,7 +11,7 @@ def create_missing_create_audits(apps, schema_editor):
     Case = apps.get_model("cases", "Case")
     Audit = apps.get_model("audit_trail", "Audit")
 
-    for case in Case.objects.filter(case_type_id=CaseTypeEnum.GOODS.id):
+    for case in Case.objects.filter(case_type__id=CaseTypeEnum.GOODS.id):
         print("Running for goods case {id}".format(id=case.id))
         content_type = ContentType.objects.get_for_model(case)
         audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS.value, target_object_id=case.id).order_by(
@@ -34,7 +34,7 @@ def create_missing_create_audits(apps, schema_editor):
                 payload={"status": {"new": "clc_review"}}
             )
 
-    for case in Case.objects.filter(case_type_id=CaseTypeEnum.EUA.id):
+    for case in Case.objects.filter(case_type__id=CaseTypeEnum.EUA.id):
         print("Running for eua case {id}".format(id=case.id))
         content_type = ContentType.objects.get_for_model(case)
         audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS.value, target_object_id=case.id).order_by(
@@ -60,7 +60,11 @@ def create_missing_create_audits(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [("applications", "0022_auto_20200331_1107"), ("audit_trail", "0002_migrate_old_status_payload")]
+    dependencies = [
+        ("applications", "0022_auto_20200331_1107"),
+        ("audit_trail", "0002_migrate_old_status_payload"),
+        ("cases", "0013_auto_20200325_1544"),
+    ]
     operations = [
         migrations.RunPython(create_missing_create_audits),
     ]

@@ -15,7 +15,7 @@ class AuditTrailStreamTestCase(DataTestClient):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
         self.user = self.exporter_user
-        self.url = reverse("audit_trail:streams", kwargs={"n": 0})
+        self.url = reverse("audit_trail:streams", kwargs={"timestamp": 0})
         self.status_url = reverse("applications:manage_status", kwargs={"pk": self.case.id})
 
     def test_no_case_record_in_stream_with_no_audit(self):
@@ -37,12 +37,12 @@ class AuditTrailStreamTestCase(DataTestClient):
         self.assertEqual(
             stream["orderedItems"][0],
             {
-                "id": "dit:lite:case:change:status:{case_id}:{audit_id}:update".format(
+                "id": "dit:lite:case:change:status:{case_id}:{audit_id}:create".format(
                     case_id=self.case.id, audit_id=audit.id
                 ),
                 "object": {
                     "attributedTo": {"id": "dit:lite:case:standard:{id}".format(id=self.case.id)},
-                    "dit:to": {"dit:lite:case:status": CaseStatusEnum.get_text(data["status"])},
+                    "dit:to": {"dit:lite:case:status": data["status"]},
                     "dit:from": {"dit:lite:case:status": old_status},
                     "type": ["dit:lite:case:change", "dit:lite:activity", "dit:lite:case:change:status"],
                 },
@@ -52,7 +52,7 @@ class AuditTrailStreamTestCase(DataTestClient):
         self.assertEqual(
             stream["orderedItems"][1],
             {
-                "id": "dit:lite:case:{case_type}:{id}:create".format(
+                "id": "dit:lite:case:{case_type}:{id}:Update".format(
                     case_type=self.case.case_type.sub_type, id=self.case.id
                 ),
                 "object": {
