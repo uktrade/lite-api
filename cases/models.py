@@ -12,7 +12,7 @@ from cases.enums import (
     CaseTypeReferenceEnum,
 )
 from cases.libraries.reference_code import generate_reference_code
-from cases.managers import CaseManager, CaseReferenceCodeManager
+from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
@@ -170,6 +170,8 @@ class Advice(TimestampableModel):
     Advice for goods and destinations on cases
     """
 
+    ENTITIES = ["good", "goods_type", "country", "end_user", "consignee", "ultimate_end_user", "third_party"]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.PROTECT)
@@ -194,6 +196,15 @@ class Advice(TimestampableModel):
     pv_grading = models.CharField(choices=PvGrading.choices, null=True, max_length=30)
     # This is to store the collated security grading(s) for display purposes
     collated_pv_grading = models.TextField(default=None, blank=True, null=True)
+
+    objects = AdviceManager()
+
+    @property
+    def entity(self):
+        for entity in self.ENTITIES:
+            entity = getattr(self, entity, None)
+            if entity:
+                return entity
 
     def save(self, *args, **kwargs):
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:

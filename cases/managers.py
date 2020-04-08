@@ -3,6 +3,7 @@ from typing import List
 
 from compat import get_model
 from django.db import models
+from django.db.models import Q
 
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from queues.constants import (
@@ -245,3 +246,25 @@ class CaseReferenceCodeManager(models.Manager):
 
         case_reference_code.save()
         return case_reference_code
+
+
+class AdviceManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related(*self.model.ENTITIES)
+
+    def get(self, *args, **kwargs):
+        entity_id = kwargs.pop("entity_id", None)
+
+        if entity_id:
+            queries = [Q(**{entity: entity_id}) for entity in self.model.ENTITIES]
+
+            # Take one Q object from the list
+            query = queries.pop()
+
+            # Or the Q object with the ones remaining in the list
+            for item in queries:
+                query |= item
+
+            return super().filter(query).get(*args, **kwargs)
+
+        return super().get(*args, **kwargs)

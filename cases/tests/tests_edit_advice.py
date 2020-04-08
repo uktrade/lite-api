@@ -1,4 +1,5 @@
 from django.urls import reverse
+from rest_framework.status import HTTP_201_CREATED
 
 from cases.enums import AdviceType
 from cases.models import Advice
@@ -34,3 +35,23 @@ class EditCaseAdviceTests(DataTestClient):
 
         # Assert that there's only one piece of advice
         self.assertEqual(Advice.objects.count(), 1)
+
+    def test_standard_case_advice_end_user(self):
+        data = {
+            "type": AdviceType.APPROVE,
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "end_user": str(self.standard_application.end_user.party.id),
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, HTTP_201_CREATED)
+        advice = Advice.objects.get(entity_id=self.standard_application.end_user.party.id)
+        self.assertEqual(str(advice.end_user.id), data["end_user"])
+        self.assertEqual(advice.entity, advice.end_user)
+
+        entities = Advice.ENTITIES
+        entities.remove("end_user")
+        for entity in entities:
+            self.assertIsNone(getattr(advice, entity, None))
