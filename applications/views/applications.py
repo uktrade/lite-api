@@ -150,6 +150,7 @@ class ApplicationExisting(APIView):
     HMRC - Whether the organisation has existing submitted queries
     Standard - Whether the organisation has any drafts/applications, or licences
     """
+
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
