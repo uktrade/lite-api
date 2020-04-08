@@ -256,14 +256,10 @@ class AdviceManager(models.Manager):
         entity_id = kwargs.pop("entity_id", None)
 
         if entity_id:
-            queries = [Q(**{entity: entity_id}) for entity in self.model.ENTITIES]
+            query = Q()
 
-            # Take one Q object from the list
-            query = queries.pop()
-
-            # Or the Q object with the ones remaining in the list
-            for item in queries:
-                query |= item
+            for entity in self.model.ENTITIES:
+                query.add(Q(**{entity: entity_id}), Q.OR)
 
             return super().filter(query).get(*args, **kwargs)
 
