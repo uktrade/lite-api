@@ -96,8 +96,10 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
         if not UserOrganisationRelationship.objects.filter(organisation=organisation).exists():
             role = Role.objects.get(id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
 
-        relationship, _ = UserOrganisationRelationship.objects.update_or_create(user=exporter, organisation=organisation, role=role)
+        relationship, _ = UserOrganisationRelationship.objects.get_or_create(user=exporter, organisation=organisation)
+        relationship.role = role
         relationship.sites.set(sites)
+        relationship.save()
 
         return exporter
 
