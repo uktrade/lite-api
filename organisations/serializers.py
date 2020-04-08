@@ -21,25 +21,50 @@ from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSi
 
 class SiteListSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
+    assigned_users_count = serializers.SerializerMethodField()
+
+    def get_assigned_users_count(self, instance):
+        return (
+            UserOrganisationRelationship.objects.filter(
+                Q(sites__id__exact=instance.id)
+                | Q(organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name)
+            )
+            .distinct()
+            .count()
+        )
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address")
+        fields = ("id", "name", "address", "assigned_users_count")
 
 
 class SiteViewSerializer(SiteListSerializer):
     users = serializers.SerializerMethodField()
+    admin_users = serializers.SerializerMethodField()
 
     def get_users(self, instance):
-        users = UserOrganisationRelationship.objects.filter(
-            Q(sites__id__exact=instance.id)
-            | Q(organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name)
-        ).select_related("user")
+        users = (
+            UserOrganisationRelationship.objects.filter(sites__id=instance.id)
+            .distinct()
+            .select_related("user")
+            .order_by("user__email")
+        )
+        return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
+
+    def get_admin_users(self, instance):
+        users = (
+            UserOrganisationRelationship.objects.filter(
+                organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name
+            )
+            .distinct()
+            .select_related("user")
+            .order_by("user__email")
+        )
         return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "users")
+        fields = ("id", "name", "address", "users", "admin_users")
 
 
 class SiteCreateUpdateSerializer(serializers.ModelSerializer):

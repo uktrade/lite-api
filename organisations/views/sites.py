@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 from conf.authentication import SharedAuthentication
 from conf.constants import ExporterPermissions
 from conf.permissions import assert_user_has_permission
-from organisations import service
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer, SiteCreateUpdateSerializer, SiteListSerializer
@@ -39,8 +38,6 @@ class SitesList(APIView):
         sites = list(sites)
         sites.sort(key=lambda x: x.id == primary_site_id, reverse=True)
         serializer_data = SiteListSerializer(sites, many=True).data
-
-        service.populate_assigned_users_count(org_pk, serializer_data)
 
         return JsonResponse(data={"sites": serializer_data})
 
