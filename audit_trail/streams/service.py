@@ -95,6 +95,9 @@ def case_activity_json(audit, case_type):
 
     # TODO: standardize audit payloads and clean
     if AuditType(audit.verb) == AuditType.CREATED:
+        if not audit.payload:
+            audit.payload = {"status": {"new": "clc_review" if case_type == "end_user_advisory" else "submitted"}}
+            audit.save()
         object_data["dit:to"] = {"dit:lite:case:status": audit.payload["status"]["new"]}
         object_data["type"] = [
             "dit:lite:case:create",
