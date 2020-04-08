@@ -171,6 +171,7 @@ def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
 
             if entity_value:
                 final_advice_entities[entity_name].append(entity_serializer_map[entity_name](entity_value).data)
+                break
 
     return final_advice_entities
 
