@@ -49,7 +49,7 @@ class EndUserAdvisoriesList(ListAPIView):
                         actor=request.user,
                         verb=AuditType.CREATED,
                         action_object=eua.get_case(),
-                        payload={"status": {"new": eua.status.status}}
+                        payload={"status": {"new": eua.status.status}},
                     )
                     apply_flagging_rules_to_case(eua)
                     return JsonResponse(data={"end_user_advisory": serializer.data}, status=status.HTTP_201_CREATED)

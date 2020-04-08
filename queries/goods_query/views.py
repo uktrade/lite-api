@@ -98,7 +98,7 @@ class GoodsQueriesCreate(APIView):
             actor=request.user,
             verb=AuditType.CREATED,
             action_object=goods_query.get_case(),
-            payload={"status": {"new": goods_query.status.status}}
+            payload={"status": {"new": goods_query.status.status}},
         )
 
         apply_flagging_rules_to_case(goods_query)

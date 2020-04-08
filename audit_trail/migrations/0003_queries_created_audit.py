@@ -31,7 +31,7 @@ def create_missing_create_audits(apps, schema_editor):
                 verb=AuditType.CREATED.value,
                 action_object_object_id=case.id,
                 action_object_content_type=content_type,
-                payload={"status": {"new": "clc_review"}}
+                payload={"status": {"new": "clc_review"}},
             )
 
     for case in Case.objects.filter(case_type__id=CaseTypeEnum.EUA.id):
@@ -54,8 +54,7 @@ def create_missing_create_audits(apps, schema_editor):
                 verb=AuditType.CREATED.value,
                 action_object_object_id=case.id,
                 action_object_content_type=content_type,
-                payload={"status": {"new": "submitted"}}
-
+                payload={"status": {"new": "submitted"}},
             )
 
 
