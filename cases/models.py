@@ -170,7 +170,7 @@ class Advice(TimestampableModel):
     Advice for goods and destinations on cases
     """
 
-    ENTITIES = ["good", "goods_type", "country", "end_user", "consignee", "ultimate_end_user", "third_party"]
+    ENTITY_FIELDS = ["good", "goods_type", "country", "end_user", "consignee", "ultimate_end_user", "third_party"]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
@@ -200,11 +200,15 @@ class Advice(TimestampableModel):
     objects = AdviceManager()
 
     @property
-    def entity(self):
-        for entity in self.ENTITIES:
-            entity = getattr(self, entity, None)
+    def entity_field(self):
+        for field in self.ENTITY_FIELDS:
+            entity = getattr(self, field, None)
             if entity:
-                return entity
+                return field
+
+    @property
+    def entity(self):
+        return getattr(self, self.entity_field, None)
 
     def save(self, *args, **kwargs):
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:

@@ -250,7 +250,7 @@ class CaseReferenceCodeManager(models.Manager):
 
 class AdviceManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().prefetch_related(*self.model.ENTITIES)
+        return super().get_queryset().prefetch_related(*self.model.ENTITY_FIELDS)
 
     def get(self, *args, **kwargs):
         entity_id = kwargs.pop("entity_id", None)
@@ -258,7 +258,7 @@ class AdviceManager(models.Manager):
         if entity_id:
             query = Q()
 
-            for entity in self.model.ENTITIES:
+            for entity in self.model.ENTITY_FIELDS:
                 query.add(Q(**{entity: entity_id}), Q.OR)
 
             return super().filter(query).get(*args, **kwargs)

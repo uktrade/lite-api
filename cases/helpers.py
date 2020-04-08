@@ -148,7 +148,7 @@ def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
     from parties.serializers import PartySerializer
     from static.countries.serializers import CountrySerializer
 
-    entity_name_to_serializer_map = {
+    entity_field_serializer_map = {
         "good": GoodSerializer,
         "goods_type": GoodsTypeSerializer,
         "country": CountrySerializer,
@@ -158,7 +158,7 @@ def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
         "third_party": PartySerializer,
     }
 
-    final_advice = FinalAdvice.objects.distinct(*FinalAdvice.ENTITIES).filter(case=case)
+    final_advice = FinalAdvice.objects.distinct(*FinalAdvice.ENTITY_FIELDS).filter(case=case)
 
     if advice_type:
         final_advice = final_advice.filter(type=advice_type)
@@ -166,14 +166,9 @@ def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
     final_advice_entities = defaultdict(list)
 
     for advice in final_advice:
-        for entity_name in FinalAdvice.ENTITIES:
-            entity = getattr(advice, entity_name, None)
-
-            if entity:
-                serializer = entity_name_to_serializer_map[entity_name]
-                data = serializer(entity).data
-                final_advice_entities[entity_name].append(data)
-                break
+        serializer = entity_field_serializer_map[advice.entity_field]
+        data = serializer(advice.entity).data
+        final_advice_entities[advice.entity_field].append(data)
 
     return final_advice_entities
 
