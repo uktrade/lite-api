@@ -149,13 +149,13 @@ class ApplicationExisting(APIView):
 
     def get(self, request):
         organisation = self.request.user.organisation
-        if organisation.type != "hmrc":
+        if organisation.type == "hmrc":
+            has_queries = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation).exists()
+            return JsonResponse(data={"queries": has_queries})
+        else:
             has_licences = Licence.objects.filter(application__organisation=organisation).exists()
             has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
             return JsonResponse(data={"licences": has_licences, "applications": has_applications})
-        else:
-            has_queries = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation).exists()
-            return JsonResponse(data={"queries": has_queries})
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
