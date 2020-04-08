@@ -11,7 +11,7 @@ class CasesConfig(AppConfig):
         from cases.sla import update_cases_sla
 
         if not Task.objects.filter(task_name="cases.sla.update_cases_sla").exists():
-             update_cases_sla(repeat=Task.DAILY, repeat_until=None)  # noqa
+            update_cases_sla(repeat=Task.DAILY, repeat_until=None)  # noqa
 
     def ready(self):
         post_migrate.connect(self.initialize_background_tasks, sender=self)
