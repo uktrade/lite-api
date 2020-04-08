@@ -104,7 +104,7 @@ def collate_advice(application_field, collection, case, user, advice_class):
         advice.denial_reasons.set(denial_reasons)
 
 
-def create_grouped_advice(case, request, advice, level):
+def create_grouped_advice(case, user, advice, level):
     """
     Takes the advice from a case and combines it against each field to the level specified (team or final)
     """
@@ -132,13 +132,47 @@ def create_grouped_advice(case, request, advice, level):
         elif advice.third_party:
             third_parties[advice.third_party].append(advice)
 
-    collate_advice("end_user", end_users, case, request.user, level)
-    collate_advice("good", goods, case, request.user, level)
-    collate_advice("country", countries, case, request.user, level)
-    collate_advice("ultimate_end_user", ultimate_end_users, case, request.user, level)
-    collate_advice("goods_type", goods_types, case, request.user, level)
-    collate_advice("consignee", consignees, case, request.user, level)
-    collate_advice("third_party", third_parties, case, request.user, level)
+    collate_advice("end_user", end_users, case, user, level)
+    collate_advice("good", goods, case, user, level)
+    collate_advice("country", countries, case, user, level)
+    collate_advice("ultimate_end_user", ultimate_end_users, case, user, level)
+    collate_advice("goods_type", goods_types, case, user, level)
+    collate_advice("consignee", consignees, case, user, level)
+    collate_advice("third_party", third_parties, case, user, level)
+
+
+def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
+    from cases.models import FinalAdvice
+    from goods.serializers import GoodSerializer
+    from goodstype.serializers import GoodsTypeSerializer
+    from parties.serializers import PartySerializer
+    from static.countries.serializers import CountrySerializer
+
+    entity_serializer_map = {
+        "good": GoodSerializer,
+        "goods_type": GoodsTypeSerializer,
+        "country": CountrySerializer,
+        "end_user": PartySerializer,
+        "consignee": PartySerializer,
+        "ultimate_end_user": PartySerializer,
+        "third_party": PartySerializer,
+    }
+
+    final_advice = FinalAdvice.objects.distinct(*FinalAdvice.ENTITIES).filter(case=case)
+
+    if advice_type:
+        final_advice = final_advice.filter(type=advice_type)
+
+    final_advice_entities = defaultdict(list)
+
+    for advice in final_advice:
+        for entity_name in FinalAdvice.ENTITIES:
+            entity_value = getattr(advice, entity_name, None)
+
+            if entity_value:
+                final_advice_entities[entity_name].append(entity_serializer_map[entity_name](entity_value).data)
+
+    return final_advice_entities
 
 
 def get_assigned_to_user_case_ids(user: GovUser):

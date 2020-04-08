@@ -197,7 +197,14 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         self.assertEqual(response_data["type"]["key"], data["type"])
         self.assertEqual(response_data["end_user"], data["end_user"])
 
-        advice_object = FinalAdvice.objects.get()
+        advice_object = FinalAdvice.objects.get(entity_id=self.standard_application.end_user.party.id)
+        self.assertEqual(str(advice_object.end_user.id), data["end_user"])
+        self.assertEqual(advice_object.entity, advice_object.end_user)
+
+        entities = Advice.ENTITIES.copy()
+        entities.remove("end_user")
+        for entity in entities:
+            self.assertIsNone(getattr(advice_object, entity, None))
 
         # Ensure that proviso details aren't added unless the type sent is PROVISO
         if advice_type != AdviceType.PROVISO:
