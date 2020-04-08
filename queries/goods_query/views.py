@@ -95,7 +95,10 @@ class GoodsQueriesCreate(APIView):
         goods_query.save()
 
         audit_trail_service.create(
-            actor=request.user, verb=AuditType.CREATED, action_object=goods_query.get_case(),
+            actor=request.user,
+            verb=AuditType.CREATED,
+            action_object=goods_query.get_case(),
+            status={"status": {"new": goods_query.status.status}}
         )
 
         apply_flagging_rules_to_case(goods_query)

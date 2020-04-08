@@ -51,7 +51,7 @@ def case_record_json(case_id, last_created_at, countries):
     case = Case.objects.select_related("status", "case_officer", "case_type").get(id=case_id)
     return {
         "id": "dit:lite:case:{case_type}:{id}:{verb}".format(
-            case_type=case.case_type.sub_type, id=case.id, verb="create"
+            case_type=case.case_type.sub_type, id=case.id, verb="Update"
         ),
         "published": "{ts}".format(ts=last_created_at),
         "object": {
@@ -95,11 +95,12 @@ def case_activity_json(audit, case_type):
 
     # TODO: standardize audit payloads and clean
     if AuditType(audit.verb) == AuditType.CREATED:
-        object_data["dit:status"] = "unknown"
+        object_data["dit:to"] = {"dit:lite:case:status": audit.payload["status"]["new"]}
         object_data["type"] = [
             "dit:lite:case:create",
             "dit:lite:activity",
         ]
+
     elif isinstance(audit.payload[data_type], dict):
         if "new" in audit.payload[data_type]:
             new_value = audit.payload[data_type]["new"]
@@ -115,7 +116,7 @@ def case_activity_json(audit, case_type):
         object_data["dit:to"] = {"dit:lite:case:{data_type}".format(data_type=data_type): audit.payload[data_type]}
 
     return {
-        "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}:{verb}".format(
+        "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}:create".format(
             data_type=data_type, id=case.id, audit_id=audit.id, verb=verb
         ),
         "published": "{ts}".format(ts=audit.created_at),
