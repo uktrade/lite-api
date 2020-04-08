@@ -41,6 +41,9 @@ class AuditTrailStreamTestCase(DataTestClient):
                     case_id=self.case.id, audit_id=audit.id
                 ),
                 "object": {
+                    "id": "dit:lite:case:change:status:{case_id}:{audit_id}".format(
+                        case_id=self.case.id, audit_id=audit.id
+                    ),
                     "attributedTo": {"id": "dit:lite:case:standard:{id}".format(id=self.case.id)},
                     "dit:to": {"dit:lite:case:status": data["status"]},
                     "dit:from": {"dit:lite:case:status": old_status},
