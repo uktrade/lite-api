@@ -3,10 +3,13 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import AdviceType
+from cases.helpers import get_serialized_entities_from_final_advice_on_case
 from cases.models import TeamAdvice, FinalAdvice, Advice
 from conf import constants
 from conf.helpers import convert_queryset_to_str
 from goods.enums import PvGrading
+from goods.serializers import GoodSerializer
+from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
@@ -63,8 +66,16 @@ class CreateCaseFinalAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 2)
-        self.assertEqual(response_data[0].get("type").get("key"), "proviso")
-        self.assertEqual(response_data[1].get("type").get("key"), "no_licence_required")
+
+        end_user, good = None, None
+        for data in response_data:
+            if data.get("end_user"):
+                end_user = data.get("type").get("key")
+            elif data.get("good"):
+                good = data.get("type").get("key")
+
+        self.assertEqual(end_user, AdviceType.PROVISO)
+        self.assertEqual(good, AdviceType.NO_LICENCE_REQUIRED)
 
     def test_create_conflicting_final_advice_shows_all_fields(self):
         """
@@ -369,3 +380,63 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_entity_from_final_advice_model(self):
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.standard_application.end_user.party.id),
+        }
+
+        self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        advice_object = FinalAdvice.objects.get(entity_id=self.standard_application.end_user.party.id)
+        self.assertEqual(str(advice_object.end_user.id), data["end_user"])
+        self.assertEqual(advice_object.entity, advice_object.end_user)
+
+        entity_field = Advice.ENTITY_FIELDS.copy()
+        entity_field.remove("end_user")
+        for field in entity_field:
+            self.assertIsNone(getattr(advice_object, field, None))
+
+    def test_get_serialized_end_user_from_final_advice_on_case(self):
+        end_user = self.standard_application.end_user.party
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(end_user.id),
+        }
+
+        self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        serialized_entities = get_serialized_entities_from_final_advice_on_case(case=self.standard_application)
+        self.assertIn("end_user", serialized_entities)
+        self.assertEqual(serialized_entities["end_user"], PartySerializer(end_user).data)
+
+        entity_field = Advice.ENTITY_FIELDS.copy()
+        entity_field.remove("end_user")
+        for field in entity_field:
+            self.assertIsNone(getattr(serialized_entities, field, None))
+
+    def test_get_serialized_goods_from_final_advice_on_case(self):
+        good = self.standard_application.goods.first().good
+
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "good": str(good.id),
+        }
+
+        self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        serialized_entities = get_serialized_entities_from_final_advice_on_case(case=self.standard_application)
+        self.assertIn("goods", serialized_entities)
+        self.assertEqual(serialized_entities["goods"], [GoodSerializer(good).data])
+
+        entity_field = Advice.ENTITY_FIELDS.copy()
+        entity_field.remove("good")
+        for field in entity_field:
+            self.assertIsNone(getattr(serialized_entities, field, None))

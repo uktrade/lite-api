@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Count
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
@@ -6,12 +7,12 @@ from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
 from conf.constants import ExporterPermissions
+from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
-from organisations import service
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer, SiteCreateUpdateSerializer, SiteListSerializer
-from users.models import ExporterUser
+from users.models import ExporterUser, UserOrganisationRelationship
 
 
 class SitesList(APIView):
@@ -40,7 +41,24 @@ class SitesList(APIView):
         sites.sort(key=lambda x: x.id == primary_site_id, reverse=True)
         serializer_data = SiteListSerializer(sites, many=True).data
 
-        service.populate_assigned_users_count(org_pk, serializer_data)
+        if str_to_bool(request.GET.get("get_total_users")):
+            admin_users = UserOrganisationRelationship.objects.filter(
+                organisation=organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name
+            ).values_list("user__id", flat=True)
+            total_admin_users = len(admin_users)
+
+            relationships = (
+                UserOrganisationRelationship.objects.filter(sites__id__in=[site["id"] for site in serializer_data])
+                .exclude(user__id__in=admin_users)
+                .values("sites__id")
+                .annotate(count=Count("sites__id"))
+                .values("sites__id", "count")
+            )
+
+            relationships = {str(relationship["sites__id"]): relationship["count"] for relationship in relationships}
+
+            for site in serializer_data:
+                site["assigned_users_count"] = total_admin_users + relationships.get(site["id"], 0)
 
         return JsonResponse(data={"sites": serializer_data})
 
