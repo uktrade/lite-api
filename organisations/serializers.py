@@ -24,6 +24,7 @@ class SiteListSerializer(serializers.ModelSerializer):
     assigned_users_count = serializers.SerializerMethodField()
 
     def get_assigned_users_count(self, instance):
+        # Total number of distinct standard & admin users for the site
         return (
             UserOrganisationRelationship.objects.filter(
                 Q(sites__id__exact=instance.id)
@@ -45,7 +46,6 @@ class SiteViewSerializer(SiteListSerializer):
     def get_users(self, instance):
         users = (
             UserOrganisationRelationship.objects.filter(sites__id=instance.id)
-            .distinct()
             .select_related("user")
             .order_by("user__email")
         )
@@ -56,7 +56,6 @@ class SiteViewSerializer(SiteListSerializer):
             UserOrganisationRelationship.objects.filter(
                 organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name
             )
-            .distinct()
             .select_related("user")
             .order_by("user__email")
         )
