@@ -286,6 +286,7 @@ class FilterQueueUpdatedCasesTests(DataTestClient):
         super().setUp()
 
         self.case = self.create_standard_application_case(self.organisation).get_case()
+        self.old_status = self.case.status.status
         self.case.queues.set([self.queue])
         self.case_assignment = CaseAssignment.objects.create(case=self.case, queue=self.queue, user=self.gov_user)
         self.case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
@@ -295,7 +296,7 @@ class FilterQueueUpdatedCasesTests(DataTestClient):
             actor=self.exporter_user,
             verb=AuditType.UPDATED_STATUS.value,
             target=self.case,
-            payload={"status": CaseStatusEnum.APPLICANT_EDITING},
+            payload={"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": self.old_status}},
         )
         self.gov_user.send_notification(content_object=self.audit, case=self.case)
 
