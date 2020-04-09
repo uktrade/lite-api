@@ -112,9 +112,9 @@ class RoutingRuleStatusChangeTests(DataTestClient):
 
         self.assertEqual(routing_rule.active, True)
 
-        url = reverse("routing_rules:active_status", kwargs={"pk": routing_rule.id, "status": "deactivate"})
+        url = reverse("routing_rules:active_status", kwargs={"pk": routing_rule.id})
 
-        response = self.client.put(url, {"data": "1"}, **self.gov_headers)
+        response = self.client.put(url, {"status": "deactivate"}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -139,9 +139,9 @@ class RoutingRuleStatusChangeTests(DataTestClient):
 
         self.assertEqual(routing_rule.active, False)
 
-        url = reverse("routing_rules:active_status", kwargs={"pk": routing_rule.id, "status": "reactivate"})
+        url = reverse("routing_rules:active_status", kwargs={"pk": routing_rule.id})
 
-        response = self.client.put(url, {"data": "1"}, **self.gov_headers)
+        response = self.client.put(url, {"status": "reactivate"}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
