@@ -102,22 +102,22 @@ def create_grouped_advice(case, user, advice, advice_model):
 
 def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
     """
-    Returns a dictionary containing the entity types as keys and a list of serialized entities as values
+    Returns a dictionary containing the entity type as the key and the serialized entity/entities as the value.
     E.G.
-    {"end_user": [{"id": ..., "email": ...,},]
+    {"goods": [{"id": ...,},], "end_user": {"id": ...,},]
     """
     from cases.models import FinalAdvice
     from goods.serializers import GoodSerializer
     from goodstype.serializers import GoodsTypeSerializer
 
-    entity_field_serializer_map = {
-        "good": GoodSerializer,
-        "goods_type": GoodsTypeSerializer,
-        "country": CountrySerializer,
-        "end_user": PartySerializer,
-        "consignee": PartySerializer,
-        "ultimate_end_user": PartySerializer,
-        "third_party": PartySerializer,
+    advice_entity_field_map = {
+        "good": {"serializer": GoodSerializer, "case_relationship": "goods"},
+        "goods_type": {"serializer": GoodsTypeSerializer, "case_relationship": "goods_types"},
+        "country": {"serializer": CountrySerializer, "case_relationship": "countries"},
+        "end_user": {"serializer": PartySerializer, "case_relationship": "end_user"},
+        "consignee": {"serializer": PartySerializer, "case_relationship": "consignee"},
+        "ultimate_end_user": {"serializer": PartySerializer, "case_relationship": "ultimate_end_users"},
+        "third_party": {"serializer": PartySerializer, "case_relationship": "third_parties"},
     }
 
     final_advice = FinalAdvice.objects.distinct(*FinalAdvice.ENTITY_FIELDS).filter(case=case)
@@ -128,9 +128,16 @@ def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
     final_advice_entities = defaultdict(list)
 
     for advice in final_advice:
-        serializer = entity_field_serializer_map[advice.entity_field]
+        serializer = advice_entity_field_map[advice.entity_field]["serializer"]
+        case_relationship = advice_entity_field_map[advice.entity_field]["case_relationship"]
         data = serializer(advice.entity).data
-        final_advice_entities[advice.entity_field].append(data)
+
+        # If the case_relationship is many-to-many, append the data to a list
+        # This is determined by comparing the singular field expression (advice.entity_field) to case_relationship
+        if case_relationship != advice.entity_field:
+            final_advice_entities[case_relationship].append(data)
+        else:
+            final_advice_entities[case_relationship] = data
 
     return final_advice_entities
 
