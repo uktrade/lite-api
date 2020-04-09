@@ -21,22 +21,14 @@ from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSi
 
 class SiteListSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
-    assigned_users_count = serializers.SerializerMethodField()
-
-    def get_assigned_users_count(self, instance):
-        # Total number of distinct standard & admin users for the site
-        return (
-            UserOrganisationRelationship.objects.filter(
-                Q(sites__id__exact=instance.id)
-                | Q(organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name)
-            )
-            .distinct()
-            .count()
-        )
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "assigned_users_count")
+        fields = (
+            "id",
+            "name",
+            "address",
+        )
 
 
 class SiteViewSerializer(SiteListSerializer):
