@@ -27,7 +27,11 @@ def get_case_type_type_list() -> List[Dict]:
 
 
 def get_gov_users_list():
-    return GovUser.objects.filter(status=UserStatuses.ACTIVE).annotate(full_name=Concat("first_name", Value(" "), "last_name")).values("id", "full_name")
+    return (
+        GovUser.objects.filter(status=UserStatuses.ACTIVE)
+        .annotate(full_name=Concat("first_name", Value(" "), "last_name"))
+        .values("id", "full_name")
+    )
 
 
 def populate_is_recently_updated(cases: List[Dict]):
