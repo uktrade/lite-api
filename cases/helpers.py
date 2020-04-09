@@ -2,9 +2,7 @@ from collections import defaultdict
 
 from cases.enums import AdviceType
 from goods.enums import PvGrading
-from goods.models import Good
 from parties.serializers import PartySerializer
-from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from users.models import GovUser, GovNotification
 
