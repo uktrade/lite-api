@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Count
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
@@ -46,13 +47,18 @@ class SitesList(APIView):
             ).values_list("user__id", flat=True)
             total_admin_users = len(admin_users)
 
+            relationships = (
+                UserOrganisationRelationship.objects.filter(sites__id__in=[site["id"] for site in serializer_data])
+                .exclude(user__id__in=admin_users)
+                .values("sites__id")
+                .annotate(count=Count("sites__id"))
+                .values("sites__id", "count")
+            )
+
+            relationships = {str(relationship["sites__id"]): relationship["count"] for relationship in relationships}
+
             for site in serializer_data:
-                site["assigned_users_count"] = (
-                    UserOrganisationRelationship.objects.filter(sites__id=site["id"])
-                    .exclude(user__id__in=admin_users)
-                    .count()
-                    + total_admin_users
-                )
+                site["assigned_users_count"] = total_admin_users + relationships.get(site["id"], 0)
 
         return JsonResponse(data={"sites": serializer_data})
 
