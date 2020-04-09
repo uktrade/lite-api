@@ -101,6 +101,11 @@ def create_grouped_advice(case, user, advice, advice_model):
 
 
 def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
+    """
+    Returns a dictionary containing the entity types as keys and a list of serialized entities against as values
+    E.G.
+    {"end_user": [{"id": ..., "email": ...,},]
+    """
     from cases.models import FinalAdvice
     from goods.serializers import GoodSerializer
     from goodstype.serializers import GoodsTypeSerializer

@@ -253,6 +253,10 @@ class AdviceManager(models.Manager):
         return super().get_queryset().prefetch_related(*self.model.ENTITY_FIELDS)
 
     def get(self, *args, **kwargs):
+        """
+        Override the default `get` on a queryset so that an additional, non-model-field argument (entity_id) can be
+        supplied to the filter.
+        """
         entity_id = kwargs.pop("entity_id", None)
 
         if entity_id:
