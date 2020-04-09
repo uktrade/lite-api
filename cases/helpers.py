@@ -3,7 +3,9 @@ from collections import defaultdict
 from cases.enums import AdviceType
 from goods.enums import PvGrading
 from goods.models import Good
+from parties.serializers import PartySerializer
 from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 from users.models import GovUser, GovNotification
 
 
@@ -25,7 +27,7 @@ def deduplicate_advice(advice_list):
 
 
 def construct_coalesced_advice_values(
-    deduplicated_advice, case, advice_class, user, denial_reasons, advice_type=None,
+    deduplicated_advice, case, advice_model, user, denial_reasons, advice_type=None,
 ):
     fields = {
         "text": set(),
@@ -57,7 +59,7 @@ def construct_coalesced_advice_values(
         else None
     )
 
-    return advice_class(
+    return advice_model(
         text=break_text.join(fields["text"]),
         case=case,
         note=break_text.join(fields["note"]),
@@ -68,85 +70,42 @@ def construct_coalesced_advice_values(
     )
 
 
-def assign_field(application_field, advice, key):
-    from goodstype.models import GoodsType
-
-    if application_field == "good":
-        advice.good = Good.objects.get(pk=key)
-    elif application_field == "end_user":
-        advice.end_user = key
-    elif application_field == "country":
-        advice.country = Country.objects.get(pk=key)
-    elif application_field == "ultimate_end_user":
-        advice.ultimate_end_user = key
-    elif application_field == "goods_type":
-        advice.goods_type = GoodsType.objects.get(pk=key)
-    elif application_field == "consignee":
-        advice.consignee = key
-    elif application_field == "third_party":
-        advice.third_party = key
-
-
-def collate_advice(application_field, collection, case, user, advice_class):
+def collate_advice(entity_field, collection, case, user, advice_model):
     for key, advice_list in collection.items():
         denial_reasons = []
 
         advice = construct_coalesced_advice_values(
-            deduplicate_advice(advice_list), case, advice_class, user, denial_reasons=denial_reasons
+            deduplicate_advice(advice_list), case, advice_model, user, denial_reasons=denial_reasons
         )
 
         # Set outside the constructor so it can apply only when necessary
         advice.team = user.team
 
-        assign_field(application_field, advice, key)
+        setattr(advice, entity_field, key)
 
         advice.save()
         advice.denial_reasons.set(denial_reasons)
 
 
-def create_grouped_advice(case, user, advice, level):
+def create_grouped_advice(case, user, advice, advice_model):
     """
-    Takes the advice from a case and combines it against each field to the level specified (team or final)
+    Takes the advice from a case and combines it against each field to the level(advice model) specified(team or final)
     """
-    end_users = defaultdict(list)
-    ultimate_end_users = defaultdict(list)
-    goods = defaultdict(list)
-    goods_types = defaultdict(list)
-    countries = defaultdict(list)
-    consignees = defaultdict(list)
-    third_parties = defaultdict(list)
+    from cases.models import Advice
+
+    advice_entities = {entity_field: defaultdict(list) for entity_field in Advice.ENTITY_FIELDS}
 
     for advice in advice:
-        if advice.end_user:
-            end_users[advice.end_user].append(advice)
-        elif advice.country:
-            countries[advice.country.id].append(advice)
-        elif advice.good:
-            goods[advice.good.id].append(advice)
-        elif advice.ultimate_end_user:
-            ultimate_end_users[advice.ultimate_end_user].append(advice)
-        elif advice.goods_type:
-            goods_types[advice.goods_type.id].append(advice)
-        elif advice.consignee:
-            consignees[advice.consignee].append(advice)
-        elif advice.third_party:
-            third_parties[advice.third_party].append(advice)
+        advice_entities[advice.entity_field][advice.entity].append(advice)
 
-    collate_advice("end_user", end_users, case, user, level)
-    collate_advice("good", goods, case, user, level)
-    collate_advice("country", countries, case, user, level)
-    collate_advice("ultimate_end_user", ultimate_end_users, case, user, level)
-    collate_advice("goods_type", goods_types, case, user, level)
-    collate_advice("consignee", consignees, case, user, level)
-    collate_advice("third_party", third_parties, case, user, level)
+    for entity_field in Advice.ENTITY_FIELDS:
+        collate_advice(entity_field, advice_entities[entity_field], case, user, advice_model)
 
 
 def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
     from cases.models import FinalAdvice
     from goods.serializers import GoodSerializer
     from goodstype.serializers import GoodsTypeSerializer
-    from parties.serializers import PartySerializer
-    from static.countries.serializers import CountrySerializer
 
     entity_field_serializer_map = {
         "good": GoodSerializer,
