@@ -58,8 +58,16 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 2)
-        self.assertEqual(response_data[0].get("type").get("key"), "proviso")
-        self.assertEqual(response_data[1].get("type").get("key"), "no_licence_required")
+
+        end_user, good = None, None
+        for data in response_data:
+            if data.get("end_user"):
+                end_user = data.get("type").get("key")
+            elif data.get("good"):
+                good = data.get("type").get("key")
+
+        self.assertEqual(end_user, AdviceType.PROVISO)
+        self.assertEqual(good, AdviceType.NO_LICENCE_REQUIRED)
 
     def test_create_conflicting_team_advice_shows_all_fields(self):
         """
