@@ -75,7 +75,8 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
 
 
 class RoutingRulesActiveStatus(APIView):
-    def put(self, request, pk, status):
+    def put(self, request, pk):
+        status = request.data.get("form_name")
 
         if status != "deactivate" and status != "reactivate":
             raise Http404
