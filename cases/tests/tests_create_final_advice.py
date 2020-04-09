@@ -64,6 +64,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 2)
 
         end_user, good = None, None
         for data in response_data:
