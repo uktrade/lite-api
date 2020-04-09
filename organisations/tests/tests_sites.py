@@ -24,6 +24,24 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["sites"]), 1)
 
+        response_site = response_data["sites"][0]
+        primary_site = self.organisation.primary_site
+
+        self.assertEqual(response_site["id"], str(primary_site.id))
+        self.assertEqual(response_site["name"], str(primary_site.name))
+        self.assertEqual(response_site["address"]["id"], str(primary_site.address.id))
+
+    def test_get_site_list_with_total_users(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id}) + "?get_total_users=True"
+
+        response = self.client.get(url, **self.exporter_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data["sites"]), 1)
+        self.assertEqual(response_data["sites"][0]["assigned_users_count"], 1)
+
     def test_view_site(self):
         user = self.create_exporter_user(self.organisation)
         UserOrganisationRelationship.objects.get(user=user).sites.add(self.organisation.primary_site)
