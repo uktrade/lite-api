@@ -45,7 +45,7 @@ class RoutingRulesList(ListCreateAPIView):
         if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
             GovPermissions.MANAGE_ALL_ROUTING_RULES
         ):
-            return super().get(request, *args, **kwargs)
+            return super(RoutingRulesList, self).get(request, *args, **kwargs)
         else:
             raise PermissionDeniedError()
 
@@ -86,7 +86,10 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
             return RoutingRuleSerializer
 
     def get_queryset(self):
-        return RoutingRule.objects.filter(id=self.kwargs["pk"])
+        if not self.request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES):
+            return RoutingRule.objects.filter(id=self.kwargs["pk"])
+        else:
+            return RoutingRule.objects.filter(id=self.kwargs["pk"], team_id=self.request.user.team.id)
 
     def perform_update(self, serializer):
         if not self.request.data.get("validate_only", False):
