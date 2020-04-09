@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
-from conf.permissions import assert_user_has_permission
+from conf.exceptions import PermissionDeniedError
 from workflow.routing_rules.helpers import get_routing_rule
 from workflow.routing_rules.models import RoutingRule
 from workflow.routing_rules.serializers import RoutingRuleSerializer, SmallRoutingRuleSerializer
@@ -20,6 +20,9 @@ class RoutingRulesList(ListCreateAPIView):
         filtered_qs = queryset
         # get each filter
         filter_data = self.request.GET
+
+        if not self.request.user.has_permission(GovPermissions.MANAGE_ALL_ROUTING_RULES):
+            filtered_qs = filtered_qs.filter(team_id=self.request.user.team.id)
 
         if filter_data.get("case_status"):
             filtered_qs = filtered_qs.filter(status_id=filter_data.get("case_status"))
@@ -39,24 +42,40 @@ class RoutingRulesList(ListCreateAPIView):
         return filtered_qs
 
     def get(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, GovPermissions.MANAGE_TEAM_ROUTING_RULES)
-        return super().get(request, *args, **kwargs)
+        if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
+            GovPermissions.MANAGE_ALL_ROUTING_RULES
+        ):
+            return super().get(request, *args, **kwargs)
+        else:
+            raise PermissionDeniedError()
 
     def post(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, GovPermissions.MANAGE_TEAM_ROUTING_RULES)
-        return super().post(request, *args, **kwargs)
+        if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
+            GovPermissions.MANAGE_ALL_ROUTING_RULES
+        ):
+            return super().post(request, *args, **kwargs)
+        else:
+            raise PermissionDeniedError()
 
 
 class RoutingRulesDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, GovPermissions.MANAGE_TEAM_ROUTING_RULES)
-        return super().get(request, *args, **kwargs)
+        if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
+            GovPermissions.MANAGE_ALL_ROUTING_RULES
+        ):
+            return super().get(request, *args, **kwargs)
+        else:
+            raise PermissionDeniedError()
 
     def put(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, GovPermissions.MANAGE_TEAM_ROUTING_RULES)
-        return super().put(request, *args, **kwargs)
+        if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
+            GovPermissions.MANAGE_ALL_ROUTING_RULES
+        ):
+            return super().put(request, *args, **kwargs)
+        else:
+            raise PermissionDeniedError()
 
     def get_serializer_class(self):
         if self.request.method == "GET":
