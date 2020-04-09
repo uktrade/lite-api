@@ -39,6 +39,11 @@ class AuditSerializer(serializers.ModelSerializer):
             except KeyError as e:
                 print(f"Audit serialization exception skipped: {e}")
 
+            # TODO: standardise payloads across all audits and remove below
+            if key == "status" and "new" in payload[key]:
+                # Handle new payload format
+                payload[key] = payload[key]["new"]
+
         return verb.format(payload)
 
     def get_additional_text(self, instance):

@@ -626,9 +626,24 @@ class FinaliseView(RetrieveUpdateAPIView):
 
         return_payload = {"case": pk}
 
-        # Finalise Licence if granting a licence
-        if Licence.objects.filter(application=case).exists():
+        # Finalise Case
+        old_status = case.status.status
+        case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        case.save()
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=case,
+            payload={"status": {"new": case.status.status, "old": old_status}},
+        )
+
+        try:
+            # If a licence object exists, finalise the licence.
             licence = Licence.objects.get(application=case)
+        except Licence.DoesNotExist:
+            pass
+        else:
             licence.is_complete = True
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.save()
@@ -639,10 +654,6 @@ class FinaliseView(RetrieveUpdateAPIView):
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
             )
-
-        # Finalise Case
-        case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        case.save()
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)
