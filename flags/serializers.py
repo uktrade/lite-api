@@ -21,7 +21,7 @@ class FlagReadOnlySerializer(serializers.Serializer):
     label = serializers.CharField(read_only=True)
     status = serializers.CharField(read_only=True)
     priority = serializers.IntegerField(read_only=True)
-    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamReadOnlySerializer)
+    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamReadOnlySerializer, read_only=True)
 
 
 class FlagSerializer(serializers.ModelSerializer):
