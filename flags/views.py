@@ -2,23 +2,22 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
-from rest_framework.decorators import permission_classes
-from rest_framework.generics import ListCreateAPIView
+from rest_framework import status
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.libraries.application_helpers import optional_str_to_bool
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
-from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
-from flags.enums import FlagStatuses, SystemFlags
+from flags.enums import FlagStatuses
 from flags.helpers import get_object_of_level
-from flags.libraries.get_flag import get_flag, get_flagging_rule
+from flags.libraries.get_flag import get_flagging_rule
 from flags.models import Flag, FlaggingRule
 from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer
 from goods.models import Good
@@ -30,92 +29,48 @@ from static.countries.models import Country
 from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_cases, apply_flagging_rule_for_flag
 
 
-@permission_classes((permissions.AllowAny,))
-class FlagsList(APIView):
-    """
-    List all flags and perform actions on the list
-    """
-
+class FlagsListCreateView(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
+    serializer_class = FlagSerializer
 
-    def get(self, request):
-        """
-        Returns list of all flags
-        """
-        level = request.GET.get("level")  # Case, Good
-        team = request.GET.get("team")  # True, False
-        include_deactivated = request.GET.get("include_deactivated")  # will be True/False
-        include_system_flags = request.GET.get("include_system_flags")  # True, False
-
+    def get_queryset(self):
         flags = Flag.objects.all()
+        name = self.request.GET.get("name")
+        level = self.request.GET.get("level")
+        priority = self.request.GET.get("priority")
+        team = self.request.GET.get("team")
+        only_show_deactivated = optional_str_to_bool(self.request.GET.get("only_show_deactivated"))
+
+        if name:
+            flags = flags.filter(name__icontains=name)
 
         if level:
             flags = flags.filter(level=level)
 
-        if team:
-            flags = flags.filter(team=request.user.team.id)
+        if priority:
+            flags = flags.filter(priority=priority)
 
-        if not str_to_bool(include_deactivated, invert_none=True):
-            flags = flags.exclude(status=FlagStatuses.DEACTIVATED)
+        if team and team != "None":
+            flags = flags.filter(team=team)
 
-        flags = flags.order_by("name")
+        if only_show_deactivated:
+            flags = flags.filter(status=FlagStatuses.DEACTIVATED)
+        else:
+            flags = flags.filter(status=FlagStatuses.ACTIVE)
 
-        if str_to_bool(include_system_flags, invert_none=True):
-            system_flags = Flag.objects.filter(id__in=SystemFlags.list)
-            flags = set(system_flags).union(flags)
-
-        serializer = FlagSerializer(flags, many=True)
-        return JsonResponse(data={"flags": serializer.data})
-
-    def post(self, request):
-        """
-        Add a new flag
-        """
-        data = JSONParser().parse(request)
-        data["team"] = request.user.team.id
-        serializer = FlagSerializer(data=data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(data={"flag": serializer.data}, status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return flags.order_by("name").select_related("team")
 
 
-@permission_classes((permissions.AllowAny,))
-class FlagDetail(APIView):
-    """
-    Details of a specific flag
-    """
-
+class FlagsRetrieveUpdateView(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
+    serializer_class = FlagSerializer
 
-    def get(self, request, pk):
-        """
-        Returns details of a specific flag
-        """
-        flag = get_flag(pk)
-        serializer = FlagSerializer(flag)
-        return JsonResponse(data={"flag": serializer.data})
+    def get_queryset(self):
+        return Flag.objects.filter(team=self.request.user.team)
 
-    def put(self, request, pk):
-        """
-        Edit details of a specific flag
-        """
-        flag = get_flag(pk)
-
-        # Prevent a user changing a flag if it does not belong to their team
-        if request.user.team != flag.team:
-            return JsonResponse(data={"errors": strings.Flags.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = FlagSerializer(instance=flag, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            flag = serializer.save()
-            apply_flagging_rule_for_flag(flag)
-            return JsonResponse(data={"flag": serializer.data})
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    def perform_update(self, serializer):
+        serializer.save()
+        apply_flagging_rule_for_flag(self.kwargs["pk"])
 
 
 class AssignFlags(APIView):
@@ -263,12 +218,12 @@ class AssignFlags(APIView):
 
     @staticmethod
     def _get_case_for_destination(party):
-        qs = StandardApplication.objects.filter(party__party=party)
+        qs = StandardApplication.objects.filter(parties__party=party)
         if not qs:
             qs = EndUserAdvisoryQuery.objects.filter(Q(end_user=party))
 
         if not qs:
-            qs = HmrcQuery.objects.filter(party__party=party)
+            qs = HmrcQuery.objects.filter(parties__party=party)
         if qs:
             return qs.first().get_case()
 
@@ -301,6 +256,7 @@ class FlaggingRules(ListCreateAPIView):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
         json = request.data
         json["team"] = self.request.user.team.id
+
         serializer = FlaggingRuleSerializer(data=request.data)
 
         if serializer.is_valid():

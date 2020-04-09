@@ -1,7 +1,7 @@
 from django.http import Http404
 
 from applications.libraries.get_applications import get_application
-from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication
+from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, OpenApplication
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeTypeEnum
 from cases.models import Case
 from flags.serializers import CaseListFlagSerializer
@@ -41,16 +41,18 @@ def get_standard_application_destination_flags(application):
 def get_destination_flags(case):
     flags = []
 
-    countries_on_application = CountryOnApplication.objects.filter(application=case).select_related("country")
-    for country_on_application in countries_on_application:
-        flags += country_on_application.country.flags.all()
-
     if case.case_type.sub_type == CaseTypeSubTypeEnum.EUA:
         query = get_end_user_advisory_by_pk(case.id)
         if query.end_user:
             flags += query.end_user.flags.all()
-    elif case.case_type == CaseTypeTypeEnum.APPLICATION:
+
+    elif case.case_type.type == CaseTypeTypeEnum.APPLICATION:
         application = get_application(case.id)
+        if isinstance(application, OpenApplication):
+            countries_on_application = CountryOnApplication.objects.filter(application=case).select_related("country")
+            for country_on_application in countries_on_application:
+                flags += country_on_application.country.flags.all()
+
         if isinstance(application, StandardApplication):
             flags += get_standard_application_destination_flags(application)
 
@@ -90,17 +92,32 @@ def get_ordered_flags(case: Case, team: Team):
     goods_flags = get_goods_flags(case)
     destination_flags = get_destination_flags(case)
 
-    flag_data = (
-        sort_flags_by_team_and_name(CaseListFlagSerializer(set(goods_flags), many=True).data, team)
-        + sort_flags_by_team_and_name(CaseListFlagSerializer(set(destination_flags), many=True).data, team)
-        + sort_flags_by_team_and_name(CaseListFlagSerializer(case_flags, many=True).data, team)
-        + sort_flags_by_team_and_name(CaseListFlagSerializer(org_flags, many=True).data, team)
+    team_goods_flags, other_goods_flags = sort_flags_by_team_and_priority(
+        CaseListFlagSerializer(set(goods_flags), many=True).data, team
     )
-    return flag_data
+    team_destination_flags, other_destination_flags = sort_flags_by_team_and_priority(
+        CaseListFlagSerializer(set(destination_flags), many=True).data, team
+    )
+    team_case_flags, other_case_flags = sort_flags_by_team_and_priority(
+        CaseListFlagSerializer(case_flags, many=True).data, team
+    )
+    team_organisation_flags, other_organisation_flags = sort_flags_by_team_and_priority(
+        CaseListFlagSerializer(org_flags, many=True).data, team
+    )
+    return (
+        team_goods_flags
+        + team_destination_flags
+        + team_case_flags
+        + team_organisation_flags
+        + other_goods_flags
+        + other_destination_flags
+        + other_case_flags
+        + other_organisation_flags
+    )
 
 
-def sort_flags_by_team_and_name(flag_data, team):
-    flag_data = sorted(flag_data, key=lambda x: x["name"])
+def sort_flags_by_team_and_priority(flag_data, team):
+    flag_data = sorted(flag_data, key=lambda x: x["priority"])
 
     if not team:
         return flag_data
@@ -108,6 +125,6 @@ def sort_flags_by_team_and_name(flag_data, team):
     # Group flags by user's team.
     team_flags, non_team_flags = [], []
     for flag in flag_data:
-        team_flags.append(flag) if flag["team"] == str(team.id) else non_team_flags.append(flag)
+        team_flags.append(flag) if flag["team"] == team.id else non_team_flags.append(flag)
 
-    return team_flags + non_team_flags
+    return team_flags, non_team_flags

@@ -34,6 +34,8 @@ from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from lite_content.lite_api import strings
+from organisations.models import Organisation
+from organisations.serializers import TinyOrganisationViewSerializer
 from parties.enums import PartyType
 from parties.models import Party
 from picklists.enums import PicklistType
@@ -156,6 +158,9 @@ class CaseListSerializer(serializers.Serializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
+    organisation = PrimaryKeyRelatedSerializerField(
+        queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
+    )
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -236,7 +241,7 @@ class CaseDetailSerializer(CaseSerializer):
             return serializer(application).data
 
     def get_flags(self, instance):
-        return list(instance.flags.all().values("id", "name"))
+        return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))

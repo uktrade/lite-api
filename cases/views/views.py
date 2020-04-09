@@ -7,8 +7,8 @@ from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, Li
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import Licence
-from applications.serializers.licence import LicenceSerializer
+from licences.models import Licence
+from licences.serializers import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
@@ -58,6 +58,7 @@ from queues.models import Queue
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
+from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
@@ -595,7 +596,7 @@ class CaseOfficer(APIView):
 
 class FinaliseView(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = LicenceSerializer
+    serializer_class = LicenceCreateSerializer
 
     def get_object(self):
         return get_object_or_404(Licence, application=self.kwargs["pk"])
@@ -629,6 +630,7 @@ class FinaliseView(RetrieveUpdateAPIView):
         if Licence.objects.filter(application=case).exists():
             licence = Licence.objects.get(application=case)
             licence.is_complete = True
+            licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.save()
             return_payload["licence"] = licence.id
             audit_trail_service.create(
