@@ -13,8 +13,8 @@ from rest_framework.generics import (
 )
 from rest_framework.views import APIView
 
-from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from applications import constants
+from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -278,6 +278,7 @@ class ApplicationSubmission(APIView):
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         Depending on the application subtype, this will also submit the declaration of the licence
         """
+        old_status = application.status.status
 
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
             assert_user_has_permission(
@@ -290,7 +291,7 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.GOODS,
         ]:
             set_application_sla(application)
-            create_submitted_audit(request, application)
+            create_submitted_audit(request, application, old_status)
 
         errors = validate_application_ready_for_submission(application)
         if errors:
@@ -317,14 +318,14 @@ class ApplicationSubmission(APIView):
 
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
-
-                create_submitted_audit(request, application)
+                create_submitted_audit(request, application, old_status)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
         serializer = serializer(application)
 
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
+
         if application.reference_code:
             data["reference_code"] = application.reference_code
 
@@ -393,7 +394,7 @@ class ApplicationManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
-            payload={"status": CaseStatusEnum.get_text(case_status.status)},
+            payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
         )
 
         return JsonResponse(

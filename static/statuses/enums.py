@@ -116,6 +116,12 @@ class CaseStatusEnum:
                 return v
 
     @classmethod
+    def get_value(cls, status):
+        for k, v in cls.choices:
+            if status == v:
+                return k
+
+    @classmethod
     def is_read_only(cls, status):
         return status in cls._read_only_statuses
 

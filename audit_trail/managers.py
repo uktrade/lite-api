@@ -11,6 +11,9 @@ class AuditQuerySet(GFKQuerySet):
 
 class AuditManager(GFKManager):
     def get_query_set(self):
+        """
+        Exclude hidden audits from regular business flow
+        """
         return AuditQuerySet(self.model)
 
     get_queryset = get_query_set
@@ -36,6 +39,7 @@ class AuditManager(GFKManager):
                 return audit
 
             return None
+
         if "ignore_case_status" in kwargs:
             kwargs.pop("ignore_case_status")
         return super(AuditManager, self).create(*args, **kwargs)

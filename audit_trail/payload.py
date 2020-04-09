@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class AuditType(Enum):
+    CREATED = "created"
     ADD_FLAGS = "added flags: {added_flags}"
     REMOVE_FLAGS = "removed flags: {removed_flags}"
     GOOD_REVIEWED = (
