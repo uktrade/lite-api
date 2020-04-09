@@ -9,6 +9,7 @@ class TeamReadOnlySerializer(serializers.Serializer):
     """
     More performant read_only team serializer
     """
+
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(read_only=True)
 
