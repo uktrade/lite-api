@@ -76,4 +76,9 @@ class Migration(migrations.Migration):
                 null=True,
             ),
         ),
+        migrations.AlterField(
+            model_name="standardapplication",
+            name="have_you_been_informed",
+            field=models.CharField(choices=[("yes", "Yes"), ("no", "No"), ("na", "N/A")], default=None, max_length=50),
+        ),
     ]
