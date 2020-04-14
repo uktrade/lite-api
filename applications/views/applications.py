@@ -6,11 +6,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ErrorDetail
-from rest_framework.generics import (
-    ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView,
-    UpdateAPIView,
-)
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
 
 from applications import constants
@@ -146,6 +142,26 @@ class ApplicationList(ListCreateAPIView):
         application = serializer.save()
 
         return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
+
+
+class ApplicationExisting(APIView):
+    """
+    This view returns boolean values depending on the type of organisation:
+    HMRC - Whether the organisation has existing submitted queries
+    Standard - Whether the organisation has any drafts/applications, or licences
+    """
+
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request):
+        organisation = self.request.user.organisation
+        if organisation.type == "hmrc":
+            has_queries = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation).exists()
+            return JsonResponse(data={"queries": has_queries})
+        else:
+            has_licences = Licence.objects.filter(application__organisation=organisation).exists()
+            has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
+            return JsonResponse(data={"licences": has_licences, "applications": has_applications})
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
