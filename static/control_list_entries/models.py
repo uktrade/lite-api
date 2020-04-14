@@ -2,8 +2,6 @@ import uuid
 
 from django.db import models
 
-from goodstype.models import GoodsType
-
 
 class ControlListEntry(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -22,11 +20,3 @@ class ControlListEntry(models.Model):
         control_list_entry = cls(rating=rating, text=text, parent=parent, is_decontrolled=is_decontrolled)
         control_list_entry.save()
         return control_list_entry
-
-
-class ControlListOnGood(models.Model):
-    control_list_entry = models.ForeignKey(ControlListEntry, on_delete=models.CASCADE)
-    good = models.ForeignKey(GoodsType, on_delete=models.CASCADE)
-
-    class Meta:
-        models.UniqueConstraint(fields=["control_list_entry", "good"], name="unique clc good relation")
