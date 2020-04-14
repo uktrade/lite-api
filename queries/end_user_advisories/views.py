@@ -45,6 +45,12 @@ class EndUserAdvisoriesList(ListAPIView):
             if serializer.is_valid():
                 if "validate_only" not in data or data["validate_only"] == "False":
                     eua = serializer.save()
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.CREATED,
+                        action_object=eua.get_case(),
+                        payload={"status": {"new": eua.status.status}},
+                    )
                     apply_flagging_rules_to_case(eua)
                     return JsonResponse(data={"end_user_advisory": serializer.data}, status=status.HTTP_201_CREATED)
                 else:
@@ -90,15 +96,16 @@ class EndUserAdvisoryDetail(APIView):
 
         request.data["status"] = get_case_status_by_status(data.get("status"))
 
+        old_status = end_user_advisory.status.status
         serializer = EndUserAdvisoryViewSerializer(end_user_advisory, data=request.data, partial=True)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
+            serializer.update(end_user_advisory, request.data)
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.UPDATED_STATUS,
                 target=end_user_advisory.get_case(),
-                payload={"status": data.get("status")},
+                payload={"status": {"new": data.get("status"), "old": old_status}},
             )
-            serializer.update(end_user_advisory, request.data)
             return JsonResponse(data={"end_user_advisory": serializer.data})
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
