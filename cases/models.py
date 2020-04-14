@@ -1,4 +1,5 @@
 import uuid
+from collections import defaultdict
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
@@ -91,22 +92,16 @@ class Case(TimestampableModel):
 
         return Case.objects.get(id=self.id)
 
-    def get_users(self, queue=None):
+    def get_users(self):
         case_assignments = self.case_assignments.select_related("queue", "user").order_by("queue__name")
-        if queue:
-            case_assignments = case_assignments.filter(queue=queue)
+        return_value = defaultdict(list)
 
-        users = [
-            {
-                "first_name": case_assignment.user.first_name,
-                "last_name": case_assignment.user.last_name,
-                "email": case_assignment.user.email,
-                "queue": case_assignment.queue.name,
-            }
-            for case_assignment in case_assignments
-        ]
+        for assignment in case_assignments:
+            return_value[assignment.queue.name].append({"id": assignment.user.id,
+                                                        "first_name": assignment.user.first_name,
+                                                        "last_name": assignment.user.last_name})
 
-        return users
+        return return_value
 
 
 class CaseReferenceCode(models.Model):
@@ -124,7 +119,7 @@ class CaseNote(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="case_note", on_delete=models.CASCADE)
-    user = models.ForeignKey(BaseUser, related_name="case_note", on_delete=models.CASCADE, default=None, null=False,)
+    user = models.ForeignKey(BaseUser, related_name="case_note", on_delete=models.CASCADE, default=None, null=False, )
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 

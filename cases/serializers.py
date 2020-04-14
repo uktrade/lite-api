@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -194,7 +196,7 @@ class CaseCopyOfSerializer(serializers.ModelSerializer):
 class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
-    users = serializers.SerializerMethodField()
+    assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
@@ -214,7 +216,7 @@ class CaseDetailSerializer(CaseSerializer):
             "flags",
             "queues",
             "queue_names",
-            "users",
+            "assigned_users",
             "application",
             "query",
             "has_advice",
@@ -246,7 +248,7 @@ class CaseDetailSerializer(CaseSerializer):
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))
 
-    def get_users(self, instance):
+    def get_assigned_users(self, instance):
         return instance.get_users()
 
     def get_has_advice(self, instance):
