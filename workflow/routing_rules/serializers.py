@@ -5,6 +5,7 @@ from cases.serializers import CaseTypeSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField, CountrySerializerField
 from flags.models import Flag
 from flags.serializers import FlagSerializer
+from lite_content.lite_api import strings
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from static.statuses.models import CaseStatus
@@ -19,15 +20,37 @@ from workflow.routing_rules.models import RoutingRule
 
 class RoutingRuleSerializer(serializers.ModelSerializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
-    queue = PrimaryKeyRelatedSerializerField(queryset=Queue.objects.all(), serializer=TinyQueueSerializer)
-    status = PrimaryKeyRelatedSerializerField(queryset=CaseStatus.objects.all(), serializer=CaseStatusSerializer)
-    tier = serializers.IntegerField(min_value=1, max_value=32000)
+    queue = PrimaryKeyRelatedSerializerField(
+        queryset=Queue.objects.all(),
+        serializer=TinyQueueSerializer,
+        error_messages={"required": strings.RoutingRules.Errors.NO_QUEUE, "null": strings.RoutingRules.Errors.NO_QUEUE},
+    )
+    status = PrimaryKeyRelatedSerializerField(
+        queryset=CaseStatus.objects.all(),
+        serializer=CaseStatusSerializer,
+        error_messages={
+            "required": strings.RoutingRules.Errors.NO_CASE_STATUS,
+            "null": strings.RoutingRules.Errors.NO_CASE_STATUS,
+        },
+    )
+    tier = serializers.IntegerField(
+        min_value=1,
+        max_value=32000,
+        error_messages={
+            "required": strings.RoutingRules.Errors.INVALID_TIER,
+            "invalid": strings.RoutingRules.Errors.INVALID_TIER,
+        },
+    )
     additional_rules = serializers.MultipleChoiceField(
         choices=RoutingRulesAdditionalFields.choices, allow_empty=True, required=False
     )
 
     user = PrimaryKeyRelatedSerializerField(
-        queryset=GovUser.objects.all(), serializer=GovUserViewSerializer, required=False, allow_null=True,
+        queryset=GovUser.objects.all(),
+        serializer=GovUserViewSerializer,
+        required=False,
+        allow_null=True,
+        error_messages={"required": strings.RoutingRules.Errors.NO_USER},
     )
     case_types = PrimaryKeyRelatedSerializerField(
         queryset=CaseType.objects.all(),
@@ -36,6 +59,7 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
         allow_empty=True,
+        error_messages={"required": strings.RoutingRules.Errors.NO_CASE_TYPE},
     )
     flags = PrimaryKeyRelatedSerializerField(
         queryset=Flag.objects.all(),
@@ -44,8 +68,11 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
         allow_empty=True,
+        error_messages={"required": strings.RoutingRules.Errors.NO_FLAGS},
     )
-    country = CountrySerializerField(required=False, allow_null=True,)
+    country = CountrySerializerField(
+        required=False, allow_null=True, error_messages={"required": strings.RoutingRules.Errors.NO_COUNTRY},
+    )
 
     class Meta:
         model = RoutingRule
