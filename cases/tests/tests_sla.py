@@ -15,8 +15,6 @@ from cases.sla import (
     OPEN_APPLICATION_TARGET_DAYS,
     MOD_CLEARANCE_TARGET_DAYS,
     SLA_UPDATE_CUTOFF_TIME,
-    yesterday,
-    today,
     HMRC_QUERY_TARGET_DAYS,
 )
 from test_helpers.clients import DataTestClient
@@ -145,7 +143,9 @@ class SlaRulesTests(DataTestClient):
         self.create_ecju_query(case)
         EcjuQuery.objects.all().update(created_at=created_at)
 
-        with patch("cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)):
+        with patch(
+            "cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+        ):
             results = update_cases_sla.now()
         case.refresh_from_db()
 
@@ -167,7 +167,10 @@ class SlaRulesTests(DataTestClient):
         with patch("django.utils.timezone.now", return_value=responded_at):
             query.save()
 
-        with patch("cases.sla.yesterday", return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)):
+        with patch(
+            "cases.sla.yesterday",
+            return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
+        ):
             results = update_cases_sla.now()
         case.refresh_from_db()
 
