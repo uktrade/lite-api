@@ -97,9 +97,13 @@ class Case(TimestampableModel):
         return_value = defaultdict(list)
 
         for assignment in case_assignments:
-            return_value[assignment.queue.name].append({"id": assignment.user.id,
-                                                        "first_name": assignment.user.first_name,
-                                                        "last_name": assignment.user.last_name})
+            return_value[assignment.queue.name].append(
+                {
+                    "id": assignment.user.id,
+                    "first_name": assignment.user.first_name,
+                    "last_name": assignment.user.last_name,
+                }
+            )
 
         return return_value
 
@@ -119,7 +123,7 @@ class CaseNote(TimestampableModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, related_name="case_note", on_delete=models.CASCADE)
-    user = models.ForeignKey(BaseUser, related_name="case_note", on_delete=models.CASCADE, default=None, null=False, )
+    user = models.ForeignKey(BaseUser, related_name="case_note", on_delete=models.CASCADE, default=None, null=False,)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 
