@@ -11,6 +11,8 @@ from applications.enums import (
     GoodsCategory,
     ServiceEquipmentType,
     MTCRAnswers,
+    TradeControlActivity,
+    TradeControlProductCategory,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
@@ -182,6 +184,13 @@ class StandardApplication(BaseApplication):
     is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
     temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
     proposed_return_date = models.DateField(blank=True, null=True)
+    tc_activity = models.CharField(
+        choices=TradeControlActivity.choices, blank=True, default=None, null=True, max_length=100
+    )
+    tc_activity_other = models.CharField(blank=True, default=None, null=True, max_length=100)
+    tc_product_category = models.CharField(
+        choices=TradeControlProductCategory.choices, blank=True, default=None, null=True, max_length=50
+    )
 
 
 class OpenApplication(BaseApplication):
@@ -192,6 +201,13 @@ class OpenApplication(BaseApplication):
     is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
     temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
     proposed_return_date = models.DateField(blank=True, null=True)
+    tc_activity = models.CharField(
+        choices=TradeControlActivity.choices, blank=True, default=None, null=True, max_length=100
+    )
+    tc_activity_other = models.CharField(blank=True, default=None, null=True, max_length=100)
+    tc_product_category = models.CharField(
+        choices=TradeControlProductCategory.choices, blank=True, default=None, null=True, max_length=50
+    )
 
 
 # MOD Clearances Applications

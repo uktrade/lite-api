@@ -65,13 +65,10 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     class Meta:
         model = OpenApplication
-        fields = (
-            "id",
-            "name",
-            "case_type",
-            "export_type",
-            "organisation",
-            "status",
+        fields = GenericApplicationCreateSerializer.Meta.fields + (
+            "tc_activity",
+            "tc_activity_other",
+            "tc_product_category",
         )
 
 

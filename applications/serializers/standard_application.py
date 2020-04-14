@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.enums import GoodsCategory, YesNoChoiceType
+from applications.enums import GoodsCategory, YesNoChoiceType, ApplicationExportLicenceOfficialType
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import StandardApplication
+from cases.enums import CaseTypeEnum
+from conf.serializers import KeyValueChoiceField
 from licences.models import Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -71,23 +73,43 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    have_you_been_informed = KeyValueChoiceField(
+        choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
+    )
+    reference_number_on_information_form = CharField(allow_blank=True)
     goods_categories = serializers.MultipleChoiceField(
         choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
     )
 
     class Meta:
         model = StandardApplication
-        fields = (
-            "id",
-            "name",
-            "case_type",
-            "export_type",
+        fields = GenericApplicationCreateSerializer.Meta.fields + (
             "have_you_been_informed",
             "reference_number_on_information_form",
             "goods_categories",
-            "organisation",
-            "status",
+            "tc_activity",
+            "tc_activity_other",
+            "tc_product_category",
         )
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+
+        if (
+            validated_data["case_type"].id not in [CaseTypeEnum.SICL.id, CaseTypeEnum.OICL.id]
+            and validated_data["have_you_been_informed"] == ApplicationExportLicenceOfficialType.NA
+        ):
+            raise serializers.ValidationError(
+                {
+                    "have_you_been_informed": [
+                        f"You must specify {ApplicationExportLicenceOfficialType.YES} or "
+                        f"{ApplicationExportLicenceOfficialType.NO} for a {validated_data['case_type'].reference} "
+                        f"application."
+                    ]
+                }
+            )
+
+        return validated_data
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):

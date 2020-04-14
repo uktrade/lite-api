@@ -195,10 +195,6 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
     )
-    have_you_been_informed = KeyValueChoiceField(
-        choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
-    )
-    reference_number_on_information_form = CharField(allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
@@ -208,8 +204,6 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
             "name",
             "case_type",
             "export_type",
-            "have_you_been_informed",
-            "reference_number_on_information_form",
             "organisation",
             "status",
         )
