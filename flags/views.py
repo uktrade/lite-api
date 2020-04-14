@@ -60,7 +60,7 @@ class FlagsListCreateView(ListCreateAPIView):
         else:
             flags = flags.filter(status=FlagStatuses.ACTIVE)
 
-        if str_to_bool(include_system_flags, invert_none=True):
+        if str_to_bool(include_system_flags):
             system_flags = Flag.objects.filter(id__in=SystemFlags.list)
             flags = flags | system_flags
 
