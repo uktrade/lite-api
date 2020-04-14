@@ -20,6 +20,7 @@ schema_view = get_schema_view(api_info, public=True, permission_classes=(permiss
 
 urlpatterns = [
     path("applications/", include("applications.urls")),
+    path("audit-trail/", include("audit_trail.urls")),
     path("cases/", include("cases.urls")),
     path("goods/", include("goods.urls")),
     path("goodstype/", include("goodstype.urls")),
@@ -34,6 +35,7 @@ urlpatterns = [
     path("picklist/", include("picklists.urls")),
     path("documents/", include("documents.urls")),
     path("queries/", include("queries.urls")),
+    path("licences/", include("licences.urls")),
     re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json",),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

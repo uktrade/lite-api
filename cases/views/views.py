@@ -7,8 +7,8 @@ from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, Li
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import Licence
-from applications.serializers.licence import LicenceSerializer
+from licences.models import Licence
+from licences.serializers import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
@@ -58,6 +58,7 @@ from queues.models import Queue
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
+from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
@@ -265,7 +266,7 @@ class CaseTeamAdvice(APIView):
 
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
-            create_grouped_advice(self.case, self.request, advice, TeamAdvice)
+            create_grouped_advice(self.case, self.request.user, advice, TeamAdvice)
             case_advice_contains_refusal(pk)
 
             audit_trail_service.create(
@@ -362,7 +363,7 @@ class CaseFinalAdvice(APIView):
         if len(self.final_advice) == 0:
             assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
-            create_grouped_advice(self.case, self.request, self.team_advice, FinalAdvice)
+            create_grouped_advice(self.case, self.request.user, self.team_advice, FinalAdvice)
 
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case,
@@ -595,7 +596,7 @@ class CaseOfficer(APIView):
 
 class FinaliseView(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = LicenceSerializer
+    serializer_class = LicenceCreateSerializer
 
     def get_object(self):
         return get_object_or_404(Licence, application=self.kwargs["pk"])
@@ -625,10 +626,26 @@ class FinaliseView(RetrieveUpdateAPIView):
 
         return_payload = {"case": pk}
 
-        # Finalise Licence if granting a licence
-        if Licence.objects.filter(application=case).exists():
+        # Finalise Case
+        old_status = case.status.status
+        case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        case.save()
+
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_STATUS,
+            target=case,
+            payload={"status": {"new": case.status.status, "old": old_status}},
+        )
+
+        try:
+            # If a licence object exists, finalise the licence.
             licence = Licence.objects.get(application=case)
+        except Licence.DoesNotExist:
+            pass
+        else:
             licence.is_complete = True
+            licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.save()
             return_payload["licence"] = licence.id
             audit_trail_service.create(
@@ -637,10 +654,6 @@ class FinaliseView(RetrieveUpdateAPIView):
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
             )
-
-        # Finalise Case
-        case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        case.save()
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)

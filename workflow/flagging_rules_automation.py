@@ -5,6 +5,7 @@ from cases.enums import CaseTypeEnum
 from cases.models import Case
 from flags.enums import FlagLevels, FlagStatuses
 from flags.models import FlaggingRule, Flag
+from goods.enums import GoodStatus
 from goods.models import Good
 from goodstype.models import GoodsType
 from parties.models import Party
@@ -106,7 +107,12 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
     flagging_rules = get_active_flagging_rules_for_level(FlagLevels.GOOD) if not flagging_rules else flagging_rules
 
     # get a list of flag_id's where the flagging rule matching value is equivalent to the good control code
-    flags = flagging_rules.filter(matching_value__iexact=good.control_code).values_list("flag_id", flat=True)
+    flagging_rules = flagging_rules.filter(matching_value__iexact=good.control_code)
+
+    if isinstance(good, Good) and good.status != GoodStatus.VERIFIED:
+        flagging_rules = flagging_rules.exclude(is_for_verified_goods_only=True)
+
+    flags = flagging_rules.values_list("flag_id", flat=True)
 
     if flags:
         good.flags.add(*flags)
@@ -114,7 +120,7 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
 
 def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
     """
-    Takes a flagging rule and applies creates a relationship between its flag and all relevant entities
+    Takes a flagging rule and creates a relationship between it's flag and objects that meet match conditions
     """
     if flagging_rule.status == FlagStatuses.ACTIVE and flagging_rule.flag.status == FlagStatuses.ACTIVE:
         # Flagging rules should only be applied to open cases
@@ -132,12 +138,15 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
 
         elif flagging_rule.level == FlagLevels.GOOD:
             # Add flag to all Goods on open Goods Queries
-            good_in_query = (
-                GoodsQuery.objects.filter(good__control_code=flagging_rule.matching_value)
-                .exclude(status__status__in=draft_and_terminal_statuses)
-                .values_list("good_id", flat=True)
+            goods_in_query = GoodsQuery.objects.filter(good__control_code=flagging_rule.matching_value).exclude(
+                status__status__in=draft_and_terminal_statuses
             )
-            flagging_rule.flag.goods.add(*good_in_query)
+
+            if flagging_rule.is_for_verified_goods_only:
+                goods_in_query = goods_in_query.filter(good__status=GoodStatus.VERIFIED)
+
+            goods_in_query = goods_in_query.values_list("good_id", flat=True)
+            flagging_rule.flag.goods.add(*goods_in_query)
 
             # Add flag to all Goods Types
             goods_types = GoodsType.objects.filter(
@@ -148,7 +157,12 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
             # Add flag to all open Applications
             goods = GoodOnApplication.objects.filter(
                 application_id__in=open_cases, good__control_code=flagging_rule.matching_value
-            ).values_list("good_id", flat=True)
+            )
+
+            if flagging_rule.is_for_verified_goods_only:
+                goods = goods.filter(good__status=GoodStatus.VERIFIED)
+
+            goods = goods.values_list("good_id", flat=True)
             flagging_rule.flag.goods.add(*goods)
 
         elif flagging_rule.level == FlagLevels.DESTINATION:
@@ -173,6 +187,6 @@ def apply_flagging_rule_for_flag(flag: Flag):
     """
     gets the flagging rules relating to a flag and applies them
     """
-    flagging_rules = FlaggingRule.objects.filter(flag_id=flag.id)
+    flagging_rules = FlaggingRule.objects.filter(flag=flag)
     for rule in flagging_rules:
         apply_flagging_rule_to_all_open_cases(rule)

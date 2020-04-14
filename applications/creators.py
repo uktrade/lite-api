@@ -1,7 +1,7 @@
-from conf.helpers import str_to_bool
-from applications.enums import ApplicationExportType
 from django.utils import timezone
+
 from applications import constants
+from applications.enums import ApplicationExportType
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
@@ -9,6 +9,7 @@ from applications.models import (
     ExternalLocationOnApplication,
 )
 from cases.enums import CaseTypeSubTypeEnum
+from conf.helpers import str_to_bool
 from documents.models import Document
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
@@ -71,12 +72,17 @@ def check_party_error(party, object_not_found_error, is_mandatory, is_document_m
 
 def _validate_end_user(draft, errors, is_mandatory):
     """ Checks there is an end user (with a document if is_document_mandatory) """
+    # Document is only mandatory if application is standard permanent or HMRC query
+    is_document_mandatory = (
+        draft.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
+        and draft.export_type == ApplicationExportType.PERMANENT
+    ) or draft.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
 
     end_user_errors = check_party_error(
         draft.end_user.party if draft.end_user else None,
         object_not_found_error=strings.Applications.Standard.NO_END_USER_SET,
         is_mandatory=is_mandatory,
-        is_document_mandatory=True,
+        is_document_mandatory=is_document_mandatory,
     )
     if end_user_errors:
         errors["end_user"] = [end_user_errors]
@@ -91,7 +97,7 @@ def _validate_consignee(draft, errors, is_mandatory):
         draft.consignee.party if draft.consignee else None,
         object_not_found_error=strings.Applications.Standard.NO_CONSIGNEE_SET,
         is_mandatory=is_mandatory,
-        is_document_mandatory=True,
+        is_document_mandatory=False,
     )
     if consignee_errors:
         errors["consignee"] = [consignee_errors]
@@ -125,8 +131,8 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
     Checks all ultimate end users have documents if is_mandatory is True.
     Also checks that at least one ultimate_end_user is present if there is an incorporated good
     """
-
-    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory)
+    # Document is always optional even if there are incorporated goods
+    ultimate_end_user_documents_error = check_parties_documents(draft.ultimate_end_users.all(), is_mandatory=False)
     if ultimate_end_user_documents_error:
         errors["ultimate_end_user_documents"] = [ultimate_end_user_documents_error]
 
@@ -187,13 +193,15 @@ def _validate_agree_to_declaration(request, errors):
 def _validate_additional_information(draft, errors):
     for field in constants.F680.REQUIRED_FIELDS:
         if getattr(draft, field) is None or getattr(draft, field) == "":
-            errors["additional_information"] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+            errors["additional_information"] = [
+                strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+            ]
         if getattr(draft, field) is True:
             secondary_field = constants.F680.REQUIRED_SECONDARY_FIELDS.get(field, False)
             if secondary_field and not getattr(draft, secondary_field):
-                errors[
-                    "additional_information"
-                ] = strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+                errors["additional_information"] = [
+                    strings.Applications.F680.AdditionalInformation.Errors.MUST_BE_COMPLETED
+                ]
 
     today = timezone.now().date()
 
@@ -209,7 +217,7 @@ def _validate_temporary_export_details(draft, errors):
         and draft.export_type == ApplicationExportType.TEMPORARY
     ):
         if not draft.temp_export_details or draft.is_temp_direct_control is None or draft.proposed_return_date is None:
-            errors["temporary_export_details"] = strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS
+            errors["temporary_export_details"] = [strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS]
 
     return errors
 

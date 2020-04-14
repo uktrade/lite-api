@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.db.models import Q
 from rest_framework import serializers
 
 from addresses.models import Address
@@ -24,22 +23,38 @@ class SiteListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address")
+        fields = (
+            "id",
+            "name",
+            "address",
+        )
 
 
 class SiteViewSerializer(SiteListSerializer):
     users = serializers.SerializerMethodField()
+    admin_users = serializers.SerializerMethodField()
 
     def get_users(self, instance):
-        users = UserOrganisationRelationship.objects.filter(
-            Q(sites__id__exact=instance.id)
-            | Q(organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name)
-        ).select_related("user")
+        users = (
+            UserOrganisationRelationship.objects.filter(sites__id=instance.id)
+            .select_related("user")
+            .order_by("user__email")
+        )
+        return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
+
+    def get_admin_users(self, instance):
+        users = (
+            UserOrganisationRelationship.objects.filter(
+                organisation=instance.organisation, role__permissions__id=ExporterPermissions.ADMINISTER_SITES.name
+            )
+            .select_related("user")
+            .order_by("user__email")
+        )
         return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "users")
+        fields = ("id", "name", "address", "users", "admin_users")
 
 
 class SiteCreateUpdateSerializer(serializers.ModelSerializer):
@@ -248,9 +263,9 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
         # TODO remove try block when other end points adopt generics
         try:
             if isinstance(self.context.get("request").user, GovUser):
-                return list(instance.flags.values("id", "name"))
+                return list(instance.flags.values("id", "name", "colour", "label", "priority"))
         except AttributeError:
-            return list(instance.flags.values("id", "name"))
+            return list(instance.flags.values("id", "name", "colour", "label", "priority"))
 
     class Meta:
         model = Organisation

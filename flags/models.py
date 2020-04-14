@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 from common.models import TimestampableModel
-from flags.enums import FlagLevels, FlagStatuses
+from flags.enums import FlagLevels, FlagStatuses, FlagColours
 from teams.models import Team
 
 
@@ -13,6 +13,13 @@ class Flag(TimestampableModel):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     level = models.CharField(choices=FlagLevels.choices, max_length=20)
     status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
+    label = models.CharField(max_length=15, null=True, blank=True)
+    colour = models.CharField(choices=FlagColours.choices, default=FlagColours.DEFAULT, max_length=20)
+    priority = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        db_table = "flag"
+        ordering = ["team"]
 
 
 class FlaggingRule(TimestampableModel):
@@ -22,7 +29,9 @@ class FlaggingRule(TimestampableModel):
     status = models.CharField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE, max_length=20)
     flag = models.ForeignKey(Flag, on_delete=models.CASCADE)
     matching_value = models.CharField(max_length=100)
+    is_for_verified_goods_only = models.BooleanField(null=True, blank=True)
 
     class Meta:
+        db_table = "flagging_rule"
         indexes = [models.Index(fields=["created_at"])]
         ordering = ["team__name", "-created_at"]

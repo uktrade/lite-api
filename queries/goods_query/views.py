@@ -94,6 +94,13 @@ class GoodsQueriesCreate(APIView):
         good.save()
         goods_query.save()
 
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.CREATED,
+            action_object=goods_query.get_case(),
+            payload={"status": {"new": goods_query.status.status}},
+        )
+
         apply_flagging_rules_to_case(goods_query)
 
         return JsonResponse(data={"id": goods_query.id}, status=status.HTTP_201_CREATED)
@@ -267,7 +274,7 @@ class GoodQueryManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=query.get_case(),
-            payload={"status": CaseStatusEnum.get_text(new_status)},
+            payload={"status": {"new": CaseStatusEnum.get_text(new_status), "old": old_status.status}},
         )
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

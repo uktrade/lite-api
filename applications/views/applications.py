@@ -6,15 +6,11 @@ from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ErrorDetail
-from rest_framework.generics import (
-    ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView,
-    UpdateAPIView,
-)
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
 
-from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from applications import constants
+from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
 from applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -43,14 +39,14 @@ from applications.models import (
     ExternalLocationOnApplication,
     PartyOnApplication,
     F680ClearanceApplication,
-    Licence,
 )
+from licences.models import Licence
 from applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
-from applications.serializers.licence import LicenceSerializer
+from licences.serializers import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
@@ -146,6 +142,26 @@ class ApplicationList(ListCreateAPIView):
         application = serializer.save()
 
         return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
+
+
+class ApplicationExisting(APIView):
+    """
+    This view returns boolean values depending on the type of organisation:
+    HMRC - Whether the organisation has existing submitted queries
+    Standard - Whether the organisation has any drafts/applications, or licences
+    """
+
+    authentication_classes = (ExporterAuthentication,)
+
+    def get(self, request):
+        organisation = self.request.user.organisation
+        if organisation.type == "hmrc":
+            has_queries = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation).exists()
+            return JsonResponse(data={"queries": has_queries})
+        else:
+            has_licences = Licence.objects.filter(application__organisation=organisation).exists()
+            has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
+            return JsonResponse(data={"licences": has_licences, "applications": has_applications})
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
@@ -278,6 +294,7 @@ class ApplicationSubmission(APIView):
         Submit a draft-application which will set its submitted_at datetime and status before creating a case
         Depending on the application subtype, this will also submit the declaration of the licence
         """
+        old_status = application.status.status
 
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
             assert_user_has_permission(
@@ -290,7 +307,7 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.GOODS,
         ]:
             set_application_sla(application)
-            create_submitted_audit(request, application)
+            create_submitted_audit(request, application, old_status)
 
         errors = validate_application_ready_for_submission(application)
         if errors:
@@ -317,14 +334,14 @@ class ApplicationSubmission(APIView):
 
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
-
-                create_submitted_audit(request, application)
+                create_submitted_audit(request, application, old_status)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
         serializer = serializer(application)
 
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
+
         if application.reference_code:
             data["reference_code"] = application.reference_code
 
@@ -393,7 +410,7 @@ class ApplicationManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
-            payload={"status": CaseStatusEnum.get_text(case_status.status)},
+            payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
         )
 
         return JsonResponse(
@@ -422,7 +439,7 @@ class ApplicationFinaliseView(APIView):
         data = deepcopy(request.data)
         action = data.get("action")
 
-        if action == AdviceType.APPROVE:
+        if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
             default_licence_duration = get_default_duration(application)
             data["duration"] = data.get("duration", default_licence_duration)
 
@@ -446,7 +463,7 @@ class ApplicationFinaliseView(APIView):
                 )
 
             data["application"] = application
-            serializer = LicenceSerializer(data=data)
+            serializer = LicenceCreateSerializer(data=data)
 
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

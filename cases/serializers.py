@@ -12,6 +12,7 @@ from cases.enums import (
     CaseTypeSubTypeEnum,
     CaseTypeReferenceEnum,
 )
+from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
 from cases.libraries.get_destination import get_ordered_flags
 from cases.models import (
     Case,
@@ -33,11 +34,14 @@ from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from lite_content.lite_api import strings
+from organisations.models import Organisation
+from organisations.serializers import TinyOrganisationViewSerializer
 from parties.enums import PartyType
 from parties.models import Party
 from picklists.enums import PicklistType
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
+from queues.serializers import CasesQueueViewSerializer
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
@@ -106,19 +110,57 @@ class CaseSerializer(serializers.ModelSerializer):
         return repr_dict
 
 
+class CaseAssignmentSerializer(serializers.ModelSerializer):
+    user = GovUserSimpleSerializer()
+
+    class Meta:
+        model = CaseAssignment
+        fields = (
+            "case",
+            "user",
+        )
+
+
+class QueueCaseAssignmentUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GovUser
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+        )
+
+
+class QueueCaseAssignmentSerializer(serializers.ModelSerializer):
+    user = QueueCaseAssignmentUserSerializer()
+    queue = CasesQueueViewSerializer()
+
+    class Meta:
+        model = CaseAssignment
+        fields = (
+            "user",
+            "queue",
+        )
+
+
 class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
-    queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    queue_names = serializers.SerializerMethodField()
-    users = serializers.SerializerMethodField()
+    queues = PrimaryKeyRelatedSerializerField(
+        queryset=Queue.objects.all(), many=True, serializer=CasesQueueViewSerializer
+    )
+    assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
     status = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    open_team_ecju_queries = serializers.SerializerMethodField()
+    has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
+    organisation = PrimaryKeyRelatedSerializerField(
+        queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
+    )
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -136,22 +178,8 @@ class CaseListSerializer(serializers.Serializer):
         # it'll return a string representation which isn't suitable for filtering
         return instance.submitted_at
 
-    def get_queue_names(self, instance):
-        return list(instance.queues.values_list("name", flat=True))
-
     def get_status(self, instance):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
-
-    def get_users(self, instance):
-        return instance.get_users(queue=self.context["queue_id"] if not self.context["is_system_queue"] else None)
-
-    def get_open_team_ecju_queries(self, instance):
-        if self.include_hidden:
-            return (
-                EcjuQuery.objects.select_related("raised_by_user__team_id")
-                .filter(case_id=instance.id, raised_by_user__team_id=self.team, responded_at__isnull=True)
-                .exists()
-            )
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
@@ -213,7 +241,7 @@ class CaseDetailSerializer(CaseSerializer):
             return serializer(application).data
 
     def get_flags(self, instance):
-        return list(instance.flags.all().values("id", "name"))
+        return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))
 
     def get_queue_names(self, instance):
         return list(instance.queues.values_list("name", flat=True))
@@ -287,17 +315,6 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseNote
         fields = "__all__"
-
-
-class CaseAssignmentSerializer(serializers.ModelSerializer):
-    user = GovUserSimpleSerializer()
-
-    class Meta:
-        model = CaseAssignment
-        fields = (
-            "case",
-            "user",
-        )
 
 
 class CaseDocumentCreateSerializer(serializers.ModelSerializer):

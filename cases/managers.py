@@ -3,6 +3,7 @@ from typing import List
 
 from compat import get_model
 from django.db import models
+from django.db.models import Q
 
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from queues.constants import (
@@ -128,7 +129,20 @@ class CaseManager(models.Manager):
         """
         Search for a user's available cases given a set of search parameters.
         """
-        case_qs = self.submitted().prefetch_related("queues", "status", "organisation__flags",)
+        case_qs = (
+            self.submitted()
+            .select_related("organisation", "status")
+            .prefetch_related(
+                "queues",
+                "case_assignments",
+                "case_assignments__user",
+                "case_ecju_query",
+                "case_assignments__queue",
+                "organisation__flags",
+                "case_type",
+                "flags",
+            )
+        )
         team_id = user.team.id
 
         if not include_hidden:
@@ -232,3 +246,25 @@ class CaseReferenceCodeManager(models.Manager):
 
         case_reference_code.save()
         return case_reference_code
+
+
+class AdviceManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related(*self.model.ENTITY_FIELDS)
+
+    def get(self, *args, **kwargs):
+        """
+        Override the default `get` on a queryset so that an additional, non-model-field argument (entity_id) can be
+        supplied to the filter.
+        """
+        entity_id = kwargs.pop("entity_id", None)
+
+        if entity_id:
+            query = Q()
+
+            for entity in self.model.ENTITY_FIELDS:
+                query.add(Q(**{entity: entity_id}), Q.OR)
+
+            return super().filter(query).get(*args, **kwargs)
+
+        return super().get(*args, **kwargs)
