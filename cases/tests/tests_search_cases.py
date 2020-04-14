@@ -5,6 +5,7 @@ from rest_framework import status
 
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
+from cases.enums import CaseTypeEnum
 from cases.models import Case, CaseAssignment
 from queues.constants import (
     UPDATED_CASES_QUEUE_ID,
@@ -14,9 +15,9 @@ from queues.constants import (
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser
-from cases.enums import CaseTypeEnum
 
 
 class FilterAndSortTests(DataTestClient):
@@ -57,6 +58,13 @@ class FilterAndSortTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(all_cases), len(response_data["cases"]))
+        self.assertEqual(
+            [
+                {"id": str(user.id), "full_name": f"{user.first_name} {user.last_name}"}
+                for user in GovUser.objects.filter(status=UserStatuses.ACTIVE)
+            ],
+            response_data["filters"]["gov_users"],
+        )
 
     def test_get_app_type_cases(self):
         """
@@ -286,6 +294,7 @@ class FilterQueueUpdatedCasesTests(DataTestClient):
         super().setUp()
 
         self.case = self.create_standard_application_case(self.organisation).get_case()
+        self.old_status = self.case.status.status
         self.case.queues.set([self.queue])
         self.case_assignment = CaseAssignment.objects.create(case=self.case, queue=self.queue, user=self.gov_user)
         self.case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
@@ -295,7 +304,7 @@ class FilterQueueUpdatedCasesTests(DataTestClient):
             actor=self.exporter_user,
             verb=AuditType.UPDATED_STATUS.value,
             target=self.case,
-            payload={"status": CaseStatusEnum.APPLICANT_EDITING},
+            payload={"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": self.old_status}},
         )
         self.gov_user.send_notification(content_object=self.audit, case=self.case)
 

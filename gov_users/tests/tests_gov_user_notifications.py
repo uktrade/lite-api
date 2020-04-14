@@ -78,13 +78,14 @@ class GovUserNotificationTests(DataTestClient):
 
     def test_get_case_activity_deletes_audit_notification_success(self):
         self.case = self.create_standard_application_case(self.organisation).get_case()
+        old_status = self.case.status.status
         self.case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
         self.case.save()
         audit = Audit.objects.create(
             actor=self.exporter_user,
             verb=AuditType.UPDATED_STATUS.value,
             target=self.case,
-            payload={"status": CaseStatusEnum.APPLICANT_EDITING},
+            payload={"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": old_status}},
         )
 
         self.gov_user.send_notification(content_object=audit, case=self.case)
