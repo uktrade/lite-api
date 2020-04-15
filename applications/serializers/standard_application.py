@@ -31,14 +31,9 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     additional_documents = serializers.SerializerMethodField()
     goods_categories = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
-
     proposed_return_date = serializers.DateField(required=False)
-
-    def get_goods_categories(self, instance):
-        # Return a formatted key, value format of GoodsCategories
-        # Order according to the choices in GoodsCategory
-        return_value = [{"key": x, "value": GoodsCategory.get_text(x)} for x in instance.goods_categories or []]
-        return sorted(return_value, key=lambda i: [x[0] for x in GoodsCategory.choices].index(i["key"]))
+    tc_activity = serializers.SerializerMethodField()
+    tc_product_category = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -71,12 +66,29 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "is_temp_direct_control",
                 "temp_direct_control_details",
                 "proposed_return_date",
+                "tc_activity",
+                "tc_product_category",
             )
         )
 
     def get_licence(self, instance):
         licence = Licence.objects.filter(application=instance).first()
         return CaseLicenceViewSerializer(licence).data
+
+    def get_goods_categories(self, instance):
+        # Return a formatted key, value format of GoodsCategories
+        # Order according to the choices in GoodsCategory
+        return_value = [{"key": x, "value": GoodsCategory.get_text(x)} for x in instance.goods_categories or []]
+        return sorted(return_value, key=lambda i: [x[0] for x in GoodsCategory.choices].index(i["key"]))
+
+    def get_tc_activity(self, instance):
+        key = instance.tc_activity
+        value = instance.tc_activity_other if key == TradeControlActivity.OTHER else TradeControlActivity.get_text(key)
+        return {"key": key, "value": value} if key else None
+
+    def get_tc_product_category(self, instance):
+        key = instance.tc_product_category
+        return {"key": key, "value": TradeControlProductCategory.get_text(key)} if key else None
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
