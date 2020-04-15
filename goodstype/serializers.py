@@ -56,7 +56,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                     allow_null=True,
                     allow_empty=True,
                 )
-                self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_code")
+                self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_list_entries")
             else:
                 if hasattr(self, "initial_data"):
                     self.initial_data["is_good_controlled"] = False
