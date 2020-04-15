@@ -533,7 +533,7 @@ class ApplicationCopy(APIView):
         self.new_application.name = request.data["name"]
         if (
             self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
-            and not self.new_application.case_type.sub_type.id == CaseTypeEnum.SICL.id
+            and not self.new_application.case_type.id == CaseTypeEnum.SICL.id
         ):
             self.new_application.have_you_been_informed = request.data.get("have_you_been_informed")
             self.new_application.reference_number_on_information_form = request.data.get(
