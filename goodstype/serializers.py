@@ -94,12 +94,33 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         return instance
 
 
-class GoodsTypeViewSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
+class GoodsTypeViewSerializer(serializers.ModelSerializer):
     description = serializers.CharField()
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
     is_good_incorporated = serializers.BooleanField()
     control_list_entries = ControlListEntryViewSerializer(many=True)
+    countries = serializers.SerializerMethodField()
+    document = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GoodsType
+        fields = ("id",
+                  "description",
+                  "is_good_controlled",
+                  "is_good_incorporated",
+                  "control_list_entries",
+                  "countries",
+                  "document")
+
+    def get_countries(self, instance):
+        countries = instance.countries
+        if not countries.count():
+            countries = Country.objects.filter(countries_on_application__application=instance.application)
+        return CountrySerializer(countries, many=True).data
+
+    def get_document(self, instance):
+        docs = GoodsTypeDocument.objects.filter(goods_type=instance).values()
+        return docs[0] if docs else None
 
 
 class FullGoodsTypeSerializer(GoodsTypeSerializer):

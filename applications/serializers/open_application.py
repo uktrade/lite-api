@@ -1,23 +1,22 @@
 from rest_framework import serializers
 
 from applications.models import OpenApplication
-from licences.models import Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from licences.serializers import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
-from goodstype.models import GoodsType
-from goodstype.serializers import FullGoodsTypeSerializer, GoodsTypeViewSerializer
+from goodstype.serializers import GoodsTypeViewSerializer
+from licences.models import Licence
+from licences.serializers import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
 
 
 class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
-    goods_types = serializers.SerializerMethodField()
+    goods_types = GoodsTypeViewSerializer(source="goods_type", many=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
@@ -47,10 +46,6 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "temp_direct_control_details",
             "proposed_return_date",
         )
-
-    def get_goods_types(self, application):
-        goods_types = GoodsType.objects.filter(application=application)
-        return GoodsTypeViewSerializer(goods_types, many=True).data
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)

@@ -24,8 +24,7 @@ from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
-from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
+from goodstype.serializers import GoodsTypeSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from users.models import ExporterUser
