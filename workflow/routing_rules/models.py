@@ -25,7 +25,7 @@ class RoutingRule(TimestampableModel):
     )
     active = models.BooleanField(default=True)
 
-    # optional fields that entry is dependent on additional fields
+    # optional fields that are required depending on values in additional_rules
     user = models.ForeignKey(GovUser, related_name="routing_rules", on_delete=models.DO_NOTHING, blank=True, null=True)
     case_types = models.ManyToManyField(CaseType, related_name="routing_rules", blank=True)
     flags = models.ManyToManyField(Flag, related_name="routing_rules", blank=True)
