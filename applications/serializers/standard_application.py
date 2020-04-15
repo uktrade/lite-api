@@ -11,17 +11,17 @@ from applications.enums import (
 )
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import StandardApplication
-from cases.enums import CaseTypeEnum
-from conf.serializers import KeyValueChoiceField
-from licences.models import Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from licences.serializers import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
+from cases.enums import CaseTypeEnum
+from conf.serializers import KeyValueChoiceField
+from licences.models import Licence
+from licences.serializers import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 
 
@@ -80,6 +80,9 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    export_type = KeyValueChoiceField(
+        choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
+    )
     have_you_been_informed = KeyValueChoiceField(
         choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
     )
@@ -102,6 +105,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     class Meta:
         model = StandardApplication
         fields = GenericApplicationCreateSerializer.Meta.fields + (
+            "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
             "goods_categories",
@@ -115,7 +119,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
         self.trade_control_licence = case_type_id in [str(CaseTypeEnum.SICL.id), str(CaseTypeEnum.OICL.id)]
 
         if self.trade_control_licence:
-            self.initial_data["export_type"] = ApplicationExportType.PERMANENT
+            self.fields.pop("export_type")
             self.fields.pop("have_you_been_informed")
             self.fields.pop("reference_number_on_information_form")
 
@@ -125,6 +129,11 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             self.fields.pop("tc_activity")
             self.fields.pop("tc_activity_other")
             self.fields.pop("tc_product_category")
+
+    def create(self, validated_data):
+        if self.trade_control_licence:
+            validated_data["export_type"] = ApplicationExportType.PERMANENT
+        return super().create(validated_data)
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):

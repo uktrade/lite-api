@@ -1,20 +1,20 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.enums import TradeControlActivity, TradeControlProductCategory
+from applications.enums import TradeControlActivity, TradeControlProductCategory, ApplicationExportType
 from applications.models import OpenApplication
-from cases.enums import CaseTypeEnum
-from conf.serializers import KeyValueChoiceField
-from licences.models import Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from licences.serializers import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
+from cases.enums import CaseTypeEnum
+from conf.serializers import KeyValueChoiceField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
+from licences.models import Licence
+from licences.serializers import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -67,6 +67,9 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    export_type = KeyValueChoiceField(
+        choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
+    )
     tc_activity = KeyValueChoiceField(
         choices=TradeControlActivity.choices,
         error_messages={"required": strings.Applications.Open.TRADE_CONTROL_ACTIVITY_ERROR},
@@ -82,6 +85,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     class Meta:
         model = OpenApplication
         fields = GenericApplicationCreateSerializer.Meta.fields + (
+            "export_type",
             "tc_activity",
             "tc_activity_other",
             "tc_product_category",
@@ -92,12 +96,19 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         self.trade_control_licence = case_type_id in [str(CaseTypeEnum.SICL.id), str(CaseTypeEnum.OICL.id)]
 
         if self.trade_control_licence:
+            self.fields.pop("export_type")
+
             if not self.initial_data.get("tc_activity") == TradeControlActivity.OTHER:
                 self.fields.pop("tc_activity_other")
         else:
             self.fields.pop("tc_activity")
             self.fields.pop("tc_activity_other")
             self.fields.pop("tc_product_category")
+
+    def create(self, validated_data):
+        if self.trade_control_licence:
+            validated_data["export_type"] = ApplicationExportType.PERMANENT
+        return super().create(validated_data)
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
