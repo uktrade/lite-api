@@ -48,7 +48,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
             if get_application(application).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
                 self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
                 self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
-                self.fields["control_code"] = PrimaryKeyRelatedSerializerField(
+                self.fields["control_list_entries"] = PrimaryKeyRelatedSerializerField(
                     queryset=ControlListEntry.objects.all(), many=True, serializer=ControlListEntryField
                 )
                 self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_code")
@@ -57,13 +57,13 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                     self.initial_data["is_good_controlled"] = False
                     self.initial_data["is_good_incorporated"] = None
 
-        # Only validate the control code if the good is controlled
+        # Only validate the control list entries if the good is controlled
         if str_to_bool(self.get_initial().get("is_good_controlled")) is True:
-            # TODO change this? needs to handle multiple instead of one charfield
-            self.fields["control_code"] = ControlListEntryField(required=True)
+            self.fields["control_list_entries"] = serializers.PrimaryKeyRelatedField(queryset=ControlListEntry.objects.all(),
+                                                                                     many=True)
         else:
             if hasattr(self, "initial_data"):
-                self.initial_data["control_code"] = None
+                self.initial_data["control_list_entries"] = None
 
     def get_countries(self, instance):
         countries = instance.countries
@@ -81,7 +81,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         """
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
-        instance.control_code = validated_data.get("control_code", instance.control_code)
+        instance.control_code = validated_data.get("control_list_entries", instance.control_code)
         instance.is_good_incorporated = validated_data.get("is_good_incorporated", instance.is_good_incorporated)
         instance.save()
         return instance
