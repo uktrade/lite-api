@@ -7,7 +7,22 @@ from flags.enums import FlagLevels, FlagStatuses, FlagColours
 from flags.models import Flag, FlaggingRule
 from lite_content.lite_api import strings
 from teams.models import Team
-from teams.serializers import TeamSerializer
+from teams.serializers import TeamSerializer, TeamReadOnlySerializer
+
+
+class FlagReadOnlySerializer(serializers.Serializer):
+    """
+    More performant read_only flag serializer
+    """
+
+    id = serializers.UUIDField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    colour = serializers.CharField(read_only=True)
+    level = serializers.CharField(read_only=True)
+    label = serializers.CharField(read_only=True)
+    status = serializers.CharField(read_only=True)
+    priority = serializers.IntegerField(read_only=True)
+    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamReadOnlySerializer)
 
 
 class FlagSerializer(serializers.ModelSerializer):

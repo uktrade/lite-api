@@ -5,6 +5,15 @@ from rest_framework.validators import UniqueValidator
 from teams.models import Team
 
 
+class TeamReadOnlySerializer(serializers.Serializer):
+    """
+    More performant read_only team serializer
+    """
+
+    id = serializers.UUIDField(read_only=True)
+    name = serializers.CharField(read_only=True)
+
+
 class TeamSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         max_length=50,

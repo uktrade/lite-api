@@ -20,7 +20,7 @@ from flags.enums import FlagStatuses, SystemFlags
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flagging_rule
 from flags.models import Flag, FlaggingRule
-from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer
+from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer, FlagReadOnlySerializer
 from goods.models import Good
 from lite_content.lite_api import strings
 from parties.models import Party
@@ -32,7 +32,12 @@ from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_c
 
 class FlagsListCreateView(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = FlagSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return FlagReadOnlySerializer
+        else:
+            return FlagSerializer
 
     def get_queryset(self):
         flags = Flag.objects.all()
