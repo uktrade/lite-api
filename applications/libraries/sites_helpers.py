@@ -3,12 +3,12 @@ from typing import Union, List
 from django.db.models import QuerySet
 from rest_framework.exceptions import ValidationError
 
-from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES
+from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES, TRADE_CONTROL_BANNED_COUNTRIES
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import BaseApplication, SiteOnApplication, ExternalLocationOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeReferenceEnum
+from cases.enums import CaseTypeReferenceEnum, CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations, Applications
 from organisations.models import Site
 from users.models import ExporterUser
@@ -33,11 +33,18 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
     if application.status.status in get_case_statuses(read_only=True):
         raise ValidationError({"sites": [f"Application status {application.status.status} is read-only"]})
 
-    # Transhipment applications can't have sites based in certain countries
-    if application.case_type.reference == CaseTypeReferenceEnum.SITL:
-        is_site_in_banned_location = new_sites.filter(address__country__id__in=TRANSHIPMENT_BANNED_COUNTRIES).exists()
+    # Transhipment and Trade Control applications can't have sites based in certain countries
+    if application.case_type.id in [CaseTypeEnum.SITL.id, CaseTypeEnum.SICL.id, CaseTypeEnum.OICL]:
+        if application.case_type.id == CaseTypeEnum.SITL.id:
+            banned_countries = TRANSHIPMENT_BANNED_COUNTRIES
+            error = ExternalLocations.Errors.TRANSHIPMENT_GB
+        else:
+            banned_countries = TRADE_CONTROL_BANNED_COUNTRIES
+            error = ExternalLocations.Errors.TRADE_CONTROL_GB
+
+        is_site_in_banned_location = new_sites.filter(address__country__id__in=banned_countries).exists()
         if is_site_in_banned_location:
-            raise ValidationError({"sites": [ExternalLocations.Errors.TRANSHIPMENT_GB]})
+            raise ValidationError({"sites": [error]})
 
     # It's possible for users to modify sites as long as sites they add are in countries
     # already on the application

@@ -3,13 +3,13 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES
+from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES, TRADE_CONTROL_BANNED_COUNTRIES
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import ExternalLocationOnApplicationSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeReferenceEnum
+from cases.enums import CaseTypeReferenceEnum, CaseTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, application_in_non_readonly_state
 from lite_content.lite_api.strings import ExternalLocations
@@ -96,9 +96,17 @@ class ApplicationExternalLocations(APIView):
                 data={"external_location": str(new_location.id), "application": str(application.id)}
             )
 
-            if application.case_type.reference == CaseTypeReferenceEnum.SITL:
-                if new_location.country.id in TRANSHIPMENT_BANNED_COUNTRIES:
-                    return None, {"external_locations": [ExternalLocations.Errors.TRANSHIPMENT_GB]}
+            # Transhipment and Trade Control applications can't have sites based in certain countries
+            if application.case_type.id in [CaseTypeEnum.SITL.id, CaseTypeEnum.SICL.id, CaseTypeEnum.OICL]:
+                if application.case_type.id == CaseTypeEnum.SITL.id:
+                    banned_countries = TRANSHIPMENT_BANNED_COUNTRIES
+                    error = ExternalLocations.Errors.TRANSHIPMENT_GB
+                else:
+                    banned_countries = TRADE_CONTROL_BANNED_COUNTRIES
+                    error = ExternalLocations.Errors.TRADE_CONTROL_GB
+
+                if new_location.country.id in banned_countries:
+                    return None, {"external_locations": [error]}
 
             if serializer.is_valid():
                 serializer.save()
