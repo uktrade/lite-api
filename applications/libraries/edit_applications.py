@@ -1,10 +1,10 @@
-from applications.enums import GoodsCategory
-from applications.models import BaseApplication, StandardApplication
+from applications.enums import GoodsCategory, TradeControlActivity
+from applications.models import BaseApplication, StandardApplication, OpenApplication
 from datetime import date
 
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.models import Case
 from flags.enums import SystemFlags
 from conf.helpers import str_to_bool, convert_date_to_string
@@ -157,17 +157,29 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
     )
 
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        goods_categories = (
-            StandardApplication.objects.values_list("goods_categories", flat=True).get(pk=application.pk) or []
+        goods_categories, tc_activity = StandardApplication.objects.values_list("goods_categories", "tc_activity").get(
+            pk=application.pk
         )
 
         _add_or_remove_flag(
             case=case,
             flag_id=SystemFlags.MARITIME_ANTI_PIRACY_ID,
-            is_adding=GoodsCategory.MARITIME_ANTI_PIRACY in goods_categories,
+            is_adding=GoodsCategory.MARITIME_ANTI_PIRACY in (goods_categories or [])
+            or (
+                application.case_type.id == CaseTypeEnum.SICL.id
+                and tc_activity == TradeControlActivity.MARITIME_ANTI_PIRACY
+            ),
         )
         _add_or_remove_flag(
-            case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=GoodsCategory.FIREARMS in goods_categories,
+            case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=GoodsCategory.FIREARMS in (goods_categories or []),
+        )
+    elif application.case_type.id == CaseTypeEnum.OICL.id:
+        tc_activity = OpenApplication.objects.values_list("tc_activity", flat=True).get(pk=application.pk)
+
+        _add_or_remove_flag(
+            case=case,
+            flag_id=SystemFlags.MARITIME_ANTI_PIRACY_ID,
+            is_adding=tc_activity == TradeControlActivity.MARITIME_ANTI_PIRACY,
         )
 
 
