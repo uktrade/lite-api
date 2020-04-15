@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from rest_framework import exceptions
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.views import APIView
@@ -42,41 +43,25 @@ class RoutingRulesList(ListCreateAPIView):
 
         return filtered_qs
 
-    def get(self, request, *args, **kwargs):
+    def initial(self, request, *args, **kwargs):
         if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
             GovPermissions.MANAGE_ALL_ROUTING_RULES
         ):
-            return super(RoutingRulesList, self).get(request, *args, **kwargs)
+            return super(RoutingRulesList, self).initial(request, *args, **kwargs)
         else:
-            raise PermissionDeniedError()
-
-    def post(self, request, *args, **kwargs):
-        if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
-            GovPermissions.MANAGE_ALL_ROUTING_RULES
-        ):
-            return super(RoutingRulesList, self).post(request, *args, **kwargs)
-        else:
-            raise PermissionDeniedError()
+            raise exceptions.PermissionDenied()
 
 
 class RoutingRulesDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
 
-    def get(self, request, *args, **kwargs):
+    def initial(self, request, *args, **kwargs):
         if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
             GovPermissions.MANAGE_ALL_ROUTING_RULES
         ):
-            return super(RoutingRulesDetail, self).get(request, *args, **kwargs)
+            return super(RoutingRulesDetail, self).initial(request, *args, **kwargs)
         else:
-            raise PermissionDeniedError()
-
-    def put(self, request, *args, **kwargs):
-        if request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES) or request.user.has_permission(
-            GovPermissions.MANAGE_ALL_ROUTING_RULES
-        ):
-            return super(RoutingRulesDetail, self).put(request, *args, **kwargs)
-        else:
-            raise PermissionDeniedError()
+            raise exceptions.PermissionDenied()
 
     def get_serializer_class(self):
         if self.request.method == "GET":
