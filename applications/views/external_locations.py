@@ -9,7 +9,7 @@ from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import ExternalLocationOnApplicationSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeReferenceEnum, CaseTypeEnum
+from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, application_in_non_readonly_state
 from lite_content.lite_api.strings import ExternalLocations

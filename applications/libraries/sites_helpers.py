@@ -8,7 +8,7 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import BaseApplication, SiteOnApplication, ExternalLocationOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeReferenceEnum, CaseTypeEnum
+from cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations, Applications
 from organisations.models import Site
 from users.models import ExporterUser
