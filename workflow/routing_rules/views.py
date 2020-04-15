@@ -7,6 +7,7 @@ from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
 from conf.exceptions import PermissionDeniedError
 from lite_content.lite_api.strings import RoutingRules
+from workflow.routing_rules.enum import StatusAction
 from workflow.routing_rules.helpers import get_routing_rule
 from workflow.routing_rules.models import RoutingRule
 from workflow.routing_rules.serializers import RoutingRuleSerializer, SmallRoutingRuleSerializer
@@ -100,10 +101,10 @@ class RoutingRulesActiveStatus(APIView):
     def put(self, request, pk):
         status = request.data.get("status")
 
-        if status != "deactivate" and status != "reactivate":
+        if status not in [StatusAction.DEACTIVATE, StatusAction.REACTIVATE]:
             raise ValueError(RoutingRules.Errors.BAD_STATUS)
 
-        active_status = status == "reactivate"
+        active_status = status == StatusAction.REACTIVATE
 
         routing_rule = get_routing_rule(id=pk)
 

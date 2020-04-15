@@ -10,3 +10,8 @@ class RoutingRulesAdditionalFields:
         (FLAGS, "flags"),
         (COUNTRY, "Country"),
     ]
+
+
+class StatusAction:
+    DEACTIVATE = "deactivate"
+    REACTIVATE = "reactivate"
