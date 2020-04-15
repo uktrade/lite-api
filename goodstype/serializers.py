@@ -9,12 +9,14 @@ from common.libraries import (
 )
 from cases.enums import CaseTypeSubTypeEnum
 from conf.helpers import str_to_bool
-from conf.serializers import ControlListEntryField, PrimaryKeyRelatedSerializerField
+from conf.serializers import ControlListEntryField, PrimaryKeyRelatedSerializerField, ControlListEntryField2
+from goods.enums import GoodControlled
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from picklists.models import PicklistItem
 from static.control_list_entries.models import ControlListEntry
+from static.control_list_entries.serializers import ControlListEntryViewSerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
@@ -48,14 +50,14 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
             if get_application(application).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
                 self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
                 self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
-                self.fields["control_list_entries"] = PrimaryKeyRelatedSerializerField(
-                    queryset=ControlListEntry.objects.all(),
-                    many=True,
-                    serializer=ControlListEntryField,
-                    required=False,
-                    allow_null=True,
-                    allow_empty=True,
-                )
+                # self.fields["control_list_entries"] = PrimaryKeyRelatedSerializerField(
+                #     queryset=ControlListEntry.objects.all(),
+                #     many=True,
+                #     serializer=ControlListEntryField,
+                #     required=False,
+                #     allow_null=True,
+                #     allow_empty=True,
+                # )
                 self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_list_entries")
             else:
                 if hasattr(self, "initial_data"):
@@ -64,9 +66,8 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
         # Only validate the control list entries if the good is controlled
         if str_to_bool(self.get_initial().get("is_good_controlled")) is True:
-            self.fields["control_list_entries"] = serializers.PrimaryKeyRelatedField(
-                queryset=ControlListEntry.objects.all(), many=True, required=False, allow_null=True, allow_empty=True
-            )
+            self.fields["control_list_entries"] = ControlListEntryField2(queryset=ControlListEntry.objects.all(),
+                                                                         many=True)
         else:
             if hasattr(self, "initial_data"):
                 self.initial_data["control_list_entries"] = None
@@ -94,7 +95,11 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
 
 class GoodsTypeViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
     description = serializers.CharField()
+    is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
+    is_good_incorporated = serializers.BooleanField()
+    control_list_entries = ControlListEntryViewSerializer(many=True)
 
 
 class FullGoodsTypeSerializer(GoodsTypeSerializer):

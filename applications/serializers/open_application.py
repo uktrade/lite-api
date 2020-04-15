@@ -10,7 +10,7 @@ from applications.serializers.generic_application import (
 from licences.serializers import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from goodstype.models import GoodsType
-from goodstype.serializers import FullGoodsTypeSerializer
+from goodstype.serializers import FullGoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -50,7 +50,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
     def get_goods_types(self, application):
         goods_types = GoodsType.objects.filter(application=application)
-        return FullGoodsTypeSerializer(goods_types, many=True).data
+        return GoodsTypeViewSerializer(goods_types, many=True).data
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)

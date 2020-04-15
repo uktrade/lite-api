@@ -5,6 +5,11 @@ from static.control_list_entries.helpers import get_control_list_entry_parent_di
 from static.control_list_entries.models import ControlListEntry
 
 
+class ControlListEntryViewSerializer(serializers.Serializer):
+    rating = serializers.CharField()
+    text = serializers.CharField()
+
+
 class ControlListEntryChildlessSerializer(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
 
