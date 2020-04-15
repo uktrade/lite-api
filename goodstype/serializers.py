@@ -49,7 +49,12 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                 self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
                 self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
                 self.fields["control_list_entries"] = PrimaryKeyRelatedSerializerField(
-                    queryset=ControlListEntry.objects.all(), many=True, serializer=ControlListEntryField, required=False, allow_null=True, allow_empty=True
+                    queryset=ControlListEntry.objects.all(),
+                    many=True,
+                    serializer=ControlListEntryField,
+                    required=False,
+                    allow_null=True,
+                    allow_empty=True,
                 )
                 self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_code")
             else:
@@ -59,11 +64,9 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
         # Only validate the control list entries if the good is controlled
         if str_to_bool(self.get_initial().get("is_good_controlled")) is True:
-            self.fields["control_list_entries"] = serializers.PrimaryKeyRelatedField(queryset=ControlListEntry.objects.all(),
-                                                                                     many=True,
-                                                                                     required=False,
-                                                                                     allow_null=True,
-                                                                                     allow_empty=True)
+            self.fields["control_list_entries"] = serializers.PrimaryKeyRelatedField(
+                queryset=ControlListEntry.objects.all(), many=True, required=False, allow_null=True, allow_empty=True
+            )
         else:
             if hasattr(self, "initial_data"):
                 self.initial_data["control_list_entries"] = None

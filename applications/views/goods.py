@@ -149,14 +149,6 @@ class ApplicationGoodsTypes(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
-        goods_types = GoodsType.objects.filter(application=application).order_by("created_at")
-        goods_types_data = GoodsTypeViewSerializer(goods_types, many=True).data
-
-        return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
-
-    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def post(self, request, application):
