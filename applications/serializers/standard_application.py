@@ -159,6 +159,10 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["non_waybill_or_lading_route_details"] = None
 
+        if self.instance.case_type.id == CaseTypeEnum.SICL.id:
+            self.fields.pop("have_you_been_informed")
+            self.fields.pop("reference_number_on_information_form")
+
     def update(self, instance, validated_data):
         if "goods_categories" in validated_data:
             instance.goods_categories = validated_data.pop("goods_categories")
