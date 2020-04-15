@@ -16,7 +16,6 @@ from static.statuses.models import CaseStatus
 class LicenceType:
     LICENCE = "licence"
     CLEARANCE = "clearance"
-    NLR = "nlr"
 
     ids = {
         LICENCE: CaseType.objects.filter(sub_type__in=CaseTypeSubTypeEnum.licence).values("id"),
@@ -37,20 +36,12 @@ class Licences(ListCreateAPIView):
         country = self.request.GET.get("country")
         end_user = self.request.GET.get("end_user")
         active_only = self.request.GET.get("active_only") == "True"
-        no_licence_required = Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED)
 
         licences = Licence.objects.filter(application__organisation=self.request.user.organisation, is_complete=True)
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
-            # Get all licences except those where the only decision is NLR
-            licences = (
-                licences.filter(application__case_type__in=LicenceType.ids[licence_type])
-                .annotate(num_decisions=Count("decisions"))
-                .exclude(decisions=no_licence_required, num_decisions=1)
-            )
-        elif licence_type == LicenceType.NLR:
-            licences = licences.filter(decisions=no_licence_required)
+            licences = licences.filter(application__case_type__in=LicenceType.ids[licence_type])
 
         if reference:
             licences = licences.filter(
