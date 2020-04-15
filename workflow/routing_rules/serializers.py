@@ -128,21 +128,6 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
             else:
                 self.initial_data["flags"] = []
 
-    def update(self, instance, validated_data):
-        instance.queue = validated_data.get("queue", instance.queue)
-        instance.tier = validated_data.get("tier", instance.tier)
-        instance.status = validated_data.get("status", instance.status)
-
-        instance.additional_rules = validated_data.get("additional_rules", instance.additional_rules)
-
-        instance.user = validated_data.get("user", instance.user)
-        instance.country = validated_data.get("country", instance.country)
-        instance.case_types.set(validated_data.get("case_types", instance.case_types.all()))
-        instance.flags.set(validated_data.get("flags", instance.flags.all()))
-
-        instance.save()
-        return instance
-
 
 # flattened serializer for editing purposes
 class SmallRoutingRuleSerializer(serializers.ModelSerializer):

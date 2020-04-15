@@ -93,6 +93,7 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
             return RoutingRule.objects.filter(id=self.kwargs["pk"], team_id=self.request.user.team.id)
 
     def perform_update(self, serializer):
+        # Don't update the data during validate_only requests
         if not self.request.data.get("validate_only", False):
             serializer.save()
 
