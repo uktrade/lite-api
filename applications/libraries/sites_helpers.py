@@ -3,7 +3,7 @@ from typing import Union, List
 from django.db.models import QuerySet
 from rest_framework.exceptions import ValidationError
 
-from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES, TRADE_CONTROL_BANNED_COUNTRIES
+from applications.constants import TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import BaseApplication, SiteOnApplication, ExternalLocationOnApplication
 from audit_trail import service as audit_trail_service
@@ -35,16 +35,19 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
 
     # Transhipment and Trade Control applications can't have sites based in certain countries
     if application.case_type.id in [CaseTypeEnum.SITL.id, CaseTypeEnum.SICL.id, CaseTypeEnum.OICL]:
-        if application.case_type.id == CaseTypeEnum.SITL.id:
-            banned_countries = TRANSHIPMENT_BANNED_COUNTRIES
-            error = ExternalLocations.Errors.TRANSHIPMENT_GB
-        else:
-            banned_countries = TRADE_CONTROL_BANNED_COUNTRIES
-            error = ExternalLocations.Errors.TRADE_CONTROL_GB
+        banned_sites = new_sites.filter(
+            address__country__id__in=TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES
+        ).values_list("address__country__id", flat=True)
 
-        is_site_in_banned_location = new_sites.filter(address__country__id__in=banned_countries).exists()
-        if is_site_in_banned_location:
-            raise ValidationError({"sites": [error]})
+        if banned_sites:
+            raise ValidationError(
+                {
+                    "sites": [
+                        ExternalLocations.Errors.COUNTRY_ON_APPLICATION
+                        % (", ".join(banned_sites), application.case_type.reference)
+                    ]
+                }
+            )
 
     # It's possible for users to modify sites as long as sites they add are in countries
     # already on the application

@@ -199,4 +199,8 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(transhipment.application_sites.count(), 1)
-        self.assertEqual(response.json()["errors"]["external_locations"][0], ExternalLocations.Errors.TRANSHIPMENT_GB)
+        self.assertEqual(
+            response.json()["errors"]["external_locations"][0],
+            ExternalLocations.Errors.COUNTRY_ON_APPLICATION
+            % (external_location.country.id, transhipment.case_type.reference),
+        )

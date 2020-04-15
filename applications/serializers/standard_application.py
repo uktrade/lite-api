@@ -92,14 +92,14 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     )
     tc_activity = KeyValueChoiceField(
         choices=TradeControlActivity.choices,
-        error_messages={"required": strings.Applications.Standard.TRADE_CONTROL_ACTIVITY_ERROR},
+        error_messages={"required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR},
     )
     tc_activity_other = CharField(
-        allow_blank=False, error_messages={"blank": strings.Applications.Standard.TRADE_CONTROL_ACTIVITY_OTHER_ERROR}
+        allow_blank=False, error_messages={"blank": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR}
     )
     tc_product_category = KeyValueChoiceField(
         choices=TradeControlProductCategory.choices,
-        error_messages={"required": strings.Applications.Standard.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
+        error_messages={"required": strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
     )
 
     class Meta:

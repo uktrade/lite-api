@@ -181,5 +181,9 @@ class SitesOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(transhipment.application_sites.count(), 1)
-        self.assertEqual(response.json()["errors"]["sites"][0], ExternalLocations.Errors.TRANSHIPMENT_GB)
+        self.assertEqual(
+            response.json()["errors"]["sites"][0],
+            ExternalLocations.Errors.COUNTRY_ON_APPLICATION
+            % (site.address.country.id, transhipment.case_type.reference),
+        )
         self.assertNotEqual(transhipment.application_sites.get().site.name, site.name)
