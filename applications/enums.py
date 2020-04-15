@@ -43,12 +43,10 @@ class GoodsCategory:
 class ApplicationExportLicenceOfficialType:
     YES = "yes"
     NO = "no"
-    NA = "na"
 
     choices = [
         (YES, "Yes"),
         (NO, "No"),
-        (NA, "N/A"),
     ]
 
 
@@ -132,6 +130,7 @@ class TradeControlActivity:
     PROVISION_OF_FINANCE = "provision_of_finance"
     PROVISION_OF_INSURANCE = "provision_of_insurance"
     PROVISION_OF_ADVERTISING = "provision_of_advertising"
+    MARITIME_ANTI_PIRACY = "maritime_anti_piracy"
     OTHER = "other"
 
     choices = [
@@ -140,6 +139,7 @@ class TradeControlActivity:
         (PROVISION_OF_FINANCE, "Finance or financial services"),
         (PROVISION_OF_INSURANCE, "Insurance or reinsurance"),
         (PROVISION_OF_ADVERTISING, "General advertising or promotion services"),
+        (MARITIME_ANTI_PIRACY, "Maritime anti-piracy"),
     ]
 
     @classmethod

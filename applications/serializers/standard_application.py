@@ -1,7 +1,12 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.enums import GoodsCategory, YesNoChoiceType, ApplicationExportLicenceOfficialType
+from applications.enums import (
+    GoodsCategory,
+    YesNoChoiceType,
+    ApplicationExportLicenceOfficialType,
+    ApplicationExportType,
+)
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import StandardApplication
 from cases.enums import CaseTypeEnum
@@ -92,24 +97,14 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "tc_product_category",
         )
 
-    def validate(self, data):
-        validated_data = super().validate(data)
+    def __init__(self, case_type_id, **kwargs):
+        super().__init__(case_type_id, **kwargs)
+        self.trade_control_licence = case_type_id in [str(CaseTypeEnum.SICL.id), str(CaseTypeEnum.OICL.id)]
 
-        if (
-            validated_data["case_type"].id not in [CaseTypeEnum.SICL.id, CaseTypeEnum.OICL.id]
-            and validated_data["have_you_been_informed"] == ApplicationExportLicenceOfficialType.NA
-        ):
-            raise serializers.ValidationError(
-                {
-                    "have_you_been_informed": [
-                        f"You must specify {ApplicationExportLicenceOfficialType.YES} or "
-                        f"{ApplicationExportLicenceOfficialType.NO} for a {validated_data['case_type'].reference} "
-                        f"application."
-                    ]
-                }
-            )
-
-        return validated_data
+        if self.trade_control_licence:
+            self.initial_data["export_type"] = ApplicationExportType.PERMANENT
+            self.fields.pop("have_you_been_informed")
+            self.fields.pop("reference_number_on_information_form")
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
