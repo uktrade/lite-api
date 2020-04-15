@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
@@ -8,11 +9,12 @@ from common.libraries import (
 )
 from cases.enums import CaseTypeSubTypeEnum
 from conf.helpers import str_to_bool
-from conf.serializers import ControlListEntryField
+from conf.serializers import ControlListEntryField, PrimaryKeyRelatedSerializerField
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from picklists.models import PicklistItem
+from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
@@ -46,7 +48,9 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
             if get_application(application).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
                 self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
                 self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
-                self.fields["control_code"] = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+                self.fields["control_code"] = PrimaryKeyRelatedSerializerField(
+                    queryset=ControlListEntry.objects.all(), many=True, serializer=ControlListEntryField
+                )
                 self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_code")
             else:
                 if hasattr(self, "initial_data"):
@@ -55,6 +59,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
         # Only validate the control code if the good is controlled
         if str_to_bool(self.get_initial().get("is_good_controlled")) is True:
+            # TODO change this? needs to handle multiple instead of one charfield
             self.fields["control_code"] = ControlListEntryField(required=True)
         else:
             if hasattr(self, "initial_data"):
@@ -94,7 +99,7 @@ class FullGoodsTypeSerializer(GoodsTypeSerializer):
 
 
 class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
-    control_code = ControlListEntryField(required=False, allow_blank=True, allow_null=True, write_only=True)
+    control_code = PrimaryKeyRelatedField(many=True, queryset=ControlListEntry.objects.all())
     is_good_controlled = serializers.BooleanField
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(
