@@ -597,7 +597,7 @@ class CopyApplicationSuccessTests(DataTestClient):
                 GoodsType.objects.filter(
                     description=goodstype.description,
                     is_good_controlled=goodstype.is_good_controlled,
-                    control_code=goodstype.control_code,
+                    control_list_entries__in=goodstype.control_list_entries.all(),
                     is_good_incorporated=goodstype.is_good_incorporated,
                     application=self.original_application,
                 ).all()
@@ -606,7 +606,7 @@ class CopyApplicationSuccessTests(DataTestClient):
                 GoodsType.objects.filter(
                     description=goodstype.description,
                     is_good_controlled=goodstype.is_good_controlled,
-                    control_code=goodstype.control_code,
+                    control_list_entries__in=goodstype.control_list_entries.all(),
                     is_good_incorporated=goodstype.is_good_incorporated,
                     application=self.copied_application,
                 ).all()

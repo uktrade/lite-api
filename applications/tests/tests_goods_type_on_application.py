@@ -16,7 +16,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.data = {
             "description": "Widget",
             "is_good_controlled": True,
-            "control_code": "ML1a",
+            "control_list_entries": ["ML1a"],
             "is_good_incorporated": True,
         }
 
@@ -46,7 +46,8 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         response_data = response.json()["good"]
         self.assertEquals(response_data["description"], "Widget")
         self.assertEquals(response_data["is_good_controlled"], True)
-        self.assertEquals(response_data["control_code"], "ML1a")
+        # TODO fix, this seems to return only the uuid and not the rating - check GoodsTypeSerializer
+        self.assertEquals(response_data["control_list_entries"], ["ML1a"])
         self.assertEquals(response_data["is_good_incorporated"], True)
 
     def test_create_goodstype_on_hmrc_query_as_exporter_user_success(self):

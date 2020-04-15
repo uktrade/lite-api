@@ -24,7 +24,8 @@ from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
-from goodstype.serializers import GoodsTypeSerializer
+from goodstype.models import GoodsType
+from goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from users.models import ExporterUser
@@ -146,6 +147,14 @@ class ApplicationGoodsTypes(APIView):
     """ Goodstypes belonging to an open application. """
 
     authentication_classes = (ExporterAuthentication,)
+
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
+    @authorised_users(ExporterUser)
+    def get(self, request, application):
+        goods_types = GoodsType.objects.filter(application=application).order_by("created_at")
+        goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
+
+        return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
     @application_in_major_editable_state()
