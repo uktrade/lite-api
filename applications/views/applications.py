@@ -531,10 +531,14 @@ class ApplicationCopy(APIView):
 
         # Replace the reference and have you been informed (if required) with users answer. Also sets some defaults
         self.new_application.name = request.data["name"]
-        self.new_application.have_you_been_informed = request.data.get("have_you_been_informed")
-        self.new_application.reference_number_on_information_form = request.data.get(
-            "reference_number_on_information_form"
-        )
+        if (
+            self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
+            and not self.new_application.case_type.sub_type.id == CaseTypeEnum.SICL.id
+        ):
+            self.new_application.have_you_been_informed = request.data.get("have_you_been_informed")
+            self.new_application.reference_number_on_information_form = request.data.get(
+                "reference_number_on_information_form"
+            )
         self.new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         self.new_application.copy_of_id = self.old_application_id
 
