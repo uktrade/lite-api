@@ -79,12 +79,18 @@ class GoodsListControlCode(APIView):
         for pk in objects:
             try:
                 good = get_good_func(pk=pk)
-                old_control_code = good.control_code or "No control code"
+                if application.case_type.sub_type not in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
+                    old_control_code = good.control_code or "No control code"
+                else:
+                    old_control_code = good.control_list_entries or "No control code"
 
                 serializer = serializer_class(good, data=data)
                 if serializer.is_valid():
                     serializer.save()
-                    new_control_code = good.control_code or "No control code"
+                    if application.case_type.sub_type not in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
+                        new_control_code = good.control_code or "No control code"
+                    else:
+                        new_control_code = good.control_list_entries or "No control code"
 
                     if new_control_code != old_control_code:
                         good.flags.clear()

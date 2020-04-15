@@ -58,7 +58,11 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                 #     allow_null=True,
                 #     allow_empty=True,
                 # )
-                self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_list_entries")
+                self.Meta.fields = self.Meta.fields + (
+                    "is_good_incorporated",
+                    "is_good_controlled",
+                    "control_list_entries",
+                )
             else:
                 if hasattr(self, "initial_data"):
                     self.initial_data["is_good_controlled"] = False
@@ -66,8 +70,9 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
         # Only validate the control list entries if the good is controlled
         if str_to_bool(self.get_initial().get("is_good_controlled")) is True:
-            self.fields["control_list_entries"] = ControlListEntryField2(queryset=ControlListEntry.objects.all(),
-                                                                         many=True)
+            self.fields["control_list_entries"] = ControlListEntryField2(
+                queryset=ControlListEntry.objects.all(), many=True
+            )
         else:
             if hasattr(self, "initial_data"):
                 self.initial_data["control_list_entries"] = None
@@ -104,13 +109,15 @@ class GoodsTypeViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoodsType
-        fields = ("id",
-                  "description",
-                  "is_good_controlled",
-                  "is_good_incorporated",
-                  "control_list_entries",
-                  "countries",
-                  "document")
+        fields = (
+            "id",
+            "description",
+            "is_good_controlled",
+            "is_good_incorporated",
+            "control_list_entries",
+            "countries",
+            "document",
+        )
 
     def get_countries(self, instance):
         countries = instance.countries
@@ -135,7 +142,7 @@ class FullGoodsTypeSerializer(GoodsTypeSerializer):
 
 
 class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
-    control_code = PrimaryKeyRelatedField(many=True, queryset=ControlListEntry.objects.all())
+    control_list_entries = ControlListEntryField2(many=True, queryset=ControlListEntry.objects.all())
     is_good_controlled = serializers.BooleanField
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(
@@ -145,7 +152,7 @@ class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodsType
         fields = (
-            "control_code",
+            "control_list_entries",
             "is_good_controlled",
             "comment",
             "report_summary",

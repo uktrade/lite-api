@@ -365,12 +365,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_goods_type(application):
         goods_type = GoodsType(
-            description="thing",
-            is_good_controlled=False,
-            control_code="ML1a",
-            is_good_incorporated=True,
-            application=application,
+            description="thing", is_good_controlled=False, is_good_incorporated=True, application=application,
         )
+        goods_type.control_list_entries.add(ControlListEntry.objects.first())
         goods_type.save()
         return goods_type
 

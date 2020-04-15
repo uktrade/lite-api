@@ -147,7 +147,7 @@ class ControlListEntryField2(PrimaryKeyRelatedField):
 class ControlListEntryField(PrimaryKeyRelatedField):
     def __init__(self, **kwargs):
         self.queryset = ControlListEntry.objects.all()
-        self.error_messages = {"null": 'bad rating'}
+        self.error_messages = {"null": "bad rating"}
         if "allow_blank" in kwargs:
             kwargs.pop("allow_blank")
         super().__init__(many=True, **kwargs)
@@ -161,9 +161,9 @@ class ControlListEntryField(PrimaryKeyRelatedField):
         try:
             return self.get_queryset().get(rating=data)
         except ObjectDoesNotExist:
-            self.fail('does_not_exist', pk_value=data)
+            self.fail("does_not_exist", pk_value=data)
         except (TypeError, ValueError):
-            self.fail('incorrect_type', data_type=type(data).__name__)
+            self.fail("incorrect_type", data_type=type(data).__name__)
 
     def to_representation(self, value):
         if self.pk_field is not None:
