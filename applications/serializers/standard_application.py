@@ -6,6 +6,8 @@ from applications.enums import (
     YesNoChoiceType,
     ApplicationExportLicenceOfficialType,
     ApplicationExportType,
+    TradeControlActivity,
+    TradeControlProductCategory,
 )
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import StandardApplication
@@ -85,6 +87,17 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     goods_categories = serializers.MultipleChoiceField(
         choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
     )
+    tc_activity = KeyValueChoiceField(
+        choices=TradeControlActivity.choices,
+        error_messages={"required": strings.Applications.Standard.TRADE_CONTROL_ACTIVITY_ERROR},
+    )
+    tc_activity_other = CharField(
+        allow_blank=False, error_messages={"blank": strings.Applications.Standard.TRADE_CONTROL_ACTIVITY_OTHER_ERROR}
+    )
+    tc_product_category = KeyValueChoiceField(
+        choices=TradeControlProductCategory.choices,
+        error_messages={"required": strings.Applications.Standard.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
+    )
 
     class Meta:
         model = StandardApplication
@@ -105,6 +118,13 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             self.initial_data["export_type"] = ApplicationExportType.PERMANENT
             self.fields.pop("have_you_been_informed")
             self.fields.pop("reference_number_on_information_form")
+
+            if not self.initial_data.get("tc_activity") == TradeControlActivity.OTHER:
+                self.fields.pop("tc_activity_other")
+        else:
+            self.fields.pop("tc_activity")
+            self.fields.pop("tc_activity_other")
+            self.fields.pop("tc_product_category")
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):

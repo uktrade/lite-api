@@ -1,6 +1,10 @@
 from rest_framework import serializers
+from rest_framework.fields import CharField
 
+from applications.enums import TradeControlActivity, TradeControlProductCategory
 from applications.models import OpenApplication
+from cases.enums import CaseTypeEnum
+from conf.serializers import KeyValueChoiceField
 from licences.models import Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -63,6 +67,18 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    tc_activity = KeyValueChoiceField(
+        choices=TradeControlActivity.choices,
+        error_messages={"required": strings.Applications.Open.TRADE_CONTROL_ACTIVITY_ERROR},
+    )
+    tc_activity_other = CharField(
+        allow_blank=False, error_messages={"blank": strings.Applications.Open.TRADE_CONTROL_ACTIVITY_OTHER_ERROR}
+    )
+    tc_product_category = KeyValueChoiceField(
+        choices=TradeControlProductCategory.choices,
+        error_messages={"required": strings.Applications.Open.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
+    )
+
     class Meta:
         model = OpenApplication
         fields = GenericApplicationCreateSerializer.Meta.fields + (
@@ -70,6 +86,18 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "tc_activity_other",
             "tc_product_category",
         )
+
+    def __init__(self, case_type_id, **kwargs):
+        super().__init__(case_type_id, **kwargs)
+        self.trade_control_licence = case_type_id in [str(CaseTypeEnum.SICL.id), str(CaseTypeEnum.OICL.id)]
+
+        if self.trade_control_licence:
+            if not self.initial_data.get("tc_activity") == TradeControlActivity.OTHER:
+                self.fields.pop("tc_activity_other")
+        else:
+            self.fields.pop("tc_activity")
+            self.fields.pop("tc_activity_other")
+            self.fields.pop("tc_product_category")
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):

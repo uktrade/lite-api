@@ -140,6 +140,7 @@ class TradeControlActivity:
         (PROVISION_OF_INSURANCE, "Insurance or reinsurance"),
         (PROVISION_OF_ADVERTISING, "General advertising or promotion services"),
         (MARITIME_ANTI_PIRACY, "Maritime anti-piracy"),
+        (OTHER, "Other"),
     ]
 
     @classmethod
