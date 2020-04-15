@@ -1,14 +1,14 @@
-from django.db.models import Q, Count
-from rest_framework.generics import ListCreateAPIView
+from django.db.models import Q
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 
 from applications.models import CountryOnApplication
-from cases.enums import CaseTypeSubTypeEnum, AdviceType
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
 from licences.models import Licence
-from licences.serializers import LicenceListSerializer
+from licences.serializers.view_licence import LicenceSerializer
+from licences.serializers.view_licences import LicenceListSerializer
 from parties.enums import PartyType
-from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 
@@ -73,3 +73,9 @@ class Licences(ListCreateAPIView):
             licences = licences.exclude(application__status__in=self.non_active_states)
 
         return licences.order_by("created_at").reverse()
+
+
+class ViewLicence(RetrieveAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    queryset = Licence.objects.all()
+    serializer_class = LicenceSerializer

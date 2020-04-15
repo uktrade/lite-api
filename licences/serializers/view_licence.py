@@ -41,6 +41,7 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
     destinations = serializers.SerializerMethodField()
     status = CaseStatusSerializer()
     documents = serializers.SerializerMethodField()
+    case_type = CaseSubTypeSerializer()
 
     class Meta:
         model = BaseApplication
@@ -75,5 +76,5 @@ class LicenceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Licence
-        fields = ("application",)
+        fields = ("application", "start_date", "duration",)
         read_only_fields = fields
