@@ -7,7 +7,7 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from licences.serializers import CaseLicenceViewSerializer
+from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer

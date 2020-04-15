@@ -1,48 +1,14 @@
 from rest_framework import serializers
 
-from applications.enums import LicenceDuration
-from applications.models import BaseApplication, GoodOnApplication, CountryOnApplication
+from applications.models import GoodOnApplication, CountryOnApplication, BaseApplication
 from cases.enums import AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
 from conf.serializers import CountrySerializerField, KeyValueChoiceField
 from goods.models import Good
 from goodstype.models import GoodsType
 from licences.models import Licence
-from lite_content.lite_api import strings
 from parties.models import Party
 from static.statuses.serializers import CaseStatusSerializer
-
-
-class LicenceCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Licence
-        fields = (
-            "application",
-            "start_date",
-            "duration",
-            "is_complete",
-        )
-
-    def validate(self, data):
-        """
-        Check that the duration is valid
-        """
-        super().validate(data)
-        if data.get("duration") and (
-            data["duration"] > LicenceDuration.MAX.value or data["duration"] < LicenceDuration.MIN.value
-        ):
-            raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
-        return data
-
-
-class CaseLicenceViewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Licence
-        fields = (
-            "start_date",
-            "duration",
-            "is_complete",
-        )
 
 
 class GoodLicenceListSerializer(serializers.ModelSerializer):
