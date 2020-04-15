@@ -15,14 +15,15 @@ from cases.sla import (
     OPEN_APPLICATION_TARGET_DAYS,
     MOD_CLEARANCE_TARGET_DAYS,
     SLA_UPDATE_CUTOFF_TIME,
-    yesterday,
-    today,
     HMRC_QUERY_TARGET_DAYS,
 )
 from test_helpers.clients import DataTestClient
 
 HOUR_BEFORE_CUTOFF = time(SLA_UPDATE_CUTOFF_TIME.hour - 1, 0, 0)
 HOUR_AFTER_CUTOFF = time(SLA_UPDATE_CUTOFF_TIME.hour + 1, 0, 0)
+
+TODAY = datetime(2020, 2, 12)
+YESTERDAY = datetime(2020, 2, 11)
 
 
 def _set_submitted_at(case, time, date=timezone.now()):
@@ -130,10 +131,10 @@ class SlaRulesTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (today(time=HOUR_BEFORE_CUTOFF), 0),
-            (today(time=HOUR_AFTER_CUTOFF), 1),
-            (yesterday(time=HOUR_BEFORE_CUTOFF), 0),
-            (yesterday(time=HOUR_AFTER_CUTOFF), 0),
+            (datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc), 0),
+            (datetime.combine(TODAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc), 1),
+            (datetime.combine(YESTERDAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc), 0),
+            (datetime.combine(YESTERDAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc), 0),
         ]
     )
     def test_unanswered_ecju_queries(self, created_at, expected_results):
@@ -142,7 +143,10 @@ class SlaRulesTests(DataTestClient):
         self.create_ecju_query(case)
         EcjuQuery.objects.all().update(created_at=created_at)
 
-        results = update_cases_sla.now()
+        with patch(
+            "cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+        ):
+            results = update_cases_sla.now()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
@@ -150,10 +154,10 @@ class SlaRulesTests(DataTestClient):
 
     @parameterized.expand(
         [
-            (today(time=HOUR_BEFORE_CUTOFF), 0),
-            (today(time=HOUR_AFTER_CUTOFF), 0),
-            (yesterday(time=HOUR_BEFORE_CUTOFF), 1),
-            (yesterday(time=HOUR_AFTER_CUTOFF), 0),
+            (datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc), 0),
+            (datetime.combine(TODAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc), 0),
+            (datetime.combine(YESTERDAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc), 1),
+            (datetime.combine(YESTERDAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc), 0),
         ]
     )
     def test_answered_ecju_queries(self, responded_at, expected_results):
@@ -163,7 +167,11 @@ class SlaRulesTests(DataTestClient):
         with patch("django.utils.timezone.now", return_value=responded_at):
             query.save()
 
-        results = update_cases_sla.now()
+        with patch(
+            "cases.sla.yesterday",
+            return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
+        ):
+            results = update_cases_sla.now()
         case.refresh_from_db()
 
         self.assertEqual(results, expected_results)
