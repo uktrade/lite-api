@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
-from conf.exceptions import PermissionDeniedError
 from lite_content.lite_api.strings import RoutingRules
 from workflow.routing_rules.enum import StatusAction
 from workflow.routing_rules.helpers import get_routing_rule
