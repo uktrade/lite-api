@@ -6,7 +6,7 @@ from audit_trail.streams.service import get_stream
 
 def get_next_page_url(request, n):
     request_url = request.build_absolute_uri("/").strip("/") + "/audit-trail/streams/{n}".format(n=n)
-    secure_url = request_url.replace('http://', 'https://')
+    secure_url = request_url.replace("http://", "https://")
     return secure_url
 
 
