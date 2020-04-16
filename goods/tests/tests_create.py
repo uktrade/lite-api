@@ -62,29 +62,19 @@ class GoodsCreateGoodTests(DataTestClient):
         super().setUp()
         self.request_data = deepcopy(REQUEST_DATA)
 
-    @tag("only")
     def test_when_creating_a_good_with_not_controlled_and_not_pv_graded_then_created_response_is_returned(self):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
-
-        print('\n')
-        print(response.json())
-        print('\n')
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
         self.assertEquals(Good.objects.all().count(), 1)
 
-    @tag("only")
     def test_when_creating_a_good_with_pv_graded_and_controlled_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
         self.request_data["control_list_entries"] = ["ML1a"]
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
-
-        print('\n')
-        print(response.json())
-        print('\n')
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
@@ -149,7 +139,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
 
     def test_when_creating_a_good_with_an_invalid_control_list_entries_then_bad_request_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
-        self.request_data["control_list_entries"] = "invalid"
+        self.request_data["control_list_entries"] = ["invalid"]
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
