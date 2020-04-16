@@ -10,7 +10,6 @@ from licences.models import Licence
 from licences.serializers.view_licences import (
     PartyLicenceListSerializer,
     CountriesLicenceSerializer,
-    DocumentLicenceListSerializer,
     GoodLicenceListSerializer,
 )
 from parties.enums import PartyRole
