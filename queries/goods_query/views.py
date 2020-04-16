@@ -131,7 +131,9 @@ class GoodQueryCLCResponse(APIView):
         if clc_good_serializer.is_valid():
             if not str_to_bool(data.get("validate_only")):
                 previous_control_list_entry = (
-                    query.good.control_list_entry if query.good.control_list_entry else strings.Goods.GOOD_NO_CONTROL_CODE
+                    query.good.control_list_entry
+                    if query.good.control_list_entry
+                    else strings.Goods.GOOD_NO_CONTROL_CODE
                 )
 
                 clc_good_serializer.save()

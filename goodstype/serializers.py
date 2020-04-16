@@ -1,15 +1,14 @@
 from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
+from cases.enums import CaseTypeSubTypeEnum
 from common.libraries import (
     update_good_or_goods_type_control_list_entry_details,
     initialize_good_or_goods_type_control_list_entry_serializer,
 )
-from cases.enums import CaseTypeSubTypeEnum
 from conf.helpers import str_to_bool
-from conf.serializers import ControlListEntryField, PrimaryKeyRelatedSerializerField, ControlListEntryField
+from conf.serializers import ControlListEntryField
 from goods.enums import GoodControlled
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
@@ -121,7 +120,7 @@ class FullGoodsTypeSerializer(GoodsTypeSerializer):
 
 
 class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
-    control_list_entries = ControlListEntryField2(many=True, queryset=ControlListEntry.objects.all())
+    control_list_entries = ControlListEntryField(many=True)
     is_good_controlled = serializers.BooleanField
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(

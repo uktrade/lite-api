@@ -5,9 +5,7 @@ class AuditType(Enum):
     CREATED = "created"
     ADD_FLAGS = "added flags: {added_flags}"
     REMOVE_FLAGS = "removed flags: {removed_flags}"
-    GOOD_REVIEWED = (
-        'good was reviewed: {good_name} control code changed from "{old_control_list_entry}" to "{new_control_list_entry}"'
-    )
+    GOOD_REVIEWED = 'good was reviewed: {good_name} control code changed from "{old_control_list_entry}" to "{new_control_list_entry}"'
     GOOD_ADD_FLAGS = "added flags: {added_flags} to good: {good_name}"
     GOOD_REMOVE_FLAGS = "removed flags: {removed_flags} from good: {good_name}"
     GOOD_ADD_REMOVE_FLAGS = "added flags: {added_flags}, and removed: {removed_flags} from good: {good_name}"

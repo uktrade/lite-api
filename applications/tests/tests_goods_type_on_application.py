@@ -39,8 +39,9 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         response_data = response.json()["good"]
         self.assertEquals(response_data["description"], "Widget")
         self.assertEquals(response_data["is_good_controlled"], True)
-        self.assertEquals(response_data["control_list_entries"],
-                          [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}])
+        self.assertEquals(
+            response_data["control_list_entries"], [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}]
+        )
         self.assertEquals(response_data["is_good_incorporated"], True)
 
     def test_create_goodstype_on_hmrc_query_as_exporter_user_success(self):

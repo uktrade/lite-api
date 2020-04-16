@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from conf.helpers import str_to_bool
-from conf.serializers import ControlListEntryField, ControlListEntryField2
+from conf.serializers import ControlListEntryField
 from flags.enums import SystemFlags
 from lite_content.lite_api import strings
 from picklists.models import PicklistItem
@@ -10,7 +10,7 @@ from static.control_list_entries.models import ControlListEntry
 
 def initialize_good_or_goods_type_control_list_entry_serializer(self):
     if str_to_bool(self.get_initial().get("is_good_controlled")):
-        self.fields["control_list_entries"] = ControlListEntryField2(many=True, queryset=ControlListEntry.objects.all())
+        self.fields["control_list_entries"] = ControlListEntryField(many=True)
         self.fields["report_summary"] = serializers.PrimaryKeyRelatedField(
             queryset=PicklistItem.objects.all(),
             required=True,

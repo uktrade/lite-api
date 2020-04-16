@@ -36,7 +36,9 @@ class FlaggingRulesAutomation(DataTestClient):
         case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(case)
         good = GoodOnApplication.objects.filter(application_id=case.id).first().good
-        self.create_flagging_rule(level=FlagLevels.GOOD, team=self.team, flag=flag, matching_value=good.control_list_entry)
+        self.create_flagging_rule(
+            level=FlagLevels.GOOD, team=self.team, flag=flag, matching_value=good.control_list_entry
+        )
 
         apply_flagging_rules_to_case(case)
 
@@ -366,7 +368,9 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
 
         goods_type = GoodsType.objects.filter(application_id=application.id).first()
         good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=goods_type.control_list_entry)
+        self.create_flagging_rule(
+            FlagLevels.GOOD, self.team, flag=good_flag, matching_value=goods_type.control_list_entry
+        )
 
         party = PartyOnApplication.objects.filter(application_id=application.id).first().party
         destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
