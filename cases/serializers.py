@@ -372,11 +372,7 @@ class SimpleFinalAdviceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FinalAdvice
-        fields = (
-            "type",
-            "text",
-            "proviso"
-        )
+        fields = ("type", "text", "proviso")
         read_only_fields = fields
 
 
