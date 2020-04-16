@@ -18,6 +18,7 @@ from applications.models import (
 )
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from lite_content.lite_api import strings
+from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
 
@@ -216,3 +217,67 @@ class DraftTests(DataTestClient):
         self.assertEqual(
             response.json()["errors"]["application_type"][0], strings.Applications.Generic.SELECT_A_LICENCE_TYPE
         )
+
+    @parameterized.expand(
+        [(CaseTypeEnum.SICL.reference, StandardApplication), (CaseTypeEnum.OICL.reference, OpenApplication)]
+    )
+    def test_trade_control_application(self, case_type, model):
+        data = {
+            "name": "Test",
+            "application_type": case_type,
+            "tc_activity": TradeControlActivity.OTHER,
+            "tc_activity_other": "other activity type",
+            "tc_product_categories": [key for key, _ in TradeControlProductCategory.choices],
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        application_id = response.json()["id"]
+        application = model.objects.get(id=application_id)
+
+        self.assertEqual(application.tc_activity, data["tc_activity"])
+        self.assertEqual(application.tc_activity_other, data["tc_activity_other"])
+        self.assertEqual(set(application.tc_product_categories), set(data["tc_product_categories"]))
+
+    @parameterized.expand(
+        [
+            (CaseTypeEnum.SICL.reference, "tc_activity", strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR),
+            (
+                CaseTypeEnum.SICL.reference,
+                "tc_activity_other",
+                strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
+            ),
+            (
+                CaseTypeEnum.SICL.reference,
+                "tc_product_categories",
+                strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR,
+            ),
+            (CaseTypeEnum.OICL.reference, "tc_activity", strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR),
+            (
+                CaseTypeEnum.OICL.reference,
+                "tc_activity_other",
+                strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
+            ),
+            (
+                CaseTypeEnum.OICL.reference,
+                "tc_product_categories",
+                strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR,
+            ),
+        ]
+    )
+    def test_trade_control_application_failure(self, case_type, missing_field, expected_error):
+        data = {
+            "name": "Test",
+            "application_type": case_type,
+            "tc_activity": TradeControlActivity.OTHER,
+            "tc_activity_other": "other activity type",
+            "tc_product_categories": [key for key, _ in TradeControlProductCategory.choices],
+        }
+        data.pop(missing_field)
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = response.json()["errors"]
+        self.assertEqual(errors[missing_field], [expected_error])

@@ -5,7 +5,8 @@ from applications.enums import ApplicationExportType
 from applications.enums import GoodsCategory
 from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
 from audit_trail.models import Audit
-from cases.models import Case
+from cases.enums import CaseTypeEnum
+from cases.models import Case, CaseType
 from flags.enums import SystemFlags
 from goods.enums import GoodStatus
 from lite_content.lite_api import strings
@@ -13,6 +14,7 @@ from parties.enums import PartyType
 from parties.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
 
@@ -405,3 +407,17 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_submit_standard_trade_control_application_maritime_activity_adds_flag(self):
+        self.draft.case_type = CaseType.objects.get(id=CaseTypeEnum.SICL.id)
+        self.draft.tc_activity = TradeControlActivity.MARITIME_ANTI_PIRACY
+        self.draft.tc_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        self.draft.save()
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+        self.draft.refresh_from_db()
+        case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)

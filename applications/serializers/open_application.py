@@ -91,7 +91,10 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         error_messages={"required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR},
     )
     tc_activity_other = CharField(
-        allow_blank=False, error_messages={"blank": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR}
+        error_messages={
+            "blank": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
+            "required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
+        }
     )
     tc_product_categories = serializers.MultipleChoiceField(
         choices=TradeControlProductCategory.choices,
