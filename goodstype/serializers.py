@@ -4,8 +4,8 @@ from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
 from cases.enums import CaseTypeSubTypeEnum
 from common.libraries import (
-    update_good_or_goods_type_control_list_entry_details,
-    initialize_good_or_goods_type_control_list_entry_serializer,
+    update_good_or_goods_type_control_list_entries_details,
+    initialize_good_or_goods_type_control_list_entries_serializer,
 )
 from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
@@ -14,7 +14,6 @@ from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from picklists.models import PicklistItem
-from static.control_list_entries.models import ControlListEntry
 from static.control_list_entries.serializers import ControlListEntryViewSerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -138,10 +137,10 @@ class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(ClcControlGoodTypeSerializer, self).__init__(*args, **kwargs)
-        initialize_good_or_goods_type_control_list_entry_serializer(self)
+        initialize_good_or_goods_type_control_list_entries_serializer(self)
 
     def update(self, instance, validated_data):
         instance.is_good_controlled = str_to_bool(validated_data.get("is_good_controlled"))
-        instance = update_good_or_goods_type_control_list_entry_details(instance, validated_data)
+        instance = update_good_or_goods_type_control_list_entries_details(instance, validated_data)
         instance.save()
         return instance

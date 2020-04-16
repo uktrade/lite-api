@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from common.libraries import initialize_good_or_goods_type_control_list_entries_serializer
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
@@ -375,11 +376,11 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(ClcControlGoodSerializer, self).__init__(*args, **kwargs)
-        # initialize_good_or_goods_type_control_list_entries_serializer(self)
+        initialize_good_or_goods_type_control_list_entries_serializer(self)
 
     def update(self, instance, validated_data):
         instance.is_good_controlled = validated_data.get("is_good_controlled")
-        # instance = update_good_or_goods_type_control_list_entries_details(instance, validated_data)
+        instance = update_good_or_goods_type_control_list_entries_details(instance, validated_data)
         instance.status = GoodStatus.VERIFIED
         instance.save()
         return instance

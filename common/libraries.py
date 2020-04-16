@@ -5,10 +5,9 @@ from conf.serializers import ControlListEntryField
 from flags.enums import SystemFlags
 from lite_content.lite_api import strings
 from picklists.models import PicklistItem
-from static.control_list_entries.models import ControlListEntry
 
 
-def initialize_good_or_goods_type_control_list_entry_serializer(self):
+def initialize_good_or_goods_type_control_list_entries_serializer(self):
     if str_to_bool(self.get_initial().get("is_good_controlled")):
         self.fields["control_list_entries"] = ControlListEntryField(many=True)
         self.fields["report_summary"] = serializers.PrimaryKeyRelatedField(
@@ -21,7 +20,7 @@ def initialize_good_or_goods_type_control_list_entry_serializer(self):
         )
 
 
-def update_good_or_goods_type_control_list_entry_details(instance, validated_data):
+def update_good_or_goods_type_control_list_entries_details(instance, validated_data):
     instance.comment = validated_data.get("comment")
 
     report_summary = validated_data.get("report_summary")
