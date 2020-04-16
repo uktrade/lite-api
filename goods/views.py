@@ -79,12 +79,12 @@ class GoodsListControlCode(APIView):
         for pk in objects:
             try:
                 good = get_good_func(pk=pk)
-                old_control_list_entry = good.control_list_entry or "No control code"
+                old_control_list_entry = good.control_list_entries or "No control code"
 
                 serializer = serializer_class(good, data=data)
                 if serializer.is_valid():
                     serializer.save()
-                    new_control_list_entry = good.control_list_entry or "No control code"
+                    new_control_list_entry = good.control_list_entries or "No control code"
 
                     if new_control_list_entry != old_control_list_entry:
                         good.flags.clear()

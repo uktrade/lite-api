@@ -10,7 +10,7 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.good = self.create_good(description="This is a good", org=self.organisation)
+        self.good = self.create_good(description="This is a good", organisation=self.organisation)
         self.url = reverse("goods:good", kwargs={"pk": str(self.good.id)})
 
     def test_when_updating_is_good_controlled_to_no_then_control_list_entries_is_deleted(self):

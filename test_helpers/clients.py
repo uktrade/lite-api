@@ -26,6 +26,7 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
+from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
 from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
@@ -377,14 +378,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return picklist_item
 
     @staticmethod
-    def create_good(
-        description: str,
-        org: Organisation,
-        is_good_controlled: str = GoodControlled.NO,
-        control_list_entries: Optional[List[str]] = None,
-        is_pv_graded: str = GoodPvGraded.YES,
-        pv_grading_details: PvGradingDetails = None,
-    ) -> Good:
+    def create_good(description: str, organisation: Organisation, is_good_controlled: str = GoodControlled.NO,
+                    control_list_entries: Optional[List[str]] = None, is_pv_graded: str = GoodPvGraded.YES,
+                    pv_grading_details: PvGradingDetails = None) -> Good:
         if is_pv_graded == GoodPvGraded.YES and not pv_grading_details:
             pv_grading_details = PvGradingDetails.objects.create(
                 grading=None,
@@ -400,7 +396,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             description=description,
             is_good_controlled=is_good_controlled,
             part_number="123456",
-            organisation=org,
+            organisation=organisation,
             comment=None,
             report_summary=None,
             is_pv_graded=is_pv_graded,
@@ -419,7 +415,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
+        good = DataTestClient.create_good(description=description, organisation=organisation,
+                                          is_pv_graded=GoodPvGraded.NO)
 
         goods_query = GoodsQuery.objects.create(
             clc_raised_reasons=clc_reason,
@@ -437,7 +434,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_clc_query(description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
+        good = DataTestClient.create_good(description=description, organisation=organisation,
+                                          is_pv_graded=GoodPvGraded.NO)
 
         clc_query = GoodsQuery.objects.create(
             clc_raised_reasons="this is a test text",
@@ -453,9 +451,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_pv_grading_query(description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(
-            description=description, org=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
-        )
+        good = DataTestClient.create_good(description=description, organisation=organisation,
+                                          is_pv_graded=GoodPvGraded.GRADING_REQUIRED)
 
         pv_grading_query = GoodsQuery.objects.create(
             clc_raised_reasons=None,
@@ -570,7 +567,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication(
-            good=self.create_good("a thing", organisation),
+            good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
             application=application,
             quantity=10,
             unit=Units.NAR,
@@ -645,7 +642,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication.objects.create(
-            good=self.create_good("a thing", organisation),
+            good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
             application=application,
             quantity=10,
             unit=Units.NAR,

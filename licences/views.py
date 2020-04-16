@@ -59,7 +59,7 @@ class Licences(ListCreateAPIView):
 
         if clc:
             licences = licences.filter(
-                Q(application__goods__good__control_list_entry=clc) | Q(application__goods_type__control_list_entry=clc)
+                Q(application__goods__good__control_list_entries__rating=clc) | Q(application__goods_type__control_list_entries__rating=clc)
             ).distinct()
 
         if country:

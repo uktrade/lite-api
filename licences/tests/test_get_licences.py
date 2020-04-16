@@ -4,6 +4,7 @@ from rest_framework import status
 from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType
 from licences.views import LicenceType
+from static.control_list_entries.helpers import get_control_list_entry
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
@@ -72,7 +73,7 @@ class GetLicencesTests(DataTestClient):
                 licence["application"]["goods"][0]["good"]["description"], good.description,
             )
             self.assertEqual(
-                licence["application"]["goods"][0]["good"]["control_list_entry"], good.control_list_entry,
+                licence["application"]["goods"][0]["good"]["control_list_entries"][0]["rating"], good.control_list_entries.all()[0].rating,
             )
 
         # Open Application
@@ -80,7 +81,7 @@ class GetLicencesTests(DataTestClient):
         destination = self.open_application.application_countries.first()
         good = self.open_application.goods_type.first()
         self.assertEqual(licence["application"]["goods"][0]["description"], good.description)
-        self.assertEqual(licence["application"]["goods"][0]["control_list_entry"], good.control_list_entry)
+        self.assertEqual(licence["application"]["goods"][0]["control_list_entries"][0]["text"], good.control_list_entries.all()[0].text)
         self.assertEqual(licence["application"]["destinations"][0]["country"]["id"], destination.country_id)
 
     def test_get_standard_licences_only(self):
@@ -166,21 +167,17 @@ class GetLicencesFilterTests(DataTestClient):
 
     def test_filter_by_clc_standard_application(self):
         good = self.standard_application.goods.first().good
-        good.control_list_entry = "ML17"
+        good.control_list_entries.set([get_control_list_entry("ML1a")])
         good.save()
 
-        response = self.client.get(self.url + "?clc=ML17", **self.exporter_headers)
+        response = self.client.get(self.url + "?clc=ML1a", **self.exporter_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.standard_application_licence.id))
 
     def test_filter_by_clc_open_application(self):
-        good = self.open_application.goods_type.first()
-        good.control_list_entry = "ML1b"
-        good.save()
-
-        response = self.client.get(self.url + "?clc=ML1b", **self.exporter_headers)
+        response = self.client.get(self.url + "?clc=ML1a", **self.exporter_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(len(response_data), 1)
