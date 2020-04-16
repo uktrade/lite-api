@@ -18,7 +18,8 @@ class HmrcQueryTests(DataTestClient):
         self.url = reverse("applications:application_submit", kwargs={"pk": self.hmrc_query.id})
 
     def test_submit_hmrc_query_success(self):
-        response = self.client.put(self.url, **self.hmrc_exporter_headers)
+        data = {"summary": "summary"}
+        response = self.client.put(self.url, data=data, **self.hmrc_exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case = Case.objects.get()
