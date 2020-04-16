@@ -1,3 +1,5 @@
+from collections import Iterable
+
 import six
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
@@ -7,13 +9,11 @@ from rest_framework.fields import (
     iter_options,
     to_choices_dict,
     flatten_choices_dict,
-    CharField,
     empty,
     SkipField,
 )
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from conf.validators import ControlListEntryValidator
 from lite_content.lite_api import strings
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
@@ -34,7 +34,7 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
         return False
 
     def to_representation(self, value):
-        return self.serializer(value, many=self.many).data
+        return self.serializer(value, many=isinstance(value, Iterable)).data
 
 
 class CountrySerializerField(PrimaryKeyRelatedSerializerField):
