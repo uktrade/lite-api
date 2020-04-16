@@ -46,7 +46,7 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
-from applications.serializers.good import GoodOnApplicationLicenceQuantitySerializer
+from applications.serializers.good import GoodOnApplicationLicenceQuantitySerializer, GoodOnApplicationLicenceQuantityCreateSerializer
 from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
@@ -423,19 +423,24 @@ class ApplicationManageStatus(APIView):
 
 class ApplicationFinaliseView(APIView):
     authentication_classes = (GovAuthentication,)
+    approved_goods = None
+    approved_good_ids = None
+
+    def dispatch(self, request, *args, **kwargs):
+        approved_good_decisions = FinalAdvice.objects.filter(
+            case__id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+        ).values_list("good", flat=True)
+        self.approved_goods = GoodOnApplication.objects.filter(good__in=approved_good_decisions)
+        return super(ApplicationFinaliseView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
         Get goods to set licenced quantity for with advice
         """
-        approved_goods = FinalAdvice.objects.filter(
-            case__id=pk, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
-        ).values_list("good", flat=True)
-        goods = GoodOnApplication.objects.filter(good__in=approved_goods)
-        goods_ids = goods.values_list("good__id", flat=True)
-        goods = GoodOnApplicationLicenceQuantitySerializer(goods, many=True).data
+        approved_good_ids = self.approved_goods.values_list("good__id", flat=True)
+        goods = GoodOnApplicationLicenceQuantitySerializer(self.approved_goods, many=True).data
+        advice = FinalAdvice.objects.filter(good__id__in=approved_good_ids)
 
-        advice = FinalAdvice.objects.filter(good__id__in=goods_ids)
         for good_advice in advice:
             for good in goods:
                 if str(good_advice.good.id) == good["good"]["id"]:
@@ -483,6 +488,32 @@ class ApplicationFinaliseView(APIView):
                     data={"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            # Check goods have licenced quantity/value
+            if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+                errors = {}
+                for good in self.approved_goods:
+                    good_id = str(good.id)
+                    quantity_key = f"quantity-{good_id}"
+                    value_key = f"value-{good_id}"
+                    good_data = {
+                        "licenced_quantity": request.data.get(quantity_key),
+                        "licenced_value": request.data.get(value_key),
+                    }
+                    serializer = GoodOnApplicationLicenceQuantityCreateSerializer(good, data=good_data, partial=True)
+
+                    if serializer.is_valid():
+                        serializer.save()
+                    else:
+                        quantity_error = serializer.errors.get("licenced_quantity")
+                        if quantity_error:
+                            errors[quantity_key] = quantity_error
+                        value_error = serializer.errors.get("licenced_value")
+                        if value_error:
+                            errors[value_key] = value_error
+
+                if errors:
+                    return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
             data["application"] = application
             serializer = LicenceCreateSerializer(data=data)

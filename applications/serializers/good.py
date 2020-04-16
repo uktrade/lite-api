@@ -28,6 +28,28 @@ class GoodOnApplicationLicenceQuantitySerializer(serializers.ModelSerializer):
         )
 
 
+class GoodOnApplicationLicenceQuantityCreateSerializer(serializers.ModelSerializer):
+    licenced_quantity = serializers.FloatField(required=True, allow_null=False, min_value=0)
+    licenced_value = serializers.DecimalField(
+        max_digits=256, decimal_places=2, required=True, allow_null=False, min_value=0
+    )
+
+    def validate(self, data):
+        if data["licenced_quantity"] > self.instance.quantity:
+            raise serializers.ValidationError(
+                {"licenced_quantity": "Licenced quantity cannot be greater than the applied for quantity"}
+            )
+        return data
+
+    class Meta:
+        model = GoodOnApplication
+        fields = (
+            "id",
+            "licenced_quantity",
+            "licenced_value",
+        )
+
+
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
