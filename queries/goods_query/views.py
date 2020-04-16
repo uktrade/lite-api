@@ -130,9 +130,9 @@ class GoodQueryCLCResponse(APIView):
 
         if clc_good_serializer.is_valid():
             if not str_to_bool(data.get("validate_only")):
-                previous_control_list_entry = (
-                    query.good.control_list_entry
-                    if query.good.control_list_entry
+                previous_control_list_entries = (
+                    query.good.control_list_entries
+                    if query.good.control_list_entries
                     else strings.Goods.GOOD_NO_CONTROL_CODE
                 )
 
@@ -140,14 +140,14 @@ class GoodQueryCLCResponse(APIView):
                 query.clc_responded = True
                 query.save()
 
-                new_control_list_entry = strings.Goods.GOOD_NO_CONTROL_CODE
+                new_control_list_entries = strings.Goods.GOOD_NO_CONTROL_CODE
 
                 if str_to_bool(clc_good_serializer.validated_data.get("is_good_controlled")):
-                    new_control_list_entry = clc_good_serializer.validated_data.get(
-                        "control_list_entry", strings.Goods.GOOD_NO_CONTROL_CODE
+                    new_control_list_entries = clc_good_serializer.validated_data.get(
+                        "control_list_entries", strings.Goods.GOOD_NO_CONTROL_CODE
                     )
 
-                if new_control_list_entry != previous_control_list_entry:
+                if new_control_list_entries != previous_control_list_entries:
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.GOOD_REVIEWED,
@@ -155,8 +155,8 @@ class GoodQueryCLCResponse(APIView):
                         target=query.get_case(),
                         payload={
                             "good_name": query.good.description,
-                            "old_control_list_entry": previous_control_list_entry,
-                            "new_control_list_entry": new_control_list_entry,
+                            "old_control_list_entry": previous_control_list_entries,
+                            "new_control_list_entry": new_control_list_entries,
                         },
                     )
 
