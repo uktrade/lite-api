@@ -20,6 +20,7 @@ from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from test_helpers.clients import DataTestClient
 
 
@@ -30,6 +31,34 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy a standard application that is a draft
         """
         self.original_application = self.create_draft_standard_application(self.organisation)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {
+            "name": "New application",
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "54321-12",
+        }
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = StandardApplication.objects.get(id=self.response_data)
+
+        self._validate_standard_application()
+
+    def test_copy_draft_standard_trade_control_application_successful(self):
+        """
+        Ensure we can copy a standard application that is a draft
+        """
+        self.original_application = self.create_draft_standard_application(self.organisation)
+        self.original_application.tc_activity = TradeControlActivity.OTHER
+        self.original_application.tc_activity_other = "other activity"
+        self.original_application.tc_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        self.original_application.save()
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -135,6 +164,32 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an open application that is a draft
         """
         self.original_application = self.create_draft_open_application(self.organisation)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = OpenApplication.objects.get(id=self.response_data)
+
+        self._validate_open_application()
+
+    def test_copy_draft_open_trade_control_application_successful(self):
+        """
+        Ensure we can copy an open application that is a draft
+        """
+        self.original_application = self.create_draft_open_application(
+            self.organisation, case_type_id=CaseTypeEnum.OICL.id
+        )
+        self.original_application.tc_activity = TradeControlActivity.OTHER
+        self.original_application.tc_activity_other = "other activity"
+        self.original_application.tc_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        self.original_application.save()
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -396,6 +451,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self._validate_case_data()
         self._validate_route_of_goods()
         self._validate_temporary_export_details()
+        self._validate_trade_control_details()
 
     def _validate_open_application(self):
         self._validate_reset_data()
@@ -406,6 +462,14 @@ class CopyApplicationSuccessTests(DataTestClient):
         self._validate_case_data()
         self._validate_route_of_goods()
         self._validate_temporary_export_details()
+        self._validate_trade_control_details()
+
+    def _validate_trade_control_details(self):
+        if self.original_application.case_type.id in [CaseTypeEnum.SICL.id, CaseTypeEnum.OICL.id]:
+            self.assertEqual(self.original_application.tc_activity, self.copied_application.tc_activity)
+            self.assertEqual(
+                self.original_application.tc_product_categories, self.copied_application.tc_product_categories
+            )
 
     def _validate_exhibition_application(self):
         self._validate_reset_data()
