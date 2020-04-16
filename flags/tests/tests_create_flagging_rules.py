@@ -38,9 +38,9 @@ class FlaggingRulesCreateTest(DataTestClient):
 
     def test_gov_user_can_create_flagging_rule_good(self):
         application = self.create_standard_application_case(self.organisation)
-        control_code = (
+        control_list_entry = (
             GoodOnApplication.objects.filter(application_id=application.id)
-            .values_list("good__control_code", flat=True)
+            .values_list("good__control_list_entry", flat=True)
             .first()
         )
 
@@ -51,7 +51,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         data = {
             "level": "Good",
             "flag": str(flag.id),
-            "matching_value": control_code,
+            "matching_value": control_list_entry,
             "is_for_verified_goods_only": "True",
         }
 
@@ -61,13 +61,13 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["level"], "Good")
         self.assertEqual(response_data["flag"], str(flag.id))
-        self.assertEqual(response_data["matching_value"], control_code)
+        self.assertEqual(response_data["matching_value"], control_list_entry)
         self.assertTrue(response_data["is_for_verified_goods_only"])
 
         rule = FlaggingRule.objects.get()
         self.assertEqual(rule.level, "Good")
         self.assertEqual(rule.flag, flag)
-        self.assertEqual(rule.matching_value, control_code)
+        self.assertEqual(rule.matching_value, control_list_entry)
 
     def test_gov_user_can_create_flagging_rule_destination(self):
         application = self.create_standard_application_case(self.organisation)
@@ -113,9 +113,9 @@ class FlaggingRulesCreateTest(DataTestClient):
 
     def test_missing_data_create_good_rule_failure(self):
         application = self.create_standard_application_case(self.organisation)
-        control_code = (
+        control_list_entry = (
             GoodOnApplication.objects.filter(application_id=application.id)
-            .values_list("good__control_code", flat=True)
+            .values_list("good__control_list_entry", flat=True)
             .first()
         )
 
@@ -123,7 +123,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.gov_user.save()
 
         flag = self.create_flag("test", "Good", self.team)
-        data = {"level": "Good", "flag": str(flag.id), "matching_value": control_code}
+        data = {"level": "Good", "flag": str(flag.id), "matching_value": control_list_entry}
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()

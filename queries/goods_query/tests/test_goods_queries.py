@@ -56,7 +56,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
             is_good_controlled=GoodControlled.UNSURE,
             is_pv_graded=GoodPvGraded.NO,
             pv_grading_details=None,
-            control_code="ML1b",
+            control_list_entry="ML1b",
             part_number="123456",
             organisation=self.organisation,
         )
@@ -64,7 +64,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
 
         self.data = {
             "good_id": self.good.id,
-            "not_sure_details_control_code": "ML1a",
+            "not_sure_details_control_list_entry": "ML1a",
             "not_sure_details_details": "I " "don't know",
         }
 
@@ -117,21 +117,21 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         self.data = {
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_code": "ML1a",
+            "control_list_entry": "ML1a",
             "is_good_controlled": "yes",
         }
 
-    def test_respond_to_control_list_classification_query_without_updating_control_code_success(self):
-        self.query.good.control_code = "ML1a"
+    def test_respond_to_control_list_classification_query_without_updating_control_list_entry_success(self):
+        self.query.good.control_list_entry = "ML1a"
         self.query.good.save()
-        previous_query_control_code = self.query.good.control_code
+        previous_query_control_list_entry = self.query.good.control_list_entry
 
         response = self.client.put(self.url, self.data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.good.control_code, self.data["control_code"])
-        self.assertEqual(self.query.good.control_code, previous_query_control_code)
+        self.assertEqual(self.query.good.control_list_entry, self.data["control_list_entry"])
+        self.assertEqual(self.query.good.control_list_entry, previous_query_control_list_entry)
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
@@ -142,14 +142,14 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         )
         self.assertEqual(audit_qs.count(), 1)
 
-    def test_respond_to_control_list_classification_query_update_control_code_success(self):
-        previous_query_control_code = self.query.good.control_code
+    def test_respond_to_control_list_classification_query_update_control_list_entry_success(self):
+        previous_query_control_list_entry = self.query.good.control_list_entry
         response = self.client.put(self.url, self.data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.good.control_code, self.data["control_code"])
-        self.assertNotEqual(self.query.good.control_code, previous_query_control_code)
+        self.assertEqual(self.query.good.control_list_entry, self.data["control_list_entry"])
+        self.assertNotEqual(self.query.good.control_list_entry, previous_query_control_list_entry)
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
@@ -161,8 +161,8 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
             if verb == AuditType.GOOD_REVIEWED:
                 payload = {
                     "good_name": self.query.good.description,
-                    "old_control_code": previous_query_control_code,
-                    "new_control_code": self.data["control_code"],
+                    "old_control_list_entry": previous_query_control_list_entry,
+                    "new_control_list_entry": self.data["control_list_entry"],
                 }
                 self.assertEqual(audit.payload, payload)
 
@@ -170,15 +170,15 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         """
         Ensure that a gov user can respond to a control list classification query with no licence required.
         """
-        previous_query_control_code = self.query.good.control_code
+        previous_query_control_list_entry = self.query.good.control_list_entry
         data = {"comment": "I Am Easy to Find", "report_summary": self.report_summary.pk, "is_good_controlled": "no"}
 
         response = self.client.put(self.url, data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.good.control_code, "")
-        self.assertNotEqual(self.query.good.control_code, previous_query_control_code)
+        self.assertEqual(self.query.good.control_list_entry, "")
+        self.assertNotEqual(self.query.good.control_list_entry, previous_query_control_list_entry)
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
 
@@ -236,7 +236,7 @@ class PvGradingQueryCreateTests(DataTestClient):
             description="This is a good",
             org=self.organisation,
             is_good_controlled=GoodControlled.NO,
-            control_code="",
+            control_list_entry="",
             is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
         )
         pv_grading_raised_reasons = "This is the reason why I'm unsure..."
@@ -264,7 +264,7 @@ class PvGradingQueryCreateTests(DataTestClient):
             description="This is a good",
             org=self.organisation,
             is_good_controlled=GoodControlled.NO,
-            control_code="",
+            control_list_entry="",
             is_pv_graded=GoodPvGraded.YES,
         )
         pv_grading_raised_reasons = "This is the reason why I'm unsure..."
@@ -287,7 +287,7 @@ class PvGradingQueryCreateTests(DataTestClient):
             description="This is a good",
             org=self.organisation,
             is_good_controlled=GoodControlled.NO,
-            control_code="",
+            control_list_entry="",
             is_pv_graded=GoodPvGraded.NO,
         )
         pv_grading_raised_reasons = "This is the reason why I'm unsure..."
@@ -326,7 +326,7 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
             description="This is a good",
             org=self.organisation,
             is_good_controlled=GoodControlled.UNSURE,
-            control_code="ML1a",
+            control_list_entry="ML1a",
             is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
         )
 
@@ -348,13 +348,13 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
 
     def test_when_responding_to_only_clc_then_only_the_clc_is_responded_to(self):
         clc_response_url = reverse("queries:goods_queries:clc_query_response", kwargs={"pk": self.clc_and_pv_query.pk})
-        # The control_code and is_good_controlled must be equal to what they are currently on the good
+        # The control_list_entry and is_good_controlled must be equal to what they are currently on the good
         # otherwise two audits will be created;
         # One for the response to the query and another for updating the good
         data = {
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_code": "ML1a",
+            "control_list_entry": "ML1a",
             "is_good_controlled": "yes",
         }
         response = self.client.put(clc_response_url, data, **self.gov_headers)

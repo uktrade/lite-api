@@ -5,6 +5,7 @@ from rest_framework.reverse import reverse
 
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
+from static.control_list_entries.helpers import get_control_list_entry
 from test_helpers.clients import DataTestClient
 
 
@@ -16,7 +17,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.data = {
             "description": "Widget",
             "is_good_controlled": True,
-            "control_code": "ML1a",
+            "control_list_entries": ["ML1a"],
             "is_good_incorporated": True,
         }
 
@@ -31,14 +32,6 @@ class GoodsTypeOnApplicationTests(DataTestClient):
             "size": 123456,
         }
 
-    def test_get_goodstypes_on_open_application_as_exporter_user_success(self):
-        response = self.client.get(self.url, self.data, **self.exporter_headers)
-
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(
-            len(response.json()["goods"]), GoodsType.objects.filter(application=self.open_application).count(),
-        )
-
     def test_create_goodstype_on_open_application_as_exporter_user_success(self):
         response = self.client.post(self.url, self.data, **self.exporter_headers)
 
@@ -46,7 +39,8 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         response_data = response.json()["good"]
         self.assertEquals(response_data["description"], "Widget")
         self.assertEquals(response_data["is_good_controlled"], True)
-        self.assertEquals(response_data["control_code"], "ML1a")
+        self.assertEquals(response_data["control_list_entries"],
+                          [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}])
         self.assertEquals(response_data["is_good_incorporated"], True)
 
     def test_create_goodstype_on_hmrc_query_as_exporter_user_success(self):
@@ -63,7 +57,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response_data["description"], "Widget")
         self.assertNotIn("is_good_incorporated", response_data)
         self.assertNotIn("is_good_controlled", response_data)
-        self.assertNotIn("control_code", response_data)
+        self.assertNotIn("control_list_entry", response_data)
 
     def test_create_goodstype_on_open_application_as_exporter_user_failure(self):
         data = {}
@@ -84,7 +78,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         data = {
             "description": "Widget",
             "is_good_controlled": True,
-            "control_code": "ML1a",
+            "control_list_entry": "ML1a",
             "is_good_incorporated": True,
         }
 

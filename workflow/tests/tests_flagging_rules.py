@@ -36,7 +36,7 @@ class FlaggingRulesAutomation(DataTestClient):
         case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(case)
         good = GoodOnApplication.objects.filter(application_id=case.id).first().good
-        self.create_flagging_rule(level=FlagLevels.GOOD, team=self.team, flag=flag, matching_value=good.control_code)
+        self.create_flagging_rule(level=FlagLevels.GOOD, team=self.team, flag=flag, matching_value=good.control_list_entry)
 
         apply_flagging_rules_to_case(case)
 
@@ -55,7 +55,7 @@ class FlaggingRulesAutomation(DataTestClient):
             level=FlagLevels.GOOD,
             team=self.team,
             flag=flag,
-            matching_value=good.control_code,
+            matching_value=good.control_list_entry,
             is_for_verified_goods_only=True,
         )
 
@@ -77,7 +77,7 @@ class FlaggingRulesAutomation(DataTestClient):
             level=FlagLevels.GOOD,
             team=self.team,
             flag=flag,
-            matching_value=good.control_code,
+            matching_value=good.control_list_entry,
             is_for_verified_goods_only=True,
         )
 
@@ -305,7 +305,7 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
             FlagLevels.GOOD,
             self.team,
             flag=good_flag,
-            matching_value=goods_type.control_code,
+            matching_value=goods_type.control_list_entry,
             is_for_verified_goods_only=False,
         )
 
@@ -337,7 +337,7 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
 
         good = GoodOnApplication.objects.filter(application_id=application.id).first().good
         good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_code)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_list_entry)
 
         party = PartyOnApplication.objects.filter(application_id=application.id).first().party
         destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
@@ -366,7 +366,7 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
 
         goods_type = GoodsType.objects.filter(application_id=application.id).first()
         good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=goods_type.control_code)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=goods_type.control_list_entry)
 
         party = PartyOnApplication.objects.filter(application_id=application.id).first().party
         destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
@@ -395,7 +395,7 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
 
         good = GoodOnApplication.objects.filter(application_id=application.id).first().good
         good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_code)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_list_entry)
 
         party = PartyOnApplication.objects.filter(application_id=application.id).first().party
         destination_flag = self.create_flag("dest flag", FlagLevels.DESTINATION, self.team)
@@ -425,7 +425,7 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
 
         good = GoodOnApplication.objects.filter(application_id=application.id).first().good
         good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_code)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_list_entry)
 
         self.submit_application(application)
         apply_flagging_rules_to_case(application)
@@ -444,7 +444,7 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
 
         good = query.good
         good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
-        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_code)
+        self.create_flagging_rule(FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_list_entry)
 
         apply_flagging_rules_to_case(query)
 

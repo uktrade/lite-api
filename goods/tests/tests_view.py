@@ -68,7 +68,7 @@ class GoodViewTests(DataTestClient):
         Good.objects.create(
             description="car1",
             is_good_controlled=GoodControlled.YES,
-            control_code="ML1",
+            control_list_entry="ML1",
             part_number="cl500",
             organisation=org,
         )
@@ -76,7 +76,7 @@ class GoodViewTests(DataTestClient):
         Good.objects.create(
             description="Car2",
             is_good_controlled=GoodControlled.YES,
-            control_code="ML1",
+            control_list_entry="ML1",
             part_number="CL300",
             organisation=org,
         )
@@ -84,7 +84,7 @@ class GoodViewTests(DataTestClient):
         Good.objects.create(
             description="car3",
             is_good_controlled=GoodControlled.YES,
-            control_code="ML1",
+            control_list_entry="ML1",
             part_number="ML500",
             organisation=org,
         )
@@ -92,7 +92,7 @@ class GoodViewTests(DataTestClient):
         Good.objects.create(
             description="Truck",
             is_good_controlled=GoodControlled.YES,
-            control_code="ML1",
+            control_list_entry="ML1",
             part_number="CL1000",
             organisation=org,
         )
@@ -120,9 +120,9 @@ class GoodViewTests(DataTestClient):
     def test_view_good__query_filter_by_control_rating(self, control_rating, size):
         org = self.organisation
 
-        self.create_good(description="thing1", org=org, control_code="ML3a")
-        self.create_good(description="Thing2", org=org, control_code="ML3b")
-        self.create_good(description="item3", org=org, control_code="ML4")
+        self.create_good(description="thing1", org=org, control_list_entry="ML3a")
+        self.create_good(description="Thing2", org=org, control_list_entry="ML3b")
+        self.create_good(description="item3", org=org, control_list_entry="ML4")
 
         url = reverse("goods:goods") + "?control_rating=" + control_rating
 

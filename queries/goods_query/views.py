@@ -69,7 +69,7 @@ class GoodsQueriesCreate(APIView):
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         good.status = GoodStatus.QUERY
-        good.control_code = data.get("clc_control_code", None)
+        good.control_list_entry = data.get("clc_control_list_entry", None)
 
         goods_query = GoodsQuery.objects.create(
             clc_raised_reasons=data.get("clc_raised_reasons"),
@@ -130,22 +130,22 @@ class GoodQueryCLCResponse(APIView):
 
         if clc_good_serializer.is_valid():
             if not str_to_bool(data.get("validate_only")):
-                previous_control_code = (
-                    query.good.control_code if query.good.control_code else strings.Goods.GOOD_NO_CONTROL_CODE
+                previous_control_list_entry = (
+                    query.good.control_list_entry if query.good.control_list_entry else strings.Goods.GOOD_NO_CONTROL_CODE
                 )
 
                 clc_good_serializer.save()
                 query.clc_responded = True
                 query.save()
 
-                new_control_code = strings.Goods.GOOD_NO_CONTROL_CODE
+                new_control_list_entry = strings.Goods.GOOD_NO_CONTROL_CODE
 
                 if str_to_bool(clc_good_serializer.validated_data.get("is_good_controlled")):
-                    new_control_code = clc_good_serializer.validated_data.get(
-                        "control_code", strings.Goods.GOOD_NO_CONTROL_CODE
+                    new_control_list_entry = clc_good_serializer.validated_data.get(
+                        "control_list_entry", strings.Goods.GOOD_NO_CONTROL_CODE
                     )
 
-                if new_control_code != previous_control_code:
+                if new_control_list_entry != previous_control_list_entry:
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.GOOD_REVIEWED,
@@ -153,8 +153,8 @@ class GoodQueryCLCResponse(APIView):
                         target=query.get_case(),
                         payload={
                             "good_name": query.good.description,
-                            "old_control_code": previous_control_code,
-                            "new_control_code": new_control_code,
+                            "old_control_list_entry": previous_control_list_entry,
+                            "new_control_list_entry": new_control_list_entry,
                         },
                     )
 

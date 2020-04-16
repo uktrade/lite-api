@@ -79,14 +79,14 @@ class GoodsListControlCode(APIView):
         for pk in objects:
             try:
                 good = get_good_func(pk=pk)
-                old_control_code = good.control_code or "No control code"
+                old_control_list_entry = good.control_list_entry or "No control code"
 
                 serializer = serializer_class(good, data=data)
                 if serializer.is_valid():
                     serializer.save()
-                    new_control_code = good.control_code or "No control code"
+                    new_control_list_entry = good.control_list_entry or "No control code"
 
-                    if new_control_code != old_control_code:
+                    if new_control_list_entry != old_control_list_entry:
                         good.flags.clear()
                         audit_trail_service.create(
                             actor=request.user,
@@ -95,8 +95,8 @@ class GoodsListControlCode(APIView):
                             target=case,
                             payload={
                                 "good_name": good.description,
-                                "new_control_code": new_control_code,
-                                "old_control_code": old_control_code,
+                                "new_control_list_entry": new_control_list_entry,
+                                "old_control_list_entry": old_control_list_entry,
                             },
                         )
                 errors += serializer.errors
@@ -132,7 +132,7 @@ class GoodList(ListCreateAPIView):
         ).order_by("-created_at")
 
         if control_rating:
-            queryset = queryset.filter(control_code__icontains=control_rating)
+            queryset = queryset.filter(control_list_entry__icontains=control_rating)
 
         if for_application:
             good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(

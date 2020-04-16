@@ -24,3 +24,6 @@ class GoodsType(TimestampableModel):
     # gov-user data, is used by gov users when reviewing goods
     comment = models.TextField(default=None, blank=True, null=True)
     report_summary = models.TextField(default=None, blank=True, null=True)
+
+    class Meta:
+        db_table = "goods_type"

@@ -25,6 +25,7 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
+from goodstype.tests.factories import GoodsTypeFactory
 from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -364,15 +365,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_goods_type(application):
-        goods_type = GoodsType(
-            description="thing",
-            is_good_controlled=False,
-            control_code="ML1a",
-            is_good_incorporated=True,
-            application=application,
-        )
-        goods_type.save()
-        return goods_type
+        return GoodsTypeFactory(application=application)
 
     @staticmethod
     def create_picklist_item(name, team: Team, picklist_type, status):
@@ -391,7 +384,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         description: str,
         org: Organisation,
         is_good_controlled: str = GoodControlled.YES,
-        control_code: str = "ML1X",
+        control_list_entry: str = "ML1X",
         is_pv_graded: str = GoodPvGraded.YES,
         pv_grading_details: PvGradingDetails = None,
     ) -> Good:
@@ -409,7 +402,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         good = Good(
             description=description,
             is_good_controlled=is_good_controlled,
-            control_code=control_code,
+            control_list_entry=control_list_entry,
             part_number="123456",
             organisation=org,
             comment=None,
@@ -666,7 +659,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
             is_good_controlled=True,
-            control_code="ML17",
+            control_list_entry="ML17",
             organisation=self.organisation,
             description="a good",
             part_number="123456",
@@ -691,7 +684,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         part_good = Good(
             is_good_controlled=GoodControlled.YES,
-            control_code="ML17",
+            control_list_entry="ML17",
             organisation=self.organisation,
             description="a good",
             part_number="123456",

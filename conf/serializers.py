@@ -119,7 +119,7 @@ class KeyValueChoiceField(Field):
         """
         Helper method for use with templates rendering select widgets.
         """
-        return iter_options(self.grouped_choices, cutoff=self.html_cutoff, cutoff_text=self.html_cutoff_text,)
+        return iter_options(self.grouped_choices, cutoff=self.html_cutoff, cutoff_text=self.html_cutoff_text, )
 
     def _get_choices(self):
         return self._choices
@@ -136,36 +136,17 @@ class KeyValueChoiceField(Field):
     choices = property(_get_choices, _set_choices)
 
 
-class ControlListEntryField2(PrimaryKeyRelatedField):
+class ControlListEntryField(PrimaryKeyRelatedSerializerField):
+    def __init__(self, **kwargs):
+        from static.control_list_entries.serializers import ControlListEntryViewSerializer
+        super().__init__(queryset=ControlListEntry.objects.all(),
+                         many=kwargs.get("many"),
+                         serializer=ControlListEntryViewSerializer,
+                         error_messages={"null": 'bad rating'},
+                         **kwargs)
+
     def use_pk_only_optimization(self):
         return False
 
     def to_internal_value(self, data):
         return self.get_queryset().get(rating=data)
-
-
-class ControlListEntryField(PrimaryKeyRelatedField):
-    def __init__(self, **kwargs):
-        self.queryset = ControlListEntry.objects.all()
-        self.error_messages = {"null": 'bad rating'}
-        if "allow_blank" in kwargs:
-            kwargs.pop("allow_blank")
-        super().__init__(many=True, **kwargs)
-
-    def use_pk_only_optimization(self):
-        return True
-
-    def to_internal_value(self, data):
-        if self.pk_field is not None:
-            data = self.pk_field.to_internal_value(data)
-        try:
-            return self.get_queryset().get(rating=data)
-        except ObjectDoesNotExist:
-            self.fail('does_not_exist', pk_value=data)
-        except (TypeError, ValueError):
-            self.fail('incorrect_type', data_type=type(data).__name__)
-
-    def to_representation(self, value):
-        if self.pk_field is not None:
-            return self.pk_field.to_representation(value.pk)
-        return value.pk

@@ -14,7 +14,7 @@ URL = reverse("goods:goods")
 REQUEST_DATA = {
     "description": f"Plastic bag {uuid.uuid4()}",
     "is_good_controlled": GoodControlled.NO,
-    "control_code": None,
+    "control_list_entry": None,
     "part_number": "1337",
     "validate_only": False,
     "is_pv_graded": GoodPvGraded.NO,
@@ -37,7 +37,7 @@ def _assert_response_data(self, response_data, request_data):
 
     if request_data["is_good_controlled"] == GoodControlled.YES:
         self.assertEquals(response_data["is_good_controlled"]["key"], GoodControlled.YES)
-        self.assertEquals(response_data["control_code"], request_data["control_code"])
+        self.assertEquals(response_data["control_list_entry"], request_data["control_list_entry"])
 
     if request_data["is_pv_graded"] == GoodPvGraded.YES:
         self.assertEquals(response_data["is_pv_graded"]["key"], GoodPvGraded.YES)
@@ -68,7 +68,7 @@ class GoodsCreateGoodTests(DataTestClient):
 
     def test_when_creating_a_good_with_pv_graded_and_controlled_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
-        self.request_data["control_code"] = "ML1a"
+        self.request_data["control_list_entry"] = "ML1a"
         self.request_data["is_pv_graded"] = GoodPvGraded.YES
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -117,7 +117,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
 
     def test_when_creating_a_good_with_all_fields_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
-        self.request_data["control_code"] = "ML1a"
+        self.request_data["control_list_entry"] = "ML1a"
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
@@ -125,23 +125,23 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         _assert_response_data(self, response.json()["good"], self.request_data)
         self.assertEquals(Good.objects.all().count(), 1)
 
-    def test_when_creating_a_good_with_a_null_control_code_then_bad_request_response_is_returned(self):
+    def test_when_creating_a_good_with_a_null_control_list_entry_then_bad_request_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(response.json()["errors"], {"control_code": ["This field may not be null."]})
+        self.assertEquals(response.json()["errors"], {"control_list_entry": ["This field may not be null."]})
         self.assertEquals(Good.objects.all().count(), 0)
 
-    def test_when_creating_a_good_with_an_invalid_control_code_then_bad_request_response_is_returned(self):
+    def test_when_creating_a_good_with_an_invalid_control_list_entry_then_bad_request_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
-        self.request_data["control_code"] = "invalid"
+        self.request_data["control_list_entry"] = "invalid"
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(response.json()["errors"], {"control_code": ["Enter a valid control list entry"]})
+        self.assertEquals(response.json()["errors"], {"control_list_entry": ["Enter a valid control list entry"]})
         self.assertEquals(Good.objects.all().count(), 0)
 
 

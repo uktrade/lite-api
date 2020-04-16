@@ -107,7 +107,7 @@ def apply_goods_rules_for_good(good, flagging_rules: QuerySet = None):
     flagging_rules = get_active_flagging_rules_for_level(FlagLevels.GOOD) if not flagging_rules else flagging_rules
 
     # get a list of flag_id's where the flagging rule matching value is equivalent to the good control code
-    flagging_rules = flagging_rules.filter(matching_value__iexact=good.control_code)
+    flagging_rules = flagging_rules.filter(matching_value__iexact=good.control_list_entry)
 
     if isinstance(good, Good) and good.status != GoodStatus.VERIFIED:
         flagging_rules = flagging_rules.exclude(is_for_verified_goods_only=True)
@@ -138,7 +138,7 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
 
         elif flagging_rule.level == FlagLevels.GOOD:
             # Add flag to all Goods on open Goods Queries
-            goods_in_query = GoodsQuery.objects.filter(good__control_code=flagging_rule.matching_value).exclude(
+            goods_in_query = GoodsQuery.objects.filter(good__control_list_entry=flagging_rule.matching_value).exclude(
                 status__status__in=draft_and_terminal_statuses
             )
 
@@ -150,13 +150,13 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
 
             # Add flag to all Goods Types
             goods_types = GoodsType.objects.filter(
-                application_id__in=open_cases, control_code=flagging_rule.matching_value
+                application_id__in=open_cases, control_list_entry=flagging_rule.matching_value
             ).values_list("id", flat=True)
             flagging_rule.flag.goods_type.add(*goods_types)
 
             # Add flag to all open Applications
             goods = GoodOnApplication.objects.filter(
-                application_id__in=open_cases, good__control_code=flagging_rule.matching_value
+                application_id__in=open_cases, good__control_list_entry=flagging_rule.matching_value
             )
 
             if flagging_rule.is_for_verified_goods_only:

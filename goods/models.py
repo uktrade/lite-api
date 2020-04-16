@@ -31,7 +31,7 @@ class Good(TimestampableModel):
 
     # CLC
     is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
-    control_code = models.CharField(default="", blank=True, null=True, max_length=20)
+    control_list_entry = models.CharField(default="", blank=True, null=True, max_length=20)
 
     # PV
     is_pv_graded = models.CharField(choices=GoodPvGraded.choices, default=GoodPvGraded.GRADING_REQUIRED, max_length=20)
@@ -52,6 +52,9 @@ class Good(TimestampableModel):
     grading_comment = models.TextField(default=None, blank=True, null=True, max_length=2000)
     # max length same as picklist
     report_summary = models.TextField(default=None, blank=True, null=True, max_length=5000)
+
+    class Meta:
+        db_table = "good"
 
 
 class GoodDocument(Document):

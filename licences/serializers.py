@@ -50,7 +50,7 @@ class GoodLicenceListSerializer(serializers.ModelSerializer):
         model = Good
         fields = (
             "description",
-            "control_code",
+            "control_list_entry",
         )
         read_only_fields = fields
 
@@ -60,7 +60,7 @@ class GoodsTypeOnLicenceListSerializer(serializers.ModelSerializer):
         model = GoodsType
         fields = (
             "description",
-            "control_code",
+            "control_list_entry",
         )
         read_only_fields = fields
 

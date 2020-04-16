@@ -13,23 +13,23 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
         self.good = self.create_good(description="This is a good", org=self.organisation)
         self.url = reverse("goods:good", kwargs={"pk": str(self.good.id)})
 
-    def test_when_updating_is_good_controlled_to_no_then_control_code_is_deleted(self):
+    def test_when_updating_is_good_controlled_to_no_then_control_list_entry_is_deleted(self):
         request_data = {"is_good_controlled": GoodControlled.NO}
 
         response = self.client.put(self.url, request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(response.json()["good"]["is_good_controlled"]["key"], GoodControlled.NO)
-        self.assertEquals(response.json()["good"]["control_code"], None)
+        self.assertEquals(response.json()["good"]["control_list_entry"], None)
         self.assertEquals(Good.objects.all().count(), 1)
 
-    def test_when_updating_clc_control_code_then_new_control_code_is_returned(self):
-        request_data = {"is_good_controlled": GoodControlled.YES, "control_code": "ML1a"}
+    def test_when_updating_clc_control_list_entry_then_new_control_list_entry_is_returned(self):
+        request_data = {"is_good_controlled": GoodControlled.YES, "control_list_entry": "ML1a"}
 
         response = self.client.put(self.url, request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.json()["good"]["control_code"], "ML1a")
+        self.assertEquals(response.json()["good"]["control_list_entry"], "ML1a")
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_updating_is_pv_graded_to_no_then_pv_grading_details_are_deleted(self):

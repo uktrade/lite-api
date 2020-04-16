@@ -72,7 +72,7 @@ class GetLicencesTests(DataTestClient):
                 licence["application"]["goods"][0]["good"]["description"], good.description,
             )
             self.assertEqual(
-                licence["application"]["goods"][0]["good"]["control_code"], good.control_code,
+                licence["application"]["goods"][0]["good"]["control_list_entry"], good.control_list_entry,
             )
 
         # Open Application
@@ -80,7 +80,7 @@ class GetLicencesTests(DataTestClient):
         destination = self.open_application.application_countries.first()
         good = self.open_application.goods_type.first()
         self.assertEqual(licence["application"]["goods"][0]["description"], good.description)
-        self.assertEqual(licence["application"]["goods"][0]["control_code"], good.control_code)
+        self.assertEqual(licence["application"]["goods"][0]["control_list_entry"], good.control_list_entry)
         self.assertEqual(licence["application"]["destinations"][0]["country"]["id"], destination.country_id)
 
     def test_get_standard_licences_only(self):
@@ -166,7 +166,7 @@ class GetLicencesFilterTests(DataTestClient):
 
     def test_filter_by_clc_standard_application(self):
         good = self.standard_application.goods.first().good
-        good.control_code = "ML17"
+        good.control_list_entry = "ML17"
         good.save()
 
         response = self.client.get(self.url + "?clc=ML17", **self.exporter_headers)
@@ -177,7 +177,7 @@ class GetLicencesFilterTests(DataTestClient):
 
     def test_filter_by_clc_open_application(self):
         good = self.open_application.goods_type.first()
-        good.control_code = "ML1b"
+        good.control_list_entry = "ML1b"
         good.save()
 
         response = self.client.get(self.url + "?clc=ML1b", **self.exporter_headers)
