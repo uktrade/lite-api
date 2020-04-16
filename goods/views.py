@@ -132,7 +132,7 @@ class GoodList(ListCreateAPIView):
         ).order_by("-created_at")
 
         if control_list_entry:
-            queryset = queryset.filter(control_list_entries__rating=control_list_entry)
+            queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
 
         if for_application:
             good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(
