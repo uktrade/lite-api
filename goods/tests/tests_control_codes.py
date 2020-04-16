@@ -6,6 +6,7 @@ from applications.models import GoodOnApplication
 from conf import constants
 from goods.models import Good
 from picklists.enums import PicklistType, PickListStatus
+from static.control_list_entries.models import ControlListEntry
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
@@ -402,7 +403,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "",
+            "control_list_entries": "",
             "is_good_controlled": "True",
         }
 

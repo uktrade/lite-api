@@ -56,7 +56,11 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                 #     allow_null=True,
                 #     allow_empty=True,
                 # )
-                self.Meta.fields = self.Meta.fields + ("is_good_incorporated", "is_good_controlled", "control_list_entries")
+                self.Meta.fields = self.Meta.fields + (
+                    "is_good_incorporated",
+                    "is_good_controlled",
+                    "control_list_entries",
+                )
             else:
                 if hasattr(self, "initial_data"):
                     self.initial_data["is_good_controlled"] = False
@@ -117,7 +121,7 @@ class FullGoodsTypeSerializer(GoodsTypeSerializer):
 
 
 class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
-    control_list_entry = PrimaryKeyRelatedField(many=True, queryset=ControlListEntry.objects.all())
+    control_list_entries = ControlListEntryField2(many=True, queryset=ControlListEntry.objects.all())
     is_good_controlled = serializers.BooleanField
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(
@@ -127,7 +131,7 @@ class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodsType
         fields = (
-            "control_list_entry",
+            "control_list_entries",
             "is_good_controlled",
             "comment",
             "report_summary",
