@@ -123,7 +123,7 @@ class GoodList(ListCreateAPIView):
     def get_queryset(self):
         description = self.request.GET.get("description", "")
         part_number = self.request.GET.get("part_number", "")
-        control_rating = self.request.GET.get("control_rating")
+        control_list_entry = self.request.GET.get("control_list_entry")
         for_application = self.request.GET.get("for_application")
         organisation = self.request.user.organisation.id
 
@@ -131,8 +131,8 @@ class GoodList(ListCreateAPIView):
             organisation_id=organisation, description__icontains=description, part_number__icontains=part_number,
         ).order_by("-created_at")
 
-        if control_rating:
-            queryset = queryset.filter(control_list_entry__icontains=control_rating)
+        if control_list_entry:
+            queryset = queryset.filter(control_list_entries__rating=control_list_entry)
 
         if for_application:
             good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(
