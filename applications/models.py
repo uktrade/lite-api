@@ -11,8 +11,6 @@ from applications.enums import (
     GoodsCategory,
     ServiceEquipmentType,
     MTCRAnswers,
-    TradeControlActivity,
-    TradeControlProductCategory,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
@@ -31,6 +29,7 @@ from static.denial_reasons.models import DenialReason
 from static.f680_clearance_types.models import F680ClearanceType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
+from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from static.units.enums import Units
 
 

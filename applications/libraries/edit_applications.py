@@ -1,4 +1,4 @@
-from applications.enums import GoodsCategory, TradeControlActivity
+from applications.enums import GoodsCategory
 from applications.models import BaseApplication, StandardApplication, OpenApplication
 from datetime import date
 
@@ -9,6 +9,7 @@ from cases.models import Case
 from flags.enums import SystemFlags
 from conf.helpers import str_to_bool, convert_date_to_string
 from lite_content.lite_api.strings import Applications as strings
+from static.trade_control.enums import TradeControlActivity
 
 END_USE_FIELDS = {
     "is_military_end_use_controls": strings.Generic.EndUseDetails.Audit.INFORMED_TO_APPLY_TITLE,

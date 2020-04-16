@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.enums import TradeControlActivity, TradeControlProductCategory, ApplicationExportType
+from applications.enums import ApplicationExportType
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -18,6 +18,7 @@ from licences.serializers import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
+from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
 class OpenApplicationViewSerializer(GenericApplicationViewSerializer):

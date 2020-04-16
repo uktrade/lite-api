@@ -6,8 +6,6 @@ from applications.enums import (
     YesNoChoiceType,
     ApplicationExportLicenceOfficialType,
     ApplicationExportType,
-    TradeControlActivity,
-    TradeControlProductCategory,
 )
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import StandardApplication
@@ -23,6 +21,7 @@ from conf.serializers import KeyValueChoiceField
 from licences.models import Licence
 from licences.serializers import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
+from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
