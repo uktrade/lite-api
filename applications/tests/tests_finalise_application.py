@@ -4,6 +4,8 @@ from rest_framework import status
 
 from applications.enums import LicenceDuration
 from applications.libraries.licence import get_default_duration
+from applications.models import GoodOnApplication
+from cases.models import FinalAdvice
 from licences.models import Licence
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum
@@ -28,6 +30,35 @@ class FinaliseApplicationTests(DataTestClient):
         self.finalised_status = CaseStatus.objects.get(status="finalised")
         self.date = timezone.now()
         self.post_date = {"year": self.date.year, "month": self.date.month, "day": self.date.day}
+
+    def test_get_approved_goods_success(self):
+        # Approve the existing good
+        first_good_on_app = GoodOnApplication.objects.get(application=self.standard_application)
+        advice_text = "looks good to me"
+        self.create_advice(
+            self.gov_user, self.standard_application, "good", AdviceType.APPROVE, FinalAdvice, advice_text=advice_text
+        )
+
+        # Refuse a second good
+        second_good_on_app = self.create_good_on_application(
+            self.standard_application, self.create_good("a thing", self.organisation)
+        )
+        self.create_advice(
+            self.gov_user, self.standard_application, "", AdviceType.REFUSE, FinalAdvice, good=second_good_on_app.good
+        )
+
+        response = self.client.get(self.url, **self.gov_headers)
+        data = response.json()["goods"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["id"], str(first_good_on_app.id))
+        self.assertEqual(data[0]["good"]["id"], str(first_good_on_app.good.id))
+        self.assertEqual(data[0]["good"]["description"], first_good_on_app.good.description)
+        self.assertEqual(data[0]["quantity"], first_good_on_app.quantity)
+        self.assertEqual(data[0]["value"], str(first_good_on_app.value))
+        self.assertEqual(data[0]["advice"]["type"]["key"], AdviceType.APPROVE)
+        self.assertEqual(data[0]["advice"]["text"], advice_text)
 
     def test_approve_application_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])

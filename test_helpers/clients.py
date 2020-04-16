@@ -473,13 +473,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return pv_grading_query
 
     @staticmethod
-    def create_advice(user, case, advice_field, advice_type, advice_level, pv_grading=None):
+    def create_advice(
+        user, case, advice_field, advice_type, advice_level, pv_grading=None, advice_text="This is some text", good=None
+    ):
         advice = advice_level(
             user=user,
             case=case,
             type=advice_type,
             note="This is a note to the exporter",
-            text="This is some text",
+            text=advice_text,
             pv_grading=pv_grading,
         )
 
@@ -491,6 +493,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if advice_field == "good":
             advice.good = GoodOnApplication.objects.get(application=case).good
+        elif good:
+            advice.good = good
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = "I am easy to proviso"
@@ -500,6 +504,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         advice.save()
         return advice
+
+    @staticmethod
+    def create_good_on_application(application, good):
+        return GoodOnApplication.objects.create(
+            good=good, application=application, quantity=10, unit=Units.NAR, value=500,
+        )
 
     @staticmethod
     def create_good_country_decision(case, goods_type, country, decision):
