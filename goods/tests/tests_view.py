@@ -1,4 +1,3 @@
-from django.test import tag
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -100,7 +99,6 @@ class GoodViewTests(DataTestClient):
         self.assertEqual(len(response_data), 2)
 
     @parameterized.expand([("ML", 2), ("ML1a", 1)])
-    @tag("only")
     def test_view_good__query_filter_by_control_list_entry(self, control_list_entry, count):
         org = self.organisation
 
