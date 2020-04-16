@@ -6,18 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('control_list_entries', '0001_initial'),
-        ('goods', '0008_auto_20200416_0844'),
+        ("control_list_entries", "0001_initial"),
+        ("goods", "0008_auto_20200416_0844"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='good',
-            name='control_list_entry',
-        ),
+        migrations.RemoveField(model_name="good", name="control_list_entry",),
         migrations.AddField(
-            model_name='good',
-            name='control_list_entries',
-            field=models.ManyToManyField(related_name='goods', to='control_list_entries.ControlListEntry'),
+            model_name="good",
+            name="control_list_entries",
+            field=models.ManyToManyField(related_name="goods", to="control_list_entries.ControlListEntry"),
         ),
     ]

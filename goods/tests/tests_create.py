@@ -40,7 +40,9 @@ def _assert_response_data(self, response_data, request_data):
 
     if request_data["is_good_controlled"] == GoodControlled.YES:
         self.assertEquals(response_data["is_good_controlled"]["key"], GoodControlled.YES)
-        self.assertEquals(response_data["control_list_entries"], [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}])
+        self.assertEquals(
+            response_data["control_list_entries"], [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}]
+        )
 
     if request_data["is_pv_graded"] == GoodPvGraded.YES:
         self.assertEquals(response_data["is_pv_graded"]["key"], GoodPvGraded.YES)
