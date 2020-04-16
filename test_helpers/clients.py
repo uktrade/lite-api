@@ -364,10 +364,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             return CaseAssignment.objects.create(queue=queue, case=case, user=users)
 
     @staticmethod
-    def create_goods_type(application):
-        return GoodsTypeFactory(application=application)
-
-    @staticmethod
     def create_picklist_item(name, team: Team, picklist_type, status):
         picklist_item = PicklistItem(
             team=team,
@@ -722,8 +718,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.save()
 
         # Add a goods description
-        self.create_goods_type(application)
-        self.create_goods_type(application)
+        GoodsTypeFactory(application=application)
+        GoodsTypeFactory(application=application)
 
         # Add a country to the application
         CountryOnApplication(application=application, country=get_country("GB")).save()
@@ -764,7 +760,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.assertEqual(consignee, application.consignee.party)
         self.assertEqual(third_party, application.third_parties.get().party)
 
-        goods_type = self.create_goods_type(application)
+        goods_type = GoodsTypeFactory(application=application)
 
         # Set the application party documents
         self.create_document_for_party(application.end_user.party, safe=safe_document)

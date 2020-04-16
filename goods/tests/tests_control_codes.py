@@ -5,6 +5,7 @@ from rest_framework import status
 from applications.models import GoodOnApplication
 from conf import constants
 from goods.models import Good
+from goodstype.tests.factories import GoodsTypeFactory
 from picklists.enums import PicklistType, PickListStatus
 from static.control_list_entries.models import ControlListEntry
 from static.statuses.enums import CaseStatusEnum
@@ -235,9 +236,9 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
 
         self.application = self.create_draft_open_application(organisation=self.organisation)
 
-        self.good_1 = self.create_goods_type(self.application)
+        self.good_1 = GoodsTypeFactory(application=self.application)
         self.good_1.flags.add(self.create_flag("New Flag", "Good", self.team))
-        self.good_2 = self.create_goods_type(self.application)
+        self.good_2 = GoodsTypeFactory(application=self.application)
 
         self.case = self.submit_application(self.application)
         self.url = reverse_lazy("goods:control_list_entry", kwargs={"case_pk": self.case.id})
