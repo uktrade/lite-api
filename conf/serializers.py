@@ -142,7 +142,7 @@ class ControlListEntryField(PrimaryKeyRelatedSerializerField):
 
         super().__init__(
             queryset=ControlListEntry.objects.all(),
-            many=kwargs.get("many"),
+            many=kwargs.get("many", True),
             serializer=ControlListEntryViewSerializer,
             error_messages={"null": "bad rating"},
             **kwargs,
