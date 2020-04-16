@@ -13,6 +13,21 @@ from lite_content.lite_api import strings
 from static.units.enums import Units
 
 
+class GoodOnApplicationLicenceQuantitySerializer(serializers.ModelSerializer):
+    good = GoodSerializer(read_only=True)
+    unit = KeyValueChoiceField(choices=Units.choices)
+
+    class Meta:
+        model = GoodOnApplication
+        fields = (
+            "id",
+            "good",
+            "unit",
+            "quantity",
+            "value",
+        )
+
+
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
     good = GoodSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)

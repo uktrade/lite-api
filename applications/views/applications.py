@@ -46,11 +46,14 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
+from applications.serializers.good import GoodOnApplicationLicenceQuantitySerializer
 from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.models import FinalAdvice
 from cases.sla import get_application_target_sla
+from cases.serializers import SimpleFinalAdviceSerializer
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
@@ -420,6 +423,25 @@ class ApplicationManageStatus(APIView):
 
 class ApplicationFinaliseView(APIView):
     authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Get goods to set licenced quantity for with advice
+        """
+        approved_goods = FinalAdvice.objects.filter(
+            case__id=pk, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+        ).values_list("good", flat=True)
+        goods = GoodOnApplication.objects.filter(good__in=approved_goods)
+        goods_ids = goods.values_list("good__id", flat=True)
+        goods = GoodOnApplicationLicenceQuantitySerializer(goods, many=True).data
+
+        advice = FinalAdvice.objects.filter(good__id__in=goods_ids)
+        for good_advice in advice:
+            for good in goods:
+                if str(good_advice.good.id) == good["good"]["id"]:
+                    good["advice"] = SimpleFinalAdviceSerializer(good_advice).data
+
+        return JsonResponse({"goods": goods})
 
     @transaction.atomic
     def put(self, request, pk):
