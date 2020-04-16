@@ -1,6 +1,7 @@
 import timeit
 import uuid
 from datetime import datetime, timezone
+from typing import Optional, List
 
 import django.utils.timezone
 from django.conf import settings as conf_settings
@@ -380,7 +381,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         description: str,
         org: Organisation,
         is_good_controlled: str = GoodControlled.YES,
-        control_list_entry: str = "ML1X",
+        control_list_entries: Optional[List[str]] = None,
         is_pv_graded: str = GoodPvGraded.YES,
         pv_grading_details: PvGradingDetails = None,
     ) -> Good:
@@ -398,7 +399,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         good = Good(
             description=description,
             is_good_controlled=is_good_controlled,
-            control_list_entry=control_list_entry,
             part_number="123456",
             organisation=org,
             comment=None,
@@ -407,6 +407,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             pv_grading_details=pv_grading_details,
         )
         good.save()
+
+        if good.is_good_controlled == GoodControlled.YES:
+            control_list_entries = ControlListEntry.objects.filter(rating__in=control_list_entries)
+            good.control_list_entries.set(control_list_entries)
+
         return good
 
     @staticmethod

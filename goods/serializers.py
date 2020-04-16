@@ -1,10 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from common.libraries import (
-    initialize_good_or_goods_type_control_list_entry_serializer,
-    update_good_or_goods_type_control_list_entry_details,
-)
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
@@ -62,7 +58,7 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
 
 class GoodListSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=280)
-    control_list_entry = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    control_list_entries = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     documents = serializers.SerializerMethodField()
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
@@ -73,7 +69,7 @@ class GoodListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "description",
-            "control_list_entry",
+            "control_list_entries",
             "is_good_controlled",
             "part_number",
             "status",
@@ -109,7 +105,7 @@ class GoodSerializer(serializers.ModelSerializer):
     is_good_controlled = KeyValueChoiceField(
         choices=GoodControlled.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
-    control_list_entry = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    control_list_entries = ControlListEntryField(required=True, many=True, allow_null=True, allow_empty=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(read_only=True, choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
@@ -132,7 +128,7 @@ class GoodSerializer(serializers.ModelSerializer):
             "is_good_controlled",
             "case_id",
             "case_officer",
-            "control_list_entry",
+            "control_list_entries",
             "part_number",
             "organisation",
             "status",
@@ -151,10 +147,10 @@ class GoodSerializer(serializers.ModelSerializer):
         super(GoodSerializer, self).__init__(*args, **kwargs)
 
         if self.get_initial().get("is_good_controlled") == GoodControlled.YES:
-            self.fields["control_list_entry"] = ControlListEntryField(required=True)
+            self.fields["control_list_entries"] = ControlListEntryField(required=True, many=True)
         else:
             if hasattr(self, "initial_data"):
-                self.initial_data["control_list_entry"] = None
+                self.initial_data["control_list_entries"] = []
 
         # This removes data being passed forward from product grading forms on editing goods when not needed
         if not self.get_initial().get("is_pv_graded") == GoodPvGraded.YES:
@@ -198,24 +194,23 @@ class GoodSerializer(serializers.ModelSerializer):
 
         return None
 
-    def validate(self, value):
-        is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
-        if is_controlled_good and not value.get("control_list_entry"):
-            raise serializers.ValidationError("Control Code must be set when good is controlled")
-
-        return value
+    # def validate(self, value):
+    #     is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
+    #     if is_controlled_good and not value.get("control_list_entries"):
+    #         raise serializers.ValidationError("Control Code must be set when good is controlled")
+    #
+    #     return value
 
     def create(self, validated_data):
-        pv_grading_details = validated_data.pop("pv_grading_details", None)
-        if pv_grading_details:
-            pv_grading_details = GoodSerializer._create_pv_grading_details(pv_grading_details)
+        if "pv_grading_details" in validated_data and validated_data["pv_grading_details"]:
+            validated_data["pv_grading_details"] = GoodSerializer._create_pv_grading_details(validated_data["pv_grading_details"])
 
-        return Good.objects.create(pv_grading_details=pv_grading_details, **validated_data)
+        return super(GoodSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
-        instance.control_list_entry = validated_data.get("control_list_entry", "")
+        instance.control_list_entries = validated_data.get("control_list_entries", "")
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
@@ -354,7 +349,7 @@ class GoodWithFlagsSerializer(GoodSerializer):
 
 
 class ClcControlGoodSerializer(serializers.ModelSerializer):
-    control_list_entry = ControlListEntryField(required=False, allow_null=True, write_only=True)
+    control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True)
     is_good_controlled = serializers.ChoiceField(
         choices=GoodControlled.choices,
         allow_null=False,
@@ -370,7 +365,7 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Good
         fields = (
-            "control_list_entry",
+            "control_list_entries",
             "is_good_controlled",
             "comment",
             "report_summary",
@@ -378,11 +373,11 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(ClcControlGoodSerializer, self).__init__(*args, **kwargs)
-        initialize_good_or_goods_type_control_list_entry_serializer(self)
+        initialize_good_or_goods_type_control_list_entries_serializer(self)
 
     def update(self, instance, validated_data):
         instance.is_good_controlled = validated_data.get("is_good_controlled")
-        instance = update_good_or_goods_type_control_list_entry_details(instance, validated_data)
+        instance = update_good_or_goods_type_control_list_entries_details(instance, validated_data)
         instance.status = GoodStatus.VERIFIED
         instance.save()
         return instance
