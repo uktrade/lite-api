@@ -99,18 +99,18 @@ class GoodViewTests(DataTestClient):
         response_data = response.json()["results"]
         self.assertEqual(len(response_data), 2)
 
-    @parameterized.expand([("ML3", 2), ("ML3a", 1)])
-    def test_view_good__query_filter_by_control_rating(self, control_rating, size):
+    @parameterized.expand([("ML", 2), ("ML1a", 1)])
+    @tag("only")
+    def test_view_good__query_filter_by_control_list_entry(self, control_list_entry, count):
         org = self.organisation
 
-        self.create_good(description="thing1", org=org, control_list_entries=["ML3a"])
-        self.create_good(description="Thing2", org=org, control_list_entries=["ML3b"])
-        self.create_good(description="item3", org=org, control_list_entries=["ML4"])
+        GoodFactory(organisation=org, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
+        GoodFactory(organisation=org, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1"])
 
-        url = reverse("goods:goods") + "?control_list_entry=" + control_rating
+        url = reverse("goods:goods") + "?control_list_entry=" + control_list_entry
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), size)
+        self.assertEqual(len(response_data), count)
