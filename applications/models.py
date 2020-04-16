@@ -187,8 +187,8 @@ class StandardApplication(BaseApplication):
         choices=TradeControlActivity.choices, blank=True, default=None, null=True, max_length=100
     )
     tc_activity_other = models.CharField(blank=True, default=None, null=True, max_length=100)
-    tc_product_category = models.CharField(
-        choices=TradeControlProductCategory.choices, blank=True, default=None, null=True, max_length=50
+    tc_product_categories = SeparatedValuesField(
+        choices=TradeControlProductCategory.choices, blank=True, default=None, null=True, max_length=150
     )
 
 
@@ -204,8 +204,8 @@ class OpenApplication(BaseApplication):
         choices=TradeControlActivity.choices, blank=True, default=None, null=True, max_length=100
     )
     tc_activity_other = models.CharField(blank=True, default=None, null=True, max_length=100)
-    tc_product_category = models.CharField(
-        choices=TradeControlProductCategory.choices, blank=True, default=None, null=True, max_length=50
+    tc_product_categories = SeparatedValuesField(
+        choices=TradeControlProductCategory.choices, blank=True, default=None, null=True, max_length=150
     )
 
 

@@ -32,7 +32,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     licence = serializers.SerializerMethodField()
     proposed_return_date = serializers.DateField(required=False)
     tc_activity = serializers.SerializerMethodField()
-    tc_product_category = serializers.SerializerMethodField()
+    tc_product_categories = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -66,7 +66,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "temp_direct_control_details",
                 "proposed_return_date",
                 "tc_activity",
-                "tc_product_category",
+                "tc_product_categories",
             )
         )
 
@@ -77,17 +77,23 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     def get_goods_categories(self, instance):
         # Return a formatted key, value format of GoodsCategories
         # Order according to the choices in GoodsCategory
-        return_value = [{"key": x, "value": GoodsCategory.get_text(x)} for x in instance.goods_categories or []]
-        return sorted(return_value, key=lambda i: [x[0] for x in GoodsCategory.choices].index(i["key"]))
+        goods_categories = sorted(instance.goods_categories or [])
+        return [
+            {"key": goods_category, "value": GoodsCategory.get_text(goods_category)}
+            for goods_category in goods_categories
+        ]
 
     def get_tc_activity(self, instance):
         key = instance.tc_activity
         value = instance.tc_activity_other if key == TradeControlActivity.OTHER else TradeControlActivity.get_text(key)
-        return {"key": key, "value": value} if key else None
+        return {"key": key, "value": value}
 
-    def get_tc_product_category(self, instance):
-        key = instance.tc_product_category
-        return {"key": key, "value": TradeControlProductCategory.get_text(key)} if key else None
+    def get_tc_product_categories(self, instance):
+        tc_product_categories = sorted(instance.tc_product_categories or [])
+        return [
+            {"key": tc_product_category, "value": TradeControlProductCategory.get_text(tc_product_category)}
+            for tc_product_category in tc_product_categories
+        ]
 
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
@@ -108,7 +114,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
     tc_activity_other = CharField(
         allow_blank=False, error_messages={"blank": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR}
     )
-    tc_product_category = KeyValueChoiceField(
+    tc_product_categories = serializers.MultipleChoiceField(
         choices=TradeControlProductCategory.choices,
         error_messages={"required": strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
     )
@@ -122,7 +128,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "goods_categories",
             "tc_activity",
             "tc_activity_other",
-            "tc_product_category",
+            "tc_product_categories",
         )
 
     def __init__(self, case_type_id, **kwargs):
@@ -139,7 +145,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
         else:
             self.fields.pop("tc_activity")
             self.fields.pop("tc_activity_other")
-            self.fields.pop("tc_product_category")
+            self.fields.pop("tc_product_categories")
 
     def create(self, validated_data):
         if self.trade_control_licence:
