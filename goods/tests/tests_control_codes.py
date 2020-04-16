@@ -38,7 +38,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         GoodOnApplication(good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
         GoodOnApplication(good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
         self.case = self.submit_application(self.application)
-        self.url = reverse_lazy("goods:control_list_entry", kwargs={"case_pk": self.case.id})
+        self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):
         """
@@ -49,7 +49,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "ML1a",
+            "control_list_entries": ["ML1a"],
             "is_good_controlled": "yes",
         }
 
@@ -57,7 +57,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_list_entry, "ML1a")
+        self.assertEqual(verified_good.control_list_entries, "ML1a")
 
         # determine that 'is_not_verified' flag has been removed when good verified
         self.assertFalse(is_not_verified_flag_set_on_good(verified_good))
@@ -71,7 +71,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "ML1a",
+            "control_list_entries": ["ML1a"],
             "is_good_controlled": "yes",
         }
 
@@ -93,7 +93,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "ML1a",
+            "control_list_entries": "ML1a",
             "is_good_controlled": "no",
         }
 
@@ -115,7 +115,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "",
+            "control_list_entries": "",
             "is_good_controlled": "no",
         }
 
@@ -136,7 +136,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.team.pk, self.good_1.pk],  # first value is invalid
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "",
+            "control_list_entries": "",
             "is_good_controlled": "no",
         }
 
@@ -146,7 +146,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.control_list_entries, "")
 
-    def test_invalid_control_list_entry(self):
+    def test_invalid_control_list_entries(self):
         """
         Post multiple goods to the endpoint, and that a bad request is returned, and that flags is not updated
         """
@@ -155,7 +155,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "invalid",
+            "control_list_entries": "invalid",
             "is_good_controlled": "yes",
         }
 
@@ -166,15 +166,15 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertTrue(is_not_verified_flag_set_on_good(verified_good))
 
-    def test_controlled_good_empty_control_list_entry(self):
+    def test_controlled_good_empty_control_list_entries(self):
         """
-        Post multiple goods, with an blank control_list_entry and is controlled, for a 400 response, and not update of good.
+        Post multiple goods, with an blank control_list_entries and is controlled, for a 400 response, and not update of good.
         """
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "",
+            "control_list_entries": "",
             "is_good_controlled": "yes",
         }
 
@@ -212,7 +212,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "ML1a",
+            "control_list_entries": "ML1a",
             "is_good_controlled": "yes",
         }
 
@@ -241,7 +241,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.good_2 = GoodsTypeFactory(application=self.application)
 
         self.case = self.submit_application(self.application)
-        self.url = reverse_lazy("goods:control_list_entry", kwargs={"case_pk": self.case.id})
+        self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):
         """
@@ -251,15 +251,15 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "ML1a",
             "is_good_controlled": "True",
+            "control_list_entries": ["ML1a"],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entry, "ML1a")
+        self.assertEqual(self.good_1.control_list_entries, "ML1a")
 
         # determine that flags have been removed when good verified
         self.assertFalse(is_not_verified_flag_set_on_good(self.good_1))
@@ -273,29 +273,28 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "ML1a",
             "is_good_controlled": "True",
+            "control_list_entries": "ML1a",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entry, "ML1a")
+        self.assertEqual(self.good_1.control_list_entries, "ML1a")
 
         self.good_2.refresh_from_db()
-        self.assertEqual(self.good_2.control_list_entry, "ML1a")
+        self.assertEqual(self.good_2.control_list_entries, "ML1a")
 
     def test_verify_single_good_NLR(self):
         """
         Post a singular good to the endpoint, and check that the control code is not set if good is not controlled
         """
-
         data = {
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "ML1a",
+            "control_list_entries": ["ML1a"],
             "is_good_controlled": "False",
         }
 
@@ -303,7 +302,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entry, "")
+        self.assertEqual(self.good_1.control_list_entries, "")
 
         # determine that flags have been removed when good verified
         self.assertEqual(self.good_1.flags.count(), 0)
@@ -313,13 +312,13 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         Assert that not changing the control code does not remove the flags
         """
         self.good_1.is_good_controlled = "True"
-        self.good_1.control_list_entry = "ML1a"
+        self.good_1.control_list_entries.set(["ML1a"])
         self.good_1.save()
         data = {
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "ML1a",
+            "control_list_entries": ["ML1a"],
             "is_good_controlled": "True",
         }
 
@@ -327,7 +326,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entry, "ML1a")
+        self.assertEqual(self.good_1.control_list_entries, "ML1a")
 
         # determine that flags have not been removed when control code hasn't changed
         self.assertEqual(self.good_1.flags.count(), 1)
@@ -341,7 +340,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "",
+            "control_list_entries": [],
             "is_good_controlled": "False",
         }
 
@@ -349,10 +348,10 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entry, "")
+        self.assertEqual(self.good_1.control_list_entries, "")
 
         self.good_2.refresh_from_db()
-        self.assertEqual(self.good_2.control_list_entry, "")
+        self.assertEqual(self.good_2.control_list_entries, "")
 
     def test_invalid_good_pk(self):
         """
@@ -363,7 +362,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "objects": [self.team.pk, self.good_1.pk],  # first value is invalid
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "",
+            "control_list_entries": [],
             "is_good_controlled": "False",
         }
 
@@ -371,9 +370,9 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entry, "")
+        self.assertEqual(self.good_1.control_list_entries, "")
 
-    def test_invalid_control_list_entry(self):
+    def test_invalid_control_list_entries(self):
         """
         Post multiple goods to the endpoint, and that a bad request is returned, and that flags are not updated
         """
@@ -382,7 +381,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entry": "invalid",
+            "control_list_entries": ["invalid"],
             "is_good_controlled": "True",
         }
 
@@ -395,16 +394,16 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertTrue(is_not_verified_flag_set_on_good(self.good_1))
         self.assertTrue(is_not_verified_flag_set_on_good(self.good_2))
 
-    def test_controlled_good_empty_control_list_entry(self):
+    def test_controlled_good_empty_control_list_entries(self):
         """
-        Post multiple goods, with an blank control_list_entry and is controlled, for a 400 response, and not update of good.
+        Post multiple goods, with an blank control_list_entries and is controlled, for a 400 response, and not update of good.
         """
 
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entries": "",
+            "control_list_entries": [],
             "is_good_controlled": "True",
         }
 
