@@ -27,9 +27,9 @@ def update_good_or_goods_type_control_list_entries_details(instance, validated_d
     instance.report_summary = report_summary.text if report_summary else ""
 
     if str_to_bool(instance.is_good_controlled):
-        instance.control_list_entries = validated_data.get("control_list_entries")
+        instance.control_list_entries.set(validated_data.get("control_list_entries"))
     else:
-        instance.control_list_entries = ""
+        instance.control_list_entries.clear()
 
     instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
     return instance

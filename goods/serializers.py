@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from common.libraries import initialize_good_or_goods_type_control_list_entries_serializer
+from common.libraries import initialize_good_or_goods_type_control_list_entries_serializer, \
+    update_good_or_goods_type_control_list_entries_details
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
@@ -352,7 +353,6 @@ class GoodWithFlagsSerializer(GoodSerializer):
 
 
 class ClcControlGoodSerializer(serializers.ModelSerializer):
-    control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True)
     is_good_controlled = serializers.ChoiceField(
         choices=GoodControlled.choices,
         allow_null=False,
@@ -360,6 +360,7 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
         write_only=True,
         error_messages={"null": "This field is required."},
     )
+    control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
     report_summary = serializers.PrimaryKeyRelatedField(
         queryset=PicklistItem.objects.all(), required=False, allow_null=True
@@ -368,8 +369,8 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Good
         fields = (
-            "control_list_entries",
             "is_good_controlled",
+            "control_list_entries",
             "comment",
             "report_summary",
         )
