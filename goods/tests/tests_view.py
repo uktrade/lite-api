@@ -107,7 +107,7 @@ class GoodViewTests(DataTestClient):
         self.create_good(description="Thing2", org=org, control_list_entries=["ML3b"])
         self.create_good(description="item3", org=org, control_list_entries=["ML4"])
 
-        url = reverse("goods:goods") + "?control_rating=" + control_rating
+        url = reverse("goods:goods") + "?control_list_entry=" + control_rating
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["results"]
