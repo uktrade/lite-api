@@ -166,14 +166,19 @@ class SitesOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(application.application_sites.count(), 1)
 
-    def test_add_gb_site_to_transhipment_failure(self):
+    @parameterized.expand(
+        [
+            (CaseTypeEnum.SITL.id, DataTestClient.create_draft_standard_application),
+            (CaseTypeEnum.SICL.id, DataTestClient.create_draft_standard_application),
+            (CaseTypeEnum.OICL.id, DataTestClient.create_draft_open_application),
+        ]
+    )
+    def test_add_gb_sites_failure(self, case_type_id, create_function):
         """
-        Assert that it isn't possible to add sites based in GB to transhipment applications
+        Assert that it isn't possible to add sites based in GB to transhipment & trade control applications
         """
         site = SiteFactory(organisation=self.organisation)
-        transhipment = self.create_draft_standard_application(
-            organisation=self.organisation, case_type_id=CaseTypeEnum.SITL.id
-        )
+        transhipment = create_function(self, organisation=self.organisation, case_type_id=case_type_id)
 
         url = reverse("applications:application_sites", kwargs={"pk": transhipment.id})
         data = {"sites": [site.id]}
