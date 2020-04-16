@@ -380,7 +380,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_good(
         description: str,
         org: Organisation,
-        is_good_controlled: str = GoodControlled.YES,
+        is_good_controlled: str = GoodControlled.NO,
         control_list_entries: Optional[List[str]] = None,
         is_pv_graded: str = GoodPvGraded.YES,
         pv_grading_details: PvGradingDetails = None,
@@ -409,6 +409,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         good.save()
 
         if good.is_good_controlled == GoodControlled.YES:
+            if not control_list_entries:
+                raise Exception("You need to set control list entries if the good is controlled")
+
             control_list_entries = ControlListEntry.objects.filter(rating__in=control_list_entries)
             good.control_list_entries.set(control_list_entries)
 

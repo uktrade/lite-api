@@ -79,10 +79,10 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_list_entry, "ML1a")
+        self.assertEqual(verified_good.control_list_entries, "ML1a")
 
         verified_good = Good.objects.get(pk=self.good_2.pk)
-        self.assertEqual(verified_good.control_list_entry, "ML1a")
+        self.assertEqual(verified_good.control_list_entries, "ML1a")
 
     def test_verify_single_good_NLR(self):
         """
@@ -101,7 +101,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entry, "")
+        self.assertEqual(self.good_1.control_list_entries, "")
 
         # determine that flags have been removed when good verified
         self.assertEqual(self.good_1.flags.count(), 0)
@@ -124,8 +124,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         self.good_1.refresh_from_db()
         self.good_2.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entry, "")
-        self.assertEqual(self.good_2.control_list_entry, "")
+        self.assertEqual(self.good_1.control_list_entries, "")
+        self.assertEqual(self.good_2.control_list_entries, "")
 
     def test_invalid_good_pk(self):
         """
@@ -144,7 +144,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_list_entry, "")
+        self.assertEqual(verified_good.control_list_entries, "")
 
     def test_invalid_control_list_entry(self):
         """
