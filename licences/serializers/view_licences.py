@@ -49,7 +49,7 @@ class CountriesLicenceSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class PartyLicenceSerializer(serializers.ModelSerializer):
+class PartyLicenceListSerializer(serializers.ModelSerializer):
     country = CountrySerializerField()
 
     class Meta:
@@ -97,7 +97,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
 
     def get_destinations(self, instance):
         if instance.end_user:
-            return [PartyLicenceSerializer(instance.end_user.party).data]
+            return [PartyLicenceListSerializer(instance.end_user.party).data]
         elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
             return CountriesLicenceSerializer(instance.openapplication.application_countries, many=True).data
         else:
