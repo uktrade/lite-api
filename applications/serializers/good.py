@@ -29,9 +29,22 @@ class GoodOnApplicationLicenceQuantitySerializer(serializers.ModelSerializer):
 
 
 class GoodOnApplicationLicenceQuantityCreateSerializer(serializers.ModelSerializer):
-    licenced_quantity = serializers.FloatField(required=True, allow_null=False, min_value=0)
+    licenced_quantity = serializers.FloatField(
+        required=True,
+        allow_null=False,
+        min_value=0,
+        error_messages={
+            "null": "You must give a licenced quantity for the good",
+            "min_value": "You must enter a positive quantity",
+        },
+    )
     licenced_value = serializers.DecimalField(
-        max_digits=256, decimal_places=2, required=True, allow_null=False, min_value=0
+        max_digits=256,
+        decimal_places=2,
+        required=True,
+        allow_null=False,
+        min_value=0,
+        error_messages={"null": "You must give a value for the good", "min_value": "You must enter a positive value",},
     )
 
     def validate(self, data):

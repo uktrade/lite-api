@@ -4,12 +4,11 @@ from rest_framework import status
 
 from applications.enums import LicenceDuration
 from applications.libraries.licence import get_default_duration
-from applications.models import GoodOnApplication
-from cases.models import FinalAdvice
-from licences.models import Licence
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum
+from cases.models import FinalAdvice
 from conf.constants import GovPermissions
+from licences.models import Licence
 from lite_content.lite_api import strings
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
@@ -30,35 +29,6 @@ class FinaliseApplicationTests(DataTestClient):
         self.finalised_status = CaseStatus.objects.get(status="finalised")
         self.date = timezone.now()
         self.post_date = {"year": self.date.year, "month": self.date.month, "day": self.date.day}
-
-    def test_get_approved_goods_success(self):
-        # Approve the existing good
-        first_good_on_app = GoodOnApplication.objects.get(application=self.standard_application)
-        advice_text = "looks good to me"
-        self.create_advice(
-            self.gov_user, self.standard_application, "good", AdviceType.APPROVE, FinalAdvice, advice_text=advice_text
-        )
-
-        # Refuse a second good
-        second_good_on_app = self.create_good_on_application(
-            self.standard_application, self.create_good("a thing", self.organisation)
-        )
-        self.create_advice(
-            self.gov_user, self.standard_application, "", AdviceType.REFUSE, FinalAdvice, good=second_good_on_app.good
-        )
-
-        response = self.client.get(self.url, **self.gov_headers)
-        data = response.json()["goods"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["id"], str(first_good_on_app.id))
-        self.assertEqual(data[0]["good"]["id"], str(first_good_on_app.good.id))
-        self.assertEqual(data[0]["good"]["description"], first_good_on_app.good.description)
-        self.assertEqual(data[0]["quantity"], first_good_on_app.quantity)
-        self.assertEqual(data[0]["value"], str(first_good_on_app.value))
-        self.assertEqual(data[0]["advice"]["type"]["key"], AdviceType.APPROVE)
-        self.assertEqual(data[0]["advice"]["text"], advice_text)
 
     def test_approve_application_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
@@ -187,3 +157,149 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.json()["application"], str(self.standard_application.id))
         self.assertEqual(self.standard_application.status, self.finalised_status)
         self.assertEqual(Audit.objects.count(), 1)
+
+
+class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
+    def test_get_approved_goods_success(self):
+        self.standard_application = self.create_standard_application_case(self.organisation)
+        self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
+
+        # Approve the existing good
+        advice_text = "looks good to me"
+        self.create_advice(
+            self.gov_user, self.standard_application, "good", AdviceType.APPROVE, FinalAdvice, advice_text=advice_text
+        )
+
+        # Refuse a second good
+        second_good_on_app = self.create_good_on_application(
+            self.standard_application, self.create_good("a thing", self.organisation)
+        )
+        self.create_advice(
+            self.gov_user, self.standard_application, "", AdviceType.REFUSE, FinalAdvice, good=second_good_on_app.good
+        )
+
+        response = self.client.get(self.url, **self.gov_headers)
+        data = response.json()["goods"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["id"], str(self.good_on_application.id))
+        self.assertEqual(data[0]["good"]["id"], str(self.good_on_application.good.id))
+        self.assertEqual(data[0]["good"]["description"], self.good_on_application.good.description)
+        self.assertEqual(data[0]["quantity"], self.good_on_application.quantity)
+        self.assertEqual(data[0]["value"].split(".")[0], str(self.good_on_application.value))
+        self.assertEqual(data[0]["advice"]["type"]["key"], AdviceType.APPROVE)
+        self.assertEqual(data[0]["advice"]["text"], advice_text)
+
+
+class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
+        self.standard_application = self.create_standard_application_case(self.organisation)
+        self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
+        self.date = timezone.now()
+        self.data = {
+            "action": AdviceType.APPROVE,
+            "duration": get_default_duration(self.standard_application),
+            "year": self.date.year,
+            "month": self.date.month,
+            "day": self.date.day,
+        }
+        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, FinalAdvice)
+
+    def test_approve_success(self):
+        self.data[f"quantity-{self.good_on_application.id}"] = self.good_on_application.quantity
+        self.data[f"value-{self.good_on_application.id}"] = 1
+
+        response = self.client.put(self.url, data=self.data, **self.gov_headers)
+        response_data = response.json()
+        self.good_on_application.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["application"], str(self.standard_application.id))
+        self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
+        self.assertEqual(self.good_on_application.licenced_quantity, self.good_on_application.quantity)
+        self.assertEqual(self.good_on_application.licenced_value, 1)
+
+    def test_approve_no_value_failure(self):
+        self.data[f"quantity-{self.good_on_application.id}"] = self.good_on_application.quantity
+
+        response = self.client.put(self.url, data=self.data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data, {"errors": {f"value-{self.good_on_application.id}": ["You must give a value for the good"]}}
+        )
+
+    def test_approve_no_quantity_failure(self):
+        self.data[f"value-{self.good_on_application.id}"] = 1
+
+        response = self.client.put(self.url, data=self.data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data,
+            {"errors": {f"quantity-{self.good_on_application.id}": ["You must give a licenced quantity for the good"]}},
+        )
+
+    def test_approve_no_data_failure(self):
+        response = self.client.put(self.url, data=self.data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data,
+            {
+                "errors": {
+                    f"quantity-{self.good_on_application.id}": ["You must give a licenced quantity for the good"],
+                    f"value-{self.good_on_application.id}": ["You must give a value for the good"],
+                }
+            },
+        )
+
+    def test_approve_negative_quantity_failure(self):
+        self.data[f"quantity-{self.good_on_application.id}"] = -1
+        self.data[f"value-{self.good_on_application.id}"] = 1
+
+        response = self.client.put(self.url, data=self.data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data,
+            {"errors": {f"quantity-{self.good_on_application.id}": ["You must enter a positive quantity"]}},
+        )
+
+    def test_approve_negative_value_failure(self):
+        self.data[f"quantity-{self.good_on_application.id}"] = 1
+        self.data[f"value-{self.good_on_application.id}"] = -1
+
+        response = self.client.put(self.url, data=self.data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data, {"errors": {f"value-{self.good_on_application.id}": ["You must enter a positive value"]}}
+        )
+
+    def test_approve_quantity_greater_than_applied_for_failure(self):
+        self.data[f"quantity-{self.good_on_application.id}"] = self.good_on_application.quantity + 1
+        self.data[f"value-{self.good_on_application.id}"] = 1
+
+        response = self.client.put(self.url, data=self.data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data,
+            {
+                "errors": {
+                    f"quantity-{self.good_on_application.id}": [
+                        "Licenced quantity cannot be greater than the applied for quantity"
+                    ]
+                }
+            },
+        )
