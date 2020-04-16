@@ -1,0 +1,29 @@
+import factory
+
+from goods import models
+from goods.enums import GoodControlled
+from static.control_list_entries.helpers import get_control_list_entry
+
+
+class GoodFactory(factory.django.DjangoModelFactory):
+    description = factory.Faker("word")
+    is_good_controlled = GoodControlled.NO
+    part_number = factory.Faker("ean13")
+    organisation = None
+
+    class Meta:
+        model = models.Good
+
+    @factory.post_generation
+    def control_list_entries(self, create, extracted, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        # Use provided control list entries or generate one if the good is controlled
+        if self.is_good_controlled == GoodControlled.YES:
+            if not extracted:
+                extracted = ["ML1a"]
+
+            for control_list_entry in extracted:
+                self.control_list_entries.add(get_control_list_entry(control_list_entry))

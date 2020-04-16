@@ -1,9 +1,11 @@
+from django.test import tag
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from goods.enums import GoodControlled
 from goods.models import Good
+from goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
 from users.libraries.user_to_token import user_to_token
@@ -62,39 +64,28 @@ class GoodViewTests(DataTestClient):
         self.assertEqual(len(response_data), 3)
 
     def test_view_good__query_filter_by_part_number_and_combinations(self):
-        org = self.organisation
-
-        # create a set of Goods for the test
-        Good.objects.create(
+        GoodFactory(
             description="car1",
-            is_good_controlled=GoodControlled.YES,
-            control_list_entry="ML1",
             part_number="cl500",
-            organisation=org,
+            organisation=self.organisation,
         )
 
-        Good.objects.create(
+        GoodFactory(
             description="Car2",
-            is_good_controlled=GoodControlled.YES,
-            control_list_entry="ML1",
             part_number="CL300",
-            organisation=org,
+            organisation=self.organisation,
         )
 
-        Good.objects.create(
+        GoodFactory(
             description="car3",
-            is_good_controlled=GoodControlled.YES,
-            control_list_entry="ML1",
             part_number="ML500",
-            organisation=org,
+            organisation=self.organisation,
         )
 
-        Good.objects.create(
+        GoodFactory(
             description="Truck",
-            is_good_controlled=GoodControlled.YES,
-            control_list_entry="ML1",
             part_number="CL1000",
-            organisation=org,
+            organisation=self.organisation,
         )
 
         url = reverse("goods:goods") + "?part_number=cl"

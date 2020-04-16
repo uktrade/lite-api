@@ -38,7 +38,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         GoodOnApplication(good=self.good_1, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
         GoodOnApplication(good=self.good_2, application=self.application, quantity=10, unit=Units.NAR, value=500).save()
         self.case = self.submit_application(self.application)
-        self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": self.case.id})
+        self.url = reverse_lazy("goods:control_list_entry", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):
         """
@@ -241,7 +241,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.good_2 = GoodsTypeFactory(application=self.application)
 
         self.case = self.submit_application(self.application)
-        self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": self.case.id})
+        self.url = reverse_lazy("goods:control_list_entry", kwargs={"case_pk": self.case.id})
 
     def test_verify_single_good(self):
         """
