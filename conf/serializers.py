@@ -34,7 +34,7 @@ class PrimaryKeyRelatedSerializerField(PrimaryKeyRelatedField):
         return False
 
     def to_representation(self, value):
-        return self.serializer(value, many=isinstance(value, Iterable)).data
+        return self.serializer(value, many=self.many).data
 
 
 class CountrySerializerField(PrimaryKeyRelatedSerializerField):
@@ -142,7 +142,7 @@ class ControlListEntryField(PrimaryKeyRelatedSerializerField):
 
         super().__init__(
             queryset=ControlListEntry.objects.all(),
-            many=kwargs.get("many", True),
+            many=kwargs.get("many"),
             serializer=ControlListEntryViewSerializer,
             error_messages={"null": "bad rating"},
             **kwargs,
