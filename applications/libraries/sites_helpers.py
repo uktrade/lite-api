@@ -36,8 +36,8 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
     # Transhipment and Trade Control applications can't have sites based in certain countries
     if application.case_type.id in CaseTypeEnum.trade_control_case_type_ids():
         banned_sites = new_sites.filter(
-            address__country__id__in=TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES
-        ).values_list("address__country__id", flat=True)
+            address__country_id__in=TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES
+        ).values_list("address__country_id", flat=True)
 
         if banned_sites:
             raise ValidationError(

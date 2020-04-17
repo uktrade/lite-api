@@ -7,43 +7,77 @@ import separatedvaluesfield.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0025_auto_20200414_1617'),
+        ("applications", "0025_auto_20200414_1617"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='openapplication',
-            name='trade_control_activity',
-            field=models.CharField(choices=[('transfer_of_goods', 'Transfer of goods'), ('provision_of_transportation', 'Transportation services'), ('provision_of_finance', 'Finance or financial services'), ('provision_of_insurance', 'Insurance or reinsurance'), ('provision_of_advertising', 'General advertising or promotion services'), ('maritime_anti_piracy', 'Maritime anti-piracy'), ('other', 'Other')], max_length=100, null=True),
+            model_name="openapplication",
+            name="trade_control_activity",
+            field=models.CharField(
+                choices=[
+                    ("transfer_of_goods", "Transfer of goods"),
+                    ("provision_of_transportation", "Transportation services"),
+                    ("provision_of_finance", "Finance or financial services"),
+                    ("provision_of_insurance", "Insurance or reinsurance"),
+                    ("provision_of_advertising", "General advertising or promotion services"),
+                    ("maritime_anti_piracy", "Maritime anti-piracy"),
+                    ("other", "Other"),
+                ],
+                max_length=100,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='openapplication',
-            name='trade_control_activity_other',
+            model_name="openapplication",
+            name="trade_control_activity_other",
             field=models.CharField(max_length=100, null=True),
         ),
         migrations.AddField(
-            model_name='openapplication',
-            name='trade_control_product_categories',
-            field=separatedvaluesfield.models.SeparatedValuesField(choices=[('category_a', 'Category A'), ('category_b', 'Category B'), ('category_c', 'Category C')], max_length=50, null=True),
+            model_name="openapplication",
+            name="trade_control_product_categories",
+            field=separatedvaluesfield.models.SeparatedValuesField(
+                choices=[("category_a", "Category A"), ("category_b", "Category B"), ("category_c", "Category C")],
+                max_length=50,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='standardapplication',
-            name='trade_control_activity',
-            field=models.CharField(choices=[('transfer_of_goods', 'Transfer of goods'), ('provision_of_transportation', 'Transportation services'), ('provision_of_finance', 'Finance or financial services'), ('provision_of_insurance', 'Insurance or reinsurance'), ('provision_of_advertising', 'General advertising or promotion services'), ('maritime_anti_piracy', 'Maritime anti-piracy'), ('other', 'Other')], max_length=100, null=True),
+            model_name="standardapplication",
+            name="trade_control_activity",
+            field=models.CharField(
+                choices=[
+                    ("transfer_of_goods", "Transfer of goods"),
+                    ("provision_of_transportation", "Transportation services"),
+                    ("provision_of_finance", "Finance or financial services"),
+                    ("provision_of_insurance", "Insurance or reinsurance"),
+                    ("provision_of_advertising", "General advertising or promotion services"),
+                    ("maritime_anti_piracy", "Maritime anti-piracy"),
+                    ("other", "Other"),
+                ],
+                max_length=100,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='standardapplication',
-            name='trade_control_activity_other',
+            model_name="standardapplication",
+            name="trade_control_activity_other",
             field=models.CharField(max_length=100, null=True),
         ),
         migrations.AddField(
-            model_name='standardapplication',
-            name='trade_control_product_categories',
-            field=separatedvaluesfield.models.SeparatedValuesField(choices=[('category_a', 'Category A'), ('category_b', 'Category B'), ('category_c', 'Category C')], max_length=50, null=True),
+            model_name="standardapplication",
+            name="trade_control_product_categories",
+            field=separatedvaluesfield.models.SeparatedValuesField(
+                choices=[("category_a", "Category A"), ("category_b", "Category B"), ("category_c", "Category C")],
+                max_length=50,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='standardapplication',
-            name='have_you_been_informed',
-            field=models.CharField(blank=True, choices=[('yes', 'Yes'), ('no', 'No')], default=None, max_length=50, null=True),
+            model_name="standardapplication",
+            name="have_you_been_informed",
+            field=models.CharField(
+                blank=True, choices=[("yes", "Yes"), ("no", "No")], default=None, max_length=50, null=True
+            ),
         ),
     ]

@@ -144,7 +144,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
         super().__init__(case_type_id, **kwargs)
         self.trade_control_licence = case_type_id in [str(CaseTypeEnum.SICL.id), str(CaseTypeEnum.OICL.id)]
 
-        # Add or Remove fields from serializer depending the application being for a Trade Control Licence
+        # Remove fields from serializer depending on the application being for a Trade Control Licence
         if self.trade_control_licence:
             self.fields.pop("export_type")
             self.fields.pop("have_you_been_informed")
