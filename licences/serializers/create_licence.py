@@ -19,9 +19,10 @@ class LicenceCreateSerializer(serializers.ModelSerializer):
         """
         Check that the duration is valid
         """
-        super().validate(data)
-        if data.get("duration") and (
-            data["duration"] > LicenceDuration.MAX.value or data["duration"] < LicenceDuration.MIN.value
+        validated_data = super().validate(data)
+        if (
+            validated_data["duration"] > LicenceDuration.MAX.value
+            or validated_data["duration"] < LicenceDuration.MIN.value
         ):
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return data
