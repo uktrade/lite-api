@@ -230,7 +230,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response_data, {"errors": {f"value-{self.good_on_application.id}": ["You must give a value for the good"]}}
+            response_data, {"errors": {f"value-{self.good_on_application.id}": [strings.Licence.NULL_VALUE_ERROR]}}
         )
 
     def test_approve_no_quantity_failure(self):
@@ -242,7 +242,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response_data,
-            {"errors": {f"quantity-{self.good_on_application.id}": ["You must give a licenced quantity for the good"]}},
+            {"errors": {f"quantity-{self.good_on_application.id}": [strings.Licence.NULL_QUANTITY_ERROR]}},
         )
 
     def test_approve_no_data_failure(self):
@@ -254,8 +254,8 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
             response_data,
             {
                 "errors": {
-                    f"quantity-{self.good_on_application.id}": ["You must give a licenced quantity for the good"],
-                    f"value-{self.good_on_application.id}": ["You must give a value for the good"],
+                    f"quantity-{self.good_on_application.id}": [strings.Licence.NULL_QUANTITY_ERROR],
+                    f"value-{self.good_on_application.id}": [strings.Licence.NULL_VALUE_ERROR],
                 }
             },
         )
@@ -270,7 +270,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response_data,
-            {"errors": {f"quantity-{self.good_on_application.id}": ["You must enter a positive quantity"]}},
+            {"errors": {f"quantity-{self.good_on_application.id}": [strings.Licence.NEGATIVE_QUANTITY_ERROR]}},
         )
 
     def test_approve_negative_value_failure(self):
@@ -282,7 +282,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response_data, {"errors": {f"value-{self.good_on_application.id}": ["You must enter a positive value"]}}
+            response_data, {"errors": {f"value-{self.good_on_application.id}": [strings.Licence.NEGATIVE_VALUE_ERROR]}}
         )
 
     def test_approve_quantity_greater_than_applied_for_failure(self):
@@ -295,11 +295,5 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response_data,
-            {
-                "errors": {
-                    f"quantity-{self.good_on_application.id}": [
-                        "Licenced quantity cannot be greater than the applied for quantity"
-                    ]
-                }
-            },
+            {"errors": {f"quantity-{self.good_on_application.id}": [strings.Licence.INVALID_QUANTITY_ERROR]}},
         )

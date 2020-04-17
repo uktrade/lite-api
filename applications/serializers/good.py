@@ -34,8 +34,8 @@ class GoodOnApplicationLicenceQuantityCreateSerializer(serializers.ModelSerializ
         allow_null=False,
         min_value=0,
         error_messages={
-            "null": "You must give a licenced quantity for the good",
-            "min_value": "You must enter a positive quantity",
+            "null": strings.Licence.NULL_QUANTITY_ERROR,
+            "min_value": strings.Licence.NEGATIVE_QUANTITY_ERROR,
         },
     )
     licenced_value = serializers.DecimalField(
@@ -44,14 +44,12 @@ class GoodOnApplicationLicenceQuantityCreateSerializer(serializers.ModelSerializ
         required=True,
         allow_null=False,
         min_value=0,
-        error_messages={"null": "You must give a value for the good", "min_value": "You must enter a positive value",},
+        error_messages={"null": strings.Licence.NULL_VALUE_ERROR, "min_value": strings.Licence.NEGATIVE_VALUE_ERROR,},
     )
 
     def validate(self, data):
         if data["licenced_quantity"] > self.instance.quantity:
-            raise serializers.ValidationError(
-                {"licenced_quantity": "Licenced quantity cannot be greater than the applied for quantity"}
-            )
+            raise serializers.ValidationError({"licenced_quantity": strings.Licence.INVALID_QUANTITY_ERROR})
         return data
 
     class Meta:
