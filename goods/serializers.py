@@ -196,12 +196,12 @@ class GoodSerializer(serializers.ModelSerializer):
 
         return None
 
-    # def validate(self, value):
-    #     is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
-    #     if is_controlled_good and not value.get("control_list_entries"):
-    #         raise serializers.ValidationError("Control Code must be set when good is controlled")
-    #
-    #     return value
+    def validate(self, value):
+        is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
+        if is_controlled_good and not value.get("control_list_entries"):
+            raise serializers.ValidationError("Control Code must be set when good is controlled")
+
+        return value
 
     def create(self, validated_data):
         if "pv_grading_details" in validated_data and validated_data["pv_grading_details"]:
