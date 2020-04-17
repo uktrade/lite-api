@@ -616,6 +616,10 @@ class ApplicationCopy(APIView):
         # Get all f680 clearance types
         self.duplicate_f680_clearance_types()
 
+        # Remove usage & licenced quantity/ value
+        self.new_application.goods.update(usage=0, licenced_quantity=None, licenced_value=None)
+        self.new_application.goods_type.update(usage=0)
+
         # Save
         self.new_application.created_at = now()
         self.new_application.save()
