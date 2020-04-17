@@ -34,7 +34,7 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
         raise ValidationError({"sites": [f"Application status {application.status.status} is read-only"]})
 
     # Transhipment and Trade Control applications can't have sites based in certain countries
-    if application.case_type.id in CaseTypeEnum.trade_control_case_type_ids() + CaseTypeEnum.SITL.id:
+    if application.case_type.id in [*CaseTypeEnum.trade_control_case_type_ids(), CaseTypeEnum.SITL.id]:
         banned_sites = new_sites.filter(
             address__country_id__in=TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES
         ).values_list("address__country_id", flat=True)
