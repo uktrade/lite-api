@@ -199,7 +199,7 @@ class GoodSerializer(serializers.ModelSerializer):
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
         if is_controlled_good and not value.get("control_list_entries"):
-            raise serializers.ValidationError("Control Code must be set when good is controlled")
+            raise serializers.ValidationError({"control_list_entries": ["At least one control list entry must be set when the product is controlled"]})
 
         return value
 
