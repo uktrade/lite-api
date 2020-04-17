@@ -738,3 +738,14 @@ class AdditionalContacts(ListCreateAPIView):
             target=get_case(self.kwargs["pk"]),
             payload={"contact": serializer.data["name"]},
         )
+
+
+class RerunRoutingRules(APIView):
+    def put(self, request, pk):
+        # is permission required?
+        case = get_case(pk)
+
+        # clear queues and assignments
+        # run routing rules from scratch for status
+
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
