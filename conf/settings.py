@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "goodstype",
     "gov_users",
     "letter_templates",
+    "licences",
     "organisations",
     "parties",
     "picklists",
@@ -64,6 +65,7 @@ INSTALLED_APPS = [
     "queues",
     "rest_framework",
     "static",
+    "static.case_types",
     "static.control_list_entries",
     "static.countries",
     "static.decisions",
@@ -72,12 +74,12 @@ INSTALLED_APPS = [
     "static.letter_layouts",
     "static.private_venture_gradings",
     "static.statuses",
+    "static.trade_control",
     "static.units",
     "static.upload_document_for_tests",
     "teams",
     "users",
     "workflow.routing_rules",
-    "licences",
 ]
 
 MIDDLEWARE = [
