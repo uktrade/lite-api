@@ -741,9 +741,15 @@ class AdditionalContacts(ListCreateAPIView):
 
 
 class RerunRoutingRules(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def put(self, request, pk):
         # is permission required?
         case = get_case(pk)
+
+        audit_trail_service.create(
+            actor=request.user, verb=AuditType.RERUN_ROUTING_RULES, target=case,
+        )
 
         # clear queues and assignments
         # run routing rules from scratch for status
