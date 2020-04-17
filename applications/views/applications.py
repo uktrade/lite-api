@@ -431,7 +431,7 @@ class ApplicationFinaliseView(APIView):
 
     def dispatch(self, request, *args, **kwargs):
         approved_good_decisions = FinalAdvice.objects.filter(
-            case__id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+            case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
         ).values_list("good", flat=True)
         self.approved_goods = GoodOnApplication.objects.filter(good__in=approved_good_decisions)
         return super(ApplicationFinaliseView, self).dispatch(request, *args, **kwargs)
@@ -442,7 +442,7 @@ class ApplicationFinaliseView(APIView):
         """
         approved_good_ids = self.approved_goods.values_list("good__id", flat=True)
         goods = GoodOnApplicationLicenceQuantitySerializer(self.approved_goods, many=True).data
-        advice = FinalAdvice.objects.filter(good__id__in=approved_good_ids)
+        advice = FinalAdvice.objects.filter(good_id__in=approved_good_ids)
 
         for good_advice in advice:
             for good in goods:
