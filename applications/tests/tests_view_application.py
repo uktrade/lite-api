@@ -327,9 +327,9 @@ class DraftTests(DataTestClient):
     )
     def test_trade_control_application(self, case_type_id, create_function):
         application = create_function(self, self.organisation, case_type_id=case_type_id)
-        application.tc_activity = TradeControlActivity.OTHER
-        application.tc_activity_other = "other activity"
-        application.tc_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        application.trade_control_activity = TradeControlActivity.OTHER
+        application.trade_control_activity_other = "other activity"
+        application.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
         application.save()
 
         url = reverse("applications:application", kwargs={"pk": application.id})
@@ -338,8 +338,10 @@ class DraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = response.json()
 
-        tc_activity = response["tc_activity"]["value"]
-        self.assertEqual(tc_activity, application.tc_activity_other)
+        trade_control_activity = response["trade_control_activity"]["value"]
+        self.assertEqual(trade_control_activity, application.trade_control_activity_other)
 
-        tc_product_categories = [category["key"] for category in response["tc_product_categories"]]
-        self.assertEqual(tc_product_categories, application.tc_product_categories)
+        trade_control_product_categories = [
+            category["key"] for category in response["trade_control_product_categories"]
+        ]
+        self.assertEqual(trade_control_product_categories, application.trade_control_product_categories)

@@ -158,9 +158,9 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
     )
 
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        goods_categories, tc_activity = StandardApplication.objects.values_list("goods_categories", "tc_activity").get(
-            pk=application.pk
-        )
+        goods_categories, trade_control_activity = StandardApplication.objects.values_list(
+            "goods_categories", "trade_control_activity"
+        ).get(pk=application.pk)
 
         _add_or_remove_flag(
             case=case,
@@ -168,19 +168,21 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
             is_adding=GoodsCategory.MARITIME_ANTI_PIRACY in (goods_categories or [])
             or (
                 application.case_type.id == CaseTypeEnum.SICL.id
-                and tc_activity == TradeControlActivity.MARITIME_ANTI_PIRACY
+                and trade_control_activity == TradeControlActivity.MARITIME_ANTI_PIRACY
             ),
         )
         _add_or_remove_flag(
             case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=GoodsCategory.FIREARMS in (goods_categories or []),
         )
     elif application.case_type.id == CaseTypeEnum.OICL.id:
-        tc_activity = OpenApplication.objects.values_list("tc_activity", flat=True).get(pk=application.pk)
+        trade_control_activity = OpenApplication.objects.values_list("trade_control_activity", flat=True).get(
+            pk=application.pk
+        )
 
         _add_or_remove_flag(
             case=case,
             flag_id=SystemFlags.MARITIME_ANTI_PIRACY_ID,
-            is_adding=tc_activity == TradeControlActivity.MARITIME_ANTI_PIRACY,
+            is_adding=trade_control_activity == TradeControlActivity.MARITIME_ANTI_PIRACY,
         )
 
 

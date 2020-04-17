@@ -225,9 +225,9 @@ class DraftTests(DataTestClient):
         data = {
             "name": "Test",
             "application_type": case_type,
-            "tc_activity": TradeControlActivity.OTHER,
-            "tc_activity_other": "other activity type",
-            "tc_product_categories": [key for key, _ in TradeControlProductCategory.choices],
+            "trade_control_activity": TradeControlActivity.OTHER,
+            "trade_control_activity_other": "other activity type",
+            "trade_control_product_categories": [key for key, _ in TradeControlProductCategory.choices],
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -236,32 +236,42 @@ class DraftTests(DataTestClient):
         application_id = response.json()["id"]
         application = model.objects.get(id=application_id)
 
-        self.assertEqual(application.tc_activity, data["tc_activity"])
-        self.assertEqual(application.tc_activity_other, data["tc_activity_other"])
-        self.assertEqual(set(application.tc_product_categories), set(data["tc_product_categories"]))
+        self.assertEqual(application.trade_control_activity, data["trade_control_activity"])
+        self.assertEqual(application.trade_control_activity_other, data["trade_control_activity_other"])
+        self.assertEqual(
+            set(application.trade_control_product_categories), set(data["trade_control_product_categories"])
+        )
 
     @parameterized.expand(
         [
-            (CaseTypeEnum.SICL.reference, "tc_activity", strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR),
             (
                 CaseTypeEnum.SICL.reference,
-                "tc_activity_other",
+                "trade_control_activity",
+                strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR,
+            ),
+            (
+                CaseTypeEnum.SICL.reference,
+                "trade_control_activity_other",
                 strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
             ),
             (
                 CaseTypeEnum.SICL.reference,
-                "tc_product_categories",
+                "trade_control_product_categories",
                 strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR,
             ),
-            (CaseTypeEnum.OICL.reference, "tc_activity", strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR),
             (
                 CaseTypeEnum.OICL.reference,
-                "tc_activity_other",
+                "trade_control_activity",
+                strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR,
+            ),
+            (
+                CaseTypeEnum.OICL.reference,
+                "trade_control_activity_other",
                 strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
             ),
             (
                 CaseTypeEnum.OICL.reference,
-                "tc_product_categories",
+                "trade_control_product_categories",
                 strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR,
             ),
         ]
@@ -270,9 +280,9 @@ class DraftTests(DataTestClient):
         data = {
             "name": "Test",
             "application_type": case_type,
-            "tc_activity": TradeControlActivity.OTHER,
-            "tc_activity_other": "other activity type",
-            "tc_product_categories": [key for key, _ in TradeControlProductCategory.choices],
+            "trade_control_activity": TradeControlActivity.OTHER,
+            "trade_control_activity_other": "other activity type",
+            "trade_control_product_categories": [key for key, _ in TradeControlProductCategory.choices],
         }
         data.pop(missing_field)
 

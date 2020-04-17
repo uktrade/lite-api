@@ -52,12 +52,14 @@ class CopyApplicationSuccessTests(DataTestClient):
 
     def test_copy_draft_standard_trade_control_application_successful(self):
         """
-        Ensure we can copy a standard application that is a draft
+        Ensure we can copy a standard trade control application that is a draft
         """
         self.original_application = self.create_draft_standard_application(self.organisation)
-        self.original_application.tc_activity = TradeControlActivity.OTHER
-        self.original_application.tc_activity_other = "other activity"
-        self.original_application.tc_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        self.original_application.trade_control_activity = TradeControlActivity.OTHER
+        self.original_application.trade_control_activity_other = "other activity"
+        self.original_application.trade_control_product_categories = [
+            key for key, _ in TradeControlProductCategory.choices
+        ]
         self.original_application.save()
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -186,9 +188,11 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.original_application = self.create_draft_open_application(
             self.organisation, case_type_id=CaseTypeEnum.OICL.id
         )
-        self.original_application.tc_activity = TradeControlActivity.OTHER
-        self.original_application.tc_activity_other = "other activity"
-        self.original_application.tc_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        self.original_application.trade_control_activity = TradeControlActivity.OTHER
+        self.original_application.trade_control_activity_other = "other activity"
+        self.original_application.trade_control_product_categories = [
+            key for key, _ in TradeControlProductCategory.choices
+        ]
         self.original_application.save()
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
@@ -466,9 +470,12 @@ class CopyApplicationSuccessTests(DataTestClient):
 
     def _validate_trade_control_details(self):
         if self.original_application.case_type.id in [CaseTypeEnum.SICL.id, CaseTypeEnum.OICL.id]:
-            self.assertEqual(self.original_application.tc_activity, self.copied_application.tc_activity)
             self.assertEqual(
-                self.original_application.tc_product_categories, self.copied_application.tc_product_categories
+                self.original_application.trade_control_activity, self.copied_application.trade_control_activity
+            )
+            self.assertEqual(
+                self.original_application.trade_control_product_categories,
+                self.copied_application.trade_control_product_categories,
             )
 
     def _validate_exhibition_application(self):

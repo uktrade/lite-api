@@ -410,8 +410,8 @@ class StandardApplicationTests(DataTestClient):
 
     def test_submit_standard_trade_control_application_maritime_activity_adds_flag(self):
         self.draft.case_type = CaseType.objects.get(id=CaseTypeEnum.SICL.id)
-        self.draft.tc_activity = TradeControlActivity.MARITIME_ANTI_PIRACY
-        self.draft.tc_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        self.draft.trade_control_activity = TradeControlActivity.MARITIME_ANTI_PIRACY
+        self.draft.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
         self.draft.save()
         data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
 

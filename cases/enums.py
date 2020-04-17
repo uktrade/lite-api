@@ -217,6 +217,10 @@ class CaseTypeEnum:
 
         return case_type_ids
 
+    @classmethod
+    def trade_control_case_type_ids(cls):
+        return [cls.SITL.id, cls.SICL.id, cls.OICL.id]
+
 
 class AdviceType:
     APPROVE = "approve"

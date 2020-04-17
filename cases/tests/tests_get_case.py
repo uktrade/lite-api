@@ -106,9 +106,9 @@ class CaseGetTests(DataTestClient):
     )
     def test_trade_control_case(self, case_type_id, create_function):
         application = create_function(self, self.organisation, case_type_id=case_type_id)
-        application.tc_activity = TradeControlActivity.OTHER
-        application.tc_activity_other = "other activity"
-        application.tc_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        application.trade_control_activity = TradeControlActivity.OTHER
+        application.trade_control_activity_other = "other activity"
+        application.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
         case = self.submit_application(application)
 
         url = reverse("cases:case", kwargs={"pk": case.id})
@@ -117,8 +117,10 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case_application = response.json()["case"]["application"]
 
-        tc_activity = case_application["tc_activity"]["value"]
-        self.assertEqual(tc_activity, case.tc_activity_other)
+        trade_control_activity = case_application["trade_control_activity"]["value"]
+        self.assertEqual(trade_control_activity, case.trade_control_activity_other)
 
-        tc_product_categories = [category["key"] for category in case_application["tc_product_categories"]]
-        self.assertEqual(tc_product_categories, case.tc_product_categories)
+        trade_control_product_categories = [
+            category["key"] for category in case_application["trade_control_product_categories"]
+        ]
+        self.assertEqual(trade_control_product_categories, case.trade_control_product_categories)
