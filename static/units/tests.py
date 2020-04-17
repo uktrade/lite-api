@@ -17,7 +17,7 @@ class UnitsTests(DataTestClient):
         self.assertEqual(units["NAR"], "Number of articles")
 
 
-class unitsResponseTests(EndPointTests):
+class UnitsResponseTests(EndPointTests):
     url = "/static/units/"
 
     def test_units(self):

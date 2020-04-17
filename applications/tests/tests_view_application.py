@@ -13,6 +13,7 @@ from cases.enums import CaseTypeEnum
 from goodstype.models import GoodsType
 from organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
+from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_user_organisation_relationship
 
@@ -317,3 +318,30 @@ class DraftTests(DataTestClient):
 
         response = self.client.get(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @parameterized.expand(
+        [
+            (CaseTypeEnum.SICL.id, DataTestClient.create_draft_standard_application),
+            (CaseTypeEnum.OICL.id, DataTestClient.create_draft_open_application),
+        ]
+    )
+    def test_trade_control_application(self, case_type_id, create_function):
+        application = create_function(self, self.organisation, case_type_id=case_type_id)
+        application.trade_control_activity = TradeControlActivity.OTHER
+        application.trade_control_activity_other = "other activity"
+        application.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        application.save()
+
+        url = reverse("applications:application", kwargs={"pk": application.id})
+        response = self.client.get(url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = response.json()
+
+        trade_control_activity = response["trade_control_activity"]["value"]
+        self.assertEqual(trade_control_activity, application.trade_control_activity_other)
+
+        trade_control_product_categories = [
+            category["key"] for category in response["trade_control_product_categories"]
+        ]
+        self.assertEqual(trade_control_product_categories, application.trade_control_product_categories)

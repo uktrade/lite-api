@@ -713,10 +713,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_draft_open_application(self, organisation: Organisation, reference_name="Open Draft"):
+    def create_draft_open_application(
+        self, organisation: Organisation, reference_name="Open Draft", case_type_id=CaseTypeEnum.OIEL.id
+    ):
         application = OpenApplication(
             name=reference_name,
-            case_type_id=CaseTypeEnum.OIEL.id,
+            case_type_id=case_type_id,
             export_type=ApplicationExportType.PERMANENT,
             activity="Trade",
             usage="Trade",

@@ -1,8 +1,11 @@
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
+from cases.enums import CaseTypeEnum
 from flags.enums import SystemFlags
 from flags.models import Flag
+from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
 
@@ -94,3 +97,30 @@ class CaseGetTests(DataTestClient):
         self.assertIn("team", has_advice_response_data)
         self.assertIn("my_team", has_advice_response_data)
         self.assertIn("final", has_advice_response_data)
+
+    @parameterized.expand(
+        [
+            (CaseTypeEnum.SICL.id, DataTestClient.create_draft_standard_application),
+            (CaseTypeEnum.OICL.id, DataTestClient.create_draft_open_application),
+        ]
+    )
+    def test_trade_control_case(self, case_type_id, create_function):
+        application = create_function(self, self.organisation, case_type_id=case_type_id)
+        application.trade_control_activity = TradeControlActivity.OTHER
+        application.trade_control_activity_other = "other activity"
+        application.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        case = self.submit_application(application)
+
+        url = reverse("cases:case", kwargs={"pk": case.id})
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        case_application = response.json()["case"]["application"]
+
+        trade_control_activity = case_application["trade_control_activity"]["value"]
+        self.assertEqual(trade_control_activity, case.trade_control_activity_other)
+
+        trade_control_product_categories = [
+            category["key"] for category in case_application["trade_control_product_categories"]
+        ]
+        self.assertEqual(trade_control_product_categories, case.trade_control_product_categories)
