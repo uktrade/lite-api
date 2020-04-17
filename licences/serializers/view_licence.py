@@ -149,13 +149,13 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
     def get_goods(self, instance):
         if instance.goods.exists():
             approved_goods = FinalAdvice.objects.filter(
-                case__id=instance.id, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+                case_id=instance.id, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
             ).values_list("good", flat=True)
             goods = instance.goods.filter(good_id__in=approved_goods)
             return GoodOnLicenceSerializer(goods, many=True).data
         elif instance.goods_type.exists():
             approved_goods = FinalAdvice.objects.filter(
-                case__id=instance.id, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+                case_id=instance.id, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
             ).values_list("goods_type", flat=True)
             goods = instance.goods_type.filter(id__in=approved_goods)
             return GoodsTypeOnLicenceSerializer(goods, many=True).data
