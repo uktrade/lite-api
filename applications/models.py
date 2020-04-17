@@ -170,7 +170,7 @@ class BaseApplication(ApplicationPartyMixin, Case):
 # Licence Applications
 class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
-    reference_number_on_information_form = models.CharField(blank=True, null=True, default=None, max_length=255)
+    reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, blank=True, null=True, default=None, max_length=50,
     )
