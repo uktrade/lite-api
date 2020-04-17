@@ -214,7 +214,7 @@ class GoodSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
-        instance.control_list_entries = validated_data.get("control_list_entries", "")
+        instance.control_list_entries.set(validated_data.get("control_list_entries", instance.control_list_entries))
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
