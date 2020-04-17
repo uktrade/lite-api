@@ -180,7 +180,6 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
         super().__init__(**kwargs)
         self.initial_data["case_type"] = case_type_id
         self.initial_data["organisation"] = self.context.id
-        self.initial_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT).id
 
     name = CharField(
         max_length=100,
@@ -192,13 +191,6 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
     case_type = PrimaryKeyRelatedField(
         queryset=CaseType.objects.all(), error_messages={"required": strings.Applications.Generic.NO_LICENCE_TYPE},
     )
-    export_type = KeyValueChoiceField(
-        choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
-    )
-    have_you_been_informed = KeyValueChoiceField(
-        choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
-    )
-    reference_number_on_information_form = CharField(allow_blank=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
@@ -207,12 +199,12 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "case_type",
-            "export_type",
-            "have_you_been_informed",
-            "reference_number_on_information_form",
             "organisation",
-            "status",
         )
+
+    def create(self, validated_data):
+        validated_data["status"] = get_case_status_by_status(CaseStatusEnum.DRAFT)
+        return super().create(validated_data)
 
 
 class GenericApplicationUpdateSerializer(serializers.ModelSerializer):
