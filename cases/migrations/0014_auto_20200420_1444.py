@@ -7,26 +7,25 @@ from django.db.models import Count
 def forward_step(apps, schema_editor):
     CaseAssignment = apps.get_model("cases.CaseAssignment")
 
-    if (
-        CaseAssignment.objects.count()
-        > CaseAssignment.objects.values("case_id", "user_id", "queue_id").distinct().count()
-    ):
-        dups = (
-            CaseAssignment.objects.values("case_id", "user_id", "queue_id")
-            .annotate(count=Count("id"))
-            .values("case_id", "user_id", "queue_id")
-            .order_by()
-            .filter(count__gt=1)
-        )
+    dups = (
+        CaseAssignment.objects.values("case_id", "user_id", "queue_id")
+        .annotate(count=Count("id"))
+        .values("case_id", "user_id", "queue_id")
+        .order_by()
+        .filter(count__gt=1)
+    )
 
-        for value in dups:
-            print(value)
-            objects = CaseAssignment.objects.filter(
-                case_id=value["case_id"], user_id=value["user_id"], queue_id=value["queue_id"]
-            ).order_by("created_at")[1:]
+    for value in dups:
+        objects = CaseAssignment.objects.filter(
+            case_id=value["case_id"], user_id=value["user_id"], queue_id=value["queue_id"]
+        ).order_by("created_at")[1:]
 
-            for object in objects:
-                object.delete()
+        for object in objects:
+            object.delete()
+
+
+def backwards_step(apps, schema_editor):
+    pass
 
 
 class Migration(migrations.Migration):
@@ -38,6 +37,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(forward_step),
+        migrations.RunPython(forward_step, backwards_step),
         migrations.AlterUniqueTogether(name="caseassignment", unique_together={("case", "user", "queue")},),
     ]
