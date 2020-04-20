@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 
 from goods.enums import GoodPvGraded, GoodControlled, PvGrading
 from goods.models import Good, PvGradingDetails
+from static.control_list_entries.helpers import get_control_list_entry
 from test_helpers.clients import DataTestClient
 
 
@@ -29,7 +30,8 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
         response = self.client.put(self.url, request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.json()["good"]["control_list_entries"], ["ML1a"])
+        self.assertEquals(response.json()["good"]["control_list_entries"], [{"rating": "ML1a", "text":
+            get_control_list_entry("ML1a").text}])
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_updating_is_pv_graded_to_no_then_pv_grading_details_are_deleted(self):
