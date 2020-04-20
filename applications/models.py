@@ -292,7 +292,7 @@ class GoodOnApplication(TimestampableModel):
     application = models.ForeignKey(BaseApplication, related_name="goods", on_delete=models.CASCADE)
 
     # Every application except Exhibition applications contains the following data, as a result these can be null
-    applied_for_quantity = models.FloatField(null=True, blank=True, default=None)
+    quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=256, decimal_places=2, null=True, blank=True, default=None)
     is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
