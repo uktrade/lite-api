@@ -73,7 +73,8 @@ class GetLicencesTests(DataTestClient):
                 licence["application"]["goods"][0]["good"]["description"], good.description,
             )
             self.assertEqual(
-                licence["application"]["goods"][0]["good"]["control_list_entries"][0]["rating"], good.control_list_entries.all()[0].rating,
+                licence["application"]["goods"][0]["good"]["control_list_entries"][0]["rating"],
+                good.control_list_entries.all()[0].rating,
             )
 
         # Open Application
@@ -81,7 +82,10 @@ class GetLicencesTests(DataTestClient):
         destination = self.open_application.application_countries.first()
         good = self.open_application.goods_type.first()
         self.assertEqual(licence["application"]["goods"][0]["description"], good.description)
-        self.assertEqual(licence["application"]["goods"][0]["control_list_entries"][0]["text"], good.control_list_entries.all()[0].text)
+        self.assertEqual(
+            licence["application"]["goods"][0]["control_list_entries"][0]["text"],
+            good.control_list_entries.all()[0].text,
+        )
         self.assertEqual(licence["application"]["destinations"][0]["country"]["id"], destination.country_id)
 
     def test_get_standard_licences_only(self):

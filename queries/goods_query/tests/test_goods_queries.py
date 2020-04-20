@@ -232,9 +232,12 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
 
 class PvGradingQueryCreateTests(DataTestClient):
     def test_given_an_unsure_pv_graded_good_exists_when_creating_pv_grading_query_then_201_created_is_returned(self):
-        pv_graded_good = self.create_good(description="This is a good", organisation=self.organisation,
-                                          is_good_controlled=GoodControlled.NO,
-                                          is_pv_graded=GoodPvGraded.GRADING_REQUIRED)
+        pv_graded_good = self.create_good(
+            description="This is a good",
+            organisation=self.organisation,
+            is_good_controlled=GoodControlled.NO,
+            is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
+        )
         pv_grading_raised_reasons = "This is the reason why I'm unsure..."
         data = {
             "good_id": pv_graded_good.id,
@@ -256,8 +259,12 @@ class PvGradingQueryCreateTests(DataTestClient):
         )
 
     def test_given_a_pv_graded_good_exists_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
-        pv_graded_good = self.create_good(description="This is a good", organisation=self.organisation,
-                                          is_good_controlled=GoodControlled.NO, is_pv_graded=GoodPvGraded.YES)
+        pv_graded_good = self.create_good(
+            description="This is a good",
+            organisation=self.organisation,
+            is_good_controlled=GoodControlled.NO,
+            is_pv_graded=GoodPvGraded.YES,
+        )
         pv_grading_raised_reasons = "This is the reason why I'm unsure..."
         data = {
             "good_id": pv_graded_good.id,
@@ -274,8 +281,12 @@ class PvGradingQueryCreateTests(DataTestClient):
         self.assertEqual(GoodsQuery.objects.count(), 0)
 
     def test_given_good_doesnt_require_pv_grading_when_creating_pv_grading_query_then_400_bad_request_is_returned(self):
-        pv_graded_good = self.create_good(description="This is a good", organisation=self.organisation,
-                                          is_good_controlled=GoodControlled.NO, is_pv_graded=GoodPvGraded.NO)
+        pv_graded_good = self.create_good(
+            description="This is a good",
+            organisation=self.organisation,
+            is_good_controlled=GoodControlled.NO,
+            is_pv_graded=GoodPvGraded.NO,
+        )
         pv_grading_raised_reasons = "This is the reason why I'm unsure..."
         data = {
             "good_id": pv_graded_good.id,
@@ -308,10 +319,12 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
             "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
         )
 
-        self.pv_graded_and_controlled_good = self.create_good(description="This is a good",
-                                                              organisation=self.organisation,
-                                                              is_good_controlled=GoodControlled.UNSURE,
-                                                              is_pv_graded=GoodPvGraded.GRADING_REQUIRED)
+        self.pv_graded_and_controlled_good = self.create_good(
+            description="This is a good",
+            organisation=self.organisation,
+            is_good_controlled=GoodControlled.UNSURE,
+            is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
+        )
 
         self.clc_and_pv_query = GoodsQuery.objects.create(
             clc_raised_reasons="some clc reasons",

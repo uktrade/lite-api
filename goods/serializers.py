@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from common.libraries import initialize_good_or_goods_type_control_list_entries_serializer, \
-    update_good_or_goods_type_control_list_entries_details
+from common.libraries import (
+    initialize_good_or_goods_type_control_list_entries_serializer,
+    update_good_or_goods_type_control_list_entries_details,
+)
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
@@ -191,7 +193,9 @@ class GoodSerializer(serializers.ModelSerializer):
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
         if is_controlled_good and not value.get("control_list_entries"):
-            raise serializers.ValidationError({"control_list_entries": ["At least one control list entry must be set when the product is controlled"]})
+            raise serializers.ValidationError(
+                {"control_list_entries": ["At least one control list entry must be set when the product is controlled"]}
+            )
 
         return value
 
@@ -206,7 +210,9 @@ class GoodSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
-        instance.control_list_entries.set(validated_data.get("control_list_entries", instance.control_list_entries.all()))
+        instance.control_list_entries.set(
+            validated_data.get("control_list_entries", instance.control_list_entries.all())
+        )
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)

@@ -172,7 +172,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
 
-        exporter_user = ExporterUser(first_name=first_name, last_name=last_name, email=self.faker.email(), )
+        exporter_user = ExporterUser(first_name=first_name, last_name=last_name, email=self.faker.email(),)
         exporter_user.organisation = organisation
         exporter_user.save()
 
@@ -228,9 +228,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_case_note(
-            case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False,
+        case: Case, text: str, user: BaseUser, is_visible_to_exporter: bool = False,
     ):
-        case_note = CaseNote(case=case, text=text, user=user, is_visible_to_exporter=is_visible_to_exporter, )
+        case_note = CaseNote(case=case, text=text, user=user, is_visible_to_exporter=is_visible_to_exporter,)
         case_note.save()
         return case_note
 
@@ -299,7 +299,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_good_document(
-            good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str,
+        good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str,
     ):
         good_doc = GoodDocument(
             good=good,
@@ -337,12 +337,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_flagging_rule(
-            level: str,
-            team: Team,
-            flag: Flag,
-            matching_value: str,
-            status: str = FlagStatuses.ACTIVE,
-            is_for_verified_goods_only=None,
+        level: str,
+        team: Team,
+        flag: Flag,
+        matching_value: str,
+        status: str = FlagStatuses.ACTIVE,
+        is_for_verified_goods_only=None,
     ):
         flagging_rule = FlaggingRule(
             level=level,
@@ -378,9 +378,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return picklist_item
 
     @staticmethod
-    def create_good(description: str, organisation: Organisation, is_good_controlled: str = GoodControlled.NO,
-                    control_list_entries: Optional[List[str]] = None, is_pv_graded: str = GoodPvGraded.YES,
-                    pv_grading_details: PvGradingDetails = None) -> Good:
+    def create_good(
+        description: str,
+        organisation: Organisation,
+        is_good_controlled: str = GoodControlled.NO,
+        control_list_entries: Optional[List[str]] = None,
+        is_pv_graded: str = GoodPvGraded.YES,
+        pv_grading_details: PvGradingDetails = None,
+    ) -> Good:
         if is_pv_graded == GoodPvGraded.YES and not pv_grading_details:
             pv_grading_details = PvGradingDetails.objects.create(
                 grading=None,
@@ -415,8 +420,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, organisation=organisation,
-                                          is_pv_graded=GoodPvGraded.NO)
+        good = DataTestClient.create_good(
+            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
+        )
 
         goods_query = GoodsQuery.objects.create(
             clc_raised_reasons=clc_reason,
@@ -434,8 +440,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_clc_query(description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, organisation=organisation,
-                                          is_pv_graded=GoodPvGraded.NO)
+        good = DataTestClient.create_good(
+            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
+        )
 
         clc_query = GoodsQuery.objects.create(
             clc_raised_reasons="this is a test text",
@@ -451,8 +458,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_pv_grading_query(description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, organisation=organisation,
-                                          is_pv_graded=GoodPvGraded.GRADING_REQUIRED)
+        good = DataTestClient.create_good(
+            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED
+        )
 
         pv_grading_query = GoodsQuery.objects.create(
             clc_raised_reasons=None,
@@ -537,11 +545,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.save()
 
     def create_draft_standard_application(
-            self,
-            organisation: Organisation,
-            reference_name="Standard Draft",
-            safe_document=True,
-            case_type_id=CaseTypeEnum.SIEL.id,
+        self,
+        organisation: Organisation,
+        reference_name="Standard Draft",
+        safe_document=True,
+        case_type_id=CaseTypeEnum.SIEL.id,
     ):
         application = StandardApplication(
             name=reference_name,
@@ -590,12 +598,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_mod_clearance_application(
-            self,
-            organisation,
-            case_type,
-            reference_name="MOD Clearance Draft",
-            safe_document=True,
-            additional_information=True,
+        self,
+        organisation,
+        case_type,
+        reference_name="MOD Clearance Draft",
+        safe_document=True,
+        additional_information=True,
     ):
         if case_type == CaseTypeEnum.F680:
             model = F680ClearanceApplication
@@ -659,10 +667,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
-            is_good_controlled=True,
-            organisation=self.organisation,
-            description="a good",
-            part_number="123456",
+            is_good_controlled=True, organisation=self.organisation, description="a good", part_number="123456",
         )
 
         GoodOnApplication.objects.create(
@@ -677,16 +682,17 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_standard_application_with_incorporated_good(
-            self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
+        self, organisation: Organisation, reference_name="Standard Draft", safe_document=True,
     ):
 
         application = self.create_draft_standard_application(organisation, reference_name, safe_document)
 
         GoodOnApplication(
-            good=GoodFactory(
-                is_good_controlled=GoodControlled.YES,
-                organisation=self.organisation,
-            ), application=application, quantity=17, value=18, is_good_incorporated=True
+            good=GoodFactory(is_good_controlled=GoodControlled.YES, organisation=self.organisation,),
+            application=application,
+            quantity=17,
+            value=18,
+            is_good_incorporated=True,
         ).save()
 
         self.ultimate_end_user = self.create_party(
@@ -736,7 +742,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.submit_application(draft)
 
     def create_hmrc_query(
-            self, organisation: Organisation, reference_name="HMRC Query", safe_document=True,
+        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True,
     ):
         application = HmrcQuery(
             name=reference_name,
@@ -802,7 +808,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.create_end_user_advisory(note, reasoning, organisation)
 
     def create_generated_case_document(
-            self, case, template, visible_to_exporter=True, document_name="Generated Doc", advice_type=None
+        self, case, template, visible_to_exporter=True, document_name="Generated Doc", advice_type=None
     ):
         generated_case_doc = GeneratedCaseDocument.objects.create(
             name=document_name,
@@ -820,7 +826,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return generated_case_doc
 
     def create_letter_template(
-            self, case_types, name=None, decisions=None, visible_to_exporter=True, letter_paragraph=None
+        self, case_types, name=None, decisions=None, visible_to_exporter=True, letter_paragraph=None
     ):
         if not name:
             name = str(uuid.uuid4())[0:35]

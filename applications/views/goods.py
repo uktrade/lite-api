@@ -193,7 +193,7 @@ class ApplicationGoodsType(APIView):
         Gets a goodstype
         """
         goods_type = get_goods_type(goodstype_pk)
-        goods_type_data = GoodsTypeSerializer(goods_type).data
+        goods_type_data = GoodsTypeViewSerializer(goods_type).data
 
         return JsonResponse(data={"good": goods_type_data}, status=status.HTTP_200_OK)
 
