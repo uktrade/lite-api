@@ -40,8 +40,8 @@ class Command(SeedCommand):
         for admin_user in admin_users:
             id = admin_user.get("id", None)
             email = admin_user.get("email")
-            first_name = admin_user.get("first_name", None)
-            last_name = admin_user.get("last_name", None)
+            first_name = admin_user.get("first_name", "")
+            last_name = admin_user.get("last_name", "")
             role = Role.objects.get(
                 name=admin_user.get("role", Roles.INTERNAL_SUPER_USER_ROLE_NAME), type=UserType.INTERNAL
             )
