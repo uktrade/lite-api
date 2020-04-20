@@ -37,18 +37,23 @@ class RoutingRule(TimestampableModel):
         indexes = [models.Index(fields=["created_at", "tier"])]
         ordering = ["team__name", "tier", "-created_at"]
 
-    def parameter_set(self):
+    def parameter_sets(self):
+        # Generates a set containing the routing rule parameters which can be used
+        # in set operations for determining whether the rule needs to be run or not
+
         parameter_sets = []
         if self.country:
             country_set = {self.country}
         else:
             country_set = set()
 
+        flag_and_country_set = set(self.flags.all()) | country_set
+
         for case_type in self.case_types.all():
-            parameter_set = set(self.flags.all()) | country_set | {case_type}
+            parameter_set = flag_and_country_set | {case_type}
             parameter_sets.append(parameter_set)
 
         if not parameter_sets:
-            parameter_sets = [set(self.flags.all()) | country_set]
+            parameter_sets = [flag_and_country_set]
 
         return parameter_sets

@@ -12,7 +12,7 @@ class CaseRoutingAutomationTests(DataTestClient):
         pass
 
 
-class ParameterSetModelMethodTests(DataTestClient):
+class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
     def test_case_parameters_are_returned_in_a_set(self):
         pass
 
@@ -26,7 +26,7 @@ class ParameterSetModelMethodTests(DataTestClient):
             additional_rules=[*[k for k, v in RoutingRulesAdditionalFields.choices]],
         )
 
-        parameter_sets = routing_rule.parameter_set()
+        parameter_sets = routing_rule.parameter_sets()
         parameter_set = parameter_sets[0]
 
         self.assertTrue(set(routing_rule.flags.all()).issubset(parameter_set))
@@ -42,7 +42,7 @@ class ParameterSetModelMethodTests(DataTestClient):
         )
         routing_rule.case_types.set(CaseType.objects.all())
 
-        parameter_sets = routing_rule.parameter_set()
+        parameter_sets = routing_rule.parameter_sets()
 
         self.assertEqual(len(parameter_sets), CaseType.objects.count())
 
@@ -57,6 +57,11 @@ class ParameterSetModelMethodTests(DataTestClient):
         )
         routing_rule.case_types.clear()
 
-        parameter_sets = routing_rule.parameter_set()
+        parameter_sets = routing_rule.parameter_sets()
 
         self.assertEqual(len(parameter_sets), 1)
+
+
+class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
+    def test_a_thing(self):
+        pass
