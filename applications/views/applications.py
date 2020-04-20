@@ -433,7 +433,9 @@ class ApplicationFinaliseView(APIView):
         approved_good_decisions = FinalAdvice.objects.filter(
             case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
         ).values_list("good", flat=True)
-        self.approved_goods = GoodOnApplication.objects.filter(good__in=approved_good_decisions)
+        self.approved_goods = GoodOnApplication.objects.filter(
+            application_id=kwargs["pk"], good__in=approved_good_decisions
+        )
         return super(ApplicationFinaliseView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
