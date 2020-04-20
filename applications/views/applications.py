@@ -426,32 +426,32 @@ class ApplicationManageStatus(APIView):
 
 class ApplicationFinaliseView(APIView):
     authentication_classes = (GovAuthentication,)
-    approved_goods = None
-    approved_good_ids = None
+    approved_goods_advice = None
+    approved_goods_on_application = None
 
     def dispatch(self, request, *args, **kwargs):
-        approved_good_decisions = FinalAdvice.objects.filter(
-            case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
-        ).values_list("good", flat=True)
-        self.approved_goods = GoodOnApplication.objects.filter(
-            application_id=kwargs["pk"], good__in=approved_good_decisions
+        self.approved_goods_advice = FinalAdvice.objects.filter(
+            case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO], good_id__isnull=False,
+        )
+        self.approved_goods_on_application = GoodOnApplication.objects.filter(
+            application_id=kwargs["pk"], good__in=self.approved_goods_advice.values_list("good", flat=True)
         )
         return super(ApplicationFinaliseView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
-        Get goods to set licenced quantity for with advice
+        Get goods to set licenced quantity for, with advice
         """
-        approved_good_ids = self.approved_goods.values_list("good_id", flat=True)
-        goods = GoodOnApplicationLicenceQuantitySerializer(self.approved_goods, many=True).data
-        advice = FinalAdvice.objects.filter(good_id__in=approved_good_ids)
+        goods_on_application = GoodOnApplicationLicenceQuantitySerializer(
+            self.approved_goods_on_application, many=True
+        ).data
 
-        for good_advice in advice:
-            for good in goods:
+        for good_advice in self.approved_goods_advice:
+            for good in goods_on_application:
                 if str(good_advice.good.id) == good["good"]["id"]:
                     good["advice"] = SimpleFinalAdviceSerializer(good_advice).data
 
-        return JsonResponse({"goods": goods})
+        return JsonResponse({"goods": goods_on_application})
 
     @transaction.atomic
     def put(self, request, pk):
@@ -497,7 +497,7 @@ class ApplicationFinaliseView(APIView):
             # Check goods have licenced quantity/value
             if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
                 errors = {}
-                for good in self.approved_goods:
+                for good in self.approved_goods_on_application:
                     good_id = str(good.id)
                     quantity_key = f"quantity-{good_id}"
                     value_key = f"value-{good_id}"
