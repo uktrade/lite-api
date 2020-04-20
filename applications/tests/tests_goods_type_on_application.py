@@ -58,7 +58,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response_data["description"], "Widget")
         self.assertNotIn("is_good_incorporated", response_data)
         self.assertNotIn("is_good_controlled", response_data)
-        self.assertNotIn("control_list_entry", response_data)
+        self.assertNotIn("control_list_entries", response_data)
 
     def test_create_goodstype_on_open_application_as_exporter_user_failure(self):
         data = {}
