@@ -10,6 +10,9 @@ class ControlListEntry(models.Model):
     parent = models.ForeignKey("self", default=None, null=True, on_delete=models.CASCADE)
     is_decontrolled = models.BooleanField(default=False)
 
+    class Meta:
+        db_table = "control_list_entry"
+
     def __children(self):
         return ControlListEntry.objects.filter(parent=self)
 
