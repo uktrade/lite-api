@@ -12,7 +12,7 @@ class CaseRoutingAutomationTests(DataTestClient):
         pass
 
 
-class ParameterSetModelMethodTests(DataTestClient):
+class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
     def test_case_parameters_are_returned_in_a_set(self):
         pass
 
@@ -60,3 +60,8 @@ class ParameterSetModelMethodTests(DataTestClient):
         parameter_sets = routing_rule.parameter_sets()
 
         self.assertEqual(len(parameter_sets), 1)
+
+
+class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
+    def test_a_thing(self):
+        pass
