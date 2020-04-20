@@ -115,7 +115,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entries": "",
+            "control_list_entries": [],
             "is_good_controlled": "no",
         }
 
@@ -136,7 +136,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.team.pk, self.good_1.pk],  # first value is invalid
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entries": "",
+            "control_list_entries": [],
             "is_good_controlled": "no",
         }
 
@@ -155,7 +155,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entries": "invalid",
+            "control_list_entries": ["invalid"],
             "is_good_controlled": "yes",
         }
 
@@ -174,8 +174,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entries": "",
-            "is_good_controlled": "yes",
+            "control_list_entries": [],
+            "is_good_controlled": GoodControlled.YES,
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
