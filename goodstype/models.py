@@ -19,8 +19,6 @@ class GoodsType(TimestampableModel):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="goods_type", null=False)
     flags = models.ManyToManyField(Flag, related_name="goods_type")
     countries = models.ManyToManyField(Country, related_name="goods_type", default=[])
-
-    # Licence values set when the Goods type is approved
     usage = models.FloatField(null=False, blank=False, default=0)
 
     # gov-user data, is used by gov users when reviewing goods
