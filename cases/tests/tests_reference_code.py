@@ -1,28 +1,27 @@
 from datetime import datetime
 
 from applications.enums import ApplicationExportType
-from applications.models import ExternalLocationOnApplication
 from cases.enums import CaseTypeEnum
-from cases.libraries.reference_code import (
-    APPLICATION_PREFIX,
-    STANDARD,
-    OPEN,
-    INDIVIDUAL,
-    EXPORT,
-    SEPARATOR,
-    PERMANENT,
-    EXHIBITION_CLEARANCE_PREFIX,
-    F680_CLEARANCE_PREFIX,
-    GIFTING_CLEARANCE_PREFIX,
-    HMRC_PREFIX,
-    END_USER_ADVISORY_QUERY_PREFIX,
-    GOODS_QUERY_PREFIX,
-    TEMPORARY,
-    TRADE_CONTROL,
-    LICENCE,
-    TRANSHIPMENT,
-)
+from cases.libraries.reference_code import LICENCE_APPLICATION_PREFIX, SEPARATOR
 from test_helpers.clients import DataTestClient
+
+PERMANENT = "P"
+TEMPORARY = "T"
+
+
+def build_expected_reference(case_reference, is_licence_type=False, export_type=None):
+    reference_number = "0000001"
+    year = str(datetime.now().year)
+
+    expected_reference = case_reference.upper() + SEPARATOR + year + SEPARATOR + reference_number
+
+    if is_licence_type:
+        expected_reference = LICENCE_APPLICATION_PREFIX + expected_reference
+
+    if export_type:
+        expected_reference += SEPARATOR + export_type
+
+    return expected_reference
 
 
 class ReferenceCode(DataTestClient):
@@ -30,11 +29,10 @@ class ReferenceCode(DataTestClient):
         standard_application = self.create_draft_standard_application(self.organisation)
         standard_application = self.submit_application(standard_application)
 
-        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + EXPORT + LICENCE + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001" + SEPARATOR + PERMANENT
-        self.assertEquals(
-            standard_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
+        expected_reference = build_expected_reference(
+            CaseTypeEnum.SIEL.reference, is_licence_type=True, export_type=PERMANENT
         )
+        self.assertEquals(standard_application.reference_code, expected_reference)
 
     def test_standard_individual_transhipment_application_reference_code(self):
         standard_application = self.create_draft_standard_application(
@@ -42,21 +40,19 @@ class ReferenceCode(DataTestClient):
         )
         standard_application = self.submit_application(standard_application)
 
-        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + TRANSHIPMENT + LICENCE + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001" + SEPARATOR + PERMANENT
-        self.assertEquals(
-            standard_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
+        expected_reference = build_expected_reference(
+            CaseTypeEnum.SITL.reference, is_licence_type=True, export_type=PERMANENT
         )
+        self.assertEquals(standard_application.reference_code, expected_reference)
 
     def test_open_application_reference_code(self):
         open_application = self.create_draft_open_application(self.organisation)
         open_application = self.submit_application(open_application)
 
-        expected_prefix = APPLICATION_PREFIX + OPEN + INDIVIDUAL + EXPORT + LICENCE + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001" + SEPARATOR + PERMANENT
-        self.assertEquals(
-            open_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
+        expected_reference = build_expected_reference(
+            CaseTypeEnum.OIEL.reference, is_licence_type=True, export_type=PERMANENT
         )
+        self.assertEquals(open_application.reference_code, expected_reference)
 
     def test_exhibition_clearance_reference_code(self):
         exhibition_clearance = self.create_mod_clearance_application(
@@ -64,83 +60,62 @@ class ReferenceCode(DataTestClient):
         )
         exhibition_clearance = self.submit_application(exhibition_clearance)
 
-        expected_prefix = EXHIBITION_CLEARANCE_PREFIX + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001"
-        self.assertEquals(
-            exhibition_clearance.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.EXHIBITION.reference)
+        self.assertEquals(exhibition_clearance.reference_code, expected_reference)
 
     def test_f680_clearance_reference_code(self):
-        exhibition_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
-        exhibition_clearance = self.submit_application(exhibition_clearance)
+        f680_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
+        f680_clearance = self.submit_application(f680_clearance)
 
-        expected_prefix = F680_CLEARANCE_PREFIX + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001"
-        self.assertEquals(
-            exhibition_clearance.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.F680.reference)
+        self.assertEquals(f680_clearance.reference_code, expected_reference)
 
     def test_gifting_clearance_reference_code(self):
-        exhibition_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
-        exhibition_clearance = self.submit_application(exhibition_clearance)
+        gifting_clearance = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
+        gifting_clearance = self.submit_application(gifting_clearance)
 
-        expected_prefix = GIFTING_CLEARANCE_PREFIX + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001"
-        self.assertEquals(
-            exhibition_clearance.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.GIFTING.reference)
+        self.assertEquals(gifting_clearance.reference_code, expected_reference)
 
     def test_hmrc_query_reference_code(self):
         hmrc_query = self.create_hmrc_query(self.organisation)
         hmrc_query = self.submit_application(hmrc_query)
 
-        expected_prefix = HMRC_PREFIX + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001"
-        self.assertEquals(hmrc_query.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix)
+        expected_reference = build_expected_reference(CaseTypeEnum.HMRC.reference)
+        self.assertEquals(hmrc_query.reference_code, expected_reference)
 
     def test_end_user_advisory_reference_code(self):
         end_user_advisory_query = self.create_end_user_advisory_case("", "", self.organisation)
 
-        expected_prefix = END_USER_ADVISORY_QUERY_PREFIX + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001"
-        self.assertEquals(
-            end_user_advisory_query.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
-        )
+        expected_reference = build_expected_reference(CaseTypeEnum.EUA.reference)
+        self.assertEquals(end_user_advisory_query.reference_code, expected_reference)
 
     def test_control_list_classification_reference_code(self):
         clc_query = self.create_clc_query("", self.organisation)
 
-        expected_prefix = GOODS_QUERY_PREFIX + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001"
-        self.assertEquals(clc_query.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix)
+        expected_reference = build_expected_reference(CaseTypeEnum.GOODS.reference)
+        self.assertEquals(clc_query.reference_code, expected_reference)
 
     def test_temporary_application_reference_code(self):
         standard_application = self.create_draft_standard_application(self.organisation)
         standard_application.export_type = ApplicationExportType.TEMPORARY
         self.submit_application(standard_application)
 
-        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + EXPORT + LICENCE + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001" + SEPARATOR + TEMPORARY
-        self.assertEquals(
-            standard_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
+        expected_reference = build_expected_reference(
+            CaseTypeEnum.SIEL.reference, is_licence_type=True, export_type=TEMPORARY
         )
+        self.assertEquals(standard_application.reference_code, expected_reference)
 
     def test_trade_control_application_reference_code(self):
-        standard_application = self.create_draft_standard_application(self.organisation)
-        standard_application.application_sites.all().delete()
-        external_location = self.create_external_location("storage facility", self.organisation)
-        external_location_on_app = ExternalLocationOnApplication(
-            application=standard_application, external_location=external_location
+        standard_application = self.create_draft_standard_application(
+            self.organisation, case_type_id=CaseTypeEnum.SICL.id
         )
-        external_location_on_app.save()
-        standard_application.external_application_sites.set([external_location_on_app])
         standard_application = self.submit_application(standard_application)
 
-        expected_prefix = APPLICATION_PREFIX + STANDARD + INDIVIDUAL + TRADE_CONTROL + LICENCE + SEPARATOR
-        expected_postfix = SEPARATOR + "0000001" + SEPARATOR + PERMANENT
-        self.assertEquals(
-            standard_application.reference_code, expected_prefix + str(datetime.now().year) + expected_postfix
+        expected_reference = build_expected_reference(
+            CaseTypeEnum.SICL.reference, is_licence_type=True, export_type=PERMANENT
         )
+        self.assertEquals(standard_application.reference_code, expected_reference)
 
     def test_draft_applications_dont_have_reference_codes(self):
         draft = self.create_draft_standard_application(self.organisation)
