@@ -16,9 +16,8 @@ from lite_content.lite_api import strings
 from picklists.enums import PicklistType, PickListStatus
 from queries.goods_query.helpers import get_starting_status
 from queries.goods_query.models import GoodsQuery
-from static.control_list_entries.helpers import get_control_list_entries
+from static.control_list_entries.helpers import get_control_list_entry
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
@@ -123,7 +122,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         }
 
     def test_respond_to_control_list_classification_query_without_updating_control_list_entries_success(self):
-        self.query.good.control_list_entries.set([get_control_list_entries("ML1a")])
+        self.query.good.control_list_entries.set([get_control_list_entry("ML1a")])
         self.query.good.save()
         previous_query_control_list_entries = self.query.good.control_list_entries
 

@@ -115,7 +115,7 @@ class FlaggingRulesCreateTest(DataTestClient):
         application = self.create_standard_application_case(self.organisation)
         control_list_entry = (
             GoodOnApplication.objects.filter(application_id=application.id)
-            .values_list("good__control_list_entry", flat=True)
+            .values_list("good__control_list_entries__rating", flat=True)
             .first()
         )
 

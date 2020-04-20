@@ -4,6 +4,7 @@ from rest_framework import status
 
 from applications.models import GoodOnApplication
 from conf import constants
+from goods.enums import GoodControlled
 from goods.models import Good
 from goodstype.tests.factories import GoodsTypeFactory
 from picklists.enums import PicklistType, PickListStatus
@@ -44,7 +45,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         Post a singular good to the endpoint, and check that the control code is updated, and flags are removed
         """
-
         data = {
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
@@ -251,7 +251,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "is_good_controlled": "True",
+            "is_good_controlled": GoodControlled.YES,
             "control_list_entries": ["ML1a"],
         }
 
@@ -259,7 +259,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries, "ML1a")
+        self.assertEqual(self.good_1.control_list_entries.values_list("rating", flat=True), ["ML1a"])
 
         # determine that flags have been removed when good verified
         self.assertFalse(is_not_verified_flag_set_on_good(self.good_1))

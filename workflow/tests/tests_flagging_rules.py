@@ -37,7 +37,7 @@ class FlaggingRulesAutomation(DataTestClient):
         self.submit_application(case)
         good = GoodOnApplication.objects.filter(application_id=case.id).first().good
         self.create_flagging_rule(
-            level=FlagLevels.GOOD, team=self.team, flag=flag, matching_value=good.control_list_entry
+            level=FlagLevels.GOOD, team=self.team, flag=flag, matching_value=good.control_list_entries.first()
         )
 
         apply_flagging_rules_to_case(case)
@@ -57,7 +57,7 @@ class FlaggingRulesAutomation(DataTestClient):
             level=FlagLevels.GOOD,
             team=self.team,
             flag=flag,
-            matching_value=good.control_list_entry,
+            matching_value=good.control_list_entries.first(),
             is_for_verified_goods_only=True,
         )
 
@@ -79,7 +79,7 @@ class FlaggingRulesAutomation(DataTestClient):
             level=FlagLevels.GOOD,
             team=self.team,
             flag=flag,
-            matching_value=good.control_list_entry,
+            matching_value=good.control_list_entries.first(),
             is_for_verified_goods_only=True,
         )
 
