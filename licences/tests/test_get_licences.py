@@ -174,8 +174,8 @@ class GetLicencesFilterTests(DataTestClient):
         response_data = response.json()["results"]
 
         self.assertEqual(len(response_data), 2)
-        self.assertIn(str(self.standard_application_licence.id), response_data)
-        self.assertIn(str(self.open_application_licence.id), response_data)
+        self.assertIn(str(self.standard_application_licence.id), str(response_data))
+        self.assertIn(str(self.open_application_licence.id), str(response_data))
 
     def test_filter_by_country_standard_application(self):
         country = Country.objects.first()
