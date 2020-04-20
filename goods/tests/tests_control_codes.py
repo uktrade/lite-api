@@ -27,7 +27,9 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
         )
 
-        self.good_1 = GoodFactory(organisation=self.organisation, flags=[FlagFactory(level=FlagLevels.GOOD, team=self.team)])
+        self.good_1 = GoodFactory(
+            organisation=self.organisation, flags=[FlagFactory(level=FlagLevels.GOOD, team=self.team)]
+        )
         self.good_2 = GoodFactory(organisation=self.organisation)
 
         role = Role(name="review_goods")
@@ -59,10 +61,10 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_list_entries, ["ML1a"])
+        self.assertEqual(verified_good.control_list_entries.get().rating, "ML1a")
 
         verified_good = Good.objects.get(pk=self.good_2.pk)
-        self.assertEqual(verified_good.control_list_entries, ["ML1a"])
+        self.assertEqual(verified_good.control_list_entries.get().rating, "ML1a")
 
     def test_verify_single_good_NLR(self):
         """
@@ -72,8 +74,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entries": "ML1a",
-            "is_good_controlled": "no",
+            "is_good_controlled": GoodControlled.NO,
+            "control_list_entries": ["ML1a"],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)

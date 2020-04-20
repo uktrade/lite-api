@@ -136,7 +136,10 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(response.json()["errors"], {"control_list_entries": ["At least one control list entry must be set when the product is controlled"]})
+        self.assertEquals(
+            response.json()["errors"],
+            {"control_list_entries": ["At least one control list entry must be set when the product is controlled"]},
+        )
         self.assertEquals(Good.objects.all().count(), 0)
 
     def test_when_creating_a_good_with_an_invalid_control_list_entries_then_bad_request_response_is_returned(self):

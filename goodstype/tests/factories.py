@@ -26,3 +26,11 @@ class GoodsTypeFactory(factory.django.DjangoModelFactory):
 
             for control_list_entry in extracted:
                 self.control_list_entries.add(get_control_list_entry(control_list_entry))
+
+    @factory.post_generation
+    def flags(self, create, extracted, **kwargs):
+        if not create or not extracted:
+            # Simple build, do nothing.
+            return
+
+        self.flags.set(extracted)
