@@ -27,8 +27,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
         )
 
-        self.good_1 = GoodFactory(organisation=self.organisation)
-        self.good_1.flags.add(FlagFactory(level=FlagLevels.GOOD, team=self.team))
+        self.good_1 = GoodFactory(organisation=self.organisation, flags=[FlagFactory(level=FlagLevels.GOOD, team=self.team)])
         self.good_2 = GoodFactory(organisation=self.organisation)
 
         role = Role(name="review_goods")
