@@ -170,10 +170,6 @@ class GetLicencesFilterTests(DataTestClient):
         self.assertEqual(response_data[0]["id"], str(self.standard_application_licence.id))
 
     def test_filter_by_clc_standard_application(self):
-        good = self.standard_application.goods.first().good
-        good.control_list_entries.set([get_control_list_entry("ML1a")])
-        good.save()
-
         response = self.client.get(self.url + "?clc=ML1a", **self.exporter_headers)
         response_data = response.json()["results"]
 
