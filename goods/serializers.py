@@ -150,14 +150,6 @@ class GoodSerializer(serializers.ModelSerializer):
 
         if self.get_initial().get("is_good_controlled") == GoodControlled.YES:
             self.fields["control_list_entries"] = ControlListEntryField(required=True, many=True)
-        else:
-            if hasattr(self, "initial_data"):
-                self.initial_data["control_list_entries"] = []
-
-        # This removes data being passed forward from product grading forms on editing goods when not needed
-        if not self.get_initial().get("is_pv_graded") == GoodPvGraded.YES:
-            if hasattr(self, "initial_data"):
-                self.initial_data["pv_grading_details"] = None
 
         self.goods_query_case = (
             GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
@@ -214,15 +206,16 @@ class GoodSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
         instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
-        instance.control_list_entries.set(validated_data.get("control_list_entries", instance.control_list_entries))
+        instance.control_list_entries.set(validated_data.get("control_list_entries", instance.control_list_entries.all()))
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
-        instance.pv_grading_details = GoodSerializer._create_update_or_delete_pv_grading_details(
-            is_pv_graded=instance.is_pv_graded == GoodPvGraded.YES,
-            pv_grading_details=validated_data.get("pv_grading_details"),
-            instance=instance.pv_grading_details,
-        )
+        if validated_data.get("is_pv_graded"):
+            instance.pv_grading_details = GoodSerializer._create_update_or_delete_pv_grading_details(
+                is_pv_graded=instance.is_pv_graded == GoodPvGraded.YES,
+                pv_grading_details=validated_data.get("pv_grading_details"),
+                instance=instance.pv_grading_details,
+            )
 
         instance.save()
         return instance
