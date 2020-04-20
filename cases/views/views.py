@@ -751,7 +751,7 @@ class RerunRoutingRules(APIView):
             actor=request.user, verb=AuditType.RERUN_ROUTING_RULES, target=case,
         )
 
-        # clear queues and assignments
+        case.remove_all_case_assignments()
         # run routing rules from scratch for status
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
