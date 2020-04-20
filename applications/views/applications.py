@@ -442,7 +442,7 @@ class ApplicationFinaliseView(APIView):
         """
         Get goods to set licenced quantity for with advice
         """
-        approved_good_ids = self.approved_goods.values_list("good__id", flat=True)
+        approved_good_ids = self.approved_goods.values_list("good_id", flat=True)
         goods = GoodOnApplicationLicenceQuantitySerializer(self.approved_goods, many=True).data
         advice = FinalAdvice.objects.filter(good_id__in=approved_good_ids)
 
