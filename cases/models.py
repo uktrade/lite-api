@@ -154,6 +154,9 @@ class CaseAssignment(TimestampableModel):
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE, related_name="case_assignments")
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE, related_name="case_assignments")
 
+    class Meta:
+        unique_together = [["case", "user", "queue"]]
+
 
 class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
