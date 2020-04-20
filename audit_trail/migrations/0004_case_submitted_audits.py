@@ -1,6 +1,6 @@
 from django.db import migrations
 
-from audit_trail.schema import AuditType
+from audit_trail.payload import AuditType
 from cases.enums import CaseTypeEnum
 
 

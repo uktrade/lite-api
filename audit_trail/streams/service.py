@@ -11,36 +11,10 @@ from django.utils import timezone
 from applications.models import CountryOnApplication
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
+from audit_trail.streams.constants import STREAMED_AUDITS, TYPE_MAPPING, VERB_MAPPING
 from cases.models import Case
 from common.models import prefetch_generic_relations
 from static.statuses.enums import CaseStatusEnum
-
-STREAMED_AUDITS = [
-    AuditType.CREATED.value,
-    AuditType.ADD_CASE_OFFICER_TO_CASE.value,
-    AuditType.REMOVE_CASE_OFFICER_FROM_CASE.value,
-    AuditType.UPDATED_STATUS.value,
-    AuditType.ADD_COUNTRIES_TO_APPLICATION.value,
-    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION.value,
-]
-
-TYPE_MAPPING = {
-    AuditType.ADD_CASE_OFFICER_TO_CASE: "case_officer",
-    AuditType.REMOVE_CASE_OFFICER_FROM_CASE: "case_officer",
-    AuditType.UPDATED_STATUS: "status",
-    AuditType.ADD_COUNTRIES_TO_APPLICATION: "countries",
-    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "countries",
-    AuditType.CREATED: "case",
-}
-
-VERB_MAPPING = {
-    AuditType.ADD_CASE_OFFICER_TO_CASE: "add",
-    AuditType.REMOVE_CASE_OFFICER_FROM_CASE: "remove",
-    AuditType.UPDATED_STATUS: "update",
-    AuditType.ADD_COUNTRIES_TO_APPLICATION: "add",
-    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "remove",
-    AuditType.CREATED: "create",
-}
 
 
 def date_to_string_utc(date):
@@ -139,7 +113,7 @@ def get_stream(timestamp):
     """
     Returns a paginated stream of activities.
     """
-    audit_qs = Audit.objects.filter(verb__in=STREAMED_AUDITS,).order_by("created_at")
+    audit_qs = Audit.objects.filter(verb__in=STREAMED_AUDITS, ).order_by("created_at")
     if timestamp > 0:
         audit_qs = audit_qs.filter(created_at__gte=timezone.make_aware(datetime.fromtimestamp(timestamp)))
     audit_qs = audit_qs[: settings.STREAM_PAGE_SIZE]

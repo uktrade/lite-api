@@ -1,6 +1,6 @@
 from django.db import migrations
 
-from audit_trail.schema import AuditType
+from audit_trail.payload import AuditType
 
 
 def create_missing_application_audit(apps, schema_editor):

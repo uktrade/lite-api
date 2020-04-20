@@ -3,14 +3,32 @@ from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied
 
 from audit_trail.models import Audit
-from audit_trail.schema import validate_kwargs
+from audit_trail.streams.constants import STREAMED_AUDITS
+from audit_trail.streams.schemas.audits import validate_audit_kwargs
+from audit_trail.streams.schemas.payloads import validate_payload
 from users.models import ExporterUser, GovUser
 
 
-@validate_kwargs
 def create(actor, verb, action_object=None, target=None, payload=None, ignore_case_status=False):
+    """
+    Entrypoint for creating audits.
+    """
     if not payload:
         payload = {}
+
+    if verb.value in STREAMED_AUDITS:
+        # Validate all streamed audits
+        validate_audit_kwargs(
+            actor=actor,
+            verb=verb,
+            action_object=action_object,
+            target=target,
+            payload=payload
+        )
+        validate_payload(
+            verb=verb,
+            payload=payload
+        )
 
     return Audit.objects.create(
         actor=actor,
