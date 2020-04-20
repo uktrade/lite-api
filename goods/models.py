@@ -55,6 +55,7 @@ class Good(TimestampableModel):
 
     class Meta:
         db_table = "good"
+        ordering = ["-created_at"]
 
 
 class GoodDocument(Document):

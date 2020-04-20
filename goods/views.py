@@ -129,7 +129,7 @@ class GoodList(ListCreateAPIView):
 
         queryset = Good.objects.filter(
             organisation_id=organisation, description__icontains=description, part_number__icontains=part_number,
-        ).order_by("-created_at")
+        )
 
         if control_list_entry:
             queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()

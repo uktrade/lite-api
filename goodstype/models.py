@@ -27,3 +27,4 @@ class GoodsType(TimestampableModel):
 
     class Meta:
         db_table = "goods_type"
+        ordering = ["-created_at"]
