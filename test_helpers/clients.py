@@ -391,6 +391,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_pv_graded: str = GoodPvGraded.YES,
             pv_grading_details: PvGradingDetails = None,
     ) -> Good:
+        warnings.warn("create_good is a deprecated function. Use a GoodFactory instead",
+                      category=DeprecationWarning,
+                      stacklevel=2)
+
         if is_pv_graded == GoodPvGraded.YES and not pv_grading_details:
             pv_grading_details = PvGradingDetails.objects.create(
                 grading=None,
