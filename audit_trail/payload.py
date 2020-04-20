@@ -30,6 +30,7 @@ class AuditType(Enum):
     ADD_ADDITIONAL_CONTACT_TO_CASE = "added an additional contact: {contact}"
     MOVE_CASE = "moved the case to: {queues}"
     REMOVE_CASE = "removed case from queues: {queues}"
+    REMOVE_CASE_FROM_ALL_QUEUES = "removed case from all queues"
     CLC_RESPONSE = "responded to the case"
     PV_GRADING_RESPONSE = "responded to pv grading, grading set as {grading}"
     CREATED_CASE_NOTE = "added a case note: {case_note}"

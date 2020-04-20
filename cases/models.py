@@ -4,6 +4,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
 
+from audit_trail.payload import AuditType
 from cases.enums import (
     AdviceType,
     CaseDocumentState,
@@ -26,6 +27,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from teams.models import Team
+from users.enums import SystemUser
 from users.models import (
     BaseUser,
     ExporterUser,
@@ -127,8 +129,19 @@ class Case(TimestampableModel):
         return parameter_set
 
     def remove_all_case_assignments(self):
-        self.queues.clear()
-        CaseAssignment.objects.filter(case_id=self.id).delete()
+        from audit_trail import service as audit_trail_service
+
+        assigned_cases = CaseAssignment.objects.filter(case_id=self.id)
+        if self.queues.exists() or assigned_cases.exists():
+            self.queues.clear()
+            assigned_cases.delete()
+
+            audit_trail_service.create(
+                actor=GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID),
+                verb=AuditType.REMOVE_CASE_FROM_ALL_QUEUES,
+                action_object=self.get_case(),
+                payload={},
+            )
 
 
 class CaseReferenceCode(models.Model):
