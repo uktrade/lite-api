@@ -169,19 +169,13 @@ class GetLicencesFilterTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.standard_application_licence.id))
 
-    def test_filter_by_clc_standard_application(self):
+    def test_filter_by_control_list_entry(self):
         response = self.client.get(self.url + "?clc=ML1a", **self.exporter_headers)
         response_data = response.json()["results"]
 
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.standard_application_licence.id))
-
-    def test_filter_by_clc_open_application(self):
-        response = self.client.get(self.url + "?clc=ML1a", **self.exporter_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.open_application_licence.id))
+        self.assertEqual(len(response_data), 2)
+        self.assertIn(str(self.standard_application_licence.id), response_data)
+        self.assertIn(str(self.open_application_licence.id), response_data)
 
     def test_filter_by_country_standard_application(self):
         country = Country.objects.first()
