@@ -63,6 +63,7 @@ class GoodsTypeOnLicenceListSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodsType
         fields = (
+            "id",
             "description",
             "control_list_entries",
         )
