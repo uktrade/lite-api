@@ -4,11 +4,13 @@ from rest_framework import status
 
 from applications.models import GoodOnApplication
 from conf import constants
+from flags.enums import FlagLevels
+from flags.tests.factories import FlagFactory
 from goods.enums import GoodControlled
 from goods.models import Good
+from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
 from picklists.enums import PicklistType, PickListStatus
-from static.control_list_entries.models import ControlListEntry
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
@@ -25,9 +27,9 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "Report Summary", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE
         )
 
-        self.good_1 = self.create_good("this is a good", self.organisation)
-        self.good_1.flags.add(self.create_flag("New Flag", "Good", self.team))
-        self.good_2 = self.create_good("this is a good as well", self.organisation)
+        self.good_1 = GoodFactory(organisation=self.organisation)
+        self.good_1.flags.add(FlagFactory(level=FlagLevels.GOOD, team=self.team))
+        self.good_2 = GoodFactory(organisation=self.organisation)
 
         role = Role(name="review_goods")
         role.permissions.set([constants.GovPermissions.REVIEW_GOODS.name])
@@ -266,47 +268,6 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         # determine that flags have not been removed when control code hasn't changed
         self.assertEqual(self.good_1.flags.count(), 1)
 
-    def test_verify_multiple_goods_NLR(self):
-        """
-        Post multiple goods to the endpoint, and check that the control code is not set if good is not controlled
-        """
-
-        data = {
-            "objects": [self.good_1.pk, self.good_2.pk],
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
-            "control_list_entries": [],
-            "is_good_controlled": "False",
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-
-        self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries, "")
-
-        self.good_2.refresh_from_db()
-        self.assertEqual(self.good_2.control_list_entries, "")
-
-    def test_invalid_good_pk(self):
-        """
-        Post multiple goods to the endpoint, and test that 404 response, and that other good is updated
-        """
-
-        data = {
-            "objects": [self.team.pk, self.good_1.pk],  # first value is invalid
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
-            "control_list_entries": [],
-            "is_good_controlled": "False",
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries, "")
-
     def test_invalid_control_list_entries(self):
         """
         Post multiple goods to the endpoint, and that a bad request is returned, and that flags are not updated
@@ -324,28 +285,6 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # since it has an invalid control code, flags should not be removed
-        self.good_1.refresh_from_db()
-        self.good_2.refresh_from_db()
-        self.assertTrue(is_not_verified_flag_set_on_good(self.good_1))
-        self.assertTrue(is_not_verified_flag_set_on_good(self.good_2))
-
-    def test_controlled_good_empty_control_list_entries(self):
-        """
-        Post multiple goods, with an blank control_list_entries and is controlled, for a 400 response, and not update of good.
-        """
-
-        data = {
-            "objects": [self.good_1.pk, self.good_2.pk],
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
-            "control_list_entries": [],
-            "is_good_controlled": "True",
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        # since it has an empty control code, flags should not be removed
         self.good_1.refresh_from_db()
         self.good_2.refresh_from_db()
         self.assertTrue(is_not_verified_flag_set_on_good(self.good_1))
