@@ -1,5 +1,6 @@
 from django.test import tag
 
+from applications.models import CountryOnApplication
 from cases.models import CaseType
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
@@ -62,7 +63,7 @@ class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
 
 
 class ParameterSetCaseModelMethodTests(DataTestClient):
-    @tag("2109", "only")
+    @tag("2109")
     def test_case_parameters_are_returned_in_a_set(self):
         case = self.create_standard_application_case(organisation=self.organisation)
 
@@ -71,3 +72,17 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         parameter_set = case.parameter_set()
 
         self.assertTrue(set(case.flags.all()).issubset(parameter_set))
+        self.assertIn(case.case_type, parameter_set)
+
+    @tag("2109")
+    def test_parameter_Set_returned_for_open_application(self):
+        case = self.create_open_application_case(organisation=self.organisation)
+
+        parameter_set = case.parameter_set()
+
+        self.assertTrue(
+            set([coa.country for coa in CountryOnApplication.objects.filter(application=case.id)]).issubset(
+                parameter_set
+            )
+        )
+        self.assertIn(case.case_type, parameter_set)
