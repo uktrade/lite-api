@@ -307,7 +307,7 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
             FlagLevels.GOOD,
             self.team,
             flag=good_flag,
-            matching_value=goods_type.control_list_entry,
+            matching_value=goods_type.control_list_entries.first().rating,
             is_for_verified_goods_only=False,
         )
 
