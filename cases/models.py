@@ -122,7 +122,7 @@ class Case(TimestampableModel):
             parameter_set = parameter_set | set(goa.good.flags.all())
 
         for coa in CountryOnApplication.objects.filter(application=self.id):
-            parameter_set = parameter_set | {coa.country.flags.all()}
+            parameter_set = parameter_set | {coa.country} | set(coa.country.flags.all())
 
         return parameter_set
 
