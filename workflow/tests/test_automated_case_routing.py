@@ -1,7 +1,6 @@
 from django.test import tag
 
 from cases.models import CaseType
-from flags.models import Flag
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
@@ -62,6 +61,13 @@ class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
         self.assertEqual(len(parameter_sets), 1)
 
 
-class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
-    def test_a_thing(self):
-        pass
+class ParameterSetCaseModelMethodTests(DataTestClient):
+    @tag("2109", "only")
+    def test_case_parameters_are_returned_in_a_set(self):
+        case = self.create_standard_application_case(organisation=self.organisation)
+
+        case.flags.set([self.create_flag(name="1", team=self.team, level="case")])
+
+        parameter_set = case.parameter_set()
+
+        self.assertTrue(set(case.flags.all()).issubset(parameter_set))

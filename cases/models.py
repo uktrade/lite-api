@@ -108,6 +108,24 @@ class Case(TimestampableModel):
 
         return users
 
+    def parameter_set(self):
+        from applications.models import PartyOnApplication
+        from applications.models import GoodOnApplication
+        from applications.models import CountryOnApplication
+
+        parameter_set = set(self.flags.all()) | {self.case_type} | set(self.organisation.flags.all())
+
+        for poa in PartyOnApplication.objects.filter(application=self.id):
+            parameter_set = parameter_set | {poa.party.country} | set(poa.party.flags.all())
+
+        for goa in GoodOnApplication.objects.filter(application=self.id):
+            parameter_set = parameter_set | set(goa.good.flags.all())
+
+        for coa in CountryOnApplication.objects.filter(application=self.id):
+            parameter_set = parameter_set | {coa.country.flags.all()}
+
+        return parameter_set
+
 
 class CaseReferenceCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
