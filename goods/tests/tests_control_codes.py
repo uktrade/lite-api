@@ -125,17 +125,16 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.control_list_entries, "")
 
-    def test_invalid_control_list_entries(self):
+    def test_standard_invalid_control_list_entries(self):
         """
         Post multiple goods to the endpoint, and that a bad request is returned, and that flags is not updated
         """
-
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["invalid"],
-            "is_good_controlled": "yes",
+            "is_good_controlled": GoodControlled.YES,
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)

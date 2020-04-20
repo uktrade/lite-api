@@ -14,7 +14,9 @@ from rest_framework.fields import (
 )
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from conf.exceptions import NotFoundError
 from lite_content.lite_api import strings
+from static.control_list_entries.helpers import get_control_list_entry
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -152,4 +154,7 @@ class ControlListEntryField(PrimaryKeyRelatedSerializerField):
         return False
 
     def to_internal_value(self, data):
-        return self.get_queryset().get(rating=data)
+        try:
+            return get_control_list_entry(data)
+        except NotFoundError:
+            raise serializers.ValidationError("Control list entry is invalid")
