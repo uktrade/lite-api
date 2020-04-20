@@ -86,3 +86,11 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
             )
         )
         self.assertIn(case.case_type, parameter_set)
+
+    @tag("2109")
+    def test_ecju_query_returns_parameter_set(self):
+        pass
+
+    @tag("2109")
+    def test_good_query_returns_parameter_set(self):
+        pass
