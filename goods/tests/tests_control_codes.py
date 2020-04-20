@@ -41,27 +41,6 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.case = self.submit_application(self.application)
         self.url = reverse_lazy("goods:control_list_entries", kwargs={"case_pk": self.case.id})
 
-    def test_verify_single_good(self):
-        """
-        Post a singular good to the endpoint, and check that the control code is updated, and flags are removed
-        """
-        data = {
-            "objects": self.good_1.pk,
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
-            "control_list_entries": ["ML1a"],
-            "is_good_controlled": "yes",
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-
-        verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_list_entries, "ML1a")
-
-        # determine that 'is_not_verified' flag has been removed when good verified
-        self.assertFalse(is_not_verified_flag_set_on_good(verified_good))
-
     def test_verify_multiple_goods(self):
         """
         Post multiple goods to the endpoint, and check that the control code is updated for both
@@ -72,23 +51,22 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
             "control_list_entries": ["ML1a"],
-            "is_good_controlled": "yes",
+            "is_good_controlled": GoodControlled.YES,
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_list_entries, "ML1a")
+        self.assertEqual(verified_good.control_list_entries, ["ML1a"])
 
         verified_good = Good.objects.get(pk=self.good_2.pk)
-        self.assertEqual(verified_good.control_list_entries, "ML1a")
+        self.assertEqual(verified_good.control_list_entries, ["ML1a"])
 
     def test_verify_single_good_NLR(self):
         """
         Post a singular good to the endpoint, and check that the control code is not set if good is not controlled
         """
-
         data = {
             "objects": self.good_1.pk,
             "comment": "I Am Easy to Find",
@@ -263,49 +241,6 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
 
         # determine that flags have been removed when good verified
         self.assertFalse(is_not_verified_flag_set_on_good(self.good_1))
-
-    def test_verify_multiple_goods(self):
-        """
-        Post multiple goods to the endpoint, and check that the control code is updated for both
-        """
-
-        data = {
-            "objects": [self.good_1.pk, self.good_2.pk],
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
-            "is_good_controlled": "True",
-            "control_list_entries": "ML1a",
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-
-        self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries, "ML1a")
-
-        self.good_2.refresh_from_db()
-        self.assertEqual(self.good_2.control_list_entries, "ML1a")
-
-    def test_verify_single_good_NLR(self):
-        """
-        Post a singular good to the endpoint, and check that the control code is not set if good is not controlled
-        """
-        data = {
-            "objects": self.good_1.pk,
-            "comment": "I Am Easy to Find",
-            "report_summary": self.report_summary.pk,
-            "control_list_entries": ["ML1a"],
-            "is_good_controlled": "False",
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-
-        self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries, "")
-
-        # determine that flags have been removed when good verified
-        self.assertEqual(self.good_1.flags.count(), 0)
 
     def test_verify_only_change_comment_doesnt_remove_flags(self):
         """
