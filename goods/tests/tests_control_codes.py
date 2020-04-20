@@ -80,7 +80,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries, "")
+        self.assertEqual(self.good_1.control_list_entries.count(), 0)
 
         # determine that flags have been removed when good verified
         self.assertEqual(self.good_1.flags.count(), 0)
@@ -103,8 +103,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
 
         self.good_1.refresh_from_db()
         self.good_2.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries, "")
-        self.assertEqual(self.good_2.control_list_entries, "")
+        self.assertEqual(self.good_1.control_list_entries.count(), 0)
+        self.assertEqual(self.good_2.control_list_entries.count(), 0)
 
     def test_invalid_good_pk(self):
         """
