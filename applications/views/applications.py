@@ -402,6 +402,10 @@ class ApplicationManageStatus(APIView):
 
         application = serializer.save()
 
+        # Case routing rules
+        if old_status != application.status:
+            application.remove_all_case_assignments()
+
         if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(application.status.status):
             # we reapply flagging rules if the status is reopened from a terminal state
             apply_flagging_rules_to_case(application)

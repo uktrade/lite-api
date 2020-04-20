@@ -126,6 +126,10 @@ class Case(TimestampableModel):
 
         return parameter_set
 
+    def remove_all_case_assignments(self):
+        self.queues.clear()
+        CaseAssignment.objects.filter(case_id=self.id).delete()
+
 
 class CaseReferenceCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -267,6 +267,10 @@ class GoodQueryManageStatus(APIView):
         query.status = get_case_status_by_status(new_status)
         query.save()
 
+        # Case routing rules
+        if old_status != new_status:
+            query.remove_all_case_assignments()
+
         if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(query.status.status):
             apply_flagging_rules_to_case(query)
 
