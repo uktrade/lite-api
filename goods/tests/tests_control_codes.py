@@ -110,20 +110,19 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         Post multiple goods to the endpoint, and test that 404 response, and that other good is updated
         """
-
         data = {
             "objects": [self.team.pk, self.good_1.pk],  # first value is invalid
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
+            "is_good_controlled": GoodControlled.NO,
             "control_list_entries": [],
-            "is_good_controlled": "no",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_list_entries, "")
+        self.assertEqual(verified_good.control_list_entries.count(), 0)
 
     def test_standard_invalid_control_list_entries(self):
         """
@@ -133,8 +132,8 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entries": ["invalid"],
             "is_good_controlled": GoodControlled.YES,
+            "control_list_entries": ["invalid"],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -144,16 +143,16 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertTrue(is_not_verified_flag_set_on_good(verified_good))
 
-    def test_controlled_good_empty_control_list_entries(self):
+    def test_standard_controlled_good_empty_control_list_entries(self):
         """
-        Post multiple goods, with an blank control_list_entries and is controlled, for a 400 response, and not update of good.
+        Post multiple goods, with an blank control_list_entries and is controlled, for a 400 response, and no update of goods
         """
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entries": [],
             "is_good_controlled": GoodControlled.YES,
+            "control_list_entries": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
