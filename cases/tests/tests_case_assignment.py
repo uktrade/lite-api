@@ -97,28 +97,3 @@ class CaseAssignmentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": {"queues": [Cases.UnassignQueues.NO_QUEUES]}})
-
-    def test_automatic_case_routing_next_tier(self):
-        initial_routing_rule = self.create_routing_rule(
-            self.team.id,
-            self.queue.id,
-            2,
-            status_id=get_case_status_by_status(CaseStatusEnum.SUBMITTED).id,
-            additional_rules=[RoutingRulesAdditionalFields.USERS],
-        )
-        other_routing_rule = self.create_routing_rule(
-            self.team.id,
-            self.queue.id,
-            5,
-            status_id=get_case_status_by_status(CaseStatusEnum.SUBMITTED).id,
-            additional_rules=[RoutingRulesAdditionalFields.USERS],
-        )
-        self.case.queues.set([self.queue.id])
-
-        response = self.client.put(self.url, **self.gov_headers, data={"queues": [self.queue.id]})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.case.refresh_from_db()
-
-        self.assertEqual(self.case.queues.count(), 1)
-        self.assertEqual(self.case.queues.first().id, self.other_queue.id)

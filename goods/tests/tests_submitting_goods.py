@@ -17,6 +17,7 @@ class GoodTests(DataTestClient):
         """
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         draft = self.create_draft_standard_application(self.organisation)
+        self.assertEqual(draft.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(Good.objects.get().status, "draft")
 
         data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
@@ -27,10 +28,7 @@ class GoodTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response_data["application"]["status"],
-            {"key": CaseStatusEnum.SUBMITTED, "value": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED)},
-        )
+        self.assertNotEqual(response_data["application"]["status"]["key"], CaseStatusEnum.DRAFT)
         good = Good.objects.get()
         self.assertEqual(good.status, GoodStatus.SUBMITTED)
         self.assertTrue(is_not_verified_flag_set_on_good(good))
