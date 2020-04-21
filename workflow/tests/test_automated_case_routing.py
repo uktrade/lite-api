@@ -2,6 +2,7 @@ from django.test import tag
 
 from applications.models import CountryOnApplication
 from cases.models import CaseType
+from queues.models import Queue
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from workflow.automation import run_routing_rules
@@ -114,3 +115,53 @@ class CaseRoutingAutomationTests(DataTestClient):
         run_routing_rules(case)
 
         self.assertIn(self.queue, case.queues.all())
+
+    @tag("2109")
+    def test_case_routed_to_multiple_queues_when_status_changed(self):
+        queue_2 = Queue(team=self.team)
+        queue_2.save()
+        self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+        self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=queue_2.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+
+        case = self.create_open_application_case(organisation=self.organisation)
+        run_routing_rules(case)
+
+        self.assertIn(self.queue, set(case.queues.all()))
+        self.assertIn(queue_2, set(case.queues.all()))
+
+    @tag("2109")
+    def test_case_routed_to_one_queue_with_different_rule_tiers_when_status_changed(self):
+        queue_2 = Queue(team=self.team)
+        queue_2.save()
+        self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+        self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=queue_2.id,
+            tier=6,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+
+        case = self.create_open_application_case(organisation=self.organisation)
+        run_routing_rules(case)
+
+        self.assertIn(self.queue, case.queues.all())
+        self.assertNotIn(queue_2, case.queues.all())
