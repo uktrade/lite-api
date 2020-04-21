@@ -15,7 +15,7 @@ from conf.helpers import str_to_bool
 from picklists.enums import PickListStatus
 from picklists.helpers import get_picklist_item
 from picklists.models import PicklistItem
-from picklists.serializers import PicklistSerializer
+from picklists.serializers import PicklistUpdateCreateSerializer, PicklistListSerializer
 from lite_content.lite_api import strings
 
 
@@ -43,7 +43,7 @@ class PickListItems(APIView):
             ids = ids.split(",")
             picklist_items = picklist_items.filter(id__in=ids)
 
-        serializer = PicklistSerializer(picklist_items.order_by("-updated_at"), many=True)
+        serializer = PicklistListSerializer(picklist_items.order_by("-updated_at"), many=True)
         return JsonResponse(data={"picklist_items": serializer.data})
 
     def post(self, request):
@@ -52,7 +52,7 @@ class PickListItems(APIView):
         """
         data = JSONParser().parse(request)
         data["team"] = request.user.team.id
-        serializer = PicklistSerializer(data=data, partial=True)
+        serializer = PicklistUpdateCreateSerializer(data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -73,7 +73,7 @@ class PicklistItemDetail(APIView):
         Gets details of a specific picklist item
         """
         picklist_item = get_picklist_item(pk)
-        data = PicklistSerializer(picklist_item).data
+        data = PicklistListSerializer(picklist_item).data
 
         audit_qs = audit_trail_service.get_user_obj_trail_qs(request.user, picklist_item)
         data["activity"] = AuditSerializer(audit_qs, many=True).data
@@ -89,7 +89,7 @@ class PicklistItemDetail(APIView):
         if request.user.team != picklist_item.team:
             return JsonResponse(data={"errors": strings.Picklists.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN,)
 
-        serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)
+        serializer = PicklistUpdateCreateSerializer(instance=picklist_item, data=request.data, partial=True)
 
         if serializer.is_valid():
             if serializer.validated_data.get("text"):
