@@ -11,6 +11,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from audit_trail.serializers import AuditSerializer
 from conf.authentication import GovAuthentication
+from conf.custom_views import OptionallyPaginatedEndpoint
 from conf.helpers import str_to_bool
 from picklists.enums import PickListStatus
 from picklists.helpers import get_picklist_item
@@ -20,18 +21,19 @@ from lite_content.lite_api import strings
 
 
 @permission_classes((permissions.AllowAny,))
-class PickListItems(APIView):
+class PickListItems(OptionallyPaginatedEndpoint):
     authentication_classes = (GovAuthentication,)
+    serializer_class = PicklistListSerializer
 
-    def get(self, request):
+    def get_queryset(self):
         """
         Returns a list of all picklist items, filtered by type and by show_deactivated
         """
-        picklist_items = PicklistItem.objects.filter(team=request.user.team, )
+        picklist_items = PicklistItem.objects.filter(team=self.request.user.team, )
 
-        picklist_type = request.GET.get("type", None)
-        show_deactivated = str_to_bool(request.GET.get("show_deactivated", None))
-        ids = request.GET.get("ids", None)
+        picklist_type = self.request.GET.get("type")
+        show_deactivated = str_to_bool(self.request.GET.get("show_deactivated"))
+        ids = self.request.GET.get("ids")
 
         if picklist_type:
             picklist_items = picklist_items.filter(type=picklist_type)
@@ -43,8 +45,7 @@ class PickListItems(APIView):
             ids = ids.split(",")
             picklist_items = picklist_items.filter(id__in=ids)
 
-        serializer = PicklistListSerializer(picklist_items.order_by("-updated_at"), many=True)
-        return JsonResponse(data={"picklist_items": serializer.data})
+        return picklist_items.order_by("-updated_at")
 
     def post(self, request):
         """
