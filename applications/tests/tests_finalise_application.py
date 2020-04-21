@@ -160,10 +160,12 @@ class FinaliseApplicationTests(DataTestClient):
 
 
 class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
-    def test_get_approved_goods_success(self):
+    def setUp(self):
+        super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.url = reverse("applications:finalise", kwargs={"pk": self.standard_application.id})
 
+    def test_get_approved_goods_success(self):
         # Approve the existing good
         advice_text = "looks good to me"
         self.create_advice(
@@ -178,6 +180,19 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
             self.gov_user, self.standard_application, "", AdviceType.REFUSE, FinalAdvice, good=second_good_on_app.good
         )
 
+        # NLR a third good
+        third_good_on_app = self.create_good_on_application(
+            self.standard_application, self.create_good("a thing", self.organisation)
+        )
+        self.create_advice(
+            self.gov_user,
+            self.standard_application,
+            "",
+            AdviceType.NO_LICENCE_REQUIRED,
+            FinalAdvice,
+            good=third_good_on_app.good,
+        )
+
         response = self.client.get(self.url, **self.gov_headers)
         data = response.json()["goods"]
 
@@ -190,6 +205,19 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
         self.assertEqual(data[0]["value"].split(".")[0], str(self.good_on_application.value))
         self.assertEqual(data[0]["advice"]["type"]["key"], AdviceType.APPROVE)
         self.assertEqual(data[0]["advice"]["text"], advice_text)
+
+    def test_get_proviso_goods_success(self):
+        # Proviso the existing good
+        advice = self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.PROVISO, FinalAdvice)
+
+        response = self.client.get(self.url, **self.gov_headers)
+        data = response.json()["goods"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["id"], str(self.good_on_application.id))
+        self.assertEqual(data[0]["advice"]["text"], advice.text)
+        self.assertEqual(data[0]["advice"]["proviso"], advice.proviso)
 
 
 class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
