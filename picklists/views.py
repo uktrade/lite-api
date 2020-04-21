@@ -27,24 +27,23 @@ class PickListItems(APIView):
         """
         Returns a list of all picklist items, filtered by type and by show_deactivated
         """
+        picklist_items = PicklistItem.objects.filter(team=request.user.team, )
+
         picklist_type = request.GET.get("type", None)
         show_deactivated = str_to_bool(request.GET.get("show_deactivated", None))
         ids = request.GET.get("ids", None)
-        query = [Q(team=request.user.team.id)]
 
         if picklist_type:
-            query.append(Q(type=picklist_type))
+            picklist_items = picklist_items.filter(type=picklist_type)
 
         if not show_deactivated:
-            query.append(Q(status=PickListStatus.ACTIVE))
+            picklist_items = picklist_items.filter(status=PickListStatus.ACTIVE)
 
         if ids:
             ids = ids.split(",")
-            query.append(Q(id__in=ids))
+            picklist_items = picklist_items.filter(id__in=ids)
 
-        picklist_items = PicklistItem.objects.filter(reduce(operator.and_, query))
-        picklist_items = picklist_items.order_by("-updated_at")
-        serializer = PicklistSerializer(picklist_items, many=True)
+        serializer = PicklistSerializer(picklist_items.order_by("-updated_at"), many=True)
         return JsonResponse(data={"picklist_items": serializer.data})
 
     def post(self, request):
