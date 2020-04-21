@@ -27,12 +27,10 @@ class PickListItems(OptionallyPaginatedEndpoint):
     serializer_class = PicklistListSerializer
 
     def get_serializer_class(self):
-        full_detail = self.request.GET.get("full_detail", False)
-
-        if full_detail:
-            return PicklistListSerializer
-        else:
+        if str_to_bool(self.request.GET.get("disable_pagination")):
             return PicklistCondensedListSerializer
+        else:
+            return PicklistListSerializer
 
 
     def get_queryset(self):
