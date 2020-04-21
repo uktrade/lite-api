@@ -63,6 +63,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
+from workflow.automation import run_routing_rules
 from workflow.user_queue_assignment import user_queue_assignment_workflow
 
 
@@ -744,14 +745,12 @@ class RerunRoutingRules(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
-        # is permission required?
         case = get_case(pk)
 
         audit_trail_service.create(
             actor=request.user, verb=AuditType.RERUN_ROUTING_RULES, target=case,
         )
 
-        case.remove_all_case_assignments()
-        # run routing rules from scratch for status
+        run_routing_rules(case)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
