@@ -8,7 +8,6 @@ from users.models import BaseUser
 
 
 class CasesAuditTrail(DataTestClient):
-    # TODO: test schemas and creation
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
