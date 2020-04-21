@@ -15,7 +15,7 @@ from licences.serializers.view_licences import (
 from parties.enums import PartyRole
 from parties.models import Party, PartyDocument
 from static.statuses.serializers import CaseStatusSerializer
-
+from static.units.enums import Units
 
 # Case View
 
@@ -59,6 +59,7 @@ class GoodsTypeOnLicenceSerializer(serializers.ModelSerializer):
 
 class GoodOnLicenceSerializer(serializers.ModelSerializer):
     good = GoodLicenceListSerializer(read_only=True)
+    unit = KeyValueChoiceField(choices=Units.choices)
 
     class Meta:
         model = GoodOnApplication
@@ -66,6 +67,7 @@ class GoodOnLicenceSerializer(serializers.ModelSerializer):
             "good",
             "quantity",
             "usage",
+            "unit",
             "licenced_quantity",
             "licenced_value",
         )
