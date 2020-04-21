@@ -31,9 +31,11 @@ def run_routing_rules(case: Case):
 
         if not rules_have_been_applied:
             next_status = get_next_status_in_workflow_sequence(case)
-            if next_status:
+            if next_status and not next_status.is_terminal:
                 case.status = next_status
                 case.save()
+            else:
+                rules_have_been_applied = True
 
     if queues:
         sep = ", "
