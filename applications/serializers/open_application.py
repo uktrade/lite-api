@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db.models import Min
 
 from applications.models import OpenApplication
 from licences.models import Licence
@@ -53,7 +54,22 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         return FullGoodsTypeSerializer(goods_types, many=True).data
 
     def get_destinations(self, application):
-        countries = Country.objects.filter(countries_on_application__application=application)
+        """ Get destinations for the open application, ordered based on flag priority and alphabetized by name."""
+        if "user_type" in self.context and self.context["user_type"] == "exporter":
+            countries = Country.objects.filter(countries_on_application__application=application)
+        else:
+            countries_with_flags = (
+                Country.objects.filter(countries_on_application__application=application, flags__isnull=False)
+                .annotate(highest_priority=Min("flags__priority"))
+                .order_by("highest_priority", "name")
+            )
+
+            countries_without_flags = Country.objects.filter(
+                countries_on_application__application=application, flags__isnull=True
+            ).order_by("name")
+
+            countries = list(countries_with_flags) + list(countries_without_flags)
+
         serializer = CountryWithFlagsSerializer(countries, many=True, context={"active_flags_only": True})
         return {"type": "countries", "data": serializer.data}
 

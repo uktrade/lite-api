@@ -32,6 +32,7 @@ class HmrcQueryViewSerializer(PartiesSerializerMixin, GenericApplicationViewSeri
 
     def get_goods_types(self, instance):
         goods_types = GoodsType.objects.filter(application=instance)
+
         return FullGoodsTypeSerializer(goods_types, many=True).data
 
     def get_supporting_documentation(self, application):
