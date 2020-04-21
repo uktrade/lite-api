@@ -5,6 +5,7 @@ from cases.enums import CaseTypeEnum
 from flags.enums import FlagLevels, FlagStatuses
 from goods.enums import GoodStatus
 from goodstype.models import GoodsType
+from static.control_list_entries.helpers import get_control_list_entry
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -370,8 +371,10 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
 
         goods_type = GoodsType.objects.filter(application_id=application.id).first()
         good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
+
+        goods_type.control_list_entries.set([get_control_list_entry("ML1a")])
         self.create_flagging_rule(
-            FlagLevels.GOOD, self.team, flag=good_flag, matching_value=goods_type.control_list_entries.first()
+            FlagLevels.GOOD, self.team, flag=good_flag, matching_value=goods_type.control_list_entries.first().rating
         )
 
         party = PartyOnApplication.objects.filter(application_id=application.id).first().party
@@ -453,6 +456,7 @@ class FlaggingRulesAutomationForEachCaseType(DataTestClient):
         self.create_flagging_rule(FlagLevels.CASE, self.team, flag=case_flag, matching_value=query.case_type.reference)
 
         good = query.good
+        good.control_list_entries.set([get_control_list_entry("ML1a")])
         good_flag = self.create_flag("good flag", FlagLevels.GOOD, self.team)
         self.create_flagging_rule(
             FlagLevels.GOOD, self.team, flag=good_flag, matching_value=good.control_list_entries.first().rating
