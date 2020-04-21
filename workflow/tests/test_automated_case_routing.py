@@ -7,11 +7,6 @@ from test_helpers.clients import DataTestClient
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
-class CaseRoutingAutomationTests(DataTestClient):
-    def test_case_routed_to_new_queue_when_status_changed(self):
-        pass
-
-
 class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
     def test_case_parameters_are_returned_in_a_set(self):
         pass
@@ -88,9 +83,37 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         self.assertIn(case.case_type, parameter_set)
 
     @tag("2109")
-    def test_ecju_query_returns_parameter_set(self):
-        pass
+    def test_end_user_advisory_query_returns_parameter_set(self):
+        case = self.create_end_user_advisory_case(organisation=self.organisation, note="a note", reasoning="reasoning")
+
+        parameter_set = case.parameter_set()
+
+        self.assertIn(case.case_type, parameter_set)
 
     @tag("2109")
     def test_good_query_returns_parameter_set(self):
-        pass
+        case = self.create_goods_query(
+            organisation=self.organisation, clc_reason="reason", pv_reason="reason", description="a good"
+        )
+
+        parameter_set = case.parameter_set()
+
+        self.assertIn(case.case_type, parameter_set)
+
+
+class CaseRoutingAutomationTests(DataTestClient):
+    @tag("2109")
+    def test_case_routed_to_new_queue_when_status_changed(self):
+        self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+
+        application = self.create_draft_open_application(organisation=self.organisation)
+        self.submit_application(application)
+
+        case = application.get_case()
+        self.assertIn(self.queue, case.queues.all())
