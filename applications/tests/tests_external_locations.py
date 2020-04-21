@@ -184,14 +184,19 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(application.external_application_sites.count(), 0)
 
-    def test_add_gb_external_locations_to_transhipment_failure(self):
+    @parameterized.expand(
+        [
+            (CaseTypeEnum.SITL.id, DataTestClient.create_draft_standard_application),
+            (CaseTypeEnum.SICL.id, DataTestClient.create_draft_standard_application),
+            (CaseTypeEnum.OICL.id, DataTestClient.create_draft_open_application),
+        ]
+    )
+    def test_add_gb_external_locations_failure(self, case_type_id, create_function):
         """
-        Assert that it isn't possible to add external locations based in GB to transhipment applications
+        Assert that it isn't possible to add external locations based in GB to transhipment & trade control applications
         """
         external_location = self.create_external_location("Hard to Find", self.organisation, "GB")
-        transhipment = self.create_draft_standard_application(
-            organisation=self.organisation, case_type_id=CaseTypeEnum.SITL.id
-        )
+        transhipment = create_function(self, organisation=self.organisation, case_type_id=case_type_id)
 
         url = reverse("applications:application_external_locations", kwargs={"pk": transhipment.id})
         data = {"external_locations": [external_location.id]}
@@ -199,4 +204,8 @@ class ExternalLocationsOnApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(transhipment.application_sites.count(), 1)
-        self.assertEqual(response.json()["errors"]["external_locations"][0], ExternalLocations.Errors.TRANSHIPMENT_GB)
+        self.assertEqual(
+            response.json()["errors"]["external_locations"][0],
+            ExternalLocations.Errors.COUNTRY_ON_APPLICATION
+            % (external_location.country.id, transhipment.case_type.reference),
+        )

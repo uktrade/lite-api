@@ -3,13 +3,13 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.constants import TRANSHIPMENT_BANNED_COUNTRIES
+from applications.constants import TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import ExternalLocationOnApplicationSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
-from cases.enums import CaseTypeReferenceEnum
+from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, application_in_non_readonly_state
 from lite_content.lite_api.strings import ExternalLocations
@@ -96,9 +96,18 @@ class ApplicationExternalLocations(APIView):
                 data={"external_location": str(new_location.id), "application": str(application.id)}
             )
 
-            if application.case_type.reference == CaseTypeReferenceEnum.SITL:
-                if new_location.country.id in TRANSHIPMENT_BANNED_COUNTRIES:
-                    return None, {"external_locations": [ExternalLocations.Errors.TRANSHIPMENT_GB]}
+            # Transhipment and Trade Control applications can't have sites based in certain countries
+            if application.case_type.id in [*CaseTypeEnum.trade_control_case_type_ids(), CaseTypeEnum.SITL.id]:
+                if new_location.country.id in TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES:
+                    return (
+                        None,
+                        {
+                            "external_locations": [
+                                ExternalLocations.Errors.COUNTRY_ON_APPLICATION
+                                % (new_location.country.id, application.case_type.reference)
+                            ]
+                        },
+                    )
 
             if serializer.is_valid():
                 serializer.save()
