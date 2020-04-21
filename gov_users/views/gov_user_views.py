@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
 from conf.custom_views import OptionallyPaginatedEndpoint
-from conf.helpers import replace_default_string_for_form_select, str_to_bool
+from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.enums import UserStatuses
