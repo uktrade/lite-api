@@ -305,8 +305,12 @@ class ApplicationSubmission(APIView):
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Queries are completed directly when submit is clicked on the task list
+        # HMRC are completed when submit is clicked on the summary page (page after task list)
+        # Applications are completed when submit is clicked on the declaration page (page after summary page)
+
         if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS,] or (
-            CaseTypeSubTypeEnum.HMRC and request.data.get("summary")
+            CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
         ):
             set_application_sla(application)
             create_submitted_audit(request, application, old_status)
