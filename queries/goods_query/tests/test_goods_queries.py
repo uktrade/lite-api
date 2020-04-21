@@ -56,10 +56,10 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
             is_good_controlled=GoodControlled.UNSURE,
             is_pv_graded=GoodPvGraded.NO,
             pv_grading_details=None,
-            control_list_entries="ML1b",
             part_number="123456",
             organisation=self.organisation,
         )
+        self.good.control_list_entries.set([get_control_list_entry("ML1a")])
         self.good.save()
 
         self.data = {

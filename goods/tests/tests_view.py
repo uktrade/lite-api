@@ -98,12 +98,12 @@ class GoodViewTests(DataTestClient):
         response_data = response.json()["results"]
         self.assertEqual(len(response_data), 2)
 
-    @parameterized.expand([("ML", 2), ("ML1a", 1)])
+    @parameterized.expand([("ML", 2), ("ML1a", 2)])
     def test_view_good__query_filter_by_control_list_entry(self, control_list_entry, count):
         org = self.organisation
 
         GoodFactory(organisation=org, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
-        GoodFactory(organisation=org, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1"])
+        GoodFactory(organisation=org, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
 
         url = reverse("goods:goods") + "?control_list_entry=" + control_list_entry
 

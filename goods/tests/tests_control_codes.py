@@ -11,6 +11,7 @@ from goods.models import Good
 from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
 from picklists.enums import PicklistType, PickListStatus
+from static.control_list_entries.helpers import get_control_list_entry
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
@@ -238,7 +239,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries.values_list("rating", flat=True), ["ML1a"])
+        self.assertEqual(list(self.good_1.control_list_entries.values_list("rating", flat=True)), ["ML1a"])
 
         # determine that flags have been removed when good verified
         self.assertFalse(is_not_verified_flag_set_on_good(self.good_1))
@@ -248,7 +249,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         Assert that not changing the control code does not remove the flags
         """
         self.good_1.is_good_controlled = "True"
-        self.good_1.control_list_entries.set(["ML1a"])
+        self.good_1.control_list_entries.set([get_control_list_entry("ML1a")])
         self.good_1.save()
         data = {
             "objects": self.good_1.pk,
@@ -262,7 +263,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         self.good_1.refresh_from_db()
-        self.assertEqual(self.good_1.control_list_entries, "ML1a")
+        self.assertEqual(list(self.good_1.control_list_entries.values_list("rating", flat=True)), ["ML1a"])
 
         # determine that flags have not been removed when control code hasn't changed
         self.assertEqual(self.good_1.flags.count(), 1)

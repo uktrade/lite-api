@@ -131,8 +131,8 @@ class GoodQueryCLCResponse(APIView):
         if clc_good_serializer.is_valid():
             if not str_to_bool(data.get("validate_only")):
                 previous_control_list_entries = (
-                    query.good.control_list_entries
-                    if query.good.control_list_entries
+                    str(query.good.control_list_entries.values_list("rating", flat=True))
+                    if query.good.control_list_entries.exists()
                     else strings.Goods.GOOD_NO_CONTROL_CODE
                 )
 

@@ -6,7 +6,7 @@ def get_control_list_entry(rating):
     try:
         return ControlListEntry.objects.get(rating=rating)
     except ControlListEntry.DoesNotExist:
-        raise NotFoundError({"control_list_entry": f"'{rating}' - Control list entry found"})
+        raise NotFoundError({"control_list_entry": f"'{rating}' - Control list entry not found"})
 
 
 def get_control_list_entry_parent_dict(parent):

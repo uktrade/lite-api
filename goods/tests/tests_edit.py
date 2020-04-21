@@ -21,7 +21,8 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(response.json()["good"]["is_good_controlled"]["key"], GoodControlled.NO)
-        self.assertEquals(response.json()["good"]["control_list_entries"], None)
+        self.assertEquals(response.json()["good"]["control_list_entries"], [])
+
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_updating_clc_control_list_entries_then_new_control_list_entries_is_returned(self):

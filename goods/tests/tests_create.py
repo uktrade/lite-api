@@ -149,7 +149,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEquals(response.json()["errors"], {"control_list_entries": ["Enter a valid control list entry"]})
+        self.assertEquals(response.json()["errors"], {"control_list_entries": ["Control list entry is invalid"]})
         self.assertEquals(Good.objects.all().count(), 0)
 
 
