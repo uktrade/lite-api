@@ -2,7 +2,7 @@ from audit_trail import service
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from audit_trail.streams.exceptions import PayloadSchemaException, AuditSchemaException
-from audit_trail.streams.schemas.payloads import VERB_SCHEMAS
+from audit_trail.streams.schemas.payloads import VERB_PAYLOAD_SCHEMAS
 from test_helpers.clients import DataTestClient
 
 
@@ -41,14 +41,8 @@ class AuditTrailPayloadSchemaTests(DataTestClient):
 
         self.assertEqual(audit_qs.count(), 0)
         self.assertEqual(
-            e.exception.message, {"schema": VERB_SCHEMAS[AuditType.UPDATED_STATUS], "data": invalid_payload}
+            e.exception.message, {"schema": VERB_PAYLOAD_SCHEMAS[AuditType.UPDATED_STATUS], "data": invalid_payload}
         )
-
-
-class AuditTrailObjectSchemaTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
-        self.case = self.create_standard_application_case(self.organisation)
 
     def test_update_status_valid_object_schema_success(self):
         audit_qs = Audit.objects.all()
