@@ -1,5 +1,3 @@
-from collections import Iterable
-
 import six
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext_lazy as _
