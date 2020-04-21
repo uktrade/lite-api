@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('end_user_advisories', '0003_remove_enduseradvisoryquery_copy_of'),
+        ("end_user_advisories", "0003_remove_enduseradvisoryquery_copy_of"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='enduseradvisoryquery',
-            options={'ordering': ['created_at']},
-        ),
+        migrations.AlterModelOptions(name="enduseradvisoryquery", options={"ordering": ["created_at"]},),
     ]

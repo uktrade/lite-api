@@ -5,6 +5,10 @@ from django.db.models import Count
 
 
 def forward_step(apps, schema_editor):
+    """
+    Function to remove the duplicate CaseAssignment's that would break the new unique together field
+    """
+
     CaseAssignment = apps.get_model("cases.CaseAssignment")
 
     dups = (
@@ -25,6 +29,9 @@ def forward_step(apps, schema_editor):
 
 
 def backwards_step(apps, schema_editor):
+    """
+    Function added to allow for reverse migrations, although it has no need to add to do any functionality.
+    """
     pass
 
 

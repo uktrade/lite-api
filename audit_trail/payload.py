@@ -88,7 +88,7 @@ class AuditType(Enum):
     )
     UPDATED_ROUTE_OF_GOODS = 'updated {route_of_goods_field} from "{previous_value}" to "{new_value}"'
 
-    RERUN_ROUTING_RULES = "has ran the routing rules again"
+    RERUN_ROUTING_RULES = "has run the routing rules again"
 
     def format(self, payload):
         text = self.value.format(**payload)
