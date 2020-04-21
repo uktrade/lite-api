@@ -19,13 +19,3 @@ TYPE_MAPPING = {
     AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "countries",
     AuditType.CREATED: "case",
 }
-
-
-VERB_MAPPING = {
-    AuditType.ADD_CASE_OFFICER_TO_CASE: "add",
-    AuditType.REMOVE_CASE_OFFICER_FROM_CASE: "remove",
-    AuditType.UPDATED_STATUS: "update",
-    AuditType.ADD_COUNTRIES_TO_APPLICATION: "add",
-    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: "remove",
-    AuditType.CREATED: "create",
-}

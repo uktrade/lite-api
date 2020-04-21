@@ -11,7 +11,7 @@ from django.utils import timezone
 from applications.models import CountryOnApplication
 from audit_trail.models import Audit
 from audit_trail.payload import AuditType
-from audit_trail.streams.constants import STREAMED_AUDITS, TYPE_MAPPING, VERB_MAPPING
+from audit_trail.streams.constants import STREAMED_AUDITS, TYPE_MAPPING
 from cases.models import Case
 from common.models import prefetch_generic_relations
 from static.statuses.enums import CaseStatusEnum
@@ -62,7 +62,6 @@ def case_activity_json(audit, case_type):
         # Some applications in draft status are being deleted
         return {}
     data_type = TYPE_MAPPING[AuditType(audit.verb)]
-    verb = VERB_MAPPING[AuditType(audit.verb)]
     object_data = {
         "type": [
             "dit:lite:case:change",
@@ -102,7 +101,7 @@ def case_activity_json(audit, case_type):
 
     return {
         "id": "dit:lite:case:change:{data_type}:{id}:{audit_id}:create".format(
-            data_type=data_type, id=case.id, audit_id=audit.id, verb=verb
+            data_type=data_type, id=case.id, audit_id=audit.id
         ),
         "published": "{ts}".format(ts=date_to_string_utc(audit.created_at)),
         "object": object_data,
