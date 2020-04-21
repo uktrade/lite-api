@@ -70,6 +70,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
+from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
@@ -335,6 +336,7 @@ class ApplicationSubmission(APIView):
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
                 create_submitted_audit(request, application, old_status)
+                run_routing_rules(application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -404,7 +406,7 @@ class ApplicationManageStatus(APIView):
 
         # Case routing rules
         if old_status != application.status:
-            application.remove_all_case_assignments()
+            run_routing_rules(application)
 
         if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(application.status.status):
             # we reapply flagging rules if the status is reopened from a terminal state

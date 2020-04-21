@@ -28,6 +28,7 @@ from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
+from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
@@ -267,10 +268,6 @@ class GoodQueryManageStatus(APIView):
         query.status = get_case_status_by_status(new_status)
         query.save()
 
-        # Case routing rules
-        if old_status.status != new_status:
-            query.remove_all_case_assignments()
-
         if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(query.status.status):
             apply_flagging_rules_to_case(query)
 
@@ -280,5 +277,9 @@ class GoodQueryManageStatus(APIView):
             target=query.get_case(),
             payload={"status": {"new": CaseStatusEnum.get_text(new_status), "old": old_status.status}},
         )
+
+        # Case routing rules
+        if old_status.status != new_status:
+            run_routing_rules(query)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
