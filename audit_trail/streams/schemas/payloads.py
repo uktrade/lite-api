@@ -25,7 +25,7 @@ VERB_SCHEMAS = {
     AuditType.REMOVED_COUNTRIES_FROM_APPLICATION: {"countries": list},
     AuditType.ADD_CASE_OFFICER_TO_CASE: {"case_officer": str},
     AuditType.REMOVE_CASE_OFFICER_FROM_CASE: {"case_officer": str},
-    AuditType.CREATED: {"status": {"new": str}}
+    AuditType.CREATED: {"status": {"new": str}},
 }
 
 

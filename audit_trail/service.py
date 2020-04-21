@@ -18,17 +18,8 @@ def create(actor, verb, action_object=None, target=None, payload=None, ignore_ca
 
     if verb.value in STREAMED_AUDITS:
         # Validate all streamed audits
-        validate_audit_kwargs(
-            actor=actor,
-            verb=verb,
-            action_object=action_object,
-            target=target,
-            payload=payload
-        )
-        validate_payload(
-            verb=verb,
-            payload=payload
-        )
+        validate_audit_kwargs(actor=actor, verb=verb, action_object=action_object, target=target, payload=payload)
+        validate_payload(verb=verb, payload=payload)
 
     return Audit.objects.create(
         actor=actor,

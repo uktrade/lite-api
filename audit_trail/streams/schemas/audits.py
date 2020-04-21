@@ -10,6 +10,7 @@ class Schema(namedtuple("Schema", "actor verb action_object target payload")):
     """
     Schema defines a parameter schemas for validation.
     """
+
     @classmethod
     def from_kwargs(cls, **kwargs):
         missing_kwargs = {}
@@ -30,8 +31,16 @@ SCHEMAS = [
     Schema(actor=ExporterUser, verb=AuditType.CREATED, action_object=Case, target=None, payload=dict),
     Schema(actor=GovUser, verb=AuditType.ADD_CASE_OFFICER_TO_CASE, action_object=None, target=Case, payload=dict),
     Schema(actor=GovUser, verb=AuditType.REMOVE_CASE_OFFICER_FROM_CASE, action_object=None, target=Case, payload=dict),
-    Schema(actor=ExporterUser, verb=AuditType.ADD_COUNTRIES_TO_APPLICATION, action_object=None, target=Case, payload=dict),
-    Schema(actor=ExporterUser, verb=AuditType.REMOVED_COUNTRIES_FROM_APPLICATION, action_object=None, target=Case, payload=dict),
+    Schema(
+        actor=ExporterUser, verb=AuditType.ADD_COUNTRIES_TO_APPLICATION, action_object=None, target=Case, payload=dict
+    ),
+    Schema(
+        actor=ExporterUser,
+        verb=AuditType.REMOVED_COUNTRIES_FROM_APPLICATION,
+        action_object=None,
+        target=Case,
+        payload=dict,
+    ),
 ]
 
 

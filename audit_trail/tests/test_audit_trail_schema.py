@@ -20,9 +20,7 @@ class AuditTrailPayloadSchemaTests(DataTestClient):
             actor=self.exporter_user,
             verb=AuditType.UPDATED_STATUS,
             target=self.case.get_case(),
-            payload={
-                "status": {"new": "submitted", "old": "draft"}
-            }
+            payload={"status": {"new": "submitted", "old": "draft"}},
         )
 
         self.assertEqual(audit_qs.count(), 1)
@@ -38,14 +36,13 @@ class AuditTrailPayloadSchemaTests(DataTestClient):
                 actor=self.exporter_user,
                 verb=AuditType.UPDATED_STATUS,
                 target=self.case.get_case(),
-                payload=invalid_payload
+                payload=invalid_payload,
             )
 
         self.assertEqual(audit_qs.count(), 0)
-        self.assertEqual(e.exception.message, {
-            "schema": VERB_SCHEMAS[AuditType.UPDATED_STATUS],
-            "data": invalid_payload
-        })
+        self.assertEqual(
+            e.exception.message, {"schema": VERB_SCHEMAS[AuditType.UPDATED_STATUS], "data": invalid_payload}
+        )
 
 
 class AuditTrailObjectSchemaTests(DataTestClient):
@@ -62,9 +59,7 @@ class AuditTrailObjectSchemaTests(DataTestClient):
             actor=self.exporter_user,
             verb=AuditType.UPDATED_STATUS,
             target=self.case.get_case(),
-            payload={
-                "status": {"new": "submitted", "old": "draft"}
-            }
+            payload={"status": {"new": "submitted", "old": "draft"}},
         )
 
         self.assertEqual(audit_qs.count(), 1)
@@ -79,9 +74,7 @@ class AuditTrailObjectSchemaTests(DataTestClient):
                 actor=self.exporter_user,
                 verb=AuditType.UPDATED_STATUS,
                 target=self.case,
-                payload={
-                    "status": {"new": "submitted", "old": "draft"}
-                }
+                payload={"status": {"new": "submitted", "old": "draft"}},
             )
 
         self.assertEqual(audit_qs.count(), 0)

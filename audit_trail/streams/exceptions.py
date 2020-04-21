@@ -1,5 +1,5 @@
 class PayloadSchemaException(Exception):
-    def __init__(self, message):
+    def __init__(self, message):  # noqa
         self.message = message
 
     def __str__(self):
