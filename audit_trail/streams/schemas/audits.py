@@ -10,6 +10,7 @@ class Schema(namedtuple("Schema", "actor verb action_object target payload")):
     """
     Schema defines the expected paramaters for generating a streamed audit.
     """
+
     @classmethod
     def from_kwargs(cls, **kwargs):
         """
