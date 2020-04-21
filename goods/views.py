@@ -79,15 +79,24 @@ class GoodsListControlCode(APIView):
         for pk in objects:
             try:
                 good = get_good_func(pk=pk)
-                old_control_list_entry = good.control_list_entries or "No control code"
+                old_control_list_entries = list(good.control_list_entries.all()) or [strings.Goods.GOOD_NO_CONTROL_CODE]
+                if strings.Goods.GOOD_NO_CONTROL_CODE not in old_control_list_entries:
+                    old_control_list_entries = [clc.rating for clc in old_control_list_entries]
 
                 serializer = serializer_class(good, data=data)
                 if serializer.is_valid():
                     serializer.save()
-                    new_control_list_entry = good.control_list_entries or "No control code"
 
-                    if new_control_list_entry != old_control_list_entry:
-                        good.flags.clear()
+                    good.flags.clear()
+
+                    new_control_list_entries = list(good.control_list_entries.all()) or [
+                        strings.Goods.GOOD_NO_CONTROL_CODE
+                    ]
+                    if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
+                        new_control_list_entries = [clc.rating for clc in new_control_list_entries]
+
+                    if new_control_list_entries != old_control_list_entries:
+
                         audit_trail_service.create(
                             actor=request.user,
                             verb=AuditType.GOOD_REVIEWED,
@@ -95,8 +104,8 @@ class GoodsListControlCode(APIView):
                             target=case,
                             payload={
                                 "good_name": good.description,
-                                "new_control_list_entry": new_control_list_entry,
-                                "old_control_list_entry": old_control_list_entry,
+                                "new_control_list_entry": new_control_list_entries,
+                                "old_control_list_entry": old_control_list_entries,
                             },
                         )
                 errors += serializer.errors
