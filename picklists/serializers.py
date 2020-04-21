@@ -1,5 +1,5 @@
 from lite_content.lite_api import strings
-from rest_framework.fields import CharField, SerializerMethodField
+from rest_framework.fields import CharField, SerializerMethodField, UUIDField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
 
@@ -10,7 +10,23 @@ from teams.models import Team
 from teams.serializers import TeamReadOnlySerializer
 
 
+class PicklistCondensedListSerializer(ModelSerializer):
+    id = UUIDField(read_only=True)
+    name = CharField(read_only=True)
+    text = CharField(read_only=True)
+
+    class Meta:
+        model = PicklistItem
+        fields = (
+            "id",
+            "name",
+            "text",
+            "updated_at",
+        )
+
+
 class PicklistListSerializer(ModelSerializer):
+    id = UUIDField(read_only=True)
     name = CharField(read_only=True)
     text = CharField(read_only=True)
     type = KeyValueChoiceField(choices=PicklistType.choices, read_only=True)

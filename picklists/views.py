@@ -16,7 +16,8 @@ from conf.helpers import str_to_bool
 from picklists.enums import PickListStatus
 from picklists.helpers import get_picklist_item
 from picklists.models import PicklistItem
-from picklists.serializers import PicklistUpdateCreateSerializer, PicklistListSerializer
+from picklists.serializers import PicklistUpdateCreateSerializer, PicklistListSerializer, \
+    PicklistCondensedListSerializer
 from lite_content.lite_api import strings
 
 
@@ -24,6 +25,15 @@ from lite_content.lite_api import strings
 class PickListItems(OptionallyPaginatedEndpoint):
     authentication_classes = (GovAuthentication,)
     serializer_class = PicklistListSerializer
+
+    def get_serializer_class(self):
+        full_detail = self.request.GET.get("full_detail", False)
+
+        if full_detail:
+            return PicklistListSerializer
+        else:
+            return PicklistCondensedListSerializer
+
 
     def get_queryset(self):
         """
