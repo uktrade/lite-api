@@ -755,7 +755,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.submit_application(draft)
 
     def create_hmrc_query(
-        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True,
+        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True, have_goods_departed=False,
     ):
         application = HmrcQuery(
             name=reference_name,
@@ -766,6 +766,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             hmrc_organisation=self.hmrc_organisation,
             reasoning="I Am Easy to Find",
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            have_goods_departed=have_goods_departed,
         )
         application.save()
 

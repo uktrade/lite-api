@@ -3,7 +3,7 @@ from typing import List
 
 from compat import get_model
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Value, PositiveSmallIntegerField, Case, When
 
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from queues.constants import (
@@ -117,13 +117,13 @@ class CaseManager(models.Manager):
     def search(
         self,
         queue_id=None,
+        is_work_queue=None,
         user=None,
         status=None,
         case_type=None,
         sort=None,
         assigned_user=None,
         case_officer=None,
-        date_order=None,
         include_hidden=None,
     ):
         """
@@ -174,8 +174,28 @@ class CaseManager(models.Manager):
                 case_officer = None
             case_qs = case_qs.assigned_as_case_officer(user=case_officer)
 
-        if isinstance(date_order, str):
-            case_qs = case_qs.order_by_date(date_order)
+        if is_work_queue:
+            ## 1: Hmrc where goods havent left + all other cases
+            hmrc_cases_goods_not_left_country = case_qs.filter(
+                baseapplication__hmrcquery__have_goods_departed=False
+            ).annotate(case_order=Value(1, output_field=PositiveSmallIntegerField()))
+            other_cases = case_qs.exclude(baseapplication__hmrcquery__have_goods_departed=False).annotate(
+                case_order=Value(2, output_field=PositiveSmallIntegerField())
+            )
+            case_qs = hmrc_cases_goods_not_left_country.union(other_cases)
+
+            ## 2: Conditional Annotation
+            # case_qs = case_qs.annotate(
+            #     case_order=Case(
+            #         When(baseapplication__hmrcquery__have_goods_departed=False, then=1),
+            #         default=Value(2),
+            #         output_field=PositiveSmallIntegerField(),
+            #     )
+            # )
+
+            case_qs = case_qs.order_by("case_order", "submitted_at")
+        else:
+            case_qs = case_qs.order_by_date()
 
         if isinstance(sort, str):
             case_qs = case_qs.order_by_status(order="-" if sort.startswith("-") else "")
