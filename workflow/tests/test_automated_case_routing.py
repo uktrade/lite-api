@@ -9,9 +9,6 @@ from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
 class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
-    def test_case_parameters_are_returned_in_a_set(self):
-        pass
-
     @tag("2109")
     def test_routing_rule_parameters_are_returned_in_a_set(self):
         routing_rule = self.create_routing_rule(
