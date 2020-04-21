@@ -87,16 +87,17 @@ class GoodsListControlCode(APIView):
                 if serializer.is_valid():
                     serializer.save()
 
-                    good.flags.clear()
-
                     new_control_list_entries = list(good.control_list_entries.all()) or [
                         strings.Goods.GOOD_NO_CONTROL_CODE
                     ]
                     if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
                         new_control_list_entries = [clc.rating for clc in new_control_list_entries]
 
-                    if new_control_list_entries != old_control_list_entries:
+                    if strings.Goods.GOOD_NO_CONTROL_CODE in new_control_list_entries:
+                        good.flags.clear()
 
+                    if new_control_list_entries != old_control_list_entries:
+                        good.flags.clear()
                         audit_trail_service.create(
                             actor=request.user,
                             verb=AuditType.GOOD_REVIEWED,

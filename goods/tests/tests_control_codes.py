@@ -92,13 +92,12 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         Post multiple goods to the endpoint, and check that the control code is not set if good is not controlled
         """
-
         data = {
             "objects": [self.good_1.pk, self.good_2.pk],
             "comment": "I Am Easy to Find",
             "report_summary": self.report_summary.pk,
-            "control_list_entries": [],
-            "is_good_controlled": "no",
+            "control_list_entries": ["ML1a"],
+            "is_good_controlled": GoodControlled.NO,
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
