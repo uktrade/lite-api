@@ -14,8 +14,11 @@ from lite_content.lite_api import strings
 from picklists.enums import PickListStatus
 from picklists.helpers import get_picklist_item
 from picklists.models import PicklistItem
-from picklists.serializers import PicklistUpdateCreateSerializer, PicklistListSerializer, \
-    PicklistCondensedListSerializer
+from picklists.serializers import (
+    PicklistUpdateCreateSerializer,
+    PicklistListSerializer,
+    PicklistCondensedListSerializer,
+)
 
 
 @permission_classes((permissions.AllowAny,))
@@ -29,12 +32,11 @@ class PickListItems(OptionallyPaginatedEndpoint):
         else:
             return PicklistListSerializer
 
-
     def get_queryset(self):
         """
         Returns a list of all picklist items, filtered by type and by show_deactivated
         """
-        picklist_items = PicklistItem.objects.filter(team=self.request.user.team, )
+        picklist_items = PicklistItem.objects.filter(team=self.request.user.team,)
 
         picklist_type = self.request.GET.get("type")
         show_deactivated = str_to_bool(self.request.GET.get("show_deactivated"))
