@@ -4,6 +4,7 @@ from applications.models import CountryOnApplication
 from cases.models import CaseType
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
+from workflow.automation import run_routing_rules
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
@@ -112,8 +113,7 @@ class CaseRoutingAutomationTests(DataTestClient):
             additional_rules=[],
         )
 
-        application = self.create_draft_open_application(organisation=self.organisation)
-        self.submit_application(application)
+        case = self.create_open_application_case(organisation=self.organisation)
+        run_routing_rules(case)
 
-        case = application.get_case()
         self.assertIn(self.queue, case.queues.all())
