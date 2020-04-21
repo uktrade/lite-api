@@ -12,7 +12,7 @@ def get_queues_with_case_assignments(case: Case):
 def get_next_goods_query_status(case):
     goods_query = case.query.goodsquery
     if (goods_query.clc_responded or not goods_query.clc_raised_reasons) and goods_query.pv_grading_raised_reasons:
-        if goods_query.status.status != CaseStatusEnum.PV:
+        if goods_query.status.status != CaseStatusEnum.PV and not goods_query.status.is_terminal:
             return CaseStatus.objects.get(status=CaseStatusEnum.PV, is_terminal=False)
     return None
 
