@@ -49,6 +49,7 @@ class EndPointTests(SimpleTestCase):
     case_id = None
     case_document = None
     case_ecju_query_id = None
+    routing_rule_id = None
 
     def call_endpoint(self, user, appended_address, save_results=True):
         response = get(user, appended_address)
@@ -329,3 +330,11 @@ class EndPointTests(SimpleTestCase):
             self.case_ecju_query_id = response.json()["ecju_queries"][0]["id"]
 
         return self.case_ecju_query_id
+
+    def get_routing_rule_id(self):
+        if not self.routing_rule_id:
+            response = self.call_endpoint(self.get_gov_user(), "/routing-rules/", save_results=False)
+
+            self.routing_rule_id = response.json()["results"][0]["id"]
+
+        return self.routing_rule_id
