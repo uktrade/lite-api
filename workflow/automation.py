@@ -8,7 +8,7 @@ from workflow.user_queue_assignment import get_next_status_in_workflow_sequence
 from audit_trail import service as audit_trail_service
 
 
-def run_routing_rules(case: Case):
+def run_routing_rules(case: Case, keep_status: bool = False):
     case.remove_all_case_assignments()
     rules_have_been_applied = False
     queues = []
@@ -31,7 +31,7 @@ def run_routing_rules(case: Case):
 
         if not rules_have_been_applied:
             next_status = get_next_status_in_workflow_sequence(case)
-            if next_status and not next_status.is_terminal:
+            if next_status and not next_status.is_terminal and not keep_status:
                 case.status = next_status
                 case.save()
             else:

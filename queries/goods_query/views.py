@@ -280,6 +280,6 @@ class GoodQueryManageStatus(APIView):
 
         # Case routing rules
         if old_status.status != new_status:
-            run_routing_rules(query)
+            run_routing_rules(case=query, keep_status=True)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)

@@ -406,7 +406,7 @@ class ApplicationManageStatus(APIView):
 
         # Case routing rules
         if old_status != application.status:
-            run_routing_rules(application)
+            run_routing_rules(case=application, keep_status=True)
 
         if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(application.status.status):
             # we reapply flagging rules if the status is reopened from a terminal state
