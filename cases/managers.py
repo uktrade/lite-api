@@ -77,7 +77,7 @@ class CaseQuerySet(models.QuerySet):
 
         return self.order_by(f"{order}status__priority")
 
-    def order_by_date(self, order=""):
+    def order_by_date(self, order="-"):
         """
         :param order: ('', '-')
         :return:
@@ -179,9 +179,11 @@ class CaseManager(models.Manager):
             hmrc_cases_goods_not_left_country = case_qs.filter(
                 baseapplication__hmrcquery__have_goods_departed=False
             ).annotate(case_order=Value(1, output_field=PositiveSmallIntegerField()))
+
             other_cases = case_qs.exclude(baseapplication__hmrcquery__have_goods_departed=False).annotate(
                 case_order=Value(2, output_field=PositiveSmallIntegerField())
             )
+
             case_qs = hmrc_cases_goods_not_left_country.union(other_cases)
 
             ## 2: Conditional Annotation
