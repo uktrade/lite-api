@@ -1,5 +1,4 @@
 import django.utils.timezone
-
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -130,22 +129,23 @@ class GoodQueryCLCResponse(APIView):
 
         if clc_good_serializer.is_valid():
             if not str_to_bool(data.get("validate_only")):
-                previous_control_list_entries = (
-                    str(query.good.control_list_entries.values_list("rating", flat=True))
-                    if query.good.control_list_entries.exists()
-                    else strings.Goods.GOOD_NO_CONTROL_CODE
-                )
+                previous_control_list_entries = list(
+                    query.good.control_list_entries.values_list("rating", flat=True)
+                ) or [strings.Goods.GOOD_NO_CONTROL_CODE]
 
                 clc_good_serializer.save()
                 query.clc_responded = True
                 query.save()
 
-                new_control_list_entries = strings.Goods.GOOD_NO_CONTROL_CODE
+                new_control_list_entries = [strings.Goods.GOOD_NO_CONTROL_CODE]
 
                 if str_to_bool(clc_good_serializer.validated_data.get("is_good_controlled")):
                     new_control_list_entries = clc_good_serializer.validated_data.get(
-                        "control_list_entries", strings.Goods.GOOD_NO_CONTROL_CODE
+                        "control_list_entries", [strings.Goods.GOOD_NO_CONTROL_CODE]
                     )
+
+                    if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
+                        new_control_list_entries = [clc.rating for clc in new_control_list_entries]
 
                 if new_control_list_entries != previous_control_list_entries:
                     audit_trail_service.create(

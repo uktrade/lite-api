@@ -130,7 +130,9 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.good.control_list_entries, self.data["control_list_entries"])
+        self.assertEqual(
+            [clc.rating for clc in self.query.good.control_list_entries.all()], self.data["control_list_entries"]
+        )
         self.assertEqual(self.query.good.control_list_entries, previous_query_control_list_entries)
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
@@ -143,12 +145,14 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         self.assertEqual(audit_qs.count(), 1)
 
     def test_respond_to_control_list_classification_query_update_control_list_entries_success(self):
-        previous_query_control_list_entries = self.query.good.control_list_entries
+        previous_query_control_list_entries = self.query.good.control_list_entries.all()
         response = self.client.put(self.url, self.data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.good.control_list_entries, self.data["control_list_entries"])
+        self.assertEqual(
+            [clc.rating for clc in self.query.good.control_list_entries.all()], self.data["control_list_entries"]
+        )
         self.assertNotEqual(self.query.good.control_list_entries, previous_query_control_list_entries)
         self.assertEqual(self.query.good.is_good_controlled, str(self.data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
@@ -161,8 +165,8 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
             if verb == AuditType.GOOD_REVIEWED:
                 payload = {
                     "good_name": self.query.good.description,
-                    "old_control_list_entries": previous_query_control_list_entries,
-                    "new_control_list_entries": self.data["control_list_entries"],
+                    "old_control_list_entry": ["No control code"],
+                    "new_control_list_entry": self.data["control_list_entries"],
                 }
                 self.assertEqual(audit.payload, payload)
 
@@ -170,14 +174,14 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         """
         Ensure that a gov user can respond to a control list classification query with no licence required.
         """
-        previous_query_control_list_entries = self.query.good.control_list_entries
+        previous_query_control_list_entries = self.query.good.control_list_entries.set([get_control_list_entry("ML1a")])
         data = {"comment": "I Am Easy to Find", "report_summary": self.report_summary.pk, "is_good_controlled": "no"}
 
         response = self.client.put(self.url, data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.query.good.control_list_entries, "")
+        self.assertEqual(self.query.good.control_list_entries.count(), 0)
         self.assertNotEqual(self.query.good.control_list_entries, previous_query_control_list_entries)
         self.assertEqual(self.query.good.is_good_controlled, str(data["is_good_controlled"]))
         self.assertEqual(self.query.good.status, GoodStatus.VERIFIED)
@@ -344,8 +348,7 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
 
     def test_when_responding_to_only_clc_then_only_the_clc_is_responded_to(self):
         clc_response_url = reverse("queries:goods_queries:clc_query_response", kwargs={"pk": self.clc_and_pv_query.pk})
-        # The control_list_entries and is_good_controlled must be equal to what they are currently on the good
-        # otherwise two audits will be created;
+        # two audits will be created;
         # One for the response to the query and another for updating the good
         data = {
             "comment": "I Am Easy to Find",
@@ -371,7 +374,7 @@ class CombinedPvGradingAndClcQuery(DataTestClient):
         audit_qs = Audit.objects.filter(
             target_object_id=case.id, target_content_type=ContentType.objects.get_for_model(case)
         )
-        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.count(), 2)
 
     def test_when_responding_to_only_pv_grading_only_it_is_responded_to(self):
         pv_grading_response_url = reverse(
