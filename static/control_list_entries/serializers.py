@@ -6,8 +6,8 @@ from static.control_list_entries.models import ControlListEntry
 
 
 class ControlListEntryViewSerializer(serializers.Serializer):
-    rating = serializers.CharField()
-    text = serializers.CharField()
+    rating = serializers.CharField(read_only=True)
+    text = serializers.CharField(read_only=True)
 
 
 class ControlListEntryChildlessSerializer(serializers.ModelSerializer):
