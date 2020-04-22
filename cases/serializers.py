@@ -367,6 +367,15 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
         )
 
 
+class SimpleFinalAdviceSerializer(serializers.ModelSerializer):
+    type = KeyValueChoiceField(choices=AdviceType.choices)
+
+    class Meta:
+        model = FinalAdvice
+        fields = ("type", "text", "proviso")
+        read_only_fields = fields
+
+
 class CaseAdviceSerializer(serializers.ModelSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserViewSerializer)
