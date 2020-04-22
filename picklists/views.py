@@ -17,7 +17,7 @@ from picklists.models import PicklistItem
 from picklists.serializers import (
     PicklistUpdateCreateSerializer,
     PicklistListSerializer,
-    PicklistCondensedListSerializer,
+    TinyPicklistSerializer,
 )
 
 
@@ -28,7 +28,7 @@ class PickListItems(OptionallyPaginatedEndpoint):
 
     def get_serializer_class(self):
         if str_to_bool(self.request.GET.get("disable_pagination")):
-            return PicklistCondensedListSerializer
+            return TinyPicklistSerializer
         else:
             return PicklistListSerializer
 

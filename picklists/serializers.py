@@ -10,7 +10,7 @@ from teams.models import Team
 from teams.serializers import TeamReadOnlySerializer
 
 
-class PicklistCondensedListSerializer(ModelSerializer):
+class TinyPicklistSerializer(ModelSerializer):
     id = UUIDField(read_only=True)
     name = CharField(read_only=True)
     text = CharField(read_only=True)
@@ -25,25 +25,14 @@ class PicklistCondensedListSerializer(ModelSerializer):
         )
 
 
-class PicklistListSerializer(ModelSerializer):
-    id = UUIDField(read_only=True)
-    name = CharField(read_only=True)
-    text = CharField(read_only=True)
+class PicklistListSerializer(TinyPicklistSerializer):
     type = KeyValueChoiceField(choices=PicklistType.choices, read_only=True)
     status = KeyValueChoiceField(choices=PickListStatus.choices, read_only=True)
     team = TeamReadOnlySerializer(read_only=True)
 
     class Meta:
         model = PicklistItem
-        fields = (
-            "id",
-            "team",
-            "name",
-            "text",
-            "type",
-            "status",
-            "updated_at",
-        )
+        fields = TinyPicklistSerializer.Meta.fields + ("team", "type", "status",)
 
 
 class PicklistUpdateCreateSerializer(ModelSerializer):
