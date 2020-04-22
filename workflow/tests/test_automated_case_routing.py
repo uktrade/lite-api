@@ -1,5 +1,3 @@
-from django.test import tag
-
 from applications.models import CountryOnApplication, PartyOnApplication
 from cases.models import CaseType
 from flags.tests.factories import FlagFactory
@@ -14,7 +12,6 @@ from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 
 
 class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
-    @tag("2109")
     def test_routing_rule_parameters_are_returned_in_a_set(self):
         routing_rule = self.create_routing_rule(
             team_id=self.team.id,
@@ -29,7 +26,6 @@ class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
 
         self.assertTrue(set(routing_rule.flags.all()).issubset(parameter_set))
 
-    @tag("2109")
     def test_routing_rule_parameters_returned_in_multiple_sets_for_multiple_case_types(self):
         routing_rule = self.create_routing_rule(
             team_id=self.team.id,
@@ -44,7 +40,6 @@ class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
 
         self.assertEqual(len(parameter_sets), CaseType.objects.count())
 
-    @tag("2109")
     def test_parameters_returned_if_no_case_types_set(self):
         routing_rule = self.create_routing_rule(
             team_id=self.team.id,
@@ -61,7 +56,6 @@ class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
 
 
 class ParameterSetCaseModelMethodTests(DataTestClient):
-    @tag("2109", "only")
     def test_case_parameters_are_returned_in_a_set(self):
         case = self.create_standard_application_case(organisation=self.organisation)
 
@@ -80,7 +74,6 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         self.assertIn(flag_2, parameter_set)
         self.assertIn(Country.objects.get(id="FR"), parameter_set)
 
-    @tag("2109")
     def test_parameter_Set_returned_for_open_application(self):
         case = self.create_open_application_case(organisation=self.organisation)
 
@@ -93,7 +86,6 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         )
         self.assertIn(case.case_type, parameter_set)
 
-    @tag("2109")
     def test_end_user_advisory_query_returns_parameter_set(self):
         case = self.create_end_user_advisory_case(organisation=self.organisation, note="a note", reasoning="reasoning")
 
@@ -101,7 +93,6 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
 
         self.assertIn(case.case_type, parameter_set)
 
-    @tag("2109")
     def test_good_query_returns_parameter_set(self):
         case = self.create_goods_query(
             organisation=self.organisation, clc_reason="reason", pv_reason="reason", description="a good"
@@ -113,7 +104,6 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
 
 
 class CaseRoutingAutomationTests(DataTestClient):
-    @tag("2109")
     def test_case_routed_to_new_queue_when_status_changed(self):
         self.create_routing_rule(
             team_id=self.team.id,
@@ -128,7 +118,6 @@ class CaseRoutingAutomationTests(DataTestClient):
 
         self.assertIn(self.queue, case.queues.all())
 
-    @tag("2109")
     def test_case_routed_to_multiple_queues_when_status_changed(self):
         queue_2 = Queue(team=self.team)
         queue_2.save()
@@ -153,7 +142,6 @@ class CaseRoutingAutomationTests(DataTestClient):
         self.assertIn(self.queue, set(case.queues.all()))
         self.assertIn(queue_2, set(case.queues.all()))
 
-    @tag("2109")
     def test_case_routed_to_one_queue_with_different_rule_tiers_same_team_when_status_changed(self):
         queue_2 = Queue(team=self.team)
         queue_2.save()
@@ -178,7 +166,6 @@ class CaseRoutingAutomationTests(DataTestClient):
         self.assertIn(self.queue, case.queues.all())
         self.assertNotIn(queue_2, case.queues.all())
 
-    @tag("2109")
     def test_case_routed_to_multiple_queues_with_multiple_team_rules_status_changed(self):
         queue_2 = Queue(team=self.team)
         queue_2.save()
@@ -205,7 +192,6 @@ class CaseRoutingAutomationTests(DataTestClient):
         self.assertIn(self.queue, set(case.queues.all()))
         self.assertIn(queue_2, set(case.queues.all()))
 
-    @tag("2109")
     def test_case_routed_to_one_queue_with_multiple_team_rules_status_changed(self):
         team_2 = Team(name="team2")
         team_2.save()
@@ -229,7 +215,6 @@ class CaseRoutingAutomationTests(DataTestClient):
 
         self.assertIn(self.queue, set(case.queues.all()))
 
-    @tag("2109")
     def test_case_routed_to_multiple_queues_with_multiple_team_rules_at_different_tiers_status_changed(self):
         queue_2 = Queue(team=self.team)
         queue_2.save()
@@ -266,7 +251,6 @@ class CaseRoutingAutomationTests(DataTestClient):
         self.assertIn(queue_2, set(case.queues.all()))
         self.assertNotIn(queue_3, set(case.queues.all()))
 
-    @tag("2109")
     def test_case_routed_by_second_tier_if_tier_one_conditions_not_met(self):
         queue_2 = Queue(team=self.team)
         queue_2.save()
@@ -293,7 +277,6 @@ class CaseRoutingAutomationTests(DataTestClient):
         self.assertNotIn(self.queue, set(case.queues.all()))
         self.assertIn(queue_2, set(case.queues.all()))
 
-    @tag("2109", "status")
     def test_case_advances_to_next_status_if_rules_not_run(self):
         queue_2 = Queue(team=self.team)
         queue_2.save()
