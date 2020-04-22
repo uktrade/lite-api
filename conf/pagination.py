@@ -1,11 +1,13 @@
 from rest_framework import pagination
 from rest_framework.response import Response
 
+from conf.helpers import str_to_bool
+
 
 class MaxPageNumberPagination(pagination.PageNumberPagination):
     def paginate_queryset(self, queryset, request, view=None):
-        if request.GET.get("disable_pagination", False):
-            return
+        if str_to_bool(request.GET.get("disable_pagination"), False):
+            return queryset
 
         return super().paginate_queryset(queryset, request, view)
 
