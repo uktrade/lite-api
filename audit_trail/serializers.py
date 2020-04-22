@@ -28,23 +28,7 @@ class AuditSerializer(serializers.ModelSerializer):
         }
 
     def get_text(self, instance):
-        verb = AuditType(instance.verb)
-        payload = deepcopy(instance.payload)
-
-        for key in payload:
-            # If value is a list, join by comma.
-            try:
-                if isinstance(payload[key], list):
-                    payload[key] = ", ".join(payload[key])
-            except KeyError as e:
-                print(f"Audit serialization exception skipped: {e}")
-
-            # TODO: standardise payloads across all audits and remove below
-            if key == "status" and "new" in payload[key]:
-                # Handle new payload format
-                payload[key] = payload[key]["new"]
-
-        return verb.format(payload)
+        return instance.get_text()
 
     def get_additional_text(self, instance):
         return instance.payload.get("additional_text", "")
