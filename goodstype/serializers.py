@@ -116,17 +116,6 @@ class GoodsTypeViewSerializer(serializers.Serializer):
         return docs[0] if docs else None
 
 
-class FullGoodsTypeSerializer(GoodsTypeSerializer):
-    flags = serializers.SerializerMethodField()
-
-    def get_flags(self, instance):
-        return list(instance.flags.filter().values("id", "name"))
-
-    class Meta:
-        model = GoodsType
-        fields = "__all__"
-
-
 class ClcControlGoodTypeSerializer(serializers.ModelSerializer):
     control_list_entries = ControlListEntryField(many=True)
     is_good_controlled = serializers.BooleanField
