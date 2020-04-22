@@ -194,7 +194,7 @@ class GoodSerializer(serializers.ModelSerializer):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
         if is_controlled_good and not value.get("control_list_entries"):
             raise serializers.ValidationError(
-                {"control_list_entries": ["At least one control list entry must be set when the product is controlled"]}
+                {"control_list_entries": [strings.Goods.CONTROL_LIST_ENTRY_IF_CONTROLLED_ERROR]}
             )
 
         return value

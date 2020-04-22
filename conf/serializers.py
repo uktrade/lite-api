@@ -155,4 +155,4 @@ class ControlListEntryField(PrimaryKeyRelatedSerializerField):
         try:
             return get_control_list_entry(data)
         except NotFoundError:
-            raise serializers.ValidationError("Control list entry is invalid")
+            raise serializers.ValidationError(strings.Goods.CONTROL_LIST_ENTRY_IVALID)
