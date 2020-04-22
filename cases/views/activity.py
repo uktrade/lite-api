@@ -27,5 +27,5 @@ class Activity(APIView):
             delete_gov_user_notifications(request.user, audit_trail_qs)
 
         return JsonResponse(
-            data={"activity": AuditSerializer(audit_trail_qs, many=True).data}, status=status.HTTP_200_OK
+            data={"activity": None}, status=status.HTTP_200_OK
         )
