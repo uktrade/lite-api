@@ -60,11 +60,11 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         case = self.create_standard_application_case(organisation=self.organisation)
 
         case.flags.set([self.create_flag(name="1", team=self.team, level="case")])
-
-        party = Party(country=Country.objects.get(id="FR"), name="name", address="address")
+        france = Country.objects.get(id="FR")
+        party = Party(country=france, name="name", address="address")
         party.save()
         flag_2 = self.create_flag(name="2", team=self.team, level="destination")
-        Country.objects.get(id="FR").flags.add(flag_2)
+        france.flags.add(flag_2)
         PartyOnApplication(application=case, party=party).save()
 
         parameter_set = case.parameter_set()
@@ -72,7 +72,7 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         self.assertTrue(set(case.flags.all()).issubset(parameter_set))
         self.assertIn(case.case_type, parameter_set)
         self.assertIn(flag_2, parameter_set)
-        self.assertIn(Country.objects.get(id="FR"), parameter_set)
+        self.assertIn(france, parameter_set)
 
     def test_parameter_Set_returned_for_open_application(self):
         case = self.create_open_application_case(organisation=self.organisation)
@@ -280,15 +280,13 @@ class CaseRoutingAutomationTests(DataTestClient):
     def test_case_advances_to_next_status_if_rules_not_run(self):
         queue_2 = Queue(team=self.team)
         queue_2.save()
+        under_review = CaseStatus.objects.get(status="under_review")
         self.create_routing_rule(
-            team_id=self.team.id,
-            queue_id=queue_2.id,
-            tier=6,
-            status_id=CaseStatus.objects.get(status="under_review").id,
-            additional_rules=[],
+            team_id=self.team.id, queue_id=queue_2.id, tier=6, status_id=under_review.id, additional_rules=[],
         )
 
         case = self.create_open_application_case(organisation=self.organisation)
         run_routing_rules(case)
 
         self.assertIn(queue_2, set(case.queues.all()))
+        self.assertEqual(case.status, under_review)
