@@ -38,9 +38,7 @@ class Schema(namedtuple("Schema", "actor verb action_object target payload")):
         return Schema(**kwarg_schema)
 
 
-"""
-List of streamed audit schemas
-"""
+# List of streamed audit schemas
 SCHEMAS = [
     Schema(actor=GovUser, verb=AuditType.UPDATED_STATUS, action_object=None, target=Case, payload=dict),
     Schema(actor=ExporterUser, verb=AuditType.UPDATED_STATUS, action_object=None, target=Case, payload=dict),
