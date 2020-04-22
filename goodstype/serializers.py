@@ -16,7 +16,6 @@ from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from picklists.models import PicklistItem
 from static.control_list_entries.serializers import ControlListEntryViewSerializer
-from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
 

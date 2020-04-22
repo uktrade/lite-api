@@ -10,6 +10,7 @@ from goods.enums import GoodControlled, GoodPvGraded, PvGrading, GoodStatus
 from goods.models import Good
 from lite_content.lite_api import strings
 from static.control_list_entries.helpers import get_control_list_entry
+from static.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 
 URL = reverse("goods:goods")
@@ -63,6 +64,8 @@ class GoodsCreateGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.request_data = deepcopy(REQUEST_DATA)
+
+        ControlListEntry.create("ML1b", "Info here", None, False)
 
     def test_when_creating_a_good_with_not_controlled_and_not_pv_graded_then_created_response_is_returned(self):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -122,11 +125,23 @@ class GoodsCreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(Good.objects.all().count(), 1)
 
+    def test_when_creating_a_good_that_is_not_controlled_multiple_clcs_then_created_response_is_returned(self):
+        self.request_data["is_good_controlled"] = GoodControlled.NO
+        self.request_data["control_list_entries"] = ["ML1a", "ML1b"]
+
+        response = self.client.post(URL, self.request_data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(response.json()["good"]["control_list_entries"], [])
+        self.assertEquals(Good.objects.all().count(), 1)
+
 
 class GoodsCreateControlledGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.request_data = deepcopy(REQUEST_DATA)
+
+        ControlListEntry.create("ML1b", "Info here", None, False)
 
     def test_when_creating_a_good_with_all_fields_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
@@ -136,6 +151,22 @@ class GoodsCreateControlledGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json()["good"], self.request_data)
+        self.assertEquals(Good.objects.all().count(), 1)
+
+    def test_when_creating_a_good_with_multiple_clcs_then_created_response_is_returned(self):
+        self.request_data["is_good_controlled"] = GoodControlled.YES
+        self.request_data["control_list_entries"] = ["ML1a", "ML1b"]
+
+        response = self.client.post(URL, self.request_data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(
+            response.json()["good"]["control_list_entries"],
+            [
+                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
+                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
+            ],
+        )
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_a_null_control_list_entries_then_bad_request_response_is_returned(self):
