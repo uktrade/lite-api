@@ -16,7 +16,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
     while not rules_have_been_applied:
         for team in Team.objects.all():
             team_rule_tier = None
-            for rule in RoutingRule.objects.filter(team=team, status=case.status).order_by("tier"):
+            for rule in RoutingRule.objects.filter(team=team, status=case.status, active=True).order_by("tier"):
                 if team_rule_tier and team_rule_tier != rule.tier:
                     break
                 for parameter_set in rule.parameter_sets():
