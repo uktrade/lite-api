@@ -31,18 +31,23 @@ class AuditSerializer(serializers.ModelSerializer):
         verb = AuditType(instance.verb)
         payload = deepcopy(instance.payload)
 
-        for key in payload:
+        for key, value in payload.items():
+            if value:
             # If value is a list, join by comma.
-            try:
-                if isinstance(payload[key], list):
-                    payload[key] = ", ".join(payload[key])
-            except KeyError as e:
-                print(f"Audit serialization exception skipped: {e}")
+                try:
+                    if isinstance(value, list):
+                        value = ", ".join(value)
+                except KeyError as e:
+                    print(f"Audit serialization exception skipped: {e}")
 
-            # TODO: standardise payloads across all audits and remove below
-            if key == "status" and "new" in payload[key]:
-                # Handle new payload format
-                payload[key] = payload[key]["new"]
+                # TODO: standardise payloads across all audits and remove below
+                if key == "status" and "new" in value:
+                    # Handle new payload format
+                    value = value["new"]
+
+                payload[key] = str(value)
+            else:
+                del payload[key]
 
         return verb.format(payload)
 
