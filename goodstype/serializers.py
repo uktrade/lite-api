@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import empty
 
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
@@ -97,13 +98,17 @@ class GoodsTypeViewSerializer(serializers.Serializer):
     document = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
 
+    def __init__(self, instance=None, data=empty, default_countries=None, **kwargs):
+        super().__init__(instance, data, **kwargs)
+        self.default_countries = default_countries
+
     def get_flags(self, instance):
         return list(instance.flags.filter().values("id", "name"))
 
     def get_countries(self, instance):
         countries = instance.countries
         if not countries.count():
-            countries = Country.objects.filter(countries_on_application__application=instance.application)
+            return CountrySerializer(self.default_countries or [], many=True).data
         return CountrySerializer(countries, many=True).data
 
     def get_document(self, instance):
