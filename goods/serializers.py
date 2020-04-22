@@ -152,6 +152,9 @@ class GoodSerializer(serializers.ModelSerializer):
 
         if self.get_initial().get("is_good_controlled") == GoodControlled.YES:
             self.fields["control_list_entries"] = ControlListEntryField(required=True, many=True)
+        else:
+            if hasattr(self, "initial_data"):
+                self.initial_data["control_list_entries"] = []
 
         self.goods_query_case = (
             GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
