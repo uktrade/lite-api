@@ -23,6 +23,7 @@ urlpatterns = [
     path("audit-trail/", include("audit_trail.urls")),
     path("cases/", include("cases.urls")),
     path("goods/", include("goods.urls")),
+    path("goods-types/", include("goodstype.urls")),
     path("letter-templates/", include("letter_templates.urls")),
     path("organisations/", include("organisations.urls")),
     path("queues/", include("queues.urls")),
