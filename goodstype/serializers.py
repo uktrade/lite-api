@@ -95,6 +95,10 @@ class GoodsTypeViewSerializer(serializers.Serializer):
     control_list_entries = ControlListEntryViewSerializer(many=True)
     countries = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
+    flags = serializers.SerializerMethodField()
+
+    def get_flags(self, instance):
+        return list(instance.flags.filter().values("id", "name"))
 
     def get_countries(self, instance):
         countries = instance.countries

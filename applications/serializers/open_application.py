@@ -23,7 +23,7 @@ from static.trade_control.enums import TradeControlProductCategory, TradeControl
 
 
 class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
-    goods_types = serializers.SerializerMethodField()
+    goods_types = GoodsTypeViewSerializer(source="goods_type", many=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
@@ -56,10 +56,6 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "trade_control_activity",
             "trade_control_product_categories",
         )
-
-    def get_goods_types(self, application):
-        goods_types = GoodsType.objects.filter(application=application)
-        return FullGoodsTypeSerializer(goods_types, many=True).data
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)

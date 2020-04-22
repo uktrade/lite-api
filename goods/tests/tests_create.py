@@ -114,6 +114,14 @@ class GoodsCreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(Good.objects.all().count(), 0)
 
+    def test_when_creating_a_good_that_is_not_controlled_success(self,):
+        self.request_data["is_good_controlled"] = GoodControlled.NO
+
+        response = self.client.post(URL, self.request_data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_201_OK)
+        self.assertEquals(Good.objects.all().count(), 1)
+
 
 class GoodsCreateControlledGoodTests(DataTestClient):
     def setUp(self):
