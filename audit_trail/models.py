@@ -1,3 +1,4 @@
+import logging
 import uuid
 from copy import deepcopy
 
@@ -75,27 +76,31 @@ class Audit(TimestampableModel):
         return _("%(actor)s %(verb)s %(age)s ago") % context
 
     def get_text(self):
-        verb = self.get_verb()
-        payload = self.get_payload()
-        return verb.format(payload)
+        try:
+            verb = self.get_verb()
+            payload = self.get_payload()
+            return verb.format(payload)
+        except Exception as e:  # noqa
+            logging.warning(e)
 
     def get_verb(self):
         return AuditType(self.verb)
 
     def get_payload(self):
-        # payload = deepcopy(self.payload)
-        #
-        # for key, value in payload.items():
-        #     if value:
-        #         # If value is a list, join by comma.
-        #         if isinstance(value, list):
-        #             payload[key] = ", ".join(value)
-        #
-        #         # TODO: standardise payloads across all audits and remove below
-        #         if key == "status" and value.get("new"):
-        #             # Handle new payload format
-        #             payload[key] = value.get("new")
-        return self.payload
+        payload = deepcopy(self.payload)
+
+        for key, value in payload.items():
+            if value:
+                # If value is a list, join by comma.
+                if isinstance(value, list):
+                    payload[key] = ", ".join(value)
+
+                # TODO: standardise payloads across all audits and remove below
+                if key == "status" and value.get("new"):
+                    # Handle new payload format
+                    payload[key] = value.get("new")
+
+        return payload
 
     def age(self):
         return timesince.timesince(self.created_at).encode("utf8").replace(b"\xc2\xa0", b" ").decode("utf8")
