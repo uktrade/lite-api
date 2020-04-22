@@ -14,7 +14,6 @@ def run_routing_rules(case: Case, keep_status: bool = False):
     queues = []
     case_parameter_set = case.parameter_set()
     while not rules_have_been_applied:
-        case_parameter_set.add(case.status)
         for team in Team.objects.all():
             team_rule_tier = None
             for rule in RoutingRule.objects.filter(team=team, status=case.status).order_by("tier"):
@@ -36,6 +35,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                 case_parameter_set.remove(case.status)
                 case.status = next_status
                 case.save()
+                case_parameter_set.add(next_status)
             else:
                 rules_have_been_applied = True
 
