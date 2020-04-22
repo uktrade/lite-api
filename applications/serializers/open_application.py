@@ -23,7 +23,7 @@ from static.trade_control.enums import TradeControlProductCategory, TradeControl
 
 
 class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
-    goods_types = serializers.SerializerMethodField()
+    goods_types = GoodsTypeViewSerializer(source="goods_type", many=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
