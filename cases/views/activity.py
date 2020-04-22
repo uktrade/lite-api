@@ -20,11 +20,11 @@ class Activity(APIView):
     """
 
     def get(self, request, pk):
-        case = get_case(pk)
-        audit_trail_qs = audit_trail_service.get_user_obj_trail_qs(user=request.user, obj=case)
-
-        if isinstance(request.user, GovUser):
-            delete_gov_user_notifications(request.user, audit_trail_qs)
+        # case = get_case(pk)
+        # audit_trail_qs = audit_trail_service.get_user_obj_trail_qs(user=request.user, obj=case)
+        #
+        # if isinstance(request.user, GovUser):
+        #     delete_gov_user_notifications(request.user, audit_trail_qs)
 
         return JsonResponse(
             data={"activity": None}, status=status.HTTP_200_OK
