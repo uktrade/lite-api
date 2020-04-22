@@ -32,10 +32,8 @@ def run_routing_rules(case: Case, keep_status: bool = False):
         if not rules_have_been_applied:
             next_status = get_next_status_in_workflow_sequence(case)
             if next_status and not next_status.is_terminal and not keep_status:
-                case_parameter_set.remove(case.status)
                 case.status = next_status
                 case.save()
-                case_parameter_set.add(next_status)
             else:
                 rules_have_been_applied = True
 
