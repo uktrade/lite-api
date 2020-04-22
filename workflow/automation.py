@@ -1,7 +1,7 @@
 from audit_trail.payload import AuditType
 from cases.models import Case, CaseAssignment
 from teams.models import Team
-from users.enums import SystemUser
+from users.enums import SystemUser, UserStatuses
 from users.models import GovUser
 from workflow.routing_rules.models import RoutingRule
 from workflow.user_queue_assignment import get_next_status_in_workflow_sequence
@@ -9,26 +9,48 @@ from audit_trail import service as audit_trail_service
 
 
 def run_routing_rules(case: Case, keep_status: bool = False):
+    """
+    Will run active routing rules against the case status by status, team by team.
+
+    :param case: Case object the rules are run against
+    :param keep_status: boolean field to determine if rules should be ran against next status, if no rules run for
+        current status
+    """
+    # remove all current queue and user assignments to the case
     case.remove_all_case_assignments()
     rules_have_been_applied = False
     queues = []
     case_parameter_set = case.parameter_set()
     while not rules_have_been_applied:
+        # look at each team one at a time
         for team in Team.objects.all():
             team_rule_tier = None
-            for rule in RoutingRule.objects.filter(team=team, status=case.status).order_by("tier"):
+            # get each active routing rule for the given team, at the current status of the case,
+            #   ordered by tier ascending
+            for rule in (
+                RoutingRule.objects.select_related("queue", "user")
+                .filter(team=team, status=case.status, active=True)
+                .order_by("tier")
+            ):
+                # If a rule has been run, the tier is set, and we wish to set all routing rules of that tier that make
+                #   sense, so only break once routing rules tier changes
                 if team_rule_tier and team_rule_tier != rule.tier:
                     break
                 for parameter_set in rule.parameter_sets():
+                    # If the rule set is a subset of the case's set we wish to assign the user and queue to the case,
+                    #   and set the team rule tier for the future.
                     if parameter_set.issubset(case_parameter_set):
                         case.queues.add(rule.queue)
-                        if rule.user:
+                        # Only assign active users to the case
+                        if rule.user and rule.user.status == UserStatuses.ACTIVE:
                             CaseAssignment(user=rule.user, queue=rule.queue, case=case).save()
                         queues.append(rule.queue.name)
                         team_rule_tier = rule.tier
                         rules_have_been_applied = True
                         break
 
+        # If no rules have been applied, we wish to either move to the next status, or break loop is keep_status is True
+        #   or the next status is terminal
         if not rules_have_been_applied:
             next_status = get_next_status_in_workflow_sequence(case)
             if next_status and not next_status.is_terminal and not keep_status:
@@ -38,6 +60,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                 rules_have_been_applied = True
 
     if queues:
+        # Audit which queues were added to the case
         sep = ", "
         audit_trail_service.create(
             actor=GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID),

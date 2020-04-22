@@ -745,6 +745,11 @@ class RerunRoutingRules(APIView):
     authentication_classes = (GovAuthentication,)
 
     def put(self, request, pk):
+        """
+        Reruns routing rules against a given case, in turn removing all existing queues, and user assignments,
+            and starting again from scratch on the given status
+        Audits who requests the rules to be rerun
+        """
         case = get_case(pk)
 
         audit_trail_service.create(

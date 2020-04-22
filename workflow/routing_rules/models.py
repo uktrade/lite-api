@@ -38,8 +38,12 @@ class RoutingRule(TimestampableModel):
         ordering = ["team__name", "tier", "-created_at"]
 
     def parameter_sets(self):
-        # Generates a set containing the routing rule parameters which can be used
-        # in set operations for determining whether the rule needs to be run or not
+        """
+        Generate a list of sets, containing all the possible subsets of the rule which are true to the condition
+            of routing rules. We generate one set for each case_type as we can not have multiple case_types in the set
+            (would cause all rules to fail)
+        :return: list of sets
+        """
 
         parameter_sets = []
         if self.country:

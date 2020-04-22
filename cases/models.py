@@ -111,6 +111,11 @@ class Case(TimestampableModel):
         return users
 
     def parameter_set(self):
+        """
+        This function looks at the case determines the flags, casetype, and countries of that case,
+            and puts these objects into a set
+        :return: set object
+        """
         from applications.models import PartyOnApplication
         from applications.models import GoodOnApplication
         from applications.models import CountryOnApplication
@@ -131,6 +136,10 @@ class Case(TimestampableModel):
         return parameter_set
 
     def remove_all_case_assignments(self):
+        """
+        Will look at a case, and should the case contain any queue or user assignments will remove assignments, and
+            audit the removal of said assignments against the case.
+        """
         from audit_trail import service as audit_trail_service
 
         assigned_cases = CaseAssignment.objects.filter(case_id=self.id)
