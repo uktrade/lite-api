@@ -49,7 +49,6 @@ class GoodsTypeOnApplicationTests(DataTestClient):
 
     def test_create_goodstype_multiple_clcs_on_open_application_as_exporter_user_success(self):
         self.data["control_list_entries"] = ["ML1a", "ML1b"]
-        print(self.data["control_list_entries"])
         response = self.client.post(self.url, self.data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
@@ -64,22 +63,6 @@ class GoodsTypeOnApplicationTests(DataTestClient):
             ],
         )
         self.assertEquals(response_data["is_good_incorporated"], True)
-
-    def test_create_goodstype_on_hmrc_query_as_exporter_user_success(self):
-        url = reverse("applications:application_goodstypes", kwargs={"pk": self.hmrc_query.id})
-
-        data = {
-            "description": "Widget",
-        }
-
-        response = self.client.post(url, data, **self.hmrc_exporter_headers)
-        response_data = response.json()["good"]
-
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertEquals(response_data["description"], "Widget")
-        self.assertNotIn("is_good_incorporated", response_data)
-        self.assertNotIn("is_good_controlled", response_data)
-        self.assertNotIn("control_list_entries", response_data)
 
     def test_create_goodstype_on_open_application_as_exporter_user_failure(self):
         data = {}

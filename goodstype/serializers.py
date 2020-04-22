@@ -46,6 +46,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
             if get_application(application).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
                 self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
                 self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
+                self.fields["control_list_entries"] = ControlListEntryField(many=True, required=False, allow_empty=True)
                 # self.fields["control_list_entries"] = PrimaryKeyRelatedSerializerField(
                 #     queryset=ControlListEntry.objects.all(),
                 #     many=True,
@@ -66,10 +67,10 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
         # Only validate the control list entries if the good is controlled
         if str_to_bool(self.get_initial().get("is_good_controlled")) is True:
-            self.fields["control_list_entries"] = ControlListEntryField(many=True)
+            self.fields["control_list_entries"] = ControlListEntryField(many=True, required=True)
         else:
             if hasattr(self, "initial_data"):
-                self.initial_data["control_list_entries"] = None
+                self.initial_data["control_list_entries"] = []
 
     def get_document(self, instance):
         docs = GoodsTypeDocument.objects.filter(goods_type=instance).values()
