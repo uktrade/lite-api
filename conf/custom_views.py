@@ -4,7 +4,7 @@ from rest_framework.generics import ListAPIView
 from conf.helpers import str_to_bool
 
 
-class OptionallyPaginatedEndpoint(ListAPIView):
+class OptionalPaginationView(ListAPIView):
     def paginate_queryset(self, queryset):
         if str_to_bool(self.request.GET.get("disable_pagination")):
             return queryset

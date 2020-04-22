@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
-from conf.custom_views import OptionallyPaginatedEndpoint
+from conf.custom_views import OptionalPaginationView
 from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
@@ -61,7 +61,7 @@ class AuthenticateGovUser(APIView):
         return JsonResponse(data={"token": token, "lite_api_user_id": str(user.id)})
 
 
-class GovUserList(OptionallyPaginatedEndpoint, generics.CreateAPIView):
+class GovUserList(OptionalPaginationView, generics.CreateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = GovUserViewSerializer
 
