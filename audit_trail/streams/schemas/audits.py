@@ -14,7 +14,7 @@ class Schema(namedtuple("Schema", "actor verb action_object target payload")):
     @classmethod
     def from_kwargs(cls, **kwargs):
         """
-        Generates a schema from a set of kwargs.
+        Generates a schema mapping of field to class type from a set of kwargs.
 
         Schema:
             actor           - type
@@ -24,7 +24,7 @@ class Schema(namedtuple("Schema", "actor verb action_object target payload")):
             payload         - type
 
         Any missing keys will be autofilled with None
-        verb is a special case that always expects class type AuditType
+        verb is a special case that always expects AuditType
         """
         missing_kwargs = {}
         for field in Schema._fields:
