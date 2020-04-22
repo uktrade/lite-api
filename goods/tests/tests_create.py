@@ -119,7 +119,7 @@ class GoodsCreateGoodTests(DataTestClient):
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
 
-        self.assertEquals(response.status_code, status.HTTP_201_OK)
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(Good.objects.all().count(), 1)
 
 
