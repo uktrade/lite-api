@@ -79,6 +79,7 @@ class GoodsListControlCode(APIView):
         for pk in objects:
             try:
                 good = get_good_func(pk=pk)
+                # Get the old control list entries if any and retrieve their ratings for display in the audit trail
                 old_control_list_entries = list(good.control_list_entries.all()) or [strings.Goods.GOOD_NO_CONTROL_CODE]
                 if strings.Goods.GOOD_NO_CONTROL_CODE not in old_control_list_entries:
                     old_control_list_entries = [clc.rating for clc in old_control_list_entries]
@@ -92,8 +93,8 @@ class GoodsListControlCode(APIView):
                     ]
                     if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
                         new_control_list_entries = [clc.rating for clc in new_control_list_entries]
-
-                    if strings.Goods.GOOD_NO_CONTROL_CODE in new_control_list_entries:
+                    else:
+                        # Clear flags if control list entries no longer present
                         good.flags.clear()
 
                     if new_control_list_entries != old_control_list_entries:
