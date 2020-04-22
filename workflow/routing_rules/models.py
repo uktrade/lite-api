@@ -40,7 +40,8 @@ class RoutingRule(TimestampableModel):
     def parameter_sets(self):
         """
         Generate a list of sets, containing all the possible subsets of the rule which are true to the condition
-            of routing rules. We generate one rule for each case_type as we can not have multiple (all rules would fail)
+            of routing rules. We generate one set for each case_type as we can not have multiple case_types in the set
+            (would cause all rules to fail)
         :return: list of sets
         """
 
