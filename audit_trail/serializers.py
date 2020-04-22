@@ -1,4 +1,3 @@
-import logging
 from copy import deepcopy
 
 from rest_framework import serializers
@@ -29,24 +28,23 @@ class AuditSerializer(serializers.ModelSerializer):
         }
 
     def get_text(self, instance):
-        try:
-            verb = AuditType(instance.verb)
-            payload = deepcopy(instance.payload)
+        verb = AuditType(instance.verb)
+        payload = deepcopy(instance.payload)
 
-            for key in payload:
-                # If value is a list, join by comma.
+        for key in payload:
+            # If value is a list, join by comma.
+            try:
                 if isinstance(payload[key], list):
                     payload[key] = ", ".join(payload[key])
+            except KeyError as e:
+                print(f"Audit serialization exception skipped: {e}")
 
-                # TODO: standardise payloads across all audits and remove below
-                if key == "status" and "new" in payload[key]:
-                    # Handle new payload format
-                    payload[key] = payload[key]["new"]
+            # TODO: standardise payloads across all audits and remove below
+            if key == "status" and "new" in payload[key]:
+                # Handle new payload format
+                payload[key] = payload[key]["new"]
 
-            return verb.format(payload)
-        except Exception as e:  # noqa
-            logging.warning(f"Failed to get text for audit: {instance.id}")
-            return ""
+        return verb.format(payload)
 
     def get_additional_text(self, instance):
         return instance.payload.get("additional_text", "")
