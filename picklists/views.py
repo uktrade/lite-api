@@ -22,7 +22,7 @@ from picklists.serializers import (
 
 
 @permission_classes((permissions.AllowAny,))
-class PickListItems(OptionalPaginationView):
+class PickListsView(OptionalPaginationView):
     authentication_classes = (GovAuthentication,)
     serializer_class = PicklistListSerializer
 
