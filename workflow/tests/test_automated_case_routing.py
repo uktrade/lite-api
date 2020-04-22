@@ -2,8 +2,10 @@ from django.test import tag
 
 from applications.models import CountryOnApplication
 from cases.models import CaseType
+from flags.tests.factories import FlagFactory
 from queues.models import Queue
 from static.statuses.models import CaseStatus
+from teams.models import Team
 from test_helpers.clients import DataTestClient
 from workflow.automation import run_routing_rules
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
@@ -142,7 +144,7 @@ class CaseRoutingAutomationTests(DataTestClient):
         self.assertIn(queue_2, set(case.queues.all()))
 
     @tag("2109")
-    def test_case_routed_to_one_queue_with_different_rule_tiers_when_status_changed(self):
+    def test_case_routed_to_one_queue_with_different_rule_tiers_same_team_when_status_changed(self):
         queue_2 = Queue(team=self.team)
         queue_2.save()
         self.create_routing_rule(
@@ -165,3 +167,118 @@ class CaseRoutingAutomationTests(DataTestClient):
 
         self.assertIn(self.queue, case.queues.all())
         self.assertNotIn(queue_2, case.queues.all())
+
+    @tag("2109")
+    def test_case_routed_to_multiple_queues_with_multiple_team_rules_status_changed(self):
+        queue_2 = Queue(team=self.team)
+        queue_2.save()
+        team_2 = Team(name="team2")
+        team_2.save()
+        self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+        self.create_routing_rule(
+            team_id=team_2.id,
+            queue_id=queue_2.id,
+            tier=6,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+
+        case = self.create_open_application_case(organisation=self.organisation)
+        run_routing_rules(case)
+
+        self.assertIn(self.queue, set(case.queues.all()))
+        self.assertIn(queue_2, set(case.queues.all()))
+
+    @tag("2109")
+    def test_case_routed_to_one_queue_with_multiple_team_rules_status_changed(self):
+        team_2 = Team(name="team2")
+        team_2.save()
+        self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+        self.create_routing_rule(
+            team_id=team_2.id,
+            queue_id=self.queue.id,
+            tier=6,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+
+        case = self.create_open_application_case(organisation=self.organisation)
+        run_routing_rules(case)
+
+        self.assertIn(self.queue, set(case.queues.all()))
+
+    @tag("2109")
+    def test_case_routed_to_multiple_queues_with_multiple_team_rules_at_different_tiers_status_changed(self):
+        queue_2 = Queue(team=self.team)
+        queue_2.save()
+        queue_3 = Queue(team=self.team)
+        queue_3.save()
+        team_2 = Team(name="team2")
+        team_2.save()
+        self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+        self.create_routing_rule(
+            team_id=team_2.id,
+            queue_id=queue_2.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+        self.create_routing_rule(
+            team_id=team_2.id,
+            queue_id=queue_3.id,
+            tier=6,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+
+        case = self.create_open_application_case(organisation=self.organisation)
+        run_routing_rules(case)
+
+        self.assertIn(self.queue, set(case.queues.all()))
+        self.assertIn(queue_2, set(case.queues.all()))
+        self.assertNotIn(queue_3, set(case.queues.all()))
+
+    @tag("2109")
+    def test_case_routed_by_second_tier_if_tier_one_conditions_not_met(self):
+        queue_2 = Queue(team=self.team)
+        queue_2.save()
+        flag = FlagFactory(team=self.team)
+        rule = self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[RoutingRulesAdditionalFields.FLAGS],
+        )
+        rule.flags.add(flag)
+        self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=queue_2.id,
+            tier=6,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[],
+        )
+
+        case = self.create_open_application_case(organisation=self.organisation)
+        run_routing_rules(case)
+
+        self.assertNotIn(self.queue, set(case.queues.all()))
+        self.assertIn(queue_2, set(case.queues.all()))
