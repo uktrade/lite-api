@@ -160,6 +160,16 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         self.assertEquals(response.json()["errors"], {"control_list_entries": ["Control list entry is invalid"]})
         self.assertEquals(Good.objects.all().count(), 0)
 
+    def test_when_creating_a_good_not_controlled_then_no_control_list_entry_needed_success(self):
+        self.request_data["is_good_controlled"] = GoodControlled.NO
+        self.request_data["control_list_entries"] = []
+
+        response = self.client.post(URL, self.request_data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        # self.assertEquals(response.json()["errors"], {"control_list_entries": ["Control list entry is invalid"]})
+        self.assertEquals(Good.objects.all().count(), 1)
+
 
 class GoodsCreatePvGradedGoodTests(DataTestClient):
     def setUp(self):
