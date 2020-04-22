@@ -73,13 +73,14 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_goodstype_on_standard_application_as_exporter_user_failure(self):
+        # Goodstypes only valid on HMRC and Open applications.
         application = self.create_draft_standard_application(self.organisation)
         url = reverse("applications:application_goodstypes", kwargs={"pk": application.id})
 
         data = {
             "description": "Widget",
             "is_good_controlled": True,
-            "control_list_entry": "ML1a",
+            "control_list_entry": ["ML1a"],
             "is_good_incorporated": True,
         }
 
