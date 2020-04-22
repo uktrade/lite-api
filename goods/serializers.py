@@ -109,7 +109,7 @@ class GoodSerializer(serializers.ModelSerializer):
     is_good_controlled = KeyValueChoiceField(
         choices=GoodControlled.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
-    control_list_entries = ControlListEntryField(required=True, many=True, allow_null=True, allow_empty=True)
+    control_list_entries = ControlListEntryField(required=False, many=True, allow_null=True, allow_empty=True)
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(read_only=True, choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
