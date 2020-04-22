@@ -193,7 +193,9 @@ class ApplicationGoodsType(APIView):
         Gets a goodstype
         """
         goods_type = get_goods_type(goodstype_pk)
-        goods_type_data = GoodsTypeViewSerializer(goods_type).data
+        default_countries = Country.objects.filter(countries_on_application__application=application)
+
+        goods_type_data = GoodsTypeViewSerializer(goods_type, default_countries=default_countries).data
 
         return JsonResponse(data={"good": goods_type_data}, status=status.HTTP_200_OK)
 
