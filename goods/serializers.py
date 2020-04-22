@@ -200,7 +200,7 @@ class GoodSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        if "pv_grading_details" in validated_data and validated_data["pv_grading_details"]:
+        if validated_data.get("pv_grading_details"):
             validated_data["pv_grading_details"] = GoodSerializer._create_pv_grading_details(
                 validated_data["pv_grading_details"]
             )
