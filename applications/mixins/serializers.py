@@ -5,6 +5,7 @@ from rest_framework import serializers
 from cases.enums import CaseTypeSubTypeEnum
 from parties.enums import PartyType
 from parties.serializers import PartySerializer
+from django.db.models import Min
 
 
 class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
@@ -63,10 +64,42 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         return data[0] if data else None
 
     def get_ultimate_end_users(self, instance):
-        return self.__parties(instance, PartyType.ULTIMATE_END_USER)
+        poa_with_destination_flags = (
+            instance.all_parties()
+            .filter(party__type="ultimate_end_user", party__country__flags__isnull=False)
+            .annotate(highest_priority=Min("party__country__flags__priority"))
+            .order_by("highest_priority", "party__country__name")
+        )
+
+        parties_with_flags = [PartySerializer(poa.party).data for poa in poa_with_destination_flags]
+
+        poa_without_destination_flags = (
+            instance.all_parties()
+            .filter(party__type="ultimate_end_user", party__country__flags__isnull=True)
+            .order_by("party__country__name")
+        )
+        parties_without_flags = [PartySerializer(poa.party).data for poa in poa_without_destination_flags]
+
+        return parties_with_flags + parties_without_flags
 
     def get_third_parties(self, instance):
-        return self.__parties(instance, PartyType.THIRD_PARTY)
+        poa_with_destination_flags = (
+            instance.all_parties()
+            .filter(party__type="third_party", party__country__flags__isnull=False)
+            .annotate(highest_priority=Min("party__country__flags__priority"))
+            .order_by("highest_priority", "party__country__name")
+        )
+
+        parties_with_flags = [PartySerializer(poa.party).data for poa in poa_with_destination_flags]
+
+        poa_without_destination_flags = (
+            instance.all_parties()
+            .filter(party__type="third_party", party__country__flags__isnull=True)
+            .order_by("party__country__name")
+        )
+        parties_without_flags = [PartySerializer(poa.party).data for poa in poa_without_destination_flags]
+
+        return parties_with_flags + parties_without_flags
 
     def get_consignee(self, instance):
         data = self.__parties(instance, PartyType.CONSIGNEE)

@@ -2,9 +2,13 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum
 from flags.enums import SystemFlags
 from flags.models import Flag
+from parties.enums import PartyType
+from static.countries.helpers import get_country
+from static.countries.models import Country
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
@@ -124,3 +128,101 @@ class CaseGetTests(DataTestClient):
             category["key"] for category in case_application["trade_control_product_categories"]
         ]
         self.assertEqual(trade_control_product_categories, case.trade_control_product_categories)
+
+    def test_countries_ordered_as_expected_on_open_application(self):
+        highest_priority_flag = self.create_flag("highest priority flag", "Destination", self.gov_user.team, priority=0)
+        lowest_priority_flag = self.create_flag("lowest priority flag", "Destination", self.gov_user.team, priority=10)
+
+        open_application = self.create_draft_open_application(self.organisation)
+
+        # Countries with flags added
+        portugal = get_country("PT")
+        portugal.flags.set([highest_priority_flag])
+        andorra = get_country("AD")
+        andorra.flags.set([lowest_priority_flag])
+        benin = get_country("BJ")
+        benin.flags.set([lowest_priority_flag])
+
+        # Countries without flags added
+        austria = get_country("AT")
+        uk = get_country("GB")
+
+        # Add additional countries to the application
+        CountryOnApplication(application=open_application, country=get_country("AD")).save()
+        CountryOnApplication(application=open_application, country=get_country("BJ")).save()
+        CountryOnApplication(application=open_application, country=get_country("AT")).save()
+        CountryOnApplication(application=open_application, country=get_country("PT")).save()
+
+        case = self.submit_application(open_application)
+
+        url = reverse("cases:case", kwargs={"pk": case.id})
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        case_application = response.json()["case"]["application"]
+        ordered_countries = [destination["id"] for destination in case_application["destinations"]["data"]]
+
+        # Countries are ordered by flag priority and for countries without flags, they are alphabetised
+        self.assertEqual(ordered_countries, [portugal.id, andorra.id, benin.id, austria.id, uk.id])
+
+    def test_countries_ordered_as_expected_on_standard_application(self):
+        highest_priority_flag = self.create_flag("highest priority flag", "Destination", self.gov_user.team, priority=0)
+        lowest_priority_flag = self.create_flag("lowest priority flag", "Destination", self.gov_user.team, priority=10)
+
+        standard_application = self.create_draft_standard_application(self.organisation)
+
+        # Third parties
+        first_tp = standard_application.third_parties.first()
+        second_tp = self.create_party(
+            "party 2", self.organisation, PartyType.THIRD_PARTY, standard_application, country_code="PT"
+        )
+        third_tp = self.create_party(
+            "party 3", self.organisation, PartyType.THIRD_PARTY, standard_application, country_code="AD"
+        )
+        fourth_tp = self.create_party(
+            "party 4", self.organisation, PartyType.THIRD_PARTY, standard_application, country_code="AT"
+        )
+
+        # Ultimate end users
+        first_ueu = self.create_party(
+            "party 1", self.organisation, PartyType.ULTIMATE_END_USER, standard_application, country_code="GB"
+        )
+        second_ueu = self.create_party(
+            "party 2", self.organisation, PartyType.ULTIMATE_END_USER, standard_application, country_code="PT"
+        )
+        third_ueu = self.create_party(
+            "party 3", self.organisation, PartyType.ULTIMATE_END_USER, standard_application, country_code="AD"
+        )
+        fourth_ueu = self.create_party(
+            "party 4", self.organisation, PartyType.ULTIMATE_END_USER, standard_application, country_code="AT"
+        )
+
+        # Countries with flags added
+        portugal = get_country("PT")
+        portugal.flags.set([highest_priority_flag])
+        andorra = get_country("AD")
+        andorra.flags.set([lowest_priority_flag])
+
+        # Countries without flags added
+        austria = get_country("AT")
+        uk = get_country("GB")
+
+        case = self.submit_application(standard_application)
+
+        url = reverse("cases:case", kwargs={"pk": case.id})
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        case_application = response.json()["case"]["application"]
+        ordered_third_parties = [third_party["id"] for third_party in case_application["third_parties"]]
+        ordered_ultimate_end_users = [ueu["id"] for ueu in case_application["ultimate_end_users"]]
+
+        # Third parties and ultimate end users are ordered by destination flag priority and for
+        # countries without flags, third parties are alphabetised
+        self.assertEqual(
+            ordered_third_parties, [str(second_tp.id), str(third_tp.id), str(fourth_tp.id), str(first_tp.party.id),],
+        )
+
+        self.assertEqual(
+            ordered_ultimate_end_users, [str(second_ueu.id), str(third_ueu.id), str(fourth_ueu.id), str(first_ueu.id),],
+        )
