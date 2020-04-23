@@ -1,14 +1,14 @@
-from django.db.models import Q, Count
-from rest_framework.generics import ListCreateAPIView
+from django.db.models import Q
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 
 from applications.models import CountryOnApplication
-from cases.enums import CaseTypeSubTypeEnum, AdviceType
+from cases.enums import CaseTypeSubTypeEnum
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
 from licences.models import Licence
-from licences.serializers import LicenceListSerializer
+from licences.serializers.view_licence import LicenceSerializer
+from licences.serializers.view_licences import LicenceListSerializer
 from parties.enums import PartyType
-from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 
@@ -16,7 +16,6 @@ from static.statuses.models import CaseStatus
 class LicenceType:
     LICENCE = "licence"
     CLEARANCE = "clearance"
-    NLR = "nlr"
 
     ids = {
         LICENCE: CaseType.objects.filter(sub_type__in=CaseTypeSubTypeEnum.licence).values("id"),
@@ -37,20 +36,12 @@ class Licences(ListCreateAPIView):
         country = self.request.GET.get("country")
         end_user = self.request.GET.get("end_user")
         active_only = self.request.GET.get("active_only") == "True"
-        no_licence_required = Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED)
 
         licences = Licence.objects.filter(application__organisation=self.request.user.organisation, is_complete=True)
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
-            # Get all licences except those where the only decision is NLR
-            licences = (
-                licences.filter(application__case_type__in=LicenceType.ids[licence_type])
-                .annotate(num_decisions=Count("decisions"))
-                .exclude(decisions=no_licence_required, num_decisions=1)
-            )
-        elif licence_type == LicenceType.NLR:
-            licences = licences.filter(decisions=no_licence_required)
+            licences = licences.filter(application__case_type__in=LicenceType.ids[licence_type])
 
         if reference:
             licences = licences.filter(
@@ -83,3 +74,9 @@ class Licences(ListCreateAPIView):
             licences = licences.exclude(application__status__in=self.non_active_states)
 
         return licences.order_by("created_at").reverse()
+
+
+class ViewLicence(RetrieveAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    queryset = Licence.objects.all()
+    serializer_class = LicenceSerializer
