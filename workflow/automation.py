@@ -10,7 +10,8 @@ from audit_trail import service as audit_trail_service
 
 def run_routing_rules(case: Case, keep_status: bool = False):
     """
-    Will run active routing rules against the case status by status, team by team.
+    Will run active routing rules against the case team by team, for its current status and any subsequent status
+    until any rules are run.
 
     :param case: Case object the rules are run against
     :param keep_status: boolean field to determine if rules should be ran against next status, if no rules run for
