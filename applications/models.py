@@ -298,7 +298,7 @@ class GoodOnApplication(TimestampableModel):
     is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
 
     # Licence values set when the Good is approved
-    usage = models.FloatField(null=True, blank=True, default=None)
+    usage = models.FloatField(null=False, blank=False, default=0)
     licenced_quantity = models.FloatField(null=True, blank=True, default=None)
     licenced_value = models.DecimalField(max_digits=256, decimal_places=2, null=True, blank=True, default=None)
 
