@@ -1,7 +1,6 @@
 from django.db import migrations
-from django.db.models import Q
 
-from audit_trail.schema import AuditType
+from audit_trail.payload import AuditType
 from conf.constants import Roles
 
 
@@ -12,15 +11,9 @@ def fill_in_missing_actor(apps, schema_editor):
     Audit = apps.get_model("audit_trail", "Audit")
     Case = apps.get_model("cases", "Case")
     UserOrganisationRelationship = apps.get_model("users", "UserOrganisationRelationship")
-    Role = apps.get_model("users", "Role")
-    # print([c.name for c in ContentType.objects.all()])
+
     for audit in Audit.objects.filter(
-        Q(actor_content_type__isnull=True) |
-        Q(actor_content_type__in=[
-            ContentType.objects.get_for_model(UserOrganisationRelationship),
-            ContentType.objects.get_for_model(Role)
-        ]),
-        verb__in=[AuditType.UPDATED_STATUS.value, AuditType.CREATED.value]
+        actor_content_type__isnull=True,
     ):
         print("Updating audit for:", audit.id)
         case_id = audit.target_object_id or audit.action_object_object_id

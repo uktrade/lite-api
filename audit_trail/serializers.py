@@ -22,15 +22,6 @@ class AuditSerializer(serializers.ModelSerializer):
         )
 
     def get_user(self, instance):
-        try:
-            print(instance.actor.first_name)
-        except Exception as e:
-            print(e)
-            print("RAISED HERE", e)
-            instance.actor_object_id = ""
-            instance.actor_content_type = None
-            instance.save()
-            return {"first_name": "fail", "last_name": "here"}
         return {
             "first_name": instance.actor.first_name,
             "last_name": instance.actor.last_name,
