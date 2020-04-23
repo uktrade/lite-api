@@ -143,13 +143,23 @@ class Case(TimestampableModel):
         from audit_trail import service as audit_trail_service
 
         assigned_cases = CaseAssignment.objects.filter(case_id=self.id)
-        if self.queues.exists() or assigned_cases.exists():
+        system_user = GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID)
+        if self.queues.exists():
             self.queues.clear()
+
+            audit_trail_service.create(
+                actor=system_user,
+                verb=AuditType.REMOVE_CASE_FROM_ALL_QUEUES,
+                action_object=self.get_case(),
+                payload={},
+            )
+
+        if assigned_cases.exists():
             assigned_cases.delete()
 
             audit_trail_service.create(
-                actor=GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID),
-                verb=AuditType.REMOVE_CASE_FROM_ALL_QUEUES,
+                actor=system_user,
+                verb=AuditType.REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS,
                 action_object=self.get_case(),
                 payload={},
             )
@@ -202,6 +212,23 @@ class CaseAssignment(TimestampableModel):
 
     class Meta:
         unique_together = [["case", "user", "queue"]]
+
+    def save(self, *args, **kwargs):
+        from audit_trail import service as audit_trail_service
+
+        audit_user = None
+
+        if "audit_user" in kwargs:
+            audit_user = kwargs.pop("audit_user")
+
+        super(CaseAssignment, self).save(*args, **kwargs)
+        if audit_user:
+            audit_trail_service.create(
+                actor=audit_user,
+                verb=AuditType.ASSIGN_CASE,
+                action_object=self.case,
+                payload={"assignment": f"{self.user.first_name} {self.user.last_name}"},
+            )
 
 
 class CaseDocument(Document):

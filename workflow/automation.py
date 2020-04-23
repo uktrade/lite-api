@@ -19,8 +19,10 @@ def run_routing_rules(case: Case, keep_status: bool = False):
     # remove all current queue and user assignments to the case
     case.remove_all_case_assignments()
     rules_have_been_applied = False
-    queues = []
     case_parameter_set = case.parameter_set()
+
+    system_user = GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID)
+
     while not rules_have_been_applied:
         # look at each team one at a time
         for team in Team.objects.all():
@@ -42,20 +44,14 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                     if parameter_set.issubset(case_parameter_set):
                         case.queues.add(rule.queue)
                         audit_trail_service.create(
-                            actor=GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID),
+                            actor=system_user,
                             verb=AuditType.MOVE_CASE,
                             action_object=case.get_case(),
                             payload={"queues": rule.queue.name},
                         )
                         # Only assign active users to the case
                         if rule.user and rule.user.status == UserStatuses.ACTIVE:
-                            CaseAssignment(user=rule.user, queue=rule.queue, case=case).save()
-                            audit_trail_service.create(
-                                actor=GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID),
-                                verb=AuditType.ASSIGN_CASE,
-                                action_object=case.get_case(),
-                                payload={"assignment": f"{rule.user.first_name} {rule.user.last_name}"},
-                            )
+                            CaseAssignment(user=rule.user, queue=rule.queue, case=case).save(audit_user=system_user)
                         team_rule_tier = rule.tier
                         rules_have_been_applied = True
                         break
