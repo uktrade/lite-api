@@ -69,7 +69,3 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                 case.save()
             else:
                 rules_have_been_applied = True
-
-    if queues:
-        # Audit which queues were added to the case
-
