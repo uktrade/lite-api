@@ -57,7 +57,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                         rules_have_been_applied = True
                         break
 
-        # If no rules have been applied, we wish to either move to the next status, or break loop is keep_status is True
+        # If no rules have been applied, we wish to either move to the next status, or break loop if keep_status is True
         #   or the next status is terminal
         if not rules_have_been_applied:
             next_status = get_next_status_in_workflow_sequence(case)
