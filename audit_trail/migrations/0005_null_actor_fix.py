@@ -26,6 +26,7 @@ def fill_in_missing_actor(apps, schema_editor):
         content_type = ContentType.objects.get_for_model(user)
         audit.actor_content_type = content_type
         audit.actor_object_id = user.id
+
         audit.save()
 
 
