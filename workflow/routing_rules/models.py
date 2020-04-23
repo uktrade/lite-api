@@ -5,6 +5,7 @@ from separatedvaluesfield.models import SeparatedValuesField
 
 from cases.models import CaseType
 from common.models import TimestampableModel
+from flags.enums import FlagStatuses
 from flags.models import Flag
 from queues.models import Queue
 from static.countries.models import Country
@@ -46,6 +47,10 @@ class RoutingRule(TimestampableModel):
         """
 
         parameter_sets = []
+
+        if self.flags.exclude(status=FlagStatuses.ACTIVE).exists():
+            return parameter_sets
+
         if self.country:
             country_set = {self.country}
         else:

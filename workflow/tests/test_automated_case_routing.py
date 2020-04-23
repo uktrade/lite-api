@@ -1,5 +1,6 @@
 from applications.models import CountryOnApplication, PartyOnApplication
 from cases.models import CaseType
+from flags.enums import FlagStatuses
 from flags.tests.factories import FlagFactory
 from parties.models import Party
 from queues.models import Queue
@@ -53,6 +54,21 @@ class ParameterSetRoutingRuleModelMethodTests(DataTestClient):
         parameter_sets = routing_rule.parameter_sets()
 
         self.assertEqual(len(parameter_sets), 1)
+
+    def test_inactive_flag_rule_returns_empty_list(self):
+        flag = FlagFactory(status=FlagStatuses.DEACTIVATED, team=self.team)
+        routing_rule = self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.last().id,
+            additional_rules=[*[k for k, v in RoutingRulesAdditionalFields.choices]],
+        )
+        routing_rule.flags.add(flag)
+
+        parameter_sets = routing_rule.parameter_sets()
+
+        self.assertEqual(len(parameter_sets), 0)
 
 
 class ParameterSetCaseModelMethodTests(DataTestClient):
