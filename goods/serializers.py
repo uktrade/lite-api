@@ -267,8 +267,8 @@ class GoodSerializer(serializers.ModelSerializer):
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):
     missing_document_reason = KeyValueChoiceField(
         choices=GoodMissingDocumentReasons.choices,
-        allow_blank=True,
-        required=False,
+        allow_blank=False,
+        required=True,
         error_messages={"invalid_choice": strings.Goods.INVALID_MISSING_DOCUMENT_REASON},
     )
 
