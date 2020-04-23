@@ -48,6 +48,7 @@ class RoutingRule(TimestampableModel):
 
         parameter_sets = []
 
+        # Exclude the rule by returning and empty list if there are any inactive flags in the rule
         if self.flags.exclude(status=FlagStatuses.ACTIVE).exists():
             return parameter_sets
 
