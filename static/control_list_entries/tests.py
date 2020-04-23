@@ -42,9 +42,19 @@ class CLCListTests(DataTestClient):
 class CLCTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.parent_rating = ControlListEntry.objects.create(rating="Xyz123", text="Parent rating", parent=None, is_decontrolled=False)
-        self.child_rating = ControlListEntry.objects.create(rating="Xyz123b", text="Child 1", parent=self.parent_rating, is_decontrolled=False)
+        self.parent_rating = ControlListEntry.objects.create(
+            rating="Xyz123", text="Parent rating", parent=None, is_decontrolled=False
+        )
+        self.child_rating = ControlListEntry.objects.create(
+            rating="Xyz123b", text="Child 1", parent=self.parent_rating, is_decontrolled=False
+        )
         self.url = "static:control_list_entries:control_list_entry"
+
+    def _validate_clc(self, response_data, object):
+        self.assertEqual(response_data["id"], str(object.id))
+        self.assertEqual(response_data["rating"], object.rating)
+        self.assertEqual(response_data["text"], object.text)
+        self.assertEqual(response_data["is_decontrolled"], object.is_decontrolled)
 
     def test_get_clc_with_parent(self):
         url = reverse(self.url, kwargs={"rating": self.child_rating.rating},)
@@ -52,27 +62,20 @@ class CLCTests(DataTestClient):
         response_data = response.json()["control_list_entry"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["id"], str(self.child_rating.id))
-        self.assertEqual(response_data["rating"], self.child_rating.rating)
-        self.assertEqual(response_data["text"], self.child_rating.text)
-        self.assertEqual(response_data["is_decontrolled"], self.child_rating.is_decontrolled)
-        self.assertEqual(response_data["parent"]["id"], str(self.parent_rating.id))
-        self.assertEqual(response_data["parent"]["rating"], self.parent_rating.rating)
-        self.assertEqual(response_data["parent"]["text"], self.parent_rating.text)
-        self.assertEqual(response_data["parent"]["is_decontrolled"], self.parent_rating.is_decontrolled)
+        self._validate_clc(response_data, self.child_rating)
+        self._validate_clc(response_data["parent"], self.parent_rating)
 
     def test_get_clc_with_children(self):
-        child_2 = ControlListEntry.objects.create(rating="ML1d1", text="Child 2-1", parent=self.parent_rating, is_decontrolled=False)
+        child_2 = ControlListEntry.objects.create(
+            rating="ML1d1", text="Child 2-1", parent=self.parent_rating, is_decontrolled=False
+        )
 
         url = reverse(self.url, kwargs={"rating": self.parent_rating.rating},)
         response = self.client.get(url)
         response_data = response.json()["control_list_entry"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["id"], str(self.parent_rating.id))
-        self.assertEqual(response_data["rating"], self.parent_rating.rating)
-        self.assertEqual(response_data["text"], self.parent_rating.text)
-        self.assertEqual(response_data["is_decontrolled"], self.parent_rating.is_decontrolled)
+        self._validate_clc(response_data, self.parent_rating)
         self.assertEqual(len(response_data["children"]), 2)
         for child in [self.child_rating, child_2]:
             self.assertTrue(str(child.id) in [item["id"] for item in response_data["children"]])
