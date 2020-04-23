@@ -74,7 +74,7 @@ class ParameterSetCaseModelMethodTests(DataTestClient):
         self.assertIn(flag_2, parameter_set)
         self.assertIn(france, parameter_set)
 
-    def test_parameter_Set_returned_for_open_application(self):
+    def test_parameter_set_returned_for_open_application(self):
         case = self.create_open_application_case(organisation=self.organisation)
 
         parameter_set = case.parameter_set()
