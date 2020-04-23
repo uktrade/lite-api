@@ -9,15 +9,12 @@ def fill_in_missing_actor(apps, schema_editor):
     ContentType = apps.get_model("contenttypes", "ContentType")
     Audit = apps.get_model("audit_trail", "Audit")
     ExporterUser = apps.get_model("users", "ExporterUser")
-    Role = apps.get_model("users", "Role")
-    print("Filling in missing actors")
     for audit in Audit.objects.filter(
-        actor_content_type=ContentType.objects.get_for_model(Role),
+        actor_content_type__isnull=True,
         verb__in=[AuditType.UPDATED_STATUS.value, AuditType.CREATED.value]
     ):
         print("Updating audit for:", audit.id)
-        user = ExporterUser.objects.first()
-        print("USER OBJECT: ", user)
+        user = ExporterUser.objects.exclude(first_name="").first()
         content_type = ContentType.objects.get_for_model(user)
         audit.actor_content_type = content_type
         audit.actor_object_id = user.id
