@@ -1,4 +1,3 @@
-from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -26,9 +25,7 @@ class Activity(APIView):
 
         if isinstance(request.user, GovUser):
             delete_gov_user_notifications(request.user, audit_trail_qs)
-        print('\n\n\n')
-        from pprint import pprint
-        pprint([(a.actor_object_id, a.actor_content_type, a.verb, a.payload) for a in audit_trail_qs])
+        print("AUDITS: ",[(a.actor_object_id, a.actor_content_type, a.verb, a.payload) for a in audit_trail_qs])
         return JsonResponse(
             data={"activity": AuditSerializer(audit_trail_qs, many=True).data}, status=status.HTTP_200_OK
         )
