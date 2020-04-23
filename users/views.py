@@ -72,15 +72,8 @@ class AuthenticateExporterUser(APIView):
         )
 
 
-class UserList(APIView):
+class CreateUser(APIView):
     authentication_classes = (ExporterAuthentication,)
-
-    def get(self, request):
-        """
-        Returns a list of Exporter users
-        """
-        serializer = ExporterUserViewSerializer(ExporterUser.objects.all(), many=True)
-        return JsonResponse(data={"users": serializer.data})
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
     def post(self, request):
