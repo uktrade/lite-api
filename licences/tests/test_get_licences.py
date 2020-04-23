@@ -5,7 +5,6 @@ from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType
 from licences.views import LicenceType
 from static.countries.models import Country
-from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
@@ -103,18 +102,6 @@ class GetLicencesTests(DataTestClient):
         self.assertTrue(str(self.licences[self.exhibition_application].id) in ids)
         self.assertTrue(str(self.licences[self.f680_application].id) in ids)
         self.assertTrue(str(self.licences[self.gifting_application].id) in ids)
-
-    def test_get_nlr_licences_only(self):
-        self.licences[self.standard_application].decisions.set(
-            [Decision.objects.get(name=AdviceType.NO_LICENCE_REQUIRED)]
-        )
-
-        response = self.client.get(self.url + "?licence_type=" + LicenceType.NLR, **self.exporter_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(str(self.licences[self.standard_application].id), response_data[0]["id"])
 
 
 class GetLicencesFilterTests(DataTestClient):

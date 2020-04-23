@@ -15,11 +15,11 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
+from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
 from conf.serializers import KeyValueChoiceField
 from licences.models import Licence
-from licences.serializers import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
