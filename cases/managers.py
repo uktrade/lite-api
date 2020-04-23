@@ -143,6 +143,7 @@ class CaseManager(models.Manager):
                 "flags",
             )
         )
+
         team_id = user.team.id
 
         if not include_hidden:
@@ -175,25 +176,13 @@ class CaseManager(models.Manager):
             case_qs = case_qs.assigned_as_case_officer(user=case_officer)
 
         if is_work_queue:
-            ## 1: Hmrc where goods havent left + all other cases
-            hmrc_cases_goods_not_left_country = case_qs.filter(
-                baseapplication__hmrcquery__have_goods_departed=False
-            ).annotate(case_order=Value(1, output_field=PositiveSmallIntegerField()))
-
-            other_cases = case_qs.exclude(baseapplication__hmrcquery__have_goods_departed=False).annotate(
-                case_order=Value(2, output_field=PositiveSmallIntegerField())
+            case_qs = case_qs.annotate(
+                case_order=Case(
+                    When(baseapplication__hmrcquery__have_goods_departed=False, then=1),
+                    default=Value(2),
+                    output_field=PositiveSmallIntegerField(),
+                )
             )
-
-            case_qs = hmrc_cases_goods_not_left_country.union(other_cases)
-
-            ## 2: Conditional Annotation
-            # case_qs = case_qs.annotate(
-            #     case_order=Case(
-            #         When(baseapplication__hmrcquery__have_goods_departed=False, then=1),
-            #         default=Value(2),
-            #         output_field=PositiveSmallIntegerField(),
-            #     )
-            # )
 
             case_qs = case_qs.order_by("case_order", "submitted_at")
         else:
