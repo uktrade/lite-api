@@ -22,6 +22,7 @@ def fill_in_missing_actor(apps, schema_editor):
             organisation=organisation, role=Roles.EXPORTER_SUPER_USER_ROLE_ID
         )
         user = admin_relationships.first().user
+        print("Actor: ", user)
         content_type = ContentType.objects.get_for_model(user)
         audit.actor_content_type = content_type
         audit.actor_object_id = user.id
