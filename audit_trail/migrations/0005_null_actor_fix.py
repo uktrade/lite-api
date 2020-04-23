@@ -1,6 +1,5 @@
 from django.db import migrations
 
-from audit_trail.payload import AuditType
 from conf.constants import Roles
 
 
