@@ -13,7 +13,7 @@ def fill_in_missing_actor(apps, schema_editor):
     UserOrganisationRelationship = apps.get_model("users", "UserOrganisationRelationship")
 
     for audit in Audit.objects.filter(
-        actor_content_type__isnull=True, verb__in=[AuditType.CREATED, AuditType.UPDATED_STATUS]
+        actor_content_type__isnull=True, verb__in=[AuditType.CREATED.value, AuditType.UPDATED_STATUS.value]
     ):
         print("Updating audit for:", audit.id)
         case_id = audit.target_object_id or audit.action_object_object_id
