@@ -41,10 +41,21 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                     #   and set the team rule tier for the future.
                     if parameter_set.issubset(case_parameter_set):
                         case.queues.add(rule.queue)
+                        audit_trail_service.create(
+                            actor=GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID),
+                            verb=AuditType.MOVE_CASE,
+                            action_object=case.get_case(),
+                            payload={"queues": rule.queue.name},
+                        )
                         # Only assign active users to the case
                         if rule.user and rule.user.status == UserStatuses.ACTIVE:
                             CaseAssignment(user=rule.user, queue=rule.queue, case=case).save()
-                        queues.append(rule.queue.name)
+                            audit_trail_service.create(
+                                actor=GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID),
+                                verb=AuditType.ASSIGN_CASE,
+                                action_object=case.get_case(),
+                                payload={"assignment": f"{rule.user.first_name} {rule.user.last_name}"},
+                            )
                         team_rule_tier = rule.tier
                         rules_have_been_applied = True
                         break
@@ -61,10 +72,4 @@ def run_routing_rules(case: Case, keep_status: bool = False):
 
     if queues:
         # Audit which queues were added to the case
-        sep = ", "
-        audit_trail_service.create(
-            actor=GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID),
-            verb=AuditType.MOVE_CASE,
-            action_object=case.get_case(),
-            payload={"queues": sep.join(queues)},
-        )
+
