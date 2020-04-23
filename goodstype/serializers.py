@@ -82,8 +82,8 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
 
 
 class GoodsTypeViewSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    description = serializers.CharField()
+    id = serializers.UUIDField(read_only=True)
+    description = serializers.CharField(read_only=True)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
     is_good_incorporated = serializers.BooleanField()
     control_list_entries = ControlListEntryViewSerializer(many=True)
