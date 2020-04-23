@@ -47,14 +47,6 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
                 self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
                 self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
                 self.fields["control_list_entries"] = ControlListEntryField(many=True, required=False, allow_empty=True)
-                # self.fields["control_list_entries"] = PrimaryKeyRelatedSerializerField(
-                #     queryset=ControlListEntry.objects.all(),
-                #     many=True,
-                #     serializer=ControlListEntryField,
-                #     required=False,
-                #     allow_null=True,
-                #     allow_empty=True,
-                # )
                 self.Meta.fields = self.Meta.fields + (
                     "is_good_incorporated",
                     "is_good_controlled",
@@ -70,6 +62,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
             self.fields["control_list_entries"] = ControlListEntryField(many=True, required=True)
         else:
             if hasattr(self, "initial_data"):
+                # Remove control list entries if the good is no longer controlled
                 self.initial_data["control_list_entries"] = []
 
     def get_document(self, instance):

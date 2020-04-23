@@ -148,6 +148,7 @@ class ControlListEntryField(PrimaryKeyRelatedSerializerField):
             **kwargs,
         )
 
+    # Use the full object and all FK related models instead of only the PK in lookups
     def use_pk_only_optimization(self):
         return False
 
