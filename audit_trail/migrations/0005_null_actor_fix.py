@@ -10,8 +10,7 @@ def fill_in_missing_actor(apps, schema_editor):
     Audit = apps.get_model("audit_trail", "Audit")
     ExporterUser = apps.get_model("users", "ExporterUser")
     for audit in Audit.objects.filter(
-        actor_content_type__isnull=True,
-        verb__in=[AuditType.UPDATED_STATUS.value, AuditType.CREATED.value]
+        actor_content_type__isnull=True, verb__in=[AuditType.UPDATED_STATUS.value, AuditType.CREATED.value]
     ):
         print("Updating audit for:", audit.id)
         user = ExporterUser.objects.exclude(first_name="").first()
@@ -25,7 +24,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("applications", "0022_auto_20200331_1107"),
         ("audit_trail", "0004_case_submitted_audits"),
-        ("users", "0005_auto_20200322_1547")
+        ("users", "0005_auto_20200322_1547"),
     ]
     operations = [
         migrations.RunPython(fill_in_missing_actor),
