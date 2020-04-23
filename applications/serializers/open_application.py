@@ -8,13 +8,13 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
+from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
 from conf.serializers import KeyValueChoiceField
 from goodstype.models import GoodsType
 from goodstype.serializers import FullGoodsTypeSerializer
 from licences.models import Licence
-from licences.serializers import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
