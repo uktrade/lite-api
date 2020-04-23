@@ -18,7 +18,9 @@ def fill_in_missing_actor(apps, schema_editor):
         case_id = audit.target_object_id or audit.action_object_object_id
         case = Case.objects.get(id=case_id)
         organisation = case.organisation
-        admin_relationships = UserOrganisationRelationship.objects.filter(organisation=organisation, role=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+        admin_relationships = UserOrganisationRelationship.objects.filter(
+            organisation=organisation, role=Roles.EXPORTER_SUPER_USER_ROLE_ID
+        )
         user = admin_relationships.first().user
         content_type = ContentType.objects.get_for_model(user)
         audit.actor_content_type = content_type
