@@ -28,6 +28,9 @@ class GoodTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # the routing rules will run the case up to a penultimate to terminal status,
+        # so the implication of it not being draft is that is has been submitted
+        # even if the case has progressed past that status already.
         self.assertNotEqual(response_data["application"]["status"]["key"], CaseStatusEnum.DRAFT)
         good = Good.objects.get()
         self.assertEqual(good.status, GoodStatus.SUBMITTED)
