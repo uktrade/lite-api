@@ -260,9 +260,9 @@ class ApplicationManageStatusTests(DataTestClient):
     def test_case_routing_automation(self):
         routing_queue = self.create_queue("new queue", self.team)
         self.create_routing_rule(
-            self.team.id,
-            routing_queue.id,
-            3,
+            team_id=self.team.id,
+            queue_id=routing_queue.id,
+            tier=3,
             status_id=get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW).id,
             additional_rules=[],
         )

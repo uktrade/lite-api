@@ -20,13 +20,6 @@ class RerunRoutingRulesTests(DataTestClient):
             status_id=get_case_status_by_status(CaseStatusEnum.SUBMITTED).id,
             additional_rules=[],
         )
-        self.routing_rule_2 = self.create_routing_rule(
-            self.team.id,
-            self.queue.id,
-            tier=5,
-            status_id=get_case_status_by_status(CaseStatusEnum.SUBMITTED).id,
-            additional_rules=[],
-        )
 
     def test_rules_rerun(self):
         self.case.queues.set([self.other_queue.id])
