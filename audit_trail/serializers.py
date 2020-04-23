@@ -22,6 +22,10 @@ class AuditSerializer(serializers.ModelSerializer):
         )
 
     def get_user(self, instance):
+        print("null actors:", Audit.objects.filter(actor_content_type__isnull=True).count())
+        print(instance)
+        print(instance.actor_object_id)
+        print(instance.actor_content_type)
         return {
             "first_name": instance.actor.first_name,
             "last_name": instance.actor.last_name,
