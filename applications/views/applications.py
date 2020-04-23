@@ -179,7 +179,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Retrieve an application instance
         """
         serializer = get_application_view_serializer(application)
-        data = serializer(application, context={"user_type": request.user.type}).data
+        data = serializer(application, context={"user_type": request.user.type, "exporter_user": request.user}).data
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
