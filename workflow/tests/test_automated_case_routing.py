@@ -306,3 +306,25 @@ class CaseRoutingAutomationTests(DataTestClient):
 
         self.assertIn(queue_2, set(case.queues.all()))
         self.assertEqual(case.status, under_review)
+
+    def test_rules_not_run_if_flags_dont_match(self):
+        flag_1 = FlagFactory(team=self.team)
+        flag_2 = FlagFactory(team=self.team)
+        flag_3 = FlagFactory(team=self.team)
+
+        rule = self.create_routing_rule(
+            team_id=self.team.id,
+            queue_id=self.queue.id,
+            tier=5,
+            status_id=CaseStatus.objects.get(status="submitted").id,
+            additional_rules=[RoutingRulesAdditionalFields.FLAGS],
+        )
+        rule.flags.set([flag_1, flag_2])
+
+        case = self.create_open_application_case(organisation=self.organisation)
+        case.flags.set([flag_2, flag_3])
+
+        run_routing_rules(case)
+
+        self.assertEqual(len(case.queues.all()), 0)
+        self.assertNotEqual(case.status, CaseStatus.objects.get(status="submitted"))
