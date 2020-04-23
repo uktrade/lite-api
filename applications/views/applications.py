@@ -410,10 +410,6 @@ class ApplicationManageStatus(APIView):
 
         application = serializer.save()
 
-        # Case routing rules
-        if old_status != application.status:
-            run_routing_rules(case=application, keep_status=True)
-
         if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(application.status.status):
             # we reapply flagging rules if the status is reopened from a terminal state
             apply_flagging_rules_to_case(application)
@@ -424,6 +420,10 @@ class ApplicationManageStatus(APIView):
             target=application.get_case(),
             payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
         )
+
+        # Case routing rules
+        if old_status != application.status:
+            run_routing_rules(case=application, keep_status=True)
 
         return JsonResponse(
             data={"data": get_application_view_serializer(application)(application).data}, status=status.HTTP_200_OK
