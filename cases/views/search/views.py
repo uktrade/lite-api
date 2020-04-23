@@ -4,7 +4,6 @@ from cases.enums import CaseTypeEnum
 from cases.models import Case
 from cases.serializers import CaseListSerializer
 from cases.views.search import service
-from cases.views.search.serializers import queue_serializer
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, NON_WORK_QUEUES
@@ -44,7 +43,7 @@ class CasesSearchView(generics.ListAPIView):
                 include_hidden=include_hidden,
             )
         )
-        queues = queue_serializer(get_all_queues(user=request.user))
+        queues = get_all_queues(user=request.user)
         cases = CaseListSerializer(
             page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
         ).data
