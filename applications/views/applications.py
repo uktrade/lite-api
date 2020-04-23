@@ -308,17 +308,19 @@ class ApplicationSubmission(APIView):
                 request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
             )
 
-        if application.case_type.sub_type in [
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EUA,
-            CaseTypeSubTypeEnum.GOODS,
-        ]:
-            set_application_sla(application)
-            create_submitted_audit(request, application, old_status)
-
         errors = validate_application_ready_for_submission(application)
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Queries are completed directly when submit is clicked on the task list
+        # HMRC are completed when submit is clicked on the summary page (page after task list)
+        # Applications are completed when submit is clicked on the declaration page (page after summary page)
+
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS,] or (
+            CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
+        ):
+            set_application_sla(application)
+            create_submitted_audit(request, application, old_status)
 
         if application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
