@@ -8,7 +8,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from licences.models import Licence
-from licences.serializers import LicenceCreateSerializer
+from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
