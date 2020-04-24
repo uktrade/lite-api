@@ -17,23 +17,25 @@ class UserQueueAssignmentTests(DataTestClient):
         """
         As the case isn't assigned to any work queues, the case should move to the next status
         """
+        old_status = self.case.status
         user_queue_assignment_workflow([self.queue], self.case)
 
         self.case.refresh_from_db()
-        self.assertEqual(self.case.status, self.new_status)
+        self.assertGreater(self.case.status.priority, old_status.priority)
 
     def test_queue_but_no_case_assignments(self):
         """
         As no users are assigned to it, the case should be removed from the queue
         and the case should move to the next status
         """
+        old_status = self.case.status
         self.case.queues.add(self.queue)
 
         user_queue_assignment_workflow([self.queue], self.case)
 
         self.case.refresh_from_db()
         self.assertFalse(self.case.queues.exists())
-        self.assertEqual(self.case.status, self.new_status)
+        self.assertGreater(self.case.status.priority, old_status.priority)
 
     def test_queue_and_case_assignment(self):
         """

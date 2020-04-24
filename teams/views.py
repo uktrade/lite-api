@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Teams
-from gov_users.serializers import GovUserViewSerializer
+from gov_users.serializers import GovUserListSerializer
 from teams.helpers import get_team_by_pk
 from teams.models import Team
 from teams.serializers import TeamSerializer
@@ -97,5 +97,5 @@ class UsersByTeamsList(APIView):
         team = get_team_by_pk(pk)
         users = GovUser.objects.filter(team=team)
 
-        serializer = GovUserViewSerializer(users, many=True)
+        serializer = GovUserListSerializer(users, many=True)
         return JsonResponse(data={"users": serializer.data})

@@ -8,7 +8,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from licences.models import Licence
-from licences.serializers import LicenceCreateSerializer
+from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
@@ -63,6 +63,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
+from workflow.automation import run_routing_rules
 from workflow.user_queue_assignment import user_queue_assignment_workflow
 
 
@@ -738,3 +739,23 @@ class AdditionalContacts(ListCreateAPIView):
             target=get_case(self.kwargs["pk"]),
             payload={"contact": serializer.data["name"]},
         )
+
+
+class RerunRoutingRules(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def put(self, request, pk):
+        """
+        Reruns routing rules against a given case, in turn removing all existing queues, and user assignments,
+            and starting again from scratch on the given status
+        Audits who requests the rules to be rerun
+        """
+        case = get_case(pk)
+
+        audit_trail_service.create(
+            actor=request.user, verb=AuditType.RERUN_ROUTING_RULES, target=case,
+        )
+
+        run_routing_rules(case)
+
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
