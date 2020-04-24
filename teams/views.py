@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from conf.authentication import GovAuthentication
 from conf.constants import Teams
 from gov_users.serializers import GovUserViewSerializer
+from queues.models import Queue
+from queues.serializers import TinyQueueSerializer
 from teams.helpers import get_team_by_pk
 from teams.models import Team
 from teams.serializers import TeamSerializer
@@ -99,3 +101,15 @@ class UsersByTeamsList(APIView):
 
         serializer = GovUserViewSerializer(users, many=True)
         return JsonResponse(data={"users": serializer.data})
+
+
+class TeamQueuesList(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        """
+        Returns all queues for a given team with their id and name
+        """
+        queues = Queue.objects.filter(team_id=pk)
+        serializer = TinyQueueSerializer(queues, many=True)
+        return JsonResponse(data={"queues": serializer.data})
