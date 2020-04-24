@@ -10,7 +10,8 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
-from conf.helpers import replace_default_string_for_form_select, str_to_bool
+from conf.custom_views import OptionalPaginationView
+from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.enums import UserStatuses
@@ -60,7 +61,7 @@ class AuthenticateGovUser(APIView):
         return JsonResponse(data={"token": token, "lite_api_user_id": str(user.id)})
 
 
-class GovUserList(generics.ListCreateAPIView):
+class GovUserList(OptionalPaginationView, generics.CreateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = GovUserViewSerializer
 
@@ -81,18 +82,6 @@ class GovUserList(generics.ListCreateAPIView):
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 
         return gov_users_qs
-
-    def paginate_queryset(self, queryset):
-        if str_to_bool(self.request.GET.get("disable_pagination")):
-            return queryset
-        else:
-            return super().paginate_queryset(queryset)
-
-    def get_paginated_response(self, data):
-        if str_to_bool(self.request.GET.get("disable_pagination")):
-            return JsonResponse(data={"results": data})
-        else:
-            return super().get_paginated_response(data)
 
     @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})
     def post(self, request):

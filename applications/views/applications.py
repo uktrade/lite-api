@@ -76,6 +76,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
+from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
@@ -307,17 +308,19 @@ class ApplicationSubmission(APIView):
                 request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
             )
 
-        if application.case_type.sub_type in [
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EUA,
-            CaseTypeSubTypeEnum.GOODS,
-        ]:
-            set_application_sla(application)
-            create_submitted_audit(request, application, old_status)
-
         errors = validate_application_ready_for_submission(application)
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Queries are completed directly when submit is clicked on the task list
+        # HMRC are completed when submit is clicked on the summary page (page after task list)
+        # Applications are completed when submit is clicked on the declaration page (page after summary page)
+
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS,] or (
+            CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
+        ):
+            set_application_sla(application)
+            create_submitted_audit(request, application, old_status)
 
         if application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
@@ -341,6 +344,7 @@ class ApplicationSubmission(APIView):
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
                 create_submitted_audit(request, application, old_status)
+                run_routing_rules(application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -418,6 +422,10 @@ class ApplicationManageStatus(APIView):
             target=application.get_case(),
             payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
         )
+
+        # Case routing rules
+        if old_status != application.status:
+            run_routing_rules(case=application, keep_status=True)
 
         return JsonResponse(
             data={"data": get_application_view_serializer(application)(application).data}, status=status.HTTP_200_OK
