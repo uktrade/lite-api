@@ -135,8 +135,9 @@ class UserMeDetail(APIView):
     def get(self, request):
         org_pk = request.headers["Organisation-Id"]
         user = request.user
-        relationships = UserOrganisationRelationship.objects.filter(user=user).select_related("organisation")
-
+        relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(
+            user=user
+        ).exclude(organisation__status=OrganisationStatus.IN_REVIEW)
         # Returning a dict over a serializer for performance reasons
         # This endpoint is called often, so it needs to be as fast as possible
         data = {
