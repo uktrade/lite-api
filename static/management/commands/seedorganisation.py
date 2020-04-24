@@ -87,6 +87,7 @@ class Command(SeedCommand):
     def _print_organisation_to_console(cls, organisation: Organisation, primary_user: ExporterUser):
         organisation_representation = dict(
             id=str(organisation.id),
+            name=str(organisation.name),
             primary_site_id=str(organisation.primary_site.id),
             primary_user_id=str(primary_user.id),
         )

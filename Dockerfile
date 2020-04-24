@@ -7,5 +7,5 @@ RUN apt-get install -y libpq-dev gcc \
   libffi-dev shared-mime-info
 RUN pip3 install pipenv
 ADD Pipfile* /app/
-RUN pipenv sync
+RUN pipenv sync -d
 ADD . /app
