@@ -36,7 +36,7 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
             "document",
             "is_good_incorporated",
             "is_good_controlled",
-            "control_list_entries"
+            "control_list_entries",
         )
 
     def __init__(self, *args, **kwargs):
