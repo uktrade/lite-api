@@ -64,42 +64,10 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         return data[0] if data else None
 
     def get_ultimate_end_users(self, instance):
-        poa_with_destination_flags = (
-            instance.all_parties()
-            .filter(party__type="ultimate_end_user", party__country__flags__isnull=False)
-            .annotate(highest_priority=Min("party__country__flags__priority"))
-            .order_by("highest_priority", "party__country__name")
-        )
-
-        parties_with_flags = [PartySerializer(poa.party).data for poa in poa_with_destination_flags]
-
-        poa_without_destination_flags = (
-            instance.all_parties()
-            .filter(party__type="ultimate_end_user", party__country__flags__isnull=True)
-            .order_by("party__country__name")
-        )
-        parties_without_flags = [PartySerializer(poa.party).data for poa in poa_without_destination_flags]
-
-        return parties_with_flags + parties_without_flags
+        return self.get_ordered_parties(instance, PartyType.ULTIMATE_END_USER)
 
     def get_third_parties(self, instance):
-        poa_with_destination_flags = (
-            instance.all_parties()
-            .filter(party__type="third_party", party__country__flags__isnull=False)
-            .annotate(highest_priority=Min("party__country__flags__priority"))
-            .order_by("highest_priority", "party__country__name")
-        )
-
-        parties_with_flags = [PartySerializer(poa.party).data for poa in poa_with_destination_flags]
-
-        poa_without_destination_flags = (
-            instance.all_parties()
-            .filter(party__type="third_party", party__country__flags__isnull=True)
-            .order_by("party__country__name")
-        )
-        parties_without_flags = [PartySerializer(poa.party).data for poa in poa_without_destination_flags]
-
-        return parties_with_flags + parties_without_flags
+        return self.get_ordered_parties(instance, PartyType.THIRD_PARTY)
 
     def get_consignee(self, instance):
         data = self.__parties(instance, PartyType.CONSIGNEE)
@@ -107,3 +75,26 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
 
     def get_inactive_parties(self, instance):
         return self.__parties(instance, PartyType.INACTIVE_PARTIES)
+
+    def get_ordered_parties(self, instance, party_type):
+        """ Order the parties based on country flag priority and where the party has
+        no flag, by country name.
+
+        """
+        poa_with_destination_flags = (
+            instance.all_parties()
+            .filter(party__type=party_type, party__country__flags__isnull=False)
+            .annotate(highest_priority=Min("party__country__flags__priority"))
+            .order_by("highest_priority", "party__country__name")
+        )
+
+        parties_with_flags = [PartySerializer(poa.party).data for poa in poa_with_destination_flags]
+
+        poa_without_destination_flags = (
+            instance.all_parties()
+            .filter(party__type=party_type, party__country__flags__isnull=True)
+            .order_by("party__country__name")
+        )
+        parties_without_flags = [PartySerializer(poa.party).data for poa in poa_without_destination_flags]
+
+        return parties_with_flags + parties_without_flags
