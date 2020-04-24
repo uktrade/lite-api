@@ -19,7 +19,7 @@ from organisations.models import Site
 from organisations.serializers import OrganisationUserListView, SiteListSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
-from users.models import ExporterUser, Role, UserOrganisationRelationship
+from users.models import ExporterUser, Role
 from users.serializers import (
     ExporterUserCreateUpdateSerializer,
     UserOrganisationRelationshipSerializer,

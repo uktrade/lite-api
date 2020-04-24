@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0005_auto_20200322_1547'),
+        ("users", "0005_auto_20200322_1547"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='baseuser',
-            options={'ordering': ['first_name', 'last_name', 'created_at']},
-        ),
+        migrations.AlterModelOptions(name="baseuser", options={"ordering": ["first_name", "last_name", "created_at"]},),
     ]
