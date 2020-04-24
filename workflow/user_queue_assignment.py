@@ -12,7 +12,8 @@ def get_queues_with_case_assignments(case: Case):
 def get_next_goods_query_status(case):
     goods_query = case.query.goodsquery
     if (goods_query.clc_responded or not goods_query.clc_raised_reasons) and goods_query.pv_grading_raised_reasons:
-        return CaseStatus.objects.get(status=CaseStatusEnum.PV, is_terminal=False)
+        if goods_query.status.status != CaseStatusEnum.PV and not goods_query.status.is_terminal:
+            return CaseStatus.objects.get(status=CaseStatusEnum.PV, is_terminal=False)
     return None
 
 
@@ -34,6 +35,8 @@ def get_next_status_in_workflow_sequence(case):
 
 
 def user_queue_assignment_workflow(queues: [Queue], case: Case):
+    from workflow.automation import run_routing_rules
+
     # Remove case from queues where all gov users are done with the case
     queues_without_case_assignments = set(queues) - get_queues_with_case_assignments(case)
     case.queues.remove(*queues_without_case_assignments)
@@ -44,3 +47,4 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
         if next_status:
             case.status = next_status
             case.save()
+            run_routing_rules(case)

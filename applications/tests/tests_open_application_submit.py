@@ -72,16 +72,18 @@ class OpenApplicationTests(DataTestClient):
             "agreed_to_declaration": True,
             "agreed_to_foi": True,
         }
+        case = Case.objects.get()
+        self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        case = Case.objects.get()
+        case.refresh_from_db()
         self.assertEqual(case.id, self.draft.id)
         self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertNotEqual(case.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):

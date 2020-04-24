@@ -74,3 +74,16 @@ class AssignQueuesToCaseTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["queues"], [f"{Cases.Queue.NOT_FOUND}['{str(random_id)}']"])
+
+    def test_case_remove_all_case_assignments(self):
+        self.case.queues.set([self.queue])
+        self.create_case_assignment(self.queue, self.case, [self.gov_user])
+
+        self.assertEqual(self.case.queues.count(), 1)
+        self.assertEqual(self.case.case_assignments.count(), 1)
+
+        self.case.remove_all_case_assignments()
+        self.case.refresh_from_db()
+
+        self.assertEqual(self.case.queues.count(), 0)
+        self.assertEqual(self.case.case_assignments.count(), 0)
