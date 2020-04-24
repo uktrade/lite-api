@@ -3,7 +3,7 @@ from typing import List
 
 from compat import get_model
 from django.db import models
-from django.db.models import Q, Case, When, BooleanField, PositiveSmallIntegerField
+from django.db.models import Q, Case, When, BinaryField
 
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from queues.constants import (
@@ -178,9 +178,9 @@ class CaseManager(models.Manager):
         if is_work_queue:
             case_qs = case_qs.annotate(
                 case_order=Case(
-                    When(baseapplication__hmrcquery__have_goods_departed=False, then=1),
-                    default=2,
-                    output_field=PositiveSmallIntegerField(),
+                    When(baseapplication__hmrcquery__have_goods_departed=False, then=0),
+                    default=1,
+                    output_field=BinaryField(),
                 )
             )
 
