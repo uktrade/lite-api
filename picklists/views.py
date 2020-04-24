@@ -1,5 +1,5 @@
 from django.http.response import JsonResponse
-from rest_framework import status, permissions
+from rest_framework import status, permissions, generics
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -8,7 +8,6 @@ from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from audit_trail.serializers import AuditSerializer
 from conf.authentication import GovAuthentication
-from conf.custom_views import OptionalPaginationView
 from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 from picklists.enums import PickListStatus
@@ -22,7 +21,7 @@ from picklists.serializers import (
 
 
 @permission_classes((permissions.AllowAny,))
-class PickListsView(OptionalPaginationView):
+class PickListsView(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = PicklistListSerializer
 
