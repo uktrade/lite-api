@@ -56,7 +56,6 @@ class UsersList(generics.ListCreateAPIView):
                 status=F("relationship__status"),
                 role_name=F("relationship__role__name"),
             )
-            .order_by("first_name", "last_name", "created_at")
         )
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
