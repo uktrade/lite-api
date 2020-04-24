@@ -19,7 +19,7 @@ from organisations.models import Site
 from organisations.serializers import OrganisationUserListView, SiteListSerializer
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_user_organisation_relationship
-from users.models import ExporterUser, Role
+from users.models import ExporterUser, Role, UserOrganisationRelationship
 from users.serializers import (
     ExporterUserCreateUpdateSerializer,
     UserOrganisationRelationshipSerializer,
@@ -56,6 +56,7 @@ class UsersList(generics.ListCreateAPIView):
                 status=F("relationship__status"),
                 role_name=F("relationship__role__name"),
             )
+            .order_by("first_name", "last_name", "created_at")
         )
 
     @swagger_auto_schema(responses={400: "JSON parse error"})
