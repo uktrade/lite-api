@@ -385,7 +385,7 @@ class FilterUserAssignedCasesQueueTests(DataTestClient):
     def test_get_cases_on_user_assigned_to_case_queue_doesnt_return_closed_cases(self):
         user_assigned_case = self.create_standard_application_case(self.organisation).get_case()
         user_assigned_case.queues.set([self.queue])
-        CaseAssignment.objects.create(case=self.user_assigned_case, queue=self.queue, user=self.gov_user)
+        CaseAssignment.objects.create(case=user_assigned_case, queue=self.queue, user=self.gov_user)
         user_assigned_case.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
         user_assigned_case.save()
 
