@@ -105,6 +105,8 @@ class CaseListFlagSerializer(serializers.Serializer):
     name = serializers.CharField()
     label = serializers.CharField()
     colour = serializers.CharField()
+    priority = serializers.IntegerField()
+    team = serializers.UUIDField()
 
 
 class FlaggingRuleSerializer(serializers.ModelSerializer):
