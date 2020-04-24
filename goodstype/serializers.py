@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
 from cases.enums import CaseTypeSubTypeEnum
 from common.libraries import (
