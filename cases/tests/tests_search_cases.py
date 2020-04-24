@@ -12,6 +12,7 @@ from queues.constants import (
     MY_ASSIGNED_CASES_QUEUE_ID,
     MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
 )
+from queues.tests.factories import QueueFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -438,10 +439,7 @@ class TestQueueOrdering(DataTestClient):
         standard_app = self.create_standard_application_case(self.organisation, "Example Application")
         clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
 
-        self.queue.cases.add(clc_query)
-        self.queue.cases.add(standard_app)
-        self.queue.cases.add(clc_query_2)
-        self.queue.save()
+        QueueFactory(team=self.gov_user.team, cases=[clc_query, standard_app, clc_query_2])
 
         response = self.client.get(url, **self.gov_headers)
 
@@ -459,14 +457,11 @@ class TestQueueOrdering(DataTestClient):
         clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
         hmrc_query_2 = self.submit_application(self.create_hmrc_query(self.organisation, have_goods_departed=True))
 
-        self.queue.cases.add(clc_query_1)
-        self.queue.cases.add(standard_app)
-        self.queue.cases.add(hmrc_query_1)
-        self.queue.cases.add(clc_query_2)
-        self.queue.cases.add(hmrc_query_2)
-        self.queue.save()
+        queue = QueueFactory(
+            team=self.gov_user.team, cases=[clc_query_1, standard_app, hmrc_query_1, clc_query_2, hmrc_query_2]
+        )
 
-        url = reverse("cases:search") + "?queue_id=" + str(self.queue.id)
+        url = reverse("cases:search") + "?queue_id=" + str(queue.id)
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -499,14 +494,11 @@ class TestQueueOrdering(DataTestClient):
         hmrc_query_2.status = get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW)
         hmrc_query_2.save()
 
-        self.queue.cases.add(standard_app)
-        self.queue.cases.add(clc_query_1)
-        self.queue.cases.add(clc_query_2)
-        self.queue.cases.add(hmrc_query_1)
-        self.queue.cases.add(hmrc_query_2)
-        self.queue.save()
+        queue = QueueFactory(
+            team=self.gov_user.team, cases=[standard_app, clc_query_1, clc_query_2, hmrc_query_1, hmrc_query_2]
+        )
 
-        url = reverse("cases:search") + "?queue_id=" + str(self.queue.id) + "&sort=status"
+        url = reverse("cases:search") + "?queue_id=" + str(queue.id) + "&sort=status"
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
