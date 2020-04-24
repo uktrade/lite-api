@@ -21,3 +21,6 @@ class EndUserAdvisoryQuery(Query):
     contact_telephone = models.CharField(max_length=15, default=None, null=False)
 
     notifications = GenericRelation(ExporterNotification, related_query_name="eua_query")
+
+    class Meta:
+        ordering = ["created_at"]

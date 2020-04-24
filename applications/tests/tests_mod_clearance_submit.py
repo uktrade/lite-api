@@ -100,15 +100,17 @@ class ExhibitionClearanceTests(DataTestClient):
             "agreed_to_declaration": True,
             "agreed_to_foi": True,
         }
+        application = ExhibitionClearanceApplication.objects.get()
+        self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        application = ExhibitionClearanceApplication.objects.get()
+        application.refresh_from_db()
         self.assertIsNotNone(application.submitted_at)
-        self.assertEqual(application.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertNotEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(application.agreed_to_foi, True)
 
     def test_exhibition_clearance_declaration_submit_tcs_false_failure(self):
@@ -195,15 +197,17 @@ class GiftingClearanceTests(DataTestClient):
             "agreed_to_declaration": True,
             "agreed_to_foi": True,
         }
+        application = GiftingClearanceApplication.objects.get()
+        self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        application = GiftingClearanceApplication.objects.get()
+        application.refresh_from_db()
         self.assertIsNotNone(application.submitted_at)
-        self.assertEqual(application.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertNotEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(application.agreed_to_foi, True)
 
     def test_gifting_clearance_declaration_submit_tcs_false_failure(self):
@@ -329,15 +333,17 @@ class F680ClearanceTests(DataTestClient):
             "agreed_to_declaration": True,
             "agreed_to_foi": True,
         }
+        application = F680ClearanceApplication.objects.get()
+        self.assertEqual(application.status.status, CaseStatusEnum.DRAFT)
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        application = F680ClearanceApplication.objects.get()
+        application.refresh_from_db()
         self.assertIsNotNone(application.submitted_at)
-        self.assertEqual(application.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertNotEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(application.agreed_to_foi, True)
 
     def test_f680_clearance_declaration_submit_tcs_false_failure(self):

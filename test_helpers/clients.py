@@ -70,7 +70,7 @@ from static.units.enums import Units
 from static.urls import urlpatterns as static_urlpatterns
 from teams.models import Team
 from test_helpers import colours
-from users.enums import UserStatuses
+from users.enums import UserStatuses, SystemUser
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 from faker import Faker
@@ -137,6 +137,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # Create a hardcoded control list entry rather than loading in the
         # spreadsheet each time
         ControlListEntry.create("ML1a", "Description", None, False)
+        GovUser(id=SystemUser.LITE_SYSTEM_ID, email="", team=self.team).save()
 
         if settings.TIME_TESTS:
             self.tick = datetime.now()
