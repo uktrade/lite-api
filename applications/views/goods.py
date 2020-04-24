@@ -163,24 +163,21 @@ class ApplicationGoodsTypes(APIView):
         """
         Post a goodstype
         """
-        request.data["application"] = application.id
-
+        request.data["application"] = application
         serializer = GoodsTypeSerializer(data=request.data)
 
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
 
-        serializer.save()
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
+                action_object=serializer.instance,
+                target=application.get_case(),
+                payload={"good_type_name": serializer.instance.description},
+            )
 
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
-            action_object=serializer.instance,
-            target=application.get_case(),
-            payload={"good_type_name": serializer.instance.description},
-        )
-
-        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class ApplicationGoodsType(APIView):

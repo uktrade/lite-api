@@ -21,6 +21,9 @@ from static.countries.serializers import CountrySerializer
 
 class GoodsTypeSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=DESCRIPTION_MAX_LENGTH)
+    is_good_incorporated = serializers.BooleanField(required=True)
+    is_good_controlled = serializers.BooleanField(required=True)
+    control_list_entries = ControlListEntryField(many=True, required=False, allow_empty=True)
     application = serializers.PrimaryKeyRelatedField(queryset=BaseApplication.objects.all())
     document = serializers.SerializerMethodField()
 
@@ -31,6 +34,9 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
             "description",
             "application",
             "document",
+            "is_good_incorporated",
+            "is_good_controlled",
+            "control_list_entries"
         )
 
     def __init__(self, *args, **kwargs):
@@ -42,20 +48,18 @@ class GoodsTypeSerializer(serializers.ModelSerializer):
         # Only add is_good_incorporated if application is of type OPEN
         # and not if it's a HMRC
         application = self.get_initial().get("application")
-        if application:
-            if get_application(application).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-                self.fields["is_good_incorporated"] = serializers.BooleanField(required=True)
-                self.fields["is_good_controlled"] = serializers.BooleanField(required=True)
-                self.fields["control_list_entries"] = ControlListEntryField(many=True, required=False, allow_empty=True)
-                self.Meta.fields = self.Meta.fields + (
-                    "is_good_incorporated",
-                    "is_good_controlled",
-                    "control_list_entries",
-                )
-            else:
-                if hasattr(self, "initial_data"):
-                    self.initial_data["is_good_controlled"] = False
-                    self.initial_data["is_good_incorporated"] = None
+
+        if application and application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
+            if hasattr(self, "initial_data"):
+                self.fields["is_good_incorporated"].required = False
+                self.fields["is_good_incorporated"].allow_null = True
+                self.fields["is_good_controlled"].required = False
+                self.fields["is_good_controlled"].allow_null = True
+                self.fields["control_list_entries"].required = False
+                self.fields["control_list_entries"].allow_null = True
+                self.initial_data["is_good_controlled"] = False
+                self.initial_data["is_good_incorporated"] = None
+                self.initial_data["control_list_entries"] = []
 
         # Only validate the control list entries if the good is controlled
         if str_to_bool(self.get_initial().get("is_good_controlled")) is True:
