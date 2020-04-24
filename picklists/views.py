@@ -1,51 +1,58 @@
-from django.db.models import Q
 from django.http.response import JsonResponse
-from functools import reduce
 from rest_framework import status, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import operator
 
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from audit_trail.serializers import AuditSerializer
 from conf.authentication import GovAuthentication
+from conf.custom_views import OptionalPaginationView
 from conf.helpers import str_to_bool
+from lite_content.lite_api import strings
 from picklists.enums import PickListStatus
 from picklists.helpers import get_picklist_item
 from picklists.models import PicklistItem
-from picklists.serializers import PicklistSerializer
-from lite_content.lite_api import strings
+from picklists.serializers import (
+    PicklistUpdateCreateSerializer,
+    PicklistListSerializer,
+    TinyPicklistSerializer,
+)
 
 
 @permission_classes((permissions.AllowAny,))
-class PickListItems(APIView):
+class PickListsView(OptionalPaginationView):
     authentication_classes = (GovAuthentication,)
+    serializer_class = PicklistListSerializer
 
-    def get(self, request):
+    def get_serializer_class(self):
+        if str_to_bool(self.request.GET.get("disable_pagination")):
+            return TinyPicklistSerializer
+        else:
+            return PicklistListSerializer
+
+    def get_queryset(self):
         """
         Returns a list of all picklist items, filtered by type and by show_deactivated
         """
-        picklist_type = request.GET.get("type", None)
-        show_deactivated = str_to_bool(request.GET.get("show_deactivated", None))
-        ids = request.GET.get("ids", None)
-        query = [Q(team=request.user.team.id)]
+        picklist_items = PicklistItem.objects.filter(team=self.request.user.team,)
+
+        picklist_type = self.request.GET.get("type")
+        show_deactivated = str_to_bool(self.request.GET.get("show_deactivated"))
+        ids = self.request.GET.get("ids")
 
         if picklist_type:
-            query.append(Q(type=picklist_type))
+            picklist_items = picklist_items.filter(type=picklist_type)
 
         if not show_deactivated:
-            query.append(Q(status=PickListStatus.ACTIVE))
+            picklist_items = picklist_items.filter(status=PickListStatus.ACTIVE)
 
         if ids:
             ids = ids.split(",")
-            query.append(Q(id__in=ids))
+            picklist_items = picklist_items.filter(id__in=ids)
 
-        picklist_items = PicklistItem.objects.filter(reduce(operator.and_, query))
-        picklist_items = picklist_items.order_by("-updated_at")
-        serializer = PicklistSerializer(picklist_items, many=True)
-        return JsonResponse(data={"picklist_items": serializer.data})
+        return picklist_items.order_by("-updated_at")
 
     def post(self, request):
         """
@@ -53,7 +60,7 @@ class PickListItems(APIView):
         """
         data = JSONParser().parse(request)
         data["team"] = request.user.team.id
-        serializer = PicklistSerializer(data=data, partial=True)
+        serializer = PicklistUpdateCreateSerializer(data=data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -74,7 +81,7 @@ class PicklistItemDetail(APIView):
         Gets details of a specific picklist item
         """
         picklist_item = get_picklist_item(pk)
-        data = PicklistSerializer(picklist_item).data
+        data = PicklistListSerializer(picklist_item).data
 
         audit_qs = audit_trail_service.get_user_obj_trail_qs(request.user, picklist_item)
         data["activity"] = AuditSerializer(audit_qs, many=True).data
@@ -90,7 +97,7 @@ class PicklistItemDetail(APIView):
         if request.user.team != picklist_item.team:
             return JsonResponse(data={"errors": strings.Picklists.FORBIDDEN}, status=status.HTTP_403_FORBIDDEN,)
 
-        serializer = PicklistSerializer(instance=picklist_item, data=request.data, partial=True)
+        serializer = PicklistUpdateCreateSerializer(instance=picklist_item, data=request.data, partial=True)
 
         if serializer.is_valid():
             if serializer.validated_data.get("text"):
