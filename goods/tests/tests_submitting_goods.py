@@ -17,6 +17,7 @@ class GoodTests(DataTestClient):
         """
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         draft = self.create_draft_standard_application(self.organisation)
+        self.assertEqual(draft.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(Good.objects.get().status, "draft")
 
         data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
@@ -27,10 +28,10 @@ class GoodTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response_data["application"]["status"],
-            {"key": CaseStatusEnum.SUBMITTED, "value": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED)},
-        )
+        # the routing rules will run the case up to a penultimate to terminal status,
+        # so the implication of it not being draft is that is has been submitted
+        # even if the case has progressed past that status already.
+        self.assertNotEqual(response_data["application"]["status"]["key"], CaseStatusEnum.DRAFT)
         good = Good.objects.get()
         self.assertEqual(good.status, GoodStatus.SUBMITTED)
         self.assertTrue(is_not_verified_flag_set_on_good(good))
