@@ -1,6 +1,5 @@
 from rest_framework import generics
 
-from applications.models import HmrcQuery
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from cases.serializers import CaseListSerializer
