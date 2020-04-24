@@ -1,11 +1,10 @@
 from rest_framework import serializers
 
-from cases.models import Case
 from lite_content.lite_api import strings
 from queues.constants import SYSTEM_QUEUES
 from queues.models import Queue
 from teams.models import Team
-from teams.serializers import TeamSerializer, TeamReadOnlySerializer
+from teams.serializers import TeamReadOnlySerializer
 
 
 class CasesQueueViewSerializer(serializers.ModelSerializer):
