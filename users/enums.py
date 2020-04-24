@@ -1,3 +1,6 @@
+from uuid import UUID
+
+
 class UserStatuses:
     ACTIVE = "Active"
     DEACTIVATED = "Deactivated"
@@ -23,3 +26,7 @@ class UserType:
         (EXPORTER, "Exporter"),
         (INTERNAL, "Internal"),
     ]
+
+
+class SystemUser:
+    LITE_SYSTEM_ID = UUID("00000000-0000-0000-0000-000000000000")
