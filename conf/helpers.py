@@ -56,13 +56,3 @@ def date_to_drf_date(date):
     suitable for comparison to rest framework datetimes
     """
     return date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-
-
-def tidy_many_to_many_update(original_list, new_list):
-    tidy_list = new_list
-
-    for item in original_list:
-        if item in new_list:
-            tidy_list.remove(item)
-
-    return tidy_list

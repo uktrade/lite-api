@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
-from conf.helpers import tidy_many_to_many_update
 from conf.serializers import PrimaryKeyRelatedSerializerField, CountrySerializerField
 from flags.models import Flag
 from flags.serializers import FlagSerializer
@@ -128,18 +127,6 @@ class RoutingRuleSerializer(serializers.ModelSerializer):
                 self.fields["flags"].allow_empty = False
             else:
                 self.initial_data["flags"] = []
-
-    def update(self, instance, validated_data):
-        validated_flags = validated_data.get("flags")
-        validated_case_types = validated_data.get("case_types")
-
-        flags = tidy_many_to_many_update(list(instance.flags.all()), validated_flags)
-        instance.flags.set(flags)
-
-        case_types = tidy_many_to_many_update(list(instance.case_types.all()), validated_case_types)
-        instance.case_types.set(case_types)
-
-        return super(RoutingRuleSerializer, self).update(instance, validated_data)
 
 
 # flattened serializer for editing purposes
