@@ -79,14 +79,25 @@ class GoodsListControlCode(APIView):
         for pk in objects:
             try:
                 good = get_good_func(pk=pk)
-                old_control_code = good.control_code or "No control code"
+                # Get the old control list entries if any and retrieve their ratings for display in the audit trail
+                old_control_list_entries = list(good.control_list_entries.all()) or [strings.Goods.GOOD_NO_CONTROL_CODE]
+                if strings.Goods.GOOD_NO_CONTROL_CODE not in old_control_list_entries:
+                    old_control_list_entries = [clc.rating for clc in old_control_list_entries]
 
                 serializer = serializer_class(good, data=data)
                 if serializer.is_valid():
                     serializer.save()
-                    new_control_code = good.control_code or "No control code"
 
-                    if new_control_code != old_control_code:
+                    new_control_list_entries = list(good.control_list_entries.all()) or [
+                        strings.Goods.GOOD_NO_CONTROL_CODE
+                    ]
+                    if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
+                        new_control_list_entries = [clc.rating for clc in new_control_list_entries]
+                    else:
+                        # Clear flags if control list entries no longer present
+                        good.flags.clear()
+
+                    if new_control_list_entries != old_control_list_entries:
                         good.flags.clear()
                         audit_trail_service.create(
                             actor=request.user,
@@ -95,8 +106,8 @@ class GoodsListControlCode(APIView):
                             target=case,
                             payload={
                                 "good_name": good.description,
-                                "new_control_code": new_control_code,
-                                "old_control_code": old_control_code,
+                                "new_control_list_entry": new_control_list_entries,
+                                "old_control_list_entry": old_control_list_entries,
                             },
                         )
                 errors += serializer.errors
@@ -123,16 +134,16 @@ class GoodList(ListCreateAPIView):
     def get_queryset(self):
         description = self.request.GET.get("description", "")
         part_number = self.request.GET.get("part_number", "")
-        control_rating = self.request.GET.get("control_rating")
+        control_list_entry = self.request.GET.get("control_list_entry")
         for_application = self.request.GET.get("for_application")
         organisation = self.request.user.organisation.id
 
         queryset = Good.objects.filter(
             organisation_id=organisation, description__icontains=description, part_number__icontains=part_number,
-        ).order_by("-created_at")
+        )
 
-        if control_rating:
-            queryset = queryset.filter(control_code__icontains=control_rating)
+        if control_list_entry:
+            queryset = queryset.filter(control_list_entries__rating__icontains=control_list_entry).distinct()
 
         if for_application:
             good_document_ids = GoodDocument.objects.filter(organisation__id=organisation).values_list(

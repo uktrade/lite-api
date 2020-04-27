@@ -5,6 +5,8 @@ from rest_framework.reverse import reverse
 
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
+from static.control_list_entries.helpers import get_control_list_entry
+from static.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 
 
@@ -16,7 +18,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.data = {
             "description": "Widget",
             "is_good_controlled": True,
-            "control_code": "ML1a",
+            "control_list_entries": ["ML1a"],
             "is_good_incorporated": True,
         }
 
@@ -31,13 +33,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
             "size": 123456,
         }
 
-    def test_get_goodstypes_on_open_application_as_exporter_user_success(self):
-        response = self.client.get(self.url, self.data, **self.exporter_headers)
-
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(
-            len(response.json()["goods"]), GoodsType.objects.filter(application=self.open_application).count(),
-        )
+        ControlListEntry.create("ML1b", "Info here", None, False)
 
     def test_create_goodstype_on_open_application_as_exporter_user_success(self):
         response = self.client.post(self.url, self.data, **self.exporter_headers)
@@ -46,24 +42,27 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         response_data = response.json()["good"]
         self.assertEquals(response_data["description"], "Widget")
         self.assertEquals(response_data["is_good_controlled"], True)
-        self.assertEquals(response_data["control_code"], "ML1a")
+        self.assertEquals(
+            response_data["control_list_entries"], [{"rating": "ML1a", "text": get_control_list_entry("ML1a").text}]
+        )
         self.assertEquals(response_data["is_good_incorporated"], True)
 
-    def test_create_goodstype_on_hmrc_query_as_exporter_user_success(self):
-        url = reverse("applications:application_goodstypes", kwargs={"pk": self.hmrc_query.id})
-
-        data = {
-            "description": "Widget",
-        }
-
-        response = self.client.post(url, data, **self.hmrc_exporter_headers)
-        response_data = response.json()["good"]
+    def test_create_goodstype_multiple_clcs_on_open_application_as_exporter_user_success(self):
+        self.data["control_list_entries"] = ["ML1a", "ML1b"]
+        response = self.client.post(self.url, self.data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        response_data = response.json()["good"]
         self.assertEquals(response_data["description"], "Widget")
-        self.assertNotIn("is_good_incorporated", response_data)
-        self.assertNotIn("is_good_controlled", response_data)
-        self.assertNotIn("control_code", response_data)
+        self.assertEquals(response_data["is_good_controlled"], True)
+        self.assertEquals(
+            response_data["control_list_entries"],
+            [
+                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
+                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
+            ],
+        )
+        self.assertEquals(response_data["is_good_incorporated"], True)
 
     def test_create_goodstype_on_open_application_as_exporter_user_failure(self):
         data = {}
@@ -78,13 +77,14 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_goodstype_on_standard_application_as_exporter_user_failure(self):
+        # Goodstypes only valid on HMRC and Open applications.
         application = self.create_draft_standard_application(self.organisation)
         url = reverse("applications:application_goodstypes", kwargs={"pk": application.id})
 
         data = {
             "description": "Widget",
             "is_good_controlled": True,
-            "control_code": "ML1a",
+            "control_list_entry": ["ML1a"],
             "is_good_incorporated": True,
         }
 
