@@ -18,7 +18,7 @@ class QueueViewSerializer(serializers.ModelSerializer):
     is_system_queue = serializers.SerializerMethodField()
 
     def get_is_system_queue(self, instance):
-        return instance["id"] in SYSTEM_QUEUES
+        return instance.id in SYSTEM_QUEUES
 
     class Meta:
         model = Queue

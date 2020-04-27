@@ -51,7 +51,7 @@ def get_destination_flags(case, case_type):
     ids = []
 
     if case_type == CaseTypeSubTypeEnum.EUA:
-        ids = get_end_user_advisory_by_pk(case.id).prefetch_related("end_user__flags").values_list("end_user__flags", flat=True)
+        ids = get_end_user_advisory_by_pk(case.id).values_list("end_user__flags", flat=True)
     elif case_type == CaseTypeSubTypeEnum.OPEN:
         ids = CountryOnApplication.objects.filter(application=case).prefetch_related("country__flags").values_list("country__flags", flat=True)
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
@@ -78,8 +78,8 @@ def get_ordered_flags(case: Case, team: Team):
     case_flags = annotate_my_team_flags(case.flags.all(), 2, team)
     org_flags = annotate_my_team_flags(case.organisation.flags.all(), 3, team)
 
-    all_flags = goods_flags | destination_flags | case_flags | org_flags
-    all_flags = all_flags.order_by("my_team", "type")
+    all_flags = goods_flags.union(destination_flags).union(case_flags).union(org_flags)
+    all_flags = all_flags.order_by("-my_team", "type", "priority")
 
     return CaseListFlagSerializer(all_flags, many=True).data
 
