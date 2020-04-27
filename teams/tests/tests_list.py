@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from teams.models import Team
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -11,9 +12,9 @@ class TeamListTests(DataTestClient):
 
     def test_team_list(self):
         existing_teams_count = Team.objects.all().count()
-        Team(name="name 1").save()
-        Team(name="name 2").save()
-        Team(name="name 3").save()
+        TeamFactory()
+        TeamFactory()
+        TeamFactory()
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()

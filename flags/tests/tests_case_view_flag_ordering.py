@@ -2,17 +2,15 @@ from applications.models import GoodOnApplication, PartyOnApplication
 from cases.libraries.get_destination import get_ordered_flags
 from flags.tests.factories import FlagFactory
 from parties.enums import PartyType
-from teams.models import Team
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
 class FlagsOrderingOnCaseViewTests(DataTestClient):
     def test_gov_user_can_see_all_flags(self):
         # create 16 flags, 2 of each level for two different teams with different priorities
-        other_team = Team(name="Other")
-        other_team.save()
-        third_team = Team(name="Third")
-        third_team.save()
+        other_team = TeamFactory()
+        third_team = TeamFactory()
 
         flags = []
 

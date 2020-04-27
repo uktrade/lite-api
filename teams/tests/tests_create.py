@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from teams.models import Team
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -26,7 +27,7 @@ class TeamCreateTests(DataTestClient):
         [[{"name": "this is a name"}], [{"name": "ThIs iS A NaMe"}], [{"name": " this is a name    "}],]
     )
     def test_team_name_must_be_unique(self, data):
-        Team(name="this is a name").save()
+        TeamFactory(name="this is a name")
 
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEqual(Team.objects.all().count(), self.team_preexisting_count + 1)

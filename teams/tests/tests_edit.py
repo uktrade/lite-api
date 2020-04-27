@@ -4,6 +4,7 @@ from rest_framework import status
 from conf.constants import Teams
 from teams.helpers import get_team_by_pk
 from teams.models import Team
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -12,8 +13,7 @@ class TeamEditTests(DataTestClient):
         """
         Test that a valid gov user can edit their team name
         """
-        team = Team(name="Team")
-        team.save()
+        team = TeamFactory(name="Team")
 
         data = {"name": "Renamed Team"}
 
@@ -29,10 +29,9 @@ class TeamEditTests(DataTestClient):
         Test that a valid gov user cannot edit their team name
         to the same as another teams
         """
-        team = Team(name="name")
-        team.save()
+        team = TeamFactory(name="name")
 
-        Team(name="test").save()
+        TeamFactory(name="test")
 
         data = {"name": "TEST"}
 

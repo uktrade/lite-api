@@ -3,14 +3,14 @@ from rest_framework import status
 
 from conf import constants
 from teams.models import Team
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
 
 
 class GovUserEditTests(DataTestClient):
     def test_edit_a_gov_user(self):
-        team = Team(name="Second")
-        team.save()
+        team = TeamFactory()
         data = {"first_name": "hamster", "last_name": "gerbal", "email": "some@thing.com", "team": team.id}
         url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.id})
 

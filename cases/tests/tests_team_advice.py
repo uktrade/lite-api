@@ -10,6 +10,7 @@ from goods.enums import PvGrading
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from users.models import GovUser, Role
 
@@ -180,8 +181,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
         self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, TeamAdvice)
 
-        team_2 = Team(name="2")
-        team_2.save()
+        team_2 = TeamFactory()
         self.gov_user.team = team_2
         self.gov_user.save()
 
@@ -199,8 +199,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         When collating advice, only the user's team's advice should be collated
         """
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
-        team_2 = Team(name="2")
-        team_2.save()
+        team_2 = TeamFactory()
         self.gov_user_2.team = team_2
         self.gov_user_2.save()
         self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, Advice)

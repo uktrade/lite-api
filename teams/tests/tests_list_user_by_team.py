@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from teams.models import Team
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from users.models import GovUser
 
@@ -16,8 +17,7 @@ class UserByTeamListTests(DataTestClient):
         """
         Tests that a valid gov user can see a specific team's members
         """
-        team2 = Team(name="Second")
-        team2.save()
+        team2 = TeamFactory()
 
         GovUser(email="test2@mail.com", first_name="John", last_name="Smith", team=self.team).save()
         GovUser(email="test3@mail.com", first_name="John", last_name="Smith", team=team2).save()

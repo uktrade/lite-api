@@ -7,6 +7,7 @@ from queues.models import Queue
 from static.countries.models import Country
 from static.statuses.models import CaseStatus
 from teams.models import Team
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from workflow.automation import run_routing_rules
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
@@ -185,8 +186,7 @@ class CaseRoutingAutomationTests(DataTestClient):
     def test_case_routed_to_multiple_queues_with_multiple_team_rules_status_changed(self):
         queue_2 = Queue(team=self.team)
         queue_2.save()
-        team_2 = Team(name="team2")
-        team_2.save()
+        team_2 = TeamFactory()
         self.create_routing_rule(
             team_id=self.team.id,
             queue_id=self.queue.id,
@@ -209,8 +209,7 @@ class CaseRoutingAutomationTests(DataTestClient):
         self.assertIn(queue_2, set(case.queues.all()))
 
     def test_case_routed_to_one_queue_with_multiple_team_rules_status_changed(self):
-        team_2 = Team(name="team2")
-        team_2.save()
+        team_2 = TeamFactory()
         self.create_routing_rule(
             team_id=self.team.id,
             queue_id=self.queue.id,
@@ -236,8 +235,7 @@ class CaseRoutingAutomationTests(DataTestClient):
         queue_2.save()
         queue_3 = Queue(team=self.team)
         queue_3.save()
-        team_2 = Team(name="team2")
-        team_2.save()
+        team_2 = TeamFactory()
         self.create_routing_rule(
             team_id=self.team.id,
             queue_id=self.queue.id,

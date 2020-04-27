@@ -13,6 +13,7 @@ from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from users.models import GovUser, Role
 
@@ -23,11 +24,8 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         self.standard_application = self.create_draft_standard_application(self.organisation)
         self.standard_case = self.submit_application(self.standard_application)
 
-        team_2 = Team(name="2")
-        team_3 = Team(name="3")
-
-        team_2.save()
-        team_3.save()
+        team_2 = TeamFactory()
+        team_3 = TeamFactory()
 
         role = Role(name="team_level")
         role.permissions.set(
