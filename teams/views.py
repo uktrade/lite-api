@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Teams
+from conf.custom_views import OptionalPaginationView
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from gov_users.serializers import GovUserListSerializer
@@ -103,13 +104,12 @@ class UsersByTeamsList(APIView):
         return JsonResponse(data={"users": serializer.data})
 
 
-class TeamQueuesList(APIView):
+class TeamQueuesList(OptionalPaginationView):
+    """
+    Returns all queues for a given team with their id and name
+    """
     authentication_classes = (GovAuthentication,)
+    serializer_class = TinyQueueSerializer
 
-    def get(self, request, pk):
-        """
-        Returns all queues for a given team with their id and name
-        """
-        queues = Queue.objects.filter(team_id=pk)
-        serializer = TinyQueueSerializer(queues, many=True)
-        return JsonResponse(data={"queues": serializer.data})
+    def get_queryset(self):
+        return Queue.objects.filter(team_id=self.kwargs["pk"])
