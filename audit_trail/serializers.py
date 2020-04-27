@@ -28,7 +28,12 @@ class AuditSerializer(serializers.ModelSerializer):
         }
 
     def get_text(self, instance):
-        verb = AuditType(instance.verb)
+        try:
+            # TODO: Fix payload enum, replace this.
+            verb = AuditType(instance.verb)
+        except ValueError:
+            verb = AuditType(instance.verb.replace(":", ""))
+
         payload = deepcopy(instance.payload)
 
         for key in payload:
