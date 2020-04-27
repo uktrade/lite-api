@@ -4,6 +4,7 @@ from rest_framework.reverse import reverse
 
 from goods.enums import GoodControlled
 from goods.models import Good
+from goods.tests.factories import GoodFactory
 from test_helpers.clients import DataTestClient
 from users.libraries.get_user import get_users_from_organisation
 from users.libraries.user_to_token import user_to_token
@@ -62,39 +63,20 @@ class GoodViewTests(DataTestClient):
         self.assertEqual(len(response_data), 3)
 
     def test_view_good__query_filter_by_part_number_and_combinations(self):
-        org = self.organisation
-
-        # create a set of Goods for the test
-        Good.objects.create(
-            description="car1",
-            is_good_controlled=GoodControlled.YES,
-            control_code="ML1",
-            part_number="cl500",
-            organisation=org,
+        GoodFactory(
+            description="car1", part_number="cl500", organisation=self.organisation,
         )
 
-        Good.objects.create(
-            description="Car2",
-            is_good_controlled=GoodControlled.YES,
-            control_code="ML1",
-            part_number="CL300",
-            organisation=org,
+        GoodFactory(
+            description="Car2", part_number="CL300", organisation=self.organisation,
         )
 
-        Good.objects.create(
-            description="car3",
-            is_good_controlled=GoodControlled.YES,
-            control_code="ML1",
-            part_number="ML500",
-            organisation=org,
+        GoodFactory(
+            description="car3", part_number="ML500", organisation=self.organisation,
         )
 
-        Good.objects.create(
-            description="Truck",
-            is_good_controlled=GoodControlled.YES,
-            control_code="ML1",
-            part_number="CL1000",
-            organisation=org,
+        GoodFactory(
+            description="Truck", part_number="CL1000", organisation=self.organisation,
         )
 
         url = reverse("goods:goods") + "?part_number=cl"
@@ -116,18 +98,17 @@ class GoodViewTests(DataTestClient):
         response_data = response.json()["results"]
         self.assertEqual(len(response_data), 2)
 
-    @parameterized.expand([("ML3", 2), ("ML3a", 1)])
-    def test_view_good__query_filter_by_control_rating(self, control_rating, size):
+    @parameterized.expand([("ML", 2), ("ML1a", 2)])
+    def test_view_good__query_filter_by_control_list_entry(self, control_list_entry, count):
         org = self.organisation
 
-        self.create_good(description="thing1", org=org, control_code="ML3a")
-        self.create_good(description="Thing2", org=org, control_code="ML3b")
-        self.create_good(description="item3", org=org, control_code="ML4")
+        GoodFactory(organisation=org, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
+        GoodFactory(organisation=org, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
 
-        url = reverse("goods:goods") + "?control_rating=" + control_rating
+        url = reverse("goods:goods") + "?control_list_entry=" + control_list_entry
 
         response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["results"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), size)
+        self.assertEqual(len(response_data), count)
