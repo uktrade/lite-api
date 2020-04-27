@@ -108,6 +108,7 @@ class TeamQueuesList(OptionalPaginationView):
     """
     Returns all queues for a given team with their id and name
     """
+
     authentication_classes = (GovAuthentication,)
     serializer_class = TinyQueueSerializer
 
