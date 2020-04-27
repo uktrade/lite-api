@@ -29,7 +29,7 @@ class AuditSerializer(serializers.ModelSerializer):
 
     def get_text(self, instance):
         try:
-            # TODO: Fix payload enum, replace this.
+            # TODO: Fix payload enum, set as choices on model, remove below.
             verb = AuditType(instance.verb)
         except ValueError:
             verb = AuditType(instance.verb.replace(":", ""))
