@@ -3,7 +3,9 @@ from rest_framework import status
 
 from applications.models import GoodOnApplication, PartyOnApplication
 from cases.enums import CaseTypeReferenceEnum
+from flags.enums import FlagLevels
 from flags.models import FlaggingRule
+from flags.tests.factories import FlagFactory
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 
@@ -20,14 +22,14 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
 
-        flag = self.create_flag("test", "Case", self.team)
-        data = {"level": "Case", "flag": str(flag.id), "matching_value": CaseTypeReferenceEnum.SIEL}
+        flag = FlagFactory(level=FlagLevels.CASE, team=self.team)
+        data = {"level": FlagLevels.CASE, "flag": str(flag.id), "matching_value": CaseTypeReferenceEnum.SIEL}
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["level"], "Case")
+        self.assertEqual(response_data["level"], FlagLevels.CASE)
         self.assertEqual(response_data["flag"], str(flag.id))
         self.assertEqual(response_data["matching_value"], CaseTypeReferenceEnum.SIEL)
 
@@ -38,20 +40,20 @@ class FlaggingRulesCreateTest(DataTestClient):
 
     def test_gov_user_can_create_flagging_rule_good(self):
         application = self.create_standard_application_case(self.organisation)
-        control_code = (
+        control_list_entry = (
             GoodOnApplication.objects.filter(application_id=application.id)
-            .values_list("good__control_code", flat=True)
+            .values_list("good__control_list_entries", flat=True)
             .first()
         )
 
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
 
-        flag = self.create_flag("test", "Good", self.team)
+        flag = FlagFactory(level=FlagLevels.GOOD, team=self.team)
         data = {
-            "level": "Good",
+            "level": FlagLevels.GOOD,
             "flag": str(flag.id),
-            "matching_value": control_code,
+            "matching_value": control_list_entry,
             "is_for_verified_goods_only": "True",
         }
 
@@ -59,15 +61,15 @@ class FlaggingRulesCreateTest(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["level"], "Good")
-        self.assertEqual(response_data["flag"], str(flag.id))
-        self.assertEqual(response_data["matching_value"], control_code)
+        self.assertEqual(response_data["level"], FlagLevels.GOOD)
+        self.assertEqualIgnoreType(response_data["flag"], flag.id)
+        self.assertEqualIgnoreType(response_data["matching_value"], control_list_entry)
         self.assertTrue(response_data["is_for_verified_goods_only"])
 
         rule = FlaggingRule.objects.get()
-        self.assertEqual(rule.level, "Good")
+        self.assertEqual(rule.level, FlagLevels.GOOD)
         self.assertEqual(rule.flag, flag)
-        self.assertEqual(rule.matching_value, control_code)
+        self.assertEqualIgnoreType(rule.matching_value, control_list_entry)
 
     def test_gov_user_can_create_flagging_rule_destination(self):
         application = self.create_standard_application_case(self.organisation)
@@ -80,14 +82,14 @@ class FlaggingRulesCreateTest(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
 
-        flag = self.create_flag("test", "Destination", self.team)
-        data = {"level": "Destination", "flag": str(flag.id), "matching_value": country_id}
+        flag = FlagFactory(level=FlagLevels.DESTINATION, team=self.team)
+        data = {"level": FlagLevels.DESTINATION, "flag": str(flag.id), "matching_value": country_id}
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["level"], "Destination")
+        self.assertEqual(response_data["level"], FlagLevels.DESTINATION)
         self.assertEqual(response_data["flag"], str(flag.id))
         self.assertEqual(response_data["matching_value"], country_id)
 
@@ -99,12 +101,12 @@ class FlaggingRulesCreateTest(DataTestClient):
     def test_create_flagging_rule_failure_duplicate(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        flag = self.create_flag("test", "Case", self.team)
+        flag = FlagFactory(level=FlagLevels.CASE, team=self.team)
         FlaggingRule(flag=flag, team=self.team, matching_value=CaseTypeReferenceEnum.SIEL, level="Case").save()
 
         response = self.client.post(
             self.url,
-            {"level": "Case", "flag": str(flag.id), "matching_value": CaseTypeReferenceEnum.SIEL},
+            {"level": FlagLevels.CASE, "flag": str(flag.id), "matching_value": CaseTypeReferenceEnum.SIEL},
             **self.gov_headers,
         )
 
@@ -113,17 +115,17 @@ class FlaggingRulesCreateTest(DataTestClient):
 
     def test_missing_data_create_good_rule_failure(self):
         application = self.create_standard_application_case(self.organisation)
-        control_code = (
+        control_list_entry = (
             GoodOnApplication.objects.filter(application_id=application.id)
-            .values_list("good__control_code", flat=True)
+            .values_list("good__control_list_entries__rating", flat=True)
             .first()
         )
 
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
 
-        flag = self.create_flag("test", "Good", self.team)
-        data = {"level": "Good", "flag": str(flag.id), "matching_value": control_code}
+        flag = FlagFactory(level=FlagLevels.GOOD, team=self.team)
+        data = {"level": FlagLevels.GOOD, "flag": str(flag.id), "matching_value": control_list_entry}
 
         response = self.client.post(self.url, data, **self.gov_headers)
         response_data = response.json()

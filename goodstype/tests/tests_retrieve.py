@@ -9,7 +9,7 @@ class GoodViewTests(DataTestClient):
     def test_view_goodstype_details(self):
         application = self.create_draft_open_application(self.organisation)
         goods_type = GoodsType.objects.filter(application=application).first()
-        url = reverse("goodstype:goodstypes_detail", kwargs={"pk": goods_type.id})
+        url = reverse("goodstype:retrieve", kwargs={"pk": goods_type.id})
 
         response = self.client.get(url, **self.exporter_headers)
 
