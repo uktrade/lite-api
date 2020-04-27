@@ -35,7 +35,11 @@ def get_goods_flags(case, case_type):
         CaseTypeSubTypeEnum.GIFTING,
         CaseTypeSubTypeEnum.F680,
     ]:
-        ids = GoodOnApplication.objects.filter(application_id=case.id).prefetch_related("good__flags").values_list("good__flags", flat=True)
+        ids = (
+            GoodOnApplication.objects.filter(application_id=case.id)
+            .prefetch_related("good__flags")
+            .values_list("good__flags", flat=True)
+        )
     elif case_type in [
         CaseTypeSubTypeEnum.OPEN,
         CaseTypeSubTypeEnum.HMRC,
@@ -53,9 +57,17 @@ def get_destination_flags(case, case_type):
     if case_type == CaseTypeSubTypeEnum.EUA:
         return get_end_user_advisory_by_pk(case.id).end_user.flags.all()
     elif case_type == CaseTypeSubTypeEnum.OPEN:
-        ids = CountryOnApplication.objects.filter(application=case).prefetch_related("country__flags").values_list("country__flags", flat=True)
+        ids = (
+            CountryOnApplication.objects.filter(application=case)
+            .prefetch_related("country__flags")
+            .values_list("country__flags", flat=True)
+        )
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
-        ids = case.baseapplication.parties.filter(deleted_at__isnull=True, party__flags__isnull=False).prefetch_related("party__flags").values_list("party__flags", flat=True)
+        ids = (
+            case.baseapplication.parties.filter(deleted_at__isnull=True, party__flags__isnull=False)
+            .prefetch_related("party__flags")
+            .values_list("party__flags", flat=True)
+        )
 
     return Flag.objects.filter(id__in=ids)
 
@@ -65,7 +77,7 @@ def annotate_my_team_flags(flags, priority, team):
         my_team=models.Case(
             models.When(team=team, then=models.Value(True)),
             default=models.Value(False),
-            output_field=models.BooleanField()
+            output_field=models.BooleanField(),
         )
     ).annotate(type=models.Value(priority, models.IntegerField()))
 
