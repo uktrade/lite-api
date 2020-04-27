@@ -3,6 +3,9 @@ from rest_framework.reverse import reverse
 
 from goods.enums import GoodPvGraded, GoodControlled, PvGrading
 from goods.models import Good, PvGradingDetails
+from goods.tests.factories import GoodFactory
+from static.control_list_entries.helpers import get_control_list_entry
+from static.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 
 
@@ -10,27 +13,52 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.good = self.create_good(description="This is a good", org=self.organisation)
+        self.good = self.create_good(description="This is a good", organisation=self.organisation)
         self.url = reverse("goods:good", kwargs={"pk": str(self.good.id)})
 
-    def test_when_updating_is_good_controlled_to_no_then_control_code_is_deleted(self):
+    def test_when_updating_is_good_controlled_to_no_then_control_list_entries_is_deleted(self):
         request_data = {"is_good_controlled": GoodControlled.NO}
 
         response = self.client.put(self.url, request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(response.json()["good"]["is_good_controlled"]["key"], GoodControlled.NO)
-        self.assertEquals(response.json()["good"]["control_code"], None)
+        self.assertEquals(response.json()["good"]["control_list_entries"], [])
+
         self.assertEquals(Good.objects.all().count(), 1)
 
-    def test_when_updating_clc_control_code_then_new_control_code_is_returned(self):
-        request_data = {"is_good_controlled": GoodControlled.YES, "control_code": "ML1a"}
+    def test_when_updating_clc_control_list_entries_then_new_control_list_entries_is_returned(self):
+        ControlListEntry.create("ML1b", "Info here", None, False)
+        request_data = {"is_good_controlled": GoodControlled.YES, "control_list_entries": ["ML1a", "ML1b"]}
 
         response = self.client.put(self.url, request_data, **self.exporter_headers)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(response.json()["good"]["control_code"], "ML1a")
+        self.assertEquals(
+            response.json()["good"]["control_list_entries"],
+            [
+                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
+                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
+            ],
+        )
         self.assertEquals(Good.objects.all().count(), 1)
+
+    def test_when_removing_a_clc_control_list_entry_from_many_then_new_control_list_entries_is_returned(self):
+        ControlListEntry.create("ML1b", "Info here", None, False)
+        good = GoodFactory(
+            organisation=self.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a", "ML1b"]
+        )
+        url = reverse("goods:good", kwargs={"pk": str(good.id)})
+
+        request_data = {"is_good_controlled": GoodControlled.YES, "control_list_entries": ["ML1b"]}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(
+            response.json()["good"]["control_list_entries"],
+            [{"rating": "ML1b", "text": get_control_list_entry("ML1b").text}],
+        )
 
     def test_when_updating_is_pv_graded_to_no_then_pv_grading_details_are_deleted(self):
         request_data = {"is_pv_graded": GoodPvGraded.NO}

@@ -1,7 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from flags.enums import FlagStatuses
+from flags.enums import FlagStatuses, FlagLevels
+from flags.tests.factories import FlagFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -94,7 +95,7 @@ class FlaggingRulesUpdateTest(DataTestClient):
     def test_flagging_rule_can_change_verified_answer(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        flag = self.create_flag("New Flag", "Good", self.team)
+        flag = FlagFactory(level=FlagLevels.GOOD, team=self.team)
         flagging_rule = self.create_flagging_rule(
             level="Good", flag=flag, team=self.team, matching_value="ML1", is_for_verified_goods_only="False"
         )

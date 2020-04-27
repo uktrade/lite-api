@@ -12,5 +12,5 @@ urlpatterns = [
     ),
     path("<uuid:pk>/documents/", views.GoodDocuments.as_view(), name="documents"),
     path("<uuid:pk>/documents/<uuid:doc_pk>/", views.GoodDocumentDetail.as_view(), name="document",),
-    path("controlcode/<uuid:case_pk>/", views.GoodsListControlCode.as_view(), name="control_code",),
+    path("control-list-entries/<uuid:case_pk>/", views.GoodsListControlCode.as_view(), name="control_list_entries",),
 ]

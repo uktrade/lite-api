@@ -8,7 +8,7 @@ from applications.serializers.document import ApplicationDocumentSerializer
 from applications.serializers.generic_application import GenericApplicationViewSerializer
 from cases.models import CaseType
 from goodstype.models import GoodsType
-from goodstype.serializers import FullGoodsTypeSerializer
+from goodstype.serializers import GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
@@ -32,7 +32,7 @@ class HmrcQueryViewSerializer(PartiesSerializerMixin, GenericApplicationViewSeri
 
     def get_goods_types(self, instance):
         goods_types = GoodsType.objects.filter(application=instance)
-        return FullGoodsTypeSerializer(goods_types, many=True).data
+        return GoodsTypeViewSerializer(goods_types, many=True).data
 
     def get_supporting_documentation(self, application):
         documents = ApplicationDocument.objects.filter(application=application)

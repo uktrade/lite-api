@@ -2,12 +2,13 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import CountryOnApplication
-from cases.enums import CaseTypeEnum, AdviceType
+from cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
 from licences.views import LicenceType
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
+from test_helpers.helpers import node_by_id
 
 
 class GetLicencesTests(DataTestClient):
@@ -58,29 +59,35 @@ class GetLicencesTests(DataTestClient):
             self.assertEqual(licence["application"]["status"]["id"], str(self.applications[i].status_id))
             self.assertEqual(licence["application"]["documents"][0]["id"], str(self.documents[i].id))
 
-        # Standard Applications
-        for i in range(len(self.applications) - 1):
-            licence = response_data[i]
-            destination = self.standard_application.end_user.party
-            good = self.standard_application.goods.first().good
-            self.assertEqual(licence["application"]["destinations"][0]["name"], destination.name)
-            self.assertEqual(
-                licence["application"]["destinations"][0]["country"]["id"], destination.country_id,
-            )
-            self.assertEqual(
-                licence["application"]["goods"][0]["good"]["description"], good.description,
-            )
-            self.assertEqual(
-                licence["application"]["goods"][0]["good"]["control_code"], good.control_code,
-            )
+        # Assert correct information is returned
+        for licence in self.licences.values():
+            licence_data = node_by_id(response_data, licence.id)
+            application_data = licence_data["application"]
 
-        # Open Application
-        licence = response_data[-1]
-        destination = self.open_application.application_countries.first()
-        good = self.open_application.goods_type.first()
-        self.assertEqual(licence["application"]["goods"][0]["description"], good.description)
-        self.assertEqual(licence["application"]["goods"][0]["control_code"], good.control_code)
-        self.assertEqual(licence["application"]["destinations"][0]["country"]["id"], destination.country_id)
+            if licence.application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+                destination = licence.application.application_countries.first()
+                good = licence.application.goods_type.first()
+
+                self.assertEqual(node_by_id(application_data["goods"], good.id)["description"], good.description)
+                self.assertEqual(
+                    application_data["goods"][0]["control_list_entries"][0]["text"],
+                    good.control_list_entries.all()[0].text,
+                )
+                self.assertEqual(application_data["destinations"][0]["country"]["id"], destination.country_id)
+            else:
+                destination = licence.application.end_user.party
+                good = licence.application.goods.first().good
+
+                self.assertEqual(
+                    application_data["destinations"][0]["country"]["id"], destination.country_id,
+                )
+                self.assertEqual(
+                    application_data["goods"][0]["good"]["description"], good.description,
+                )
+                self.assertEqual(
+                    application_data["goods"][0]["good"]["control_list_entries"][0]["rating"],
+                    good.control_list_entries.all()[0].rating,
+                )
 
     def test_get_standard_licences_only(self):
         response = self.client.get(self.url + "?licence_type=" + LicenceType.LICENCE, **self.exporter_headers)
@@ -151,27 +158,13 @@ class GetLicencesFilterTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.standard_application_licence.id))
 
-    def test_filter_by_clc_standard_application(self):
-        good = self.standard_application.goods.first().good
-        good.control_code = "ML17"
-        good.save()
-
-        response = self.client.get(self.url + "?clc=ML17", **self.exporter_headers)
+    def test_filter_by_control_list_entry(self):
+        response = self.client.get(self.url + "?clc=ML1a", **self.exporter_headers)
         response_data = response.json()["results"]
 
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.standard_application_licence.id))
-
-    def test_filter_by_clc_open_application(self):
-        good = self.open_application.goods_type.first()
-        good.control_code = "ML1b"
-        good.save()
-
-        response = self.client.get(self.url + "?clc=ML1b", **self.exporter_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["id"], str(self.open_application_licence.id))
+        self.assertEqual(len(response_data), 2)
+        self.assertIn(str(self.standard_application_licence.id), str(response_data))
+        self.assertIn(str(self.open_application_licence.id), str(response_data))
 
     def test_filter_by_country_standard_application(self):
         country = Country.objects.first()
