@@ -13,15 +13,16 @@ class CasesQueueViewSerializer(serializers.ModelSerializer):
         fields = ("id", "name")
 
 
-class QueueViewSerializer(serializers.ModelSerializer):
+class QueueViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
     is_system_queue = serializers.SerializerMethodField()
 
     def get_is_system_queue(self, instance):
-        return instance["id"] in SYSTEM_QUEUES
-
-    class Meta:
-        model = Queue
-        fields = ("id", "name", "is_system_queue")
+        if isinstance(instance, dict):
+            return instance["id"] in SYSTEM_QUEUES
+        else:
+            return instance.id in SYSTEM_QUEUES
 
 
 class QueueListSerializer(serializers.Serializer):
