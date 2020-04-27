@@ -668,11 +668,12 @@ class CopyApplicationSuccessTests(DataTestClient):
         for goodstype in new_goodstype_objects:
             # we seed multiple goodstype with the same data currently, so testing that there are the same amount of
             #  goodstype on both old and new application based on the current goodstype data.
+            control_list_entries_ids = goodstype.control_list_entries.values_list("id", flat=True)
             old_goodsType = len(
                 GoodsType.objects.filter(
                     description=goodstype.description,
                     is_good_controlled=goodstype.is_good_controlled,
-                    control_code=goodstype.control_code,
+                    control_list_entries__in=control_list_entries_ids,
                     is_good_incorporated=goodstype.is_good_incorporated,
                     application=self.original_application,
                 ).all()
@@ -681,7 +682,7 @@ class CopyApplicationSuccessTests(DataTestClient):
                 GoodsType.objects.filter(
                     description=goodstype.description,
                     is_good_controlled=goodstype.is_good_controlled,
-                    control_code=goodstype.control_code,
+                    control_list_entries__in=control_list_entries_ids,
                     is_good_incorporated=goodstype.is_good_incorporated,
                     application=self.copied_application,
                     usage=0,
