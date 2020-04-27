@@ -2,12 +2,14 @@ from django.http import JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Teams
 from conf.custom_views import OptionalPaginationView
+from conf.helpers import str_to_bool
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from gov_users.serializers import GovUserListSerializer
@@ -104,13 +106,19 @@ class UsersByTeamsList(APIView):
         return JsonResponse(data={"users": serializer.data})
 
 
-class TeamQueuesList(OptionalPaginationView):
+class TeamQueuesList(ListAPIView):
     """
     Returns all queues for a given team with their id and name
     """
 
     authentication_classes = (GovAuthentication,)
     serializer_class = TinyQueueSerializer
+
+    def paginate_queryset(self, queryset):
+        if str_to_bool(self.request.GET.get("disable_pagination", False)):
+            return None
+
+        return super().paginate_queryset(queryset)
 
     def get_queryset(self):
         return Queue.objects.filter(team_id=self.kwargs["pk"])
