@@ -43,9 +43,7 @@ def get_system_queues(user) -> List:
 
 
 def get_queues():
-    return list(
-        Queue.objects.annotate(case_count=Count("cases")).values("id", "name", "case_count")
-    )
+    return list(Queue.objects.annotate(case_count=Count("cases")).values("id", "name", "case_count"))
 
 
 def get_all_queues(user):
