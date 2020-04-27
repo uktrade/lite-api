@@ -5,6 +5,7 @@ from separatedvaluesfield.models import SeparatedValuesField
 
 from cases.models import CaseType
 from common.models import TimestampableModel
+from flags.enums import FlagStatuses
 from flags.models import Flag
 from queues.models import Queue
 from static.countries.models import Country
@@ -36,3 +37,33 @@ class RoutingRule(TimestampableModel):
     class Meta:
         indexes = [models.Index(fields=["created_at", "tier"])]
         ordering = ["team__name", "tier", "-created_at"]
+
+    def parameter_sets(self):
+        """
+        Generate a list of sets, containing all the possible subsets of the rule which are true to the condition
+            of routing rules. We generate one set for each case_type as we can not have multiple case_types in the set
+            (would cause all rules to fail)
+        :return: list of sets
+        """
+
+        parameter_sets = []
+
+        # Exclude the rule by returning and empty list if there are any inactive flags in the rule
+        if self.flags.exclude(status=FlagStatuses.ACTIVE).exists():
+            return parameter_sets
+
+        if self.country:
+            country_set = {self.country}
+        else:
+            country_set = set()
+
+        flag_and_country_set = set(self.flags.all()) | country_set
+
+        for case_type in self.case_types.all():
+            parameter_set = flag_and_country_set | {case_type}
+            parameter_sets.append(parameter_set)
+
+        if not parameter_sets:
+            parameter_sets = [flag_and_country_set]
+
+        return parameter_sets

@@ -37,4 +37,5 @@ urlpatterns = [
     path("<uuid:pk>/generated-documents/", include("cases.generated_documents.urls")),
     path("<uuid:pk>/finalise/", views.FinaliseView.as_view(), name="finalise"),
     path("<uuid:pk>/assigned-queues/", views.AssignedQueues.as_view(), name="assigned_queues"),
+    path("<uuid:pk>/rerun-routing-rules/", views.RerunRoutingRules.as_view(), name="rerun_routing_rules"),
 ]

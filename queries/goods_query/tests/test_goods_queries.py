@@ -46,6 +46,31 @@ class GoodsQueryManageStatusTests(DataTestClient):
         self.assertEqual(query.case_officer, None)
         self.assertEqual(CaseAssignment.objects.filter(case=query).count(), 0)
 
+    def test_case_routing_automation_status_change(self):
+        query = DataTestClient.create_goods_query("This is a widget", self.organisation, "reason", "reason")
+        query.queues.set([self.queue])
+
+        routing_queue = self.create_queue("new queue", self.team)
+        self.create_routing_rule(
+            self.team.id,
+            routing_queue.id,
+            3,
+            status_id=get_case_status_by_status(CaseStatusEnum.PV).id,
+            additional_rules=[],
+        )
+        self.assertNotEqual(query.status.status, CaseStatusEnum.PV)
+
+        url = reverse("queries:goods_queries:manage_status", kwargs={"pk": query.pk})
+        data = {"status": CaseStatusEnum.PV}
+
+        response = self.client.put(url, data, **self.gov_headers)
+        query.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(query.status.status, CaseStatusEnum.PV)
+        self.assertEqual(query.queues.count(), 1)
+        self.assertEqual(query.queues.first().id, routing_queue.id)
+
 
 class ControlListClassificationsQueryCreateTests(DataTestClient):
     def setUp(self):
