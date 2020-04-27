@@ -14,6 +14,7 @@ from licences.serializers.view_licences import (
 )
 from parties.enums import PartyRole
 from parties.models import Party, PartyDocument
+from static.control_list_entries.serializers import ControlListEntryViewSerializer
 from static.statuses.serializers import CaseStatusSerializer
 from static.units.enums import Units
 
@@ -47,11 +48,13 @@ class DocumentLicenceSerializer(serializers.ModelSerializer):
 
 
 class GoodsTypeOnLicenceSerializer(serializers.ModelSerializer):
+    control_list_entries = ControlListEntryViewSerializer(many=True)
+
     class Meta:
         model = GoodsType
         fields = (
             "description",
-            "control_code",
+            "control_list_entries",
             "usage",
         )
         read_only_fields = fields

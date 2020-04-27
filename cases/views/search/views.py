@@ -20,27 +20,27 @@ class CasesSearchView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
+        is_work_queue = queue_id not in NON_WORK_QUEUES
         context = {
             "is_system_queue": queue_id in SYSTEM_QUEUES,
             "queue_id": queue_id,
-            "is_work_queue": queue_id not in NON_WORK_QUEUES,
+            "is_work_queue": is_work_queue,
         }
-        order = "-" if not context["is_work_queue"] else ""
 
         # we include hidden cases in non work queues (all cases, all open cases)
         # and if the flag to include hidden is added
-        include_hidden = not context["is_work_queue"] or str_to_bool(request.GET.get("hidden"))
+        include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
 
         page = self.paginate_queryset(
             Case.objects.search(
                 queue_id=queue_id,
+                is_work_queue=is_work_queue,
                 user=request.user,
                 status=request.GET.get("status"),
                 case_type=CaseTypeEnum.reference_to_id(request.GET.get("case_type")),
                 assigned_user=request.GET.get("assigned_user"),
                 case_officer=request.GET.get("case_officer"),
                 sort=request.GET.get("sort"),
-                date_order=order,
                 include_hidden=include_hidden,
             )
         )
@@ -64,7 +64,7 @@ class CasesSearchView(generics.ListAPIView):
                 "cases": cases,
                 "filters": {"statuses": statuses, "case_types": case_types, "gov_users": gov_users},
                 "is_system_queue": context["is_system_queue"],
-                "is_work_queue": context["is_work_queue"],
+                "is_work_queue": is_work_queue,
                 "queue": queue,
             }
         )

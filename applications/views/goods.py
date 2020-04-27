@@ -25,7 +25,7 @@ from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
 from goodstype.helpers import get_goods_type, delete_goods_type_document_if_exists
 from goodstype.models import GoodsType
-from goodstype.serializers import GoodsTypeSerializer
+from goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from users.models import ExporterUser
@@ -163,24 +163,21 @@ class ApplicationGoodsTypes(APIView):
         """
         Post a goodstype
         """
-        request.data["application"] = application.id
-
+        request.data["application"] = application
         serializer = GoodsTypeSerializer(data=request.data)
 
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
 
-        serializer.save()
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
+                action_object=serializer.instance,
+                target=application.get_case(),
+                payload={"good_type_name": serializer.instance.description},
+            )
 
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.ADD_GOOD_TYPE_TO_APPLICATION,
-            action_object=serializer.instance,
-            target=application.get_case(),
-            payload={"good_type_name": serializer.instance.description},
-        )
-
-        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
+            return JsonResponse(data={"good": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class ApplicationGoodsType(APIView):
@@ -193,7 +190,9 @@ class ApplicationGoodsType(APIView):
         Gets a goodstype
         """
         goods_type = get_goods_type(goodstype_pk)
-        goods_type_data = GoodsTypeSerializer(goods_type).data
+        default_countries = Country.objects.filter(countries_on_application__application=application)
+
+        goods_type_data = GoodsTypeViewSerializer(goods_type, default_countries=default_countries).data
 
         return JsonResponse(data={"good": goods_type_data}, status=status.HTTP_200_OK)
 
