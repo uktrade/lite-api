@@ -1,11 +1,10 @@
 import factory
 from queues.models import Queue
-from teams.models import Team
 
 
 class QueueFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("word")
-    team = factory.SubFactory("queues.tests.factories.TeamFactory")
+    team = factory.SubFactory("teams.tests.factories.TeamFactory")
 
     class Meta:
         model = Queue
@@ -16,10 +15,3 @@ class QueueFactory(factory.django.DjangoModelFactory):
             # Simple build, do nothing.
             return
         self.cases.set(extracted)
-
-
-class TeamFactory(factory.django.DjangoModelFactory):
-    name = factory.Faker("word")
-
-    class Meta:
-        model = Team
