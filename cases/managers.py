@@ -3,7 +3,7 @@ from typing import List
 
 from compat import get_model
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Case, When, BinaryField
 
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from queues.constants import (
@@ -77,7 +77,7 @@ class CaseQuerySet(models.QuerySet):
 
         return self.order_by(f"{order}status__priority")
 
-    def order_by_date(self, order=""):
+    def order_by_date(self, order="-"):
         """
         :param order: ('', '-')
         :return:
@@ -117,13 +117,13 @@ class CaseManager(models.Manager):
     def search(
         self,
         queue_id=None,
+        is_work_queue=None,
         user=None,
         status=None,
         case_type=None,
         sort=None,
         assigned_user=None,
         case_officer=None,
-        date_order=None,
         include_hidden=None,
     ):
         """
@@ -143,6 +143,7 @@ class CaseManager(models.Manager):
                 "flags",
             )
         )
+
         team_id = user.team.id
 
         if not include_hidden:
@@ -174,8 +175,18 @@ class CaseManager(models.Manager):
                 case_officer = None
             case_qs = case_qs.assigned_as_case_officer(user=case_officer)
 
-        if isinstance(date_order, str):
-            case_qs = case_qs.order_by_date(date_order)
+        if is_work_queue:
+            case_qs = case_qs.annotate(
+                case_order=Case(
+                    When(baseapplication__hmrcquery__have_goods_departed=False, then=0),
+                    default=1,
+                    output_field=BinaryField(),
+                )
+            )
+
+            case_qs = case_qs.order_by("case_order", "submitted_at")
+        else:
+            case_qs = case_qs.order_by_date()
 
         if isinstance(sort, str):
             case_qs = case_qs.order_by_status(order="-" if sort.startswith("-") else "")
