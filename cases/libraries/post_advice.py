@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
 from cases.libraries.get_case import get_case
 from cases.models import FinalAdvice, TeamAdvice, Advice

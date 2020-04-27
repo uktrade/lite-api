@@ -3,7 +3,8 @@ from copy import deepcopy
 from rest_framework import serializers
 
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
+from audit_trail.payload import format_payload
 
 
 class AuditSerializer(serializers.ModelSerializer):
@@ -44,7 +45,7 @@ class AuditSerializer(serializers.ModelSerializer):
                 # Handle new payload format
                 payload[key] = payload[key]["new"]
 
-        return verb.format(payload)
+        return format_payload(verb, payload)
 
     def get_additional_text(self, instance):
         return instance.payload.get("additional_text", "")

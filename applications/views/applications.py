@@ -52,7 +52,7 @@ from applications.serializers.good import (
 )
 from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.models import FinalAdvice
 from cases.sla import get_application_target_sla
