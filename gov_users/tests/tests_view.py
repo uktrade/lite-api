@@ -13,10 +13,11 @@ class GovUserViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.team_1 = TeamFactory()
-        self.user_1 = GovUserFactory(team=self.team_1, status=UserStatuses.DEACTIVATED)
+        self.user_1 = GovUser(email="email@email.com", team=self.team_1, status=UserStatuses.DEACTIVATED)
+        self.user_1.save()
 
         self.team_2 = TeamFactory()
-        self.user_2 = GovUser(team=self.team_2)
+        self.user_2 = GovUserFactory(team=self.team_2)
 
         self.users = [self.user_1, self.user_2]
 
