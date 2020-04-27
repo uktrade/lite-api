@@ -21,7 +21,6 @@ class RoutingRuleCreationTests(DataTestClient):
 
         self.url = reverse("routing_rules:detail", kwargs={"pk": self.routing_rule.id})
 
-
     def test_all_permissions_works(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
