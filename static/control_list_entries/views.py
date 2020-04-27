@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from static.control_list_entries.helpers import get_control_list_entry
 from static.control_list_entries.models import ControlListEntry
-from static.control_list_entries.serializers import ControlListEntrySerializer
+from static.control_list_entries.serializers import ControlListEntrySerializerWithLinks
 
 
 @permission_classes((permissions.AllowAny,))
@@ -29,7 +29,7 @@ class ControlListEntriesList(APIView):
                 }
             )
 
-        serializer = ControlListEntrySerializer(ControlListEntry.objects.filter(parent=None), many=True)
+        serializer = ControlListEntrySerializerWithLinks(ControlListEntry.objects.filter(parent=None), many=True)
         return JsonResponse(data={"control_list_entries": serializer.data})
 
 
@@ -43,5 +43,5 @@ class ControlListEntryDetail(APIView):
         Returns details of a specific control ratings
         """
         control_list_entry = get_control_list_entry(rating)
-        serializer = ControlListEntrySerializer(control_list_entry)
+        serializer = ControlListEntrySerializerWithLinks(control_list_entry)
         return JsonResponse(data={"control_list_entry": serializer.data})
