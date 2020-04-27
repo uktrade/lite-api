@@ -5,13 +5,13 @@ from gov_users.enums import GovUserStatuses
 from test_helpers.clients import DataTestClient
 from users.libraries.user_to_token import user_to_token
 from users.models import GovUser
+from users.tests.factories import GovUserFactory
 
 
 class GovUserDeactivateTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.valid_user = GovUser(email="test2@mail.com", first_name="John", last_name="Smith", team=self.team)
-        self.valid_user.save()
+        self.valid_user = GovUserFactory(team=self.team)
 
     def test_deactivate_a_user(self):
         data = {"status": "Deactivated"}

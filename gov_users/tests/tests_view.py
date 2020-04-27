@@ -2,23 +2,21 @@ from django.urls import reverse
 from rest_framework import status
 
 from gov_users.enums import GovUserStatuses
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 from users.models import GovUser
+from users.tests.factories import GovUserFactory
 
 
 class GovUserViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.team_1 = self.create_team("Team 1")
-        self.user_1 = GovUser(email="test1@mail.com", first_name="Jane", last_name="Smith", team=self.team_1)
-        self.user_1.status = UserStatuses.DEACTIVATED
-        self.user_1.save()
+        self.team_1 = TeamFactory()
+        self.user_1 = GovUserFactory(team=self.team_1, status=UserStatuses.DEACTIVATED)
 
-        self.team_2 = self.create_team("Team 2")
-        self.user_2 = GovUser(email="test2@mail.com", first_name="John", last_name="Smith", team=self.team_2)
-        self.user_2.status = UserStatuses.ACTIVE
-        self.user_2.save()
+        self.team_2 = TeamFactory()
+        self.user_2 = GovUser(team=self.team_2)
 
         self.users = [self.user_1, self.user_2]
 

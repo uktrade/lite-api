@@ -8,4 +8,5 @@ class Team(models.Model):
     name = models.CharField(max_length=60, default=None, blank=False, null=False, unique=True)
 
     class Meta:
+        db_table = "team"
         ordering = ["name"]

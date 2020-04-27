@@ -6,6 +6,7 @@ from teams.models import Team
 from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
+from users.tests.factories import GovUserFactory
 
 
 class GovUserEditTests(DataTestClient):
@@ -28,8 +29,7 @@ class GovUserEditTests(DataTestClient):
         self.gov_user.save()
 
         # create a second user to adopt the super user role as it will overwrite the save during the edit of the first user
-        valid_user = GovUser(email="test2@mail.com", first_name="John", last_name="Smith", team=self.team)
-        valid_user.save()
+        GovUserFactory(team=self.team)
 
         role = Role(name="some role")
         role.permissions.set([constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])

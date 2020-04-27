@@ -12,10 +12,10 @@ from goods.serializers import GoodSerializer
 from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-from teams.models import Team
 from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
-from users.models import GovUser, Role
+from users.models import Role
+from users.tests.factories import GovUserFactory
 
 
 class CreateCaseFinalAdviceTests(DataTestClient):
@@ -42,11 +42,8 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        self.gov_user_2 = GovUser(email="user@email.com", team=team_2, role=role)
-        self.gov_user_3 = GovUser(email="users@email.com", team=team_3, role=role)
-
-        self.gov_user_2.save()
-        self.gov_user_3.save()
+        self.gov_user_2 = GovUserFactory(team=team_2, role=role)
+        self.gov_user_3 = GovUserFactory(team=team_3, role=role)
 
         self.standard_case_url = reverse("cases:case_final_advice", kwargs={"pk": self.standard_case.id})
 

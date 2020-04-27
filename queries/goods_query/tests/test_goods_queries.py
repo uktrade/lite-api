@@ -21,6 +21,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
+from users.tests.factories import GovUserFactory
 
 
 class GoodsQueryManageStatusTests(DataTestClient):
@@ -233,9 +234,7 @@ class ControlListClassificationsQueryRespondTests(DataTestClient):
         team advice.
         """
         # Make sure at least one user maintains the super user role
-        valid_user = GovUser(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role
-        )
+        valid_user = GovUserFactory(team=self.team, role=self.super_user_role)
         valid_user.save()
 
         self.gov_user.role = self.default_role

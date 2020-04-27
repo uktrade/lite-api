@@ -13,6 +13,7 @@ from teams.models import Team
 from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from users.models import GovUser, Role
+from users.tests.factories import GovUserFactory
 
 
 class CreateCaseTeamAdviceTests(DataTestClient):
@@ -34,10 +35,8 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.gov_user.role = self.role
         self.gov_user.save()
 
-        self.gov_user_2 = GovUser(email="user@email.com", team=self.team, role=self.role)
-        self.gov_user_3 = GovUser(email="users@email.com", team=self.team, role=self.role)
-        self.gov_user_2.save()
-        self.gov_user_3.save()
+        self.gov_user_2 = GovUserFactory(team=self.team, role=self.role)
+        self.gov_user_3 = GovUserFactory(team=self.team, role=self.role)
 
         self.open_application = self.create_draft_open_application(self.organisation)
         self.open_case = self.submit_application(self.open_application)

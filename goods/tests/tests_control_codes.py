@@ -11,7 +11,8 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 from test_helpers.helpers import is_not_verified_flag_set_on_good
-from users.models import Role, GovUser
+from users.models import Role
+from users.tests.factories import GovUserFactory
 
 
 class GoodsVerifiedTestsStandardApplication(DataTestClient):
@@ -189,10 +190,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         """
         # create a second user to adopt the super user role as it will
         # overwritten otherwise if we try and remove the role from the first
-        valid_user = GovUser(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role
-        )
-        valid_user.save()
+        GovUserFactory(team=self.team, role=self.super_user_role)
 
         self.gov_user.role = self.default_role
         self.gov_user.save()
@@ -421,10 +419,7 @@ class GoodsVerifiedTestsOpenApplication(DataTestClient):
         """
         # create a second user to adopt the super user role as it will
         # overwritten otherwise if we try and remove the role from the first
-        valid_user = GovUser(
-            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team, role=self.super_user_role
-        )
-        valid_user.save()
+        GovUserFactory(team=self.team, role=self.super_user_role)
 
         self.gov_user.role = self.default_role
         self.gov_user.save()
