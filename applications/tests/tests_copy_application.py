@@ -20,6 +20,7 @@ from goodstype.models import GoodsType
 from parties.models import Party, PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from test_helpers.clients import DataTestClient
 
 
@@ -30,6 +31,36 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy a standard application that is a draft
         """
         self.original_application = self.create_draft_standard_application(self.organisation)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {
+            "name": "New application",
+            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
+            "reference_number_on_information_form": "54321-12",
+        }
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = StandardApplication.objects.get(id=self.response_data)
+
+        self._validate_standard_application()
+
+    def test_copy_draft_standard_trade_control_application_successful(self):
+        """
+        Ensure we can copy a standard trade control application that is a draft
+        """
+        self.original_application = self.create_draft_standard_application(self.organisation)
+        self.original_application.trade_control_activity = TradeControlActivity.OTHER
+        self.original_application.trade_control_activity_other = "other activity"
+        self.original_application.trade_control_product_categories = [
+            key for key, _ in TradeControlProductCategory.choices
+        ]
+        self.original_application.save()
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -135,6 +166,34 @@ class CopyApplicationSuccessTests(DataTestClient):
         Ensure we can copy an open application that is a draft
         """
         self.original_application = self.create_draft_open_application(self.organisation)
+
+        self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
+
+        self.data = {"name": "New application"}
+
+        self.response = self.client.post(self.url, self.data, **self.exporter_headers)
+        self.response_data = self.response.json()["data"]
+
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(self.response_data, self.original_application.id)
+
+        self.copied_application = OpenApplication.objects.get(id=self.response_data)
+
+        self._validate_open_application()
+
+    def test_copy_draft_open_trade_control_application_successful(self):
+        """
+        Ensure we can copy an open application that is a draft
+        """
+        self.original_application = self.create_draft_open_application(
+            self.organisation, case_type_id=CaseTypeEnum.OICL.id
+        )
+        self.original_application.trade_control_activity = TradeControlActivity.OTHER
+        self.original_application.trade_control_activity_other = "other activity"
+        self.original_application.trade_control_product_categories = [
+            key for key, _ in TradeControlProductCategory.choices
+        ]
+        self.original_application.save()
 
         self.url = reverse_lazy("applications:copy", kwargs={"pk": self.original_application.id})
 
@@ -396,6 +455,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self._validate_case_data()
         self._validate_route_of_goods()
         self._validate_temporary_export_details()
+        self._validate_trade_control_details()
 
     def _validate_open_application(self):
         self._validate_reset_data()
@@ -406,6 +466,17 @@ class CopyApplicationSuccessTests(DataTestClient):
         self._validate_case_data()
         self._validate_route_of_goods()
         self._validate_temporary_export_details()
+        self._validate_trade_control_details()
+
+    def _validate_trade_control_details(self):
+        if self.original_application.case_type.id in [CaseTypeEnum.SICL.id, CaseTypeEnum.OICL.id]:
+            self.assertEqual(
+                self.original_application.trade_control_activity, self.copied_application.trade_control_activity
+            )
+            self.assertEqual(
+                self.original_application.trade_control_product_categories,
+                self.copied_application.trade_control_product_categories,
+            )
 
     def _validate_exhibition_application(self):
         self._validate_reset_data()
@@ -503,6 +574,10 @@ class CopyApplicationSuccessTests(DataTestClient):
             self.assertEqual(good_on_app.quantity, new_good_on_app.quantity)
             self.assertEqual(good_on_app.unit, new_good_on_app.unit)
 
+            self.assertEqual(good_on_app.usage, 0)
+            self.assertEqual(good_on_app.licenced_quantity, None)
+            self.assertEqual(good_on_app.licenced_value, None)
+
         self.assertEqual(len(new_goods_on_app), len(original_goods_on_app))
 
     def _validate_f680_clearance_types(self):
@@ -593,11 +668,12 @@ class CopyApplicationSuccessTests(DataTestClient):
         for goodstype in new_goodstype_objects:
             # we seed multiple goodstype with the same data currently, so testing that there are the same amount of
             #  goodstype on both old and new application based on the current goodstype data.
+            control_list_entries_ids = goodstype.control_list_entries.values_list("id", flat=True)
             old_goodsType = len(
                 GoodsType.objects.filter(
                     description=goodstype.description,
                     is_good_controlled=goodstype.is_good_controlled,
-                    control_code=goodstype.control_code,
+                    control_list_entries__in=control_list_entries_ids,
                     is_good_incorporated=goodstype.is_good_incorporated,
                     application=self.original_application,
                 ).all()
@@ -606,9 +682,10 @@ class CopyApplicationSuccessTests(DataTestClient):
                 GoodsType.objects.filter(
                     description=goodstype.description,
                     is_good_controlled=goodstype.is_good_controlled,
-                    control_code=goodstype.control_code,
+                    control_list_entries__in=control_list_entries_ids,
                     is_good_incorporated=goodstype.is_good_incorporated,
                     application=self.copied_application,
+                    usage=0,
                 ).all()
             )
 

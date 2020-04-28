@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
 
+from audit_trail.payload import AuditType
 from cases.enums import (
     AdviceType,
     CaseDocumentState,
@@ -27,6 +28,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from teams.models import Team
+from users.enums import SystemUser
 from users.models import (
     BaseUser,
     ExporterUser,
@@ -107,6 +109,64 @@ class Case(TimestampableModel):
 
         return return_value
 
+    def parameter_set(self):
+        """
+        This function looks at the case determines the flags, casetype, and countries of that case,
+            and puts these objects into a set
+        :return: set object
+        """
+        from applications.models import PartyOnApplication
+        from applications.models import GoodOnApplication
+        from applications.models import CountryOnApplication
+        from goodstype.models import GoodsType
+
+        parameter_set = set(self.flags.all()) | {self.case_type} | set(self.organisation.flags.all())
+
+        for poa in PartyOnApplication.objects.filter(application=self.id):
+            parameter_set = (
+                parameter_set | {poa.party.country} | set(poa.party.flags.all()) | set(poa.party.country.flags.all())
+            )
+
+        for goa in GoodOnApplication.objects.filter(application=self.id):
+            parameter_set = parameter_set | set(goa.good.flags.all())
+
+        for goods_type in GoodsType.objects.filter(application=self.id):
+            parameter_set = parameter_set | set(goods_type.flags.all())
+
+        for coa in CountryOnApplication.objects.filter(application=self.id):
+            parameter_set = parameter_set | {coa.country} | set(coa.country.flags.all())
+
+        return parameter_set
+
+    def remove_all_case_assignments(self):
+        """
+        Will look at a case, and should the case contain any queue or user assignments will remove assignments, and
+            audit the removal of said assignments against the case.
+        """
+        from audit_trail import service as audit_trail_service
+
+        assigned_cases = CaseAssignment.objects.filter(case_id=self.id)
+        system_user = GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID)
+        if self.queues.exists():
+            self.queues.clear()
+
+            audit_trail_service.create(
+                actor=system_user,
+                verb=AuditType.REMOVE_CASE_FROM_ALL_QUEUES,
+                action_object=self.get_case(),
+                payload={},
+            )
+
+        if assigned_cases.exists():
+            assigned_cases.delete()
+
+            audit_trail_service.create(
+                actor=system_user,
+                verb=AuditType.REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS,
+                action_object=self.get_case(),
+                payload={},
+            )
+
 
 class CaseReferenceCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -152,6 +212,26 @@ class CaseAssignment(TimestampableModel):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="case_assignments")
     user = models.ForeignKey(GovUser, on_delete=models.CASCADE, related_name="case_assignments")
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE, related_name="case_assignments")
+
+    class Meta:
+        unique_together = [["case", "user", "queue"]]
+
+    def save(self, *args, **kwargs):
+        from audit_trail import service as audit_trail_service
+
+        audit_user = None
+
+        if "audit_user" in kwargs:
+            audit_user = kwargs.pop("audit_user")
+
+        super(CaseAssignment, self).save(*args, **kwargs)
+        if audit_user:
+            audit_trail_service.create(
+                actor=audit_user,
+                verb=AuditType.ASSIGN_CASE,
+                action_object=self.case,
+                payload={"assignment": f"{self.user.first_name} {self.user.last_name}"},
+            )
 
 
 class CaseDocument(Document):

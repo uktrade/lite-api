@@ -1,19 +1,27 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.enums import GoodsCategory, YesNoChoiceType
+from applications.enums import (
+    GoodsCategory,
+    YesNoChoiceType,
+    ApplicationExportLicenceOfficialType,
+    ApplicationExportType,
+)
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import StandardApplication
-from licences.models import Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from licences.serializers import CaseLicenceViewSerializer
+from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
+from cases.enums import CaseTypeEnum
+from conf.serializers import KeyValueChoiceField
+from licences.models import Licence
 from lite_content.lite_api import strings
+from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
 class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
@@ -22,14 +30,9 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     additional_documents = serializers.SerializerMethodField()
     goods_categories = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
-
     proposed_return_date = serializers.DateField(required=False)
-
-    def get_goods_categories(self, instance):
-        # Return a formatted key, value format of GoodsCategories
-        # Order according to the choices in GoodsCategory
-        return_value = [{"key": x, "value": GoodsCategory.get_text(x)} for x in instance.goods_categories or []]
-        return sorted(return_value, key=lambda i: [x[0] for x in GoodsCategory.choices].index(i["key"]))
+    trade_control_activity = serializers.SerializerMethodField()
+    trade_control_product_categories = serializers.SerializerMethodField()
 
     class Meta:
         model = StandardApplication
@@ -62,6 +65,8 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "is_temp_direct_control",
                 "temp_direct_control_details",
                 "proposed_return_date",
+                "trade_control_activity",
+                "trade_control_product_categories",
             )
         )
 
@@ -69,25 +74,94 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
         licence = Licence.objects.filter(application=instance).first()
         return CaseLicenceViewSerializer(licence).data
 
+    def get_goods_categories(self, instance):
+        # Return a formatted key, value format of GoodsCategories
+        # Order according to the choices in GoodsCategory
+        goods_categories = sorted(instance.goods_categories) if instance.goods_categories else []
+        return [
+            {"key": goods_category, "value": GoodsCategory.get_text(goods_category)}
+            for goods_category in goods_categories
+        ]
+
+    def get_trade_control_activity(self, instance):
+        key = instance.trade_control_activity
+        value = (
+            instance.trade_control_activity_other
+            if key == TradeControlActivity.OTHER
+            else TradeControlActivity.get_text(key)
+        )
+        return {"key": key, "value": value}
+
+    def get_trade_control_product_categories(self, instance):
+        trade_control_product_categories = (
+            sorted(instance.trade_control_product_categories) if instance.trade_control_product_categories else []
+        )
+        return [
+            {"key": tc_product_category, "value": TradeControlProductCategory.get_text(tc_product_category)}
+            for tc_product_category in trade_control_product_categories
+        ]
+
 
 class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    export_type = KeyValueChoiceField(
+        choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
+    )
+    have_you_been_informed = KeyValueChoiceField(
+        choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
+    )
+    reference_number_on_information_form = CharField(allow_blank=True)
     goods_categories = serializers.MultipleChoiceField(
         choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
+    )
+    trade_control_activity = KeyValueChoiceField(
+        choices=TradeControlActivity.choices,
+        error_messages={"required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR},
+    )
+    trade_control_activity_other = CharField(
+        error_messages={
+            "blank": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
+            "required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
+        }
+    )
+    trade_control_product_categories = serializers.MultipleChoiceField(
+        choices=TradeControlProductCategory.choices,
+        error_messages={"required": strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
     )
 
     class Meta:
         model = StandardApplication
-        fields = (
-            "id",
-            "name",
-            "case_type",
+        fields = GenericApplicationCreateSerializer.Meta.fields + (
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
             "goods_categories",
-            "organisation",
-            "status",
+            "trade_control_activity",
+            "trade_control_activity_other",
+            "trade_control_product_categories",
         )
+
+    def __init__(self, case_type_id, **kwargs):
+        super().__init__(case_type_id, **kwargs)
+        self.trade_control_licence = case_type_id in [str(CaseTypeEnum.SICL.id), str(CaseTypeEnum.OICL.id)]
+
+        # Remove fields from serializer depending on the application being for a Trade Control Licence
+        if self.trade_control_licence:
+            self.fields.pop("export_type")
+            self.fields.pop("have_you_been_informed")
+            self.fields.pop("reference_number_on_information_form")
+
+            if not self.initial_data.get("trade_control_activity") == TradeControlActivity.OTHER:
+                self.fields.pop("trade_control_activity_other")
+        else:
+            self.fields.pop("trade_control_activity")
+            self.fields.pop("trade_control_activity_other")
+            self.fields.pop("trade_control_product_categories")
+
+    def create(self, validated_data):
+        # Trade Control Licences are always permanent
+        if self.trade_control_licence:
+            validated_data["export_type"] = ApplicationExportType.PERMANENT
+        return super().create(validated_data)
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
@@ -112,6 +186,10 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         if self.get_initial().get("is_shipped_waybill_or_lading") == "True":
             if hasattr(self, "initial_data"):
                 self.initial_data["non_waybill_or_lading_route_details"] = None
+
+        if self.instance.case_type.id == CaseTypeEnum.SICL.id:
+            self.fields.pop("have_you_been_informed")
+            self.fields.pop("reference_number_on_information_form")
 
     def update(self, instance, validated_data):
         if "goods_categories" in validated_data:

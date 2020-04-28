@@ -29,6 +29,7 @@ from static.denial_reasons.models import DenialReason
 from static.f680_clearance_types.models import F680ClearanceType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
+from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 from static.units.enums import Units
 
 
@@ -171,7 +172,7 @@ class StandardApplication(BaseApplication):
     export_type = models.CharField(choices=ApplicationExportType.choices, default=None, max_length=50)
     reference_number_on_information_form = models.CharField(blank=True, null=True, max_length=255)
     have_you_been_informed = models.CharField(
-        choices=ApplicationExportLicenceOfficialType.choices, default=None, max_length=50,
+        choices=ApplicationExportLicenceOfficialType.choices, blank=True, null=True, default=None, max_length=50,
     )
     goods_categories = SeparatedValuesField(
         max_length=150, choices=GoodsCategory.choices, blank=True, null=True, default=None
@@ -182,6 +183,13 @@ class StandardApplication(BaseApplication):
     is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
     temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
     proposed_return_date = models.DateField(blank=True, null=True)
+    trade_control_activity = models.CharField(
+        choices=TradeControlActivity.choices, blank=False, null=True, max_length=100
+    )
+    trade_control_activity_other = models.CharField(blank=False, null=True, max_length=100)
+    trade_control_product_categories = SeparatedValuesField(
+        choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
+    )
 
 
 class OpenApplication(BaseApplication):
@@ -192,6 +200,13 @@ class OpenApplication(BaseApplication):
     is_temp_direct_control = models.BooleanField(blank=True, default=None, null=True)
     temp_direct_control_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
     proposed_return_date = models.DateField(blank=True, null=True)
+    trade_control_activity = models.CharField(
+        choices=TradeControlActivity.choices, blank=False, null=True, max_length=100
+    )
+    trade_control_activity_other = models.CharField(blank=False, null=True, max_length=100)
+    trade_control_product_categories = SeparatedValuesField(
+        choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
+    )
 
 
 # MOD Clearances Applications
@@ -281,6 +296,11 @@ class GoodOnApplication(TimestampableModel):
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=256, decimal_places=2, null=True, blank=True, default=None)
     is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
+
+    # Licence values set when the Good is approved
+    usage = models.FloatField(null=False, blank=False, default=0)
+    licenced_quantity = models.FloatField(null=True, blank=True, default=None)
+    licenced_value = models.DecimalField(max_digits=256, decimal_places=2, null=True, blank=True, default=None)
 
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)

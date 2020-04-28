@@ -1,19 +1,23 @@
 from rest_framework import serializers
+from rest_framework.fields import CharField
 
+from applications.enums import ApplicationExportType
 from applications.models import OpenApplication
-from licences.models import Licence
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from licences.serializers import CaseLicenceViewSerializer
+from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
-from goodstype.models import GoodsType
-from goodstype.serializers import FullGoodsTypeSerializer
+from cases.enums import CaseTypeEnum
+from conf.serializers import KeyValueChoiceField
+from goodstype.serializers import GoodsTypeViewSerializer
+from licences.models import Licence
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
+from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
 class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
@@ -21,8 +25,9 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
-
     proposed_return_date = serializers.DateField(required=False)
+    trade_control_activity = serializers.SerializerMethodField()
+    trade_control_product_categories = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
@@ -46,11 +51,15 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "is_temp_direct_control",
             "temp_direct_control_details",
             "proposed_return_date",
+            "trade_control_activity",
+            "trade_control_product_categories",
         )
 
     def get_goods_types(self, application):
-        goods_types = GoodsType.objects.filter(application=application)
-        return FullGoodsTypeSerializer(goods_types, many=True).data
+        goods_types = application.goods_type.all().prefetch_related("countries")
+        default_countries = Country.objects.filter(countries_on_application__application=application)
+
+        return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)
@@ -61,18 +70,73 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         licence = Licence.objects.filter(application=instance).first()
         return CaseLicenceViewSerializer(licence).data
 
+    def get_trade_control_activity(self, instance):
+        key = instance.trade_control_activity
+        value = (
+            instance.trade_control_activity_other
+            if key == TradeControlActivity.OTHER
+            else TradeControlActivity.get_text(key)
+        )
+        return {"key": key, "value": value}
+
+    def get_trade_control_product_categories(self, instance):
+        trade_control_product_categories = (
+            sorted(instance.trade_control_product_categories) if instance.trade_control_product_categories else []
+        )
+        return [
+            {"key": tc_product_category, "value": TradeControlProductCategory.get_text(tc_product_category)}
+            for tc_product_category in trade_control_product_categories
+        ]
+
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    export_type = KeyValueChoiceField(
+        choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
+    )
+    trade_control_activity = KeyValueChoiceField(
+        choices=TradeControlActivity.choices,
+        error_messages={"required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR},
+    )
+    trade_control_activity_other = CharField(
+        error_messages={
+            "blank": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
+            "required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_OTHER_ERROR,
+        }
+    )
+    trade_control_product_categories = serializers.MultipleChoiceField(
+        choices=TradeControlProductCategory.choices,
+        error_messages={"required": strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
+    )
+
     class Meta:
         model = OpenApplication
-        fields = (
-            "id",
-            "name",
-            "case_type",
+        fields = GenericApplicationCreateSerializer.Meta.fields + (
             "export_type",
-            "organisation",
-            "status",
+            "trade_control_activity",
+            "trade_control_activity_other",
+            "trade_control_product_categories",
         )
+
+    def __init__(self, case_type_id, **kwargs):
+        super().__init__(case_type_id, **kwargs)
+        self.trade_control_licence = case_type_id in [str(CaseTypeEnum.SICL.id), str(CaseTypeEnum.OICL.id)]
+
+        # Remove fields from serializer depending on the application being for a Trade Control Licence
+        if self.trade_control_licence:
+            self.fields.pop("export_type")
+
+            if not self.initial_data.get("trade_control_activity") == TradeControlActivity.OTHER:
+                self.fields.pop("trade_control_activity_other")
+        else:
+            self.fields.pop("trade_control_activity")
+            self.fields.pop("trade_control_activity_other")
+            self.fields.pop("trade_control_product_categories")
+
+    def create(self, validated_data):
+        # Trade Control Licences are always permanent
+        if self.trade_control_licence:
+            validated_data["export_type"] = ApplicationExportType.PERMANENT
+        return super().create(validated_data)
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):

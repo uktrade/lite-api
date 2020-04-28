@@ -5,9 +5,7 @@ class AuditType(Enum):
     CREATED = "created"
     ADD_FLAGS = "added flags: {added_flags}"
     REMOVE_FLAGS = "removed flags: {removed_flags}"
-    GOOD_REVIEWED = (
-        'good was reviewed: {good_name} control code changed from "{old_control_code}" to "{new_control_code}"'
-    )
+    GOOD_REVIEWED = 'good was reviewed: {good_name} control code changed from "{old_control_list_entry}" to "{new_control_list_entry}"'
     GOOD_ADD_FLAGS = "added flags: {added_flags} to good: {good_name}"
     GOOD_REMOVE_FLAGS = "removed flags: {removed_flags} from good: {good_name}"
     GOOD_ADD_REMOVE_FLAGS = "added flags: {added_flags}, and removed: {removed_flags} from good: {good_name}"
@@ -28,8 +26,11 @@ class AuditType(Enum):
     REMOVED_COUNTRIES_FROM_APPLICATION = "removed countries: {countries}"
     ADD_COUNTRIES_TO_APPLICATION = "added countries: {countries}"
     ADD_ADDITIONAL_CONTACT_TO_CASE = "added an additional contact: {contact}"
-    MOVE_CASE = "moved the case to: {queues}"
+    MOVE_CASE = "moved the case to {queues}"
+    ASSIGN_CASE = "added case to {assignment}"
     REMOVE_CASE = "removed case from queues: {queues}"
+    REMOVE_CASE_FROM_ALL_QUEUES = "removed case from all queues"
+    REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS = "removed case from all user assignments"
     CLC_RESPONSE = "responded to the case"
     PV_GRADING_RESPONSE = "responded to pv grading, grading set as {grading}"
     CREATED_CASE_NOTE = "added a case note: {case_note}"
@@ -86,6 +87,8 @@ class AuditType(Enum):
         'updated exhibition reason for clearance to "{new_reason_for_clearance}"'
     )
     UPDATED_ROUTE_OF_GOODS = 'updated {route_of_goods_field} from "{previous_value}" to "{new_value}"'
+
+    RERUN_ROUTING_RULES = "reran the routing rules"
 
     def format(self, payload):
         text = self.value.format(**payload)

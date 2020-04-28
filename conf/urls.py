@@ -23,7 +23,7 @@ urlpatterns = [
     path("audit-trail/", include("audit_trail.urls")),
     path("cases/", include("cases.urls")),
     path("goods/", include("goods.urls")),
-    path("goodstype/", include("goodstype.urls")),
+    path("goods-types/", include("goodstype.urls")),
     path("letter-templates/", include("letter_templates.urls")),
     path("organisations/", include("organisations.urls")),
     path("queues/", include("queues.urls")),
@@ -35,6 +35,7 @@ urlpatterns = [
     path("picklist/", include("picklists.urls")),
     path("documents/", include("documents.urls")),
     path("queries/", include("queries.urls")),
+    path("routing-rules/", include("workflow.routing_rules.urls")),
     path("licences/", include("licences.urls")),
     re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json",),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

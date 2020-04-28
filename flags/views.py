@@ -14,12 +14,13 @@ from audit_trail.payload import AuditType
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
+from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
-from flags.enums import FlagStatuses
+from flags.enums import FlagStatuses, SystemFlags
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flagging_rule
 from flags.models import Flag, FlaggingRule
-from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer
+from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer, FlagReadOnlySerializer
 from goods.models import Good
 from lite_content.lite_api import strings
 from parties.models import Party
@@ -31,7 +32,12 @@ from workflow.flagging_rules_automation import apply_flagging_rule_to_all_open_c
 
 class FlagsListCreateView(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = FlagSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return FlagReadOnlySerializer
+        else:
+            return FlagSerializer
 
     def get_queryset(self):
         flags = Flag.objects.all()
@@ -40,6 +46,7 @@ class FlagsListCreateView(ListCreateAPIView):
         priority = self.request.GET.get("priority")
         team = self.request.GET.get("team")
         only_show_deactivated = optional_str_to_bool(self.request.GET.get("only_show_deactivated"))
+        include_system_flags = str_to_bool(self.request.GET.get("include_system_flags"))  # True, False
 
         if name:
             flags = flags.filter(name__icontains=name)
@@ -57,6 +64,10 @@ class FlagsListCreateView(ListCreateAPIView):
             flags = flags.filter(status=FlagStatuses.DEACTIVATED)
         else:
             flags = flags.filter(status=FlagStatuses.ACTIVE)
+
+        if include_system_flags:
+            system_flags = Flag.objects.filter(id__in=SystemFlags.list)
+            flags = flags | system_flags
 
         return flags.order_by("name").select_related("team")
 

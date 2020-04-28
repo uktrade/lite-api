@@ -68,6 +68,14 @@ class RoleListStatusesSerializer(RoleListSerializer):
         fields = ("id", "name", "permissions", "statuses")
 
 
+class GovUserListSerializer(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True)
+    email = serializers.CharField(read_only=True)
+    first_name = serializers.CharField(read_only=True)
+    last_name = serializers.CharField(read_only=True)
+    status = serializers.CharField(read_only=True)
+
+
 class GovUserViewSerializer(serializers.ModelSerializer):
     team = TeamSerializer()
     role = RoleListStatusesSerializer()

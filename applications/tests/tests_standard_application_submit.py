@@ -5,7 +5,8 @@ from applications.enums import ApplicationExportType
 from applications.enums import GoodsCategory
 from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
 from audit_trail.models import Audit
-from cases.models import Case
+from cases.enums import CaseTypeEnum
+from cases.models import Case, CaseType
 from flags.enums import SystemFlags
 from goods.enums import GoodStatus
 from lite_content.lite_api import strings
@@ -13,6 +14,7 @@ from parties.enums import PartyType
 from parties.models import PartyDocument
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
 
@@ -196,9 +198,10 @@ class StandardApplicationTests(DataTestClient):
 
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+        self.assertNotEqual(
+            standard_application.status.status, CaseStatusEnum.APPLICANT_EDITING,
         )
+        self.assertFalse(standard_application.status.is_terminal)
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
         self.assertEqual(standard_application.agreed_to_foi, True)
 
@@ -249,6 +252,7 @@ class StandardApplicationTests(DataTestClient):
     def test_standard_application_declaration_submit_success(self):
         self.draft.agreed_to_foi = True
         self.draft.save()
+        self.assertEqual(self.draft.status.status, CaseStatusEnum.DRAFT)
 
         data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
 
@@ -259,7 +263,8 @@ class StandardApplicationTests(DataTestClient):
 
         case = Case.objects.get(id=self.draft.id)
         self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertNotEqual(case.status.status, CaseStatusEnum.DRAFT)
+        self.assertFalse(case.status.is_terminal)
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
@@ -405,3 +410,17 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_submit_standard_trade_control_application_maritime_activity_adds_flag(self):
+        self.draft.case_type = CaseType.objects.get(id=CaseTypeEnum.SICL.id)
+        self.draft.trade_control_activity = TradeControlActivity.MARITIME_ANTI_PIRACY
+        self.draft.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        self.draft.save()
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+        self.draft.refresh_from_db()
+        case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)

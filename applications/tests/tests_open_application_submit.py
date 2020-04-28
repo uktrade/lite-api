@@ -1,12 +1,15 @@
 from applications.enums import ApplicationExportType
+from cases.enums import CaseTypeEnum
+from flags.enums import SystemFlags
 from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
 
 from applications.models import SiteOnApplication, CountryOnApplication
-from cases.models import Case
+from cases.models import Case, CaseType
 from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
+from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
 
@@ -69,16 +72,18 @@ class OpenApplicationTests(DataTestClient):
             "agreed_to_declaration": True,
             "agreed_to_foi": True,
         }
+        case = Case.objects.get()
+        self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        case = Case.objects.get()
+        case.refresh_from_db()
         self.assertEqual(case.id, self.draft.id)
         self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertNotEqual(case.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
@@ -132,3 +137,17 @@ class OpenApplicationTests(DataTestClient):
             text=strings.Applications.Generic.NO_TEMPORARY_EXPORT_DETAILS,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+    def test_submit_open_trade_control_application_maritime_activity_adds_flag(self):
+        self.draft.case_type = CaseType.objects.get(id=CaseTypeEnum.OICL.id)
+        self.draft.trade_control_activity = TradeControlActivity.MARITIME_ANTI_PIRACY
+        self.draft.trade_control_product_categories = [key for key, _ in TradeControlProductCategory.choices]
+        self.draft.save()
+        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+
+        response = self.client.put(self.url, data=data, **self.exporter_headers)
+        self.draft.refresh_from_db()
+        case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)

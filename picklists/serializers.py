@@ -1,5 +1,5 @@
 from lite_content.lite_api import strings
-from rest_framework.fields import CharField, SerializerMethodField
+from rest_framework.fields import CharField, SerializerMethodField, UUIDField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
 
@@ -7,9 +7,35 @@ from conf.serializers import KeyValueChoiceField
 from picklists.enums import PicklistType, PickListStatus
 from picklists.models import PicklistItem
 from teams.models import Team
+from teams.serializers import TeamReadOnlySerializer
 
 
-class PicklistSerializer(ModelSerializer):
+class TinyPicklistSerializer(ModelSerializer):
+    id = UUIDField(read_only=True)
+    name = CharField(read_only=True)
+    text = CharField(read_only=True)
+
+    class Meta:
+        model = PicklistItem
+        fields = (
+            "id",
+            "name",
+            "text",
+            "updated_at",
+        )
+
+
+class PicklistListSerializer(TinyPicklistSerializer):
+    type = KeyValueChoiceField(choices=PicklistType.choices, read_only=True)
+    status = KeyValueChoiceField(choices=PickListStatus.choices, read_only=True)
+    team = TeamReadOnlySerializer(read_only=True)
+
+    class Meta:
+        model = PicklistItem
+        fields = TinyPicklistSerializer.Meta.fields + ("team", "type", "status",)
+
+
+class PicklistUpdateCreateSerializer(ModelSerializer):
     name = CharField(allow_blank=False, required=True, error_messages={"blank": strings.Picklists.BLANK_NAME},)
     text = CharField(
         allow_blank=False, max_length=5000, required=True, error_messages={"blank": strings.Picklists.BLANK_TEXT},

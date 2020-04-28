@@ -46,11 +46,17 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
-from licences.serializers import LicenceCreateSerializer
+from applications.serializers.good import (
+    GoodOnApplicationLicenceQuantitySerializer,
+    GoodOnApplicationLicenceQuantityCreateSerializer,
+)
+from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.models import FinalAdvice
 from cases.sla import get_application_target_sla
+from cases.serializers import SimpleFinalAdviceSerializer
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
@@ -70,6 +76,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
+from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
@@ -301,17 +308,19 @@ class ApplicationSubmission(APIView):
                 request.user, ExporterPermissions.SUBMIT_LICENCE_APPLICATION, application.organisation
             )
 
-        if application.case_type.sub_type in [
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EUA,
-            CaseTypeSubTypeEnum.GOODS,
-        ]:
-            set_application_sla(application)
-            create_submitted_audit(request, application, old_status)
-
         errors = validate_application_ready_for_submission(application)
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Queries are completed directly when submit is clicked on the task list
+        # HMRC are completed when submit is clicked on the summary page (page after task list)
+        # Applications are completed when submit is clicked on the declaration page (page after summary page)
+
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS,] or (
+            CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
+        ):
+            set_application_sla(application)
+            create_submitted_audit(request, application, old_status)
 
         if application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
@@ -335,6 +344,7 @@ class ApplicationSubmission(APIView):
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
                 create_submitted_audit(request, application, old_status)
+                run_routing_rules(application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -413,6 +423,10 @@ class ApplicationManageStatus(APIView):
             payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
         )
 
+        # Case routing rules
+        if old_status != application.status:
+            run_routing_rules(case=application, keep_status=True)
+
         return JsonResponse(
             data={"data": get_application_view_serializer(application)(application).data}, status=status.HTTP_200_OK
         )
@@ -420,6 +434,32 @@ class ApplicationManageStatus(APIView):
 
 class ApplicationFinaliseView(APIView):
     authentication_classes = (GovAuthentication,)
+    approved_goods_advice = None
+    approved_goods_on_application = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.approved_goods_advice = FinalAdvice.objects.filter(
+            case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO], good_id__isnull=False,
+        )
+        self.approved_goods_on_application = GoodOnApplication.objects.filter(
+            application_id=kwargs["pk"], good__in=self.approved_goods_advice.values_list("good", flat=True)
+        )
+        return super(ApplicationFinaliseView, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, pk):
+        """
+        Get goods to set licenced quantity for, with advice
+        """
+        goods_on_application = GoodOnApplicationLicenceQuantitySerializer(
+            self.approved_goods_on_application, many=True
+        ).data
+
+        for good_advice in self.approved_goods_advice:
+            for good in goods_on_application:
+                if str(good_advice.good.id) == good["good"]["id"]:
+                    good["advice"] = SimpleFinalAdviceSerializer(good_advice).data
+
+        return JsonResponse({"goods": goods_on_application})
 
     @transaction.atomic
     def put(self, request, pk):
@@ -461,6 +501,32 @@ class ApplicationFinaliseView(APIView):
                     data={"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            # Check goods have licenced quantity/value
+            if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+                errors = {}
+                for good in self.approved_goods_on_application:
+                    good_id = str(good.id)
+                    quantity_key = f"quantity-{good_id}"
+                    value_key = f"value-{good_id}"
+                    good_data = {
+                        "licenced_quantity": request.data.get(quantity_key),
+                        "licenced_value": request.data.get(value_key),
+                    }
+                    serializer = GoodOnApplicationLicenceQuantityCreateSerializer(good, data=good_data, partial=True)
+
+                    if serializer.is_valid():
+                        serializer.save()
+                    else:
+                        quantity_error = serializer.errors.get("licenced_quantity")
+                        if quantity_error:
+                            errors[quantity_key] = quantity_error
+                        value_error = serializer.errors.get("licenced_value")
+                        if value_error:
+                            errors[value_key] = value_error
+
+                if errors:
+                    return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
             data["application"] = application
             serializer = LicenceCreateSerializer(data=data)
@@ -531,10 +597,14 @@ class ApplicationCopy(APIView):
 
         # Replace the reference and have you been informed (if required) with users answer. Also sets some defaults
         self.new_application.name = request.data["name"]
-        self.new_application.have_you_been_informed = request.data.get("have_you_been_informed")
-        self.new_application.reference_number_on_information_form = request.data.get(
-            "reference_number_on_information_form"
-        )
+        if (
+            self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
+            and not self.new_application.case_type.id == CaseTypeEnum.SICL.id
+        ):
+            self.new_application.have_you_been_informed = request.data.get("have_you_been_informed")
+            self.new_application.reference_number_on_information_form = request.data.get(
+                "reference_number_on_information_form"
+            )
         self.new_application.status = get_case_status_by_status(CaseStatusEnum.DRAFT)
         self.new_application.copy_of_id = self.old_application_id
 
@@ -559,6 +629,10 @@ class ApplicationCopy(APIView):
 
         # Get all f680 clearance types
         self.duplicate_f680_clearance_types()
+
+        # Remove usage & licenced quantity/ value
+        self.new_application.goods.update(usage=0, licenced_quantity=None, licenced_value=None)
+        self.new_application.goods_type.update(usage=0)
 
         # Save
         self.new_application.created_at = now()
