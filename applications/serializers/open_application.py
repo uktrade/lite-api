@@ -13,8 +13,7 @@ from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
 from conf.serializers import KeyValueChoiceField
-from goodstype.models import GoodsType
-from goodstype.serializers import FullGoodsTypeSerializer
+from goodstype.serializers import GoodsTypeViewSerializer
 from licences.models import Licence
 from lite_content.lite_api import strings
 from static.countries.models import Country
@@ -58,8 +57,10 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         )
 
     def get_goods_types(self, application):
-        goods_types = GoodsType.objects.filter(application=application)
-        return FullGoodsTypeSerializer(goods_types, many=True).data
+        goods_types = application.goods_type.all().prefetch_related("countries")
+        default_countries = Country.objects.filter(countries_on_application__application=application)
+
+        return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
     def get_destinations(self, application):
         """ Get destinations for the open application, ordered based on flag priority and alphabetized by name."""

@@ -198,9 +198,10 @@ class StandardApplicationTests(DataTestClient):
 
         standard_application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
+        self.assertNotEqual(
+            standard_application.status.status, CaseStatusEnum.APPLICANT_EDITING,
         )
+        self.assertFalse(standard_application.status.is_terminal)
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
         self.assertEqual(standard_application.agreed_to_foi, True)
 
@@ -251,6 +252,7 @@ class StandardApplicationTests(DataTestClient):
     def test_standard_application_declaration_submit_success(self):
         self.draft.agreed_to_foi = True
         self.draft.save()
+        self.assertEqual(self.draft.status.status, CaseStatusEnum.DRAFT)
 
         data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
 
@@ -261,7 +263,8 @@ class StandardApplicationTests(DataTestClient):
 
         case = Case.objects.get(id=self.draft.id)
         self.assertIsNotNone(case.submitted_at)
-        self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
+        self.assertNotEqual(case.status.status, CaseStatusEnum.DRAFT)
+        self.assertFalse(case.status.is_terminal)
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)

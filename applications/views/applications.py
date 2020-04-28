@@ -76,6 +76,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import ExporterUser
+from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
@@ -343,6 +344,7 @@ class ApplicationSubmission(APIView):
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
                 create_submitted_audit(request, application, old_status)
+                run_routing_rules(application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -420,6 +422,10 @@ class ApplicationManageStatus(APIView):
             target=application.get_case(),
             payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
         )
+
+        # Case routing rules
+        if old_status != application.status:
+            run_routing_rules(case=application, keep_status=True)
 
         return JsonResponse(
             data={

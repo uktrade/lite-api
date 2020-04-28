@@ -6,6 +6,7 @@ from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum
 from flags.enums import SystemFlags
 from flags.models import Flag
+from flags.tests.factories import FlagFactory
 from parties.enums import PartyType
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -166,46 +167,32 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(ordered_countries, [portugal.id, andorra.id, benin.id, austria.id, uk.id])
 
     def test_countries_ordered_as_expected_on_standard_application(self):
-        highest_priority_flag = self.create_flag("highest priority flag", "Destination", self.gov_user.team, priority=0)
-        lowest_priority_flag = self.create_flag("lowest priority flag", "Destination", self.gov_user.team, priority=10)
+        highest_priority_flag = FlagFactory(name="highest priority flag", level="Destination", team=self.gov_user.team, priority=0)
+        lowest_priority_flag = FlagFactory(name="lowest priority flag", level="Destination", team=self.gov_user.team, priority=10)
 
         standard_application = self.create_draft_standard_application(self.organisation)
 
         # Third parties
         first_tp = standard_application.third_parties.first()
-        second_tp = self.create_party(
-            "party 2", self.organisation, PartyType.THIRD_PARTY, standard_application, country_code="PT"
-        )
-        third_tp = self.create_party(
-            "party 3", self.organisation, PartyType.THIRD_PARTY, standard_application, country_code="AD"
-        )
-        fourth_tp = self.create_party(
-            "party 4", self.organisation, PartyType.THIRD_PARTY, standard_application, country_code="AT"
-        )
+        first_tp.party.flags.set([highest_priority_flag])
+
+        second_tp = self.create_party("party 2", self.organisation, PartyType.THIRD_PARTY, standard_application)
+        second_tp.flags.set([lowest_priority_flag])
+
+        third_tp = self.create_party("party 3", self.organisation, PartyType.THIRD_PARTY, standard_application)
+
+        fourth_tp = self.create_party("party 4", self.organisation, PartyType.THIRD_PARTY, standard_application)
+        fourth_tp.flags.set([lowest_priority_flag])
 
         # Ultimate end users
-        first_ueu = self.create_party(
-            "party 1", self.organisation, PartyType.ULTIMATE_END_USER, standard_application, country_code="GB"
-        )
-        second_ueu = self.create_party(
-            "party 2", self.organisation, PartyType.ULTIMATE_END_USER, standard_application, country_code="PT"
-        )
-        third_ueu = self.create_party(
-            "party 3", self.organisation, PartyType.ULTIMATE_END_USER, standard_application, country_code="AD"
-        )
-        fourth_ueu = self.create_party(
-            "party 4", self.organisation, PartyType.ULTIMATE_END_USER, standard_application, country_code="AT"
-        )
+        first_ueu = self.create_party("party 1", self.organisation, PartyType.ULTIMATE_END_USER, standard_application)
+        first_ueu.flags.set([highest_priority_flag])
 
-        # Countries with flags added
-        portugal = get_country("PT")
-        portugal.flags.set([highest_priority_flag])
-        andorra = get_country("AD")
-        andorra.flags.set([lowest_priority_flag])
-
-        # Countries without flags added
-        austria = get_country("AT")
-        uk = get_country("GB")
+        second_ueu = self.create_party("party 2", self.organisation, PartyType.ULTIMATE_END_USER, standard_application)
+        second_ueu.flags.set([lowest_priority_flag])
+        third_ueu = self.create_party("party 3", self.organisation, PartyType.ULTIMATE_END_USER, standard_application)
+        fourth_ueu = self.create_party("party 4", self.organisation, PartyType.ULTIMATE_END_USER, standard_application)
+        fourth_ueu.flags.set([lowest_priority_flag])
 
         case = self.submit_application(standard_application)
 
@@ -218,11 +205,12 @@ class CaseGetTests(DataTestClient):
         ordered_ultimate_end_users = [ueu["id"] for ueu in case_application["ultimate_end_users"]]
 
         # Third parties and ultimate end users are ordered by destination flag priority and for
-        # countries without flags, third parties are alphabetised
+        # parties of these types without flags, they are alphabetised
         self.assertEqual(
-            ordered_third_parties, [str(second_tp.id), str(third_tp.id), str(fourth_tp.id), str(first_tp.party.id),],
+            ordered_third_parties, [str(first_tp.party.id), str(second_tp.id), str(fourth_tp.id), str(third_tp.id)],
         )
 
         self.assertEqual(
-            ordered_ultimate_end_users, [str(second_ueu.id), str(third_ueu.id), str(fourth_ueu.id), str(first_ueu.id),],
+            ordered_ultimate_end_users,
+            [str(first_ueu.id), str(second_ueu.id), str(fourth_ueu.id), str(third_ueu.id)],
         )

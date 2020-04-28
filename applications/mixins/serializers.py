@@ -83,17 +83,15 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         """
         poa_with_destination_flags = (
             instance.all_parties()
-            .filter(party__type=party_type, party__country__flags__isnull=False)
-            .annotate(highest_priority=Min("party__country__flags__priority"))
-            .order_by("highest_priority", "party__country__name")
+            .filter(party__type=party_type, party__flags__isnull=False)
+            .annotate(highest_priority=Min("party__flags__priority"))
+            .order_by("highest_priority", "party__name")
         )
 
         parties_with_flags = [PartySerializer(poa.party).data for poa in poa_with_destination_flags]
 
         poa_without_destination_flags = (
-            instance.all_parties()
-            .filter(party__type=party_type, party__country__flags__isnull=True)
-            .order_by("party__country__name")
+            instance.all_parties().filter(party__type=party_type, party__flags__isnull=True).order_by("party__name")
         )
         parties_without_flags = [PartySerializer(poa.party).data for poa in poa_without_destination_flags]
 
