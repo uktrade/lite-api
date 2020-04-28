@@ -113,11 +113,5 @@ class TeamQueuesList(ListAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = TinyQueueSerializer
 
-    def paginate_queryset(self, queryset):
-        if str_to_bool(self.request.GET.get("disable_pagination", False)):
-            return None
-
-        return super().paginate_queryset(queryset)
-
     def get_queryset(self):
         return Queue.objects.filter(team_id=self.kwargs["pk"])
