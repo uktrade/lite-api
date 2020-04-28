@@ -131,8 +131,12 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(trade_control_product_categories, case.trade_control_product_categories)
 
     def test_countries_ordered_as_expected_on_open_application(self):
-        highest_priority_flag = FlagFactory(name="highest priority flag", level="Destination", team=self.gov_user.team, priority=0)
-        lowest_priority_flag = FlagFactory(name="lowest priority flag", level="Destination", team=self.gov_user.team, priority=10)
+        highest_priority_flag = FlagFactory(
+            name="highest priority flag", level="Destination", team=self.gov_user.team, priority=0
+        )
+        lowest_priority_flag = FlagFactory(
+            name="lowest priority flag", level="Destination", team=self.gov_user.team, priority=10
+        )
 
         open_application = self.create_draft_open_application(self.organisation)
 
@@ -167,8 +171,12 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(ordered_countries, [portugal.id, andorra.id, benin.id, austria.id, uk.id])
 
     def test_countries_ordered_as_expected_on_standard_application(self):
-        highest_priority_flag = FlagFactory(name="highest priority flag", level="Destination", team=self.gov_user.team, priority=0)
-        lowest_priority_flag = FlagFactory(name="lowest priority flag", level="Destination", team=self.gov_user.team, priority=10)
+        highest_priority_flag = FlagFactory(
+            name="highest priority flag", level="Destination", team=self.gov_user.team, priority=0
+        )
+        lowest_priority_flag = FlagFactory(
+            name="lowest priority flag", level="Destination", team=self.gov_user.team, priority=10
+        )
 
         standard_application = self.create_draft_standard_application(self.organisation)
 
@@ -213,6 +221,5 @@ class CaseGetTests(DataTestClient):
         )
 
         self.assertEqual(
-            ordered_ultimate_end_users,
-            [str(first_ueu.id), str(second_ueu.id), str(fourth_ueu.id), str(third_ueu.id)],
+            ordered_ultimate_end_users, [str(first_ueu.id), str(second_ueu.id), str(fourth_ueu.id), str(third_ueu.id)],
         )
