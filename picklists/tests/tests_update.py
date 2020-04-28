@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from audit_trail.enums import AuditType
+from audit_trail.payload import audit_type_format
 from picklists.enums import PickListStatus, PicklistType
 from test_helpers.clients import DataTestClient
 
@@ -25,7 +26,7 @@ class PicklistItemUpdate(DataTestClient):
         self.assertEqual(
             response_data["picklist_item"]["status"], {"key": PickListStatus.DEACTIVATED, "value": "Deactivated"},
         )
-        self.assertEqual(picklist["picklist_item"]["activity"][0]["text"], f"{AuditType.DEACTIVATE_PICKLIST}.")
+        self.assertEqual(picklist["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.DEACTIVATE_PICKLIST]}.")
 
     def test_reactivate_a_picklist_item(self):
         self.picklist_item.status = PickListStatus.DEACTIVATED
@@ -41,7 +42,7 @@ class PicklistItemUpdate(DataTestClient):
         self.assertEqual(
             response_data["picklist_item"]["status"], {"key": PickListStatus.ACTIVE, "value": "Active"},
         )
-        self.assertEqual(picklist["picklist_item"]["activity"][0]["text"], f"{AuditType.REACTIVATE_PICKLIST}.")
+        self.assertEqual(picklist["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.REACTIVATE_PICKLIST]}.")
 
     def test_edit_a_picklist_item_name(self):
         old_name = self.picklist_item.name
@@ -59,7 +60,7 @@ class PicklistItemUpdate(DataTestClient):
 
         self.assertEqual(
             picklist["picklist_item"]["activity"][0]["text"],
-            f"{AuditType.UPDATED_PICKLIST_NAME.format(old_name=old_name, new_name=new_name)}.",
+            f"{audit_type_format[AuditType.UPDATED_PICKLIST_NAME].format(old_name=old_name, new_name=new_name)}.",
         )
 
     def test_edit_a_picklist_item_text(self):
@@ -78,5 +79,5 @@ class PicklistItemUpdate(DataTestClient):
 
         self.assertEqual(
             picklist["picklist_item"]["activity"][0]["text"],
-            f"{AuditType.UPDATED_PICKLIST_TEXT.format(old_text=old_text, new_text=new_text)}.",
+            f"{audit_type_format[AuditType.UPDATED_PICKLIST_TEXT].format(old_text=old_text, new_text=new_text)}.",
         )

@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from audit_trail.enums import AuditType
+from audit_trail.payload import audit_type_format
 from picklists.enums import PicklistType, PickListStatus
 from test_helpers.clients import DataTestClient
 
@@ -38,5 +39,5 @@ class PicklistItemCreate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.json()["picklist_item"]["activity"][0]["text"], f"{AuditType.CREATED_PICKLIST}.",
+            response.json()["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.CREATED_PICKLIST]}.",
         )
