@@ -39,5 +39,6 @@ class PicklistItemCreate(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.json()["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.CREATED_PICKLIST]}.",
+            response.json()["picklist_item"]["activity"][0]["text"],
+            f"{audit_type_format[AuditType.CREATED_PICKLIST]}.",
         )

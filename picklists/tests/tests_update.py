@@ -26,7 +26,9 @@ class PicklistItemUpdate(DataTestClient):
         self.assertEqual(
             response_data["picklist_item"]["status"], {"key": PickListStatus.DEACTIVATED, "value": "Deactivated"},
         )
-        self.assertEqual(picklist["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.DEACTIVATE_PICKLIST]}.")
+        self.assertEqual(
+            picklist["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.DEACTIVATE_PICKLIST]}."
+        )
 
     def test_reactivate_a_picklist_item(self):
         self.picklist_item.status = PickListStatus.DEACTIVATED
@@ -42,7 +44,9 @@ class PicklistItemUpdate(DataTestClient):
         self.assertEqual(
             response_data["picklist_item"]["status"], {"key": PickListStatus.ACTIVE, "value": "Active"},
         )
-        self.assertEqual(picklist["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.REACTIVATE_PICKLIST]}.")
+        self.assertEqual(
+            picklist["picklist_item"]["activity"][0]["text"], f"{audit_type_format[AuditType.REACTIVATE_PICKLIST]}."
+        )
 
     def test_edit_a_picklist_item_name(self):
         old_name = self.picklist_item.name
