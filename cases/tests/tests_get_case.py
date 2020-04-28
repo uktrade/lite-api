@@ -131,8 +131,8 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(trade_control_product_categories, case.trade_control_product_categories)
 
     def test_countries_ordered_as_expected_on_open_application(self):
-        highest_priority_flag = self.create_flag("highest priority flag", "Destination", self.gov_user.team, priority=0)
-        lowest_priority_flag = self.create_flag("lowest priority flag", "Destination", self.gov_user.team, priority=10)
+        highest_priority_flag = FlagFactory(name="highest priority flag", level="Destination", team=self.gov_user.team, priority=0)
+        lowest_priority_flag = FlagFactory(name="lowest priority flag", level="Destination", team=self.gov_user.team, priority=10)
 
         open_application = self.create_draft_open_application(self.organisation)
 
@@ -190,7 +190,9 @@ class CaseGetTests(DataTestClient):
 
         second_ueu = self.create_party("party 2", self.organisation, PartyType.ULTIMATE_END_USER, standard_application)
         second_ueu.flags.set([lowest_priority_flag])
+
         third_ueu = self.create_party("party 3", self.organisation, PartyType.ULTIMATE_END_USER, standard_application)
+
         fourth_ueu = self.create_party("party 4", self.organisation, PartyType.ULTIMATE_END_USER, standard_application)
         fourth_ueu.flags.set([lowest_priority_flag])
 
