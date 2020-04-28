@@ -11,6 +11,7 @@ from applications.libraries.application_helpers import optional_str_to_bool
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
+from cases.libraries.get_case import get_case
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
@@ -302,3 +303,16 @@ class FlaggingRuleDetail(APIView):
             return JsonResponse(data={"flagging_rule": serializer.data})
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CaseFlags(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, case_pk):
+        case = get_case(case_pk)
+        flags = case.flags.filter(status=FlagStatuses.ACTIVE)
+
+        if str_to_bool(self.request.GET.get("blocks_approval")):
+            flags = flags.filter(blocks_approval=True)
+
+        return JsonResponse(data={"flags": flags.values_list("label")})
