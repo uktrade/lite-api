@@ -7,6 +7,9 @@ class QueuesResponseTests(EndPointTests):
     def test_queues_list(self):
         self.call_endpoint(self.get_gov_user(), self.url)
 
+    def test_queues_list_without_pagination(self):
+        self.call_endpoint(self.get_gov_user(), self.url + "?disable_pagination=True")
+
     def test_queues_detail(self):
         self.call_endpoint(self.get_gov_user(), self.url + self.get_queue_id())
 

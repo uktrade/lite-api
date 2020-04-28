@@ -2,11 +2,14 @@ from django.http import JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Teams
+from queues.models import Queue
+from queues.serializers import TinyQueueSerializer
 from gov_users.serializers import GovUserListSerializer
 from teams.helpers import get_team_by_pk
 from teams.models import Team
@@ -99,3 +102,15 @@ class UsersByTeamsList(APIView):
 
         serializer = GovUserListSerializer(users, many=True)
         return JsonResponse(data={"users": serializer.data})
+
+
+class TeamQueuesList(ListAPIView):
+    """
+    Returns all queues for a given team with their id and name
+    """
+
+    authentication_classes = (GovAuthentication,)
+    serializer_class = TinyQueueSerializer
+
+    def get_queryset(self):
+        return Queue.objects.filter(team_id=self.kwargs["pk"])
