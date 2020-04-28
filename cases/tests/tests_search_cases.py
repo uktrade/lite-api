@@ -12,6 +12,7 @@ from queues.constants import (
     MY_ASSIGNED_CASES_QUEUE_ID,
     MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
 )
+from queues.tests.factories import QueueFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -432,24 +433,85 @@ class FilterQueueUserAssignedAsCaseOfficerTests(DataTestClient):
 
 class TestQueueOrdering(DataTestClient):
     def test_all_cases_queue_returns_cases_in_expected_order(self):
+        """Test All cases queue returns cases in expected order (newest first)."""
         url = reverse("cases:search")
-        """Test All cases queue returns cases in expected order (newest first). """
         clc_query = self.create_clc_query("Example CLC Query", self.organisation)
         standard_app = self.create_standard_application_case(self.organisation, "Example Application")
         clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
-        expected_case_ids = [str(clc_query_2.id), str(standard_app.id), str(clc_query.id)]
 
-        self.queue.cases.add(clc_query)
-        self.queue.cases.add(standard_app)
-        self.queue.cases.add(clc_query_2)
-        self.queue.save()
+        QueueFactory(team=self.gov_user.team, cases=[clc_query, standard_app, clc_query_2])
 
         response = self.client.get(url, **self.gov_headers)
 
-        case_ids = [case["id"] for case in response.json()["results"]["cases"]]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
+        expected_case_order_ids = [str(clc_query_2.id), str(standard_app.id), str(clc_query.id)]
+        self.assertEqual(actual_case_order_ids, expected_case_order_ids)
+
+    def test_work_queue_returns_cases_in_expected_order(self):
+        """Test that a work queue returns cases in expected order (hmrc queries with goods not departed first)."""
+        clc_query_1 = self.create_clc_query("Example CLC Query", self.organisation)
+        standard_app = self.create_standard_application_case(self.organisation, "Example Application")
+        hmrc_query_1 = self.submit_application(self.create_hmrc_query(self.organisation))
+        clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
+        hmrc_query_2 = self.submit_application(self.create_hmrc_query(self.organisation, have_goods_departed=True))
+
+        queue = QueueFactory(
+            team=self.gov_user.team, cases=[clc_query_1, standard_app, hmrc_query_1, clc_query_2, hmrc_query_2]
+        )
+
+        url = reverse("cases:search") + "?queue_id=" + str(queue.id)
+        response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(case_ids, expected_case_ids)
+
+        actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
+        expected_case_order_ids = [
+            str(hmrc_query_1.id),
+            str(clc_query_1.id),
+            str(standard_app.id),
+            str(clc_query_2.id),
+            str(hmrc_query_2.id),
+        ]
+        self.assertEqual(actual_case_order_ids, expected_case_order_ids)
+
+    def test_work_queue_returns_cases_in_expected_order_when_sorting(self):
+        """Test that a work queue returns cases in expected order (sorted by status)."""
+        standard_app = self.create_standard_application_case(self.organisation, "Example Application")
+        standard_app.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        standard_app.save()
+        clc_query_1 = self.create_clc_query("Example CLC Query", self.organisation)
+        clc_query_1.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        clc_query_1.save()
+        clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
+        clc_query_2.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
+        clc_query_2.save()
+        hmrc_query_1 = self.submit_application(self.create_hmrc_query(self.organisation))
+        hmrc_query_1.status = get_case_status_by_status(CaseStatusEnum.RESUBMITTED)
+        hmrc_query_1.save()
+        hmrc_query_2 = self.submit_application(self.create_hmrc_query(self.organisation, have_goods_departed=True))
+        hmrc_query_2.status = get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW)
+        hmrc_query_2.save()
+
+        queue = QueueFactory(
+            team=self.gov_user.team, cases=[standard_app, clc_query_1, clc_query_2, hmrc_query_1, hmrc_query_2]
+        )
+
+        url = reverse("cases:search") + "?queue_id=" + str(queue.id) + "&sort=status"
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
+        expected_case_order_ids = [
+            str(clc_query_1.id),
+            str(standard_app.id),
+            str(hmrc_query_1.id),
+            str(clc_query_2.id),
+            str(hmrc_query_2.id),
+        ]
+        self.assertEqual(actual_case_order_ids, expected_case_order_ids)
 
 
 class TestTeamOpenEcjuQueryOnWorkCase(DataTestClient):

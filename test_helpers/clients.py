@@ -767,7 +767,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.submit_application(draft)
 
     def create_hmrc_query(
-        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True,
+        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True, have_goods_departed=False,
     ):
         application = HmrcQuery(
             name=reference_name,
@@ -778,6 +778,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             hmrc_organisation=self.hmrc_organisation,
             reasoning="I Am Easy to Find",
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            have_goods_departed=have_goods_departed,
         )
         application.save()
 
@@ -956,3 +957,26 @@ class PerformanceTestClient(DataTestClient):
         for i in range(sites_count):
             site = SiteFactory(organisation=organisation)
             site.users.set(users)
+
+    def create_assorted_cases(
+        self,
+        standard_app_case_count: int = 1,
+        open_app_case_count: int = 1,
+        hmrc_query_count_goods_gone: int = 1,
+        hmrc_query_count_goods_in_uk: int = 1,
+    ):
+        print(f"Creating {standard_app_case_count} standard cases...")
+        for i in range(standard_app_case_count):
+            self.create_standard_application_case(self.organisation)
+
+        print(f"Creating {open_app_case_count} open cases...")
+        for i in range(open_app_case_count):
+            self.create_open_application_case(self.organisation)
+
+        print(f"Creating {hmrc_query_count_goods_gone} HMRC Queries where the products have left the UK...")
+        for i in range(hmrc_query_count_goods_gone):
+            self.create_hmrc_query(self.organisation, have_goods_departed=True)
+
+        print(f"Creating {hmrc_query_count_goods_in_uk} HMRC Queries where the products are still in the UK...")
+        for i in range(hmrc_query_count_goods_in_uk):
+            self.create_hmrc_query(self.organisation, have_goods_departed=True)
