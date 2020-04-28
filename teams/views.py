@@ -8,7 +8,6 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Teams
-from conf.helpers import str_to_bool
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from gov_users.serializers import GovUserListSerializer
