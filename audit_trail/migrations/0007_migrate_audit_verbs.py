@@ -4,19 +4,25 @@ from audit_trail.enums import AuditType
 from audit_trail.payload import audit_type_format
 
 
-OLD_VERBS = {
+# Verbs that have been changed
+DELTA_VERBS = {
     AuditType.MOVE_CASE: "moved the case to: {queues}",
     AuditType.GOOD_REVIEWED: 'good was reviewed: {good_name} control code changed from "{old_control_code}" to "{new_control_code}"',
     AuditType.GRANTED_APPLICATION: "granted licence for {licence_duration} months",
     AuditType.UPDATE_APPLICATION_LETTER_REFERENCE: "updated the letter reference from {old_ref_number} to {new_ref_number}"
 }
 
+
+# Verbs that remain unchanged
 EXCLUDED = [
     AuditType.CREATED
 ]
 
 
 def fill_in_missing_actor(apps, schema_editor):
+    """
+    Convert old AuditType.verb with format to new AuditType.verb as enum value.
+    """
     if schema_editor.connection.alias != "default":
         return
 
@@ -36,8 +42,8 @@ def fill_in_missing_actor(apps, schema_editor):
         total_updates += audit_qs.count()
         audit_qs.update(verb=audit_type)
 
-        if OLD_VERBS.get(audit_type, False):
-            old_audit_qs = Audit.objects.filter(verb=OLD_VERBS[audit_type])
+        if DELTA_VERBS.get(audit_type, False):
+            old_audit_qs = Audit.objects.filter(verb=DELTA_VERBS[audit_type])
             print({
                 "old_audit": audit_type.value,
                 "count": old_audit_qs.count()
