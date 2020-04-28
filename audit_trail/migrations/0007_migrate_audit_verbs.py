@@ -9,14 +9,12 @@ DELTA_VERBS = {
     AuditType.MOVE_CASE: "moved the case to: {queues}",
     AuditType.GOOD_REVIEWED: 'good was reviewed: {good_name} control code changed from "{old_control_code}" to "{new_control_code}"',
     AuditType.GRANTED_APPLICATION: "granted licence for {licence_duration} months",
-    AuditType.UPDATE_APPLICATION_LETTER_REFERENCE: "updated the letter reference from {old_ref_number} to {new_ref_number}"
+    AuditType.UPDATE_APPLICATION_LETTER_REFERENCE: "updated the letter reference from {old_ref_number} to {new_ref_number}",
 }
 
 
 # Verbs that remain unchanged
-EXCLUDED = [
-    AuditType.CREATED
-]
+EXCLUDED = [AuditType.CREATED]
 
 
 def fill_in_missing_actor(apps, schema_editor):
@@ -35,26 +33,17 @@ def fill_in_missing_actor(apps, schema_editor):
             continue
         old_verb = audit_type_format[audit_type]
         audit_qs = Audit.objects.filter(verb=old_verb)
-        print({
-            "audit": audit_type.value,
-            "count": audit_qs.count()
-        })
+        print({"audit": audit_type.value, "count": audit_qs.count()})
         total_updates += audit_qs.count()
         audit_qs.update(verb=audit_type)
 
         if DELTA_VERBS.get(audit_type, False):
             old_audit_qs = Audit.objects.filter(verb=DELTA_VERBS[audit_type])
-            print({
-                "old_audit": audit_type.value,
-                "count": old_audit_qs.count()
-            })
+            print({"old_audit": audit_type.value, "count": old_audit_qs.count()})
             total_updates += old_audit_qs.count()
             old_audit_qs.update(verb=audit_type)
 
-    print({
-        "total_updates": total_updates,
-        "total_audit_count": Audit.objects.exclude(verb__in=EXCLUDED).count()
-    })
+    print({"total_updates": total_updates, "total_audit_count": Audit.objects.exclude(verb__in=EXCLUDED).count()})
 
 
 class Migration(migrations.Migration):

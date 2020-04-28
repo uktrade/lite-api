@@ -16,9 +16,7 @@ def create_missing_case_create_audits(apps, schema_editor):
     ):
         print("Running for audit update for case {id}".format(id=case.id))
         content_type = ContentType.objects.get_for_model(case)
-        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS, target_object_id=case.id).order_by(
-            "created_at"
-        )
+        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS, target_object_id=case.id).order_by("created_at")
 
         first_audit = audits.first()
         if first_audit and (
