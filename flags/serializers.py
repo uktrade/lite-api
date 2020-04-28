@@ -76,6 +76,7 @@ class FlagSerializer(serializers.ModelSerializer):
             "label",
             "colour",
             "priority",
+            "blocks_approval",
         )
 
     def update(self, instance, validated_data):
