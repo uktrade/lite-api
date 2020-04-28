@@ -89,7 +89,7 @@ audit_type_format = {
     AuditType.UPDATED_EXHIBITION_DETAILS_START_DATE: 'updated exhibition start date to "{new_first_exhibition_date}"',
     AuditType.UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE: 'updated required by date to "{new_required_by_date}"',
     AuditType.UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE: (
-        'updated exhibition reason for clearance to "{new_reason_for_clearance}"',
+        'updated exhibition reason for clearance to "{new_reason_for_clearance}"'
     ),
     AuditType.UPDATED_ROUTE_OF_GOODS: 'updated {route_of_goods_field} from "{previous_value}" to "{new_value}"',
     AuditType.RERUN_ROUTING_RULES: "reran the routing rules",

@@ -1,0 +1,60 @@
+from django.db import migrations
+
+from audit_trail.enums import AuditType
+from audit_trail.payload import audit_type_format
+
+
+OLD_VERBS = {
+    AuditType.MOVE_CASE: "moved the case to: {queues}",
+    AuditType.GOOD_REVIEWED: 'good was reviewed: {good_name} control code changed from "{old_control_code}" to "{new_control_code}"',
+    AuditType.GRANTED_APPLICATION: "granted licence for {licence_duration} months",
+    AuditType.UPDATE_APPLICATION_LETTER_REFERENCE: "updated the letter reference from {old_ref_number} to {new_ref_number}"
+}
+
+EXCLUDED = [
+    AuditType.CREATED
+]
+
+
+def fill_in_missing_actor(apps, schema_editor):
+    if schema_editor.connection.alias != "default":
+        return
+
+    Audit = apps.get_model("audit_trail", "Audit")
+
+    total_updates = 0
+
+    for audit_type in AuditType:
+        if audit_type in EXCLUDED:
+            continue
+        old_verb = audit_type_format[audit_type]
+        audit_qs = Audit.objects.filter(verb=old_verb)
+        print({
+            "audit": audit_type.value,
+            "count": audit_qs.count()
+        })
+        total_updates += audit_qs.count()
+        audit_qs.update(verb=audit_type)
+
+        if OLD_VERBS.get(audit_type, False):
+            old_audit_qs = Audit.objects.filter(verb=OLD_VERBS[audit_type])
+            print({
+                "old_audit": audit_type.value,
+                "count": old_audit_qs.count()
+            })
+            total_updates += old_audit_qs.count()
+            old_audit_qs.update(verb=audit_type)
+
+    print({
+        "total_updates": total_updates,
+        "total_audit_count": Audit.objects.exclude(verb__in=EXCLUDED).count()
+    })
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ("audit_trail", "0006_verb_choices"),
+    ]
+    operations = [
+        migrations.RunPython(fill_in_missing_actor),
+    ]
