@@ -31,7 +31,7 @@ class LiteEnum(str, Enum, metaclass=StrValueEnumMeta):
     NormalEnum.KEY.value == "key"
 
 
-    class CustomEnum(AutoStrValueEnum):
+    class CustomEnum(LiteEnum):
         KEY = "KEY"
         KEY_2 = autostr()
 

@@ -17,7 +17,7 @@ DELTA_VERBS = {
 EXCLUDED = [AuditType.CREATED]
 
 
-def fill_in_missing_actor(apps, schema_editor):
+def migrate_audit_verbs(apps, schema_editor):
     """
     Convert old AuditType.verb with format to new AuditType.verb as enum value.
     """
@@ -51,5 +51,5 @@ class Migration(migrations.Migration):
         ("audit_trail", "0006_verb_choices"),
     ]
     operations = [
-        migrations.RunPython(fill_in_missing_actor),
+        migrations.RunPython(migrate_audit_verbs),
     ]
