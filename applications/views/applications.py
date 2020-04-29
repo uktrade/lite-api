@@ -54,6 +54,7 @@ from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.libraries.get_destination import get_flags
 from cases.models import FinalAdvice
 from cases.sla import get_application_target_sla
 from cases.serializers import SimpleFinalAdviceSerializer
@@ -481,8 +482,11 @@ class ApplicationFinaliseView(APIView):
         action = data.get("action")
 
         if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
-            blocking_flags = application.flags.filter(status=FlagStatuses.ACTIVE, blocks_approval=True).values_list(
-                "name", flat=True
+            blocking_flags = (
+                get_flags(application.get_case())
+                .filter(status=FlagStatuses.ACTIVE, blocks_approval=True)
+                .order_by("name")
+                .values_list("name", flat=True)
             )
             if blocking_flags:
                 return JsonResponse(

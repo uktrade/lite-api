@@ -12,6 +12,7 @@ from applications.models import GoodOnApplication, CountryOnApplication, Standar
 from audit_trail import service as audit_trail_service
 from audit_trail.payload import AuditType
 from cases.libraries.get_case import get_case
+from cases.libraries.get_destination import get_flags
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
@@ -310,9 +311,11 @@ class CaseFlags(APIView):
 
     def get(self, request, case_pk):
         case = get_case(case_pk)
-        flags = case.flags.filter(status=FlagStatuses.ACTIVE)
+        flags = get_flags(case).filter(status=FlagStatuses.ACTIVE)
 
         if str_to_bool(self.request.GET.get("blocks_approval")):
             flags = flags.filter(blocks_approval=True)
+
+        flags = flags.order_by("name")
 
         return JsonResponse(data={"flags": list(flags.values_list("name", flat=True))})

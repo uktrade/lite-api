@@ -82,6 +82,20 @@ def annotate_my_team_flags(flags, priority, team):
     ).annotate(type=models.Value(priority, models.IntegerField()))
 
 
+def get_flags(case: Case):
+    """
+    Get all case flags in no particular order (order will be specified by calling function)
+    """
+    case_type = case.case_type.sub_type
+
+    goods_flags = get_goods_flags(case, case_type)
+    destination_flags = get_destination_flags(case, case_type)
+    case_flags = case.flags.all()
+    org_flags = case.organisation.flags.all()
+
+    return goods_flags.union(destination_flags).union(case_flags).union(org_flags)
+
+
 def get_ordered_flags(case: Case, team: Team):
     case_type = case.case_type.sub_type
 
