@@ -91,6 +91,7 @@ class FlagSerializer(serializers.ModelSerializer):
         instance.colour = validated_data.get("colour", instance.colour)
         instance.priority = validated_data.get("priority", instance.priority)
         instance.status = validated_data.get("status", instance.status)
+        instance.blocks_approval = validated_data.get("blocks_approval", instance.blocks_approval)
         instance.save()
         return instance
 
