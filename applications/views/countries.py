@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
 from audit_trail import service as audit_trail_service
@@ -38,6 +39,8 @@ class ApplicationCountries(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """ Add countries to an open licence application. """
+        if application.goodstype_category == GoodsTypeCategory.MEDIA:
+            return JsonResponse(data={"error": "DEV-STRING - Action not allowed"}, status=status.HTTP_400_BAD_REQUEST)
         data = request.data
         country_ids = data.get("countries")
 

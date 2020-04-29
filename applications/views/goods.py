@@ -239,6 +239,8 @@ class ApplicationGoodsTypeCountries(APIView):
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def put(self, request, application):
+        if application.goodstype_category == GoodsTypeCategory.MEDIA:
+            return JsonResponse(data={"error": "DEV-STRING - Action not allowed"}, status=status.HTTP_400_BAD_REQUEST)
         data = request.data
 
         for good, countries in data.items():

@@ -7,6 +7,7 @@ from applications.models import OpenApplication, CountryOnApplication
 from cases.enums import CaseTypeReferenceEnum
 from goodstype.models import GoodsType
 from goodstype.tests.factories import GoodsTypeFactory
+from static.countries.helpers import get_country
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
@@ -102,3 +103,35 @@ class OpenMediaTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(GoodsType.objects.all().count(), initial_goods_count)
+
+    @tag("1230", "country")
+    def test_cannot_change_countries_on_media_application(self):
+        application = self.create_draft_open_application(organisation=self.organisation)
+        application.goodstype_category = GoodsTypeCategory.MEDIA
+        application.save()
+        initial_countries_count = CountryOnApplication.objects.filter(application=application).count()
+        data = {"countries": Country.objects.all()[:10].values_list("id", flat=True)}
+        url = reverse("applications:countries", kwargs={"pk": application.id})
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(CountryOnApplication.objects.filter(application=application).count(), initial_countries_count)
+
+    @tag("1230", "country-good")
+    def test_cannot_change_countries_on_goodstype_on_media_application(self):
+        country_1 = get_country("ES")
+        country_2 = get_country("US")
+        country_3 = get_country("FR")
+
+        application = self.create_draft_open_application(organisation=self.organisation)
+        application.goodstype_category = GoodsTypeCategory.MEDIA
+        application.save()
+        goodstype = GoodsType.objects.filter(application=application).first()
+        initial_countries_count = goodstype.countries.count()
+        data = {str(goodstype.id): [country_1.id, country_2.id, country_3.id]}
+        url = reverse("applications:application_goodstype_assign_countries", kwargs={"pk": application.id})
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        goodstype.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(goodstype.countries.count(), initial_countries_count)
