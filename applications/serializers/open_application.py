@@ -140,6 +140,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         # Remove fields from serializer depending on the application being for a Trade Control Licence
         if self.trade_control_licence:
             self.fields.pop("export_type")
+            self.fields.pop("goodstype_category")
 
             if not self.initial_data.get("trade_control_activity") == TradeControlActivity.OTHER:
                 self.fields.pop("trade_control_activity_other")
@@ -166,7 +167,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
         application = super().create(validated_data)
 
-        if validated_data["goodstype_category"] == GoodsTypeCategory.MEDIA:
+        if validated_data.get("goodstype_category") == GoodsTypeCategory.MEDIA:
             with open("lite_content/lite_api/OEIL_products.csv", newline="") as csvfile:
                 reader = csv.DictReader(csvfile)
 
