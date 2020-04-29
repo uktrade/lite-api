@@ -28,6 +28,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     proposed_return_date = serializers.DateField(required=False)
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
+    goodstype_categories = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
@@ -53,6 +54,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "proposed_return_date",
             "trade_control_activity",
             "trade_control_product_categories",
+            "goodstype_categories",
         )
 
     def get_goods_types(self, application):
@@ -60,6 +62,11 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         default_countries = Country.objects.filter(countries_on_application__application=application)
 
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
+
+    def get_goodstype_categories(self, instance):
+        key = instance.goodstype_categories
+        value = GoodsTypeCategory.get_text(key)
+        return {"key": key, "value": value}
 
     def get_destinations(self, application):
         countries = Country.objects.filter(countries_on_application__application=application)
