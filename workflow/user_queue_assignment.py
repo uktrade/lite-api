@@ -1,8 +1,15 @@
+from typing import List
+
+from audit_trail import service as audit_trail_service
+from audit_trail.enums import AuditType
+
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
+from users.enums import SystemUser
+from users.models import GovUser
 
 
 def get_queues_with_case_assignments(case: Case):
@@ -34,12 +41,24 @@ def get_next_status_in_workflow_sequence(case):
         return None
 
 
-def user_queue_assignment_workflow(queues: [Queue], case: Case):
+def user_queue_assignment_workflow(queues: List[Queue], case: Case):
     from workflow.automation import run_routing_rules
 
     # Remove case from queues where all gov users are done with the case
     queues_without_case_assignments = set(queues) - get_queues_with_case_assignments(case)
     case.queues.remove(*queues_without_case_assignments)
+
+    system_user = GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID)
+
+    for queue in queues_without_case_assignments:
+        if queue.countersigning_queue_id:
+            case.queues.add(queue.countersigning_queue_id)
+            audit_trail_service.create(
+                actor=system_user,
+                verb=AuditType.MOVE_CASE,
+                action_object=case.get_case(),
+                payload={"queues": queue.countersigning_queue.name},
+            )
 
     # Move case to next non-terminal state if unassigned from all queues
     if case.queues.count() == 0:
