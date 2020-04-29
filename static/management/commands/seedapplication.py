@@ -93,9 +93,9 @@ class Command(SeedCommand):
         names_of_goods_to_add = set(required_goods_names) - set([good.description for good in existing_goods])
         goods_added = [verify_good(tc.create_good(
             description=name,
-            org=organisation,
+            organisation=organisation,
             is_good_controlled=random.choice([GoodControlled.YES, GoodControlled.NO, GoodControlled.UNSURE]),
-            control_code="ML1a",
+            control_list_entries=["ML1a"],
             is_pv_graded=random.choice([GoodPvGraded.YES, GoodPvGraded.NO, GoodPvGraded.GRADING_REQUIRED])))
             for name in names_of_goods_to_add]
 

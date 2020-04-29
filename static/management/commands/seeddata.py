@@ -98,7 +98,7 @@ class Command(SeedCommand):
         # ensure the correct number of organisations
         orgs = list(Organisation.objects.all()[:params.org_count])
         required = max(0, params.org_count - len(orgs))
-        orgs += [self.org_factory(params) for i in range(0, required)]
+        orgs += [self.org_factory(params) for _ in range(0, required)]
         print(f"identified {params.org_count} organisations to use")
 
         # ensure the correct number of standard applications per org
