@@ -5,7 +5,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from audit_trail.serializers import AuditSerializer
 from conf.authentication import GovAuthentication
 from conf.custom_views import OptionalPaginationView

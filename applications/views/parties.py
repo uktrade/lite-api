@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (

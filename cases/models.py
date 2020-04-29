@@ -4,7 +4,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
 
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.enums import (
     AdviceType,
     CaseDocumentState,
