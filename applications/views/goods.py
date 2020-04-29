@@ -207,7 +207,7 @@ class ApplicationGoodsType(APIView):
         """
         Deletes a goodstype
         """
-        if application.goodstype_category == GoodsTypeCategory.MEDIA:
+        if hasattr(application, "goodstype_category") and application.goodstype_category == GoodsTypeCategory.MEDIA:
             return JsonResponse(
                 data={"error": "DEV-STRING - This action is not allowed"}, status=status.HTTP_400_BAD_REQUEST
             )
