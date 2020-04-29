@@ -25,6 +25,7 @@ def update_granted_application_payload_type(apps, schema_editor):
             audit.payload["start_date"] = start_date.date().strftime("%Y-%m-%d")
             audit.save()
 
+
 class Migration(migrations.Migration):
     dependencies = [
         ("audit_trail", "0007_migrate_audit_verbs"),
