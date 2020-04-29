@@ -8,11 +8,12 @@ from applications.serializers.generic_application import (
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
+from goodstype.models import GoodsType
 from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
 from conf.serializers import KeyValueChoiceField
-from goodstype.serializers import GoodsTypeViewSerializer
+from goodstype.serializers import GoodsTypeViewSerializer, GoodsTypeSerializer
 from licences.models import Licence
 from lite_content.lite_api import strings
 from static.countries.models import Country
@@ -28,7 +29,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     proposed_return_date = serializers.DateField(required=False)
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
-    goodstype_categories = serializers.SerializerMethodField()
+    goodstype_category = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
@@ -54,7 +55,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "proposed_return_date",
             "trade_control_activity",
             "trade_control_product_categories",
-            "goodstype_categories",
+            "goodstype_category",
         )
 
     def get_goods_types(self, application):
@@ -63,8 +64,8 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
-    def get_goodstype_categories(self, instance):
-        key = instance.goodstype_categories
+    def get_goodstype_category(self, instance):
+        key = instance.goodstype_category
         value = GoodsTypeCategory.get_text(key)
         return {"key": key, "value": value}
 
@@ -97,8 +98,10 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
-    goodstype_categories = serializers.MultipleChoiceField(
-        choices=GoodsTypeCategory.choices, error_messages={"required": "Select the type of open licence you need"}
+    goodstype_category = KeyValueChoiceField(
+        allow_null=True,
+        choices=GoodsTypeCategory.choices,
+        error_messages={"required": "Select the type of open licence you need"},
     )
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
@@ -125,7 +128,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "trade_control_activity",
             "trade_control_activity_other",
             "trade_control_product_categories",
-            "goodstype_categories",
+            "goodstype_category",
         )
 
     def __init__(self, case_type_id, **kwargs):
@@ -147,7 +150,28 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         # Trade Control Licences are always permanent
         if self.trade_control_licence:
             validated_data["export_type"] = ApplicationExportType.PERMANENT
-        return super().create(validated_data)
+
+        application = super().create(validated_data)
+
+        open_media_items = [{"description": "a thing", "control_list_entries": ["ML1a", "ML1b"]}]
+
+        if validated_data["goodstype_category"] == GoodsTypeCategory.MEDIA:
+            validated_data["export_type"] = ApplicationExportType.TEMPORARY
+            for item in open_media_items:
+                data = {
+                    "application": application,
+                    "description": item["description"],
+                    "is_good_controlled": "True",
+                    "is_good_incorporated": "False",
+                    "control_list_entries": ["ML1a", "ML1b"],
+                }
+                serializer = GoodsTypeSerializer(data=data)
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    print(serializer.errors)
+
+        return application
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
