@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
@@ -163,6 +164,10 @@ class ApplicationGoodsTypes(APIView):
         """
         Post a goodstype
         """
+        if application.goodstype_category == GoodsTypeCategory.MEDIA:
+            return JsonResponse(
+                data={"error": "DEV-STRING - This action is not allowed"}, status=status.HTTP_400_BAD_REQUEST
+            )
         request.data["application"] = application
         serializer = GoodsTypeSerializer(data=request.data)
 

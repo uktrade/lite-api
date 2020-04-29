@@ -3,9 +3,10 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory
-from applications.models import OpenApplication
+from applications.models import OpenApplication, CountryOnApplication
 from cases.enums import CaseTypeReferenceEnum
 from goodstype.models import GoodsType
+from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
@@ -53,3 +54,31 @@ class OpenMediaTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.TEMPORARY)
+
+    @tag("1230")
+    def test_all_countries_added_media(self):
+        data = {
+            "name": "Test",
+            "export_type": ApplicationExportType.PERMANENT,
+            "application_type": CaseTypeReferenceEnum.OIEL,
+            "goodstype_category": GoodsTypeCategory.MEDIA,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(),
+            Country.objects.count(),
+        )
+
+    @tag("1230", "no-add")
+    def test_cannot_add_goodstypes_on_media_application(self):
+        application = self.create_draft_open_application(organisation=self.organisation)
+        application.goodstype_category = GoodsTypeCategory.MEDIA
+        application.save()
+        url = reverse("applications:application_goodstypes", kwargs={"pk": application.id})
+
+        response = self.client.post(url, "", **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
