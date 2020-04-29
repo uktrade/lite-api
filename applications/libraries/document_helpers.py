@@ -4,7 +4,7 @@ from rest_framework import status
 from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from audit_trail import service as audit_trail_service
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.generated_documents.models import GeneratedCaseDocument
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer

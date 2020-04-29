@@ -1,6 +1,6 @@
 from django.db import migrations
 
-from audit_trail.schema import AuditType
+from audit_trail.enums import AuditType
 
 
 def create_missing_application_audit(apps, schema_editor):
@@ -15,7 +15,7 @@ def create_missing_application_audit(apps, schema_editor):
         content_type = ContentType.objects.get_for_model(case)
 
         activities = Audit.objects.filter(
-            target_object_id=case.id, target_content_type=content_type, verb=AuditType.UPDATED_STATUS.value
+            target_object_id=case.id, target_content_type=content_type, verb=AuditType.UPDATED_STATUS
         ).order_by("created_at")
 
         last_status = None

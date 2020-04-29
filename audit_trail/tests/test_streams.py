@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from audit_trail.streams.service import date_to_string_utc
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
@@ -33,7 +33,7 @@ class AuditTrailStreamTestCase(DataTestClient):
         response = self.client.get(self.url, **self.exporter_headers)
         stream = response.json()
 
-        audit = Audit.objects.get(verb=AuditType.UPDATED_STATUS.value)
+        audit = Audit.objects.get(verb=AuditType.UPDATED_STATUS)
         self.assertEqual(2, len(stream["orderedItems"]))
         self.assertEqual(
             stream["orderedItems"][0],
@@ -83,21 +83,21 @@ class AuditTrailStreamTestCase(DataTestClient):
         Audit.objects.create(
             created_at=now - timedelta(days=1),
             actor=self.user,
-            verb=AuditType.UPDATED_STATUS.value,
+            verb=AuditType.UPDATED_STATUS,
             target=self.case,
             payload={"status": {"new": "1", "old": "2"}},
         )
         Audit.objects.create(
             created_at=now,
             actor=self.user,
-            verb=AuditType.UPDATED_STATUS.value,
+            verb=AuditType.UPDATED_STATUS,
             target=self.case,
             payload={"status": {"new": "3", "old": "1"}},
         )
         Audit.objects.create(
             created_at=now,
             actor=self.user,
-            verb=AuditType.UPDATED_STATUS.value,
+            verb=AuditType.UPDATED_STATUS,
             target=self.case,
             payload={"status": {"new": "4", "old": "3"}},
         )

@@ -2,12 +2,12 @@ import factory
 from django.contrib.contenttypes.models import ContentType
 
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from test_helpers.clients import DataTestClient
 
 
 class AuditFactory(factory.django.DjangoModelFactory):
-    verb = AuditType.UPDATED_STATUS.value
+    verb = AuditType.UPDATED_STATUS
 
     class Meta:
         model = Audit
@@ -18,7 +18,7 @@ def migrate_status_audit_payloads_for_case(case):
     content_type = ContentType.objects.get_for_model(case)
 
     activities = Audit.objects.filter(
-        target_object_id=case.id, target_content_type=content_type, verb=AuditType.UPDATED_STATUS.value
+        target_object_id=case.id, target_content_type=content_type, verb=AuditType.UPDATED_STATUS
     ).order_by("created_at")
 
     last_status = None
@@ -61,7 +61,7 @@ class TestSimpleAuditStatusMigration(DataTestClient):
         updated_audit_qs = Audit.objects.filter(
             target_object_id=self.case.id,
             target_content_type=ContentType.objects.get_for_model(self.case),
-            verb=AuditType.UPDATED_STATUS.value,
+            verb=AuditType.UPDATED_STATUS,
         ).order_by("created_at")
 
         for audit, expected_payload in zip(updated_audit_qs, self.expected_payloads):
@@ -100,7 +100,7 @@ class TestMixedAuditStatusMigration(DataTestClient):
         updated_audit_qs = Audit.objects.filter(
             target_object_id=self.case.id,
             target_content_type=ContentType.objects.get_for_model(self.case),
-            verb=AuditType.UPDATED_STATUS.value,
+            verb=AuditType.UPDATED_STATUS,
         ).order_by("created_at")
 
         for audit, expected_payload in zip(updated_audit_qs, self.expected_payloads):
