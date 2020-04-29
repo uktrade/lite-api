@@ -71,7 +71,7 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
             return RoutingRuleSerializer
 
     def get_queryset(self):
-        if not self.request.user.has_permission(GovPermissions.MANAGE_TEAM_ROUTING_RULES):
+        if self.request.user.has_permission(GovPermissions.MANAGE_ALL_ROUTING_RULES):
             return RoutingRule.objects.filter(id=self.kwargs["pk"])
         else:
             return RoutingRule.objects.filter(id=self.kwargs["pk"], team_id=self.request.user.team.id)
