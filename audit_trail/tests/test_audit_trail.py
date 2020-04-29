@@ -2,7 +2,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from audit_trail import service
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from test_helpers.clients import DataTestClient
 from users.models import BaseUser
 

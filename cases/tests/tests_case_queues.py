@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from lite_content.lite_api.strings import Cases
 from test_helpers.clients import DataTestClient
 
@@ -28,8 +28,8 @@ class AssignQueuesToCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(sorted(response.json()["queues"]), sorted([str(id) for id in data["queues"]]))
         self.assertEqual(set(self.case.queues.values_list("id", flat=True)), set(data["queues"]))
-        self.assertTrue(Audit.objects.filter(verb=AuditType.MOVE_CASE.value).exists())
-        self.assertFalse(Audit.objects.filter(verb=AuditType.REMOVE_CASE.value).exists())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.MOVE_CASE).exists())
+        self.assertFalse(Audit.objects.filter(verb=AuditType.REMOVE_CASE).exists())
 
     def test_set_queues_with_initial_data_successful(self):
         self.case.queues.set(self.queues[:2])
@@ -40,8 +40,8 @@ class AssignQueuesToCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(sorted(response.json()["queues"]), sorted([str(id) for id in data["queues"]]))
         self.assertEqual(set(self.case.queues.values_list("id", flat=True)), set(data["queues"]))
-        self.assertTrue(Audit.objects.filter(verb=AuditType.MOVE_CASE.value).exists())
-        self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE.value).exists())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.MOVE_CASE).exists())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE).exists())
 
     def test_remove_queues_successful(self):
         self.case.queues.set(self.queues)
@@ -52,8 +52,8 @@ class AssignQueuesToCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(sorted(response.json()["queues"]), sorted([str(id) for id in data["queues"]]))
         self.assertEqual(set(self.case.queues.values_list("id", flat=True)), set(data["queues"]))
-        self.assertFalse(Audit.objects.filter(verb=AuditType.MOVE_CASE.value).exists())
-        self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE.value).exists())
+        self.assertFalse(Audit.objects.filter(verb=AuditType.MOVE_CASE).exists())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE).exists())
 
     def test_remove_all_queues_successful(self):
         self.case.queues.set(self.queues)
@@ -63,8 +63,8 @@ class AssignQueuesToCaseTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(self.case.queues.exists())
-        self.assertFalse(Audit.objects.filter(verb=AuditType.MOVE_CASE.value).exists())
-        self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE.value).exists())
+        self.assertFalse(Audit.objects.filter(verb=AuditType.MOVE_CASE).exists())
+        self.assertTrue(Audit.objects.filter(verb=AuditType.REMOVE_CASE).exists())
 
     def test_set_case_queue_not_found_failure(self):
         random_id = uuid.uuid4()

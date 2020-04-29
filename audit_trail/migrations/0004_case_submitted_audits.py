@@ -1,6 +1,6 @@
 from django.db import migrations
 
-from audit_trail.schema import AuditType
+from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 
 
@@ -16,9 +16,7 @@ def create_missing_case_create_audits(apps, schema_editor):
     ):
         print("Running for audit update for case {id}".format(id=case.id))
         content_type = ContentType.objects.get_for_model(case)
-        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS.value, target_object_id=case.id).order_by(
-            "created_at"
-        )
+        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS, target_object_id=case.id).order_by("created_at")
 
         first_audit = audits.first()
         if first_audit and (
@@ -31,7 +29,7 @@ def create_missing_case_create_audits(apps, schema_editor):
 
             Audit.objects.create(
                 created_at=case.created_at,
-                verb=AuditType.UPDATED_STATUS.value,
+                verb=AuditType.UPDATED_STATUS,
                 target_object_id=case.id,
                 target_content_type=content_type,
                 payload={"status": {"new": "submitted", "old": "draft"}},

@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from cases.models import Case, CaseAssignment
 from queues.constants import (
@@ -303,7 +303,7 @@ class FilterQueueUpdatedCasesTests(DataTestClient):
 
         self.audit = Audit.objects.create(
             actor=self.exporter_user,
-            verb=AuditType.UPDATED_STATUS.value,
+            verb=AuditType.UPDATED_STATUS,
             target=self.case,
             payload={"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": self.old_status}},
         )

@@ -1,7 +1,8 @@
 from parameterized import parameterized
 
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from test_helpers.clients import DataTestClient
+from audit_trail.payload import format_payload
 
 
 class TestPayload(DataTestClient):
@@ -18,7 +19,7 @@ class TestPayload(DataTestClient):
         ]
     )
     def test_audit_type_formatter_success(self, verb, payload, expected_text):
-        text = verb.format(payload)
+        text = format_payload(verb, payload)
 
         self.assertEqual(text, expected_text)
 
@@ -36,6 +37,6 @@ class TestPayload(DataTestClient):
     )
     def test_audit_type_formatter_fails(self, verb, payload, key_error):
         with self.assertRaises(Exception) as context:
-            verb.format(payload)
+            format_payload(verb, payload)
 
         self.assertTrue(key_error in str(context.exception))

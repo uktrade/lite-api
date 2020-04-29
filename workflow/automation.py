@@ -1,4 +1,4 @@
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.models import Case, CaseAssignment
 from teams.models import Team
 from users.enums import SystemUser, UserStatuses
