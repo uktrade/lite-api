@@ -95,7 +95,9 @@ class FinaliseApplicationTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response_data["errors"], [f"This application cannot be finalised due to the following flags: {flag.name}"])
+        self.assertEqual(
+            response_data["errors"], [f"This application cannot be finalised due to the following flags: {flag.name}"]
+        )
 
     def test_finalise_clearance_application_success(self):
         clearance_application = self.create_mod_clearance_application(
