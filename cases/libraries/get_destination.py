@@ -91,9 +91,7 @@ def get_ordered_flags(case: Case, team: Team):
     org_flags = annotate_my_team_flags(case.organisation.flags.all(), 3, team)
 
     all_flags = goods_flags.union(destination_flags).union(case_flags).union(org_flags)
-    all_flags = all_flags.order_by("-my_team", "type", "priority")
-
-    return CaseListFlagSerializer(all_flags, many=True).data
+    return all_flags.order_by("-my_team", "type", "priority")
 
 
 def sort_flags_by_team_and_priority(flag_data, team):

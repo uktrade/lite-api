@@ -1,5 +1,6 @@
 from applications.models import GoodOnApplication, PartyOnApplication
 from cases.libraries.get_destination import get_ordered_flags
+from flags.serializers import CaseListFlagSerializer
 from flags.tests.factories import FlagFactory
 from parties.enums import PartyType
 from teams.models import Team
@@ -35,7 +36,7 @@ class FlagsOrderingOnCaseViewTests(DataTestClient):
 
         self.organisation.flags.set([flag for flag in flags if flag.level == "Organisation"])
 
-        ordered_flags = get_ordered_flags(case, self.team)
+        ordered_flags = CaseListFlagSerializer(get_ordered_flags(case, self.team), many=True).data
 
         # This is the order of the original flags when displayed on a case
         expected_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 16, 9, 17, 10, 18, 11, 19, 12, 20, 13, 21, 14, 22, 15, 23]

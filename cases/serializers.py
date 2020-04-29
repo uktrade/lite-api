@@ -29,6 +29,7 @@ from cases.models import (
 from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
+from flags.serializers import CaseListFlagSerializer
 from goods.enums import PvGrading
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -171,7 +172,7 @@ class CaseListSerializer(serializers.Serializer):
         """
         Gets flags for a case and returns in sorted order by team.
         """
-        return get_ordered_flags(instance, self.team)
+        return CaseListFlagSerializer(get_ordered_flags(instance, self.team), many=True).data
 
     def get_submitted_at(self, instance):
         # Return the DateTime value manually as otherwise
@@ -276,7 +277,7 @@ class CaseDetailSerializer(CaseSerializer):
         """
         Gets flags for a case and returns in sorted order by team.
         """
-        return get_ordered_flags(instance, self.team)
+        return CaseListFlagSerializer(get_ordered_flags(instance, self.team), many=True).data
 
     def get_audit_notification(self, instance):
         content_type = ContentType.objects.get_for_model(Audit)
