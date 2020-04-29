@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import GovNotification
@@ -36,7 +36,7 @@ class GovUserNotificationTests(DataTestClient):
     def test_edit_application_updates_previous_audit_notification_success(self):
         audit = Audit.objects.create(
             actor=self.exporter_user,
-            verb=AuditType.UPDATED_APPLICATION_NAME.value,
+            verb=AuditType.UPDATED_APPLICATION_NAME,
             target=self.case.get_case(),
             payload={"old_name": "old_app_name", "new_name": "new_app_name"},
         )
@@ -83,7 +83,7 @@ class GovUserNotificationTests(DataTestClient):
         self.case.save()
         audit = Audit.objects.create(
             actor=self.exporter_user,
-            verb=AuditType.UPDATED_STATUS.value,
+            verb=AuditType.UPDATED_STATUS,
             target=self.case,
             payload={"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": old_status}},
         )

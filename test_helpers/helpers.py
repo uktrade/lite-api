@@ -45,3 +45,14 @@ def create_exporter_users(organisation, quantity=1, role_id=Roles.EXPORTER_DEFAU
 def is_not_verified_flag_set_on_good(good):
     flags_on_good = [str(id) for id in good.flags.values_list("id", flat=True)]
     return SystemFlags.GOOD_NOT_YET_VERIFIED_ID in flags_on_good
+
+
+def node_by_id(items: list, id):
+    """
+    Finds a dictionary with the id provided
+    """
+    for item in items:
+        if str(item["id"]) == str(id):
+            return item
+
+    raise KeyError(f"ID '{id}' not found in list")

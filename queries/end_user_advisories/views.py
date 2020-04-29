@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission

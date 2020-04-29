@@ -1,6 +1,8 @@
 import timeit
 import uuid
+import warnings
 from datetime import datetime, timezone
+from typing import Optional, List
 
 import django.utils.timezone
 from django.conf import settings as conf_settings
@@ -25,6 +27,8 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
+from goods.tests.factories import GoodFactory
+from goodstype.tests.factories import GoodsTypeFactory
 from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -335,6 +339,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_flag(name: str, level: str, team: Team):
+        warnings.warn(
+            "create_flag is a deprecated function. Use a FlagFactory instead", category=DeprecationWarning, stacklevel=2
+        )
+
         return FlagFactory(name=name, level=level, team=team)
 
     @staticmethod
@@ -368,18 +376,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             return CaseAssignment.objects.create(queue=queue, case=case, user=users)
 
     @staticmethod
-    def create_goods_type(application):
-        goods_type = GoodsType(
-            description="thing",
-            is_good_controlled=False,
-            control_code="ML1a",
-            is_good_incorporated=True,
-            application=application,
-        )
-        goods_type.save()
-        return goods_type
-
-    @staticmethod
     def create_picklist_item(name, team: Team, picklist_type, status):
         picklist_item = PicklistItem(
             team=team,
@@ -394,12 +390,16 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_good(
         description: str,
-        org: Organisation,
-        is_good_controlled: str = GoodControlled.YES,
-        control_code: str = "ML1X",
+        organisation: Organisation,
+        is_good_controlled: str = GoodControlled.NO,
+        control_list_entries: Optional[List[str]] = None,
         is_pv_graded: str = GoodPvGraded.YES,
         pv_grading_details: PvGradingDetails = None,
     ) -> Good:
+        warnings.warn(
+            "create_good is a deprecated function. Use a GoodFactory instead", category=DeprecationWarning, stacklevel=2
+        )
+
         if is_pv_graded == GoodPvGraded.YES and not pv_grading_details:
             pv_grading_details = PvGradingDetails.objects.create(
                 grading=None,
@@ -414,20 +414,29 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         good = Good(
             description=description,
             is_good_controlled=is_good_controlled,
-            control_code=control_code,
             part_number="123456",
-            organisation=org,
+            organisation=organisation,
             comment=None,
             report_summary=None,
             is_pv_graded=is_pv_graded,
             pv_grading_details=pv_grading_details,
         )
         good.save()
+
+        if good.is_good_controlled == GoodControlled.YES:
+            if not control_list_entries:
+                raise Exception("You need to set control list entries if the good is controlled")
+
+            control_list_entries = ControlListEntry.objects.filter(rating__in=control_list_entries)
+            good.control_list_entries.set(control_list_entries)
+
         return good
 
     @staticmethod
     def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
+        good = DataTestClient.create_good(
+            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
+        )
 
         goods_query = GoodsQuery.objects.create(
             clc_raised_reasons=clc_reason,
@@ -445,7 +454,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_clc_query(description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(description=description, org=organisation, is_pv_graded=GoodPvGraded.NO)
+        good = DataTestClient.create_good(
+            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
+        )
 
         clc_query = GoodsQuery.objects.create(
             clc_raised_reasons="this is a test text",
@@ -462,7 +473,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     @staticmethod
     def create_pv_grading_query(description, organisation) -> GoodsQuery:
         good = DataTestClient.create_good(
-            description=description, org=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED,
+            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.GRADING_REQUIRED
         )
 
         pv_grading_query = GoodsQuery.objects.create(
@@ -590,7 +601,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if add_a_good:
             # Add a good to the standard application
             self.good_on_application = GoodOnApplication(
-                good=self.create_good("a thing", organisation),
+                good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
                 application=application,
                 quantity=10,
                 unit=Units.NAR,
@@ -665,7 +676,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication.objects.create(
-            good=self.create_good("a thing", organisation),
+            good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
             application=application,
             quantity=10,
             unit=Units.NAR,
@@ -682,11 +693,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
-            is_good_controlled=True,
-            control_code="ML17",
-            organisation=self.organisation,
-            description="a good",
-            part_number="123456",
+            is_good_controlled=True, organisation=self.organisation, description="a good", part_number="123456",
         )
 
         GoodOnApplication.objects.create(
@@ -706,17 +713,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application = self.create_draft_standard_application(organisation, reference_name, safe_document)
 
-        part_good = Good(
-            is_good_controlled=GoodControlled.YES,
-            control_code="ML17",
-            organisation=self.organisation,
-            description="a good",
-            part_number="123456",
-        )
-        part_good.save()
-
         GoodOnApplication(
-            good=part_good, application=application, quantity=17, value=18, is_good_incorporated=True
+            good=GoodFactory(is_good_controlled=GoodControlled.YES, organisation=self.organisation,),
+            application=application,
+            quantity=17,
+            value=18,
+            is_good_incorporated=True,
         ).save()
 
         self.ultimate_end_user = self.create_party(
@@ -748,8 +750,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         application.save()
 
         # Add a goods description
-        self.create_goods_type(application)
-        self.create_goods_type(application)
+        GoodsTypeFactory(application=application, is_good_controlled=True)
+        GoodsTypeFactory(application=application, is_good_controlled=True)
 
         # Add a country to the application
         CountryOnApplication(application=application, country=get_country("GB")).save()
@@ -768,7 +770,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.submit_application(draft)
 
     def create_hmrc_query(
-        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True,
+        self, organisation: Organisation, reference_name="HMRC Query", safe_document=True, have_goods_departed=False,
     ):
         application = HmrcQuery(
             name=reference_name,
@@ -779,6 +781,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             hmrc_organisation=self.hmrc_organisation,
             reasoning="I Am Easy to Find",
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            have_goods_departed=have_goods_departed,
         )
         application.save()
 
@@ -790,7 +793,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         self.assertEqual(consignee, application.consignee.party)
         self.assertEqual(third_party, application.third_parties.get().party)
 
-        goods_type = self.create_goods_type(application)
+        goods_type = GoodsTypeFactory(application=application)
 
         # Set the application party documents
         self.create_document_for_party(application.end_user.party, safe=safe_document)
@@ -957,3 +960,26 @@ class PerformanceTestClient(DataTestClient):
         for i in range(sites_count):
             site = SiteFactory(organisation=organisation)
             site.users.set(users)
+
+    def create_assorted_cases(
+        self,
+        standard_app_case_count: int = 1,
+        open_app_case_count: int = 1,
+        hmrc_query_count_goods_gone: int = 1,
+        hmrc_query_count_goods_in_uk: int = 1,
+    ):
+        print(f"Creating {standard_app_case_count} standard cases...")
+        for i in range(standard_app_case_count):
+            self.create_standard_application_case(self.organisation)
+
+        print(f"Creating {open_app_case_count} open cases...")
+        for i in range(open_app_case_count):
+            self.create_open_application_case(self.organisation)
+
+        print(f"Creating {hmrc_query_count_goods_gone} HMRC Queries where the products have left the UK...")
+        for i in range(hmrc_query_count_goods_gone):
+            self.create_hmrc_query(self.organisation, have_goods_departed=True)
+
+        print(f"Creating {hmrc_query_count_goods_in_uk} HMRC Queries where the products are still in the UK...")
+        for i in range(hmrc_query_count_goods_in_uk):
+            self.create_hmrc_query(self.organisation, have_goods_departed=True)

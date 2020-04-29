@@ -1,23 +1,17 @@
 from django.http import JsonResponse
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
-from queues.service import get_queue
 from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer, QueueListSerializer
+from queues.service import get_queue
 
 
-class QueuesList(APIView):
+class QueuesList(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
-
-    def get(self, request):
-        """
-        Returns all queues
-        """
-        queues = Queue.objects.all()
-        serializer = QueueListSerializer(queues, many=True)
-        return JsonResponse(data={"queues": serializer.data})
+    queryset = Queue.objects.all()
+    serializer_class = QueueListSerializer
 
     def post(self, request):
         data = request.data.copy()
