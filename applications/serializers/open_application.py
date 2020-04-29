@@ -150,17 +150,23 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             self.fields.pop("trade_control_activity_other")
             self.fields.pop("trade_control_product_categories")
 
+        self.media_application = (
+            True if self.initial_data.get("goodstype_category") == GoodsTypeCategory.MEDIA else False
+        )
+        if self.media_application:
+            self.fields.pop("export_type")
+            self.media_application = True
+
     def create(self, validated_data):
         # Trade Control Licences are always permanent
         if self.trade_control_licence:
             validated_data["export_type"] = ApplicationExportType.PERMANENT
+        elif self.media_application:
+            validated_data["export_type"] = ApplicationExportType.TEMPORARY
 
         application = super().create(validated_data)
 
-        open_media_items = [{"description": "a thing", "control_list_entries": ["ML1a", "ML1b"]}]
-
         if validated_data["goodstype_category"] == GoodsTypeCategory.MEDIA:
-            validated_data["export_type"] = ApplicationExportType.TEMPORARY
             with open("lite_content/lite_api/OEIL_products.csv", newline="") as csvfile:
                 reader = csv.DictReader(csvfile)
 
@@ -172,7 +178,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
                             "is_good_controlled": "True",
                             "is_good_incorporated": "False",
                             "control_list_entries": row["CONTROL_ENTRY"].split(", "),
-                            "report_summary": row["ARS"]
+                            "report_summary": row["ARS"],
                         }
                         serializer = GoodsTypeSerializer(data=data)
                         if serializer.is_valid():

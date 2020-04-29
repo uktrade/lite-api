@@ -26,3 +26,16 @@ class OpenMediaTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.count(), 1)
         self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 6)
+
+    @tag("1230")
+    def test_export_type_is_set_to_temporary(self):
+        data = {
+            "name": "Test",
+            "application_type": CaseTypeReferenceEnum.OIEL,
+            "goodstype_category": GoodsTypeCategory.MEDIA,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.TEMPORARY)
