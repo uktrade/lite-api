@@ -94,7 +94,7 @@ def get_flags(case: Case) -> QuerySet:
     case_flags = case.flags.all()
     org_flags = case.organisation.flags.all()
 
-    return goods_flags | destination_flags | case_flags| org_flags
+    return goods_flags | destination_flags | case_flags | org_flags
 
 
 def get_ordered_flags(case: Case, team: Team):
