@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.enums import ApplicationExportType
+from applications.enums import ApplicationExportType, GoodsTypeCategory
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -90,6 +90,9 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    goodstype_categories = serializers.MultipleChoiceField(
+        choices=GoodsTypeCategory.choices, error_messages={"required": "Select the type of open licence you need"}
+    )
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
     )
@@ -115,6 +118,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "trade_control_activity",
             "trade_control_activity_other",
             "trade_control_product_categories",
+            "goodstype_categories",
         )
 
     def __init__(self, case_type_id, **kwargs):
