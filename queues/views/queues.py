@@ -1,7 +1,5 @@
-from collections import OrderedDict
-
 from django.http import JsonResponse
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
