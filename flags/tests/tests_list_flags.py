@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from flags.enums import SystemFlags
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -20,7 +21,7 @@ class FlagsListTests(DataTestClient):
         And case-level and team-level flags are set in the query params
         Then only the case-level and team-level flags are returned
         """
-        other_team = self.create_team("Team")
+        other_team = TeamFactory()
 
         flag1 = self.create_flag("Flag1", "Case", self.team)
         org_level_flag = self.create_flag("Flag2", "Organisation", self.team)

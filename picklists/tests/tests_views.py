@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from picklists.enums import PicklistType, PickListStatus
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -11,7 +12,7 @@ class PicklistsViews(DataTestClient):
 
     def setUp(self):
         super().setUp()
-        other_team = self.create_team("Team")
+        other_team = TeamFactory()
         self.picklist_item_1 = self.create_picklist_item("#1", self.team, PicklistType.PROVISO, PickListStatus.ACTIVE)
         self.picklist_item_2 = self.create_picklist_item("#2", self.team, PicklistType.PROVISO, PickListStatus.ACTIVE)
         self.create_picklist_item("#3", self.team, PicklistType.REPORT_SUMMARY, PickListStatus.ACTIVE)

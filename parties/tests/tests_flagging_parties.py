@@ -3,6 +3,7 @@ from rest_framework import status
 
 from parties.enums import PartyType
 from static.countries.helpers import get_country
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -19,7 +20,7 @@ class PartyFlagsManagementTests(DataTestClient):
         self.third_party = self.create_party(name, organisation, PartyType.THIRD_PARTY, application)
 
         # Teams
-        self.other_team = self.create_team("Team")
+        self.other_team = TeamFactory()
 
         # Flags
         self.team_destination_flag_1 = self.create_flag("Destination Flag 1", "Destination", self.team)

@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from flags.enums import FlagStatuses
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -24,7 +25,7 @@ class FlaggingRulesListTests(DataTestClient):
     def test_gov_user_can_see_only_filtered_case_level_flagging_rules(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        other_team = self.create_team("Team")
+        other_team = TeamFactory()
 
         flag1 = self.create_flag("Flag1", "Case", self.team)
         country_level_flag = self.create_flag("Flag2", "Organisation", self.team)
@@ -56,7 +57,7 @@ class FlaggingRulesListTests(DataTestClient):
     def test_gov_user_can_filter_by_only_show_my_team(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        other_team = self.create_team("Team")
+        other_team = TeamFactory()
 
         country_level_flag = self.create_flag("Flag2", "Organisation", self.team)
         other_team_flag = self.create_flag("Flag3", "Case", other_team)

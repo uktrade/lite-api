@@ -4,6 +4,7 @@ from rest_framework import status
 
 from audit_trail.models import Audit
 from cases.models import Case
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -15,7 +16,7 @@ class GoodFlagsManagementTests(DataTestClient):
         self.good_2 = self.create_good("a second good", self.organisation)
 
         # Teams
-        self.other_team = self.create_team("Team")
+        self.other_team = TeamFactory()
 
         # Flags
         self.team_good_flag_1 = self.create_flag("Good Flag 1", "Good", self.team)

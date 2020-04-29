@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -12,7 +13,7 @@ class CaseFlagsManagementTests(DataTestClient):
         self.case = self.create_end_user_advisory_case(note="note", reasoning="test", organisation=self.organisation)
 
         # Teams
-        self.other_team = self.create_team("Team")
+        self.other_team = TeamFactory()
 
         # Flags
         self.team_case_flag_1 = self.create_flag("Case Flag 1", "Case", self.team)

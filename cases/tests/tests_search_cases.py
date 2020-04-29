@@ -15,6 +15,7 @@ from queues.constants import (
 from queues.tests.factories import QueueFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from users.enums import UserStatuses
 from users.libraries.user_to_token import user_to_token
@@ -518,7 +519,7 @@ class TestTeamOpenEcjuQueryOnWorkCase(DataTestClient):
     def setUp(self):
         super().setUp()
 
-        self.other_team = self.create_team("other team")
+        self.other_team = TeamFactory()
         self.other_team_gov_user = self.create_gov_user("new_user@digital.trade.gov.uk", self.other_team)
         self.queue = self.create_queue("my new queue", self.team)
         self.case = self.create_standard_application_case(self.organisation)

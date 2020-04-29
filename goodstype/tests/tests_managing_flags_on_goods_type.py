@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from goodstype.models import GoodsType
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -15,7 +16,7 @@ class GoodTypeFlagsManagementTests(DataTestClient):
         self.goods_type_2 = self.goods_types[1]
 
         # Teams
-        self.other_team = self.create_team("Team")
+        self.other_team = TeamFactory()
 
         # Flags
         self.team_good_flag_1 = self.create_flag("Good Flag 1", "Good", self.team)

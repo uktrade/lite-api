@@ -3,6 +3,7 @@ from rest_framework import status
 
 from flags.enums import FlagStatuses, FlagLevels
 from flags.tests.factories import FlagFactory
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -28,7 +29,7 @@ class FlaggingRulesUpdateTest(DataTestClient):
     def test_flagging_rule_cannot_be_deactivated_by_a_user_outside_flags_team(self):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
-        team = self.create_team("Secondary team")
+        team = TeamFactory()
         flag = self.create_flag("New Flag", "Case", team)
         flagging_rule = self.create_flagging_rule(level="Case", flag=flag, team=team, matching_value="SIEL")
 

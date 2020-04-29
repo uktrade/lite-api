@@ -5,6 +5,7 @@ from audit_trail.models import Audit
 from audit_trail.payload import AuditType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from lite_content.lite_api.strings import Cases
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
@@ -15,7 +16,7 @@ class CaseAssignmentTests(DataTestClient):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
         self.queue = self.create_queue("A", self.team)
-        self.other_team = self.create_team("Other")
+        self.other_team = TeamFactory()
         self.other_user = self.create_gov_user("test@gmail.com", self.other_team)
         self.other_queue = self.create_queue("B", self.other_team)
         self.url = reverse("cases:assigned_queues", kwargs={"pk": self.case.id})

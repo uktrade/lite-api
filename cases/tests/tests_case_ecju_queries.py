@@ -5,6 +5,7 @@ from rest_framework import status
 
 from cases.models import EcjuQuery
 from picklists.enums import PicklistType
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -20,7 +21,7 @@ class CaseEcjuQueriesTests(DataTestClient):
         ecju_query = EcjuQuery(question="ECJU Query 1", case=self.case, raised_by_user=self.gov_user)
         ecju_query.save()
 
-        self.team_2 = self.create_team("TAU")
+        self.team_2 = TeamFactory()
         self.gov_user2_email = "bob@slob.com"
         self.gov_user_2 = self.create_gov_user(self.gov_user2_email, self.team_2)
 

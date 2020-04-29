@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -8,7 +9,7 @@ class OrganisationFlagsManagementTests(DataTestClient):
     def setUp(self):
         super().setUp()
         # Teams
-        self.other_team = self.create_team("Team")
+        self.other_team = TeamFactory()
 
         # Flags
         self.team_organisation_flag_1 = self.create_flag("Organisation Flag 1", "Organisation", self.team)

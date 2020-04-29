@@ -4,6 +4,7 @@ from rest_framework import status
 from flags.enums import FlagStatuses, FlagColours, FlagLevels
 from flags.tests.factories import FlagFactory
 from lite_content.lite_api import strings
+from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -23,7 +24,7 @@ class FlagsUpdateTest(DataTestClient):
         self.assertEqual(response_data["status"], FlagStatuses.DEACTIVATED)
 
     def test_flag_cannot_be_deactivated_by_a_user_outside_flags_team(self):
-        team = self.create_team("Secondary team")
+        team = TeamFactory()
         flag = FlagFactory(team=team)
 
         data = {
@@ -37,7 +38,7 @@ class FlagsUpdateTest(DataTestClient):
         self.assertEqual(flag.status, FlagStatuses.ACTIVE)
 
     def test_flag_level_cannot_be_changed(self):
-        team = self.create_team("Secondary team")
+        team = TeamFactory()
         flag = FlagFactory(team=team, level=FlagLevels.CASE)
 
         data = {
