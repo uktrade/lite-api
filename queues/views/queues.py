@@ -1,17 +1,37 @@
+from collections import OrderedDict
+
 from django.http import JsonResponse
 from rest_framework import status, generics
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from conf.custom_views import OptionalPaginationView
+from conf.helpers import str_to_bool
+from queues.constants import SYSTEM_QUEUE_NAME_MAP
 from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer, QueueListSerializer
 from queues.service import get_queue
 
 
-class QueuesList(generics.ListAPIView):
+class QueuesList(OptionalPaginationView):
     authentication_classes = (GovAuthentication,)
     queryset = Queue.objects.all()
     serializer_class = QueueListSerializer
+
+    def get(self, request, *args, **kwargs):
+        include_system = request.GET.get("include_system", False)
+
+        if str_to_bool(include_system):
+            system_queues = [
+                {"id": id, "name": name}
+                for id, name in sorted(SYSTEM_QUEUE_NAME_MAP.items(), key=lambda queue_name_map: queue_name_map[1])
+            ]
+            work_queues = list(self.get_queryset())
+
+            data = self.get_serializer(system_queues + work_queues, many=True).data
+            return JsonResponse(data={"results": data}, status=status.HTTP_200_OK)
+        else:
+            return super().get(request, *args, **kwargs)
 
     def post(self, request):
         data = request.data.copy()
@@ -43,4 +63,4 @@ class QueueDetail(APIView):
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return JsonResponse(data={"queue": serializer.data})
+            return JsonResponse(data={"queue": serializer.data}, status=status.HTTP_200_OK)
