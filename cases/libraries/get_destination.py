@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import QuerySet
 from django.http import Http404
 
 from applications.models import GoodOnApplication, CountryOnApplication
@@ -82,7 +83,7 @@ def annotate_my_team_flags(flags, priority, team):
     ).annotate(type=models.Value(priority, models.IntegerField()))
 
 
-def get_flags(case: Case):
+def get_flags(case: Case) -> QuerySet:
     """
     Get all case flags in no particular order (order will be specified by calling function)
     """
@@ -93,7 +94,7 @@ def get_flags(case: Case):
     case_flags = case.flags.all()
     org_flags = case.organisation.flags.all()
 
-    return goods_flags.union(destination_flags).union(case_flags).union(org_flags)
+    return goods_flags | destination_flags | case_flags| org_flags
 
 
 def get_ordered_flags(case: Case, team: Team):
