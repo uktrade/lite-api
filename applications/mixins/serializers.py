@@ -85,10 +85,10 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
             instance.all_parties()
             .filter(party__type=party_type)
             .annotate(
-                highest_priority=Min("party__flags__priority"),
+                highest_flag_priority=Min("party__flags__priority"),
                 contains_flags=Case(When(party__flags__isnull=True, then=0), default=1, output_field=BinaryField()),
             )
-            .order_by("-contains_flags", "highest_priority", "party__name")
+            .order_by("-contains_flags", "highest_flag_priority", "party__name")
         )
 
         parties = [PartySerializer(poa.party).data for poa in parties_on_application]
