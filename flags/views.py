@@ -315,4 +315,4 @@ class CaseFlags(APIView):
         if str_to_bool(self.request.GET.get("blocks_approval")):
             flags = flags.filter(blocks_approval=True)
 
-        return JsonResponse(data={"flags": flags.values_list("label")})
+        return JsonResponse(data={"flags": list(flags.values_list("name", flat=True))})
