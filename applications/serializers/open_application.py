@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.fields import CharField
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory
-from applications.models import OpenApplication
+from applications.models import OpenApplication, CountryOnApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -185,6 +185,9 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
                             serializer.save()
                         else:
                             print(serializer.errors)
+
+            for country in Country.objects.all():
+                CountryOnApplication(country=country, application=application)
 
         return application
 
