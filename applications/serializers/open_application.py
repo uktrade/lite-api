@@ -187,7 +187,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
                             print(serializer.errors)
 
             for country in Country.objects.all():
-                CountryOnApplication(country=country, application=application)
+                CountryOnApplication(country=country, application=application).save()
 
         return application
 
