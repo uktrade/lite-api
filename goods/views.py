@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case
@@ -183,6 +183,8 @@ class GoodDocumentCriteriaCheck(APIView):
                 else:
                     return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             else:
+                good.missing_document_reason = None
+                good.save()
                 good_data = GoodSerializer(good).data
         else:
             return JsonResponse(
@@ -296,7 +298,12 @@ class GoodDocuments(APIView):
 
         serializer = GoodDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
-            serializer.save()
+            try:
+                serializer.save()
+            except Exception as e:  # noqa
+                return JsonResponse(
+                    {"errors": {"file": strings.Documents.UPLOAD_FAILURE}}, status=status.HTTP_400_BAD_REQUEST
+                )
             # Delete missing document reason as a document has now been uploaded
             good.missing_document_reason = None
             good.save()

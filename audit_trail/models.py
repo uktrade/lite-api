@@ -8,6 +8,7 @@ from django.utils.translation import ugettext as _
 from jsonfield import JSONField
 
 from audit_trail.managers import AuditManager
+from audit_trail.enums import AuditType
 from common.models import TimestampableModel
 from users.models import GovNotification
 
@@ -32,7 +33,7 @@ class Audit(TimestampableModel):
     actor_object_id = models.CharField(max_length=255, db_index=True)
     actor = GenericForeignKey("actor_content_type", "actor_object_id")
 
-    verb = models.CharField(max_length=255, db_index=True)
+    verb = models.CharField(choices=[(tag, tag.value) for tag in AuditType], max_length=255, db_index=True)
     description = models.TextField(blank=True, null=True)
 
     target_content_type = models.ForeignKey(

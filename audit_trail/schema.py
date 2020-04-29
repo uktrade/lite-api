@@ -1,7 +1,7 @@
 from collections import namedtuple
 from functools import wraps
 
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.models import Case, CaseNote
 from users.models import GovUser
 
