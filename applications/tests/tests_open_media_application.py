@@ -36,9 +36,7 @@ class OpenMediaTests(DataTestClient):
         self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()), 6)
 
     @tag("csv")
-    def test_get_the_fucking_rows_out_of_the_csv(self):
-
-        ControlListEntry.create("ML1b", "Info here", None, False)
+    def test_get_the_rows_out_of_the_csv(self):
 
         with open("lite_content/lite_api/OEIL_products.csv", newline="") as csvfile:
             reader = csv.DictReader(csvfile)
@@ -50,7 +48,7 @@ class OpenMediaTests(DataTestClient):
                         "description": row["DESCRIPTION"],
                         "is_good_controlled": "True",
                         "is_good_incorporated": "False",
-                        "control_list_entries": ["ML1a", "ML1b"],
+                        "control_list_entries": row["CONTROL_ENTRY"].split(", "),
                     }
                     serializer = GoodsTypeSerializer(data=data)
                     if serializer.is_valid():
@@ -59,4 +57,5 @@ class OpenMediaTests(DataTestClient):
         # self.assertEqual(GoodsType.objects.count(), 6)
 
         for good in GoodsType.objects.all():
-            print(good.description)
+            # print(good.description)
+            print(good.control_list_entries.all().values_list("rating"))

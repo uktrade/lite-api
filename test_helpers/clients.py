@@ -136,7 +136,23 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Create a hardcoded control list entry rather than loading in the
         # spreadsheet each time
-        ControlListEntry.create("ML1a", "Description", None, False)
+        clcs = [
+            "ML7f1",
+            "1A004a",
+            "1A004b",
+            "ML6b1",
+            "ML6b2",
+            "ML13c",
+            "ML13d1",
+            "1A005a",
+            "ML13d2",
+            "1A005b",
+            "ML1a",
+            "Ml1b",
+        ]
+        for clc in clcs:
+            ControlListEntry.create(clc, "Description", None, False)
+
         GovUser(id=SystemUser.LITE_SYSTEM_ID, email="", team=self.team).save()
 
         if settings.TIME_TESTS:
