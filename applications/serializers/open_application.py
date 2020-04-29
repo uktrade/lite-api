@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.db.models import Min
+from django.db.models import Min, Case, When, BinaryField
 from rest_framework.fields import CharField
 
 from applications.enums import ApplicationExportType
@@ -67,17 +67,15 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         if "user_type" in self.context and self.context["user_type"] == "exporter":
             countries = Country.objects.filter(countries_on_application__application=application)
         else:
-            countries_with_flags = (
-                Country.objects.filter(countries_on_application__application=application, flags__isnull=False)
-                .annotate(highest_priority=Min("flags__priority"))
-                .order_by("highest_priority", "name")
+            countries = (
+                Country.objects.prefetch_related("flags")
+                .filter(countries_on_application__application=application)
+                .annotate(
+                    highest_priority=Min("flags__priority"),
+                    contains_flags=Case(When(flags__isnull=True, then=0), default=1, output_field=BinaryField()),
+                )
+                .order_by("-contains_flags", "highest_priority", "name")
             )
-
-            countries_without_flags = Country.objects.filter(
-                countries_on_application__application=application, flags__isnull=True
-            ).order_by("name")
-
-            countries = list(countries_with_flags) + list(countries_without_flags)
 
         serializer = CountryWithFlagsSerializer(countries, many=True, context={"active_flags_only": True})
         return {"type": "countries", "data": serializer.data}

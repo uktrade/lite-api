@@ -5,7 +5,7 @@ from rest_framework import serializers
 from cases.enums import CaseTypeSubTypeEnum
 from parties.enums import PartyType
 from parties.serializers import PartySerializer
-from django.db.models import Min
+from django.db.models import Min, Case, When, BinaryField
 
 
 class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
@@ -81,18 +81,16 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         no flag, by country name.
 
         """
-        poa_with_destination_flags = (
+        parties_on_application = (
             instance.all_parties()
-            .filter(party__type=party_type, party__flags__isnull=False)
-            .annotate(highest_priority=Min("party__flags__priority"))
-            .order_by("highest_priority", "party__name")
+            .filter(party__type=party_type)
+            .annotate(
+                highest_priority=Min("party__flags__priority"),
+                contains_flags=Case(When(party__flags__isnull=True, then=0), default=1, output_field=BinaryField()),
+            )
+            .order_by("-contains_flags", "highest_priority", "party__name")
         )
 
-        parties_with_flags = [PartySerializer(poa.party).data for poa in poa_with_destination_flags]
+        parties = [PartySerializer(poa.party).data for poa in parties_on_application]
 
-        poa_without_destination_flags = (
-            instance.all_parties().filter(party__type=party_type, party__flags__isnull=True).order_by("party__name")
-        )
-        parties_without_flags = [PartySerializer(poa.party).data for poa in poa_without_destination_flags]
-
-        return parties_with_flags + parties_without_flags
+        return parties
