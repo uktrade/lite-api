@@ -1,6 +1,5 @@
-from collections import defaultdict
-
 from django.db import migrations
+
 from audit_trail.enums import AuditType
 
 
