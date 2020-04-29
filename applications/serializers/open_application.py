@@ -63,7 +63,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
-    def get_goodstype_categories(self, instance):
+    def get_goodstype_category(self, instance):
         key = instance.goodstype_categories
         value = GoodsTypeCategory.get_text(key)
         return {"key": key, "value": value}
@@ -139,6 +139,8 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             if not self.initial_data.get("trade_control_activity") == TradeControlActivity.OTHER:
                 self.fields.pop("trade_control_activity_other")
         else:
+            # If Open Individual Export Licence with Media, remove trade control activities
+            # if case_type_id == str(CaseTypeEnum.OICL.id) and self.goodstype_categories == GoodsTypeCategory.MEDIA:
             self.fields.pop("trade_control_activity")
             self.fields.pop("trade_control_activity_other")
             self.fields.pop("trade_control_product_categories")
@@ -147,6 +149,9 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         # Trade Control Licences are always permanent
         if self.trade_control_licence:
             validated_data["export_type"] = ApplicationExportType.PERMANENT
+        # Open Individual Export with Media are always temporary
+        if self.goodstype_categories == GoodsTypeCategory.MEDIA:
+            validated_data["export_type"] = ApplicationExportType.TEMPORARY
         return super().create(validated_data)
 
 
