@@ -183,6 +183,8 @@ class GoodDocumentCriteriaCheck(APIView):
                 else:
                     return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             else:
+                good.missing_document_reason = None
+                good.save()
                 good_data = GoodSerializer(good).data
         else:
             return JsonResponse(
@@ -296,7 +298,12 @@ class GoodDocuments(APIView):
 
         serializer = GoodDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
-            serializer.save()
+            try:
+                serializer.save()
+            except Exception as e:  # noqa
+                return JsonResponse(
+                    {"errors": {"file": strings.Documents.UPLOAD_FAILURE}}, status=status.HTTP_400_BAD_REQUEST
+                )
             # Delete missing document reason as a document has now been uploaded
             good.missing_document_reason = None
             good.save()
