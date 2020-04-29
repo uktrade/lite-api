@@ -77,13 +77,14 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         return self.__parties(instance, PartyType.INACTIVE_PARTIES)
 
     def get_ordered_parties(self, instance, party_type):
-        """ Order the parties based on country flag priority and where the party has
-        no flag, by country name.
+        """
+        Order the parties based on destination flag priority and where the party has
+        no flag, by destination (party/country depending on standard/open application) name.
 
         """
         parties_on_application = (
             instance.all_parties()
-            .filter(party__type=party_type)
+            .filter(party__type=party_type, deleted_at__isnull=True)
             .annotate(
                 highest_flag_priority=Min("party__flags__priority"),
                 contains_flags=Case(When(party__flags__isnull=True, then=0), default=1, output_field=BinaryField()),
