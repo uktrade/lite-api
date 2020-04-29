@@ -43,6 +43,7 @@ class TinyQueueSerializer(serializers.ModelSerializer):
 class QueueCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(error_messages={"blank": strings.Queues.BLANK_NAME,})
     team = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all())
+    countersigning_queue = serializers.PrimaryKeyRelatedField(queryset=Queue.objects.all())
 
     class Meta:
         model = Queue
@@ -50,4 +51,5 @@ class QueueCreateSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "team",
+            "countersigning_queue",
         )
