@@ -104,4 +104,4 @@ class ExternalLocation(TimestampableModel):
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True, related_name="external_location", on_delete=models.CASCADE,
     )
-    location_type = models.CharField(choices=LocationType.choices, null=True, blank=True, max_length=20)
+    location_type = models.CharField(choices=LocationType.choices, null=True, blank=True, max_length=20,)
