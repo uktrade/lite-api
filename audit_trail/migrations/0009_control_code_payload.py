@@ -19,7 +19,7 @@ def update_good_review_payload(apps, schema_editor):
             new_payload = {
                 "good_name": audit.payload["good_name"],
                 "old_control_list_entry": audit.payload["old_control_code"],
-                "new_control_list_entry": audit.payload["new_control_code"]
+                "new_control_list_entry": audit.payload["new_control_code"],
             }
             audit.payload = new_payload
             count += 1
