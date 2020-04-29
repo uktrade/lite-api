@@ -7,7 +7,7 @@ from common.models import TimestampableModel
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from flags.models import Flag
-from organisations.enums import OrganisationType, OrganisationStatus
+from organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from static.countries.models import Country
 from users.libraries.get_user import get_user_organisation_relationship
 from users.models import UserOrganisationRelationship
@@ -104,3 +104,4 @@ class ExternalLocation(TimestampableModel):
     organisation = models.ForeignKey(
         Organisation, blank=True, null=True, related_name="external_location", on_delete=models.CASCADE,
     )
+    location_type = models.CharField(choices=LocationType.choices, null=True, blank=True, max_length=20)

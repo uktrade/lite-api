@@ -277,10 +277,15 @@ class ExternalLocationSerializer(serializers.ModelSerializer):
     address = serializers.CharField()
     country = CountrySerializerField()
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    location_type = serializers.CharField()
 
     class Meta:
         model = ExternalLocation
-        fields = ("id", "name", "address", "country", "organisation")
+        fields = ("id", "name", "address", "country", "organisation", "location_type")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # self.fields["country"].required = False
 
 
 class OrganisationUserListView(serializers.ModelSerializer):

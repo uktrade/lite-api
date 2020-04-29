@@ -22,3 +22,13 @@ class OrganisationStatus:
         (ACTIVE, "Active"),
         (IN_REVIEW, "In review"),
     ]
+
+
+class LocationType:
+    LAND_BASED = "land_based"
+    SEA_BASED = "sea_based"
+
+    choices = [
+        (LAND_BASED, "Land based"),
+        (SEA_BASED, "Vessel (sea) based"),
+    ]
