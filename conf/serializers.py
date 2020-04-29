@@ -7,14 +7,15 @@ from rest_framework.fields import (
     iter_options,
     to_choices_dict,
     flatten_choices_dict,
-    CharField,
     empty,
     SkipField,
 )
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from conf.validators import ControlListEntryValidator
+from conf.exceptions import NotFoundError
 from lite_content.lite_api import strings
+from static.control_list_entries.helpers import get_control_list_entry
+from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 
@@ -135,12 +136,24 @@ class KeyValueChoiceField(Field):
     choices = property(_get_choices, _set_choices)
 
 
-class ControlListEntryField(CharField):
-    default_error_messages = {
-        "blank": _("Enter a valid control list entry"),
-        "invalid": _("Enter a valid control list entry"),
-    }
-
+class ControlListEntryField(PrimaryKeyRelatedSerializerField):
     def __init__(self, **kwargs):
-        super(ControlListEntryField, self).__init__(**kwargs)
-        self.validators.append(ControlListEntryValidator())
+        from static.control_list_entries.serializers import ControlListEntryViewSerializer
+
+        super().__init__(
+            queryset=ControlListEntry.objects.all(),
+            many=kwargs.get("many"),
+            serializer=ControlListEntryViewSerializer,
+            error_messages={"null": "bad rating"},
+            **kwargs,
+        )
+
+    # Use the full object and all FK related models instead of only the PK in lookups
+    def use_pk_only_optimization(self):
+        return False
+
+    def to_internal_value(self, data):
+        try:
+            return get_control_list_entry(data)
+        except NotFoundError:
+            raise serializers.ValidationError(strings.Goods.CONTROL_LIST_ENTRY_IVALID)

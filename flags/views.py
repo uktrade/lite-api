@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from applications.libraries.application_helpers import optional_str_to_bool
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from audit_trail import service as audit_trail_service
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions

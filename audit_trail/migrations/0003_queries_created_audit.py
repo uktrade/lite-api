@@ -1,6 +1,6 @@
 from django.db import migrations
 
-from audit_trail.schema import AuditType
+from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 
 
@@ -14,9 +14,7 @@ def create_missing_create_audits(apps, schema_editor):
     for case in Case.objects.filter(case_type__id=CaseTypeEnum.GOODS.id):
         print("Running for goods case {id}".format(id=case.id))
         content_type = ContentType.objects.get_for_model(case)
-        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS.value, target_object_id=case.id).order_by(
-            "created_at"
-        )
+        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS, target_object_id=case.id).order_by("created_at")
 
         for audit in audits:
             if audit and audit.payload["status"]["old"] == "draft":
@@ -24,11 +22,11 @@ def create_missing_create_audits(apps, schema_editor):
                 audit.payload["status"]["old"] = "clc_review"
                 audit.save()
 
-        if not Audit.objects.filter(verb=AuditType.CREATED.value, action_object_object_id=case.id).exists():
+        if not Audit.objects.filter(verb=AuditType.CREATED, action_object_object_id=case.id).exists():
             print("Creating original audit")
             Audit.objects.create(
                 created_at=case.created_at,
-                verb=AuditType.CREATED.value,
+                verb=AuditType.CREATED,
                 action_object_object_id=case.id,
                 action_object_content_type=content_type,
                 payload={"status": {"new": "clc_review"}},
@@ -37,9 +35,7 @@ def create_missing_create_audits(apps, schema_editor):
     for case in Case.objects.filter(case_type__id=CaseTypeEnum.EUA.id):
         print("Running for eua case {id}".format(id=case.id))
         content_type = ContentType.objects.get_for_model(case)
-        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS.value, target_object_id=case.id).order_by(
-            "created_at"
-        )
+        audits = Audit.objects.filter(verb=AuditType.UPDATED_STATUS, target_object_id=case.id).order_by("created_at")
 
         for audit in audits:
             if audit and audit.payload["status"]["old"] == "draft":
@@ -47,11 +43,11 @@ def create_missing_create_audits(apps, schema_editor):
                 audit.payload["status"]["old"] = "submitted"
                 audit.save()
 
-        if not Audit.objects.filter(verb=AuditType.CREATED.value, action_object_object_id=case.id).exists():
+        if not Audit.objects.filter(verb=AuditType.CREATED, action_object_object_id=case.id).exists():
             print("Creating original audit")
             Audit.objects.create(
                 created_at=case.created_at,
-                verb=AuditType.CREATED.value,
+                verb=AuditType.CREATED,
                 action_object_object_id=case.id,
                 action_object_content_type=content_type,
                 payload={"status": {"new": "submitted"}},
