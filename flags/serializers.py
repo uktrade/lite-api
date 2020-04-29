@@ -54,6 +54,11 @@ class FlagSerializer(serializers.ModelSerializer):
         },
     )
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
+    blocks_approval = serializers.BooleanField(
+        required=True,
+        allow_null=False,
+        error_messages={"required": "Please specify whether this flag will block application approvals",},
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
