@@ -86,3 +86,18 @@ class FlagsCreateTest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Flags.ValidationErrors.LABEL_MISSING, response.json()["errors"]["label"])
+
+    def test_cannot_create_flag_without_blocks_approval(self):
+        data = {
+            "name": "new flag",
+            "level": "Organisation",
+            "colour": FlagColours.ORANGE,
+            "label": "This is label",
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["blocks_approval"], [strings.Flags.ValidationErrors.BLOCKING_APPROVAL_MISSING]
+        )
