@@ -207,6 +207,10 @@ class ApplicationGoodsType(APIView):
         """
         Deletes a goodstype
         """
+        if application.goodstype_category == GoodsTypeCategory.MEDIA:
+            return JsonResponse(
+                data={"error": "DEV-STRING - This action is not allowed"}, status=status.HTTP_400_BAD_REQUEST
+            )
         goods_type = get_goods_type(goodstype_pk)
         if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
             delete_goods_type_document_if_exists(goods_type)

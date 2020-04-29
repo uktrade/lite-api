@@ -6,6 +6,7 @@ from applications.enums import ApplicationExportType, GoodsTypeCategory
 from applications.models import OpenApplication, CountryOnApplication
 from cases.enums import CaseTypeReferenceEnum
 from goodstype.models import GoodsType
+from goodstype.tests.factories import GoodsTypeFactory
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
@@ -77,8 +78,27 @@ class OpenMediaTests(DataTestClient):
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.MEDIA
         application.save()
+        initial_goods_count = GoodsType.objects.all().count()
         url = reverse("applications:application_goodstypes", kwargs={"pk": application.id})
 
         response = self.client.post(url, "", **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(GoodsType.objects.all().count(), initial_goods_count)
+
+    @tag("1230")
+    def test_remove_goodstype_from_open_application_as_exporter_user_success(self):
+        self.create_draft_open_application(self.organisation)
+        application = self.create_draft_open_application(organisation=self.organisation)
+        application.goodstype_category = GoodsTypeCategory.MEDIA
+        application.save()
+        goodstype = GoodsTypeFactory(application=application)
+        initial_goods_count = GoodsType.objects.all().count()
+        url = reverse(
+            "applications:application_goodstype", kwargs={"pk": application.id, "goodstype_pk": goodstype.id},
+        )
+
+        response = self.client.delete(url, **self.exporter_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(GoodsType.objects.all().count(), initial_goods_count)
