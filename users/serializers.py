@@ -60,15 +60,6 @@ class ExporterUserViewSerializer(serializers.ModelSerializer):
         return None
 
 
-class GovUserViewSerializer(serializers.ModelSerializer):
-    team = TeamSerializer()
-    role = RoleSerializer()
-
-    class Meta:
-        model = GovUser
-        fields = "__all__"
-
-
 class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         error_messages={"invalid": "Enter an email address in the correct format, like name@example.com"}

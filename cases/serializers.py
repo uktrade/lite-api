@@ -51,9 +51,9 @@ from users.enums import UserStatuses
 from users.models import BaseUser, GovUser, ExporterUser, GovNotification
 from users.serializers import (
     BaseUserViewSerializer,
-    GovUserViewSerializer,
     ExporterUserViewSerializer,
 )
+from gov_users.serializers import GovUserViewSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
