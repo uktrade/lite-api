@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "goods",
     "goodstype",
     "gov_users",
+    "hawkrest",
     "letter_templates",
     "licences",
     "organisations",
@@ -91,6 +92,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "conf.middleware.LoggingMiddleware",
     "conf.middleware.DBLoggingMiddleware",
+    "hawkrest.middleware.HawkResponseMiddleware",
 ]
 
 ROOT_URLCONF = "conf.urls"
@@ -126,6 +128,10 @@ REST_FRAMEWORK = {
 }
 
 AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
+
+HAWK_CREDENTIALS = {
+    "exporter-frontend": {"id": "exporter-frontend", "key": "a long, complicated secret", "algorithm": "sha256",},
+}
 
 WSGI_APPLICATION = "conf.wsgi.application"
 

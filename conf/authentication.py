@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AnonymousUser
+from hawkrest import HawkAuthentication
 from rest_framework import authentication
 
 from conf.exceptions import PermissionDeniedError
@@ -20,12 +21,20 @@ USER_DEACTIVATED_ERROR = "User has been deactivated"
 ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated"
 
 
-class ExporterAuthentication(authentication.BaseAuthentication):
+class ExporterAuthentication(HawkAuthentication):
     def authenticate(self, request):
         """
         When given a user token and an organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation
         """
+
+        # First, establish that the request has come from an authorised LITE API client
+        # by checking that the request is correctly Hawk signed
+        client_system_user = super().authenticate(request)
+
+        if not client_system_user:
+            raise PermissionDeniedError("You must include a valid HTTP authorisation header in your requests.")
+
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
         else:
@@ -88,11 +97,18 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         raise PermissionDeniedError("You don't belong to that organisation")
 
 
-class ExporterOnlyAuthentication(authentication.BaseAuthentication):
+class ExporterOnlyAuthentication(HawkAuthentication):
     def authenticate(self, request):
         """
         When given a user token, validate that the user exists
         """
+        # First, establish that the request has come from an authorised LITE API client
+        # by checking that the request is correctly Hawk signed
+        client_system_user = super().authenticate(request)
+
+        if not client_system_user:
+            raise PermissionDeniedError("You must include a valid HTTP authorisation header in your requests.")
+
         exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
         exporter_user = get_user_by_pk(token_to_user_pk(exporter_user_token))
         return exporter_user, None
