@@ -1,3 +1,5 @@
+import csv
+
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -159,19 +161,24 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
         if validated_data["goodstype_category"] == GoodsTypeCategory.MEDIA:
             validated_data["export_type"] = ApplicationExportType.TEMPORARY
-            for item in open_media_items:
-                data = {
-                    "application": application,
-                    "description": item["description"],
-                    "is_good_controlled": "True",
-                    "is_good_incorporated": "False",
-                    "control_list_entries": ["ML1a", "ML1b"],
-                }
-                serializer = GoodsTypeSerializer(data=data)
-                if serializer.is_valid():
-                    serializer.save()
-                else:
-                    print(serializer.errors)
+            with open("lite_content/lite_api/OEIL_products.csv", newline="") as csvfile:
+                reader = csv.DictReader(csvfile)
+
+                for row in reader:
+                    if row["SUBTYPE"] == "MEDIA":
+                        data = {
+                            "application": application,
+                            "description": row["DESCRIPTION"],
+                            "is_good_controlled": "True",
+                            "is_good_incorporated": "False",
+                            "control_list_entries": row["CONTROL_ENTRY"].split(", "),
+                            "report_summary": row["ARS"]
+                        }
+                        serializer = GoodsTypeSerializer(data=data)
+                        if serializer.is_valid():
+                            serializer.save()
+                        else:
+                            print(serializer.errors)
 
         return application
 
