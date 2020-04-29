@@ -3,7 +3,7 @@ from rest_framework import serializers
 from applications.models import GoodOnApplication, CountryOnApplication, BaseApplication
 from cases.enums import AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from conf.serializers import CountrySerializerField, KeyValueChoiceField
+from conf.serializers import CountrySerializerField, KeyValueChoiceField, ControlListEntryField
 from goods.models import Good
 from goodstype.models import GoodsType
 from licences.models import Licence
@@ -12,21 +12,26 @@ from static.statuses.serializers import CaseStatusSerializer
 
 
 class GoodLicenceListSerializer(serializers.ModelSerializer):
+    control_list_entries = ControlListEntryField(many=True)
+
     class Meta:
         model = Good
         fields = (
             "description",
-            "control_code",
+            "control_list_entries",
         )
         read_only_fields = fields
 
 
 class GoodsTypeOnLicenceListSerializer(serializers.ModelSerializer):
+    control_list_entries = ControlListEntryField(many=True)
+
     class Meta:
         model = GoodsType
         fields = (
+            "id",
             "description",
-            "control_code",
+            "control_list_entries",
         )
         read_only_fields = fields
 

@@ -10,18 +10,18 @@ from django.utils import timezone
 
 from applications.models import CountryOnApplication
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.models import Case
 from common.models import prefetch_generic_relations
 from static.statuses.enums import CaseStatusEnum
 
 STREAMED_AUDITS = [
-    AuditType.CREATED.value,
-    AuditType.ADD_CASE_OFFICER_TO_CASE.value,
-    AuditType.REMOVE_CASE_OFFICER_FROM_CASE.value,
-    AuditType.UPDATED_STATUS.value,
-    AuditType.ADD_COUNTRIES_TO_APPLICATION.value,
-    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION.value,
+    AuditType.CREATED,
+    AuditType.ADD_CASE_OFFICER_TO_CASE,
+    AuditType.REMOVE_CASE_OFFICER_FROM_CASE,
+    AuditType.UPDATED_STATUS,
+    AuditType.ADD_COUNTRIES_TO_APPLICATION,
+    AuditType.REMOVED_COUNTRIES_FROM_APPLICATION,
 ]
 
 TYPE_MAPPING = {
@@ -115,12 +115,12 @@ def case_activity_json(audit, case_type):
     elif isinstance(audit.payload[data_type], dict):
         if "new" in audit.payload[data_type]:
             new_value = audit.payload[data_type]["new"]
-            if audit.verb == AuditType.UPDATED_STATUS.value:
+            if audit.verb == AuditType.UPDATED_STATUS:
                 new_value = convert_status(new_value)
             object_data["dit:to"] = {"dit:lite:case:{data_type}".format(data_type=data_type): new_value}
         if "old" in audit.payload[data_type]:
             old_value = audit.payload[data_type]["old"]
-            if audit.verb == AuditType.UPDATED_STATUS.value:
+            if audit.verb == AuditType.UPDATED_STATUS:
                 old_value = convert_status(old_value)
             object_data["dit:from"] = {"dit:lite:case:{data_type}".format(data_type=data_type): old_value}
     else:
@@ -156,7 +156,7 @@ def get_stream(timestamp):
     qs = prefetch_generic_relations(audit_qs)
 
     case_ids = [
-        value["target_object_id"] if value["verb"] != AuditType.CREATED.value else value["action_object_object_id"]
+        value["target_object_id"] if value["verb"] != AuditType.CREATED else value["action_object_object_id"]
         for value in qs.values("target_object_id", "verb", "action_object_object_id")
     ]
 
@@ -183,7 +183,7 @@ def get_stream(timestamp):
     stream = []
 
     for audit in qs:
-        case_id = audit.target_object_id if audit.verb != AuditType.CREATED.value else audit.action_object_object_id
+        case_id = audit.target_object_id if audit.verb != AuditType.CREATED else audit.action_object_object_id
         data = case_activity_json(audit, case_types.get(case_id))
         if data:
             stream.append(data)

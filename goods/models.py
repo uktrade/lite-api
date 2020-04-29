@@ -7,6 +7,7 @@ from documents.models import Document
 from flags.models import Flag
 from goods.enums import GoodStatus, GoodControlled, PvGrading, GoodPvGraded
 from organisations.models import Organisation
+from static.control_list_entries.models import ControlListEntry
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from users.models import ExporterUser
 
@@ -30,7 +31,7 @@ class Good(TimestampableModel):
 
     # CLC
     is_good_controlled = models.CharField(choices=GoodControlled.choices, default=GoodControlled.UNSURE, max_length=20)
-    control_code = models.CharField(default="", blank=True, null=True, max_length=20)
+    control_list_entries = models.ManyToManyField(ControlListEntry, related_name="goods")
 
     # PV
     is_pv_graded = models.CharField(choices=GoodPvGraded.choices, default=GoodPvGraded.GRADING_REQUIRED, max_length=20)
@@ -51,6 +52,10 @@ class Good(TimestampableModel):
     grading_comment = models.TextField(default=None, blank=True, null=True, max_length=2000)
     # max length same as picklist
     report_summary = models.TextField(default=None, blank=True, null=True, max_length=5000)
+
+    class Meta:
+        db_table = "good"
+        ordering = ["-created_at"]
 
 
 class GoodDocument(Document):
