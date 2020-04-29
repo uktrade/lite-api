@@ -57,7 +57,7 @@ class FlagSerializer(serializers.ModelSerializer):
     blocks_approval = serializers.BooleanField(
         required=True,
         allow_null=False,
-        error_messages={"required": "Please specify whether this flag will block application approvals",},
+        error_messages={"required": strings.Flags.ValidationErrors.BLOCKING_APPROVAL_MISSING,},
     )
 
     def __init__(self, *args, **kwargs):

@@ -505,7 +505,7 @@ class ApplicationFinaliseView(APIView):
                 return JsonResponse(
                     data={
                         "errors": [
-                            f"This application cannot be finalised due to the following flags: {','.join(list(blocking_flags))}"
+                            f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"
                         ]
                     },
                     status=status.HTTP_403_FORBIDDEN,
