@@ -74,7 +74,6 @@ class Command(SeedCommand):
         )
         return len(submitted_applications)
 
-    @transaction.atomic
     def operation(self, *args, **options):
         params = Params()
         params.org_count = options.get("org_count") or 1
