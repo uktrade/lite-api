@@ -82,6 +82,21 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_approve_application_blocking_flags_failure(self):
+        flag = self.create_flag("Block", "Case", self.team)
+        flag.blocks_approval = True
+        flag.save()
+        self.standard_application.flags.add(flag)
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 60}
+        data.update(self.post_date)
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response_data["errors"], [f"This application cannot be finalised due to the following flags: {flag.name}"])
+
     def test_finalise_clearance_application_success(self):
         clearance_application = self.create_mod_clearance_application(
             self.organisation, case_type=CaseTypeEnum.EXHIBITION

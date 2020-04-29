@@ -67,6 +67,7 @@ from conf.decorators import (
 )
 from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
+from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
@@ -480,6 +481,19 @@ class ApplicationFinaliseView(APIView):
         action = data.get("action")
 
         if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
+            blocking_flags = application.flags.filter(status=FlagStatuses.ACTIVE, blocks_approval=True).values_list(
+                "name", flat=True
+            )
+            if blocking_flags:
+                return JsonResponse(
+                    data={
+                        "errors": [
+                            f"This application cannot be finalised due to the following flags: {','.join(list(blocking_flags))}"
+                        ]
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
             default_licence_duration = get_default_duration(application)
             data["duration"] = data.get("duration", default_licence_duration)
 
