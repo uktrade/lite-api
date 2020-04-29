@@ -3,16 +3,14 @@ from rest_framework import serializers
 from conf.constants import Roles
 from conf.exceptions import NotFoundError
 from conf.serializers import KeyValueChoiceField
-from gov_users.serializers import RoleSerializer
+from gov_users.serializers import RoleSerializer, GovUserViewSerializer
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation, Site
-from teams.serializers import TeamSerializer
 from users.enums import UserStatuses, UserType
 from users.libraries.get_user import get_user_by_pk, get_exporter_user_by_email
 from users.models import (
     ExporterUser,
     BaseUser,
-    GovUser,
     UserOrganisationRelationship,
     Role,
 )

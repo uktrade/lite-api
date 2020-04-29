@@ -23,6 +23,18 @@ class GovUserEditTests(DataTestClient):
         self.assertNotEqual(response_data["gov_user"]["email"], "test@mail.com")
         self.assertNotEqual(response_data["gov_user"]["team"], self.team)
 
+    def test_edit_gov_user_default_queue(self):
+        original_default_queue = self.gov_user.default_queue
+        data = {"default_queue": str(self.queue.id)}
+        url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.id})
+
+        response = self.client.put(url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(response_data["gov_user"]["default_queue"], str(original_default_queue))
+        self.assertEqual(response_data["gov_user"]["default_queue"], data["default_queue"])
+
     def test_change_role_of_a_gov_user(self):
         self.gov_user.role = self.default_role
         self.gov_user.save()

@@ -141,16 +141,16 @@ class GovUserCreateSerializer(GovUserViewSerializer):
 
     def validate(self, attrs):
         validated_data = super().validate(attrs)
-        default_queue = str(validated_data.get("default_queue"))
-        team = validated_data.get("team")
+        default_queue = str(validated_data.get("default_queue") or self.instance.default_queue)
+        team = validated_data.get("team") or self.instance.team
 
-        is_system_queue = default_queue not in SYSTEM_QUEUE_NAME_MAP.keys()
+        is_system_queue = default_queue in SYSTEM_QUEUE_NAME_MAP.keys()
         is_work_queue = Queue.objects.filter(id=default_queue).exists()
 
         if not is_system_queue and not is_work_queue:
             raise serializers.ValidationError({"default_queue": [strings.Users.NULL_DEFAULT_QUEUE]})
 
-        if is_work_queue and not Queue.objects.values("team").get(id=default_queue) == team:
+        if is_work_queue and not Queue.objects.values_list("team_id", flat=True).get(id=default_queue) == team.id:
             raise serializers.ValidationError({"default_queue": [strings.Users.INVALID_DEFAULT_QUEUE % team.name]})
 
         return validated_data
