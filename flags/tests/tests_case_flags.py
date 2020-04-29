@@ -1,6 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
+from flags.enums import FlagLevels
+from flags.tests.factories import FlagFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -9,8 +11,8 @@ class CaseFlagsTests(DataTestClient):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
         self.url = reverse("flags:case_flags", kwargs={"case_pk": self.case.pk})
-        self.flag_1 = self.create_flag("Case Flag 1", "Case", self.team)
-        self.flag_2 = self.create_flag("Case Flag 2", "Case", self.team)
+        self.flag_1 = FlagFactory(level=FlagLevels.CASE, team=self.team)
+        self.flag_2 = FlagFactory(level=FlagLevels.CASE, team=self.team)
         self.flags = [self.flag_1, self.flag_2]
         self.case.flags.set(self.flags)
 

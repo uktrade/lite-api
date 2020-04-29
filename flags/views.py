@@ -12,7 +12,7 @@ from applications.models import GoodOnApplication, CountryOnApplication, Standar
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.libraries.get_case import get_case
-from cases.libraries.get_destination import get_flags
+from cases.libraries.get_flags import get_flags
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
