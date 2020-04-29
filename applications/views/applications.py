@@ -482,6 +482,19 @@ class ApplicationFinaliseView(APIView):
         action = data.get("action")
 
         if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
+            default_licence_duration = get_default_duration(application)
+            data["duration"] = data.get("duration", default_licence_duration)
+
+            # Check change default duration permission
+            if data["duration"] != default_licence_duration and not request.user.has_permission(
+                GovPermissions.MANAGE_LICENCE_DURATION
+            ):
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Check if any blocking flags are on the case
             blocking_flags = (
                 get_flags(application.get_case())
                 .filter(status=FlagStatuses.ACTIVE, blocks_approval=True)
@@ -495,18 +508,6 @@ class ApplicationFinaliseView(APIView):
                             f"This application cannot be finalised due to the following flags: {','.join(list(blocking_flags))}"
                         ]
                     },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
-            default_licence_duration = get_default_duration(application)
-            data["duration"] = data.get("duration", default_licence_duration)
-
-            # Check change default duration permission
-            if data["duration"] != default_licence_duration and not request.user.has_permission(
-                GovPermissions.MANAGE_LICENCE_DURATION
-            ):
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
