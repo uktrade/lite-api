@@ -99,7 +99,6 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     goodstype_category = KeyValueChoiceField(
-        allow_null=True,
         choices=GoodsTypeCategory.choices,
         error_messages={"required": strings.Applications.Generic.OIEL_GOODSTYPE_CATEGORY_ERROR},
     )
