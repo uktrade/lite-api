@@ -10,5 +10,4 @@ urlpatterns = [
     path("assign/", views.AssignFlags.as_view(), name="assign_flags"),
     path("rules/", views.FlaggingRules.as_view(), name="flagging_rules"),
     path("rules/<uuid:pk>/", views.FlaggingRuleDetail.as_view(), name="flagging_rule"),
-    path("case/<uuid:case_pk>/", views.CaseFlags.as_view(), name="case_flags"),
 ]

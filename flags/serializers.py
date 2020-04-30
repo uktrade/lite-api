@@ -26,12 +26,6 @@ class FlagReadOnlySerializer(serializers.Serializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamReadOnlySerializer)
 
 
-class CaseFlagReadOnlySerializer(serializers.Serializer):
-    name = serializers.CharField(read_only=True)
-    colour = serializers.CharField(read_only=True)
-    label = serializers.CharField(read_only=True)
-
-
 class FlagSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         max_length=25,

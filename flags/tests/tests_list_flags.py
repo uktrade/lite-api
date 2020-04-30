@@ -1,7 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
-from flags.enums import SystemFlags
+from flags.enums import SystemFlags, FlagLevels
+from flags.tests.factories import FlagFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -38,3 +39,18 @@ class FlagsListTests(DataTestClient):
         self.assertNotIn(str(other_team_flag.id), returned_flags)
         self.assertIn(str(flag4.id), returned_flags)
         self.assertNotIn(SystemFlags.GOOD_NOT_YET_VERIFIED_ID, returned_flags)
+
+    def test_get_case_flags_which_block_approval(self):
+        case = self.create_standard_application_case(self.organisation)
+        flag_1 = FlagFactory(level=FlagLevels.CASE, team=self.team, blocks_approval=True)
+        flag_2 = FlagFactory(level=FlagLevels.CASE, team=self.team)
+        flags = [flag_1, flag_2]
+        case.flags.set(flags)
+
+        response = self.client.get(self.url + f"?case={case.pk}&only_show_deactivated=False&blocks_approval=True&disable_pagination=True", **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["name"], flag_1.name)
+
