@@ -101,7 +101,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
     goodstype_category = KeyValueChoiceField(
         allow_null=True,
         choices=GoodsTypeCategory.choices,
-        error_messages={"required": "Select the type of open licence you need"},
+        error_messages={"required": strings.Applications.Generic.OIEL_GOODSTYPE_CATEGORY_ERROR},
     )
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
