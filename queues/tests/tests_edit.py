@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
 
-from queues.models import Queue
 from test_helpers.clients import DataTestClient
 
 
@@ -10,10 +9,13 @@ class QueueEditTests(DataTestClient):
         data = {
             "id": self.queue.id,
             "name": "Modified queue",
+            "countersigning_queue": self.create_queue("other_queue", self.team).id,
         }
 
         url = reverse("queues:queue", kwargs={"pk": data["id"]})
         response = self.client.put(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Queue.objects.filter(name=data["name"]).count(), 1)
+        self.queue.refresh_from_db()
+        self.assertEqual(self.queue.name, data["name"])
+        self.assertEqual(self.queue.countersigning_queue_id, data["countersigning_queue"])
