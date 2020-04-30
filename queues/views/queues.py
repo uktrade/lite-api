@@ -1,16 +1,15 @@
 from django.http import JsonResponse
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
-from conf.custom_views import OptionalPaginationView
 from conf.helpers import str_to_bool
 from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer, QueueListSerializer
 from queues.service import get_queue, get_work_queues_qs, get_system_queues
 
 
-class QueuesList(OptionalPaginationView):
+class QueuesList(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
     queryset = Queue.objects.all()
     serializer_class = QueueListSerializer

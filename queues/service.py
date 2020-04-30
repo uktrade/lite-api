@@ -17,6 +17,9 @@ from queues.models import Queue
 
 
 def get_system_queues(include_team=True, include_case_count=False, user=None) -> List[Dict]:
+    """
+    Returns a list of system queues in a dictionary with optional team and case count
+    """
     system_queues = []
 
     for id, name in SYSTEM_QUEUES.items():
