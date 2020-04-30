@@ -142,7 +142,7 @@ class EndPointTests(SimpleTestCase):
                     break
             else:
                 response = self.call_endpoint(
-                    self.get_exporter(), "/applications/page=" + str(page + 1), save_results=False
+                    self.get_exporter(), "/applications/?page=" + str(page + 1), save_results=False
                 ).json()
                 continue
 

@@ -21,10 +21,13 @@ class ApplicationResponseTests(EndPointTests):
         )
 
     def test_applications_goodstype_detail(self):
-        self.call_endpoint(
-            self.get_exporter(),
-            self.url + self.get_open_application()["id"] + "/goodstypes/" + self.get_application_goodstype_id(),
-        )
+        application = self.get_open_application()
+        raise Exception("Open licence not found!")
+        application_id = application["id"]
+        goods_type = self.get_application_goodstype_id()
+        url = f"{self.url}{application_id}/goodstypes/{goods_type}"
+        exporter_user = self.get_exporter()
+        self.call_endpoint(exporter_user, url)
 
     def test_applications_goodstype_documents(self):
         self.call_endpoint(
