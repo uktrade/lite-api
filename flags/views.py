@@ -80,6 +80,9 @@ class FlagsRetrieveUpdateView(RetrieveUpdateAPIView):
         return Flag.objects.filter(team=self.request.user.team)
 
     def perform_update(self, serializer):
+        # if status is being updated, ensure user has permission
+        if self.request.data.get("status"):
+            assert_user_has_permission(self.request.user, GovPermissions.ACTIVATE_FLAGS)
         serializer.save()
         apply_flagging_rule_for_flag(self.kwargs["pk"])
 
