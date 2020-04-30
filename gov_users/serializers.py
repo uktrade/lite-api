@@ -8,7 +8,7 @@ from rest_framework.validators import UniqueValidator
 
 from gov_users.enums import GovUserStatuses
 from organisations.models import Organisation
-from queues.constants import SYSTEM_QUEUE_NAME_MAP
+from queues.constants import SYSTEM_QUEUES
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
 from static.statuses.models import CaseStatus
@@ -102,8 +102,8 @@ class GovUserViewSerializer(serializers.ModelSerializer):
     def get_default_queue(self, instance):
         queue_id = str(instance.default_queue)
 
-        if queue_id in SYSTEM_QUEUE_NAME_MAP.keys():
-            return {"id": queue_id, "name": SYSTEM_QUEUE_NAME_MAP[queue_id]}
+        if queue_id in SYSTEM_QUEUES.keys():
+            return {"id": queue_id, "name": SYSTEM_QUEUES[queue_id]}
         else:
             return TinyQueueSerializer(Queue.objects.get(pk=queue_id)).data
 
@@ -144,7 +144,7 @@ class GovUserCreateSerializer(GovUserViewSerializer):
         default_queue = str(validated_data.get("default_queue") or self.instance.default_queue)
         team = validated_data.get("team") or self.instance.team
 
-        is_system_queue = default_queue in SYSTEM_QUEUE_NAME_MAP.keys()
+        is_system_queue = default_queue in SYSTEM_QUEUES.keys()
         is_work_queue = Queue.objects.filter(id=default_queue).exists()
 
         if not is_system_queue and not is_work_queue:
