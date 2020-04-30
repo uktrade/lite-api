@@ -47,10 +47,12 @@ class FlagsListTests(DataTestClient):
         flags = [flag_1, flag_2]
         case.flags.set(flags)
 
-        response = self.client.get(self.url + f"?case={case.pk}&only_show_deactivated=False&blocks_approval=True&disable_pagination=True", **self.gov_headers)
+        response = self.client.get(
+            self.url + f"?case={case.pk}&only_show_deactivated=False&blocks_approval=True&disable_pagination=True",
+            **self.gov_headers,
+        )
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], flag_1.name)
-
