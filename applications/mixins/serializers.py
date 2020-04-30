@@ -64,10 +64,16 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         return data[0] if data else None
 
     def get_ultimate_end_users(self, instance):
-        return self.get_ordered_parties(instance, PartyType.ULTIMATE_END_USER)
+        if "user_type" in self.context and self.context["user_type"] == "exporter":
+            return self.__parties(instance, PartyType.ULTIMATE_END_USER)
+        else:
+            return self.get_ordered_parties(instance, PartyType.ULTIMATE_END_USER)
 
     def get_third_parties(self, instance):
-        return self.get_ordered_parties(instance, PartyType.THIRD_PARTY)
+        if "user_type" in self.context and self.context["user_type"] == "exporter":
+            return self.__parties(instance, PartyType.THIRD_PARTY)
+        else:
+            return self.get_ordered_parties(instance, PartyType.THIRD_PARTY)
 
     def get_consignee(self, instance):
         data = self.__parties(instance, PartyType.CONSIGNEE)
