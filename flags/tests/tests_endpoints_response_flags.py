@@ -15,6 +15,3 @@ class FlagsResponseTests(EndPointTests):
 
     def test_flagging_rules_detail(self):
         self.call_endpoint(self.get_gov_user(), self.url + "rules/" + self.get_flagging_rules_id())
-
-    def test_case_flags_list(self):
-        self.call_endpoint(self.get_gov_user(), self.url + "case/" + self.get_case_id())
