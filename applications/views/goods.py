@@ -21,6 +21,7 @@ from conf.decorators import (
     application_in_major_editable_state,
     allowed_application_types,
 )
+from conf.exceptions import BadRequestError
 from goods.enums import GoodStatus
 from goods.libraries.get_goods import get_good_with_organisation
 from goods.models import GoodDocument
@@ -165,7 +166,7 @@ class ApplicationGoodsTypes(APIView):
         Post a goodstype
         """
         if application.goodstype_category == GoodsTypeCategory.MEDIA:
-            raise Exception("You cannot do this for this type of application")
+            raise BadRequestError(detail="You cannot do this for open media applications")
         request.data["application"] = application
         serializer = GoodsTypeSerializer(data=request.data)
 
@@ -206,7 +207,7 @@ class ApplicationGoodsType(APIView):
         Deletes a goodstype
         """
         if hasattr(application, "goodstype_category") and application.goodstype_category == GoodsTypeCategory.MEDIA:
-            raise Exception("You cannot do this for this type of application")
+            raise BadRequestError(detail="You cannot do this for open media applications")
         goods_type = get_goods_type(goodstype_pk)
         if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
             delete_goods_type_document_if_exists(goods_type)
@@ -236,7 +237,7 @@ class ApplicationGoodsTypeCountries(APIView):
     @authorised_users(ExporterUser)
     def put(self, request, application):
         if application.goodstype_category == GoodsTypeCategory.MEDIA:
-            raise Exception("You cannot do this for this type of application")
+            raise BadRequestError(detail="You cannot do this for open media applications")
         data = request.data
 
         for good, countries in data.items():

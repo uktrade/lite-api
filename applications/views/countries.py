@@ -12,6 +12,7 @@ from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import allowed_application_types, authorised_users
+from conf.exceptions import BadRequestError
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -40,7 +41,7 @@ class ApplicationCountries(APIView):
     def post(self, request, application):
         """ Add countries to an open licence application. """
         if application.goodstype_category == GoodsTypeCategory.MEDIA:
-            raise Exception("You cannot do this for this type of application")
+            raise BadRequestError(detail="You cannot do this for open media applications")
         data = request.data
         country_ids = data.get("countries")
 
