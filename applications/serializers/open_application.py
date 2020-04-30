@@ -137,6 +137,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         # Remove fields from serializer depending on the application being for a Trade Control Licence
         if self.trade_control_licence:
             self.fields.pop("export_type")
+            self.fields.pop("goodstype_category")
 
             if not self.initial_data.get("trade_control_activity") == TradeControlActivity.OTHER:
                 self.fields.pop("trade_control_activity_other")
@@ -151,9 +152,6 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         if self.media_application:
             self.fields.pop("export_type")
             self.media_application = True
-
-        if not self.initial_data.get("goodstype_category"):
-            self.fields.pop("goodstype_category")
 
     def create(self, validated_data):
         # Trade Control Licences are always permanent
