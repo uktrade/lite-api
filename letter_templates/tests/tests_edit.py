@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from conf import constants
 from lite_content.lite_api import strings

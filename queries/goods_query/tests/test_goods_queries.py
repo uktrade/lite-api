@@ -4,7 +4,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from audit_trail.models import Audit
-from audit_trail.payload import AuditType
+from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from cases.models import CaseAssignment
 from conf import constants
