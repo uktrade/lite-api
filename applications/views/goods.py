@@ -165,9 +165,7 @@ class ApplicationGoodsTypes(APIView):
         Post a goodstype
         """
         if application.goodstype_category == GoodsTypeCategory.MEDIA:
-            return JsonResponse(
-                data={"error": "DEV-STRING - This action is not allowed"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise Exception("You cannot do this for this type of application")
         request.data["application"] = application
         serializer = GoodsTypeSerializer(data=request.data)
 
@@ -208,9 +206,7 @@ class ApplicationGoodsType(APIView):
         Deletes a goodstype
         """
         if hasattr(application, "goodstype_category") and application.goodstype_category == GoodsTypeCategory.MEDIA:
-            return JsonResponse(
-                data={"error": "DEV-STRING - This action is not allowed"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise Exception("You cannot do this for this type of application")
         goods_type = get_goods_type(goodstype_pk)
         if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
             delete_goods_type_document_if_exists(goods_type)
@@ -240,7 +236,7 @@ class ApplicationGoodsTypeCountries(APIView):
     @authorised_users(ExporterUser)
     def put(self, request, application):
         if application.goodstype_category == GoodsTypeCategory.MEDIA:
-            return JsonResponse(data={"error": "DEV-STRING - Action not allowed"}, status=status.HTTP_400_BAD_REQUEST)
+            raise Exception("You cannot do this for this type of application")
         data = request.data
 
         for good, countries in data.items():

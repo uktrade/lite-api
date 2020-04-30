@@ -40,7 +40,7 @@ class ApplicationCountries(APIView):
     def post(self, request, application):
         """ Add countries to an open licence application. """
         if application.goodstype_category == GoodsTypeCategory.MEDIA:
-            return JsonResponse(data={"error": "DEV-STRING - Action not allowed"}, status=status.HTTP_400_BAD_REQUEST)
+            raise Exception("You cannot do this for this type of application")
         data = request.data
         country_ids = data.get("countries")
 
