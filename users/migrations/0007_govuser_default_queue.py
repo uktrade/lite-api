@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="govuser",
             name="default_queue",
-            field=models.UUIDField(default=uuid.UUID("00000000-0000-0000-0000-000000000003")),
+            field=models.UUIDField(default=uuid.UUID("00000000-0000-0000-0000-000000000001")),
         ),
     ]

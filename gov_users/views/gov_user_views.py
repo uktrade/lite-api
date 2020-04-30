@@ -49,7 +49,9 @@ class AuthenticateGovUser(APIView):
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user)
-        return JsonResponse(data={"token": token, "lite_api_user_id": str(user.id)})
+        return JsonResponse(
+            data={"default_queue": str(user.default_queue), "token": token, "lite_api_user_id": str(user.id)}
+        )
 
 
 class GovUserList(OptionalPaginationView, generics.CreateAPIView):
