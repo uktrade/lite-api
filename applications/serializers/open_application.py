@@ -143,8 +143,6 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             if not self.initial_data.get("trade_control_activity") == TradeControlActivity.OTHER:
                 self.fields.pop("trade_control_activity_other")
         else:
-            # If Open Individual Export Licence with Media, remove trade control activities
-            # if case_type_id == str(CaseTypeEnum.OICL.id) and self.goodstype_categories == GoodsTypeCategory.MEDIA:
             self.fields.pop("trade_control_activity")
             self.fields.pop("trade_control_activity_other")
             self.fields.pop("trade_control_product_categories")
