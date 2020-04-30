@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from queues.tests.factories import QueueFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -22,7 +23,7 @@ class QueuesCreateTests(DataTestClient):
         self.assertEqual(response_data["team"], str(self.team.id))
 
     def test_create_queue_with_countersigning_queue(self):
-        countersigning_queue = self.create_queue("other", self.team)
+        countersigning_queue = QueueFactory(name="countersigning_queue", team=self.team)
         data = {
             "name": "new_queue",
             "team": self.team.id,
