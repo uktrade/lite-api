@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from common.enums import LiteEnum, autostr
+
 
 class UserStatuses:
     ACTIVE = "Active"
@@ -18,14 +20,16 @@ class UserStatuses:
         }[s.lower()]
 
 
-class UserType:
-    EXPORTER = "exporter"
-    INTERNAL = "internal"
+class UserType(LiteEnum):
+    EXPORTER = autostr()
+    INTERNAL = autostr()
 
-    choices = [
-        (EXPORTER, "Exporter"),
-        (INTERNAL, "Internal"),
-    ]
+    @classmethod
+    def choices(cls):
+        return [
+            (cls.EXPORTER, "Exporter"),
+            (cls.INTERNAL, "Internal")
+        ]
 
 
 class SystemUser:

@@ -19,7 +19,7 @@ class Permission(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=35)
     name = models.CharField(default="permission - FIX", max_length=80)
     # For convenience using UserType as a proxy for Permission Type
-    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
+    type = models.CharField(choices=UserType.choices(), default=UserType.INTERNAL, max_length=30)
 
     objects = models.Manager()
     exporter = ExporterManager()
@@ -38,7 +38,7 @@ class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
     permissions = models.ManyToManyField(Permission, related_name="roles")
-    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
+    type = models.CharField(choices=UserType.choices(), default=UserType.INTERNAL, max_length=30)
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=True)
     statuses = models.ManyToManyField(CaseStatus, related_name="roles_statuses")
 
@@ -89,7 +89,7 @@ class BaseUser(AbstractUser, TimestampableModel):
     last_login = None
     is_staff = None
     is_active = None
-    type = models.CharField(choices=UserType.choices, null=False, blank=False, max_length=8)
+    type = models.CharField(choices=UserType.choices(), null=False, blank=False, max_length=8)
 
     # Set this to use id as email cannot be unique in the base user model
     # (and we couldn't think of anything else to use instead)
