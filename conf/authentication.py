@@ -32,8 +32,8 @@ class ExporterAuthentication(HawkAuthentication):
         # by checking that the request is correctly Hawk signed
         client_system_user = super().authenticate(request)
 
-        if not client_system_user:
-            raise PermissionDeniedError("You must include a valid HTTP authorisation header in your requests.")
+        # if not client_system_user:
+        #     raise PermissionDeniedError("You must include a valid HTTP authorisation header in your requests.")
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
@@ -106,8 +106,8 @@ class ExporterOnlyAuthentication(HawkAuthentication):
         # by checking that the request is correctly Hawk signed
         client_system_user = super().authenticate(request)
 
-        if not client_system_user:
-            raise PermissionDeniedError("You must include a valid HTTP authorisation header in your requests.")
+        # if not client_system_user:
+        #     raise PermissionDeniedError("You must include a valid HTTP authorisation header in your requests.")
 
         exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
         exporter_user = get_user_by_pk(token_to_user_pk(exporter_user_token))
