@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from conf.constants import GovPermissions
 from picklists.enums import PicklistType, PickListStatus
 from test_helpers.clients import DataTestClient
 
@@ -19,6 +20,8 @@ class PicklistsViews(DataTestClient):
         self.create_picklist_item("#5", other_team, PicklistType.ECJU, PickListStatus.ACTIVE)
 
     def test_gov_user_can_see_all_their_teams_picklist_items(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_PICKLISTS.name])
+
         response = self.client.get(self.url + "?show_deactivated=True", **self.gov_headers)
         response_data = response.json()
 
@@ -26,6 +29,8 @@ class PicklistsViews(DataTestClient):
         self.assertEqual(len(response_data["results"]), 4)
 
     def test_gov_user_can_see_all_their_teams_picklist_items_excluding_deactivated(self,):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_PICKLISTS.name])
+
         response = self.client.get(self.url + "?show_deactivated=False", **self.gov_headers)
         response_data = response.json()
 
@@ -33,6 +38,8 @@ class PicklistsViews(DataTestClient):
         self.assertEqual(len(response_data["results"]), 3)
 
     def test_gov_user_can_see_filtered_picklist_items(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_PICKLISTS.name])
+
         response = self.client.get(
             self.url + "?type=" + PicklistType.REPORT_SUMMARY + "?show_deactivated=True", **self.gov_headers
         )
@@ -42,6 +49,8 @@ class PicklistsViews(DataTestClient):
         self.assertEqual(len(response_data["results"]), 1)
 
     def test_gov_user_can_see_filtered_picklist_items_excluding_deactivated(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_PICKLISTS.name])
+
         response = self.client.get(self.url + "?type=" + PicklistType.REPORT_SUMMARY, **self.gov_headers)
         response_data = response.json()
 
@@ -49,6 +58,8 @@ class PicklistsViews(DataTestClient):
         self.assertEqual(len(response_data["results"]), 1)
 
     def test_gov_user_can_see_items_by_ids_filter(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_PICKLISTS.name])
+
         response = self.client.get(
             self.url
             + "?type="
@@ -63,3 +74,8 @@ class PicklistsViews(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["results"]), 2)
+
+    def test_gov_user_cannot_view_picklists_without_permission(self):
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
