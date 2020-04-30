@@ -69,9 +69,9 @@ class GoodsQueriesCreate(APIView):
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         good.status = GoodStatus.QUERY
-        good.control_list_entry = data.get("clc_control_list_entry", None)
 
         goods_query = GoodsQuery.objects.create(
+            clc_control_list_entry=data.get("clc_control_list_entry"),
             clc_raised_reasons=data.get("clc_raised_reasons"),
             pv_grading_raised_reasons=data.get("pv_grading_raised_reasons"),
             good=good,
