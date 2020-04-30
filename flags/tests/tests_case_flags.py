@@ -18,10 +18,10 @@ class CaseFlagsTests(DataTestClient):
 
     def test_get_case_flags(self):
         response = self.client.get(self.url, **self.gov_headers)
-        response_data = response.json()["flags"]
+        response_data = [flag["name"] for flag in response.json()["flags"]]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data, [flag.name for flag in self.flags])
+        self.assertEqual(response_data, sorted([flag.name for flag in self.flags]))
 
     def test_get_case_flags_which_block_approval(self):
         self.flag_1.blocks_approval = True
@@ -32,4 +32,4 @@ class CaseFlagsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0], self.flag_1.name)
+        self.assertEqual(response_data[0]["name"], self.flag_1.name)

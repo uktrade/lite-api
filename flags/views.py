@@ -22,7 +22,8 @@ from flags.enums import FlagStatuses, SystemFlags
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flagging_rule
 from flags.models import Flag, FlaggingRule
-from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer, FlagReadOnlySerializer
+from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer, FlagReadOnlySerializer, \
+    CaseFlagReadOnlySerializer
 from goods.models import Good
 from lite_content.lite_api import strings
 from parties.models import Party
@@ -317,5 +318,6 @@ class CaseFlags(APIView):
             flags = flags.filter(blocks_approval=True)
 
         flags = flags.order_by("name")
+        flags = CaseFlagReadOnlySerializer(flags, many=True).data
 
-        return JsonResponse(data={"flags": list(flags.values_list("name", flat=True))})
+        return JsonResponse(data={"flags": flags})
