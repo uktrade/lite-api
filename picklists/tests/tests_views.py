@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from conf.constants import GovPermissions
 from picklists.enums import PicklistType, PickListStatus
 from test_helpers.clients import DataTestClient
 
@@ -63,3 +64,30 @@ class PicklistsViews(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data["results"]), 2)
+
+
+class PicklistView(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.picklist = self.create_picklist_item("#1", self.team, PicklistType.PROVISO, PickListStatus.ACTIVE)
+        self.url = reverse("picklist_items:picklist_item", kwargs={"pk": self.picklist.id})
+
+    def test_gov_user_can_view_a_picklist_item(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_PICKLISTS.name])
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["picklist_item"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["id"], str(self.picklist.id))
+        self.assertEqual(response_data["name"], self.picklist.name)
+        self.assertEqual(response_data["text"], self.picklist.text)
+        self.assertEqual(response_data["team"]["id"], str(self.team.id))
+        self.assertEqual(response_data["team"]["name"], self.team.name)
+        self.assertEqual(response_data["type"]["key"], self.picklist.type)
+        self.assertEqual(response_data["status"]["key"], self.picklist.status)
+
+    def test_gov_user_cannot_view_a_picklist_item_without_permission(self):
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
