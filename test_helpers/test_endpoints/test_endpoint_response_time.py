@@ -135,7 +135,7 @@ class EndPointTests(SimpleTestCase):
 
     def _get_application_by_case_type(self, case_type, attribute):
         response = self.call_endpoint(self.get_exporter(), "/applications/", save_results=False).json()
-        for page in range(1, response["total_pages"]):
+        for page in range(0, response["total_pages"]):
             for application in response["results"]:
                 if application["case_type"]["sub_type"]["key"] == case_type:
                     self.__setattr__(attribute, application)
