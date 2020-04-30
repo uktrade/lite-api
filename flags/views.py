@@ -11,6 +11,8 @@ from applications.libraries.application_helpers import optional_str_to_bool
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
+from cases.libraries.get_case import get_case
+from cases.libraries.get_flags import get_flags
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
@@ -40,13 +42,19 @@ class FlagsListCreateView(ListCreateAPIView):
             return FlagSerializer
 
     def get_queryset(self):
-        flags = Flag.objects.all()
+        case = self.request.GET.get("case")
         name = self.request.GET.get("name")
         level = self.request.GET.get("level")
         priority = self.request.GET.get("priority")
         team = self.request.GET.get("team")
         only_show_deactivated = optional_str_to_bool(self.request.GET.get("only_show_deactivated"))
         include_system_flags = str_to_bool(self.request.GET.get("include_system_flags"))  # True, False
+        blocks_approval = str_to_bool(self.request.GET.get("blocks_approval"))
+
+        if case:
+            flags = get_flags(get_case(case))
+        else:
+            flags = Flag.objects.all()
 
         if name:
             flags = flags.filter(name__icontains=name)
@@ -68,6 +76,9 @@ class FlagsListCreateView(ListCreateAPIView):
         if include_system_flags:
             system_flags = Flag.objects.filter(id__in=SystemFlags.list)
             flags = flags | system_flags
+
+        if blocks_approval:
+            flags = flags.filter(blocks_approval=True)
 
         return flags.order_by("name").select_related("team")
 

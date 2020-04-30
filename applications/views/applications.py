@@ -54,6 +54,7 @@ from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.libraries.get_flags import get_flags
 from cases.models import FinalAdvice
 from cases.sla import get_application_target_sla
 from cases.serializers import SimpleFinalAdviceSerializer
@@ -67,6 +68,7 @@ from conf.decorators import (
 )
 from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
+from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
@@ -495,6 +497,18 @@ class ApplicationFinaliseView(APIView):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
                     status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Check if any blocking flags are on the case
+            blocking_flags = (
+                get_flags(application.get_case())
+                .filter(status=FlagStatuses.ACTIVE, blocks_approval=True)
+                .order_by("name")
+                .values_list("name", flat=True)
+            )
+            if blocking_flags:
+                raise PermissionDenied(
+                    [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"]
                 )
 
             # Create incomplete Licence object
