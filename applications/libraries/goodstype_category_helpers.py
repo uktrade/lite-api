@@ -5,7 +5,7 @@ from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
 
 
-def _set_goods_and_countries_for_open_media_application(application):
+def set_goods_and_countries_for_open_media_application(application):
     with open("lite_content/lite_api/OEIL_products.csv", newline="") as csvfile:
         reader = csv.DictReader(csvfile)
 
@@ -22,8 +22,6 @@ def _set_goods_and_countries_for_open_media_application(application):
                 serializer = GoodsTypeSerializer(data=data)
                 if serializer.is_valid():
                     serializer.save()
-                else:
-                    print(serializer.errors)
 
     for country in Country.objects.all():
         CountryOnApplication(country=country, application=application).save()

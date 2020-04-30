@@ -26,6 +26,7 @@ class GoodsCategory:
     MARITIME_ANTI_PIRACY = "maritime_anti_piracy"
     FIREARMS = "firearms"
     INCORPORATED_GOODS = "incorporated_goods"
+
     choices = [
         (ANTI_PIRACY, "Anti-piracy"),
         (MARITIME_ANTI_PIRACY, "Maritime anti-piracy"),
@@ -46,6 +47,7 @@ class GoodsTypeCategory:
     MEDIA = "media"
     UK_CONTINENTAL_SHELF = "uk_continental_shelf"
     DEALER = "dealer"
+
     choices = [
         (MILITARY, "Military or dual use"),
         (CRYPTOGRAPHIC, "Cryptographic"),

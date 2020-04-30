@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.fields import CharField
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory
-from applications.libraries.goodstype_category_helpers import _set_goods_and_countries_for_open_media_application
+from applications.libraries.goodstype_category_helpers import set_goods_and_countries_for_open_media_application
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -165,7 +165,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         application = super().create(validated_data)
 
         if validated_data.get("goodstype_category") == GoodsTypeCategory.MEDIA:
-            _set_goods_and_countries_for_open_media_application(application)
+            set_goods_and_countries_for_open_media_application(application)
 
         return application
 
