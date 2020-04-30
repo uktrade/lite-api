@@ -146,6 +146,9 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             self.fields.pop("trade_control_activity_other")
             self.fields.pop("trade_control_product_categories")
 
+        if case_type_id == str(CaseTypeEnum.HMRC.id):
+            self.fields.pop("goodstype_category")
+
         self.media_application = (
             True if self.initial_data.get("goodstype_category") == GoodsTypeCategory.MEDIA else False
         )
