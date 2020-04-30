@@ -86,8 +86,3 @@ class PicklistView(DataTestClient):
         self.assertEqual(response_data["team"]["name"], self.team.name)
         self.assertEqual(response_data["type"]["key"], self.picklist.type)
         self.assertEqual(response_data["status"]["key"], self.picklist.status)
-
-    def test_gov_user_cannot_view_a_picklist_item_without_permission(self):
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

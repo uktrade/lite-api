@@ -83,7 +83,6 @@ class PicklistItemDetail(APIView):
         """
         Gets details of a specific picklist item
         """
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_PICKLISTS)
         picklist_item = get_picklist_item(pk)
         data = PicklistListSerializer(picklist_item).data
 
