@@ -32,12 +32,6 @@ class QueueViewSerializer(serializers.Serializer):
             return instance.id in SYSTEM_QUEUES
 
 
-class QueueListSerializer(serializers.Serializer):
-    id = serializers.UUIDField(read_only=True)
-    name = serializers.CharField(read_only=True)
-    team = TeamReadOnlySerializer(read_only=True)
-
-
 class TinyQueueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Queue
@@ -45,6 +39,13 @@ class TinyQueueSerializer(serializers.ModelSerializer):
             "id",
             "name",
         )
+
+
+class QueueListSerializer(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    team = TeamReadOnlySerializer(read_only=True)
+    countersigning_queue = TinyQueueSerializer(read_only=True)
 
 
 class QueueCreateSerializer(serializers.ModelSerializer):
