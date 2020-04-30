@@ -151,7 +151,8 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         if self.media_application:
             self.fields.pop("export_type")
             self.media_application = True
-        else:
+
+        if not self.initial_data.get("goodstype_category"):
             self.fields.pop("goodstype_category")
 
     def create(self, validated_data):
