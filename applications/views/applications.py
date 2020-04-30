@@ -741,6 +741,7 @@ class ApplicationCopy(APIView):
         for good in GoodsType.objects.filter(application_id=self.old_application_id).all():
             old_good_countries = list(good.countries.all())
             old_good_flags = list(good.flags.all())
+            old_good_control_list_entries = list(good.control_list_entries.all())
             good.pk = None
             good.id = None
             good.application = self.new_application
@@ -748,6 +749,7 @@ class ApplicationCopy(APIView):
             good.save()
             good.countries.set(old_good_countries)
             good.flags.set(old_good_flags)
+            good.control_list_entries.set(old_good_control_list_entries)
 
     def duplicate_f680_clearance_types(self):
         if self.new_application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
