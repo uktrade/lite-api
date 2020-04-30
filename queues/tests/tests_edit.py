@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from queues.tests.factories import QueueFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -9,7 +10,7 @@ class QueueEditTests(DataTestClient):
         data = {
             "id": self.queue.id,
             "name": "Modified queue",
-            "countersigning_queue": self.create_queue("other_queue", self.team).id,
+            "countersigning_queue": QueueFactory(name="other_queue", team=self.team).id,
         }
 
         url = reverse("queues:queue", kwargs={"pk": data["id"]})
