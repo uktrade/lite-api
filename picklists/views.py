@@ -38,7 +38,6 @@ class PickListsView(OptionalPaginationView):
         """
         Returns a list of all picklist items, filtered by type and by show_deactivated
         """
-        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_PICKLISTS)
         picklist_items = PicklistItem.objects.filter(team=self.request.user.team,)
 
         picklist_type = self.request.GET.get("type")
