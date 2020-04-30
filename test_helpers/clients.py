@@ -206,7 +206,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return external_location
 
     @staticmethod
-    def create_party(name, organisation, party_type, application=None, pk=None):
+    def create_party(name, organisation, party_type, application=None, pk=None, country_code="GB"):
         if not pk:
             pk = uuid.uuid4()
 
@@ -218,7 +218,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             "website": "www." + name + ".com",
             "sub_type": SubType.GOVERNMENT,
             "type": party_type,
-            "country": get_country("GB"),
+            "country": get_country(country_code),
         }
 
         if party_type == PartyType.THIRD_PARTY:
@@ -342,7 +342,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         warnings.warn(
             "create_flag is a deprecated function. Use a FlagFactory instead", category=DeprecationWarning, stacklevel=2
         )
-
         return FlagFactory(name=name, level=level, team=team)
 
     @staticmethod
