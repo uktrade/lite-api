@@ -1,5 +1,3 @@
-from typing import List
-
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 
@@ -41,7 +39,7 @@ def get_next_status_in_workflow_sequence(case):
         return None
 
 
-def user_queue_assignment_workflow(queues: List[Queue], case: Case):
+def user_queue_assignment_workflow(queues: [Queue], case: Case):
     from workflow.automation import run_routing_rules
 
     # Remove case from queues where all gov users are done with the case
