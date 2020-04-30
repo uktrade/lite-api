@@ -502,13 +502,10 @@ class ApplicationFinaliseView(APIView):
                 .values_list("name", flat=True)
             )
             if blocking_flags:
-                return JsonResponse(
-                    data={
-                        "errors": [
-                            f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"
-                        ]
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
+                raise PermissionDenied(
+                    [
+                        f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"
+                    ]
                 )
 
             # Create incomplete Licence object
