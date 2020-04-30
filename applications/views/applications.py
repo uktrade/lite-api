@@ -503,9 +503,7 @@ class ApplicationFinaliseView(APIView):
             )
             if blocking_flags:
                 raise PermissionDenied(
-                    [
-                        f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"
-                    ]
+                    [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"]
                 )
 
             # Create incomplete Licence object
