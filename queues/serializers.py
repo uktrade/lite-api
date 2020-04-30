@@ -55,6 +55,11 @@ class QueueCreateSerializer(serializers.ModelSerializer):
         queryset=Queue.objects.all(), required=False, allow_null=True
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields["countersigning_queue"].queryset = Queue.objects.exclude(id=self.instance.id)
+
     class Meta:
         model = Queue
         fields = (
