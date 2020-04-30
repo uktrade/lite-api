@@ -165,7 +165,7 @@ class ApplicationGoodsTypes(APIView):
         """
         Post a goodstype
         """
-        if application.goodstype_category == GoodsTypeCategory.MEDIA:
+        if hasattr(application, "goodstype_category") and application.goodstype_category == GoodsTypeCategory.MEDIA:
             raise BadRequestError(detail="You cannot do this for open media applications")
         request.data["application"] = application
         serializer = GoodsTypeSerializer(data=request.data)
