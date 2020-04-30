@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
 
-from conf.constants import GovPermissions
 from picklists.enums import PicklistType, PickListStatus
 from test_helpers.clients import DataTestClient
 
