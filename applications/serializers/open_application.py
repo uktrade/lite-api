@@ -6,6 +6,7 @@ from applications.enums import ApplicationExportType, GoodsTypeCategory
 from applications.libraries.goodstype_category_helpers import (
     set_goods_and_countries_for_open_media_application,
     set_goods_and_countries_for_open_crypto_application,
+    set_goods_and_countries_for_open_dealer_application,
 )
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
@@ -188,6 +189,8 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             set_goods_and_countries_for_open_media_application(application)
         elif self.crypto_application:
             set_goods_and_countries_for_open_crypto_application(application)
+        elif validated_data["goodscategory"] == GoodsTypeCategory.DEALER:
+            set_goods_and_countries_for_open_dealer_application(application)
 
         return application
 
