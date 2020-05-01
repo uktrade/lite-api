@@ -22,7 +22,6 @@ class ApplicationResponseTests(EndPointTests):
 
     def test_applications_goodstype_detail(self):
         application = self.get_open_application()
-        raise Exception("Open licence not found!")
         application_id = application["id"]
         goods_type = self.get_application_goodstype_id()
         url = f"{self.url}{application_id}/goodstypes/{goods_type}"
