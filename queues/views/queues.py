@@ -1,3 +1,4 @@
+from django.db.models import When, Case, BinaryField
 from django.http import JsonResponse
 from rest_framework import status, generics
 from rest_framework.views import APIView
@@ -23,6 +24,14 @@ class QueuesList(generics.ListAPIView):
             return JsonResponse(data={"results": system_queue_data + work_queue_data}, status=status.HTTP_200_OK)
         else:
             return super().get(request, *args, **kwargs)
+
+    def filter_queryset(self, queryset):
+        if str_to_bool(self.request.GET.get("users_team_first", "False")):
+            return queryset.annotate(
+                users_team=(Case(When(team=self.request.user.team, then=1), default=0, output_field=BinaryField()))
+            ).order_by("-users_team")
+
+        return queryset
 
     def post(self, request):
         data = request.data.copy()
