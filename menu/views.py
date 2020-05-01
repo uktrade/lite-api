@@ -10,7 +10,7 @@ class MenuNotifications(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request):
-        notifications = {
-            "organisations": Organisation.objects.filter(status=OrganisationStatus.IN_REVIEW).count()
-        }
-        return JsonResponse({"notifications": notifications, "has_notifications": any(value for value in notifications.values())})
+        notifications = {"organisations": Organisation.objects.filter(status=OrganisationStatus.IN_REVIEW).count()}
+        return JsonResponse(
+            {"notifications": notifications, "has_notifications": any(value for value in notifications.values())}
+        )
