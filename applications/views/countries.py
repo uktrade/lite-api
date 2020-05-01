@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
 from audit_trail import service as audit_trail_service
@@ -11,6 +12,7 @@ from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import allowed_application_types, authorised_users
+from conf.exceptions import BadRequestError
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -38,6 +40,8 @@ class ApplicationCountries(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """ Add countries to an open licence application. """
+        if application.goodstype_category == GoodsTypeCategory.MEDIA:
+            raise BadRequestError(detail="You cannot do this for open media applications")
         data = request.data
         country_ids = data.get("countries")
 
