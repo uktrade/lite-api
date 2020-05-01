@@ -24,7 +24,7 @@ class ExternalLocationList(APIView):
         data = request.data
         data["organisation"] = org_pk
 
-        if data.get("application_type") == CaseTypeReferenceEnum.SICL:
+        if data.get("application_type") in [CaseTypeReferenceEnum.SICL, CaseTypeReferenceEnum.OICL]:
             serializer = SiclExternalLocationSerializer(data=data)
         else:
             serializer = ExternalLocationSerializer(data=data)
