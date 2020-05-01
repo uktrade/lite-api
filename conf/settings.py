@@ -19,7 +19,7 @@ env = Env(
     SUPPRESS_TEST_OUTPUT=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
-    SYSTEM_USER=(dict, {}),
+    SYSTEM_USER=(str, ""),
 )
 
 # Quick-start development settings - unsuitable for production
