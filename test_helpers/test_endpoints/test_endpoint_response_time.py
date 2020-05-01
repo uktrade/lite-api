@@ -263,7 +263,7 @@ class EndPointTests(SimpleTestCase):
         if not self.picklist_id:
             response = self.call_endpoint(self.get_gov_user(), "/picklist/", save_results=False)
 
-            self.picklist_id = response.json()["picklist_items"][0]["id"]
+            self.picklist_id = response.json()["results"][0]["id"]
 
         return self.picklist_id
 
@@ -295,7 +295,7 @@ class EndPointTests(SimpleTestCase):
         if not self.flag_id:
             response = self.call_endpoint(self.get_gov_user(), "/flags/", save_results=False)
 
-            self.flag_id = response.json()["flags"][0]["id"]
+            self.flag_id = response.json()["results"][0]["id"]
 
         return self.flag_id
 
@@ -320,7 +320,10 @@ class EndPointTests(SimpleTestCase):
             response = self.call_endpoint(
                 self.get_gov_user(), "/cases/" + self.get_case_id() + "/documents/", save_results=False
             )
-            self.case_document = response.json()["documents"][0]
+            try:
+                self.case_document = response.json()["documents"][0]
+            except IndexError:
+                raise IndexError("No case documents exists for this case")
 
         return self.case_document
 
@@ -329,8 +332,10 @@ class EndPointTests(SimpleTestCase):
             response = self.call_endpoint(
                 self.get_gov_user(), self.url + self.get_case_id() + "/ecju-queries/", save_results=False
             )
-
-            self.case_ecju_query_id = response.json()["ecju_queries"][0]["id"]
+            try:
+                self.case_ecju_query_id = response.json()["ecju_queries"][0]["id"]
+            except IndexError:
+                raise IndexError("No ecju queries exists for this case")
 
         return self.case_ecju_query_id
 

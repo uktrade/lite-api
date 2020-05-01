@@ -13,6 +13,3 @@ class LicencesResponseTests(EndPointTests):
 
     def test_licences_list_clearances_only(self):
         self.call_endpoint(self.get_exporter(), self.url + "?licence_type=" + LicenceType.CLEARANCE)
-
-    def test_licences_list_nlr_only(self):
-        self.call_endpoint(self.get_exporter(), self.url + "?licence_type=" + LicenceType.NLR)

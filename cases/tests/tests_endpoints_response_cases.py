@@ -73,5 +73,5 @@ class CasesResponseTests(EndPointTests):
 
     def test_cases_ecju_query(self):
         self.call_endpoint(
-            self.get_gov_user(), self.url + self.get_case_id() + "/ecju-queries/" + self.get_ecju_query_id(),
+            self.get_gov_user(), self.url + self.get_case_id() + "/ecju-queries/" + self.get_case_ecju_query_id(),
         )
