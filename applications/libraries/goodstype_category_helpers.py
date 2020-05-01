@@ -6,11 +6,23 @@ from static.countries.models import Country
 
 
 def set_goods_and_countries_for_open_media_application(application):
+    _add_goodstypes_from_csv("MEDIA", application)
+    for country in Country.objects.all():
+        CountryOnApplication(country=country, application=application).save()
+
+
+def set_goods_and_countries_for_open_crypto_application(application):
+    _add_goodstypes_from_csv("CRYPTO", application)
+    for country in Country.objects.all():
+        CountryOnApplication(country=country, application=application).save()
+
+
+def _add_goodstypes_from_csv(category: str, application):
     with open("lite_content/lite_api/OEIL_products.csv", newline="") as csvfile:
         reader = csv.DictReader(csvfile)
 
         for row in reader:
-            if row["SUBTYPE"] == "MEDIA":
+            if row["SUBTYPE"] == category:
                 data = {
                     "application": application,
                     "description": row["DESCRIPTION"],
@@ -22,6 +34,3 @@ def set_goods_and_countries_for_open_media_application(application):
                 serializer = GoodsTypeSerializer(data=data)
                 if serializer.is_valid():
                     serializer.save()
-
-    for country in Country.objects.all():
-        CountryOnApplication(country=country, application=application).save()
