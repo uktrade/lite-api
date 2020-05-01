@@ -167,7 +167,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             self.fields.pop("goodstype_category")
 
         self.crypto_application = (
-            True if self.intial_data.get("goodstype_category") == GoodsTypeCategory.CRYPTOGRAPHIC else False
+            True if self.initial_data.get("goodstype_category") == GoodsTypeCategory.CRYPTOGRAPHIC else False
         )
         self.media_application = (
             True if self.initial_data.get("goodstype_category") == GoodsTypeCategory.MEDIA else False

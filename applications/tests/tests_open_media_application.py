@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -126,3 +127,9 @@ class OpenMediaTests(DataTestClient):
         goodstype.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(goodstype.countries.count(), initial_countries_count)
+
+    @tag("gimme")
+    def test_gimme_gimme(self):
+        application = self.create_draft_open_application(organisation=self.organisation)
+
+        print(CountryOnApplication.objects.filter(application=application).count())

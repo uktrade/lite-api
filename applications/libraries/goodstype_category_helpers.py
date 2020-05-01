@@ -13,8 +13,10 @@ def set_goods_and_countries_for_open_media_application(application):
 
 def set_goods_and_countries_for_open_crypto_application(application):
     _add_goodstypes_from_csv("CRYPTO", application)
-    for country in Country.objects.all():
-        CountryOnApplication(country=country, application=application).save()
+    with open("lite_content/lite_api/permitted_countries_cryptographic.csv", newline="") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            CountryOnApplication(country_id=row["id"], application=application).save()
 
 
 def _add_goodstypes_from_csv(category: str, application):
