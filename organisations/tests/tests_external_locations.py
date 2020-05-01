@@ -33,3 +33,53 @@ class OrganisationExternalLocationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(ExternalLocation.objects.all().count(), 1)
+
+    def test_failed_create_land_based_sicl_external_location(self):
+        """
+        Land based external locations will require a country
+        """
+        data = {
+            "name": "regional site",
+            "address": "123 Test",
+            "country": "",
+            "location_type": "land_based",
+            "application_type": "sicl",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(ExternalLocation.objects.all().count(), 1)
+
+    def test_create_sea_based_sicl_external_location_without_country(self):
+        """
+        Sea based external locations will not require a country
+        """
+        data = {
+            "name": "regional site",
+            "address": "123 Test",
+            "location_type": "sea_based",
+            "application_type": "sicl",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ExternalLocation.objects.all().count(), 2)
+
+    def test_failed_create_sicl_external_location_without_location_type(self):
+        """
+        SICL external locations require a location_type
+        """
+        data = {
+            "name": "regional site",
+            "address": "123 Test",
+            "country": "FR",
+            "location_type": "",
+            "application_type": "sicl",
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(ExternalLocation.objects.all().count(), 1)
