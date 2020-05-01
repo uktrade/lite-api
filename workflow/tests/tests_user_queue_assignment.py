@@ -1,5 +1,6 @@
 from parameterized import parameterized
 
+from queues.tests.factories import QueueFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
@@ -83,6 +84,21 @@ class UserQueueAssignmentTests(DataTestClient):
         self.assertEqual(self.case.queues.count(), 1)
         self.assertEqual(self.case.queues.first(), self.queue)
         self.assertNotEqual(self.case.status, self.new_status)
+
+    def test_countersigning_queue(self):
+        """
+        Tests that countersigning queues are assigned when work queue removed, and status is not change
+        """
+        old_status = self.case.status
+        countersigning_queue = QueueFactory(name="other", team=self.team)
+        self.queue.countersigning_queue = countersigning_queue
+        self.queue.save()
+        user_queue_assignment_workflow([self.queue], self.case)
+
+        self.case.refresh_from_db()
+        self.assertIn(countersigning_queue, self.case.queues.all())
+        self.assertNotIn(self.queue, self.case.queues.all())
+        self.assertEqual(self.case.status, old_status)
 
 
 class NextStatusTests(DataTestClient):
