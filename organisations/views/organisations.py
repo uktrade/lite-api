@@ -41,17 +41,21 @@ class OrganisationsList(generics.ListCreateAPIView):
         ):
             raise PermissionError("Exporters aren't allowed to view other organisations")
 
+        organisations = Organisation.objects.all()
         org_types = self.request.query_params.getlist("org_type", [])
-        search_term = self.request.query_params.get("search_term", "")
-
-        query = [Q(name__icontains=search_term) | Q(registration_number__icontains=search_term)]
-
-        result = Organisation.objects.filter(reduce(operator.and_, query))
+        search_term = self.request.query_params.get("search_term")
+        status = self.request.query_params.get("status")
 
         if org_types:
-            result = result.filter(Q(type__in=org_types))
+            organisations = organisations.filter(type__in=org_types)
 
-        return result
+        if search_term:
+            organisations = organisations.filter(Q(name__icontains=search_term) | Q(registration_number__icontains=search_term))
+
+        if status:
+            organisations = organisations.filter(status=status)
+
+        return organisations
 
     @transaction.atomic
     @swagger_auto_schema(request_body=OrganisationCreateUpdateSerializer, responses={400: "JSON parse error"})
