@@ -289,12 +289,14 @@ class SiclExternalLocationSerializer(serializers.ModelSerializer):
     address = serializers.CharField()
     country = CountrySerializerField(required=False)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    location_type = serializers.CharField(required=True, error_messages={"required": "Select a location type",},)
+    location_type = serializers.CharField(
+        required=True, error_messages={"required": strings.ExternalLocations.Errors.LOCATION_TYPE},
+    )
 
     def validate(self, data):
         if data["location_type"] == "land_based":
             if not data["country"]:
-                raise serializers.ValidationError({"country": strings.ExternalLocations.Errors.LOCATION_TYPE})
+                raise serializers.ValidationError({"country": strings.Addresses.NULL_COUNTRY})
         return super().validate(data)
 
     class Meta:
