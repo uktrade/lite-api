@@ -163,16 +163,18 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         if case_type_id == str(CaseTypeEnum.HMRC.id):
             self.fields.pop("goodstype_category")
 
+        self.crypto_application = (
+            True if self.intial_data.get("goodstype_category") == GoodsTypeCategory.CRYPTOGRAPHIC else False
+        )
         self.media_application = (
             True if self.initial_data.get("goodstype_category") == GoodsTypeCategory.MEDIA else False
         )
-        if self.media_application:
+        if self.media_application or self.crypto_application:
             self.fields.pop("export_type")
-            self.media_application = True
 
     def create(self, validated_data):
         # Trade Control Licences are always permanent
-        if self.trade_control_licence:
+        if self.trade_control_licence or self.crypto_application:
             validated_data["export_type"] = ApplicationExportType.PERMANENT
         elif self.media_application:
             validated_data["export_type"] = ApplicationExportType.TEMPORARY
