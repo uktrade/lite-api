@@ -67,15 +67,15 @@ class EndPointTests(SimpleTestCase):
             # set up headers data in csv if not already done
             csv_data.append(["env", env("PERFORMANCE_TEST_HOST")])
             csv_data.append([])
-            csv_data.append(["test", "url", "response_time"])
+            csv_data.append(["response_time", "test", "url"])
 
         super().setUpClass()
 
     def tearDown(self):
         if self.time:
-            csv_data.append([self._testMethodName, self.appended_address, self.time])
+            csv_data.append([self.time, self._testMethodName, self.appended_address])
         else:
-            csv_data.append([self._testMethodName, "", "Error"])
+            csv_data.append(["Error", self._testMethodName, ""])
 
         # print out the function and time function took to run
         print("\n" + self._testMethodName + ", " + str(self.time) if self.time else "Error")
