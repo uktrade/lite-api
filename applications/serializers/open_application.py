@@ -189,7 +189,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             set_goods_and_countries_for_open_media_application(application)
         elif self.crypto_application:
             set_goods_and_countries_for_open_crypto_application(application)
-        elif validated_data["goodscategory"] == GoodsTypeCategory.DEALER:
+        elif validated_data.get("goodstype_category") == GoodsTypeCategory.DEALER:
             set_goods_and_countries_for_open_dealer_application(application)
 
         return application
