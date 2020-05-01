@@ -19,6 +19,7 @@ env = Env(
     SUPPRESS_TEST_OUTPUT=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
+    SYSTEM_USER=(dict, {}),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -212,4 +213,4 @@ SECURE_BROWSER_XSS_FILTER = True
 
 STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")
 
-SYSTEM_USER = {"id": "12345678-1234-1234-1234-123456789101"}
+SYSTEM_USER = json.loads(env("SYSTEM_USER")) if env("SYSTEM_USER") else {}
