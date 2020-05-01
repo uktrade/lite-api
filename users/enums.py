@@ -32,6 +32,14 @@ class UserType:
 
 
 class SystemUser:
-    id = SYSTEM_USER.get("id")
-    first_name = SYSTEM_USER.get("first_name")
-    last_name = SYSTEM_USER.get("last_name")
+    @property
+    def id(self):
+        return SYSTEM_USER.get("id")
+
+    @property
+    def first_name(self):
+        return SYSTEM_USER.get("first_name")
+
+    @property
+    def last_name(self):
+        return SYSTEM_USER.get("last_name")
