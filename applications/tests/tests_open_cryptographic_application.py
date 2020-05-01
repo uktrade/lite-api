@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -27,7 +26,7 @@ class OpenCryptographicTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.count(), 1)
-        self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 6)
+        self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 3)
 
     def test_export_type_is_set_to_permanent(self):
         data = {
@@ -66,7 +65,7 @@ class OpenCryptographicTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
-            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(), 215,
+            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(), 214,
         )
 
     def test_cannot_add_goodstypes_on_cryptographic_application(self):

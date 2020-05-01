@@ -1,6 +1,3 @@
-import csv
-
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -29,7 +26,7 @@ class OpenDealerTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.count(), 1)
-        self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 6)
+        self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 15)
 
     def test_all_countries_added_dealer(self):
         data = {
@@ -44,7 +41,7 @@ class OpenDealerTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
             CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(),
-            Country.objects.count(),
+            Country.objects.filter(is_eu=1),
         )
 
     def test_cannot_add_goodstypes_on_dealer_application(self):
