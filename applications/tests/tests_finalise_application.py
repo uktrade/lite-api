@@ -8,6 +8,8 @@ from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum
 from cases.models import FinalAdvice
 from conf.constants import GovPermissions
+from flags.enums import FlagLevels
+from flags.tests.factories import FlagFactory
 from licences.models import Licence
 from lite_content.lite_api import strings
 from static.statuses.models import CaseStatus
@@ -81,6 +83,19 @@ class FinaliseApplicationTests(DataTestClient):
         response = self.client.put(self.url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_approve_application_blocking_flags_failure(self):
+        flag = FlagFactory(level=FlagLevels.CASE, team=self.team, blocks_approval=True)
+        self.standard_application.flags.add(flag)
+        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
+        data = {"action": AdviceType.APPROVE, "duration": 60}
+        data.update(self.post_date)
+
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response_data["errors"], [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{flag.name}"])
 
     def test_finalise_clearance_application_success(self):
         clearance_application = self.create_mod_clearance_application(

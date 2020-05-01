@@ -1,5 +1,5 @@
 from applications.models import GoodOnApplication, PartyOnApplication
-from cases.libraries.get_destination import get_ordered_flags
+from cases.libraries.get_flags import get_ordered_flags
 from flags.tests.factories import FlagFactory
 from parties.enums import PartyType
 from teams.models import Team

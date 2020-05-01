@@ -22,6 +22,7 @@ class FlagReadOnlySerializer(serializers.Serializer):
     label = serializers.CharField(read_only=True)
     status = serializers.CharField(read_only=True)
     priority = serializers.IntegerField(read_only=True)
+    blocks_approval = serializers.BooleanField(read_only=True)
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamReadOnlySerializer)
 
 
@@ -53,6 +54,11 @@ class FlagSerializer(serializers.ModelSerializer):
         },
     )
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
+    blocks_approval = serializers.BooleanField(
+        required=True,
+        allow_null=False,
+        error_messages={"required": strings.Flags.ValidationErrors.BLOCKING_APPROVAL_MISSING,},
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -76,6 +82,7 @@ class FlagSerializer(serializers.ModelSerializer):
             "label",
             "colour",
             "priority",
+            "blocks_approval",
         )
 
     def update(self, instance, validated_data):
@@ -84,6 +91,7 @@ class FlagSerializer(serializers.ModelSerializer):
         instance.colour = validated_data.get("colour", instance.colour)
         instance.priority = validated_data.get("priority", instance.priority)
         instance.status = validated_data.get("status", instance.status)
+        instance.blocks_approval = validated_data.get("blocks_approval", instance.blocks_approval)
         instance.save()
         return instance
 
