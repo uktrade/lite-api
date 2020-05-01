@@ -8,7 +8,7 @@ from applications.models import BaseApplication
 from conf.authentication import SharedAuthentication, OrganisationAuthentication
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
-from conf.permissions import check_user_has_permission
+from conf.permissions import check_user_has_permission, assert_user_has_permission
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus, OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
@@ -128,7 +128,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
 class OrganisationStatusView(generics.UpdateAPIView):
     def get_object(self):
-        # TODO Permission check
+        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_ORGANISATIONS)
         return get_organisation_by_pk(self.kwargs["pk"])
 
     def get_serializer(self, *args, **kwargs):
