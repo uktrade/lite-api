@@ -105,7 +105,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         pass
 
     def setUp(self):
-        self.system_user = BaseUser.objects.get(id=SystemUser.ID)
+        self.system_user = BaseUser.objects.get(id=SystemUser.id)
 
         # Gov User Setup
         self.team = Team.objects.get(name="Admin")

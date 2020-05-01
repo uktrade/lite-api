@@ -25,14 +25,15 @@ class UserType:
     INTERNAL = "internal"
     SYSTEM = "system"
 
-    choices = [
+    non_system_choices = [
         (EXPORTER, "Exporter"),
         (INTERNAL, "Internal"),
-        (SYSTEM, "System"),
     ]
+
+    choices = non_system_choices + [(SYSTEM, "System")]
 
 
 class SystemUser:
-    ID = UUID(SYSTEM_USER.get("id"))
-    FIRST_NAME = SYSTEM_USER.get("first_name")
-    LAST_NAME = SYSTEM_USER.get("last_name")
+    id = UUID(SYSTEM_USER.get("id"))
+    first_name = SYSTEM_USER.get("first_name")
+    last_name = SYSTEM_USER.get("last_name")

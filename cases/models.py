@@ -147,7 +147,7 @@ class Case(TimestampableModel):
         from audit_trail import service as audit_trail_service
 
         assigned_cases = CaseAssignment.objects.filter(case_id=self.id)
-        system_user = GovUser.objects.get(id=SystemUser.ID)
+        system_user = BaseUser.objects.get(id=SystemUser.id)
         if self.queues.exists():
             self.queues.clear()
 

@@ -19,7 +19,7 @@ class Permission(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=35)
     name = models.CharField(default="permission - FIX", max_length=80)
     # For convenience using UserType as a proxy for Permission Type
-    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
+    type = models.CharField(choices=UserType.non_system_choices, default=UserType.INTERNAL, max_length=8)
 
     objects = models.Manager()
     exporter = ExporterManager()
@@ -38,7 +38,7 @@ class Role(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(default=None, blank=True, null=True, max_length=30)
     permissions = models.ManyToManyField(Permission, related_name="roles")
-    type = models.CharField(choices=UserType.choices, default=UserType.INTERNAL, max_length=30)
+    type = models.CharField(choices=UserType.non_system_choices, default=UserType.INTERNAL, max_length=8)
     organisation = models.ForeignKey("organisations.Organisation", on_delete=models.CASCADE, null=True)
     statuses = models.ManyToManyField(CaseStatus, related_name="roles_statuses")
 
