@@ -48,6 +48,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
 
     system_user = GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID)
 
+    # This here allows us to look at each queue removed, and assign a countersigning queue for the work queue as needed
     for queue in queues_without_case_assignments:
         if queue.countersigning_queue_id:
             case.queues.add(queue.countersigning_queue_id)
