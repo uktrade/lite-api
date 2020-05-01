@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -14,6 +15,7 @@ from test_helpers.clients import DataTestClient
 class OpenMediaTests(DataTestClient):
     url = reverse("applications:applications")
 
+    @tag("media", "special")
     def test_create_draft_open_media_application_generates_goods(self):
         data = {
             "name": "Test",
@@ -28,6 +30,7 @@ class OpenMediaTests(DataTestClient):
         self.assertEqual(OpenApplication.objects.count(), 1)
         self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 6)
 
+    @tag("media", "special")
     def test_export_type_is_set_to_temporary(self):
         data = {
             "name": "Test",
@@ -40,6 +43,7 @@ class OpenMediaTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.TEMPORARY)
 
+    @tag("media", "special")
     def test_export_type_override_permanent_to_temporary(self):
         data = {
             "name": "Test",
@@ -53,6 +57,7 @@ class OpenMediaTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.TEMPORARY)
 
+    @tag("media", "special")
     def test_all_countries_added_media(self):
         data = {
             "name": "Test",
@@ -69,6 +74,7 @@ class OpenMediaTests(DataTestClient):
             Country.objects.count(),
         )
 
+    @tag("media", "special")
     def test_cannot_add_goodstypes_on_media_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.MEDIA
@@ -81,7 +87,8 @@ class OpenMediaTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodsType.objects.all().count(), initial_goods_count)
 
-    def test_remove_goodstype_from_open_application_as_exporter_user_success(self):
+    @tag("media", "special")
+    def test_cannot_remove_goodstype_from_open_media_application(self):
         self.create_draft_open_application(self.organisation)
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.MEDIA
@@ -97,6 +104,7 @@ class OpenMediaTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(GoodsType.objects.all().count(), initial_goods_count)
 
+    @tag("media", "special")
     def test_cannot_change_countries_on_media_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.MEDIA
@@ -109,6 +117,7 @@ class OpenMediaTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CountryOnApplication.objects.filter(application=application).count(), initial_countries_count)
 
+    @tag("media", "special")
     def test_cannot_change_countries_on_goodstype_on_media_application(self):
         country_1 = get_country("ES")
         country_2 = get_country("US")
