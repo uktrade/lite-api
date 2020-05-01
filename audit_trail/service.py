@@ -106,16 +106,21 @@ def get_case_activity_filters(case_id):
         Q(action_object_object_id=case_id, action_object_content_type=case_content_type) |
         Q(target_object_id=case_id, target_content_type=case_content_type)
     )
-    verbs = audit_qs.order_by("verb").values_list("verb", flat=True).distinct()
+    activity_types = audit_qs.order_by("verb").values_list("verb", flat=True).distinct()
     user_ids = audit_qs.order_by("actor_object_id").values_list("actor_object_id", flat=True).distinct()
     users = BaseUser.objects.filter(id__in=list(user_ids)).values("id", "first_name", "last_name")
     teams = Team.objects.filter(users__id__in=list(user_ids)).order_by("id").values("name", "id").distinct()
 
     filters = {
-        "actions": list(verbs),
-        "teams": [{"id": str(team["id"]), "name": team["name"]} for team in teams],
-        "user_types": [UserType.INTERNAL.value, UserType.EXPORTER.value],
-        "users": [{"first_name": user["first_name"], "last_name": user["last_name"], "id": str(user["id"])} for user in users]
+        "activity_types": [{"key": verb, "value": AuditType(verb).human_readable()} for verb in activity_types],
+        "teams": [{"key": str(team["id"]), "value": team["name"]} for team in teams],
+        "user_types": [
+            {"key": UserType.INTERNAL.value, "value": UserType.INTERNAL.value},
+            {"key": UserType.EXPORTER.value, "value": UserType.EXPORTER.value}
+        ],
+        "users": [
+            {"key": str(user["id"]), "value": f"{user['first_name']} {user['last_name']}"} for user in users
+        ]
     }
 
     return filters
