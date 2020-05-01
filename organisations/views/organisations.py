@@ -20,6 +20,7 @@ from organisations.serializers import (
     OrganisationDetailSerializer,
     OrganisationCreateUpdateSerializer,
     OrganisationListSerializer,
+    OrganisationStatusUpdateSerializer,
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -120,3 +121,11 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
         for application in applications:
             apply_flagging_rules_to_case(application)
+
+
+class OrganisationStatus(generics.UpdateAPIView):
+    serializer_class = OrganisationStatusUpdateSerializer
+
+    def get_object(self):
+        organisation = get_organisation_by_pk(self.kwargs["pk"])
+        # TODO Permission check
