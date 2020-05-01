@@ -6,6 +6,7 @@ from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
     GoodsCategory,
+    GoodsTypeCategory,
 )
 from applications.models import (
     StandardApplication,
@@ -146,6 +147,7 @@ class DraftTests(DataTestClient):
             "name": "Test",
             "application_type": CaseTypeReferenceEnum.OIEL,
             "export_type": ApplicationExportType.TEMPORARY,
+            "goodstype_category": GoodsTypeCategory.MILITARY,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
