@@ -469,3 +469,26 @@ class EditOrganisationTests(DataTestClient):
         # Check only the finalised case's status was changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES)
         self.assertEqual(case_two.status.status, CaseStatusEnum.SUBMITTED)
+
+
+class EditOrganisationStatusTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.organisation = OrganisationFactory(status=OrganisationStatus.IN_REVIEW)
+        self.url = reverse("organisations:organisation_status", kwargs={"pk": self.organisation.pk})
+
+    def test_set_organisation_status_success(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
+        data = {"status": OrganisationStatus.ACTIVE}
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["status"]["key"], OrganisationStatus.ACTIVE)
+
+    def test_set_organisation_status__without_permission_failure(self):
+        data = {"status": OrganisationStatus.ACTIVE}
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

@@ -5,7 +5,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 
 from applications.models import BaseApplication
-from conf.authentication import SharedAuthentication, OrganisationAuthentication
+from conf.authentication import SharedAuthentication, OrganisationAuthentication, GovAuthentication
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission, assert_user_has_permission
@@ -127,6 +127,8 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
 
 class OrganisationStatusView(generics.UpdateAPIView):
+    authentication_classes = (GovAuthentication,)
+
     def get_object(self):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_ORGANISATIONS)
         return get_organisation_by_pk(self.kwargs["pk"])
