@@ -1,6 +1,3 @@
-import operator
-from functools import reduce
-
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
