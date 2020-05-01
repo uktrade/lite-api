@@ -47,7 +47,9 @@ class OrganisationsList(generics.ListCreateAPIView):
             organisations = organisations.filter(type__in=org_types)
 
         if search_term:
-            organisations = organisations.filter(Q(name__icontains=search_term) | Q(registration_number__icontains=search_term))
+            organisations = organisations.filter(
+                Q(name__icontains=search_term) | Q(registration_number__icontains=search_term)
+            )
 
         if status:
             organisations = organisations.filter(status=status)
