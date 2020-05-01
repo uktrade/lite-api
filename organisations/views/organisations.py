@@ -123,7 +123,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
             apply_flagging_rules_to_case(application)
 
 
-class OrganisationStatus(generics.UpdateAPIView):
+class OrganisationStatusView(generics.UpdateAPIView):
     def get_object(self):
         # TODO Permission check
         return get_organisation_by_pk(self.kwargs["pk"])
