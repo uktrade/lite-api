@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from conf.settings import SYSTEM_USER
 
 
@@ -34,7 +36,7 @@ class UserType:
 class SystemUser:
     @property
     def id(self):
-        return SYSTEM_USER.get("id")
+        return UUID(SYSTEM_USER.get("id"))
 
     @property
     def first_name(self):
