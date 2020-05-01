@@ -22,7 +22,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
     rules_have_been_applied = False
     case_parameter_set = case.parameter_set()
 
-    system_user = GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID)
+    system_user = GovUser.objects.get(id=SystemUser.ID)
 
     while not rules_have_been_applied:
         # look at each team one at a time

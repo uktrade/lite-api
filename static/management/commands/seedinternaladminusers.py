@@ -38,29 +38,15 @@ class Command(SeedCommand):
         admin_users = cls._get_internal_users_list()
 
         for admin_user in admin_users:
-            id = admin_user.get("id", None)
-            first_name = admin_user.get("first_name", "")
-            last_name = admin_user.get("last_name", "")
-            email = admin_user.get("email", "")
+            email = admin_user["email"]
+
             role = Role.objects.get(
                 name=admin_user.get("role", Roles.INTERNAL_SUPER_USER_ROLE_NAME), type=UserType.INTERNAL
             )
 
-            defaults = {
-                "email": email,
-                "team_id": Teams.ADMIN_TEAM_ID,
-                "role": role,
-                "first_name": first_name,
-                "last_name": last_name,
-            }
-
-            if id:
-                defaults["id"] = id
-                filters = {"id": id}
-            else:
-                filters = {"email__iexact": email}
-
-            admin_user, created = GovUser.objects.get_or_create(**filters, defaults=defaults)
+            admin_user, created = GovUser.objects.get_or_create(
+                email__iexact=email, defaults={"email": email, "team_id": Teams.ADMIN_TEAM_ID, "role": role}
+            )
 
             if created or admin_user.role != role:
                 admin_user.role = role
@@ -80,7 +66,7 @@ class Command(SeedCommand):
         except ValueError:
             raise ValueError(
                 f"INTERNAL_ADMIN_TEAM_USERS has incorrect format;"
-                f'\nexpected format: [{{"id":"", "first_name": "", "last_name": "", "email": "", "role": ""}}]'
+                f'\nexpected format: [{{"email": "", "role": ""}}]'
                 f"\nbut got: {admin_users}"
             )
 

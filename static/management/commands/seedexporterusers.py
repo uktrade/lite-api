@@ -77,14 +77,9 @@ class Command(SeedCommand):
     @classmethod
     def seed_exporter_users(cls):
         for exporter_user_data in cls._get_exporter_users():
-            email = exporter_user_data.get("email", "")
-            default_data = dict(
-                email=email,
-                first_name=exporter_user_data.get("first_name", ""),
-                last_name=exporter_user_data.get("last_name", ""),
-            )
+            email = exporter_user_data["email"]
 
-            exporter_user, created = ExporterUser.objects.get_or_create(email__iexact=email, defaults=default_data)
+            exporter_user, created = ExporterUser.objects.get_or_create(email__iexact=email, defaults={"email": email})
 
             if created:
                 cls.print_created_or_updated(ExporterUser, {"email": email}, is_created=True)
@@ -95,17 +90,14 @@ class Command(SeedCommand):
     def _get_exporter_users(cls):
         admin_users = cls._parse_users("INTERNAL_ADMIN_TEAM_USERS")
         exporter_users = cls._parse_users("EXPORTER_USERS")
-        exporter_user_emails = [exporter_user.get("email", "") for exporter_user in exporter_users]
+        exporter_user_emails = [exporter_user["email"] for exporter_user in exporter_users]
 
         # Add INTERNAL_ADMIN_TEAM_USERS to exporter_users list if they have not been defined in EXPORTER_USERS
         for user in admin_users:
-            email = user.get("email", "")
+            email = user["email"]
 
             if email not in exporter_user_emails:
-                first_name = user.get("first_name", "")
-                last_name = user.get("last_name", "")
-
-                exporter_users.append({"first_name": first_name, "last_name": last_name, "email": email})
+                exporter_users.append({"email": email})
 
         return exporter_users
 
@@ -120,7 +112,7 @@ class Command(SeedCommand):
         except ValueError:
             raise ValueError(
                 f"{env_variable} has incorrect format;"
-                f'\nexpected format: [{{"first_name": "", "last_name": "", "email": "", "organisation": "", "role": ""}}]'
+                f'\nexpected format: [{{"email": "", "organisation": "", role": ""}}]'
                 f"\nbut got: {users}"
             )
 
