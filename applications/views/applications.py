@@ -54,6 +54,7 @@ from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.libraries.get_flags import get_flags
 from cases.models import FinalAdvice
 from cases.sla import get_application_target_sla
 from cases.serializers import SimpleFinalAdviceSerializer
@@ -67,6 +68,7 @@ from conf.decorators import (
 )
 from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
+from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
@@ -180,7 +182,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Retrieve an application instance
         """
         serializer = get_application_view_serializer(application)
-        data = serializer(application, context={"exporter_user": request.user}).data
+        data = serializer(application, context={"user_type": request.user.type, "exporter_user": request.user}).data
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
@@ -298,7 +300,7 @@ class ApplicationSubmission(APIView):
     @authorised_users(ExporterUser)
     def put(self, request, application):
         """
-        Submit a draft-application which will set its submitted_at datetime and status before creating a case
+        Submit a draft application which will set its submitted_at datetime and status before creating a case
         Depending on the application subtype, this will also submit the declaration of the licence
         """
         old_status = application.status.status
@@ -348,7 +350,7 @@ class ApplicationSubmission(APIView):
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
-        serializer = serializer(application)
+        serializer = serializer(application, context={"user_type": request.user.type})
 
         data = {"application": {"reference_code": application.reference_code, **serializer.data}}
 
@@ -428,7 +430,12 @@ class ApplicationManageStatus(APIView):
             run_routing_rules(case=application, keep_status=True)
 
         return JsonResponse(
-            data={"data": get_application_view_serializer(application)(application).data}, status=status.HTTP_200_OK
+            data={
+                "data": get_application_view_serializer(application)(
+                    application, context={"user_type": request.user.type}
+                ).data
+            },
+            status=status.HTTP_200_OK,
         )
 
 
@@ -490,6 +497,18 @@ class ApplicationFinaliseView(APIView):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
                     status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Check if any blocking flags are on the case
+            blocking_flags = (
+                get_flags(application.get_case())
+                .filter(status=FlagStatuses.ACTIVE, blocks_approval=True)
+                .order_by("name")
+                .values_list("name", flat=True)
+            )
+            if blocking_flags:
+                raise PermissionDenied(
+                    [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"]
                 )
 
             # Create incomplete Licence object
