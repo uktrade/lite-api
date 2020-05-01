@@ -124,8 +124,9 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
 
 class OrganisationStatus(generics.UpdateAPIView):
-    serializer_class = OrganisationStatusUpdateSerializer
-
     def get_object(self):
-        organisation = get_organisation_by_pk(self.kwargs["pk"])
         # TODO Permission check
+        return get_organisation_by_pk(self.kwargs["pk"])
+
+    def get_serializer(self, *args, **kwargs):
+        return OrganisationStatusUpdateSerializer(self.get_object(), data=kwargs["data"], partial=True)
