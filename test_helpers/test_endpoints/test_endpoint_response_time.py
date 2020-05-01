@@ -142,7 +142,7 @@ class EndPointTests(SimpleTestCase):
                     break
             else:
                 response = self.call_endpoint(
-                    self.get_exporter(), "/applications/page=" + str(page + 1), save_results=False
+                    self.get_exporter(), "/applications/?page=" + str(page + 1), save_results=False
                 ).json()
                 continue
 
@@ -234,9 +234,10 @@ class EndPointTests(SimpleTestCase):
 
     def get_users_id(self):
         if not self.users_id:
-            response = self.call_endpoint(self.get_exporter(), "/users/", save_results=False)
+            exporter = self.get_exporter()
+            response = self.call_endpoint(exporter, "/organisations/" + exporter["ORGANISATION-ID"] + "/users/", save_results=False)
 
-            self.users_id = response.json()["users"][0]["id"]
+            self.users_id = response.json()['results'][0]["id"]
 
         return self.users_id
 
