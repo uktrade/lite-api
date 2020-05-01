@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from conf.settings import SYSTEM_USER
 
 
@@ -34,6 +32,6 @@ class UserType:
 
 
 class SystemUser:
-    id = UUID(SYSTEM_USER.get("id"))
+    id = SYSTEM_USER.get("id")
     first_name = SYSTEM_USER.get("first_name")
     last_name = SYSTEM_USER.get("last_name")
