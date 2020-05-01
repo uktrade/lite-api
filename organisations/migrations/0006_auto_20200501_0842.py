@@ -7,18 +7,25 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0005_auto_20200326_1420'),
+        ("organisations", "0005_auto_20200326_1420"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='externallocation',
-            name='location_type',
-            field=models.CharField(blank=True, choices=[('land_based', 'Land based'), ('sea_based', 'Vessel (sea) based')], max_length=20, null=True),
+            model_name="externallocation",
+            name="location_type",
+            field=models.CharField(
+                blank=True,
+                choices=[("land_based", "Land based"), ("sea_based", "Vessel (sea) based")],
+                max_length=20,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='externallocation',
-            name='country',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='countries.Country'),
+            model_name="externallocation",
+            name="country",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to="countries.Country"
+            ),
         ),
     ]

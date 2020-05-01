@@ -144,7 +144,12 @@ class ApplicationExternalLocations(APIView):
                 actor=user,
                 verb=AuditType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
                 target=application.get_case(),
-                payload={"locations": [location.name + " " + location.country.name if location.country else location.name for location in new_locations]},
+                payload={
+                    "locations": [
+                        location.name + " " + location.country.name if location.country else location.name
+                        for location in new_locations
+                    ]
+                },
             )
 
         if method != "append_location":
