@@ -9,6 +9,7 @@ from conf.serializers import (
     KeyValueChoiceField,
     CountrySerializerField,
 )
+from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation, Site, ExternalLocation
@@ -275,17 +276,31 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = CountrySerializerField()
+    country = CountrySerializerField(required=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
-    location_type = serializers.CharField()
+
+    class Meta:
+        model = ExternalLocation
+        fields = ("id", "name", "address", "country", "organisation")
+
+
+class SiclExternalLocationSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    address = serializers.CharField()
+    country = CountrySerializerField(required=False)
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    location_type = serializers.CharField(required=True, error_messages={"required": "Select a location type",},)
+
+    def validate(self, data):
+        if data["location_type"] == "land_based":
+            if not data["country"]:
+                raise serializers.ValidationError({"country": strings.ExternalLocations.Errors.LOCATION_TYPE})
+        return super().validate(data)
 
     class Meta:
         model = ExternalLocation
         fields = ("id", "name", "address", "country", "organisation", "location_type")
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # self.fields["country"].required = False
 
 
 class OrganisationUserListView(serializers.ModelSerializer):

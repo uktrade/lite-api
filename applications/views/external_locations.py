@@ -98,7 +98,7 @@ class ApplicationExternalLocations(APIView):
 
             # Transhipment and Trade Control applications can't have sites based in certain countries
             if application.case_type.id in [*CaseTypeEnum.trade_control_case_type_ids(), CaseTypeEnum.SITL.id]:
-                if new_location.country.id in TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES:
+                if new_location.country and new_location.country.id in TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES:
                     return (
                         None,
                         {
@@ -144,7 +144,7 @@ class ApplicationExternalLocations(APIView):
                 actor=user,
                 verb=AuditType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
                 target=application.get_case(),
-                payload={"locations": [location.name + " " + location.country.name for location in new_locations]},
+                payload={"locations": [location.name + " " + location.country.name if location.country else location.name for location in new_locations]},
             )
 
         if method != "append_location":

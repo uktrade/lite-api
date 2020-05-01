@@ -3,9 +3,10 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from cases.enums import CaseTypeReferenceEnum
 from conf.authentication import ExporterAuthentication
 from organisations.models import ExternalLocation
-from organisations.serializers import ExternalLocationSerializer
+from organisations.serializers import ExternalLocationSerializer, SiclExternalLocationSerializer
 
 
 class ExternalLocationList(APIView):
@@ -23,7 +24,10 @@ class ExternalLocationList(APIView):
         data = request.data
         data["organisation"] = org_pk
 
-        serializer = ExternalLocationSerializer(data=data)
+        if data.get("application_type") == CaseTypeReferenceEnum.SICL:
+            serializer = SiclExternalLocationSerializer(data=data)
+        else:
+            serializer = ExternalLocationSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
