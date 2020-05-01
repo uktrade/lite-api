@@ -26,6 +26,7 @@ class GoodsCategory:
     MARITIME_ANTI_PIRACY = "maritime_anti_piracy"
     FIREARMS = "firearms"
     INCORPORATED_GOODS = "incorporated_goods"
+
     choices = [
         (ANTI_PIRACY, "Anti-piracy"),
         (MARITIME_ANTI_PIRACY, "Maritime anti-piracy"),
@@ -33,6 +34,29 @@ class GoodsCategory:
         (INCORPORATED_GOODS, "Incorporated goods"),
     ]
 
+    @classmethod
+    def get_text(cls, choice):
+        for key, value in cls.choices:
+            if key == choice:
+                return value
+
+
+class GoodsTypeCategory:
+    MILITARY = "military"
+    CRYPTOGRAPHIC = "cryptographic"
+    MEDIA = "media"
+    UK_CONTINENTAL_SHELF = "uk_continental_shelf"
+    DEALER = "dealer"
+
+    choices = [
+        (MILITARY, "Military or dual use"),
+        (CRYPTOGRAPHIC, "Cryptographic"),
+        (MEDIA, "Media"),
+        (UK_CONTINENTAL_SHELF, "UK continental shelf"),
+        (DEALER, "Dealer"),
+    ]
+
+    # For use in the serialiser
     @classmethod
     def get_text(cls, choice):
         for key, value in cls.choices:
