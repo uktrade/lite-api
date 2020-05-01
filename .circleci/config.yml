@@ -48,10 +48,6 @@ jobs:
             fi
             exit $VULNERABILITY_COUNT
 
-      - run:
-          name: Set Environment File
-          command: cp local.env .env
-
       # Download and cache dependencies
       # ensure this step occurs *before* installing dependencies
       - restore_cache:
