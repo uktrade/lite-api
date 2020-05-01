@@ -235,9 +235,11 @@ class EndPointTests(SimpleTestCase):
     def get_users_id(self):
         if not self.users_id:
             exporter = self.get_exporter()
-            response = self.call_endpoint(exporter, "/organisations/" + exporter["ORGANISATION-ID"] + "/users/", save_results=False)
+            response = self.call_endpoint(
+                exporter, "/organisations/" + exporter["ORGANISATION-ID"] + "/users/", save_results=False
+            )
 
-            self.users_id = response.json()['results'][0]["id"]
+            self.users_id = response.json()["results"][0]["id"]
 
         return self.users_id
 
@@ -253,7 +255,7 @@ class EndPointTests(SimpleTestCase):
         if not self.queue_id:
             response = self.call_endpoint(self.get_gov_user(), "/queues/", save_results=False)
 
-            self.queue_id = response.json()["queues"][0]["id"]
+            self.queue_id = response.json()["results"][0]["id"]
 
         return self.queue_id
 
