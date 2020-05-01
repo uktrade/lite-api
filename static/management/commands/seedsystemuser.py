@@ -4,6 +4,7 @@ from conf.settings import env
 from django.db import transaction
 
 from static.management.SeedCommand import SeedCommand
+from users.enums import UserType
 from users.models import BaseUser
 
 
@@ -29,6 +30,7 @@ class Command(SeedCommand):
             "email": "N/A",
             "first_name": first_name,
             "last_name": last_name,
+            "type": UserType.SYSTEM,
         }
 
         system_user, created = BaseUser.objects.get_or_create(id=id, defaults=defaults)
