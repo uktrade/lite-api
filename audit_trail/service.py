@@ -11,7 +11,7 @@ from audit_trail.schema import validate_kwargs
 from cases.models import Case
 from teams.models import Team
 from users.enums import UserType
-from users.models import ExporterUser, GovUser
+from users.models import ExporterUser, GovUser, BaseUser
 
 
 @validate_kwargs
@@ -64,6 +64,9 @@ def filter_case_activity(
     date_to: Optional[date] = None,
     note_type=None
 ):
+    """
+    Filter activity timeline for a case.
+    """
     case_content_type = ContentType.objects.get_for_model(Case)
     audit_qs = Audit.objects.filter(
         Q(action_object_object_id=case_id, action_object_content_type=case_content_type) |
@@ -94,3 +97,26 @@ def filter_case_activity(
         audit_qs = audit_qs.filter(created_at__date__lte=date_to)
 
     return audit_qs
+
+
+def get_case_activity_filters(case_id):
+    case_content_type = ContentType.objects.get_for_model(Case)
+
+    audit_qs = Audit.objects.filter(
+        Q(action_object_object_id=case_id, action_object_content_type=case_content_type) |
+        Q(target_object_id=case_id, target_content_type=case_content_type)
+    )
+    verbs = audit_qs.order_by("verb").values_list("verb", flat=True).distinct()
+    user_ids = audit_qs.order_by("actor_object_id").values_list("actor_object_id", flat=True).distinct()
+    users = BaseUser.objects.filter(id__in=list(user_ids)).values("id", "first_name", "last_name")
+    teams = Team.objects.filter(users__id__in=list(user_ids)).order_by("id").values("name", "id").distinct()
+
+    filters = {
+        "actions": list(verbs),
+        "teams": [{"id": str(team["id"]), "name": team["name"]} for team in teams],
+        "user_types": [UserType.INTERNAL.value, UserType.EXPORTER.value],
+        "users": [{"first_name": user["first_name"], "last_name": user["last_name"], "id": str(user["id"])} for user in users]
+    }
+
+    return filters
+

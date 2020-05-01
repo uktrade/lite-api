@@ -155,7 +155,7 @@ class ExporterUser(BaseUser):
 
 class GovUser(BaseUser):
     status = models.CharField(choices=UserStatuses.choices, default=UserStatuses.ACTIVE, max_length=20)
-    team = models.ForeignKey(Team, related_name="team", on_delete=models.PROTECT)
+    team = models.ForeignKey(Team, related_name="users", on_delete=models.PROTECT)
     role = models.ForeignKey(
         Role, related_name="role", default=Roles.INTERNAL_DEFAULT_ROLE_ID, on_delete=models.PROTECT
     )
