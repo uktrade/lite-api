@@ -18,6 +18,7 @@ class GovPermissions(Enum):
     MANAGE_TEAM_ROUTING_RULES = "Manage team routing rules"
     MANAGE_ALL_ROUTING_RULES = "Manage all routing rules"
     ACTIVATE_FLAGS = "Activate and deactivate flags"
+    MANAGE_PICKLISTS = "Manage picklists"
 
 
 class ExporterPermissions(Enum):
