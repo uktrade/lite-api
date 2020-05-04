@@ -3,6 +3,7 @@ from functools import wraps
 from django.http import JsonResponse
 from rest_framework import status
 
+from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
@@ -38,6 +39,20 @@ def allowed_application_types(application_types: [str]):
             application = _get_application(request, kwargs)
 
             if application.case_type.sub_type not in application_types:
+                return JsonResponse(
+                    data={
+                        "errors": [
+                            "This operation can only be used "
+                            "on applications of type: " + ", ".join(application_types)
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if (
+                application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
+                and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
+            ):
                 return JsonResponse(
                     data={
                         "errors": [
