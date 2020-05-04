@@ -179,10 +179,8 @@ class OrganisationsMatchingDetail(APIView):
 
 class OrganisationStatusView(generics.UpdateAPIView):
     authentication_classes = (GovAuthentication,)
+    serializer_class = OrganisationStatusUpdateSerializer
 
     def get_object(self):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_ORGANISATIONS)
         return get_organisation_by_pk(self.kwargs["pk"])
-
-    def get_serializer(self, *args, **kwargs):
-        return OrganisationStatusUpdateSerializer(self.get_object(), data=kwargs["data"], partial=True)

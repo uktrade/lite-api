@@ -229,7 +229,7 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class OrganisationStatusUpdateSerializer(serializers.ModelSerializer):
-    status = KeyValueChoiceField(choices=OrganisationStatus.choices, required=True, allow_null=False)
+    status = KeyValueChoiceField(choices=OrganisationStatus.choices, required=True, allow_null=False, allow_blank=False)
 
     class Meta:
         model = Organisation
