@@ -13,7 +13,7 @@ from static.statuses.serializers import CaseStatusSerializer
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.models import GovUser
-from users.serializers import GovUserViewSerializer
+from gov_users.serializers import GovUserViewSerializer
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 from workflow.routing_rules.models import RoutingRule
 

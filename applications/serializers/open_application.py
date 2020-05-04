@@ -2,19 +2,20 @@ from rest_framework import serializers
 from django.db.models import Min, Case, When, BinaryField
 from rest_framework.fields import CharField
 
-from applications.enums import ApplicationExportType
+from applications.enums import ApplicationExportType, GoodsTypeCategory
+from applications.libraries.goodstype_category_helpers import set_goods_and_countries_for_open_media_application
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
     GenericApplicationViewSerializer,
 )
-from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
 from conf.serializers import KeyValueChoiceField
 from goodstype.serializers import GoodsTypeViewSerializer
 from licences.models import Licence
+from licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
 from static.countries.serializers import CountryWithFlagsSerializer
@@ -29,6 +30,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     proposed_return_date = serializers.DateField(required=False)
     trade_control_activity = serializers.SerializerMethodField()
     trade_control_product_categories = serializers.SerializerMethodField()
+    goodstype_category = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenApplication
@@ -54,6 +56,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "proposed_return_date",
             "trade_control_activity",
             "trade_control_product_categories",
+            "goodstype_category",
         )
 
     def get_goods_types(self, application):
@@ -61,6 +64,11 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
         default_countries = Country.objects.filter(countries_on_application__application=application)
 
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
+
+    def get_goodstype_category(self, instance):
+        key = instance.goodstype_category
+        value = GoodsTypeCategory.get_text(key)
+        return {"key": key, "value": value}
 
     def get_destinations(self, application):
         """ Get destinations for the open application, ordered based on flag priority and alphabetized by name."""
@@ -104,6 +112,10 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
 
 class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
+    goodstype_category = KeyValueChoiceField(
+        choices=GoodsTypeCategory.choices,
+        error_messages={"required": strings.Applications.Generic.OIEL_GOODSTYPE_CATEGORY_ERROR},
+    )
     export_type = KeyValueChoiceField(
         choices=ApplicationExportType.choices, error_messages={"required": strings.Applications.Generic.NO_EXPORT_TYPE},
     )
@@ -129,6 +141,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "trade_control_activity",
             "trade_control_activity_other",
             "trade_control_product_categories",
+            "goodstype_category",
         )
 
     def __init__(self, case_type_id, **kwargs):
@@ -138,6 +151,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         # Remove fields from serializer depending on the application being for a Trade Control Licence
         if self.trade_control_licence:
             self.fields.pop("export_type")
+            self.fields.pop("goodstype_category")
 
             if not self.initial_data.get("trade_control_activity") == TradeControlActivity.OTHER:
                 self.fields.pop("trade_control_activity_other")
@@ -146,11 +160,29 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             self.fields.pop("trade_control_activity_other")
             self.fields.pop("trade_control_product_categories")
 
+        if case_type_id == str(CaseTypeEnum.HMRC.id):
+            self.fields.pop("goodstype_category")
+
+        self.media_application = (
+            True if self.initial_data.get("goodstype_category") == GoodsTypeCategory.MEDIA else False
+        )
+        if self.media_application:
+            self.fields.pop("export_type")
+            self.media_application = True
+
     def create(self, validated_data):
         # Trade Control Licences are always permanent
         if self.trade_control_licence:
             validated_data["export_type"] = ApplicationExportType.PERMANENT
-        return super().create(validated_data)
+        elif self.media_application:
+            validated_data["export_type"] = ApplicationExportType.TEMPORARY
+
+        application = super().create(validated_data)
+
+        if validated_data.get("goodstype_category") == GoodsTypeCategory.MEDIA:
+            set_goods_and_countries_for_open_media_application(application)
+
+        return application
 
 
 class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
