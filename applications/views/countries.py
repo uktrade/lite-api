@@ -30,7 +30,7 @@ class ApplicationCountries(APIView):
         """
         View countries belonging to an open licence application
         """
-        countries = Country.objects.filter(countries_on_application__application=application)
+        countries = Country.include_special_countries.filter(countries_on_application__application=application)
         countries_data = CountrySerializer(countries, many=True).data
 
         return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
