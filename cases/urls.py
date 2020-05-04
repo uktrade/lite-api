@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from cases.views import views, activity, case_notes
+from cases.views import views, case_notes
 from cases.views.search import views as search_views
 from cases.views.search.activity import CaseActivityView, CaseActivityFiltersView
 
