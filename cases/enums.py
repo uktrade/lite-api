@@ -281,6 +281,6 @@ class ECJUQueryType:
 
     choices = [
         (ECJU, "Standard query"),
-        (PRE_VISIT_QUESTIONNAIRE, "Pre-visit questionnaire question"),
+        (PRE_VISIT_QUESTIONNAIRE, "Pre-visit question"),
         (COMPLIANCE_ACTIONS, "Compliance action"),
     ]

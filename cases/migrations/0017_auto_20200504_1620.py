@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='ecjuquery',
             name='query_type',
-            field=models.CharField(choices=[('ecju_query', 'Standard query'), ('pre_visit_questionnaire', 'Pre-visit questionnaire question'), ('compliance_actions', 'Compliance action')], default='ecju_query', max_length=50),
+            field=models.CharField(choices=[('ecju_query', 'Standard query'), ('pre_visit_questionnaire', 'Pre-visit question'), ('compliance_actions', 'Compliance action')], default='ecju_query', max_length=50),
         ),
     ]
