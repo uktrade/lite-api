@@ -15,6 +15,7 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
+from conf.helpers import str_to_bool
 from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
@@ -110,9 +111,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
         choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
     )
     reference_number_on_information_form = CharField(allow_blank=True)
-    goods_categories = serializers.MultipleChoiceField(
-        choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
-    )
+    contains_firearm_goods = serializers.BooleanField(required=False)
     trade_control_activity = KeyValueChoiceField(
         choices=TradeControlActivity.choices,
         error_messages={"required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR},
@@ -134,10 +133,10 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "export_type",
             "have_you_been_informed",
             "reference_number_on_information_form",
-            "goods_categories",
             "trade_control_activity",
             "trade_control_activity_other",
             "trade_control_product_categories",
+            "contains_firearm_goods"
         )
 
     def __init__(self, case_type_id, **kwargs):
@@ -161,6 +160,8 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
         # Trade Control Licences are always permanent
         if self.trade_control_licence:
             validated_data["export_type"] = ApplicationExportType.PERMANENT
+
+        # validated_data['contains_firearm_goods'] = str_to_bool(validated_data['contains_firearm_goods'])
         return super().create(validated_data)
 
 
