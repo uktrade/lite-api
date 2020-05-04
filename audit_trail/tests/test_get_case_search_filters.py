@@ -21,12 +21,15 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
 
         case_filters = get_case_activity_filters(self.case.id)
 
-        actions = [audit.verb]
-        teams = [{"name": self.team.name, "id": str(self.team.id)}]
-        users = [{"first_name": self.gov_user.first_name, "last_name": self.gov_user.last_name, "id": str(self.gov_user.id)}]
-        user_types = [UserType.INTERNAL.value, UserType.EXPORTER.value]
+        actions = [{"key": audit.verb.value, "value": audit.verb.human_readable()}]
+        teams = [{"value": self.team.name, "key": str(self.team.id)}]
+        users = [{"value": f"{self.gov_user.first_name} {self.gov_user.last_name}", "key": str(self.gov_user.id)}]
+        user_types = [
+            {"key": UserType.INTERNAL.value, "value": UserType.INTERNAL.value},
+            {"key": UserType.EXPORTER.value, "value": UserType.EXPORTER.value},
+        ]
 
-        self.assertEqual(case_filters["actions"], actions)
+        self.assertEqual(case_filters["activity_types"], actions)
         self.assertEqual(case_filters["teams"], teams)
         self.assertEqual(case_filters["users"], users)
         self.assertEqual(case_filters["user_types"], user_types)
@@ -36,4 +39,4 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
 
         case_filters = get_case_activity_filters(self.case.id)
 
-        self.assertEqual(case_filters["users"].sort(key=lambda x: x["id"]), users.sort(key=lambda x: x["id"]))
+        self.assertEqual(case_filters["users"].sort(key=lambda x: x["key"]), users.sort(key=lambda x: x["key"]))
