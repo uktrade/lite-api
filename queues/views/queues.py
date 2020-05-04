@@ -27,11 +27,12 @@ class QueuesList(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         include_system = request.GET.get("include_system", False)
+        disable_pagination = request.GET.get("disable_pagination", False)
 
-        if str_to_bool(include_system):
+        if str_to_bool(include_system) and str(disable_pagination):
             system_queue_data = get_system_queues()
             work_queue_data = self.get_serializer(get_work_queues_qs(), many=True).data
-            return JsonResponse(data={"results": system_queue_data + work_queue_data}, status=status.HTTP_200_OK)
+            return JsonResponse(data=system_queue_data + work_queue_data, safe=False, status=status.HTTP_200_OK)
 
         return super().get(request, *args, **kwargs)
 

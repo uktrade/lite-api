@@ -1,8 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from queues.constants import ALL_CASES_QUEUE_ID, SYSTEM_QUEUES
-from queues.helpers import get_queue
+from queues.constants import SYSTEM_QUEUES
 from queues.models import Queue
 from test_helpers.clients import DataTestClient
 
@@ -31,8 +30,8 @@ class QueuesViewTests(DataTestClient):
         data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(data["results"]), 7)
-        for queue in data["results"]:
+        self.assertEqual(len(data), 7)
+        for queue in data:
             queue_exists = queue["id"] in SYSTEM_QUEUES.keys() or Queue.objects.filter(pk=queue["id"]).exists()
             self.assertTrue(queue_exists)
 
