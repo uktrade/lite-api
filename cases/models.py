@@ -259,9 +259,9 @@ class Advice(TimestampableModel):
     note = models.TextField(default=None, blank=True, null=True)
 
     # Optional goods/destinations
-    good = models.ForeignKey("goods.Good", on_delete=models.CASCADE, null=True)
-    goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE, null=True)
-    country = models.ForeignKey("countries.Country", on_delete=models.CASCADE, null=True)
+    good = models.ForeignKey("goods.Good", related_name="advice", on_delete=models.CASCADE, null=True)
+    goods_type = models.ForeignKey("goodstype.GoodsType", related_name="advice", on_delete=models.CASCADE, null=True)
+    country = models.ForeignKey("countries.Country", related_name="advice", on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey("parties.Party", on_delete=models.CASCADE, null=True)
     ultimate_end_user = models.ForeignKey(
         "parties.Party", on_delete=models.CASCADE, related_name="ultimate_end_user", null=True

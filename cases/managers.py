@@ -4,6 +4,7 @@ from typing import List
 from compat import get_model
 from django.db import models
 from django.db.models import Q, Case, When, BinaryField
+from model_utils.managers import InheritanceManager
 
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from queues.constants import (
@@ -259,7 +260,7 @@ class CaseReferenceCodeManager(models.Manager):
         return case_reference_code
 
 
-class AdviceManager(models.Manager):
+class AdviceManager(InheritanceManager):
     def get_queryset(self):
         return super().get_queryset().prefetch_related(*self.model.ENTITY_FIELDS)
 

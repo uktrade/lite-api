@@ -57,7 +57,7 @@ from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
 from static.countries.helpers import get_country
 from static.countries.models import Country
-from static.countries.serializers import CountryWithFlagsSerializer
+from applications.serializers.advice import CountryWithFlagsSerializer
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -205,16 +205,15 @@ class CaseAdvice(APIView):
         self.advice = (
             Advice.objects.filter(case=self.case).exclude(teamadvice__isnull=False).exclude(finaladvice__isnull=False)
         )
-        self.serializer_object = CaseAdviceSerializer
 
         return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
 
-    def get(self, request, pk):
-        """
-        Returns all advice for a case
-        """
-        serializer = self.serializer_object(self.advice, many=True)
-        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
+    # def get(self, request, pk):
+    #     """
+    #     Returns all advice for a case
+    #     """
+    #     serializer = self.serializer_object(self.advice, many=True)
+    #     return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
@@ -228,7 +227,7 @@ class CaseAdvice(APIView):
         elif team_advice_exists:
             return team_advice_exists
         else:
-            return post_advice(request, self.case, self.serializer_object, team=False)
+            return post_advice(request, self.case, CaseAdviceSerializer, team=False)
 
 
 class ViewTeamAdvice(APIView):
@@ -525,15 +524,6 @@ class Destination(APIView):
 class CaseOfficer(APIView):
     authentication_classes = (GovAuthentication,)
 
-    def get(self, request, pk):
-        """
-        Gets the current case officer for a case
-        """
-        case_officer = get_case(pk).case_officer
-        data = {"case_officer": GovUserSimpleSerializer(case_officer).data if case_officer else None}
-
-        return JsonResponse(data=data, status=status.HTTP_200_OK)
-
     @transaction.atomic
     def put(self, request, pk):
         """
@@ -562,7 +552,7 @@ class CaseOfficer(APIView):
                 payload={"case_officer": user.email if not user.first_name else f"{user.first_name} {user.last_name}"},
             )
 
-            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 

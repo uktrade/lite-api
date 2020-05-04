@@ -394,21 +394,21 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
 
     # Optional fields
-    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
-    goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
-    end_user = serializers.PrimaryKeyRelatedField(
-        queryset=Party.objects.filter(type=PartyType.END_USER), required=False
-    )
-    ultimate_end_user = serializers.PrimaryKeyRelatedField(
-        queryset=Party.objects.filter(type=PartyType.ULTIMATE_END_USER), required=False
-    )
-    consignee = serializers.PrimaryKeyRelatedField(
-        queryset=Party.objects.filter(type=PartyType.CONSIGNEE), required=False
-    )
-    third_party = serializers.PrimaryKeyRelatedField(
-        queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
-    )
+    # good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
+    # goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
+    # country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
+    # end_user = serializers.PrimaryKeyRelatedField(
+    #     queryset=Party.objects.filter(type=PartyType.END_USER), required=False
+    # )
+    # ultimate_end_user = serializers.PrimaryKeyRelatedField(
+    #     queryset=Party.objects.filter(type=PartyType.ULTIMATE_END_USER), required=False
+    # )
+    # consignee = serializers.PrimaryKeyRelatedField(
+    #     queryset=Party.objects.filter(type=PartyType.CONSIGNEE), required=False
+    # )
+    # third_party = serializers.PrimaryKeyRelatedField(
+    #     queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
+    # )
     pv_grading = KeyValueChoiceField(choices=PvGrading.choices, required=False)
     collated_pv_grading = serializers.CharField(default=None, allow_blank=True, allow_null=True, max_length=120)
 
