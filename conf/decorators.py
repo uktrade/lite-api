@@ -49,20 +49,6 @@ def allowed_application_types(application_types: [str]):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            if (
-                application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-                and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-            ):
-                return JsonResponse(
-                    data={
-                        "errors": [
-                            "This operation can only be used "
-                            "on applications of type: " + ", ".join(application_types)
-                        ]
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
             return func(request, *args, **kwargs)
 
         return inner
