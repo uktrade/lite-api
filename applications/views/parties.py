@@ -92,6 +92,7 @@ class ApplicationPartyView(APIView):
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
             CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.OPEN,
         ]
     )
     @authorised_users(ExporterUser)
@@ -130,6 +131,7 @@ class ApplicationPartyView(APIView):
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
             CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.OPEN,
         ]
     )
     @authorised_users(ExporterUser)
@@ -159,6 +161,7 @@ class CopyPartyView(APIView):
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
             CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.OPEN,
         ]
     )
     @authorised_users(ExporterUser)
