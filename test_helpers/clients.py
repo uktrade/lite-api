@@ -134,9 +134,26 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         self.queue = self.create_queue("Initial Queue", self.team)
 
-        # Create a hardcoded control list entry rather than loading in the
+        # Create a hardcoded list of control list entries rather than loading in the
         # spreadsheet each time
-        ControlListEntry.create("ML1a", "Description", None, False)
+        [
+            ControlListEntry.create(clc, "Description", None, False)
+            for clc in [
+                "ML7f1",
+                "1A004a",
+                "1A004b",
+                "ML6b1",
+                "ML6b2",
+                "ML13c",
+                "ML13d1",
+                "1A005a",
+                "ML13d2",
+                "1A005b",
+                "ML1a",
+                "Ml1b",
+            ]
+        ]
+
         GovUser(id=SystemUser.LITE_SYSTEM_ID, email="", team=self.team).save()
 
         if settings.TIME_TESTS:
