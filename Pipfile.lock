@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "805bb5eeb4b8afc813e39683eb5fb76624fa441eab46012e5a77110413248842"
+            "sha256": "1ee163a9eb2f427870f6f3662e9b1466186ec904039db03b8f974fe1fff54795"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -18,18 +18,18 @@
     "default": {
         "boto3": {
             "hashes": [
-                "sha256:39ef75f1351d9dce9542c71602bbe4dbae001df1aa5c75bdacea933d60cc1e7f",
-                "sha256:d345f2ba820f022ab45627913cb427b1fa56d7c1f8e19312eee20874ba800007"
+                "sha256:6374e39ea66433250ac6e4726623fe59ec32bfd52e5c871140c883ab72b0375c",
+                "sha256:7a2474db6576d7d3f5c3336ec54450e34211d44e2342e501a67e2fae35916e63"
             ],
             "index": "pypi",
-            "version": "==1.12.48"
+            "version": "==1.13.1"
         },
         "botocore": {
             "hashes": [
-                "sha256:ef4fa3055421cb95a7bf559e715f8c5f656aca30fafef070eca21b13ca3f0f81",
-                "sha256:f3569216d2f0067a34608e26ae1d0035b84fa29ad68d6c5fd26124a4cc86e8c9"
+                "sha256:879cedb22baf9446323240f1cf57d4e0e7ba262ba6fde6d3540cf7fdd7ddad34",
+                "sha256:c6d3dd976c1462a4e0f2dabde09c38de2a641e6b6bb0af505ac8465735796367"
             ],
-            "version": "==1.15.48"
+            "version": "==1.16.1"
         },
         "cairocffi": {
             "hashes": [
@@ -222,14 +222,6 @@
             ],
             "version": "==1.0.1"
         },
-        "hawkrest": {
-            "hashes": [
-                "sha256:2cd18e2926fa186d7baf9fabf637b7a6d5e9bc3b9913d463f78a1cf907174042",
-                "sha256:e93f8fe322bfe04967a6ab37a8794246d8550b679c70b80fa655e89f9706f213"
-            ],
-            "index": "pypi",
-            "version": "==1.0.1"
-        },
         "html5lib": {
             "hashes": [
                 "sha256:20b159aa3badc9d5ee8f5c647e5efd02ed2a66ab8d354930bd9ff139fc1dc0a3",
@@ -330,6 +322,7 @@
                 "sha256:3ed296a30453d0b724679e0fd41e4e940497f8e461a9a9c3b7f36e43bab0fa09",
                 "sha256:d2a0e3ab10a209cc79e95e28f2dd54bd4a73fd1998ffe27b7ba0f962b6be9723"
             ],
+            "index": "pypi",
             "version": "==1.1.0"
         },
         "openpyxl": {

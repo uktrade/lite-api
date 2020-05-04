@@ -58,7 +58,12 @@ from cases.libraries.get_flags import get_flags
 from cases.models import FinalAdvice
 from cases.sla import get_application_target_sla
 from cases.serializers import SimpleFinalAdviceSerializer
-from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from conf.authentication import (
+    ExporterAuthentication,
+    SharedAuthentication,
+    GovAuthentication,
+    HawkResponseSigningMixin,
+)
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
     authorised_users,
@@ -82,7 +87,7 @@ from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
-class ApplicationList(ListCreateAPIView):
+class ApplicationList(HawkResponseSigningMixin, ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer
 

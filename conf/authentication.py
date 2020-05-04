@@ -1,7 +1,13 @@
+import logging
+
 from django.contrib.auth.models import AnonymousUser
-from hawkrest import HawkAuthentication
+from django.core.cache import cache
+from functools import partial
+from mohawk import Receiver
+from mohawk.exc import HawkFail
 from rest_framework import authentication
 
+from conf import settings
 from conf.exceptions import PermissionDeniedError
 from gov_users.enums import GovUserStatuses
 from organisations.enums import OrganisationType
@@ -21,7 +27,7 @@ USER_DEACTIVATED_ERROR = "User has been deactivated"
 ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated"
 
 
-class ExporterAuthentication(HawkAuthentication):
+class ExporterAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         """
         When given a user token and an organisation id, validate that the user belongs to the
@@ -30,10 +36,11 @@ class ExporterAuthentication(HawkAuthentication):
 
         # First, establish that the request has come from an authorised LITE API client
         # by checking that the request is correctly Hawk signed
-        client_system_user = super().authenticate(request)
-
-        # if not client_system_user:
-        #     raise PermissionDeniedError("You must include a valid HTTP authorisation header in your requests.")
+        try:
+            hawk_receiver = _authorise(request)
+        except HawkFail as e:
+            logging.warning(f"Failed HAWK authentication {e}")
+            raise e
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
@@ -58,7 +65,7 @@ class ExporterAuthentication(HawkAuthentication):
 
             exporter_user.organisation = organisation
 
-            return exporter_user, None
+            return exporter_user, hawk_receiver
 
         raise PermissionDeniedError("You don't belong to that organisation")
 
@@ -69,6 +76,15 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         When given a user token and an organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation
         """
+
+        # First, establish that the request has come from an authorised LITE API client
+        # by checking that the request is correctly Hawk signed
+        try:
+            hawk_receiver = _authorise(request)
+        except HawkFail as e:
+            logging.warning(f"Failed HAWK authentication {e}")
+            raise e
+
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
         else:
@@ -92,26 +108,29 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
 
             exporter_user.organisation = organisation
 
-            return exporter_user, None
+            return exporter_user, hawk_receiver
 
         raise PermissionDeniedError("You don't belong to that organisation")
 
 
-class ExporterOnlyAuthentication(HawkAuthentication):
+class ExporterOnlyAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         """
         When given a user token, validate that the user exists
         """
+
         # First, establish that the request has come from an authorised LITE API client
         # by checking that the request is correctly Hawk signed
-        client_system_user = super().authenticate(request)
-
-        # if not client_system_user:
-        #     raise PermissionDeniedError("You must include a valid HTTP authorisation header in your requests.")
+        try:
+            hawk_receiver = _authorise(request)
+        except HawkFail as e:
+            logging.warning(f"Failed HAWK authentication {e}")
+            raise e
 
         exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
         exporter_user = get_user_by_pk(token_to_user_pk(exporter_user_token))
-        return exporter_user, None
+
+        return exporter_user, hawk_receiver
 
 
 class GovAuthentication(authentication.BaseAuthentication):
@@ -120,6 +139,15 @@ class GovAuthentication(authentication.BaseAuthentication):
         When given a user token token validate that they're a government user
         and that their account is active
         """
+
+        # First, establish that the request has come from an authorised LITE API client
+        # by checking that the request is correctly Hawk signed
+        try:
+            hawk_receiver = _authorise(request)
+        except HawkFail as e:
+            logging.warning(f"Failed HAWK authentication {e}")
+            raise e
+
         if request.META.get(GOV_USER_TOKEN_HEADER):
             gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
         else:
@@ -130,7 +158,7 @@ class GovAuthentication(authentication.BaseAuthentication):
         if gov_user.status == GovUserStatuses.DEACTIVATED:
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
-        return gov_user, None
+        return gov_user, hawk_receiver
 
 
 class SharedAuthentication(authentication.BaseAuthentication):
@@ -156,3 +184,90 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
             return HmrcExporterAuthentication().authenticate(request)
         else:
             return AnonymousUser, None
+
+
+class HawkResponseSigningMixin:
+    """
+    DRF view mixin to add the Server-Authorization header to responses, so the originator
+    of the request can authenticate the response.
+
+    Must be first in the base class list so that the APIView method is overridden.
+    """
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        """
+        Add Hawk header to sign LITE API responses.
+
+        If the request was authenticated using Hawk, this adds a post-render callback to the
+        response which sets the Server-Authorization header, so that the originator of the
+        request can authenticate the response.
+        """
+        finalized_response = super().finalize_response(request, response, *args, **kwargs)
+        callback = partial(_sign_rendered_response, request)
+        finalized_response.add_post_render_callback(callback)
+        return finalized_response
+
+
+def _authorise(request):
+    """
+    Raises a HawkFail exception if the passed request cannot be authenticated
+    """
+    return Receiver(
+        _lookup_credentials,
+        request.META["HTTP_AUTHORIZATION"],
+        request.build_absolute_uri(),
+        request.method,
+        content=request.body,
+        content_type=request.content_type,
+        seen_nonce=_seen_nonce,
+    )
+
+
+def _seen_nonce(access_key_id, nonce, _):
+    """
+    Returns if the passed access_key_id/nonce combination has been
+    used within settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS
+    """
+    cache_key = f"hawk:{access_key_id}:{nonce}"
+
+    # cache.add only adds key if it isn't present
+    seen_cache_key = not cache.add(cache_key, True, timeout=settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS,)
+
+    if seen_cache_key:
+        logging.warning(f"Already seen nonce {nonce}")
+
+    return seen_cache_key
+
+
+def _lookup_credentials(access_key_id):
+    """
+    Raises HawkFail if the access key ID cannot be found.
+    """
+    try:
+        credentials = settings.HAWK_CREDENTIALS[access_key_id]
+    except KeyError as exc:
+        raise HawkFail(f"No Hawk ID of {access_key_id}") from exc
+
+    return {
+        "id": access_key_id,
+        "algorithm": "sha256",
+        **credentials,
+    }
+
+
+def _sign_rendered_response(request, response):
+    if isinstance(
+        request.successful_authenticator,
+        (
+            ExporterAuthentication,
+            HmrcExporterAuthentication,
+            ExporterOnlyAuthentication,
+            GovAuthentication,
+            SharedAuthentication,
+            OrganisationAuthentication,
+        ),
+    ):
+        response["Server-Authorization"] = request.auth.respond(
+            content=response.content, content_type=response["Content-Type"],
+        )
+    return response
