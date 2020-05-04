@@ -272,3 +272,15 @@ class CaseDocumentState:
     GENERATED = "GENERATED"
 
     choices = [(UPLOADED, "Uploaded"), (GENERATED, "Generated")]
+
+
+class ECJUQueryType:
+    ECJU = "ecju_query"
+    PRE_VISIT_QUESTIONNAIRE = "pre_visit_questionnaire"
+    COMPLIANCE_ACTIONS = "compliance_actions"
+
+    choices = [
+        (ECJU, "Standard query"),
+        (PRE_VISIT_QUESTIONNAIRE, "Pre-visit questionnaire question"),
+        (COMPLIANCE_ACTIONS, "Compliance action"),
+    ]

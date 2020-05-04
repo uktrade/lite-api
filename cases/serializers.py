@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -12,7 +10,7 @@ from cases.enums import (
     AdviceType,
     CaseDocumentState,
     CaseTypeSubTypeEnum,
-    CaseTypeReferenceEnum,
+    CaseTypeReferenceEnum, ECJUQueryType,
 )
 from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
 from cases.libraries.get_flags import get_ordered_flags
@@ -32,15 +30,12 @@ from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goods.enums import PvGrading
-from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
+from gov_users.serializers import GovUserViewSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
-from parties.enums import PartyType
-from parties.models import Party
-from picklists.enums import PicklistType
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from queues.serializers import CasesQueueViewSerializer
@@ -55,7 +50,6 @@ from users.serializers import (
     BaseUserViewSerializer,
     ExporterUserViewSerializer,
 )
-from gov_users.serializers import GovUserViewSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -508,7 +502,7 @@ class CaseFinalAdviceSerializer(CaseAdviceSerializer):
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
     raised_by_user_name = serializers.SerializerMethodField()
     responded_by_user_name = serializers.SerializerMethodField()
-    query_type = KeyValueChoiceField(choices=PicklistType.choices, required=False)
+    query_type = KeyValueChoiceField(choices=ECJUQueryType.choices, required=False)
 
     class Meta:
         model = EcjuQuery
@@ -563,7 +557,7 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
 
     question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    query_type = KeyValueChoiceField(choices=PicklistType.choices)
+    query_type = KeyValueChoiceField(choices=ECJUQueryType.choices)
 
     class Meta:
         model = EcjuQuery

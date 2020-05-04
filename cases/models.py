@@ -11,7 +11,7 @@ from cases.enums import (
     CaseDocumentState,
     CaseTypeTypeEnum,
     CaseTypeSubTypeEnum,
-    CaseTypeReferenceEnum,
+    CaseTypeReferenceEnum, ECJUQueryType,
 )
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
@@ -397,7 +397,7 @@ class EcjuQuery(TimestampableModel):
         ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
     )
     query_type = models.CharField(
-        choices=PicklistType.choices, max_length=50, default=PicklistType.ECJU, null=False, blank=False
+        choices=ECJUQueryType.choices, max_length=50, default=ECJUQueryType.ECJU, null=False, blank=False
     )
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
