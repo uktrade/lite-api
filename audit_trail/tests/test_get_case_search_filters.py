@@ -8,7 +8,6 @@ from users.tests.factories import GovUserFactory, ExporterUserFactory
 
 
 class CasesAuditTrailSearchTestCase(DataTestClient):
-    # TODO: test schema and creation
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)

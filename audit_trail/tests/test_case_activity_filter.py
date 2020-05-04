@@ -14,7 +14,6 @@ from audit_trail.service import filter_case_activity
 
 
 class CasesAuditTrailSearchTestCase(DataTestClient):
-    # TODO: test schema and creation
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)

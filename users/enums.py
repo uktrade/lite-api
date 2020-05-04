@@ -28,6 +28,9 @@ class UserType(LiteEnum):
     def choices(cls):
         return [(cls.EXPORTER, "Exporter"), (cls.INTERNAL, "Internal")]
 
+    def human_readable(self):
+        return self.value.capitalize()
+
 
 class SystemUser:
     LITE_SYSTEM_ID = UUID("00000000-0000-0000-0000-000000000000")

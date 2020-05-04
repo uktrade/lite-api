@@ -115,8 +115,8 @@ def get_case_activity_filters(case_id):
         "activity_types": [{"key": verb, "value": AuditType(verb).human_readable()} for verb in activity_types],
         "teams": [{"key": str(team["id"]), "value": team["name"]} for team in teams],
         "user_types": [
-            {"key": UserType.INTERNAL.value, "value": UserType.INTERNAL.value},
-            {"key": UserType.EXPORTER.value, "value": UserType.EXPORTER.value},
+            {"key": UserType.INTERNAL.value, "value": UserType.INTERNAL.human_readable()},
+            {"key": UserType.EXPORTER.value, "value": UserType.EXPORTER.human_readable()},
         ],
         "users": [{"key": str(user["id"]), "value": f"{user['first_name']} {user['last_name']}"} for user in users],
     }
