@@ -28,7 +28,7 @@ class OpenUKCSTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.count(), 1)
 
-    @tag("ukcs", "special", "eu-countries")
+    @tag("ukcs", "special", "ukcs-country")
     def test_only_ukcs_added_ukcs(self):
         data = {
             "name": "Test",
