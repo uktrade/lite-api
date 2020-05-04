@@ -26,10 +26,7 @@ class UserType(LiteEnum):
 
     @classmethod
     def choices(cls):
-        return [
-            (cls.EXPORTER, "Exporter"),
-            (cls.INTERNAL, "Internal")
-        ]
+        return [(cls.EXPORTER, "Exporter"), (cls.INTERNAL, "Internal")]
 
 
 class SystemUser:

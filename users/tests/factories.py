@@ -19,5 +19,3 @@ class ExporterUserFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.ExporterUser
-
-

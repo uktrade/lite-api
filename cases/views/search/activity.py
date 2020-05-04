@@ -14,7 +14,7 @@ from users.models import GovUser, GovNotification
 
 
 class CaseActivityView(APIView):
-    authentication_classes = GovAuthentication,
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
         data = request.GET
@@ -27,7 +27,7 @@ class CaseActivityView(APIView):
                 return datetime.date(
                     day=int(data.get(f"{prefix}_day")),
                     month=int(data.get(f"{prefix}_month")),
-                    year=int(data.get(f"{prefix}_year"))
+                    year=int(data.get(f"{prefix}_year")),
                 )
             except (TypeError, ValueError):
                 # Handle gracefully if no date or incorrect date data passed
@@ -62,11 +62,9 @@ class CaseActivityView(APIView):
 
 
 class CaseActivityFiltersView(APIView):
-    authentication_classes = GovAuthentication,
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
         filters = audit_trail_service.get_case_activity_filters(pk)
 
-        return JsonResponse(
-            data={"filters": filters}, status=status.HTTP_200_OK
-        )
+        return JsonResponse(data={"filters": filters}, status=status.HTTP_200_OK)

@@ -62,15 +62,15 @@ def filter_case_activity(
     audit_type: Optional[AuditType] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
-    note_type=None
+    note_type=None,
 ):
     """
     Filter activity timeline for a case.
     """
     case_content_type = ContentType.objects.get_for_model(Case)
     audit_qs = Audit.objects.filter(
-        Q(action_object_object_id=case_id, action_object_content_type=case_content_type) |
-        Q(target_object_id=case_id, target_content_type=case_content_type)
+        Q(action_object_object_id=case_id, action_object_content_type=case_content_type)
+        | Q(target_object_id=case_id, target_content_type=case_content_type)
     )
 
     if user_id:
@@ -103,8 +103,8 @@ def get_case_activity_filters(case_id):
     case_content_type = ContentType.objects.get_for_model(Case)
 
     audit_qs = Audit.objects.filter(
-        Q(action_object_object_id=case_id, action_object_content_type=case_content_type) |
-        Q(target_object_id=case_id, target_content_type=case_content_type)
+        Q(action_object_object_id=case_id, action_object_content_type=case_content_type)
+        | Q(target_object_id=case_id, target_content_type=case_content_type)
     )
     activity_types = audit_qs.order_by("verb").values_list("verb", flat=True).distinct()
     user_ids = audit_qs.order_by("actor_object_id").values_list("actor_object_id", flat=True).distinct()
@@ -116,12 +116,9 @@ def get_case_activity_filters(case_id):
         "teams": [{"key": str(team["id"]), "value": team["name"]} for team in teams],
         "user_types": [
             {"key": UserType.INTERNAL.value, "value": UserType.INTERNAL.value},
-            {"key": UserType.EXPORTER.value, "value": UserType.EXPORTER.value}
+            {"key": UserType.EXPORTER.value, "value": UserType.EXPORTER.value},
         ],
-        "users": [
-            {"key": str(user["id"]), "value": f"{user['first_name']} {user['last_name']}"} for user in users
-        ]
+        "users": [{"key": str(user["id"]), "value": f"{user['first_name']} {user['last_name']}"} for user in users],
     }
 
     return filters
-
