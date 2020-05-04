@@ -152,14 +152,17 @@ class OrganisationsMatchingDetail(APIView):
         if organisations_with_matching_details.count() > 1:
             if self._property_has_multiple_occurances(organisations_with_matching_details, organisation.name, "name"):
                 matching_properties.append(Organisations.MatchingProperties.NAME)
+
             if self._property_has_multiple_occurances(
                 organisations_with_matching_details, organisation.eori_number, "eori_number"
             ):
                 matching_properties.append(Organisations.MatchingProperties.EORI)
+
             if self._property_has_multiple_occurances(
                 organisations_with_matching_details, organisation.registration_number, "registration_number"
             ):
                 matching_properties.append(Organisations.MatchingProperties.REGISTRATION)
+
             if self._property_has_multiple_occurances(
                 organisations_with_matching_details,
                 organisation.primary_site.address.address_line_1,
