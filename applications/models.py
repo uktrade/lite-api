@@ -11,6 +11,7 @@ from applications.enums import (
     GoodsCategory,
     ServiceEquipmentType,
     MTCRAnswers,
+    GoodsTypeCategory,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
@@ -205,6 +206,7 @@ class OpenApplication(BaseApplication):
     trade_control_product_categories = SeparatedValuesField(
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
+    goodstype_category = models.CharField(choices=GoodsTypeCategory.choices, blank=False, null=True, max_length=100)
 
 
 # MOD Clearances Applications

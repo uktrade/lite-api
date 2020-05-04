@@ -3,6 +3,7 @@ from rest_framework import status
 
 from audit_trail.enums import AuditType
 from audit_trail.payload import audit_type_format
+from conf.constants import GovPermissions
 from picklists.enums import PicklistType, PickListStatus
 from test_helpers.clients import DataTestClient
 
@@ -20,6 +21,8 @@ class PicklistItemCreate(DataTestClient):
         self.url = reverse("picklist_items:picklist_items")
 
     def test_gov_user_can_add_item_to_picklist(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_PICKLISTS.name])
+
         response = self.client.post(self.url, self.data, **self.gov_headers)
         response_data = response.json()
 
@@ -31,6 +34,8 @@ class PicklistItemCreate(DataTestClient):
         self.assertEqual(response_data["picklist_item"]["status"]["key"], self.data["status"])
 
     def test_add_item_to_picklist_audit(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_PICKLISTS.name])
+
         response = self.client.post(self.url, self.data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -42,3 +47,8 @@ class PicklistItemCreate(DataTestClient):
             response.json()["picklist_item"]["activity"][0]["text"],
             f"{audit_type_format[AuditType.CREATED_PICKLIST]}.",
         )
+
+    def test_gov_user_cannot_add_picklist_without_permission(self):
+        response = self.client.post(self.url, self.data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
