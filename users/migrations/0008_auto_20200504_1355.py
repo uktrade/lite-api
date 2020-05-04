@@ -7,13 +7,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0007_govuser_default_queue'),
+        ("users", "0007_govuser_default_queue"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='govuser',
-            name='team',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='users', to='teams.Team'),
+            model_name="govuser",
+            name="team",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name="users", to="teams.Team"),
         ),
     ]
