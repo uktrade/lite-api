@@ -1,8 +1,10 @@
+from django.db.models import When, Case, BinaryField
 from django.http import JsonResponse
 from rest_framework import status, generics
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
+from conf.helpers import str_to_bool
 from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer, QueueListSerializer
 from queues.service import get_queue
@@ -12,6 +14,14 @@ class QueuesList(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
     queryset = Queue.objects.all()
     serializer_class = QueueListSerializer
+
+    def filter_queryset(self, queryset):
+        if str_to_bool(self.request.GET.get("users_team_first", "False")):
+            return queryset.annotate(
+                users_team=(Case(When(team=self.request.user.team, then=1), default=0, output_field=BinaryField()))
+            ).order_by("-users_team")
+
+        return queryset
 
     def post(self, request):
         data = request.data.copy()

@@ -358,7 +358,7 @@ class CaseFinalAdvice(APIView):
 
     def get(self, request, pk):
         """
-        Concatenates all advice for a case and returns it or just returns if team advice already exists
+        Concatenates all advice for a case and returns it or just returns if final advice already exists
         """
         if len(self.final_advice) == 0:
             assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
