@@ -133,8 +133,8 @@ class OrganisationsMatchingDetail(APIView):
         organisation = get_organisation_by_pk(self.kwargs["pk"])
         organisations_with_matching_details = Organisation.objects.filter(
             Q(name__isnull=False, name=organisation.name)
-            | Q(eori_number__is_null=False, eori_number=organisation.eori_number)
-            | Q(registration_number__is_null=False, registration_number=organisation.registration_number)
+            | Q(eori_number__isnull=False, eori_number=organisation.eori_number)
+            | Q(registration_number__isnull=False, registration_number=organisation.registration_number)
             | Q(
                 primary_site__address__address_line_1__isnull=False,
                 primary_site__address__address_line_1=organisation.primary_site.address.address_line_1,
