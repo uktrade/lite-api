@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
+from rest_framework.views import APIView
 
 from applications.models import BaseApplication
 from conf.authentication import SharedAuthentication, OrganisationAuthentication, GovAuthentication
@@ -124,6 +125,56 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
         for application in applications:
             apply_flagging_rules_to_case(application)
+
+
+class OrganisationsMatchingDetail(APIView):
+    def get(self, request, pk):
+        matching_properties = []
+        organisation = get_organisation_by_pk(self.kwargs["pk"])
+        organisations_with_matching_details = Organisation.objects.filter(
+            Q(name=organisation.name)
+            | Q(eori_number=organisation.eori_number)
+            | Q(registration_number=organisation.registration_number)
+            | Q(
+                primary_site__address__address_line_1__isnull=False,
+                primary_site__address__address_line_1=organisation.primary_site.address.address_line_1,
+            )
+            | Q(
+                primary_site__address__address__isnull=False,
+                primary_site__address__address=organisation.primary_site.address.address,
+            )
+        )
+
+        if organisations_with_matching_details.count() > 1:
+            if list(organisations_with_matching_details.values_list("name", flat=True)).count(organisation.name) > 1:
+                matching_properties.append("Name")
+            if (
+                list(organisations_with_matching_details.values_list("eori_number", flat=True)).count(
+                    organisation.eori_number
+                )
+                > 1
+            ):
+                matching_properties.append("EORI Number")
+            if (
+                list(organisations_with_matching_details.values_list("registration_number", flat=True)).count(
+                    organisation.registration_number
+                )
+                > 1
+            ):
+                matching_properties.append("Registration Number")
+            if (
+                organisation.primary_site.address.address_line_1 and list(
+                    organisations_with_matching_details.values_list("primary_site__address__address_line_1", flat=True)
+                ).count(organisation.primary_site.address.address_line_1)
+                > 1
+                or organisation.primary_site.address.address and list(
+                    organisations_with_matching_details.values_list("primary_site__address__address", flat=True)
+                ).count(organisation.primary_site.address.address)
+                > 1
+            ):
+                matching_properties.append("Address")
+
+        return JsonResponse({"matching_properties": matching_properties})
 
 
 class OrganisationStatusView(generics.UpdateAPIView):
