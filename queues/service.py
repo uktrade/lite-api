@@ -18,9 +18,11 @@ from queues.models import Queue
 
 def get_system_queues(include_team=True, include_case_count=False, user=None) -> List[Dict]:
     """
-    Returns a list of system queues in a dictionary with optional team and case count
+    Returns a list of system queues in dictionary format with optional team and case count information
     """
     system_queues = []
+
+    case_counts = get_cases_count(user) if include_case_count and user else {}
 
     for id, name in SYSTEM_QUEUES.items():
         system_queue_dict = {"id": id, "name": name, "team": None}
@@ -28,26 +30,26 @@ def get_system_queues(include_team=True, include_case_count=False, user=None) ->
         if not include_team:
             system_queue_dict.pop("team")
 
-        if include_case_count and user:
-            system_queue_dict["case_count"] = get_case_count(id, user)
+        if case_counts:
+            system_queue_dict["case_count"] = case_counts[id]
 
         system_queues.append(system_queue_dict)
 
     return system_queues
 
 
-def get_case_count(queue_id, user) -> int:
+def get_cases_count(user) -> Dict:
     case_qs = Case.objects.submitted()
-    queue_case_count_qs_map = {
-        ALL_CASES_QUEUE_ID: case_qs,
-        OPEN_CASES_QUEUE_ID: case_qs.is_open(),
-        MY_TEAMS_QUEUES_CASES_ID: case_qs.in_team(team_id=user.team.id),
-        MY_ASSIGNED_CASES_QUEUE_ID: case_qs.assigned_to_user(user=user).not_terminal(),
-        MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID: case_qs.assigned_as_case_officer(user=user).not_terminal(),
-        UPDATED_CASES_QUEUE_ID: case_qs.is_updated(user=user),
+    get_cases_count = {
+        ALL_CASES_QUEUE_ID: case_qs.count(),
+        OPEN_CASES_QUEUE_ID: case_qs.is_open().count(),
+        MY_TEAMS_QUEUES_CASES_ID: case_qs.in_team(team_id=user.team.id).count(),
+        MY_ASSIGNED_CASES_QUEUE_ID: case_qs.assigned_to_user(user=user).not_terminal().count(),
+        MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID: case_qs.assigned_as_case_officer(user=user).not_terminal().count(),
+        UPDATED_CASES_QUEUE_ID: case_qs.is_updated(user=user).count(),
     }
 
-    return queue_case_count_qs_map[queue_id].count()
+    return get_cases_count
 
 
 def get_work_queues_qs(include_team=True, include_case_count=False) -> QuerySet:
