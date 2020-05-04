@@ -132,9 +132,9 @@ class OrganisationsMatchingDetail(APIView):
         matching_properties = []
         organisation = get_organisation_by_pk(self.kwargs["pk"])
         organisations_with_matching_details = Organisation.objects.filter(
-            Q(name=organisation.name)
-            | Q(eori_number=organisation.eori_number)
-            | Q(registration_number=organisation.registration_number)
+            Q(name__isnull=False, name=organisation.name)
+            | Q(eori_number__is_null=False, eori_number=organisation.eori_number)
+            | Q(registration_number__is_null=False, registration_number=organisation.registration_number)
             | Q(
                 primary_site__address__address_line_1__isnull=False,
                 primary_site__address__address_line_1=organisation.primary_site.address.address_line_1,
@@ -146,28 +146,36 @@ class OrganisationsMatchingDetail(APIView):
         )
 
         if organisations_with_matching_details.count() > 1:
-            if list(organisations_with_matching_details.values_list("name", flat=True)).count(organisation.name) > 1:
+            if (
+                organisation.name
+                and list(organisations_with_matching_details.values_list("name", flat=True)).count(organisation.name)
+                > 1
+            ):
                 matching_properties.append("Name")
             if (
-                list(organisations_with_matching_details.values_list("eori_number", flat=True)).count(
+                organisation.registration_number
+                and list(organisations_with_matching_details.values_list("eori_number", flat=True)).count(
                     organisation.eori_number
                 )
                 > 1
             ):
                 matching_properties.append("EORI Number")
             if (
-                list(organisations_with_matching_details.values_list("registration_number", flat=True)).count(
+                organisation.registration_number
+                and list(organisations_with_matching_details.values_list("registration_number", flat=True)).count(
                     organisation.registration_number
                 )
                 > 1
             ):
                 matching_properties.append("Registration Number")
             if (
-                organisation.primary_site.address.address_line_1 and list(
+                organisation.primary_site.address.address_line_1
+                and list(
                     organisations_with_matching_details.values_list("primary_site__address__address_line_1", flat=True)
                 ).count(organisation.primary_site.address.address_line_1)
                 > 1
-                or organisation.primary_site.address.address and list(
+                or organisation.primary_site.address.address
+                and list(
                     organisations_with_matching_details.values_list("primary_site__address__address", flat=True)
                 ).count(organisation.primary_site.address.address)
                 > 1
