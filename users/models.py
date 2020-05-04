@@ -9,6 +9,7 @@ from django.db import models
 from common.models import TimestampableModel
 
 from conf.constants import Roles
+from queues.constants import ALL_CASES_QUEUE_ID
 from static.statuses.models import CaseStatus
 from teams.models import Team
 from users.enums import UserStatuses, UserType
@@ -159,6 +160,7 @@ class GovUser(BaseUser):
     role = models.ForeignKey(
         Role, related_name="role", default=Roles.INTERNAL_DEFAULT_ROLE_ID, on_delete=models.PROTECT
     )
+    default_queue = models.UUIDField(default=uuid.UUID(ALL_CASES_QUEUE_ID), null=False)
 
     def __init__(self, *args, **kwargs):
         super(GovUser, self).__init__(*args, **kwargs)
