@@ -3,10 +3,11 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory
-from applications.models import OpenApplication, CountryOnApplication
+from applications.models import OpenApplication, CountryOnApplication, PartyOnApplication
 from cases.enums import CaseTypeReferenceEnum
 from goodstype.models import GoodsType
 from goodstype.tests.factories import GoodsTypeFactory
+from parties.enums import PartyType
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
@@ -134,3 +135,28 @@ class OpenCryptographicTests(DataTestClient):
         goodstype.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(goodstype.countries.count(), initial_countries_count)
+
+    @tag("special", "crypto", "third-parties")
+    def test_set_third_parties_on_draft_open_cryptographic(self):
+        application = self.create_draft_open_application(organisation=self.organisation)
+        application.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
+        application.save()
+        third_party_qs = PartyOnApplication.objects.filter(
+            party__type=PartyType.THIRD_PARTY, application=application, deleted_at__isnull=True
+        )
+        data = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "individual",
+            "website": "https://www.gov.uk",
+            "type": PartyType.THIRD_PARTY,
+            "role": "agent",
+        }
+
+        url = reverse("applications:parties", kwargs={"pk": application.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(third_party_qs.count(), 1)
