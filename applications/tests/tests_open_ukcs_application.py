@@ -45,7 +45,7 @@ class OpenUKCSTests(DataTestClient):
         )
         self.assertEqual(
             CountryOnApplication.objects.get(application=OpenApplication.objects.first()).country,
-            Country.include_special_countries.get("UKCS"),
+            Country.include_special_countries.get(id="UKCS"),
         )
 
     @tag("ukcs", "special")
