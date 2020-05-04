@@ -5,6 +5,7 @@ from rest_framework import serializers
 from cases.enums import CaseTypeSubTypeEnum
 from parties.enums import PartyType
 from parties.serializers import PartySerializer
+from django.db.models import Min, Case, When, BinaryField
 
 
 class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
@@ -63,10 +64,16 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
         return data[0] if data else None
 
     def get_ultimate_end_users(self, instance):
-        return self.__parties(instance, PartyType.ULTIMATE_END_USER)
+        if "user_type" in self.context and self.context["user_type"] == "exporter":
+            return self.__parties(instance, PartyType.ULTIMATE_END_USER)
+        else:
+            return self.get_ordered_parties(instance, PartyType.ULTIMATE_END_USER)
 
     def get_third_parties(self, instance):
-        return self.__parties(instance, PartyType.THIRD_PARTY)
+        if "user_type" in self.context and self.context["user_type"] == "exporter":
+            return self.__parties(instance, PartyType.THIRD_PARTY)
+        else:
+            return self.get_ordered_parties(instance, PartyType.THIRD_PARTY)
 
     def get_consignee(self, instance):
         data = self.__parties(instance, PartyType.CONSIGNEE)
@@ -74,3 +81,23 @@ class PartiesSerializerMixin(metaclass=serializers.SerializerMetaclass):
 
     def get_inactive_parties(self, instance):
         return self.__parties(instance, PartyType.INACTIVE_PARTIES)
+
+    def get_ordered_parties(self, instance, party_type):
+        """
+        Order the parties based on destination flag priority and where the party has
+        no flag, by destination (party/country depending on standard/open application) name.
+
+        """
+        parties_on_application = (
+            instance.all_parties()
+            .filter(party__type=party_type, deleted_at__isnull=True)
+            .annotate(
+                highest_flag_priority=Min("party__flags__priority"),
+                contains_flags=Case(When(party__flags__isnull=True, then=0), default=1, output_field=BinaryField()),
+            )
+            .order_by("-contains_flags", "highest_flag_priority", "party__name")
+        )
+
+        parties = [PartySerializer(poa.party).data for poa in parties_on_application]
+
+        return parties
