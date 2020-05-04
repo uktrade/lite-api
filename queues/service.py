@@ -40,7 +40,7 @@ def get_system_queues(include_team=True, include_case_count=False, user=None) ->
 
 def get_cases_count(user) -> Dict:
     case_qs = Case.objects.submitted()
-    get_cases_count = {
+    cases_count = {
         ALL_CASES_QUEUE_ID: case_qs.count(),
         OPEN_CASES_QUEUE_ID: case_qs.is_open().count(),
         MY_TEAMS_QUEUES_CASES_ID: case_qs.in_team(team_id=user.team.id).count(),
@@ -49,7 +49,7 @@ def get_cases_count(user) -> Dict:
         UPDATED_CASES_QUEUE_ID: case_qs.is_updated(user=user).count(),
     }
 
-    return get_cases_count
+    return cases_count
 
 
 def get_work_queues_qs(include_team=True, include_case_count=False) -> QuerySet:
