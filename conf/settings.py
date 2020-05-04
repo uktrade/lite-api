@@ -213,4 +213,4 @@ SECURE_BROWSER_XSS_FILTER = True
 
 STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")
 
-SYSTEM_USER = json.loads(env("SYSTEM_USER")) if env("SYSTEM_USER") else {}
+SYSTEM_USER = json.loads(env("SYSTEM_USER").replace("=>", ":")) if env("SYSTEM_USER") else {}
