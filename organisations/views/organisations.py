@@ -128,6 +128,10 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
 
 class OrganisationsMatchingDetail(APIView):
+    @staticmethod
+    def _property_has_multiple_occurances(queryset, property, property_name):
+        return property and list(queryset.values_list(property_name, flat=True)).count(property) > 1
+
     def get(self, request, pk):
         matching_properties = []
         organisation = get_organisation_by_pk(pk)
@@ -146,39 +150,24 @@ class OrganisationsMatchingDetail(APIView):
         )
 
         if organisations_with_matching_details.count() > 1:
-            if (
-                organisation.name
-                and list(organisations_with_matching_details.values_list("name", flat=True)).count(organisation.name)
-                > 1
-            ):
+            if self._property_has_multiple_occurances(organisations_with_matching_details, organisation.name, "name"):
                 matching_properties.append(Organisations.MatchingProperties.NAME)
-            if (
-                organisation.registration_number
-                and list(organisations_with_matching_details.values_list("eori_number", flat=True)).count(
-                    organisation.eori_number
-                )
-                > 1
+            if self._property_has_multiple_occurances(
+                organisations_with_matching_details, organisation.eori_number, "eori_number"
             ):
                 matching_properties.append(Organisations.MatchingProperties.EORI)
-            if (
-                organisation.registration_number
-                and list(organisations_with_matching_details.values_list("registration_number", flat=True)).count(
-                    organisation.registration_number
-                )
-                > 1
+            if self._property_has_multiple_occurances(
+                organisations_with_matching_details, organisation.registration_number, "registration_number"
             ):
                 matching_properties.append(Organisations.MatchingProperties.REGISTRATION)
-            if (
-                organisation.primary_site.address.address_line_1
-                and list(
-                    organisations_with_matching_details.values_list("primary_site__address__address_line_1", flat=True)
-                ).count(organisation.primary_site.address.address_line_1)
-                > 1
-                or organisation.primary_site.address.address
-                and list(
-                    organisations_with_matching_details.values_list("primary_site__address__address", flat=True)
-                ).count(organisation.primary_site.address.address)
-                > 1
+            if self._property_has_multiple_occurances(
+                organisations_with_matching_details,
+                organisation.primary_site.address.address_line_1,
+                "primary_site__address__address_line_1",
+            ) or self._property_has_multiple_occurances(
+                organisations_with_matching_details,
+                organisation.primary_site.address.address,
+                "primary_site__address__address",
             ):
                 matching_properties.append(Organisations.MatchingProperties.ADDRESS)
 
