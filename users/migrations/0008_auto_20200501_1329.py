@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("users", "0006_auto_20200424_1136"),
+        ("users", "0007_govuser_default_queue"),
     ]
 
     operations = [
