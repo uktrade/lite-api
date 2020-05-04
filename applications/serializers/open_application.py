@@ -66,7 +66,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
     def get_goods_types(self, application):
         goods_types = application.goods_type.all().prefetch_related("countries")
-        default_countries = Country.objects.filter(countries_on_application__application=application)
+        default_countries = Country.include_special_countries.filter(countries_on_application__application=application)
 
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
@@ -78,10 +78,10 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
     def get_destinations(self, application):
         """ Get destinations for the open application, ordered based on flag priority and alphabetized by name."""
         if "user_type" in self.context and self.context["user_type"] == "exporter":
-            countries = Country.objects.filter(countries_on_application__application=application)
+            countries = Country.include_special_countries.filter(countries_on_application__application=application)
         else:
             countries = (
-                Country.objects.prefetch_related("flags")
+                Country.include_special_countries.prefetch_related("flags")
                 .filter(countries_on_application__application=application)
                 .annotate(
                     highest_flag_priority=Min("flags__priority"),
