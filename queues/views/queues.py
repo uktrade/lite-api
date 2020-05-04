@@ -15,16 +15,6 @@ class QueuesList(generics.ListAPIView):
     queryset = Queue.objects.all()
     serializer_class = QueueListSerializer
 
-    def get_queryset(self):
-        users_team_first = self.request.GET.get("users_team_first", False)
-
-        if str_to_bool(users_team_first):
-            return self.queryset.annotate(
-                users_team=(Case(When(team=self.request.user.team, then=1), default=0, output_field=BinaryField()))
-            ).order_by("-users_team")
-
-        return self.queryset
-
     def get(self, request, *args, **kwargs):
         include_system = request.GET.get("include_system", False)
         disable_pagination = request.GET.get("disable_pagination", False)
@@ -35,6 +25,16 @@ class QueuesList(generics.ListAPIView):
             return JsonResponse(data=system_queue_data + work_queue_data, safe=False, status=status.HTTP_200_OK)
 
         return super().get(request, *args, **kwargs)
+
+    def filter_queryset(self, queryset):
+        users_team_first = self.request.GET.get("users_team_first", False)
+
+        if str_to_bool(users_team_first):
+            return queryset.annotate(
+                users_team=(Case(When(team=self.request.user.team, then=1), default=0, output_field=BinaryField()))
+            ).order_by("-users_team")
+
+        return queryset
 
     def post(self, request):
         data = request.data.copy()
