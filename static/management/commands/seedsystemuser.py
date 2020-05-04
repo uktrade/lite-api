@@ -21,6 +21,8 @@ class Command(SeedCommand):
     @transaction.atomic
     def operation(self, *args, **options):
         system_user = env("SYSTEM_USER")
+        # The JSON representation of the variable is different on environments, so it needs to be parsed first
+        system_user = system_user.replace("=>", ":")
 
         try:
             system_user = serialize(system_user)
