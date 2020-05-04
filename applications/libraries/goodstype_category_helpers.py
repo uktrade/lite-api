@@ -5,6 +5,10 @@ from goodstype.serializers import GoodsTypeSerializer
 from static.countries.models import Country
 
 
+def set_destinations_for_uk_continental_shelf_application(application):
+    CountryOnApplication(country_id="UKCS", application=application)
+
+
 def set_goods_and_countries_for_open_dealer_application(application):
     _add_goodstypes_from_csv("DEALER", application)
     for country in Country.objects.filter(is_eu=1).exclude(id="GB"):

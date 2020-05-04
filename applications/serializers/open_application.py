@@ -7,6 +7,7 @@ from applications.libraries.goodstype_category_helpers import (
     set_goods_and_countries_for_open_media_application,
     set_goods_and_countries_for_open_crypto_application,
     set_goods_and_countries_for_open_dealer_application,
+    set_destinations_for_uk_continental_shelf_application,
 )
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
@@ -191,6 +192,8 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             set_goods_and_countries_for_open_crypto_application(application)
         elif validated_data.get("goodstype_category") == GoodsTypeCategory.DEALER:
             set_goods_and_countries_for_open_dealer_application(application)
+        elif validated_data.get("goodstype_category") == GoodsTypeCategory.UK_CONTINENTAL_SHELF:
+            set_destinations_for_uk_continental_shelf_application(application)
 
         return application
 
