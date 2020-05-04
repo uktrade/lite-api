@@ -208,13 +208,6 @@ class CaseAdvice(APIView):
 
         return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
 
-    # def get(self, request, pk):
-    #     """
-    #     Returns all advice for a case
-    #     """
-    #     serializer = self.serializer_object(self.advice, many=True)
-    #     return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
-
     @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """

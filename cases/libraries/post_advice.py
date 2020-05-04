@@ -76,12 +76,12 @@ def post_advice(request, case, serializer_object, team=False):
             )
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
-    errors = [{}]
+    errors = {}
     if serializer.errors:
-        errors[0].update(serializer.errors[0])
+        errors.update(serializer.errors[0])
 
     if refusal_error:
-        errors[0].update(refusal_error)
+        errors.update(refusal_error)
     return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
