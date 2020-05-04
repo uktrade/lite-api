@@ -130,7 +130,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 class OrganisationsMatchingDetail(APIView):
     @staticmethod
     def _property_has_multiple_occurances(queryset, property, property_name):
-        return property and list(queryset.values_list(property_name, flat=True)).count(property) > 1
+        return property and property in queryset.values_list(property_name, flat=True)
 
     def get(self, request, pk):
         matching_properties = []
@@ -147,9 +147,9 @@ class OrganisationsMatchingDetail(APIView):
                 primary_site__address__address__isnull=False,
                 primary_site__address__address=organisation.primary_site.address.address,
             )
-        )
+        ).exclude(id=pk)
 
-        if organisations_with_matching_details.count() > 1:
+        if organisations_with_matching_details.exists():
             if self._property_has_multiple_occurances(organisations_with_matching_details, organisation.name, "name"):
                 matching_properties.append(Organisations.MatchingProperties.NAME)
 
