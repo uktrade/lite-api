@@ -130,7 +130,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 class OrganisationsMatchingDetail(APIView):
     def get(self, request, pk):
         matching_properties = []
-        organisation = get_organisation_by_pk(self.kwargs["pk"])
+        organisation = get_organisation_by_pk(pk)
         organisations_with_matching_details = Organisation.objects.filter(
             Q(name__isnull=False, name=organisation.name)
             | Q(eori_number__isnull=False, eori_number=organisation.eori_number)
@@ -151,7 +151,7 @@ class OrganisationsMatchingDetail(APIView):
                 and list(organisations_with_matching_details.values_list("name", flat=True)).count(organisation.name)
                 > 1
             ):
-                matching_properties.append("Name")
+                matching_properties.append(Organisations.MatchingProperties.NAME)
             if (
                 organisation.registration_number
                 and list(organisations_with_matching_details.values_list("eori_number", flat=True)).count(
@@ -159,7 +159,7 @@ class OrganisationsMatchingDetail(APIView):
                 )
                 > 1
             ):
-                matching_properties.append("EORI Number")
+                matching_properties.append(Organisations.MatchingProperties.EORI)
             if (
                 organisation.registration_number
                 and list(organisations_with_matching_details.values_list("registration_number", flat=True)).count(
@@ -167,7 +167,7 @@ class OrganisationsMatchingDetail(APIView):
                 )
                 > 1
             ):
-                matching_properties.append("Registration Number")
+                matching_properties.append(Organisations.MatchingProperties.REGISTRATION)
             if (
                 organisation.primary_site.address.address_line_1
                 and list(
@@ -180,7 +180,7 @@ class OrganisationsMatchingDetail(APIView):
                 ).count(organisation.primary_site.address.address)
                 > 1
             ):
-                matching_properties.append("Address")
+                matching_properties.append(Organisations.MatchingProperties.ADDRESS)
 
         return JsonResponse({"matching_properties": matching_properties})
 
