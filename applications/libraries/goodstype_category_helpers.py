@@ -6,7 +6,7 @@ from static.countries.models import Country
 
 
 def set_destinations_for_uk_continental_shelf_application(application):
-    CountryOnApplication(country=Country.include_special_countries.get(id="UKCS"), application=application).save()
+    CountryOnApplication(country_id="UKCS", application=application).save()
 
 
 def set_goods_and_countries_for_open_dealer_application(application):
