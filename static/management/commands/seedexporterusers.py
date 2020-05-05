@@ -43,40 +43,46 @@ class Command(SeedCommand):
     @classmethod
     def seed_default_organisations(cls):
         for organisation in COMMERCIAL_ORGANISATIONS + HMRC_ORGANISATIONS:
-            org, _ = Organisation.objects.get_or_create(
-                name=organisation["name"],
-                type=organisation["type"],
-                eori_number="1234567890AAA",
-                sic_number="2345",
-                vat_number="GB1234567",
-                registration_number=organisation["reg_no"],
-                status=OrganisationStatus.ACTIVE,
+            org, created = Organisation.objects.get_or_create(
+                name__iexact=organisation["name"],
+                defaults={
+                    "name": organisation["name"],
+                    "type": organisation["type"],
+                    "eori_number": "1234567890AAA",
+                    "sic_number": "2345",
+                    "vat_number": "GB1234567",
+                    "registration_number": organisation["reg_no"],
+                    "status": OrganisationStatus.ACTIVE,
+                },
             )
 
-            address, _ = Address.objects.get_or_create(
-                address_line_1="42 Question Road",
-                address_line_2="",
-                country=get_country("GB"),
-                city="London",
-                region="London",
-                postcode="Islington",
-            )
+            if created:
+                address = Address.objects.create(
+                    address_line_1="42 Question Road",
+                    address_line_2="",
+                    country=get_country("GB"),
+                    city="London",
+                    region="London",
+                    postcode="Islington",
+                )
 
-            site, _ = Site.objects.get_or_create(name="Headquarters", organisation=org, address=address)
-            org.primary_site = site
-            org.save()
+                site = Site.objects.create(name="Headquarters", organisation=org, address=address)
+                org.primary_site = site
+                org.save()
+
+                cls.print_created_or_updated(
+                    Organisation, {"name": organisation["name"], "type": organisation["type"]}, is_created=True,
+                )
 
     @classmethod
     def seed_exporter_users(cls):
         for exporter_user_data in cls._get_exporter_users():
-            default_data = dict(email=exporter_user_data["email"])
+            email = exporter_user_data["email"]
 
-            exporter_user, created = ExporterUser.objects.get_or_create(
-                email__iexact=default_data["email"], defaults=default_data
-            )
+            exporter_user, created = ExporterUser.objects.get_or_create(email__iexact=email, defaults={"email": email})
 
             if created:
-                cls.print_created_or_updated(ExporterUser, default_data, is_created=True)
+                cls.print_created_or_updated(ExporterUser, {"email": email}, is_created=True)
 
             cls._add_user_to_organisations(exporter_user, exporter_user_data)
 
@@ -84,11 +90,12 @@ class Command(SeedCommand):
     def _get_exporter_users(cls):
         admin_users = cls._parse_users("INTERNAL_ADMIN_TEAM_USERS")
         exporter_users = cls._parse_users("EXPORTER_USERS")
+        exporter_user_emails = [exporter_user["email"] for exporter_user in exporter_users]
 
         # Add INTERNAL_ADMIN_TEAM_USERS to exporter_users list if they have not been defined in EXPORTER_USERS
-        admin_user_emails = [admin_user["email"] for admin_user in admin_users]
-        exporter_user_emails = [exporter_user["email"] for exporter_user in exporter_users]
-        for email in admin_user_emails:
+        for user in admin_users:
+            email = user["email"]
+
             if email not in exporter_user_emails:
                 exporter_users.append({"email": email})
 
@@ -105,7 +112,7 @@ class Command(SeedCommand):
         except ValueError:
             raise ValueError(
                 f"{env_variable} has incorrect format;"
-                f'\nexpected format: [{{"email": "", "organisation": "", "role": ""}}]'
+                f'\nexpected format: [{{"email": "", "organisation": "", role": ""}}]'
                 f"\nbut got: {users}"
             )
 

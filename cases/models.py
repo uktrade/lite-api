@@ -28,7 +28,6 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 from teams.models import Team
-from users.enums import SystemUser
 from users.models import (
     BaseUser,
     ExporterUser,
@@ -145,26 +144,21 @@ class Case(TimestampableModel):
         """
         from audit_trail import service as audit_trail_service
 
-        assigned_cases = CaseAssignment.objects.filter(case_id=self.id)
-        system_user = GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID)
+        case = self.get_case()
+        assigned_cases = CaseAssignment.objects.filter(case=case)
+
         if self.queues.exists():
             self.queues.clear()
 
-            audit_trail_service.create(
-                actor=system_user,
-                verb=AuditType.REMOVE_CASE_FROM_ALL_QUEUES,
-                action_object=self.get_case(),
-                payload={},
+            audit_trail_service.create_system_user_audit(
+                verb=AuditType.REMOVE_CASE_FROM_ALL_QUEUES, action_object=case,
             )
 
         if assigned_cases.exists():
             assigned_cases.delete()
 
-            audit_trail_service.create(
-                actor=system_user,
-                verb=AuditType.REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS,
-                action_object=self.get_case(),
-                payload={},
+            audit_trail_service.create_system_user_audit(
+                verb=AuditType.REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS, action_object=case,
             )
 
 
