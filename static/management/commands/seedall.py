@@ -1,5 +1,4 @@
 from django.core.management import call_command
-from django.db import transaction
 
 from static.management.SeedCommand import SeedCommand
 
@@ -42,7 +41,8 @@ class Command(SeedCommand):
 
     help = "executes all seed operations"
     info = "EXECUTING ALL SEED OPERATIONS"
-    success = "ALL SEED OPERATIONS EXECUTED"
+    success = "SUCCESSFULLY EXECUTED ALL SEED OPERATIONS"
+    failure = "EXECUTED ALL SEED OPERATIONS WITH FAILURES"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -54,22 +54,38 @@ class Command(SeedCommand):
 
     @staticmethod
     def seed_list(commands):
-        for command in commands:
-            call_command(command)
+        errors = []
 
-    @transaction.atomic
+        for command in commands:
+            error = call_command(command, fail_on_error=False)
+
+            if error:
+                errors.append((command, error))
+
+        return errors
+
     def operation(self, *args, **options):
         """
-        pipenv run ./manage.py seedall [--essential] [--non-essential]
+        pipenv run ./manage.py seedall --essential --dev
 
-        essential & non-essential are optional params to only run seed certain tasks
+        essential & dev are optional params to only run seed certain tasks
         """
+        errors = []
+
         if not options["essential"] and not options["dev"]:
-            self.seed_list(SEED_COMMANDS["Essential"])
-            self.seed_list(SEED_COMMANDS["Dev"])
+            errors += self.seed_list(SEED_COMMANDS["Essential"])
+            errors += self.seed_list(SEED_COMMANDS["Dev"])
         else:
             if options["essential"]:
-                self.seed_list(SEED_COMMANDS["Essential"])
+                errors += self.seed_list(SEED_COMMANDS["Essential"])
 
             if options["dev"]:
-                self.seed_list(SEED_COMMANDS["Dev"])
+                errors += self.seed_list(SEED_COMMANDS["Dev"])
+
+        if errors:
+            error_messages = ""
+
+            for error in errors:
+                error_messages += f"{error[0]}:\n{error[1]}\n\n"
+
+            raise Exception(error_messages)

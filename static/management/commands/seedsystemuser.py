@@ -33,19 +33,24 @@ class Command(SeedCommand):
                 f"\nbut got: {system_user}"
             )
 
+        # id = system_user["id"]
+        id = 'system_user["id"]'
+        first_name = system_user["first_name"]
+        last_name = system_user["last_name"]
+
         defaults = {
-            "id": system_user["id"],
+            "id": id,
             "email": "N/A",
-            "first_name": system_user["first_name"],
-            "last_name": system_user["last_name"],
-            "type": UserType.SYSTEM,
+            "first_name": first_name,
+            "last_name": last_name,
+            "type": UserType.SYSTEM.value,
         }
 
-        system_user, created = BaseUser.objects.get_or_create(id=SystemUser.id, defaults=defaults)
+        system_user, created = BaseUser.objects.get_or_create(id=id, defaults=defaults)
 
-        if created or system_user.first_name != SystemUser.first_name or system_user.last_name != SystemUser.last_name:
-            system_user.first_name = SystemUser.first_name
-            system_user.last_name = SystemUser.last_name
+        if created or system_user.first_name != first_name or system_user.last_name != last_name:
+            system_user.first_name = first_name
+            system_user.last_name = last_name
             system_user.save()
 
             self.print_created_or_updated(BaseUser, defaults, created)

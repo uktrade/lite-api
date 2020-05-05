@@ -31,19 +31,29 @@ def migrate_audit_verbs(apps, schema_editor):
     for audit_type in AuditType:
         if audit_type in EXCLUDED:
             continue
+
         old_verb = audit_type_format[audit_type]
         audit_qs = Audit.objects.filter(verb=old_verb)
-        print({"audit": audit_type.value, "count": audit_qs.count()})
-        total_updates += audit_qs.count()
+        count = audit_qs.count()
+
+        if count:
+            print({"audit": audit_type.value, "count": count})
+
+        total_updates += count
         audit_qs.update(verb=audit_type)
 
         if DELTA_VERBS.get(audit_type, False):
             old_audit_qs = Audit.objects.filter(verb=DELTA_VERBS[audit_type])
-            print({"old_audit": audit_type.value, "count": old_audit_qs.count()})
-            total_updates += old_audit_qs.count()
+            count = old_audit_qs.count()
+
+            if count:
+                print({"old_audit": audit_type.value, "count": count})
+
+            total_updates += count
             old_audit_qs.update(verb=audit_type)
 
-    print({"total_updates": total_updates, "total_audit_count": Audit.objects.exclude(verb__in=EXCLUDED).count()})
+    if total_updates:
+        print({"total_updates": total_updates, "total_audit_count": Audit.objects.exclude(verb__in=EXCLUDED).count()})
 
 
 class Migration(migrations.Migration):

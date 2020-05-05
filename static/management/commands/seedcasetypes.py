@@ -19,6 +19,7 @@ class Command(SeedCommand):
     def operation(self, *args, **options):
         case_type_list = CaseTypeEnum.case_type_list
         data = []
+
         # Convert extended_enums_list from list of objects to list of dicts
         for case_type_obj in case_type_list:
             case_type_dict = dict(
