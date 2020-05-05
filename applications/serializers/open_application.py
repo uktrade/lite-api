@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from django.db.models import Min, Case, When, BinaryField
+from rest_framework import serializers
 from rest_framework.fields import CharField
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory
@@ -72,7 +72,6 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     def get_goods_types(self, application):
         goods_types = application.goods_type.all().prefetch_related("countries")
         default_countries = Country.include_special_countries.filter(countries_on_application__application=application)
-
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
     def get_goodstype_category(self, instance):
