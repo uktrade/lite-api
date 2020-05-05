@@ -1,16 +1,9 @@
-import factory
 from django.contrib.contenttypes.models import ContentType
 
 from audit_trail.models import Audit
 from audit_trail.enums import AuditType
+from audit_trail.tests.factories import AuditFactory
 from test_helpers.clients import DataTestClient
-
-
-class AuditFactory(factory.django.DjangoModelFactory):
-    verb = AuditType.UPDATED_STATUS
-
-    class Meta:
-        model = Audit
 
 
 def migrate_status_audit_payloads_for_case(case):

@@ -7,7 +7,7 @@ from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
 from users.enums import SystemUser
-from users.models import GovUser
+from users.models import BaseUser
 
 
 def get_queues_with_case_assignments(case: Case):
@@ -46,7 +46,7 @@ def user_queue_assignment_workflow(queues: [Queue], case: Case):
     queues_without_case_assignments = set(queues) - get_queues_with_case_assignments(case)
     case.queues.remove(*queues_without_case_assignments)
 
-    system_user = GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID)
+    system_user = BaseUser.objects.get(id=SystemUser.id)
 
     # This here allows us to look at each queue removed, and assign a countersigning queue for the work queue as needed
     for queue in queues_without_case_assignments:

@@ -10,7 +10,10 @@ from teams.serializers import TeamReadOnlySerializer
 class CasesQueueViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Queue
-        fields = ("id", "name")
+        fields = (
+            "id",
+            "name",
+        )
 
 
 class QueueViewSerializer(serializers.Serializer):
@@ -27,9 +30,9 @@ class QueueViewSerializer(serializers.Serializer):
 
     def get_is_system_queue(self, instance):
         if isinstance(instance, dict):
-            return instance["id"] in SYSTEM_QUEUES
+            return instance["id"] in SYSTEM_QUEUES.keys()
         else:
-            return instance.id in SYSTEM_QUEUES
+            return instance.id in SYSTEM_QUEUES.keys()
 
 
 class TinyQueueSerializer(serializers.ModelSerializer):
