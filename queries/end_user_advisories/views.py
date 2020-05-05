@@ -42,9 +42,11 @@ class EndUserAdvisoriesList(ListAPIView):
             .annotate(count=Count("case"))
         )
         cases_with_notifications = {str(notification["case"]): notification["count"] for notification in notifications}
+
         for item in data:
             if item["id"] in cases_with_notifications:
                 item["exporter_user_notification_count"] = cases_with_notifications[item["id"]]
+
         return super().get_paginated_response(data)
 
     def post(self, request):
