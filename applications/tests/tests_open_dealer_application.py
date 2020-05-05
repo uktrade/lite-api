@@ -15,7 +15,6 @@ from test_helpers.clients import DataTestClient
 class OpenDealerTests(DataTestClient):
     url = reverse("applications:applications")
 
-    @tag("dealer", "special")
     def test_create_draft_open_dealer_application_generates_goods(self):
         data = {
             "name": "Test",
@@ -30,7 +29,6 @@ class OpenDealerTests(DataTestClient):
         self.assertEqual(OpenApplication.objects.count(), 1)
         self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 15)
 
-    @tag("dealer", "special", "eu-countries")
     def test_all_eu_countries_added_dealer(self):
         data = {
             "name": "Test",
@@ -47,7 +45,6 @@ class OpenDealerTests(DataTestClient):
             Country.objects.filter(is_eu=1).exclude(id="GB").count(),
         )
 
-    @tag("dealer", "special")
     def test_cannot_add_goodstypes_on_dealer_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.DEALER
@@ -60,7 +57,6 @@ class OpenDealerTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodsType.objects.all().count(), initial_goods_count)
 
-    @tag("dealer", "special")
     def test_cannot_remove_goodstype_from_open_dealer_application(self):
         self.create_draft_open_application(self.organisation)
         application = self.create_draft_open_application(organisation=self.organisation)
@@ -77,7 +73,6 @@ class OpenDealerTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(GoodsType.objects.all().count(), initial_goods_count)
 
-    @tag("dealer", "special")
     def test_cannot_change_countries_on_dealer_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.DEALER
@@ -90,7 +85,6 @@ class OpenDealerTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CountryOnApplication.objects.filter(application=application).count(), initial_countries_count)
 
-    @tag("dealer", "special")
     def test_cannot_change_countries_on_goodstype_on_dealer_application(self):
         country_1 = get_country("ES")
         country_2 = get_country("US")
