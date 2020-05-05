@@ -134,6 +134,8 @@ class ApplicationExternalLocations(APIView):
                 payload={
                     "locations": [
                         location.external_location.name + " " + location.external_location.country.name
+                        if location.external_location.country
+                        else location.external_location.name
                         for location in removed_locations
                     ]
                 },
