@@ -16,7 +16,6 @@ from test_helpers.clients import DataTestClient
 class OpenCryptographicTests(DataTestClient):
     url = reverse("applications:applications")
 
-    @tag("crypto", "special")
     def test_create_draft_open_cryptographic_application_generates_goods(self):
         data = {
             "name": "Test",
@@ -31,7 +30,6 @@ class OpenCryptographicTests(DataTestClient):
         self.assertEqual(OpenApplication.objects.count(), 1)
         self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 3)
 
-    @tag("crypto", "special")
     def test_export_type_is_set_to_permanent(self):
         data = {
             "name": "Test",
@@ -44,7 +42,6 @@ class OpenCryptographicTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.PERMANENT)
 
-    @tag("crypto", "special")
     def test_export_type_override_temporary_to_permanent(self):
         data = {
             "name": "Test",
@@ -58,7 +55,6 @@ class OpenCryptographicTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.PERMANENT)
 
-    @tag("crypto", "special")
     def test_permitted_countries_added_cryptographic(self):
         data = {
             "name": "Test",
@@ -74,7 +70,6 @@ class OpenCryptographicTests(DataTestClient):
             CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(), 214,
         )
 
-    @tag("crypto", "special")
     def test_cannot_add_goodstypes_on_cryptographic_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
@@ -87,7 +82,6 @@ class OpenCryptographicTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodsType.objects.all().count(), initial_goods_count)
 
-    @tag("crypto", "special")
     def test_cannot_remove_goodstype_from_open_cryptographic_application(self):
         self.create_draft_open_application(self.organisation)
         application = self.create_draft_open_application(organisation=self.organisation)
@@ -104,7 +98,6 @@ class OpenCryptographicTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(GoodsType.objects.all().count(), initial_goods_count)
 
-    @tag("crypto", "special")
     def test_cannot_change_countries_on_cryptographic_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
@@ -117,7 +110,6 @@ class OpenCryptographicTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CountryOnApplication.objects.filter(application=application).count(), initial_countries_count)
 
-    @tag("crypto", "special")
     def test_cannot_change_countries_on_goodstype_on_cryptographic_application(self):
         country_1 = get_country("ES")
         country_2 = get_country("US")
@@ -136,7 +128,6 @@ class OpenCryptographicTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(goodstype.countries.count(), initial_countries_count)
 
-    @tag("special", "crypto", "third-parties")
     def test_set_third_parties_on_draft_open_cryptographic(self):
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
@@ -161,7 +152,6 @@ class OpenCryptographicTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(third_party_qs.count(), 1)
 
-    @tag("special", "crypto", "submit")
     def test_submit_open_cryptographic_application(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         data = {
