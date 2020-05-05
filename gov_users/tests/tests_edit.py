@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from conf import constants
+from lite_content.lite_api import strings
 from teams.models import Team
 from test_helpers.clients import DataTestClient
 from users.models import Role, GovUser
@@ -22,6 +23,42 @@ class GovUserEditTests(DataTestClient):
         self.assertNotEqual(response_data["gov_user"]["last_name"], "Smith")
         self.assertNotEqual(response_data["gov_user"]["email"], "test@mail.com")
         self.assertNotEqual(response_data["gov_user"]["team"], self.team)
+
+    def test_edit_gov_user_default_queue(self):
+        original_default_queue = self.gov_user.default_queue
+        data = {"default_queue": str(self.queue.id)}
+        url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.id})
+
+        response = self.client.put(url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(response_data["gov_user"]["default_queue"], str(original_default_queue))
+        self.assertEqual(response_data["gov_user"]["default_queue"], data["default_queue"])
+
+    def test_edit_gov_user_invalid_default_queue(self):
+        data = {"default_queue": "10000000-0000-0000-0000-000000000000"}
+        url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.id})
+
+        response = self.client.put(url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data["errors"]["default_queue"], [strings.Users.NULL_DEFAULT_QUEUE])
+
+    def test_edit_gov_user_default_queue_with_non_related_team(self):
+        new_team = self.create_team("new team")
+
+        data = {"default_queue": str(self.queue.id), "team": str(new_team.id)}
+        url = reverse("gov_users:gov_user", kwargs={"pk": self.gov_user.id})
+
+        response = self.client.put(url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data["errors"]["default_queue"], [strings.Users.INVALID_DEFAULT_QUEUE % new_team.name]
+        )
 
     def test_change_role_of_a_gov_user(self):
         self.gov_user.role = self.default_role

@@ -13,7 +13,7 @@ from cases.enums import (
     CaseTypeReferenceEnum,
 )
 from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
-from cases.libraries.get_destination import get_ordered_flags
+from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
     CaseNote,
@@ -51,9 +51,9 @@ from users.enums import UserStatuses
 from users.models import BaseUser, GovUser, ExporterUser, GovNotification
 from users.serializers import (
     BaseUserViewSerializer,
-    GovUserViewSerializer,
     ExporterUserViewSerializer,
 )
+from gov_users.serializers import GovUserViewSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):

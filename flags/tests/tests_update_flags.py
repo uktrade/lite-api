@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from conf.constants import GovPermissions
 from flags.enums import FlagStatuses, FlagColours, FlagLevels
 from flags.tests.factories import FlagFactory
 from lite_content.lite_api import strings
@@ -9,6 +10,7 @@ from test_helpers.clients import DataTestClient
 
 class FlagsUpdateTest(DataTestClient):
     def test_flag_can_be_deactivated(self):
+        self.gov_user.role.permissions.set([GovPermissions.ACTIVATE_FLAGS.name])
         flag = FlagFactory(team=self.team)
 
         data = {
@@ -21,6 +23,17 @@ class FlagsUpdateTest(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["status"], FlagStatuses.DEACTIVATED)
+
+    def test_flag_cannot_be_deactivated_without_permission(self):
+        flag = FlagFactory(team=self.team)
+        data = {
+            "status": FlagStatuses.DEACTIVATED,
+        }
+
+        url = reverse("flags:flag", kwargs={"pk": flag.id})
+        response = self.client.patch(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_flag_cannot_be_deactivated_by_a_user_outside_flags_team(self):
         team = self.create_team("Secondary team")
