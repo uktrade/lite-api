@@ -14,7 +14,6 @@ from test_helpers.clients import DataTestClient
 class OpenUKCSTests(DataTestClient):
     url = reverse("applications:applications")
 
-    @tag("ukcs", "special")
     def test_create_draft_open_ukcs_application_generates_goods(self):
         data = {
             "name": "Test",
@@ -28,7 +27,6 @@ class OpenUKCSTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.count(), 1)
 
-    @tag("ukcs", "special", "ukcs-country")
     def test_only_ukcs_added_ukcs(self):
         data = {
             "name": "Test",
@@ -48,7 +46,6 @@ class OpenUKCSTests(DataTestClient):
             Country.include_special_countries.get(id="UKCS"),
         )
 
-    @tag("ukcs", "special")
     def test_cannot_change_countries_on_ukcs_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
         application.goodstype_category = GoodsTypeCategory.UK_CONTINENTAL_SHELF
@@ -61,7 +58,6 @@ class OpenUKCSTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CountryOnApplication.objects.filter(application=application).count(), initial_countries_count)
 
-    @tag("ukcs", "special")
     def test_cannot_change_countries_on_goodstype_on_ukcs_application(self):
         country_1 = get_country("ES")
         country_2 = get_country("US")
