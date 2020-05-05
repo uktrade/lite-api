@@ -4,7 +4,7 @@ from django.db import transaction
 
 from conf.settings import env
 from static.management.SeedCommand import SeedCommand
-from users.enums import UserType, SystemUser
+from users.enums import UserType
 from users.models import BaseUser
 
 
