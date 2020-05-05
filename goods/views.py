@@ -50,7 +50,10 @@ class GoodsListControlCode(APIView):
         Set control list codes on multiple goods.
         """
         assert_user_has_permission(request.user, constants.GovPermissions.REVIEW_GOODS)
+
+        case = get_case(case_pk)
         application = BaseApplication.objects.get(id=case_pk)
+
         if CaseStatusEnum.is_terminal(application.status.status):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
@@ -60,9 +63,6 @@ class GoodsListControlCode(APIView):
         data = request.data
         objects = data.get("objects")
 
-        if not isinstance(objects, list):
-            objects = [objects]
-
         if application.case_type.sub_type not in [CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC]:
             serializer_class = ClcControlGoodSerializer
             get_good_func = get_good
@@ -70,56 +70,43 @@ class GoodsListControlCode(APIView):
             serializer_class = ClcControlGoodTypeSerializer
             get_good_func = get_goods_type
 
-        serializer = serializer_class(data=data)
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        case = get_case(case_pk)
-        errors = []
-        for pk in objects:
-            try:
-                good = get_good_func(pk=pk)
+        for good_id in objects:
+            good = get_good_func(good_id)
+            serializer = serializer_class(good, data=data)
+            if serializer.is_valid(raise_exception=True):
                 # Get the old control list entries if any and retrieve their ratings for display in the audit trail
                 old_control_list_entries = list(good.control_list_entries.all()) or [strings.Goods.GOOD_NO_CONTROL_CODE]
                 if strings.Goods.GOOD_NO_CONTROL_CODE not in old_control_list_entries:
                     old_control_list_entries = [clc.rating for clc in old_control_list_entries]
 
-                serializer = serializer_class(good, data=data)
-                if serializer.is_valid():
-                    serializer.save()
+                serializer.save()
 
-                    new_control_list_entries = list(good.control_list_entries.all()) or [
-                        strings.Goods.GOOD_NO_CONTROL_CODE
-                    ]
-                    if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
-                        new_control_list_entries = [clc.rating for clc in new_control_list_entries]
-                    else:
-                        # Clear flags if control list entries no longer present
-                        good.flags.clear()
+                new_control_list_entries = list(good.control_list_entries.all()) or [
+                    strings.Goods.GOOD_NO_CONTROL_CODE
+                ]
+                if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
+                    new_control_list_entries = [clc.rating for clc in new_control_list_entries]
+                else:
+                    # Clear flags if control list entries no longer present
+                    good.flags.clear()
 
-                    if new_control_list_entries != old_control_list_entries:
-                        good.flags.clear()
-                        audit_trail_service.create(
-                            actor=request.user,
-                            verb=AuditType.GOOD_REVIEWED,
-                            action_object=good,
-                            target=case,
-                            payload={
-                                "good_name": good.description,
-                                "new_control_list_entry": new_control_list_entries,
-                                "old_control_list_entry": old_control_list_entries,
-                            },
-                        )
-                errors += serializer.errors
-            except Http404:
-                errors += f"{strings.Goods.GOOD_NOT_FOUND_ERROR}: {pk}"
+                if new_control_list_entries != old_control_list_entries:
+                    good.flags.clear()
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.GOOD_REVIEWED,
+                        action_object=good,
+                        target=case,
+                        payload={
+                            "good_name": good.description,
+                            "new_control_list_entry": new_control_list_entries,
+                            "old_control_list_entry": old_control_list_entries,
+                        },
+                    )
 
-        apply_good_flagging_rules_for_case(case)
+            apply_good_flagging_rules_for_case(case)
 
-        if errors:
-            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        return HttpResponse(status=status.HTTP_200_OK)
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class GoodList(ListCreateAPIView):
