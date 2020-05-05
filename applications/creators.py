@@ -1,7 +1,7 @@
 from django.utils import timezone
 
 from applications import constants
-from applications.enums import ApplicationExportType
+from applications.enums import ApplicationExportType, GoodsTypeCategory
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
@@ -22,6 +22,7 @@ def _validate_locations(application, errors):
         not SiteOnApplication.objects.filter(application=application).exists()
         and not ExternalLocationOnApplication.objects.filter(application=application).exists()
         and not getattr(application, "have_goods_departed", False)
+        and not application.goodstype_category == GoodsTypeCategory.CRYPTOGRAPHIC
     ):
         errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
 
@@ -162,7 +163,7 @@ def _validate_end_use_details(draft, errors, application_type):
             or draft.is_informed_wmd is None
             or draft.is_suspected_wmd is None
             or not draft.intended_end_use
-        ):
+        ) and not draft.goodstype_category == GoodsTypeCategory.CRYPTOGRAPHIC:
             errors["end_use_details"] = [strings.Applications.Generic.NO_END_USE_DETAILS]
 
         if application_type == CaseTypeSubTypeEnum.STANDARD:
@@ -348,7 +349,7 @@ def _validate_open_licence(draft, errors):
 
 
 def _validate_route_of_goods(draft, errors):
-    if draft.is_shipped_waybill_or_lading is None:
+    if draft.is_shipped_waybill_or_lading is None and not draft.goodstype_category == GoodsTypeCategory.CRYPTOGRAPHIC:
         errors["route_of_goods"] = [strings.Applications.Generic.NO_ROUTE_OF_GOODS]
     return errors
 

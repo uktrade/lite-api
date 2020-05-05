@@ -160,3 +160,31 @@ class OpenCryptographicTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(third_party_qs.count(), 1)
+
+    @tag("special", "crypto", "submit")
+    def test_submit_open_cryptographic_application(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        data = {
+            "name": "Test",
+            "application_type": CaseTypeReferenceEnum.OIEL,
+            "export_type": ApplicationExportType.TEMPORARY,
+            "goodstype_category": GoodsTypeCategory.CRYPTOGRAPHIC,
+        }
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        application_id = response.json()["id"]
+        data = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "individual",
+            "website": "https://www.gov.uk",
+            "type": PartyType.THIRD_PARTY,
+            "role": "agent",
+        }
+
+        url = reverse("applications:parties", kwargs={"pk": application_id})
+        self.client.post(url, data, **self.exporter_headers)
+
+        url = reverse("applications:application_submit", kwargs={"pk": application_id})
+        response = self.client.put(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
