@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from conf.settings import SYSTEM_USER
+
 
 class UserStatuses:
     ACTIVE = "Active"
@@ -21,12 +23,17 @@ class UserStatuses:
 class UserType:
     EXPORTER = "exporter"
     INTERNAL = "internal"
+    SYSTEM = "system"
 
-    choices = [
+    non_system_choices = [
         (EXPORTER, "Exporter"),
         (INTERNAL, "Internal"),
     ]
 
+    choices = non_system_choices + [(SYSTEM, "System")]
+
 
 class SystemUser:
-    LITE_SYSTEM_ID = UUID("00000000-0000-0000-0000-000000000000")
+    id = UUID(SYSTEM_USER.get("id"))
+    first_name = SYSTEM_USER.get("first_name")
+    last_name = SYSTEM_USER.get("last_name")
