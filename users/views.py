@@ -135,10 +135,7 @@ class UserMeDetail(APIView):
     def get(self, request):
         org_pk = request.headers["Organisation-Id"]
         user = request.user
-        relationships = (
-            UserOrganisationRelationship.objects.select_related("organisation")
-            .filter(user=user)
-        )
+        relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(user=user)
 
         if str_to_bool(request.GET.get("in_review", False)):
             relationships = relationships.filter(organisation__status=OrganisationStatus.IN_REVIEW)
