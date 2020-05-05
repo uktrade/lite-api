@@ -11,6 +11,7 @@ from audit_trail.schema import validate_kwargs
 from cases.models import Case
 from teams.models import Team
 from users.enums import UserType
+from users.enums import SystemUser
 from users.models import ExporterUser, GovUser, BaseUser
 
 
@@ -25,6 +26,20 @@ def create(actor, verb, action_object=None, target=None, payload=None, ignore_ca
         action_object=action_object,
         target=target,
         payload=payload,
+        ignore_case_status=ignore_case_status,
+    )
+
+
+@validate_kwargs
+def create_system_user_audit(verb, action_object=None, target=None, ignore_case_status=False):
+    system_user = BaseUser.objects.get(id=SystemUser.id)
+
+    return Audit.objects.create(
+        actor=system_user,
+        verb=verb.value,
+        action_object=action_object,
+        target=target,
+        payload={},
         ignore_case_status=ignore_case_status,
     )
 
