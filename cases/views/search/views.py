@@ -19,9 +19,9 @@ class CasesSearchView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
-        is_work_queue = queue_id not in NON_WORK_QUEUES
+        is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
         context = {
-            "is_system_queue": queue_id in SYSTEM_QUEUES,
+            "is_system_queue": queue_id in SYSTEM_QUEUES.keys(),
             "queue_id": queue_id,
             "is_work_queue": is_work_queue,
         }
@@ -43,7 +43,7 @@ class CasesSearchView(generics.ListAPIView):
                 include_hidden=include_hidden,
             )
         )
-        queues = get_all_queues(user=request.user)
+        queues = get_all_queues(include_team=False, include_case_count=True, user=request.user)
         cases = CaseListSerializer(
             page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
         ).data

@@ -105,6 +105,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         pass
 
     def setUp(self):
+        self.system_user = BaseUser.objects.get(id=SystemUser.id)
+
         # Gov User Setup
         self.team = Team.objects.get(name="Admin")
         self.gov_user = GovUser(email="test@mail.com", first_name="John", last_name="Smith", team=self.team)
@@ -172,8 +174,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 "5D002c1",
             ]
         ]
-
-        GovUser(id=SystemUser.LITE_SYSTEM_ID, email="", team=self.team).save()
 
         if settings.TIME_TESTS:
             self.tick = datetime.now()
