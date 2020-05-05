@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
+from applications.serializers.advice import CaseAdviceSerializerNew
 from audit_trail.models import Audit
 from cases.enums import (
     CaseTypeTypeEnum,
@@ -192,6 +193,7 @@ class CaseDetailSerializer(CaseSerializer):
     queue_names = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
+    advice = CaseAdviceSerializerNew(many=True)
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
@@ -214,6 +216,7 @@ class CaseDetailSerializer(CaseSerializer):
             "application",
             "query",
             "has_advice",
+            "advice",
             "all_flags",
             "case_officer",
             "audit_notification",
@@ -377,9 +380,8 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserViewSerializer)
     proviso = serializers.CharField(
         required=False,
-        allow_blank=False,
-        allow_null=False,
-        error_messages={"blank": "Enter a proviso"},
+        allow_blank=True,
+        allow_null=True,
         max_length=5000,
     )
     text = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000)
@@ -444,7 +446,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         """
         for data in self.initial_data:
             if data["type"] == AdviceType.PROVISO and not data["proviso"]:
-                raise ValidationError("Provide a proviso")
+                raise ValidationError("Enter a proviso")
 
         return value
 

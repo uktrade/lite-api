@@ -246,7 +246,7 @@ class Advice(TimestampableModel):
     ENTITY_FIELDS = ["good", "goods_type", "country", "end_user", "consignee", "ultimate_end_user", "third_party"]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    case = models.ForeignKey(Case, on_delete=models.CASCADE)
+    case = models.ForeignKey(Case, related_name="advice", on_delete=models.CASCADE)
     user = models.ForeignKey(GovUser, on_delete=models.PROTECT)
     type = models.CharField(choices=AdviceType.choices, max_length=30)
     text = models.TextField(default=None, blank=True, null=True)

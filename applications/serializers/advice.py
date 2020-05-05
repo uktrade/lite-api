@@ -4,13 +4,18 @@ from cases.enums import AdviceType
 from cases.models import Advice
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from flags.enums import FlagStatuses
-from gov_users.serializers import GovUserViewSerializer
+from goods.models import Good
+from goodstype.models import GoodsType
+from gov_users.serializers import GovUserListSerializer
+from parties.enums import PartyType
+from parties.models import Party
+from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from users.models import GovUser
 
 
 class CaseAdviceSerializerNew(serializers.Serializer):
-    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserViewSerializer)
+    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     proviso = serializers.CharField(
         required=False,
         allow_blank=False,
@@ -24,6 +29,22 @@ class CaseAdviceSerializerNew(serializers.Serializer):
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
     level = serializers.SerializerMethodField()
 
+    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
+    goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
+    end_user = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.END_USER), required=False
+    )
+    ultimate_end_user = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.ULTIMATE_END_USER), required=False
+    )
+    consignee = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.CONSIGNEE), required=False
+    )
+    third_party = serializers.PrimaryKeyRelatedField(
+        queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
+    )
+
     def get_level(self, instance):
         return type(Advice.objects.get_subclass(id=instance.id)).__name__
 
@@ -32,7 +53,6 @@ class CountryWithFlagsSerializer(serializers.Serializer):
     id = serializers.CharField()
     name = serializers.CharField()
     flags = serializers.SerializerMethodField()
-    advice = CaseAdviceSerializerNew(many=True)
 
     def get_flags(self, instance):
         if self.context.get("active_flags_only"):

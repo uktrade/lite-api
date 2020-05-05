@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from applications.models import BaseApplication
-from applications.serializers.advice import CaseAdviceSerializerNew
 from cases.enums import CaseTypeSubTypeEnum
 from common.libraries import (
     update_good_or_goods_type_control_list_entries_details,
@@ -94,7 +93,6 @@ class GoodsTypeViewSerializer(serializers.Serializer):
     countries = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
-    advice = CaseAdviceSerializerNew(many=True)
 
     def __init__(self, instance=None, data=empty, default_countries=None, **kwargs):
         super().__init__(instance, data, **kwargs)
