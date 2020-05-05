@@ -13,7 +13,6 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
 from users.libraries.notifications import (
     get_exporter_user_notification_individual_count,
-    get_exporter_user_notification_total_count,
 )
 from users.models import ExporterUser
 
