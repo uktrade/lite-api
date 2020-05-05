@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from common.enums import LiteEnum, autostr
 from conf.settings import SYSTEM_USER
 
 
@@ -20,17 +21,21 @@ class UserStatuses:
         }[s.lower()]
 
 
-class UserType:
-    EXPORTER = "exporter"
-    INTERNAL = "internal"
-    SYSTEM = "system"
+class UserType(LiteEnum):
+    EXPORTER = autostr()
+    INTERNAL = autostr()
+    SYSTEM = autostr()
 
-    non_system_choices = [
-        (EXPORTER, "Exporter"),
-        (INTERNAL, "Internal"),
-    ]
+    @classmethod
+    def non_system_choices(cls):
+        return [(cls.EXPORTER, "Exporter"), (cls.INTERNAL, "Internal")]
 
-    choices = non_system_choices + [(SYSTEM, "System")]
+    @classmethod
+    def choices(cls):
+        return cls.non_system_choices() + [(cls.SYSTEM, "System")]
+
+    def human_readable(self):
+        return self.value.capitalize()
 
 
 class SystemUser:
