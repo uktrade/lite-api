@@ -21,7 +21,7 @@ from users.libraries.user_to_token import user_to_token
 from users.models import UserOrganisationRelationship
 
 
-class OrganisationTests(DataTestClient):
+class GetOrganisationTests(DataTestClient):
     url = reverse("organisations:organisations")
 
     def test_list_organisations(self):
@@ -44,6 +44,49 @@ class OrganisationTests(DataTestClient):
                 "created_at": date_to_drf_date(organisation.created_at),
             },
         )
+
+    @parameterized.expand(
+        [
+            ["indi", ["individual"], 1],
+            ["indi", ["hmrc"], 0],
+            ["indi", ["commercial"], 0],
+            ["comm", ["individual"], 0],
+            ["comm", ["hmrc"], 0],
+            ["comm", ["commercial"], 1],
+            ["hmr", ["individual"], 0],
+            ["hmr", ["hmrc"], 2],
+            ["hmr", ["commercial"], 0],
+            ["al", ["commercial", "individual"], 2],  # multiple org types
+        ]
+    )
+    def test_list_filter_organisations_by_name_and_type(self, name, org_types, expected_result):
+        # Add organisations to filter
+        OrganisationFactory(name="Individual", type=OrganisationType.INDIVIDUAL)
+        OrganisationFactory(name="Commercial", type=OrganisationType.COMMERCIAL)
+        OrganisationFactory(name="HMRC", type=OrganisationType.HMRC)
+
+        org_types_param = ""
+        for org_type in org_types:
+            org_types_param += "&org_type=" + org_type
+
+        response = self.client.get(self.url + "?search_term=" + name + org_types_param, **self.gov_headers)
+
+        self.assertEqual(len(response.json()["results"]), expected_result)
+
+    def test_list_filter_organisations_by_status(self):
+        self.organisation_1 = OrganisationFactory(status=OrganisationStatus.IN_REVIEW)
+        self.organisation_2 = OrganisationFactory(status=OrganisationStatus.REJECTED)
+        self.organisation_3 = OrganisationFactory(status=OrganisationStatus.ACTIVE)
+
+        response = self.client.get(self.url + "?status=" + OrganisationStatus.ACTIVE, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(all([item["status"]["key"] == OrganisationStatus.ACTIVE for item in response_data]))
+
+
+class CreateOrganisationTests(DataTestClient):
+    url = reverse("organisations:organisations")
 
     def test_create_commercial_organisation_as_internal_success(self):
         data = {
@@ -288,34 +331,6 @@ class OrganisationTests(DataTestClient):
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
         self.assertEqualIgnoreType(site.address.country.id, "GB")
 
-    @parameterized.expand(
-        [
-            ["indi", ["individual"], 1],
-            ["indi", ["hmrc"], 0],
-            ["indi", ["commercial"], 0],
-            ["comm", ["individual"], 0],
-            ["comm", ["hmrc"], 0],
-            ["comm", ["commercial"], 1],
-            ["hmr", ["individual"], 0],
-            ["hmr", ["hmrc"], 2],
-            ["hmr", ["commercial"], 0],
-            ["al", ["commercial", "individual"], 2],  # multiple org types
-        ]
-    )
-    def test_list_filter_organisations_by_name_and_type(self, name, org_types, expected_result):
-        # Add organisations to filter
-        OrganisationFactory(name="Individual", type=OrganisationType.INDIVIDUAL)
-        OrganisationFactory(name="Commercial", type=OrganisationType.COMMERCIAL)
-        OrganisationFactory(name="HMRC", type=OrganisationType.HMRC)
-
-        org_types_param = ""
-        for org_type in org_types:
-            org_types_param += "&org_type=" + org_type
-
-        response = self.client.get(self.url + "?search_term=" + name + org_types_param, **self.gov_headers)
-
-        self.assertEqual(len(response.json()["results"]), expected_result)
-
 
 class EditOrganisationTests(DataTestClient):
     faker = Faker()
@@ -469,3 +484,26 @@ class EditOrganisationTests(DataTestClient):
         # Check only the finalised case's status was changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES)
         self.assertEqual(case_two.status.status, CaseStatusEnum.SUBMITTED)
+
+
+class EditOrganisationStatusTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.organisation = OrganisationFactory(status=OrganisationStatus.IN_REVIEW)
+        self.url = reverse("organisations:organisation_status", kwargs={"pk": self.organisation.pk})
+
+    def test_set_organisation_status_success(self):
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
+        data = {"status": OrganisationStatus.ACTIVE}
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["status"]["key"], OrganisationStatus.ACTIVE)
+
+    def test_set_organisation_status__without_permission_failure(self):
+        data = {"status": OrganisationStatus.ACTIVE}
+
+        response = self.client.put(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
