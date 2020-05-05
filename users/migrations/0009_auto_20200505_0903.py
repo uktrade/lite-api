@@ -7,18 +7,14 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0008_auto_20200501_1329'),
+        ("users", "0008_auto_20200501_1329"),
     ]
 
     operations = [
+        migrations.AlterField(model_name="baseuser", name="type", field=models.CharField(max_length=8),),
         migrations.AlterField(
-            model_name='baseuser',
-            name='type',
-            field=models.CharField(max_length=8),
-        ),
-        migrations.AlterField(
-            model_name='govuser',
-            name='team',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='users', to='teams.Team'),
+            model_name="govuser",
+            name="team",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name="users", to="teams.Team"),
         ),
     ]
