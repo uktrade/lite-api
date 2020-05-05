@@ -8,7 +8,7 @@ from test_helpers.clients import DataTestClient
 
 
 class OrganisationTests(DataTestClient):
-    url = reverse("menu:menu")
+    url = reverse("gov_users:notifications")
 
     def test_get_notifications_with_in_review_organisations(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
