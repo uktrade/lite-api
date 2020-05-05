@@ -28,7 +28,7 @@ class Command(SeedCommand):
             system_user = serialize(system_user)
         except ValueError:
             raise ValueError(
-                f"INTERNAL_ADMIN_TEAM_USERS has incorrect format;"
+                f"SYSTEM_USER has incorrect format;"
                 f'\nexpected format: {{"id": "", "email": "", "first_name": "", "last_name": ""}}'
                 f"\nbut got: {system_user}"
             )
