@@ -126,7 +126,7 @@ def _validate_goods_types(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_ultimate_end_users(draft, errors, is_mandatory):
+def _validate_ultimate_end_users(draft, errors, is_mandatory, goods_type=False):
     """
     Checks all ultimate end users have documents if is_mandatory is True.
     Also checks that at least one ultimate_end_user is present if there is an incorporated good
@@ -137,14 +137,20 @@ def _validate_ultimate_end_users(draft, errors, is_mandatory):
         errors["ultimate_end_user_documents"] = [ultimate_end_user_documents_error]
 
     if is_mandatory:
-        ultimate_end_user_required = GoodOnApplication.objects.filter(
-            application=draft, is_good_incorporated=True
-        ).exists()
+        if goods_type:
+            ultimate_end_user_required = True in [
+                goodstype.is_good_incorporated for goodstype in list(draft.goods_type.all())
+            ]
+        else:
+            ultimate_end_user_required = GoodOnApplication.objects.filter(
+                application=draft, is_good_incorporated=True
+            ).exists()
 
         if ultimate_end_user_required:
             if len(draft.ultimate_end_users.values_list()) == 0:
                 errors["ultimate_end_users"] = [strings.Applications.Standard.NO_ULTIMATE_END_USERS_SET]
-            else:
+            # goods_types are used in open applications and we don't have end_users in them currently.
+            elif not goods_type:
                 # We make sure that an ultimate end user is not also the end user
                 for ultimate_end_user in draft.ultimate_end_users.values_list("id", flat=True):
                     if "end_user" not in errors and str(ultimate_end_user) == str(draft.end_user.party.id):
@@ -343,6 +349,8 @@ def _validate_open_licence(draft, errors):
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
     errors = _validate_temporary_export_details(draft, errors)
     errors = _validate_route_of_goods(draft, errors)
+    if draft.goodstype_category == "military":
+        errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True, goods_type=True)
 
     return errors
 

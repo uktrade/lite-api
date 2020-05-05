@@ -23,9 +23,13 @@ from users.models import ExporterUser
 class ApplicationPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
+    def _validate_only_correct_type_of_open_applications(self, application):
+        pass
+
     @allowed_application_types(
         [
             CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
@@ -87,6 +91,7 @@ class ApplicationPartyView(APIView):
     @allowed_application_types(
         [
             CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
@@ -125,6 +130,7 @@ class ApplicationPartyView(APIView):
     @allowed_application_types(
         [
             CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
@@ -154,6 +160,7 @@ class CopyPartyView(APIView):
     @allowed_application_types(
         [
             CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,

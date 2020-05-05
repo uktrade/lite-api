@@ -20,6 +20,7 @@ class PartyDocumentView(APIView):
     @allowed_application_types(
         [
             CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
@@ -36,6 +37,7 @@ class PartyDocumentView(APIView):
     @allowed_application_types(
         [
             CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
@@ -52,6 +54,7 @@ class PartyDocumentView(APIView):
     @allowed_application_types(
         [
             CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,

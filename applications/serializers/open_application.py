@@ -4,6 +4,7 @@ from rest_framework.fields import CharField
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory
 from applications.libraries.goodstype_category_helpers import set_goods_and_countries_for_open_media_application
+from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -22,7 +23,7 @@ from static.countries.serializers import CountryWithFlagsSerializer
 from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
-class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
+class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
@@ -34,29 +35,33 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
 
     class Meta:
         model = OpenApplication
-        fields = GenericApplicationViewSerializer.Meta.fields + (
-            "activity",
-            "usage",
-            "goods_types",
-            "destinations",
-            "additional_documents",
-            "is_military_end_use_controls",
-            "military_end_use_controls_ref",
-            "is_informed_wmd",
-            "informed_wmd_ref",
-            "is_suspected_wmd",
-            "suspected_wmd_ref",
-            "intended_end_use",
-            "licence",
-            "is_shipped_waybill_or_lading",
-            "non_waybill_or_lading_route_details",
-            "temp_export_details",
-            "is_temp_direct_control",
-            "temp_direct_control_details",
-            "proposed_return_date",
-            "trade_control_activity",
-            "trade_control_product_categories",
-            "goodstype_category",
+        fields = (
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + (
+                "activity",
+                "usage",
+                "goods_types",
+                "destinations",
+                "additional_documents",
+                "is_military_end_use_controls",
+                "military_end_use_controls_ref",
+                "is_informed_wmd",
+                "informed_wmd_ref",
+                "is_suspected_wmd",
+                "suspected_wmd_ref",
+                "intended_end_use",
+                "licence",
+                "is_shipped_waybill_or_lading",
+                "non_waybill_or_lading_route_details",
+                "temp_export_details",
+                "is_temp_direct_control",
+                "temp_direct_control_details",
+                "proposed_return_date",
+                "trade_control_activity",
+                "trade_control_product_categories",
+                "goodstype_category",
+            )
         )
 
     def get_goods_types(self, application):
