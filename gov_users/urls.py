@@ -13,4 +13,5 @@ urlpatterns = [
     path("roles/<uuid:pk>/", roles_views.RoleDetail.as_view(), name="role"),
     path("permissions/", roles_views.PermissionsView.as_view(), name="permissions"),
     path("me/", gov_user_views.UserMeDetail.as_view(), name="me"),
+    path("notifications/", gov_user_views.Notifications.as_view(), name="notifications"),
 ]
