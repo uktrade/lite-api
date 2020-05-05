@@ -3,15 +3,13 @@ from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
-from rest_framework.exceptions import ParseError, PermissionDenied
-from rest_framework.parsers import JSONParser
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.constants import Roles
 from conf.custom_views import OptionalPaginationView
-from conf.helpers import replace_default_string_for_form_select
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
 from users.enums import UserStatuses
@@ -21,13 +19,9 @@ from users.models import GovUser
 
 
 class AuthenticateGovUser(APIView):
-    """
-    Authenticate user
-    """
-
     permission_classes = (AllowAny,)
 
-    @swagger_auto_schema(responses={400: "JSON parse error", 403: "Forbidden"})
+    @swagger_auto_schema(responses={403: "Forbidden"})
     def post(self, request, *args, **kwargs):
         """
         Takes user details from sso and checks them against our whitelisted users
@@ -36,10 +30,7 @@ class AuthenticateGovUser(APIView):
         :param email, first_name, last_name:
         :return token:
         """
-        try:
-            data = JSONParser().parse(request)
-        except ParseError:
-            return JsonResponse(data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
         email = data.get("email")
         first_name = data.get("first_name")
         last_name = data.get("last_name")
@@ -58,7 +49,9 @@ class AuthenticateGovUser(APIView):
             return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user)
-        return JsonResponse(data={"token": token, "lite_api_user_id": str(user.id)})
+        return JsonResponse(
+            data={"default_queue": str(user.default_queue), "token": token, "lite_api_user_id": str(user.id)}
+        )
 
 
 class GovUserList(OptionalPaginationView, generics.CreateAPIView):
@@ -88,16 +81,14 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
         """
         Add a new gov user
         """
-        data = JSONParser().parse(request)
-        data = replace_default_string_for_form_select(data, fields=["role", "team"])
 
         if (
-            data.get("role") == str(Roles.INTERNAL_SUPER_USER_ROLE_ID)
+            request.data.get("role") == str(Roles.INTERNAL_SUPER_USER_ROLE_ID)
             and not request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
         ):
             raise PermissionDenied()
 
-        serializer = GovUserCreateSerializer(data=data)
+        serializer = GovUserCreateSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -107,10 +98,6 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
 
 
 class GovUserDetail(APIView):
-    """
-    Actions on a specific user
-    """
-
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
@@ -128,7 +115,7 @@ class GovUserDetail(APIView):
         Edit user from pk
         """
         gov_user = get_user_by_pk(pk)
-        data = JSONParser().parse(request)
+        data = request.data
 
         # Cannot perform actions on another super user without super user role
         if (
@@ -153,8 +140,6 @@ class GovUserDetail(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        data = replace_default_string_for_form_select(data, fields=["role", "team"])
-
         serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -169,10 +154,11 @@ class GovUserDetail(APIView):
 
 
 class UserMeDetail(APIView):
-    authentication_classes = (GovAuthentication,)
     """
     Get the user from request
     """
+
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request):
         serializer = GovUserViewSerializer(request.user)
