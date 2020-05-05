@@ -2,7 +2,7 @@ from audit_trail.enums import AuditType
 from cases.models import Case, CaseAssignment
 from teams.models import Team
 from users.enums import SystemUser, UserStatuses
-from users.models import GovUser
+from users.models import BaseUser
 from workflow.routing_rules.models import RoutingRule
 from workflow.user_queue_assignment import get_next_status_in_workflow_sequence
 from audit_trail import service as audit_trail_service
@@ -22,7 +22,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
     rules_have_been_applied = False
     case_parameter_set = case.parameter_set()
 
-    system_user = GovUser.objects.get(id=SystemUser.LITE_SYSTEM_ID)
+    system_user = BaseUser.objects.get(id=SystemUser.id)
 
     while not rules_have_been_applied:
         # look at each team one at a time
