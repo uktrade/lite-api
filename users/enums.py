@@ -32,7 +32,7 @@ class UserType(LiteEnum):
 
     @classmethod
     def choices(cls):
-        return cls.non_system_choices().append((cls.SYSTEM, "System"))
+        return cls.non_system_choices() + [(cls.SYSTEM, "System")]
 
     def human_readable(self):
         return self.value.capitalize()
