@@ -33,8 +33,7 @@ class Command(SeedCommand):
                 f"\nbut got: {system_user}"
             )
 
-        # id = system_user["id"]
-        id = 'system_user["id"]'
+        id = system_user["id"]
         first_name = system_user["first_name"]
         last_name = system_user["last_name"]
 
