@@ -207,6 +207,7 @@ class OpenApplication(BaseApplication):
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
     goodstype_category = models.CharField(choices=GoodsTypeCategory.choices, blank=False, null=True, max_length=100)
+    contains_firearm_goods = models.BooleanField(blank=True, default=None, null=True)
 
 
 # MOD Clearances Applications

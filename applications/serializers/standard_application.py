@@ -29,7 +29,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
     goods = GoodOnApplicationViewSerializer(many=True, read_only=True)
     destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
-    goods_categories = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
     proposed_return_date = serializers.DateField(required=False)
     trade_control_activity = serializers.SerializerMethodField()
@@ -44,7 +43,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "goods",
                 "have_you_been_informed",
                 "reference_number_on_information_form",
-                "goods_categories",
                 "activity",
                 "usage",
                 "destinations",
@@ -68,21 +66,13 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "proposed_return_date",
                 "trade_control_activity",
                 "trade_control_product_categories",
+                "contains_firearm_goods"
             )
         )
 
     def get_licence(self, instance):
         licence = Licence.objects.filter(application=instance).first()
         return CaseLicenceViewSerializer(licence).data
-
-    def get_goods_categories(self, instance):
-        # Return a formatted key, value format of GoodsCategories
-        # Order according to the choices in GoodsCategory
-        goods_categories = sorted(instance.goods_categories) if instance.goods_categories else []
-        return [
-            {"key": goods_category, "value": GoodsCategory.get_text(goods_category)}
-            for goods_category in goods_categories
-        ]
 
     def get_trade_control_activity(self, instance):
         key = instance.trade_control_activity

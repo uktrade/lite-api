@@ -57,6 +57,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "trade_control_activity",
             "trade_control_product_categories",
             "goodstype_category",
+            "contains_firearm_goods"
         )
 
     def get_goods_types(self, application):
@@ -133,6 +134,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         choices=TradeControlProductCategory.choices,
         error_messages={"required": strings.Applications.Generic.TRADE_CONTROl_PRODUCT_CATEGORY_ERROR},
     )
+    contains_firearm_goods = serializers.BooleanField(required=False)
 
     class Meta:
         model = OpenApplication
@@ -142,6 +144,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "trade_control_activity_other",
             "trade_control_product_categories",
             "goodstype_category",
+            "contains_firearm_goods"
         )
 
     def __init__(self, case_type_id, **kwargs):
