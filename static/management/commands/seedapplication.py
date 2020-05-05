@@ -23,13 +23,7 @@ def verify_good(good):
 def add_good(good, draft):
     quantity = random.randint(1, 10)
     value = random.randint(10, 10000) * quantity
-    goa = GoodOnApplication(
-        good=good,
-        application=draft,
-        quantity=quantity,
-        unit=Units.NAR,
-        value=value
-    )
+    goa = GoodOnApplication(good=good, application=draft, quantity=quantity, unit=Units.NAR, value=value)
     goa.save()
     return goa
 
@@ -74,13 +68,14 @@ class Command(SeedCommand):
         goods, goods_added_to_org = cls.ensure_verified_goods_exist(number_of_goods, organisation, tc)
 
         # add draft applications to the
-        drafts = [tc.create_draft_standard_application(
-            organisation=organisation,
-            reference_name="SIEL application",
-            add_a_good=False)
-            for i in range(number_of_applications)]
+        drafts = [
+            tc.create_draft_standard_application(
+                organisation=organisation, reference_name="SIEL application", add_a_good=False
+            )
+            for _ in range(number_of_applications)
+        ]
 
-        goods_on_application = [add_goods_to_application(choose_some_goods(goods), draft) for draft in drafts]
+        [add_goods_to_application(choose_some_goods(goods), draft) for draft in drafts]
         submitted_applications = [tc.submit_application(draft) for draft in drafts]
 
         [cls._print_to_console(organisation, application) for application in submitted_applications]
@@ -91,17 +86,23 @@ class Command(SeedCommand):
         required_goods_names = [f"{organisation.name} - Product {i + 1}" for i in range(number_of_goods)]
         existing_goods = [good for good in Good.objects.filter(organisation_id=organisation.pk)]
         names_of_goods_to_add = set(required_goods_names) - set([good.description for good in existing_goods])
-        goods_added = [verify_good(tc.create_good(
-            description=name,
-            organisation=organisation,
-            is_good_controlled=random.choice([GoodControlled.YES, GoodControlled.NO, GoodControlled.UNSURE]),
-            control_list_entries=["ML1a"],
-            is_pv_graded=random.choice([GoodPvGraded.YES, GoodPvGraded.NO, GoodPvGraded.GRADING_REQUIRED])))
-            for name in names_of_goods_to_add]
+        goods_added = [
+            verify_good(
+                tc.create_good(
+                    description=name,
+                    organisation=organisation,
+                    is_good_controlled=random.choice([GoodControlled.YES, GoodControlled.NO, GoodControlled.UNSURE]),
+                    control_list_entries=["ML1a"],
+                    is_pv_graded=random.choice([GoodPvGraded.YES, GoodPvGraded.NO, GoodPvGraded.GRADING_REQUIRED]),
+                )
+            )
+            for name in names_of_goods_to_add
+        ]
 
         # find goods that match the required names
-        goods = [good for good in goods_added + existing_goods
-                 for name in required_goods_names if good.description == name]
+        goods = [
+            good for good in goods_added + existing_goods for name in required_goods_names if good.description == name
+        ]
 
         return goods, goods_added
 
@@ -109,9 +110,6 @@ class Command(SeedCommand):
     def _print_to_console(cls, organisation: Organisation, application: BaseApplication):
         cls.print_created_or_updated(
             BaseApplication,
-            {
-                "org-id": str(organisation.id),
-                "org-name": str(organisation.name),
-                "application-id": str(application.id)
-            },
-            is_created=True)
+            {"org-id": str(organisation.id), "org-name": str(organisation.name), "application-id": str(application.id)},
+            is_created=True,
+        )

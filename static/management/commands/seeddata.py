@@ -1,13 +1,11 @@
 import random
-
 from django.db import transaction
+from faker import Faker
 
-from applications.managers import BaseApplicationManager
 from applications.models import StandardApplication
 from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from organisations.tests.providers import OrganisationProvider
-from faker import Faker
 from static.management.SeedCommand import SeedCommand
 from static.management.commands.seedapplication import Command as AppCommand
 from static.management.commands.seedorganisation import Command as OrgCommand
@@ -56,22 +54,15 @@ class Command(SeedCommand):
         result = OrgCommand.seed_organisation(
             org_name,
             OrganisationType.COMMERCIAL,
-            random.randint(
-                params.org_site_min,
-                params.org_site_max),
-            random.randint(
-                params.org_user_min,
-                params.org_user_max),
-            params.org_primary)
+            random.randint(params.org_site_min, params.org_site_max),
+            random.randint(params.org_user_min, params.org_user_max),
+            params.org_primary,
+        )
         return result[0]
 
     @staticmethod
     def app_factory(org, applications_to_add, max_goods_to_use):
-        organisation, submitted_applications, goods_added_to_org = AppCommand.seed_siel_applications(
-            org,
-            applications_to_add,
-            max_goods_to_use,
-        )
+        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use,)
         return len(submitted_applications)
 
     def operation(self, *args, **options):
@@ -95,21 +86,22 @@ class Command(SeedCommand):
         print(f"org_applications={params.org_applications}")
 
         # ensure the correct number of organisations
-        orgs = list(Organisation.objects.all()[:params.org_count])
+        orgs = list(Organisation.objects.all()[: params.org_count])
         required = max(0, params.org_count - len(orgs))
         orgs += [self.org_factory(params) for _ in range(0, required)]
         print(f"identified {params.org_count} organisations to use")
 
         # ensure the correct number of standard applications per org
-        org_app_counts = [(org, StandardApplication.objects.filter(organisation_id=org.id).count())
-                          for org in orgs]
-        applications_to_add = [(org, params.org_applications - count)
-                               for org, count in org_app_counts if count < params.org_applications]
-        apps = [self.app_factory(
-            org=org,
-            max_goods_to_use=params.org_goods,
-            applications_to_add=apps_to_add)
-            for org, apps_to_add in applications_to_add]
+        org_app_counts = [(org, StandardApplication.objects.filter(organisation_id=org.id).count()) for org in orgs]
+        applications_to_add = [
+            (org, params.org_applications - count) for org, count in org_app_counts if count < params.org_applications
+        ]
+        apps = [
+            self.app_factory(org=org, max_goods_to_use=params.org_goods, applications_to_add=apps_to_add)
+            for org, apps_to_add in applications_to_add
+        ]
 
-        print(f"ensured  {params.org_applications} applications for the first {params.org_count} organisations"
-              f", adding {sum(apps)} applications")
+        print(
+            f"ensured  {params.org_applications} applications for the first {params.org_count} organisations"
+            f", adding {sum(apps)} applications"
+        )
