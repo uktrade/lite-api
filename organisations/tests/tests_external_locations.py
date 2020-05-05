@@ -90,6 +90,6 @@ class OrganisationExternalLocationsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["location_type"][0], "This field may not be blank",
+            response.json()["errors"]["location_type"][0], "This field may not be blank.",
         )
         self.assertEqual(ExternalLocation.objects.all().count(), 1)

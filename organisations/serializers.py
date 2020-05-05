@@ -285,8 +285,8 @@ class ExternalLocationSerializer(serializers.ModelSerializer):
 
 
 class SiclExternalLocationSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
-    address = serializers.CharField()
+    name = serializers.CharField(error_messages={"blank": strings.ExternalLocations.Errors.NULL_NAME})
+    address = serializers.CharField(error_messages={"blank": strings.ExternalLocations.Errors.NULL_ADDRESS})
     country = CountrySerializerField(required=False)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     location_type = serializers.CharField(
