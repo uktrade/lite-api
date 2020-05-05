@@ -8,10 +8,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
-from conf.constants import Roles
+from conf.constants import Roles, GovPermissions
 from conf.custom_views import OptionalPaginationView
 from gov_users.enums import GovUserStatuses
 from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
+from organisations.enums import OrganisationStatus
+from organisations.models import Organisation
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk
 from users.libraries.user_to_token import user_to_token
@@ -163,3 +165,21 @@ class UserMeDetail(APIView):
     def get(self, request):
         serializer = GovUserViewSerializer(request.user)
         return JsonResponse(data={"user": serializer.data}, status=status.HTTP_200_OK)
+
+
+class Notifications(APIView):
+    """
+    Get notifications for a gov user (seen in the menu)
+    """
+
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request):
+        notifications = {
+            "organisations": Organisation.objects.filter(status=OrganisationStatus.IN_REVIEW).count()
+            if request.user.has_permission(GovPermissions.MANAGE_ORGANISATIONS)
+            else 0
+        }
+        return JsonResponse(
+            {"notifications": notifications, "has_notifications": any(value for value in notifications.values())}
+        )
