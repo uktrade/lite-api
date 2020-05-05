@@ -294,9 +294,8 @@ class SiclExternalLocationSerializer(serializers.ModelSerializer):
     )
 
     def validate(self, data):
-        if data["location_type"] == "land_based":
-            if not data["country"]:
-                raise serializers.ValidationError({"country": strings.Addresses.NULL_COUNTRY})
+        if data["location_type"] == "land_based" and not data["country"]:
+            raise serializers.ValidationError({"country": strings.Addresses.NULL_COUNTRY})
         return super().validate(data)
 
     class Meta:
