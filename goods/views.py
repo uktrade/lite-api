@@ -175,7 +175,9 @@ class GoodList(ListCreateAPIView):
             goods_queries[str(notification["case"])]["exporter_user_notification_count"] = notification["count"]
 
         # Ditch the goods query and just get the notifications for that good
-        goods_notifications = {query["good"]: query["exporter_user_notification_count"] for query in goods_queries.values()}
+        goods_notifications = {
+            query["good"]: query["exporter_user_notification_count"] for query in goods_queries.values()
+        }
 
         for item in data:
             if item["id"] in goods_notifications:
