@@ -47,27 +47,6 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertEqual(StandardApplication.objects.count(), 1)
 
-    def test_create_draft_standard_application_with_goods_categories_successful(self):
-        """
-        Ensure we can create a new standard application with goods categories draft object
-        """
-        data = {
-            "name": "Test",
-            "application_type": CaseTypeReferenceEnum.SIEL,
-            "export_type": ApplicationExportType.TEMPORARY,
-            "contains_firearm_goods": "yes",
-            "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
-            "reference_number_on_information_form": "123",
-        }
-
-        response = self.client.post(self.url, data, **self.exporter_headers)
-        response_data = response.json()
-        standard_application = StandardApplication.objects.get()
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_data["id"], str(standard_application.id))
-        self.assertTrue(standard_application.contains_firearm_goods)
-
     def test_create_draft_standard_application_without_answering_firearms_question_failure(self):
         """
         Ensure we cannot create a standard application without answering the firearms question

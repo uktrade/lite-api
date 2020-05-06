@@ -163,16 +163,12 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
     reference_number_on_information_form = CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
-    goods_categories = serializers.MultipleChoiceField(
-        choices=GoodsCategory.choices, required=False, allow_null=True, allow_blank=True, allow_empty=True
-    )
 
     class Meta:
         model = StandardApplication
         fields = GenericApplicationUpdateSerializer.Meta.fields + (
             "have_you_been_informed",
             "reference_number_on_information_form",
-            "goods_categories",
             "is_shipped_waybill_or_lading",
             "non_waybill_or_lading_route_details",
         )
@@ -189,9 +185,6 @@ class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
             self.fields.pop("reference_number_on_information_form")
 
     def update(self, instance, validated_data):
-        if "goods_categories" in validated_data:
-            instance.goods_categories = validated_data.pop("goods_categories")
-
         self._update_have_you_been_informed_linked_fields(instance, validated_data)
 
         instance = super().update(instance, validated_data)

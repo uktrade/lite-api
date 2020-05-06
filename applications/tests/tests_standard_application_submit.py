@@ -301,7 +301,7 @@ class StandardApplicationTests(DataTestClient):
         # Create draft application with properties that have associated system flags
         self.draft.is_military_end_use_controls = True
         self.draft.is_suspected_wmd = True
-        self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
+        self.draft.contains_firearm_goods = True
         self.draft.save()
 
         # Submit application (this function also adds system flags)
@@ -314,7 +314,7 @@ class StandardApplicationTests(DataTestClient):
         # Update application properties
         self.draft.is_military_end_use_controls = False
         self.draft.is_suspected_wmd = False
-        self.draft.goods_categories = None
+        self.draft.contains_firearm_goods = False
         self.draft.save()
 
         # Re-submit application

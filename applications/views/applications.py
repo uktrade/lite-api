@@ -196,13 +196,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         data = request.data.copy()
         serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
 
-        # Prevent minor edits of the goods categories
-        if not application.is_major_editable() and request.data.get("goods_categories"):
-            return JsonResponse(
-                data={"errors": {"goods_categories": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         # Prevent minor edits of the clearance level
         if not application.is_major_editable() and request.data.get("clearance_level"):
             return JsonResponse(
