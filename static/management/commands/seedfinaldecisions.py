@@ -10,9 +10,8 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedfinaldecisions
     """
 
-    help = "Seeds all final decisions"
+    help = "Seeds final decisions"
     info = "Seeding final decisions"
-    success = "Successfully seeded final decisions"
     seed_command = "seedfinaldecisions"
 
     @transaction.atomic

@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from common.enums import LiteEnum, autostr
-from conf.settings import SYSTEM_USER
 
 
 class UserStatuses:
@@ -39,6 +38,6 @@ class UserType(LiteEnum):
 
 
 class SystemUser:
-    id = UUID(SYSTEM_USER.get("id"))
-    first_name = SYSTEM_USER.get("first_name")
-    last_name = SYSTEM_USER.get("last_name")
+    id = UUID("00000000-0000-0000-0000-000000000001")
+    first_name = "LITE"
+    last_name = "system"
