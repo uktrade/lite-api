@@ -45,7 +45,7 @@ class Command(SeedCommand):
             "type": UserType.SYSTEM.value,
         }
 
-        system_user, created = BaseUser.objects.get_or_create(id="id", defaults=defaults)
+        system_user, created = BaseUser.objects.get_or_create(id=id, defaults=defaults)
 
         if created or system_user.first_name != first_name or system_user.last_name != last_name:
             system_user.first_name = first_name
