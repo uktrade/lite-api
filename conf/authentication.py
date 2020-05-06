@@ -19,6 +19,7 @@ ORGANISATION_ID = "HTTP_ORGANISATION_ID"
 MISSING_TOKEN_ERROR = "You must supply the correct token in your headers"
 ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated"
 USER_DEACTIVATED_ERROR = "User is not active for this organisation"
+USER_NOT_FOUND_ERROR = "User does not exist"
 
 
 class ExporterAuthentication(authentication.BaseAuthentication):
@@ -42,7 +43,12 @@ class ExporterAuthentication(authentication.BaseAuthentication):
         ).exists():
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
-        return user_id, None
+        try:
+            user = ExporterUser.objects.get(id=user_id)
+        except ExporterUser.DoesNotExist:
+            raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
+
+        return user, None
 
 
 class HmrcExporterAuthentication(authentication.BaseAuthentication):
