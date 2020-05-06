@@ -9,7 +9,7 @@ from organisations.models import Organisation
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_user_organisations
 from users.libraries.token_to_user import token_to_user_pk
-from users.models import UserOrganisationRelationship
+from users.models import UserOrganisationRelationship, ExporterUser
 
 GOV_USER_TOKEN_HEADER = "HTTP_GOV_USER_TOKEN"  # nosec
 
@@ -29,6 +29,7 @@ class ExporterAuthentication(authentication.BaseAuthentication):
         """
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
+            user_id = token_to_user_pk(exporter_user_token)
             organisation_id = request.META.get(ORGANISATION_ID)
         else:
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
@@ -37,9 +38,11 @@ class ExporterAuthentication(authentication.BaseAuthentication):
             raise PermissionDeniedError(ORGANISATION_DEACTIVATED_ERROR)
 
         if not UserOrganisationRelationship.objects.filter(
-            user_id=token_to_user_pk(exporter_user_token), organisation_id=organisation_id, status=UserStatuses.ACTIVE
+            user_id=user_id, organisation_id=organisation_id, status=UserStatuses.ACTIVE
         ).exists():
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
+
+        return user_id, None
 
 
 class HmrcExporterAuthentication(authentication.BaseAuthentication):
