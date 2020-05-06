@@ -183,6 +183,11 @@ def allowed_party_type_for_open_application_goodstype_category():
                     and party_type == PartyType.ULTIMATE_END_USER
                 ):
                     pass
+                elif (
+                    application.goodstype_category == GoodsTypeCategory.CRYPTOGRAPHIC
+                    and party_type == PartyType.THIRD_PARTY
+                ):
+                    pass
                 else:
                     return JsonResponse(
                         data={"errors": ["This type of party can not be added to this type of open application"]},

@@ -1,9 +1,14 @@
-from rest_framework import serializers
 from django.db.models import Min, Case, When, BinaryField
+from rest_framework import serializers
 from rest_framework.fields import CharField
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory
-from applications.libraries.goodstype_category_helpers import set_goods_and_countries_for_open_media_application
+from applications.libraries.goodstype_category_helpers import (
+    set_goods_and_countries_for_open_media_application,
+    set_goods_and_countries_for_open_crypto_application,
+    set_goods_and_countries_for_open_dealer_application,
+    set_destinations_for_uk_continental_shelf_application,
+)
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import OpenApplication
 from applications.serializers.generic_application import (
@@ -66,8 +71,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
 
     def get_goods_types(self, application):
         goods_types = application.goods_type.all().prefetch_related("countries")
-        default_countries = Country.objects.filter(countries_on_application__application=application)
-
+        default_countries = Country.include_special_countries.filter(countries_on_application__application=application)
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
     def get_goodstype_category(self, instance):
@@ -78,10 +82,10 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     def get_destinations(self, application):
         """ Get destinations for the open application, ordered based on flag priority and alphabetized by name."""
         if "user_type" in self.context and self.context["user_type"] == "exporter":
-            countries = Country.objects.filter(countries_on_application__application=application)
+            countries = Country.include_special_countries.filter(countries_on_application__application=application)
         else:
             countries = (
-                Country.objects.prefetch_related("flags")
+                Country.include_special_countries.prefetch_related("flags")
                 .filter(countries_on_application__application=application)
                 .annotate(
                     highest_flag_priority=Min("flags__priority"),
@@ -168,24 +172,32 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         if case_type_id == str(CaseTypeEnum.HMRC.id):
             self.fields.pop("goodstype_category")
 
+        self.crypto_application = (
+            True if self.initial_data.get("goodstype_category") == GoodsTypeCategory.CRYPTOGRAPHIC else False
+        )
         self.media_application = (
             True if self.initial_data.get("goodstype_category") == GoodsTypeCategory.MEDIA else False
         )
-        if self.media_application:
+        if self.media_application or self.crypto_application:
             self.fields.pop("export_type")
-            self.media_application = True
 
     def create(self, validated_data):
         # Trade Control Licences are always permanent
-        if self.trade_control_licence:
+        if self.trade_control_licence or self.crypto_application:
             validated_data["export_type"] = ApplicationExportType.PERMANENT
         elif self.media_application:
             validated_data["export_type"] = ApplicationExportType.TEMPORARY
 
         application = super().create(validated_data)
 
-        if validated_data.get("goodstype_category") == GoodsTypeCategory.MEDIA:
+        if self.media_application:
             set_goods_and_countries_for_open_media_application(application)
+        elif self.crypto_application:
+            set_goods_and_countries_for_open_crypto_application(application)
+        elif validated_data.get("goodstype_category") == GoodsTypeCategory.DEALER:
+            set_goods_and_countries_for_open_dealer_application(application)
+        elif validated_data.get("goodstype_category") == GoodsTypeCategory.UK_CONTINENTAL_SHELF:
+            set_destinations_for_uk_continental_shelf_application(application)
 
         return application
 

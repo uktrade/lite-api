@@ -1,6 +1,6 @@
 from django.core.management import call_command
-from django.db import transaction
 
+from conf import settings
 from static.management.SeedCommand import SeedCommand
 
 SEED_COMMANDS = {
@@ -9,7 +9,8 @@ SEED_COMMANDS = {
         "seedcasestatuses",
         "seedrolepermissions",
         "seedsystemuser",
-        "seedinternaladminusers",
+        "seedadminteam",
+        "seedinternalusers",
         "seedcontrollistentries",
         "seeddenialreasons",
         "seedcountries",
@@ -24,7 +25,8 @@ SEED_COMMANDS = {
         "seedcasestatuses",
         "seedrolepermissions",
         "seedsystemuser",
-        "seedinternaladminusers",
+        "seedadminteam",
+        "seedinternalusers",
         "seeddenialreasons",
         "seedcountries",
         "seedlayouts",
@@ -42,7 +44,8 @@ class Command(SeedCommand):
 
     help = "executes all seed operations"
     info = "EXECUTING ALL SEED OPERATIONS"
-    success = "ALL SEED OPERATIONS EXECUTED"
+    success = "SUCCESSFULLY EXECUTED ALL SEED OPERATIONS"
+    failure = "EXECUTED ALL SEED OPERATIONS WITH FAILURES"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -54,22 +57,46 @@ class Command(SeedCommand):
 
     @staticmethod
     def seed_list(commands):
-        for command in commands:
-            call_command(command)
+        errors = []
 
-    @transaction.atomic
+        for command in commands:
+            Command.print_separator()
+
+            error = call_command(command, fail_on_error=False)
+            if error:
+                errors.append((command, error))
+
+        return errors
+
     def operation(self, *args, **options):
         """
-        pipenv run ./manage.py seedall [--essential] [--non-essential]
+        pipenv run ./manage.py seedall --essential --dev
 
-        essential & non-essential are optional params to only run seed certain tasks
+        essential & dev are optional params to only run certain seeding operations
         """
+        errors = []
+
         if not options["essential"] and not options["dev"]:
-            self.seed_list(SEED_COMMANDS["Essential"])
-            self.seed_list(SEED_COMMANDS["Dev"])
+            errors += self.seed_list(SEED_COMMANDS["Essential"])
+            errors += self.seed_list(SEED_COMMANDS["Dev"])
         else:
             if options["essential"]:
-                self.seed_list(SEED_COMMANDS["Essential"])
+                errors += self.seed_list(SEED_COMMANDS["Essential"])
 
             if options["dev"]:
-                self.seed_list(SEED_COMMANDS["Dev"])
+                errors += self.seed_list(SEED_COMMANDS["Dev"])
+
+        self.print_separator()
+
+        if errors:
+            error_messages = "\n"
+
+            for error in errors:
+                error_messages += f"\n{error[0]} - {error[1]}"
+
+            raise Exception(error_messages)
+
+    @staticmethod
+    def print_separator():
+        if not settings.SUPPRESS_TEST_OUTPUT:
+            print("=============================")
