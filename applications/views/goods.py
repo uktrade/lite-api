@@ -166,8 +166,11 @@ class ApplicationGoodsTypes(APIView):
         """
         Post a goodstype
         """
-        if hasattr(application, "goodstype_category") and application.goodstype_category == GoodsTypeCategory.MEDIA:
-            raise BadRequestError(detail="You cannot do this for open media applications")
+        if (
+            hasattr(application, "goodstype_category")
+            and application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS
+        ):
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
         request.data["application"] = application
         serializer = GoodsTypeSerializer(data=request.data)
 
@@ -207,8 +210,11 @@ class ApplicationGoodsType(APIView):
         """
         Deletes a goodstype
         """
-        if hasattr(application, "goodstype_category") and application.goodstype_category == GoodsTypeCategory.MEDIA:
-            raise BadRequestError(detail="You cannot do this for open media applications")
+        if (
+            hasattr(application, "goodstype_category")
+            and application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS
+        ):
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
         goods_type = get_goods_type(goodstype_pk)
         if application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
             delete_goods_type_document_if_exists(goods_type)
@@ -237,8 +243,8 @@ class ApplicationGoodsTypeCountries(APIView):
     @application_in_major_editable_state()
     @authorised_users(ExporterUser)
     def put(self, request, application):
-        if application.goodstype_category == GoodsTypeCategory.MEDIA:
-            raise BadRequestError(detail="You cannot do this for open media applications")
+        if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
         data = request.data
 
         for good, countries in data.items():

@@ -16,23 +16,35 @@ class SeedCommand(ABC, BaseCommand):
     with messages relevant to the operation
     """
 
-    help = None
-    info = None
-    success = None
-    seed_command = None
+    help: str = ""
+    info: str = ""
+    success: str = "Successfully executed seed operation"
+    failure: str = "Failed to execute seed operation"
+    seed_command: str = ""
+    fail_on_error: bool = True
+
+    def add_arguments(self, parser):
+        parser.add_argument("--fail-on-error", help="Exit if any errors are encountered", type=bool)
 
     def handle(self, *args, **options):
+        if "fail_on_error" in options:
+            self.fail_on_error = options["fail_on_error"]
+
         if not settings.SUPPRESS_TEST_OUTPUT:
-            self.stdout.write(
-                self.style.WARNING(f"\n=============================\n{self.info}\n=============================\n")
-            )
+            self.stdout.write(self.style.WARNING(f"{self.info}\n\n"))
+
         try:
             self.operation(*args, **options)
         except Exception as error:  # noqa
-            self.stdout.write(self.style.ERROR(str(error)))
-            exit(1)
+            self.stdout.write(self.style.ERROR(f"\n{self.failure}\n"))
+            error_message = f"{type(error).__name__}: {error}"
+            if self.fail_on_error:
+                print(error_message)
+                exit(1)
+            return error_message
+
         if not settings.SUPPRESS_TEST_OUTPUT:
-            self.stdout.write(self.style.SUCCESS(f"\n{self.success}\n"))
+            self.stdout.write(self.style.SUCCESS(f"\n{self.success}"))
 
     @transaction.atomic
     def operation(self, *args, **options):

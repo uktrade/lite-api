@@ -2,6 +2,7 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.enums import GoodsTypeCategory
 from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -11,6 +12,7 @@ from conf.decorators import (
     authorised_users,
     allowed_application_types,
 )
+from conf.exceptions import BadRequestError
 from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 from parties.enums import PartyType
@@ -31,6 +33,7 @@ class ApplicationPartyView(APIView):
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
             CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.OPEN,
         ]
     )
     @authorised_users(ExporterUser)
@@ -38,6 +41,13 @@ class ApplicationPartyView(APIView):
         """
         Add a party to an application.
         """
+
+        if (
+            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
+            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
+        ):
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
+
         data = request.data
         data["organisation"] = get_request_user_organisation_id(request)
 
@@ -92,6 +102,7 @@ class ApplicationPartyView(APIView):
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
             CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.OPEN,
         ]
     )
     @authorised_users(ExporterUser)
@@ -99,6 +110,12 @@ class ApplicationPartyView(APIView):
         """
         Removes a party from application.
         """
+        if (
+            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
+            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
+        ):
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
+
         try:
             poa = application.active_parties.all().get(party__pk=party_pk)
         except PartyOnApplication.DoesNotExist:
@@ -130,6 +147,7 @@ class ApplicationPartyView(APIView):
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
             CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.OPEN,
         ]
     )
     @authorised_users(ExporterUser)
@@ -137,6 +155,12 @@ class ApplicationPartyView(APIView):
         """
         Get parties for an application
         """
+        if (
+            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
+            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
+        ):
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
+
         application_parties = application.active_parties.all().filter(deleted_at__isnull=True).select_related("party")
 
         if "type" in request.GET:
@@ -159,6 +183,7 @@ class CopyPartyView(APIView):
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.GIFTING,
             CaseTypeSubTypeEnum.F680,
+            CaseTypeSubTypeEnum.OPEN,
         ]
     )
     @authorised_users(ExporterUser)
@@ -166,6 +191,12 @@ class CopyPartyView(APIView):
         """
         Get parties for an application
         """
+        if (
+            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
+            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
+        ):
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
+
         detail = Party.objects.copy_detail(pk=party_pk)
 
         return JsonResponse(data={"party": detail})
