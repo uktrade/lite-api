@@ -89,7 +89,7 @@ class Command(SeedCommand):
         self.print_separator()
 
         if errors:
-            error_messages = ""
+            error_messages = "\n"
 
             for error in errors:
                 error_messages += f"\n{error[0]} - {error[1]}"
