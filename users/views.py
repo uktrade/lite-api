@@ -13,7 +13,7 @@ from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
-from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date
+from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date, str_to_bool
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import Users
 from organisations.enums import OrganisationStatus
@@ -135,7 +135,12 @@ class UserMeDetail(APIView):
     def get(self, request):
         org_pk = request.headers["Organisation-Id"]
         user = request.user
-        relationships = UserOrganisationRelationship.objects.filter(user=user).select_related("organisation")
+        relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(user=user)
+
+        if str_to_bool(request.GET.get("in_review", False)):
+            relationships = relationships.filter(organisation__status=OrganisationStatus.IN_REVIEW)
+        else:
+            relationships = relationships.exclude(organisation__status=OrganisationStatus.IN_REVIEW)
 
         # Returning a dict over a serializer for performance reasons
         # This endpoint is called often, so it needs to be as fast as possible

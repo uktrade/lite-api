@@ -30,7 +30,7 @@ class ApplicationCountries(APIView):
         """
         View countries belonging to an open licence application
         """
-        countries = Country.objects.filter(countries_on_application__application=application)
+        countries = Country.include_special_countries.filter(countries_on_application__application=application)
         countries_data = CountrySerializer(countries, many=True).data
 
         return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
@@ -40,8 +40,8 @@ class ApplicationCountries(APIView):
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """ Add countries to an open licence application. """
-        if application.goodstype_category == GoodsTypeCategory.MEDIA:
-            raise BadRequestError(detail="You cannot do this for open media applications")
+        if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
         data = request.data
         country_ids = data.get("countries")
 

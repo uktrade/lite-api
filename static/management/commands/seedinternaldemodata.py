@@ -17,7 +17,6 @@ class Command(SeedCommand):
 
     help = "Seeds internal teams, queues and flags"
     info = "Seeding internal teams, queues and flags"
-    success = "Successfully seeded internal teams, queues and flags"
     seed_command = "seedinternaldemodata"
 
     @transaction.atomic
