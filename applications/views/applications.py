@@ -435,7 +435,7 @@ class ApplicationManageStatus(APIView):
                     application, context={"user_type": request.user.type}
                 ).data
             },
-            status=status.HTTP_200_OK,  
+            status=status.HTTP_200_OK,
         )
 
 

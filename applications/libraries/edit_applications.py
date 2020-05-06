@@ -148,6 +148,7 @@ def save_and_audit_have_you_been_informed_ref(request, application, serializer):
 def set_case_flags_on_submitted_standard_or_open_application(application: BaseApplication):
     case = application.get_case()
 
+    # set military end use and suspected wmd flags
     _add_or_remove_flag(
         case=case, flag_id=SystemFlags.MILITARY_END_USE_ID, is_adding=application.is_military_end_use_controls,
     )
@@ -168,7 +169,14 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
             is_adding=application.case_type.id == CaseTypeEnum.SICL.id
             and trade_control_activity == TradeControlActivity.MARITIME_ANTI_PIRACY,
         )
-        _add_or_remove_flag(case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=contains_firearm_goods)
+
+        # set firearms flag for SIEL, SITL
+        _add_or_remove_flag(
+            case=case,
+            flag_id=SystemFlags.FIREARMS_ID,
+            is_adding=contains_firearm_goods
+            and application.case_type.id in [CaseTypeEnum.SIEL.id, CaseTypeEnum.SITL.id],
+        )
 
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
         if application.case_type.id == CaseTypeEnum.OIEL.id:
@@ -176,8 +184,13 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
                 "contains_firearm_goods", "goodstype_category"
             ).get(pk=application.pk)
 
-            if goodstype_category in [GoodsTypeCategory.MILITARY, GoodsTypeCategory.UK_CONTINENTAL_SHELF]:
-                _add_or_remove_flag(case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=contains_firearm_goods)
+            # set firearms flag for OIEL if their category goods type is military or uk continental shelf
+            _add_or_remove_flag(
+                case=case,
+                flag_id=SystemFlags.FIREARMS_ID,
+                is_adding=contains_firearm_goods
+                and goodstype_category in [GoodsTypeCategory.MILITARY, GoodsTypeCategory.UK_CONTINENTAL_SHELF],
+            )
 
         if application.case_type.id == CaseTypeEnum.OICL.id:
             trade_control_activity = OpenApplication.objects.values_list("trade_control_activity", flat=True).get(
