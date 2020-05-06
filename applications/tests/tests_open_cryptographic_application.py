@@ -67,7 +67,7 @@ class OpenCryptographicTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
-            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(), 214,
+            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(), 213,
         )
 
     def test_cannot_add_goodstypes_on_cryptographic_application(self):
