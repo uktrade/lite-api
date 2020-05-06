@@ -15,7 +15,6 @@ class Command(SeedCommand):
 
     help = "Seeds countries"
     info = "Seeding countries"
-    success = "Successfully seeded countries"
     seed_command = "seedcountries"
 
     @transaction.atomic

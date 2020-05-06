@@ -12,31 +12,30 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedrolepermissions
     """
 
-    help = "Creates and updates default roles and permissions"
+    help = "Seeds roles and permissions"
     info = "Seeding roles and permissions"
-    success = "Successfully seeded roles and permissions"
     seed_command = "seedrolepermissions"
 
     @transaction.atomic
     def operation(self, *args, **options):
-        self.get_or_create_permission(GovPermissions, UserType.INTERNAL)
-        self.get_or_create_permission(ExporterPermissions, UserType.EXPORTER)
+        self.get_or_create_permission(GovPermissions, UserType.INTERNAL.value)
+        self.get_or_create_permission(ExporterPermissions, UserType.EXPORTER.value)
 
         self.delete_unused_objects(
             Permission, [{"id": x.name} for x in GovPermissions] + [{"id": x.name} for x in ExporterPermissions]
         )
 
         self._create_role_and_output(
-            id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
+            id=Roles.INTERNAL_DEFAULT_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_DEFAULT_ROLE_NAME
         )
         self._create_role_and_output(
-            id=Roles.EXPORTER_DEFAULT_ROLE_ID, type=UserType.EXPORTER, name=Roles.EXPORTER_DEFAULT_ROLE_NAME
+            id=Roles.EXPORTER_DEFAULT_ROLE_ID, type=UserType.EXPORTER.value, name=Roles.EXPORTER_DEFAULT_ROLE_NAME
         )
         self._create_role_and_output(
-            id=Roles.INTERNAL_SUPER_USER_ROLE_ID, type=UserType.INTERNAL, name=Roles.INTERNAL_SUPER_USER_ROLE_NAME
+            id=Roles.INTERNAL_SUPER_USER_ROLE_ID, type=UserType.INTERNAL.value, name=Roles.INTERNAL_SUPER_USER_ROLE_NAME
         )
         self._create_role_and_output(
-            id=Roles.EXPORTER_SUPER_USER_ROLE_ID, type=UserType.EXPORTER, name=Roles.EXPORTER_SUPER_USER_ROLE_NAME
+            id=Roles.EXPORTER_SUPER_USER_ROLE_ID, type=UserType.EXPORTER.value, name=Roles.EXPORTER_SUPER_USER_ROLE_NAME
         )
 
         # Add all permissions and statuses to internal super user

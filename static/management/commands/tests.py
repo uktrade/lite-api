@@ -23,7 +23,7 @@ from static.management.commands import (
     seedcountries,
     seeddenialreasons,
     seedrolepermissions,
-    seedinternaladminusers,
+    seedadminteam,
     seedflags,
     seedinternaldemodata,
     seedfinaldecisions,
@@ -88,13 +88,13 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_flags(self):
         self.seed_command(seedrolepermissions.Command)
-        seedinternaladminusers.Command.seed_admin_team()
+        self.seed_command(seedadminteam.Command)
         self.seed_command(seedflags.Command)
         for flag in seedflags.Command.read_csv(seedflags.FLAGS_FILE):
             self.assertTrue(Flag.objects.filter(name=flag["name"]).exists(), f"Flag {flag['name']} does not exist")
 
     def test_seed_demo_data(self):
-        seedinternaladminusers.Command.seed_admin_team()
+        self.seed_command(seedadminteam.Command)
         self.seed_command(seedinternaldemodata.Command)
         for team in seedinternaldemodata.Command.read_csv(seedinternaldemodata.TEAMS_FILE):
             self.assertTrue(Team.objects.filter(name=team["name"]).exists(), f"Team {team['name']} does not exist")
