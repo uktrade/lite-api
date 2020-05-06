@@ -105,11 +105,9 @@ class SharedAuthentication(authentication.BaseAuthentication):
         exporter_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
 
         if exporter_token:
-            exporter_auth = ExporterAuthentication()
-            return exporter_auth.authenticate(request)
+            return ExporterAuthentication().authenticate(request)
         else:
-            gov_auth = GovAuthentication()
-            return gov_auth.authenticate(request)
+            return GovAuthentication().authenticate(request)
 
 
 class OrganisationAuthentication(authentication.BaseAuthentication):
