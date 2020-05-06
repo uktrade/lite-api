@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import JsonResponse, Http404, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -37,7 +37,7 @@ from goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
-from users.models import ExporterUser
+from users.models import ExporterUser, ExporterNotification
 from workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
 
@@ -123,7 +123,6 @@ class GoodsListControlCode(APIView):
 
 
 class GoodList(ListCreateAPIView):
-    model = Good
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GoodListSerializer
     pagination_class = GoodListPaginator
@@ -151,7 +150,38 @@ class GoodList(ListCreateAPIView):
             )
             queryset = queryset.filter(Q(id__in=good_document_ids) | Q(missing_document_reason__isnull=False))
 
+        queryset = queryset.prefetch_related("control_list_entries")
+
         return queryset
+
+    def get_paginated_response(self, data):
+        ids = [item["id"] for item in data]
+        # Get the goods queries for the goods and format in a dict
+        goods_queries = GoodsQuery.objects.filter(good_id__in=ids).values("id", "good_id")
+        goods_queries = {
+            str(query["id"]): {"good": str(query["good_id"]), "exporter_user_notification_count": 0}
+            for query in goods_queries
+        }
+
+        notifications = (
+            ExporterNotification.objects.filter(
+                user=self.request.user, organisation=self.request.user.organisation, case__id__in=goods_queries.keys()
+            )
+            .values("case")
+            .annotate(count=Count("case"))
+        )
+        # Set notification count for all results
+        for notification in notifications:
+            goods_queries[str(notification["case"])]["exporter_user_notification_count"] = notification["count"]
+
+        # Ditch the goods query and just get the notifications for that good
+        goods_notifications = {query["good"]: query["exporter_user_notification_count"] for query in goods_queries.values()}
+
+        for item in data:
+            if item["id"] in goods_notifications:
+                item["exporter_user_notification_count"] = goods_notifications[item["id"]]
+
+        return super().get_paginated_response(data)
 
     def post(self, request, *args, **kwargs):
         """

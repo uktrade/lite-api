@@ -16,6 +16,7 @@ from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
+from static.control_list_entries.serializers import ControlListEntryViewSerializer
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
@@ -60,37 +61,12 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
         return validated_data
 
 
-class GoodListSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(max_length=280)
-    control_list_entries = ControlListEntryField(many=True)
+class GoodListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    description = serializers.CharField()
+    control_list_entries = ControlListEntryViewSerializer(many=True)
+    part_number = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
-    documents = serializers.SerializerMethodField()
-    is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
-    query = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Good
-        fields = (
-            "id",
-            "description",
-            "control_list_entries",
-            "is_good_controlled",
-            "part_number",
-            "status",
-            "documents",
-            "query",
-            "missing_document_reason",
-        )
-
-    def get_documents(self, instance):
-        documents = GoodDocument.objects.filter(good=instance)
-        if documents:
-            return SimpleGoodDocumentViewSerializer(documents, many=True).data
-
-    def get_query(self, instance):
-        return get_good_query_with_notifications(
-            good=instance, exporter_user=self.context.get("exporter_user"), total_count=True
-        )
 
 
 class GoodSerializer(serializers.ModelSerializer):
