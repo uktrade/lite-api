@@ -40,9 +40,9 @@ class SeedCommand(ABC, BaseCommand):
         except Exception as error:  # noqa
             self.stdout.write(self.style.ERROR(f"\n{self.failure}\n"))
             if self.fail_on_error:
-                self.stdout.write(f"\n{error}\n")
+                self.stdout.write(f"\n{type(error).__name__}: {error}\n")
                 exit(1)
-            return str(error)
+            return f"{type(error).__name__}: {error}"
 
         if not settings.SUPPRESS_TEST_OUTPUT:
             self.stdout.write(self.style.SUCCESS(f"\n{self.success}\n"))
