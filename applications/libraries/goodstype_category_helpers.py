@@ -12,22 +12,29 @@ def set_destinations_for_uk_continental_shelf_application(application):
 
 def set_goods_and_countries_for_open_dealer_application(application):
     _add_goodstypes_from_csv("DEALER", application)
-    for country in Country.objects.filter(is_eu=True).exclude(id="GB"):
-        CountryOnApplication(country=country, application=application).save()
+    CountryOnApplication.objects.bulk_create(
+        [
+            CountryOnApplication(country=country, application=application)
+            for country in Country.objects.filter(is_eu=True).exclude(id="GB")
+        ]
+    )
 
 
 def set_goods_and_countries_for_open_media_application(application):
     _add_goodstypes_from_csv("MEDIA", application)
-    for country in Country.objects.all():
-        CountryOnApplication(country=country, application=application).save()
+
+    CountryOnApplication.objects.bulk_create(
+        [CountryOnApplication(country=country, application=application) for country in Country.objects.all()]
+    )
 
 
 def set_goods_and_countries_for_open_crypto_application(application):
     _add_goodstypes_from_csv("CRYPTO", application)
     with open("lite_content/lite_api/permitted_countries_cryptographic.csv", newline="") as csvfile:
         reader = csv.DictReader(csvfile)
-        for row in reader:
-            CountryOnApplication(country_id=row["id"], application=application).save()
+        CountryOnApplication.objects.bulk_create(
+            [CountryOnApplication(country_id=row["id"], application=application) for row in reader]
+        )
 
 
 def _add_goodstypes_from_csv(category: str, application):
