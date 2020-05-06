@@ -35,7 +35,7 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(
-            response.json()["good"]["control_list_entries"],
+            sorted(response["good"]["control_list_entries"], key=lambda i: i["rating"]),
             [
                 {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
                 {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
