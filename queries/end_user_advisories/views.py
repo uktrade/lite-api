@@ -73,7 +73,10 @@ class EndUserAdvisoryDetail(APIView):
         end_user_advisory = get_end_user_advisory_by_pk(pk)
         case_id = end_user_advisory.id
 
-        serializer = EndUserAdvisoryViewSerializer(end_user_advisory, context={"exporter_user": request.user, "organisation_id": get_request_user_organisation_id(request)})
+        serializer = EndUserAdvisoryViewSerializer(
+            end_user_advisory,
+            context={"exporter_user": request.user, "organisation_id": get_request_user_organisation_id(request)},
+        )
         return JsonResponse(data={"end_user_advisory": serializer.data, "case_id": case_id}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
