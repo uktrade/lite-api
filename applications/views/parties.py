@@ -2,17 +2,12 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import GoodsTypeCategory
 from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users, allowed_party_type_for_open_application_goodstype_category
-from conf.decorators import (
-    authorised_users,
-    allowed_application_types,
-)
-from conf.exceptions import BadRequestError
+from conf.decorators import allowed_party_type_for_open_application_goodstype_category
+from conf.decorators import authorised_users
 from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 from parties.enums import PartyType
