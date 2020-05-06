@@ -62,7 +62,6 @@ from conf.authentication import (
     ExporterAuthentication,
     SharedAuthentication,
     GovAuthentication,
-    HawkResponseSigningMixin,
 )
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
@@ -87,7 +86,7 @@ from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
-class ApplicationList(HawkResponseSigningMixin, ListCreateAPIView):
+class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer
 

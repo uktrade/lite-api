@@ -4,11 +4,12 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from functools import partial
 from mohawk import Receiver
-from mohawk.exc import HawkFail
+from mohawk.exc import HawkFail, AlreadyProcessed
 from rest_framework import authentication
 
 from conf import settings
 from conf.exceptions import PermissionDeniedError
+from conf.settings import DEBUG
 from gov_users.enums import GovUserStatuses
 from organisations.enums import OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
@@ -186,41 +187,20 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
             return AnonymousUser, None
 
 
-class HawkResponseSigningMixin:
-    """
-    DRF view mixin to add the Server-Authorization header to responses, so the originator
-    of the request can authenticate the response.
-
-    Must be first in the base class list so that the APIView method is overridden.
-    """
-
-    def finalize_response(self, request, response, *args, **kwargs):
-        """
-        Add Hawk header to sign LITE API responses.
-
-        If the request was authenticated using Hawk, this adds a post-render callback to the
-        response which sets the Server-Authorization header, so that the originator of the
-        request can authenticate the response.
-        """
-        finalized_response = super().finalize_response(request, response, *args, **kwargs)
-        callback = partial(_sign_rendered_response, request)
-        finalized_response.add_post_render_callback(callback)
-        return finalized_response
-
-
 def _authorise(request):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
-    return Receiver(
-        _lookup_credentials,
-        request.META["HTTP_AUTHORIZATION"],
-        request.build_absolute_uri(),
-        request.method,
-        content=request.body,
-        content_type=request.content_type,
-        seen_nonce=_seen_nonce,
-    )
+    if not DEBUG:
+        return Receiver(
+            _lookup_credentials,
+            request.META["HTTP_AUTHORIZATION"],
+            request.build_absolute_uri(),
+            request.method,
+            content=request.body,
+            content_type=request.content_type,
+            seen_nonce=_seen_nonce,
+        )
 
 
 def _seen_nonce(access_key_id, nonce, _):
@@ -234,7 +214,7 @@ def _seen_nonce(access_key_id, nonce, _):
     seen_cache_key = not cache.add(cache_key, True, timeout=settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS,)
 
     if seen_cache_key:
-        logging.warning(f"Already seen nonce {nonce}")
+        raise AlreadyProcessed(f"Already seen nonce {nonce}")
 
     return seen_cache_key
 
@@ -255,19 +235,10 @@ def _lookup_credentials(access_key_id):
     }
 
 
-def _sign_rendered_response(request, response):
-    if isinstance(
-        request.successful_authenticator,
-        (
-            ExporterAuthentication,
-            HmrcExporterAuthentication,
-            ExporterOnlyAuthentication,
-            GovAuthentication,
-            SharedAuthentication,
-            OrganisationAuthentication,
-        ),
-    ):
+def sign_rendered_response(request, response):
+    if hasattr(request, "auth") and isinstance(request.auth, Receiver):
         response["Server-Authorization"] = request.auth.respond(
             content=response.content, content_type=response["Content-Type"],
         )
+
     return response

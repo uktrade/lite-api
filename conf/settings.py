@@ -91,6 +91,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "conf.middleware.LoggingMiddleware",
     "conf.middleware.DBLoggingMiddleware",
+    "conf.middleware.HawkSigningMiddleware",
 ]
 
 ROOT_URLCONF = "conf.urls"

@@ -3,6 +3,8 @@ import time
 import uuid
 from django.db import connection
 
+from conf.authentication import sign_rendered_response
+
 
 class LoggingMiddleware:
     def __init__(self, get_response=None):
@@ -26,6 +28,18 @@ class LoggingMiddleware:
                 "elapsed_time": time.time() - start,
             }
         )
+
+        return response
+
+
+class HawkSigningMiddleware:
+    def __init__(self, get_response=None):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        response = sign_rendered_response(request, response)
 
         return response
 
