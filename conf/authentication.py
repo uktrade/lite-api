@@ -15,7 +15,7 @@ GOV_USER_TOKEN_HEADER = "HTTP_GOV_USER_TOKEN"  # nosec
 EXPORTER_USER_TOKEN_HEADER = "HTTP_EXPORTER_USER_TOKEN"  # nosec
 ORGANISATION_ID = "HTTP_ORGANISATION_ID"
 
-MISSING_TOKEN_ERROR = "You must supply the correct token in your headers"
+MISSING_TOKEN_ERROR = "You must supply the correct token in your headers"  # nosec
 ORGANISATION_DEACTIVATED_ERROR = "Organisation is not activated"
 USER_DEACTIVATED_ERROR = "User is not active for this organisation"
 USER_NOT_FOUND_ERROR = "User does not exist"
