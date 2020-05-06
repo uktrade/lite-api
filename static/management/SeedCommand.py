@@ -31,7 +31,7 @@ class SeedCommand(ABC, BaseCommand):
             self.fail_on_error = options["fail_on_error"]
 
         if not settings.SUPPRESS_TEST_OUTPUT:
-            self.stdout.write(self.style.WARNING(f"{self.info}\n"))
+            self.stdout.write(self.style.WARNING(f"{self.info}\n\n"))
 
         try:
             self.operation(*args, **options)
