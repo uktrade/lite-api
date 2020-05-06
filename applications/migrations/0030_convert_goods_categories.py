@@ -6,7 +6,7 @@ def convert_goods_categories(apps, schema_editor):
     standard_applications = StandardApplication.objects.all()
 
     for application in standard_applications:
-        application.contains_firearm_goods = 'firearms' in application.goods_categories
+        application.contains_firearm_goods = "firearms" in application.goods_categories
         application.goods_categories = None
         application.save()
 
@@ -25,9 +25,7 @@ def reverse_goods_categories(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0029_standardapplication_contains_firearm_goods'),
+        ("applications", "0029_standardapplication_contains_firearm_goods"),
     ]
 
-    operations = [
-        migrations.RunPython(convert_goods_categories, reverse_code=reverse_goods_categories)
-    ]
+    operations = [migrations.RunPython(convert_goods_categories, reverse_code=reverse_goods_categories)]

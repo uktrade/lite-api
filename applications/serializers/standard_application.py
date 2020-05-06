@@ -15,10 +15,9 @@ from applications.serializers.generic_application import (
     GenericApplicationViewSerializer,
 )
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from conf.helpers import str_to_bool
 from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from conf.serializers import KeyValueChoiceField
 from licences.models import Licence
 from lite_content.lite_api import strings
@@ -66,7 +65,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "proposed_return_date",
                 "trade_control_activity",
                 "trade_control_product_categories",
-                "contains_firearm_goods"
+                "contains_firearm_goods",
             )
         )
 
@@ -126,7 +125,7 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "trade_control_activity",
             "trade_control_activity_other",
             "trade_control_product_categories",
-            "contains_firearm_goods"
+            "contains_firearm_goods",
         )
 
     def __init__(self, case_type_id, **kwargs):
@@ -151,8 +150,15 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
         if self.trade_control_licence:
             validated_data["export_type"] = ApplicationExportType.PERMANENT
 
-        # validated_data['contains_firearm_goods'] = str_to_bool(validated_data['contains_firearm_goods'])
         return super().create(validated_data)
+
+    def validate(self, data):
+        if data.get("case_type").reference in [CaseTypeReferenceEnum.SIEL, CaseTypeReferenceEnum.SITL]:
+            if "contains_firearm_goods" not in data:
+                raise serializers.ValidationError(
+                    {"contains_firearm_goods": strings.Applications.Generic.NO_ANSWER_FIREARMS}
+                )
+        return data
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):

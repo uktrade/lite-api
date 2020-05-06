@@ -36,6 +36,7 @@ class DraftTests(DataTestClient):
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
+            "contains_firearm_goods": "yes",
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -54,7 +55,7 @@ class DraftTests(DataTestClient):
             "name": "Test",
             "application_type": CaseTypeReferenceEnum.SIEL,
             "export_type": ApplicationExportType.TEMPORARY,
-            "goods_categories": [GoodsCategory.ANTI_PIRACY, GoodsCategory.FIREARMS],
+            "contains_firearm_goods": "yes",
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
         }
@@ -65,25 +66,26 @@ class DraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response_data["id"], str(standard_application.id))
-        self.assertCountEqual(standard_application.goods_categories, data["goods_categories"])
+        self.assertTrue(standard_application.contains_firearm_goods)
 
-    def test_create_draft_standard_application_with_invalid_goods_categories_failure(self):
+    def test_create_draft_standard_application_without_answering_firearms_question_failure(self):
         """
-        Ensure we cannot create a standard application with invalid goods categories
+        Ensure we cannot create a standard application without answering the firearms question
         """
         data = {
             "name": "Test",
             "application_type": CaseTypeReferenceEnum.SIEL,
             "export_type": ApplicationExportType.TEMPORARY,
-            "goods_categories": ["Hard to Find"],
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
+            "contains_firearm_goods": None,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(StandardApplication.objects.count(), 0)
+        self.assertEqual(response.json()["errors"]["contains_firearm_goods"], ["This field may not be null."])
 
     def test_create_draft_exhibition_clearance_application_successful(self):
         """
@@ -148,6 +150,7 @@ class DraftTests(DataTestClient):
             "application_type": CaseTypeReferenceEnum.OIEL,
             "export_type": ApplicationExportType.TEMPORARY,
             "goodstype_category": GoodsTypeCategory.MILITARY,
+            "contains_firearm_goods": "yes",
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)

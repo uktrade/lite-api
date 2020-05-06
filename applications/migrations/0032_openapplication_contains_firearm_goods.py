@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0031_remove_standardapplication_goods_categories'),
+        ("applications", "0031_remove_standardapplication_goods_categories"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='openapplication',
-            name='contains_firearm_goods',
+            model_name="openapplication",
+            name="contains_firearm_goods",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
     ]

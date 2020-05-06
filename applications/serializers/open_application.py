@@ -57,7 +57,7 @@ class OpenApplicationViewSerializer(GenericApplicationViewSerializer):
             "trade_control_activity",
             "trade_control_product_categories",
             "goodstype_category",
-            "contains_firearm_goods"
+            "contains_firearm_goods",
         )
 
     def get_goods_types(self, application):
@@ -144,7 +144,7 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "trade_control_activity_other",
             "trade_control_product_categories",
             "goodstype_category",
-            "contains_firearm_goods"
+            "contains_firearm_goods",
         )
 
     def __init__(self, case_type_id, **kwargs):
@@ -172,6 +172,14 @@ class OpenApplicationCreateSerializer(GenericApplicationCreateSerializer):
         if self.media_application:
             self.fields.pop("export_type")
             self.media_application = True
+
+    def validate(self, data):
+        if data.get("goodstype_category") in [GoodsTypeCategory.MILITARY, GoodsTypeCategory.UK_CONTINENTAL_SHELF]:
+            if "contains_firearm_goods" not in data:
+                raise serializers.ValidationError(
+                    {"contains_firearm_goods": strings.Applications.Generic.NO_ANSWER_FIREARMS}
+                )
+        return data
 
     def create(self, validated_data):
         # Trade Control Licences are always permanent

@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0030_convert_goods_categories'),
+        ("applications", "0030_convert_goods_categories"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='standardapplication',
-            name='goods_categories',
-        ),
+        migrations.RemoveField(model_name="standardapplication", name="goods_categories",),
     ]
