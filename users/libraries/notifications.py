@@ -1,8 +1,7 @@
 from django.db.models import Count
 
-from organisations.libraries.get_organisation import get_request_user_organisation_id
-from users.models import ExporterNotification, ExporterUser
 from cases.models import Case
+from users.models import ExporterNotification, ExporterUser
 
 
 def get_exporter_user_notification_total_count(exporter_user: ExporterUser, organisation_id, case: Case) -> dict:

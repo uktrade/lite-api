@@ -1,4 +1,3 @@
-from organisations.models import Organisation
 from users.models import ExporterNotification, ExporterUser, GovNotification, GovUser
 
 
