@@ -555,6 +555,7 @@ class CaseOfficer(APIView):
         Removes the case officer currently assigned to a case off of it.
         """
         case = get_case(pk)
+        
         if not case.case_officer:
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
@@ -562,7 +563,7 @@ class CaseOfficer(APIView):
 
         serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             user = case.case_officer
 
             serializer.save()
@@ -574,8 +575,6 @@ class CaseOfficer(APIView):
             )
 
             return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FinaliseView(RetrieveUpdateAPIView):
