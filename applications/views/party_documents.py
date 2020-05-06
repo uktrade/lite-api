@@ -3,9 +3,8 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
 from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
-from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users, allowed_application_types
+from conf.decorators import authorised_users
 from parties.serializers import PartyDocumentSerializer
 from users.models import ExporterUser
 
