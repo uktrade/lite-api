@@ -232,6 +232,8 @@ class CaseAdvice(APIView):
 
 
 class ViewTeamAdvice(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def get(self, request, pk, team_pk):
         team_advice = TeamAdvice.objects.filter(case__pk=pk, team__pk=team_pk)
 
@@ -333,6 +335,8 @@ class FinalAdviceDocuments(APIView):
 
 
 class ViewFinalAdvice(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def get(self, request, pk):
         case = get_case(pk)
         final_advice = FinalAdvice.objects.filter(case=case)
@@ -511,6 +515,8 @@ class GoodsCountriesDecisions(APIView):
 
 
 class Destination(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def get(self, request, pk):
         destination = get_destination(pk)
 

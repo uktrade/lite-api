@@ -131,6 +131,7 @@ AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 
 HAWK_CREDENTIALS = {
     "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": "sha256",},
+    "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": "sha256",},
 }
 
 HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
