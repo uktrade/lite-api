@@ -126,7 +126,7 @@ def _validate_goods_types(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_ultimate_end_users(draft, errors, is_mandatory, goods_type=False):
+def _validate_ultimate_end_users(draft, errors, is_mandatory, open_application=False):
     """
     Checks all ultimate end users have documents if is_mandatory is True.
     Also checks that at least one ultimate_end_user is present if there is an incorporated good
