@@ -130,7 +130,7 @@ class GoodList(ListCreateAPIView):
     pagination_class = GoodListPaginator
 
     def get_serializer_context(self):
-        return {"exporter_user": self.request.user}
+        return {"exporter_user": self.request.user, "organisation_id": get_request_user_organisation_id(self.request)}
 
     def get_queryset(self):
         description = self.request.GET.get("description", "")
@@ -206,7 +206,10 @@ class GoodDetail(APIView):
             if good.organisation.id != get_request_user_organisation_id(request):
                 raise Http404
 
-            serializer = GoodSerializer(good, context={"exporter_user": request.user})
+            serializer = GoodSerializer(
+                good,
+                context={"exporter_user": request.user, "organisation_id": get_request_user_organisation_id(request)},
+            )
 
             # If there's a query with this good, update the notifications on it
             query = GoodsQuery.objects.filter(good=good)

@@ -31,13 +31,16 @@ def get_good_with_organisation(pk, organisation_id):
         raise Http404
 
 
-def get_good_query_with_notifications(good: Good, exporter_user: ExporterUser, total_count: bool) -> dict:
+def get_good_query_with_notifications(
+    good: Good, exporter_user: ExporterUser, organisation_id, total_count: bool
+) -> dict:
     from queries.goods_query.serializers import ExporterReadGoodQuerySerializer
 
     good_query = GoodsQuery.objects.filter(good__id=good.id)
     if good_query:
         serializer = ExporterReadGoodQuerySerializer(
-            instance=good_query.first(), context={"exporter_user": exporter_user, "total_count": total_count}
+            instance=good_query.first(),
+            context={"exporter_user": exporter_user, "organisation_id": organisation_id, "total_count": total_count},
         )
 
         return serializer.data
