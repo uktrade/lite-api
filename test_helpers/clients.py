@@ -140,7 +140,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # spreadsheet each time
         ControlListEntry.objects.bulk_create(
             [
-                ControlListEntry(clc, "Description", None, False)
+                ControlListEntry(rating=clc, text="Description", parent=None, is_decontrolled=False)
                 for clc in [
                     "ML6b2",
                     "ML2a",
