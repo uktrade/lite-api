@@ -2,15 +2,12 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.libraries.get_applications import get_application
 from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
-from conf.decorators import (
-    authorised_users,
-    allowed_application_types,
-)
+from conf.decorators import authorised_users, allowed_party_type_for_open_application_goodstype_category
 from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
 from parties.enums import PartyType
@@ -23,19 +20,7 @@ from users.models import ExporterUser
 class ApplicationPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    def _validate_only_correct_type_of_open_applications(self, application):
-        pass
-
-    @allowed_application_types(
-        [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.F680,
-        ]
-    )
+    @allowed_party_type_for_open_application_goodstype_category()
     @authorised_users(ExporterUser)
     def post(self, request, application):
         """
@@ -88,16 +73,6 @@ class ApplicationPartyView(APIView):
 
         return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
 
-    @allowed_application_types(
-        [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.F680,
-        ]
-    )
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
         """
@@ -127,16 +102,6 @@ class ApplicationPartyView(APIView):
 
         return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)
 
-    @allowed_application_types(
-        [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.F680,
-        ]
-    )
     @authorised_users(ExporterUser)
     def get(self, request, application):
         """
@@ -157,16 +122,6 @@ class ApplicationPartyView(APIView):
 class CopyPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(
-        [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.F680,
-        ]
-    )
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
         """
