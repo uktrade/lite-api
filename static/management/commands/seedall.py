@@ -1,5 +1,6 @@
 from django.core.management import call_command
 
+from conf import settings
 from static.management.SeedCommand import SeedCommand
 
 SEED_COMMANDS = {
@@ -59,8 +60,9 @@ class Command(SeedCommand):
         errors = []
 
         for command in commands:
-            error = call_command(command, fail_on_error=False)
+            Command.print_separator()
 
+            error = call_command(command, fail_on_error=False)
             if error:
                 errors.append((command, error))
 
@@ -84,10 +86,17 @@ class Command(SeedCommand):
             if options["dev"]:
                 errors += self.seed_list(SEED_COMMANDS["Dev"])
 
+        self.print_separator()
+
         if errors:
             error_messages = ""
 
             for error in errors:
-                error_messages += f"{error[0]}:\n{error[1]}\n\n"
+                error_messages += f"\n{error[0]} - {error[1]}"
 
             raise Exception(error_messages)
+
+    @staticmethod
+    def print_separator():
+        if not settings.SUPPRESS_TEST_OUTPUT:
+            print("=============================")

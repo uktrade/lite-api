@@ -15,7 +15,6 @@ class Command(SeedCommand):
 
     help = "Seeds the LITE System user"
     info = "Seeding system user"
-    success = "Successfully seeded system user"
     seed_command = "seedsystemuser"
 
     @transaction.atomic

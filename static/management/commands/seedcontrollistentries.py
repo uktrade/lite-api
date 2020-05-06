@@ -12,7 +12,6 @@ class Command(SeedCommand):
 
     help = "Creates and updates control list entries based off of the control list entry spreadsheet"
     info = "Seeding control list entries"
-    success = "Successfully seeded control list entries"
     seed_command = "seedcontrollistentries"
 
     @transaction.atomic

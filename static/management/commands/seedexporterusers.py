@@ -32,7 +32,6 @@ class Command(SeedCommand):
 
     help = "Seeds exporter users to organisations"
     info = "Seeding exporter users"
-    success = "Successfully seeded exporter users"
     seed_command = "seedexporterusers"
 
     @transaction.atomic

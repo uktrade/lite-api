@@ -12,7 +12,6 @@ class Command(SeedCommand):
 
     help = "Creates case types"
     info = "Seeding case types"
-    success = "Successfully seeded case types"
     seed_command = "seedcasetypes"
 
     @transaction.atomic

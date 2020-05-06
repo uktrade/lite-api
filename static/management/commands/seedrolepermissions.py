@@ -12,9 +12,8 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedrolepermissions
     """
 
-    help = "Creates and updates default roles and permissions"
+    help = "Seeds roles and permissions"
     info = "Seeding roles and permissions"
-    success = "Successfully seeded roles and permissions"
     seed_command = "seedrolepermissions"
 
     @transaction.atomic

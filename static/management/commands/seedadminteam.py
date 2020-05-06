@@ -12,7 +12,6 @@ class Command(SeedCommand):
 
     help = "Seeds the internal admin team"
     info = "Seeding admin team"
-    success = "Successfully seeded the admin team"
     seed_command = "seedadminteam"
 
     @transaction.atomic

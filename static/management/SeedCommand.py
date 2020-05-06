@@ -31,21 +31,20 @@ class SeedCommand(ABC, BaseCommand):
             self.fail_on_error = options["fail_on_error"]
 
         if not settings.SUPPRESS_TEST_OUTPUT:
-            self.stdout.write(
-                self.style.WARNING(f"\n=============================\n{self.info}\n=============================\n")
-            )
+            self.stdout.write(self.style.WARNING(f"{self.info}\n"))
 
         try:
             self.operation(*args, **options)
         except Exception as error:  # noqa
             self.stdout.write(self.style.ERROR(f"\n{self.failure}\n"))
+            error_message = f"{type(error).__name__}: {error}"
             if self.fail_on_error:
-                self.stdout.write(f"\n{type(error).__name__}: {error}\n")
+                print(error_message)
                 exit(1)
-            return f"{type(error).__name__}: {error}"
+            return error_message
 
         if not settings.SUPPRESS_TEST_OUTPUT:
-            self.stdout.write(self.style.SUCCESS(f"\n{self.success}\n"))
+            self.stdout.write(self.style.SUCCESS(f"\n{self.success}"))
 
     @transaction.atomic
     def operation(self, *args, **options):
@@ -88,7 +87,6 @@ class SeedCommand(ABC, BaseCommand):
             else:
                 SeedCommand.update_if_not_equal(obj, row)
 
-    @staticmethod
     def update_if_not_equal(obj: QuerySet, row: dict):
         # Can not delete the "id" key-value from `rows` as it will manipulate the data which is later used in
         # `delete_unused_objects`

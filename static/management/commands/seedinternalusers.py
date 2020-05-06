@@ -13,9 +13,8 @@ class Command(SeedCommand):
     pipenv run ./manage.py seedinternalusers
     """
 
-    help = "Seeds internal admin-team users so that other users can be added"
-    info = "Seeding internal admin-team users"
-    success = "Successfully seeded internal admin-team users"
+    help = "Seeds internal users to the admin team"
+    info = "Seeding internal users"
     seed_command = "seedinternalusers"
 
     @transaction.atomic
