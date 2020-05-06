@@ -168,7 +168,7 @@ class ApplicationExisting(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
-        organisation = self.request.user.organisation
+        organisation = get_request_user_organisation(request)
         if organisation.type == "hmrc":
             has_queries = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation).exists()
             return JsonResponse(data={"queries": has_queries})

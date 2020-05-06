@@ -12,6 +12,7 @@ from audit_trail.enums import AuditType
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication
 from conf.permissions import assert_user_has_permission
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from parties.enums import PartyType
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
@@ -26,7 +27,7 @@ class EndUserAdvisoriesList(ListAPIView):
     serializer_class = EndUserAdvisoryListSerializer
 
     def get_queryset(self):
-        return EndUserAdvisoryQuery.objects.filter(organisation=self.request.user.organisation)
+        return EndUserAdvisoryQuery.objects.filter(organisation_id=get_request_user_organisation_id(self.request))
 
     def post(self, request):
         """
@@ -35,8 +36,9 @@ class EndUserAdvisoriesList(ListAPIView):
         data = JSONParser().parse(request)
         if not data.get("end_user"):
             data["end_user"] = {}
-        data["organisation"] = request.user.organisation.id
-        data["end_user"]["organisation"] = request.user.organisation.id
+        organisation_id = get_request_user_organisation_id(request)
+        data["organisation"] = organisation_id
+        data["end_user"]["organisation"] = organisation_id
         data["end_user"]["type"] = PartyType.END_USER
 
         serializer = EndUserAdvisoryViewSerializer(data=data)
@@ -71,7 +73,7 @@ class EndUserAdvisoryDetail(APIView):
         end_user_advisory = get_end_user_advisory_by_pk(pk)
         case_id = end_user_advisory.id
 
-        serializer = EndUserAdvisoryViewSerializer(end_user_advisory, context={"exporter_user": request.user})
+        serializer = EndUserAdvisoryViewSerializer(end_user_advisory, context={"exporter_user": request.user, "organisation_id": get_request_user_organisation_id(request)})
         return JsonResponse(data={"end_user_advisory": serializer.data, "case_id": case_id}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
