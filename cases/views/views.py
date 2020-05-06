@@ -573,7 +573,7 @@ class CaseOfficer(APIView):
                 payload={"case_officer": user.email if not user.first_name else f"{user.first_name} {user.last_name}"},
             )
 
-            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
