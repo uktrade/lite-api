@@ -72,7 +72,7 @@ class Command(SeedCommand):
         """
         pipenv run ./manage.py seedall --essential --dev
 
-        essential & dev are optional params to only run seed certain tasks
+        essential & dev are optional params to only run certain seeding operations
         """
         errors = []
 
