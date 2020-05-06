@@ -6,9 +6,10 @@ def convert_goods_categories(apps, schema_editor):
     standard_applications = StandardApplication.objects.all()
 
     for application in standard_applications:
-        application.contains_firearm_goods = "firearms" in application.goods_categories
-        application.goods_categories = None
-        application.save()
+        if application.goods_categories:
+            application.contains_firearm_goods = "firearms" in application.goods_categories
+            application.goods_categories = None
+            application.save()
 
 
 def reverse_goods_categories(apps, schema_editor):
