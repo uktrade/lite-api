@@ -8,7 +8,7 @@ from organisations.models import Organisation
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_user_organisations
 from users.libraries.token_to_user import token_to_user_pk
-from users.models import UserOrganisationRelationship, ExporterUser
+from users.models import UserOrganisationRelationship, ExporterUser, GovUser
 
 GOV_USER_TOKEN_HEADER = "HTTP_GOV_USER_TOKEN"  # nosec
 
@@ -89,15 +89,16 @@ class GovAuthentication(authentication.BaseAuthentication):
         """
         if request.META.get(GOV_USER_TOKEN_HEADER):
             gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
+            user_id = token_to_user_pk(gov_user_token)
         else:
-            raise PermissionDeniedError("You must supply the correct token in your headers.")
+            raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
-        gov_user = get_user_by_pk(token_to_user_pk(gov_user_token))
+        gov_user = GovUser.objects.filter(id=user_id, status=GovUserStatuses.ACTIVE)
 
-        if gov_user.status == GovUserStatuses.DEACTIVATED:
+        if not gov_user.exists():
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
-        return gov_user, None
+        return gov_user.first(), None
 
 
 class SharedAuthentication(authentication.BaseAuthentication):
