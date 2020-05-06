@@ -3,6 +3,8 @@ from rest_framework import status
 
 from conf.constants import Roles
 from gov_users.enums import GovUserStatuses
+from lite_content.lite_api import strings
+from queues.constants import MY_TEAMS_QUEUES_CASES_ID
 from test_helpers.clients import DataTestClient
 from users.models import GovUser
 
@@ -15,13 +17,15 @@ class GovUserAuthenticateTests(DataTestClient):
             "email": "jsmith@name.com",
             "team": self.team.id,
             "role": Roles.INTERNAL_DEFAULT_ROLE_ID,
+            "default_queue": MY_TEAMS_QUEUES_CASES_ID,
         }
 
         url = reverse("gov_users:gov_users")
         response = self.client.post(url, data, **self.gov_headers)
-        new_user = GovUser.objects.get(email="jsmith@name.com")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        new_user = GovUser.objects.get(email="jsmith@name.com")
         self.assertEqual(new_user.status, GovUserStatuses.ACTIVE)
         self.assertEqual(new_user.email, "jsmith@name.com")
 
@@ -43,6 +47,7 @@ class GovUserAuthenticateTests(DataTestClient):
             "email": "jsmith@name.com",
             "team": self.team.id,
             "role": Roles.INTERNAL_SUPER_USER_ROLE_ID,
+            "default_queue": MY_TEAMS_QUEUES_CASES_ID,
         }
 
         url = reverse("gov_users:gov_users")
@@ -57,9 +62,47 @@ class GovUserAuthenticateTests(DataTestClient):
             "email": "jsmith@name.com",
             "team": self.team.id,
             "role": Roles.INTERNAL_SUPER_USER_ROLE_ID,
+            "default_queue": MY_TEAMS_QUEUES_CASES_ID,
         }
 
         url = reverse("gov_users:gov_users")
         response = self.client.post(url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_gov_user_invalid_default_queue(self):
+        data = {
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "email": "jsmith@name.com",
+            "team": str(self.team.id),
+            "role": Roles.INTERNAL_DEFAULT_ROLE_ID,
+            "default_queue": "10000000-0000-0000-0000-000000000000",
+        }
+
+        url = reverse("gov_users:gov_users")
+        response = self.client.post(url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_data["errors"]["default_queue"], [strings.Users.NULL_DEFAULT_QUEUE])
+
+    def test_create_gov_user_default_queue_with_non_related_team(self):
+        new_team = self.create_team("new team")
+        data = {
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "email": "jsmith@name.com",
+            "team": str(new_team.id),
+            "role": Roles.INTERNAL_DEFAULT_ROLE_ID,
+            "default_queue": str(self.queue.id),
+        }
+
+        url = reverse("gov_users:gov_users")
+        response = self.client.post(url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data["errors"]["default_queue"], [strings.Users.INVALID_DEFAULT_QUEUE % new_team.name]
+        )
