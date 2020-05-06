@@ -23,7 +23,6 @@ class Command(SeedCommand):
 
     help = "Seeds an organisation with a number of sites and users"
     info = "Seeding organisation"
-    success = "Successfully seeded organisation"
     seed_command = "seedorganisation"
 
     def add_arguments(self, parser):

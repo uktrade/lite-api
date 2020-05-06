@@ -12,7 +12,6 @@ class Command(SeedCommand):
 
     help = "Creates f680 clearance types"
     info = "Seeding f680 clearance types"
-    success = "Successfully seeded f680 clearance types"
     seed_command = "seedf680clearancetypes"
 
     @transaction.atomic
