@@ -555,7 +555,7 @@ class CaseOfficer(APIView):
         Removes the case officer currently assigned to a case off of it.
         """
         case = get_case(pk)
-        
+
         if not case.case_officer:
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
