@@ -140,7 +140,7 @@ def authorised_users(user_type):
 
             if isinstance(request.request.user, ExporterUser):
                 application = _get_application(request, kwargs)
-                organisation_id = request.META.get(ORGANISATION_ID)
+                organisation_id = request.request.META.get(ORGANISATION_ID)
 
                 if (
                     application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
