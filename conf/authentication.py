@@ -6,7 +6,6 @@ from gov_users.enums import GovUserStatuses
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation
 from users.enums import UserStatuses
-from users.libraries.get_user import get_user_by_pk, get_user_organisations
 from users.libraries.token_to_user import token_to_user_pk
 from users.models import UserOrganisationRelationship, ExporterUser, GovUser
 
