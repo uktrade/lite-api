@@ -25,7 +25,8 @@ def update_good_review_payload(apps, schema_editor):
             count += 1
             audit.save()
 
-    print({"updated": count, "existing": Audit.objects.filter(verb=AuditType.GOOD_REVIEWED).count()})
+    if count:
+        print({"updated": count, "existing": Audit.objects.filter(verb=AuditType.GOOD_REVIEWED).count()})
 
 
 class Migration(migrations.Migration):
