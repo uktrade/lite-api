@@ -87,6 +87,7 @@ class SeedCommand(ABC, BaseCommand):
             else:
                 SeedCommand.update_if_not_equal(obj, row)
 
+    @staticmethod
     def update_if_not_equal(obj: QuerySet, row: dict):
         # Can not delete the "id" key-value from `rows` as it will manipulate the data which is later used in
         # `delete_unused_objects`
