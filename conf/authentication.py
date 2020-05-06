@@ -4,7 +4,6 @@ from rest_framework import authentication
 from conf.exceptions import PermissionDeniedError
 from gov_users.enums import GovUserStatuses
 from organisations.enums import OrganisationType, OrganisationStatus
-from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Organisation
 from users.enums import UserStatuses
 from users.libraries.get_user import get_user_by_pk, get_user_organisations
@@ -53,6 +52,8 @@ class ExporterAuthentication(authentication.BaseAuthentication):
 
 class HmrcExporterAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
+        from organisations.libraries.get_organisation import get_organisation_by_pk
+
         """
         When given a user token and an organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation

@@ -17,4 +17,3 @@ def get_request_user_organisation_id(request):
 def get_request_user_organisation(request):
     org_id = get_request_user_organisation_id(request)
     return get_organisation_by_pk(org_id)
-

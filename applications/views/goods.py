@@ -30,6 +30,7 @@ from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.models import ExporterUser
 
 
@@ -84,7 +85,7 @@ class ApplicationGoodsOnApplication(APIView):
 
             data["good"] = data["good_id"]
 
-            good = get_good_with_organisation(data.get("good"), request.user.organisation)
+            good = get_good_with_organisation(data.get("good"), get_request_user_organisation_id(request))
 
             if not good.missing_document_reason and GoodDocument.objects.filter(good=good).count() == 0:
                 return JsonResponse(data={"error": strings.Goods.DOCUMENT_ERROR}, status=status.HTTP_400_BAD_REQUEST,)
@@ -120,7 +121,7 @@ class ApplicationGoodOnApplication(APIView):
                 data={"errors": [strings.Applications.Generic.READ_ONLY]}, status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if good_on_application.application.organisation.id != request.user.organisation.id:
+        if good_on_application.application.organisation.id != get_request_user_organisation_id(request):
             return JsonResponse(
                 data={"errors": strings.Applications.Generic.INVALID_ORGANISATION}, status=status.HTTP_403_FORBIDDEN,
             )

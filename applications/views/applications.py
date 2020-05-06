@@ -72,6 +72,7 @@ from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
+from organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
 from organisations.models import Site
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.enums import CaseStatusEnum
@@ -87,7 +88,7 @@ class ApplicationList(ListCreateAPIView):
     serializer_class = GenericApplicationListSerializer
 
     def get_serializer_context(self):
-        return {"exporter_user": self.request.user}
+        return {"exporter_user": self.request.user, "organisation_id": get_request_user_organisation_id(self.request)}
 
     def get_queryset(self):
         """
@@ -98,22 +99,24 @@ class ApplicationList(ListCreateAPIView):
         except ValueError as e:
             return JsonResponse(data={"errors": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        if self.request.user.organisation.type == OrganisationType.HMRC:
+        organisation = get_request_user_organisation(self.request)
+
+        if organisation.type == OrganisationType.HMRC:
             if submitted is None:
-                applications = HmrcQuery.objects.filter(hmrc_organisation=self.request.user.organisation)
+                applications = HmrcQuery.objects.filter(hmrc_organisation=organisation)
             elif submitted:
-                applications = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation)
+                applications = HmrcQuery.objects.submitted(hmrc_organisation=organisation)
             else:
-                applications = HmrcQuery.objects.drafts(hmrc_organisation=self.request.user.organisation)
+                applications = HmrcQuery.objects.drafts(hmrc_organisation=organisation)
         else:
             if submitted is None:
-                applications = BaseApplication.objects.filter(organisation=self.request.user.organisation)
+                applications = BaseApplication.objects.filter(organisation=organisation)
             elif submitted:
-                applications = BaseApplication.objects.submitted(self.request.user.organisation)
+                applications = BaseApplication.objects.submitted(organisation)
             else:
-                applications = BaseApplication.objects.drafts(self.request.user.organisation)
+                applications = BaseApplication.objects.drafts(organisation)
 
-            users_sites = Site.objects.get_by_user_and_organisation(self.request.user, self.request.user.organisation)
+            users_sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
             disallowed_applications = SiteOnApplication.objects.exclude(site__id__in=users_sites).values_list(
                 "application", flat=True
             )
@@ -142,7 +145,9 @@ class ApplicationList(ListCreateAPIView):
         case_type = data.pop("application_type", None)
         serializer = get_application_create_serializer(case_type)
         serializer = serializer(
-            data=data, case_type_id=CaseTypeEnum.reference_to_id(case_type), context=request.user.organisation
+            data=data,
+            case_type_id=CaseTypeEnum.reference_to_id(case_type),
+            context=get_request_user_organisation(request),
         )
 
         if not serializer.is_valid():
@@ -182,7 +187,14 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         Retrieve an application instance
         """
         serializer = get_application_view_serializer(application)
-        data = serializer(application, context={"user_type": request.user.type, "exporter_user": request.user}).data
+        data = serializer(
+            application,
+            context={
+                "user_type": request.user.type,
+                "exporter_user": request.user,
+                "organisation_id": get_request_user_organisation_id(request),
+            },
+        ).data
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @authorised_users(ExporterUser)
@@ -194,7 +206,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()
-        serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
+        serializer = serializer(application, data=data, context=get_request_user_organisation(request), partial=True)
 
         # Prevent minor edits of the goods categories
         if not application.is_major_editable() and request.data.get("goods_categories"):
@@ -377,7 +389,7 @@ class ApplicationManageStatus(APIView):
             )
 
         if isinstance(request.user, ExporterUser):
-            if request.user.organisation.id != application.organisation.id:
+            if get_request_user_organisation_id(request) != application.organisation.id:
                 raise PermissionDenied()
 
             if not can_status_be_set_by_exporter_user(application.status.status, data["status"]):
@@ -860,7 +872,7 @@ class ApplicationRouteOfGoods(UpdateAPIView):
         case = application.get_case()
         data = request.data.copy()
 
-        serializer = serializer(application, data=data, context=request.user.organisation, partial=True)
+        serializer = serializer(application, data=data, context=get_request_user_organisation(request), partial=True)
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 

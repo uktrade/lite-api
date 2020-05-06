@@ -24,14 +24,9 @@ def get_good_document(good: Good, pk):
         raise NotFoundError({"document": strings.Documents.DOCUMENT_NOT_FOUND})
 
 
-def get_good_with_organisation(pk, organisation):
+def get_good_with_organisation(pk, organisation_id):
     try:
-        good = Good.objects.get(pk=pk)
-
-        if good.organisation.pk != organisation.pk:
-            raise Http404
-
-        return good
+        return Good.objects.get(pk=pk, organisation_id=organisation_id)
     except Good.DoesNotExist:
         raise Http404
 

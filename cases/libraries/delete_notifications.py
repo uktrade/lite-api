@@ -2,9 +2,9 @@ from organisations.models import Organisation
 from users.models import ExporterNotification, ExporterUser, GovNotification, GovUser
 
 
-def delete_exporter_notifications(user: ExporterUser, organisation: Organisation, objects: list):
+def delete_exporter_notifications(user: ExporterUser, organisation_id, objects: list):
     for obj in objects:
-        ExporterNotification.objects.filter(user=user, organisation=organisation, object_id=obj.id).delete()
+        ExporterNotification.objects.filter(user=user, organisation_id=organisation_id, object_id=obj.id).delete()
 
 
 def delete_gov_user_notifications(user: GovUser, objects: list):
