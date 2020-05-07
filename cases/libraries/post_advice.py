@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
+from applications.serializers.advice import CaseAdviceSerializer
 from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
 from cases.libraries.get_case import get_case
@@ -28,12 +29,12 @@ def check_if_user_cannot_manage_team_advice(case, user):
 
 
 def check_if_final_advice_exists(case):
-    if Advice.objects.filter(case=case):
+    if Advice.objects.get_final_advice(case=case):
         return JsonResponse({"errors": "Final advice already exists for this case"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def check_if_team_advice_exists(case, user):
-    if Advice.objects.filter(case=case, team=user.team):
+    if Advice.objects.get_team_advice(case=case, team=user.team):
         return JsonResponse(
             {"errors": "Team advice from your team already exists for this case"}, status=status.HTTP_400_BAD_REQUEST
         )
@@ -45,7 +46,7 @@ def check_refusal_errors(advice):
     return None
 
 
-def post_advice(request, case, serializer_object, team=False):
+def post_advice(request, case, level, team=False):
 
     if CaseStatusEnum.is_terminal(case.status.status):
         return JsonResponse(
@@ -58,6 +59,7 @@ def post_advice(request, case, serializer_object, team=False):
     # Update the case and user in each piece of advice
     refusal_error = False
     for advice in data:
+        advice["level"] = level
         advice["case"] = str(case.id)
         advice["user"] = str(request.user.id)
         if team:
@@ -65,7 +67,7 @@ def post_advice(request, case, serializer_object, team=False):
         if not refusal_error:
             refusal_error = check_refusal_errors(advice)
 
-    serializer = serializer_object(data=data, many=True)
+    serializer = CaseAdviceSerializer(data=data, many=True)
 
     if serializer.is_valid() and not refusal_error:
         serializer.save()

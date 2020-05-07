@@ -3,15 +3,13 @@ from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
-
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from licences.models import Licence
-from licences.serializers.create_licence import LicenceCreateSerializer
+from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum, AdviceType
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from cases.helpers import create_grouped_advice
@@ -26,16 +24,14 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, Advice, Advice, GoodCountryDecision, CaseAssignment
+from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
     EcjuQueryCreateSerializer,
     CaseDetailSerializer,
-    CaseAdviceSerializer,
     EcjuQueryGovSerializer,
     EcjuQueryExporterSerializer,
-    CaseAdviceSerializer,
     CaseAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
@@ -49,15 +45,15 @@ from documents.libraries.delete_documents_on_bad_request import delete_documents
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
 from goodstype.helpers import get_goods_type
-from gov_users.serializers import GovUserSimpleSerializer
+from licences.models import Licence
+from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api.strings import Documents, Cases
-from queues.serializers import TinyQueueSerializer
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
+from queues.serializers import TinyQueueSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
-from applications.serializers.advice import CountryWithFlagsSerializer
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -192,19 +188,17 @@ class ExporterCaseDocumentDownload(APIView):
             raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
 
 
-class CaseAdvice(APIView):
+class UserAdvice(APIView):
     authentication_classes = (GovAuthentication,)
 
     case = None
     advice = None
-    serializer_object = None
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
-        # We exclude any team of final level advice objects
-        self.advice = Advice.objects.filter(case=self.case).exclude(Advice__isnull=False).exclude(Advice__isnull=False)
+        self.advice = Advice.objects.get_user_advice(self.case)
 
-        return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
+        return super(UserAdvice, self).dispatch(request, *args, **kwargs)
 
     @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
@@ -218,24 +212,22 @@ class CaseAdvice(APIView):
         elif team_advice_exists:
             return team_advice_exists
         else:
-            return post_advice(request, self.case, CaseAdviceSerializer, team=False)
+            return post_advice(request, self.case, AdviceLevel.USER)
 
 
-class CaseTeamAdvice(APIView):
+class TeamAdvice(APIView):
     authentication_classes = (GovAuthentication,)
 
     case = None
     advice = None
     team_advice = None
-    serializer_object = None
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
         self.advice = Advice.objects.filter(case=self.case)
-        self.team_advice = Advice.objects.filter(case=self.case).order_by("created_at")
-        self.serializer_object = CaseAdviceSerializer
+        self.team_advice = Advice.objects.get_team_advice(self.case)
 
-        return super(CaseTeamAdvice, self).dispatch(request, *args, **kwargs)
+        return super(TeamAdvice, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
@@ -258,7 +250,8 @@ class CaseTeamAdvice(APIView):
             team_advice = Advice.objects.filter(case=self.case, team=team).order_by("created_at")
         else:
             team_advice = self.team_advice
-        serializer = self.serializer_object(team_advice, many=True)
+
+        serializer = CaseAdviceSerializer(team_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
@@ -274,7 +267,7 @@ class CaseTeamAdvice(APIView):
         if final_advice_exists:
             return final_advice_exists
 
-        advice = post_advice(request, self.case, self.serializer_object, team=True)
+        advice = post_advice(request, self.case, AdviceLevel.TEAM, team=True)
         case_advice_contains_refusal(pk)
         return advice
 
@@ -314,7 +307,7 @@ class FinalAdviceDocuments(APIView):
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
 
-class CaseFinalAdvice(APIView):
+class FinalAdvice(APIView):
     authentication_classes = (GovAuthentication,)
 
     case = None
@@ -326,9 +319,8 @@ class CaseFinalAdvice(APIView):
         self.case = get_case(kwargs["pk"])
         self.team_advice = Advice.objects.filter(case=self.case)
         self.final_advice = Advice.objects.filter(case=self.case).order_by("created_at")
-        self.serializer_object = CaseAdviceSerializer
 
-        return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
+        return super(FinalAdvice, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
@@ -355,7 +347,7 @@ class CaseFinalAdvice(APIView):
         Creates advice for a case
         """
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        return post_advice(request, self.case, self.serializer_object, team=True)
+        return post_advice(request, self.case, AdviceLevel.FINAL, team=True)
 
     def delete(self, request, pk):
         """

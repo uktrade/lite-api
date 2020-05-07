@@ -327,62 +327,6 @@ class Advice(TimestampableModel):
         )
 
 
-# class Advice(Advice):
-#     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-#
-#     # pylint: disable=W0221
-#     # pylint: disable=E1003
-#     def save(self, *args, **kwargs):
-#
-#         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
-#             self.proviso = None
-#
-#         try:
-#             existing_object = Advice.objects.get(
-#                 case=self.case,
-#                 team=self.team,
-#                 good=self.good,
-#                 goods_type=self.goods_type,
-#                 country=self.country,
-#                 end_user=self.end_user,
-#                 ultimate_end_user=self.ultimate_end_user,
-#                 consignee=self.consignee,
-#                 third_party=self.third_party,
-#             )
-#             existing_object.delete()
-#         except Advice.DoesNotExist:
-#             pass
-#
-#         # We override the parent class save() method so we only delete existing team level objects
-#         super(Advice, self).save(*args, **kwargs)
-#
-#
-# class Advice(Advice):
-#     # pylint: disable=W0221
-#     # pylint: disable=E1003
-#     def save(self, *args, **kwargs):
-#
-#         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
-#             self.proviso = None
-#
-#         try:
-#             existing_object = Advice.objects.get(
-#                 case=self.case,
-#                 good=self.good,
-#                 goods_type=self.goods_type,
-#                 country=self.country,
-#                 end_user=self.end_user,
-#                 ultimate_end_user=self.ultimate_end_user,
-#                 consignee=self.consignee,
-#                 third_party=self.third_party,
-#             )
-#             existing_object.delete()
-#         except Advice.DoesNotExist:
-#             pass
-#         # We override the parent class save() method so we only delete existing final level objects
-#         super(Advice, self).save(*args, **kwargs)
-
-
 class EcjuQuery(TimestampableModel):
     """
     Query from ECJU to exporters

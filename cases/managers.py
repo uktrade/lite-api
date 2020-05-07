@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import Q, Case, When, BinaryField
 from model_utils.managers import InheritanceManager
 
+from cases.enums import AdviceLevel
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from queues.constants import (
     ALL_CASES_QUEUE_ID,
@@ -260,9 +261,21 @@ class CaseReferenceCodeManager(models.Manager):
         return case_reference_code
 
 
-class AdviceManager(InheritanceManager):
+class AdviceManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().prefetch_related(*self.model.ENTITY_FIELDS)
+
+    def get_user_advice(self, case):
+        return self.get_queryset().filter(case=case, level=AdviceLevel.USER)
+
+    def get_team_advice(self, case, team=None):
+        queryset = self.get_queryset().filter(case=case, level=AdviceLevel.TEAM)
+        if team:
+            queryset.filter(team=team)
+        return queryset
+
+    def get_final_advice(self, case):
+        return self.get_queryset().filter(case=case, level=AdviceLevel.FINAL)
 
     def get(self, *args, **kwargs):
         """

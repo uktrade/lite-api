@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
-from applications.serializers.advice import CaseAdviceSerializerNew
+from applications.serializers.advice import CaseAdviceSerializer
 from audit_trail.models import Audit
 from cases.enums import (
     CaseTypeTypeEnum,
@@ -194,7 +194,7 @@ class CaseDetailSerializer(CaseSerializer):
     queue_names = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
-    advice = CaseAdviceSerializerNew(many=True)
+    advice = CaseAdviceSerializer(many=True)
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
@@ -204,7 +204,7 @@ class CaseDetailSerializer(CaseSerializer):
     audit_notification = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    advice = CaseAdviceSerializerNew(many=True)
+    advice = CaseAdviceSerializer(many=True)
 
     class Meta:
         model = Case
@@ -375,121 +375,6 @@ class SimpleAdviceSerializer(serializers.ModelSerializer):
         model = Advice
         fields = ("type", "text", "proviso")
         read_only_fields = fields
-
-
-class CaseAdviceSerializer(serializers.ModelSerializer):
-    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserViewSerializer)
-    proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000,)
-    text = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000)
-    note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
-    type = KeyValueChoiceField(choices=AdviceType.choices)
-    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
-
-    # Optional fields
-    # good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
-    # goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
-    # country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
-    # end_user = serializers.PrimaryKeyRelatedField(
-    #     queryset=Party.objects.filter(type=PartyType.END_USER), required=False
-    # )
-    # ultimate_end_user = serializers.PrimaryKeyRelatedField(
-    #     queryset=Party.objects.filter(type=PartyType.ULTIMATE_END_USER), required=False
-    # )
-    # consignee = serializers.PrimaryKeyRelatedField(
-    #     queryset=Party.objects.filter(type=PartyType.CONSIGNEE), required=False
-    # )
-    # third_party = serializers.PrimaryKeyRelatedField(
-    #     queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
-    # )
-    pv_grading = KeyValueChoiceField(choices=PvGrading.choices, required=False)
-    collated_pv_grading = serializers.CharField(default=None, allow_blank=True, allow_null=True, max_length=120)
-
-    class Meta:
-        model = Advice
-        fields = (
-            "case",
-            "user",
-            "text",
-            "note",
-            "type",
-            "proviso",
-            "denial_reasons",
-            "good",
-            "goods_type",
-            "country",
-            "end_user",
-            "ultimate_end_user",
-            "created_at",
-            "consignee",
-            "third_party",
-            "pv_grading",
-            "collated_pv_grading",
-        )
-
-    def validate_denial_reasons(self, value):
-        """
-        Check that the denial reasons are set if type is REFUSE
-        """
-        for data in self.initial_data:
-            if data["type"] == AdviceType.REFUSE and not data["denial_reasons"]:
-                raise serializers.ValidationError("Select at least one denial reason")
-
-        return value
-
-    def validate_proviso(self, value):
-        """
-        Check that the proviso is set if type is REFUSE
-        """
-        for data in self.initial_data:
-            if data["type"] == AdviceType.PROVISO and not data["proviso"]:
-                raise ValidationError("Enter a proviso")
-
-        return value
-
-    def __init__(self, *args, **kwargs):
-        super(CaseAdviceSerializer, self).__init__(*args, **kwargs)
-
-        application_fields = (
-            "good",
-            "goods_type",
-            "country",
-            "end_user",
-            "ultimate_end_user",
-            "consignee",
-            "third_party",
-        )
-
-        # Ensure only one item is provided
-        if hasattr(self, "initial_data"):
-            for data in self.initial_data:
-                if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
-                    raise ValidationError({"end_user": ["Only one item (such as an end_user) can be given at a time"]})
-
-    def to_representation(self, instance):
-        repr_dict = super(CaseAdviceSerializer, self).to_representation(instance)
-        if instance.type != AdviceType.CONFLICTING:
-            if instance.type == AdviceType.PROVISO:
-                repr_dict["proviso"] = instance.proviso
-            else:
-                del repr_dict["proviso"]
-
-            if instance.type == AdviceType.REFUSE:
-                repr_dict["denial_reasons"] = convert_queryset_to_str(
-                    instance.denial_reasons.values_list("id", flat=True)
-                )
-            else:
-                del repr_dict["denial_reasons"]
-
-        return repr_dict
-
-
-class CaseAdviceSerializer(CaseAdviceSerializer):
-    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
-
-    class Meta:
-        model = Advice
-        fields = "__all__"
 
 
 class EcjuQueryGovSerializer(serializers.ModelSerializer):
