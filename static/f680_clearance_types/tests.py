@@ -10,7 +10,7 @@ class F680ClearanceTypesTests(DataTestClient):
     def test_get_f680_clearance_types_success(self):
         url = reverse("static:f680_clearance_types:f680_clearance_types")
 
-        response = self.client.get(url)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["types"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

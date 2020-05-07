@@ -10,7 +10,7 @@ class DenialReasonsTests(DataTestClient):
     url = reverse("static:denial-reasons:denial-reasons")
 
     def test_get_denial_reasons(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.exporter_headers)
         denial_reasons = response.json()["denial_reasons"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

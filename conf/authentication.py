@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
@@ -8,7 +9,7 @@ from rest_framework import authentication
 
 from conf import settings
 from conf.exceptions import PermissionDeniedError
-from conf.settings import DEBUG
+from conf.settings import DEBUG, PERFORM_HAWK_AUTHENTICATION
 from gov_users.enums import GovUserStatuses
 from organisations.enums import OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
@@ -190,15 +191,16 @@ def _authorise(request):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
-    return Receiver(
-        _lookup_credentials,
-        request.META["HTTP_AUTHORIZATION"],
-        request.build_absolute_uri(),
-        request.method,
-        content=request.body,
-        content_type=request.content_type,
-        seen_nonce=_seen_nonce,
-    )
+    if PERFORM_HAWK_AUTHENTICATION:
+        return Receiver(
+            _lookup_credentials,
+            request.META["HTTP_AUTHORIZATION"],
+            request.build_absolute_uri(),
+            request.method,
+            content=request.body,
+            content_type=request.content_type,
+            seen_nonce=_seen_nonce,
+        )
 
 
 def _seen_nonce(access_key_id, nonce, _):

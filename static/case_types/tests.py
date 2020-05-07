@@ -10,7 +10,7 @@ class CaseTypesTests(DataTestClient):
     def test_get_case_types_success(self):
         url = reverse("static:case_types:case_types")
 
-        response = self.client.get(url)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["case_types"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
