@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import AdviceType
-from cases.models import Advice, TeamAdvice
+from cases.models import Advice, Advice
 from conf import constants
 from conf.helpers import convert_queryset_to_str
 from goods.enums import PvGrading
@@ -122,7 +122,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.assertEqual(response_data["type"]["key"], data["type"])
         self.assertEqual(response_data["end_user"], data["end_user"])
 
-        advice_object = TeamAdvice.objects.get()
+        advice_object = Advice.objects.get()
 
         # Ensure that proviso details aren't added unless the type sent is PROVISO
         if advice_type != AdviceType.PROVISO:
@@ -166,7 +166,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         """
         No permissions are required to view any tier of advice
         """
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
         self.gov_user.role.permissions.set([])
         self.gov_user.save()
         response = self.client.get(self.standard_case_url, **self.gov_headers)
@@ -177,8 +177,8 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         """
         Advice is visible to all users, no matter which team it belongs to
         """
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, Advice)
 
         team_2 = Team(name="2")
         team_2.save()
@@ -216,7 +216,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         """
         Logically blocks the submission of lower tier advice if higher tier advice exists
         """
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         data = {
             "text": "I Am Easy to Find",
@@ -235,7 +235,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         """
         No residual data is left to block lower tier advice being submitted after a clear
         """
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         self.client.delete(self.standard_case_url, **self.gov_headers)
 
@@ -272,7 +272,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         Because of the shared parent class, make sure the parent class "save" method is overridden by the child class
         """
         self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice)
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice)
 
         self.client.get(self.standard_case_url, **self.gov_headers)
 

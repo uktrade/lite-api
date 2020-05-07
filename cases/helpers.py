@@ -106,7 +106,7 @@ def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
     E.G.
     {"goods": [{"id": ...,},], "end_user": {"id": ...,},]
     """
-    from cases.models import FinalAdvice
+    from cases.models import Advice
     from goods.serializers import GoodSerializer
     from goodstype.serializers import GoodsTypeSerializer
 
@@ -120,7 +120,7 @@ def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
         "third_party": {"serializer": PartySerializer, "case_relationship": "third_parties"},
     }
 
-    final_advice = FinalAdvice.objects.distinct(*FinalAdvice.ENTITY_FIELDS).filter(case=case)
+    final_advice = Advice.objects.distinct(*Advice.ENTITY_FIELDS).filter(case=case)
 
     if advice_type:
         final_advice = final_advice.filter(type=advice_type)

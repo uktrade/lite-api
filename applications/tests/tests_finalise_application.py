@@ -6,7 +6,7 @@ from applications.enums import LicenceDuration
 from applications.libraries.licence import get_default_duration
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum
-from cases.models import FinalAdvice
+from cases.models import Advice
 from conf.constants import GovPermissions
 from flags.enums import FlagLevels
 from flags.tests.factories import FlagFactory
@@ -184,7 +184,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
         # Approve the existing good
         advice_text = "looks good to me"
         self.create_advice(
-            self.gov_user, self.standard_application, "good", AdviceType.APPROVE, FinalAdvice, advice_text=advice_text
+            self.gov_user, self.standard_application, "good", AdviceType.APPROVE, Advice, advice_text=advice_text
         )
 
         # Refuse a second good
@@ -192,7 +192,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
             self.standard_application, self.create_good("a thing", self.organisation)
         )
         self.create_advice(
-            self.gov_user, self.standard_application, "", AdviceType.REFUSE, FinalAdvice, good=second_good_on_app.good
+            self.gov_user, self.standard_application, "", AdviceType.REFUSE, Advice, good=second_good_on_app.good
         )
 
         # NLR a third good
@@ -204,7 +204,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
             self.standard_application,
             "",
             AdviceType.NO_LICENCE_REQUIRED,
-            FinalAdvice,
+            Advice,
             good=third_good_on_app.good,
         )
 
@@ -223,7 +223,7 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
 
     def test_get_proviso_goods_success(self):
         # Proviso the existing good
-        advice = self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.PROVISO, FinalAdvice)
+        advice = self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.PROVISO, Advice)
 
         response = self.client.get(self.url, **self.gov_headers)
         data = response.json()["goods"]
@@ -249,7 +249,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
             "month": self.date.month,
             "day": self.date.day,
         }
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, FinalAdvice)
+        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, Advice)
 
     def test_approve_success(self):
         self.data[f"quantity-{self.good_on_application.id}"] = self.good_on_application.quantity

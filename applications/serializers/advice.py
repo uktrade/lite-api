@@ -51,10 +51,10 @@ class CaseAdviceSerializerNew(serializers.Serializer):
         return type(instance).__name__
 
     def get_team(self, instance):
-        print('\n')
-        print('instance here')
+        print("\n")
+        print("instance here")
         print(instance)
-        print('\n')
+        print("\n")
         if hasattr(instance, "team"):
             return TeamReadOnlySerializer(instance.team)
 

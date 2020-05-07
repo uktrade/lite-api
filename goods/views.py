@@ -81,9 +81,7 @@ class GoodsListControlCode(APIView):
 
                 serializer.save()
 
-                new_control_list_entries = list(good.control_list_entries.all()) or [
-                    strings.Goods.GOOD_NO_CONTROL_CODE
-                ]
+                new_control_list_entries = list(good.control_list_entries.all()) or [strings.Goods.GOOD_NO_CONTROL_CODE]
                 if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
                     new_control_list_entries = [clc.rating for clc in new_control_list_entries]
                 else:

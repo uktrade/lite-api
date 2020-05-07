@@ -13,7 +13,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.generated_documents.serializers import FinalAdviceDocumentGovSerializer
+from cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from cases.helpers import create_grouped_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
@@ -26,7 +26,7 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision, CaseAssignment
+from cases.models import CaseDocument, EcjuQuery, Advice, Advice, Advice, GoodCountryDecision, CaseAssignment
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -35,8 +35,8 @@ from cases.serializers import (
     CaseAdviceSerializer,
     EcjuQueryGovSerializer,
     EcjuQueryExporterSerializer,
-    CaseTeamAdviceSerializer,
-    CaseFinalAdviceSerializer,
+    CaseAdviceSerializer,
+    CaseAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
 )
@@ -202,9 +202,7 @@ class CaseAdvice(APIView):
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
         # We exclude any team of final level advice objects
-        self.advice = (
-            Advice.objects.filter(case=self.case).exclude(teamadvice__isnull=False).exclude(finaladvice__isnull=False)
-        )
+        self.advice = Advice.objects.filter(case=self.case).exclude(Advice__isnull=False).exclude(Advice__isnull=False)
 
         return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
 
@@ -234,8 +232,8 @@ class CaseTeamAdvice(APIView):
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
         self.advice = Advice.objects.filter(case=self.case)
-        self.team_advice = TeamAdvice.objects.filter(case=self.case).order_by("created_at")
-        self.serializer_object = CaseTeamAdviceSerializer
+        self.team_advice = Advice.objects.filter(case=self.case).order_by("created_at")
+        self.serializer_object = CaseAdviceSerializer
 
         return super(CaseTeamAdvice, self).dispatch(request, *args, **kwargs)
 
@@ -251,13 +249,13 @@ class CaseTeamAdvice(APIView):
 
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
-            create_grouped_advice(self.case, self.request.user, advice, TeamAdvice)
+            create_grouped_advice(self.case, self.request.user, advice, Advice)
             case_advice_contains_refusal(pk)
 
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_TEAM_ADVICE, target=self.case,
             )
-            team_advice = TeamAdvice.objects.filter(case=self.case, team=team).order_by("created_at")
+            team_advice = Advice.objects.filter(case=self.case, team=team).order_by("created_at")
         else:
             team_advice = self.team_advice
         serializer = self.serializer_object(team_advice, many=True)
@@ -303,12 +301,12 @@ class FinalAdviceDocuments(APIView):
         """
         # Get all advice
         advice_values = AdviceType.as_dict()
-        final_advice = FinalAdvice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
+        final_advice = Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
         # Add advice documents
         generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
-        generated_advice_documents = FinalAdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
+        generated_advice_documents = AdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
         for document in generated_advice_documents:
             advice_type = document["advice_type"]["key"]
             advice_documents[advice_type]["document"] = document
@@ -326,11 +324,11 @@ class CaseFinalAdvice(APIView):
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
-        self.team_advice = TeamAdvice.objects.filter(case=self.case)
-        self.final_advice = FinalAdvice.objects.filter(case=self.case).order_by("created_at")
-        self.serializer_object = CaseFinalAdviceSerializer
+        self.team_advice = Advice.objects.filter(case=self.case)
+        self.final_advice = Advice.objects.filter(case=self.case).order_by("created_at")
+        self.serializer_object = CaseAdviceSerializer
 
-        return super(CaseFinalAdvice, self).dispatch(request, *args, **kwargs)
+        return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
@@ -339,12 +337,12 @@ class CaseFinalAdvice(APIView):
         if len(self.final_advice) == 0:
             assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
             # We pass in the class of advice we are creating
-            create_grouped_advice(self.case, self.request.user, self.team_advice, FinalAdvice)
+            create_grouped_advice(self.case, self.request.user, self.team_advice, Advice)
 
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case,
             )
-            final_advice = FinalAdvice.objects.filter(case=self.case).order_by("created_at")
+            final_advice = Advice.objects.filter(case=self.case).order_by("created_at")
         else:
             final_advice = self.final_advice
 
@@ -581,7 +579,7 @@ class FinaliseView(RetrieveUpdateAPIView):
             assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         # Check all decision types have documents
-        required_decisions = set(FinalAdvice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
+        required_decisions = set(Advice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
         generated_document_decisions = set(
             GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list(
                 "advice_type", flat=True

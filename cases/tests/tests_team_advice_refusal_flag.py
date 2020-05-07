@@ -2,7 +2,7 @@ from rest_framework.reverse import reverse
 
 from cases.enums import AdviceType
 from cases.libraries.post_advice import case_advice_contains_refusal
-from cases.models import Case, Advice, TeamAdvice
+from cases.models import Case, Advice, Advice
 from conf import constants
 from flags.enums import SystemFlags
 from flags.models import Flag
@@ -41,7 +41,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.assertTrue(self._check_if_flag_exists())
 
     def test_clear_advice_back_to_user_level_removes_flag(self):
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, Advice)
 
         self.client.delete(self.url, **self.gov_headers)
 
@@ -49,13 +49,13 @@ class CasesFilterAndSortTests(DataTestClient):
 
     # tests the function (case_advice_contains_refusal) which this is all based around
     def test_team_advice_contains_refusal_true(self):
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, Advice)
         case_advice_contains_refusal(self.standard_case.id)
 
         self.assertTrue(self._check_if_flag_exists())
 
     def test_team_advice_contains_refusal_false(self):
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, Advice)
         case_advice_contains_refusal(self.standard_case.id)
 
         self.assertFalse(self._check_if_flag_exists())

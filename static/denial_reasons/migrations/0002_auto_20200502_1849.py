@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('denial_reasons', '0001_initial'),
+        ("denial_reasons", "0001_initial"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='denialreason',
-            options={'ordering': ['id']},
-        ),
+        migrations.AlterModelOptions(name="denialreason", options={"ordering": ["id"]},),
     ]

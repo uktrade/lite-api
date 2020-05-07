@@ -11,7 +11,8 @@ from cases.enums import (
     AdviceType,
     CaseDocumentState,
     CaseTypeSubTypeEnum,
-    CaseTypeReferenceEnum, ECJUQueryType,
+    CaseTypeReferenceEnum,
+    ECJUQueryType,
 )
 from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
 from cases.libraries.get_flags import get_ordered_flags
@@ -22,8 +23,8 @@ from cases.models import (
     CaseDocument,
     Advice,
     EcjuQuery,
-    TeamAdvice,
-    FinalAdvice,
+    Advice,
+    Advice,
     GoodCountryDecision,
     CaseType,
 )
@@ -196,11 +197,10 @@ class CaseDetailSerializer(CaseSerializer):
     # advice = PrimaryKeyRelatedSerializerField(queryset=Advice.objects.all(),
     #                                           many=True,
     #                                           serializer=CaseAdviceSerializerNew)
-    team_advice = PrimaryKeyRelatedSerializerField(queryset=TeamAdvice.objects.all(),
-                                                   source='advice',
-                                                   many=True,
-                                                   serializer=CaseAdviceSerializerNew)
-    # final_advice = PrimaryKeyRelatedSerializerField(queryset=FinalAdvice.objects.all(),
+    team_advice = PrimaryKeyRelatedSerializerField(
+        queryset=Advice.objects.all(), source="advice", many=True, serializer=CaseAdviceSerializerNew
+    )
+    # final_advice = PrimaryKeyRelatedSerializerField(queryset=Advice.objects.all(),
     #                                                 many=True,
     #                                                 source='advice',
     #                                                 serializer=CaseAdviceSerializerNew)
@@ -268,18 +268,18 @@ class CaseDetailSerializer(CaseSerializer):
     def get_has_advice(self, instance):
         has_advice = {"user": False, "my_user": False, "team": False, "my_team": False, "final": False}
 
-        team_advice = TeamAdvice.objects.filter(case=instance).values_list("id", flat=True)
+        team_advice = Advice.objects.filter(case=instance).values_list("id", flat=True)
         if team_advice.exists():
             has_advice["team"] = True
 
-        final_advice = FinalAdvice.objects.filter(case=instance).values_list("id", flat=True)
+        final_advice = Advice.objects.filter(case=instance).values_list("id", flat=True)
         if final_advice.exists():
             has_advice["final"] = True
 
         if Advice.objects.filter(case=instance).exclude(id__in=team_advice.union(final_advice)).exists():
             has_advice["user"] = True
 
-        my_team_advice = TeamAdvice.objects.filter(case=instance, team=self.team).values_list("id", flat=True)
+        my_team_advice = Advice.objects.filter(case=instance, team=self.team).values_list("id", flat=True)
         if my_team_advice.exists():
             has_advice["my_team"] = True
 
@@ -383,11 +383,11 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
         )
 
 
-class SimpleFinalAdviceSerializer(serializers.ModelSerializer):
+class SimpleAdviceSerializer(serializers.ModelSerializer):
     type = KeyValueChoiceField(choices=AdviceType.choices)
 
     class Meta:
-        model = FinalAdvice
+        model = Advice
         fields = ("type", "text", "proviso")
         read_only_fields = fields
 
@@ -395,12 +395,7 @@ class SimpleFinalAdviceSerializer(serializers.ModelSerializer):
 class CaseAdviceSerializer(serializers.ModelSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserViewSerializer)
-    proviso = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        allow_null=True,
-        max_length=5000,
-    )
+    proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000,)
     text = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
     type = KeyValueChoiceField(choices=AdviceType.choices)
@@ -504,17 +499,17 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         return repr_dict
 
 
-class CaseTeamAdviceSerializer(CaseAdviceSerializer):
+class CaseAdviceSerializer(CaseAdviceSerializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
 
     class Meta:
-        model = TeamAdvice
+        model = Advice
         fields = "__all__"
 
 
-class CaseFinalAdviceSerializer(CaseAdviceSerializer):
+class CaseAdviceSerializer(CaseAdviceSerializer):
     class Meta:
-        model = FinalAdvice
+        model = Advice
         fields = "__all__"
 
 

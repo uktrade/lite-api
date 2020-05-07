@@ -11,7 +11,9 @@ from cases.enums import (
     CaseDocumentState,
     CaseTypeTypeEnum,
     CaseTypeSubTypeEnum,
-    CaseTypeReferenceEnum, ECJUQueryType, AdviceLevel,
+    CaseTypeReferenceEnum,
+    ECJUQueryType,
+    AdviceLevel,
 )
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
@@ -251,7 +253,7 @@ class Advice(TimestampableModel):
     type = models.CharField(choices=AdviceType.choices, max_length=30)
     text = models.TextField(default=None, blank=True, null=True)
     note = models.TextField(default=None, blank=True, null=True)
-    new_team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True)
     level = models.CharField(choices=AdviceLevel.choices, max_length=30)
 
     # Optional goods/destinations
@@ -273,6 +275,9 @@ class Advice(TimestampableModel):
     collated_pv_grading = models.TextField(default=None, blank=True, null=True)
 
     objects = AdviceManager()
+
+    class Meta:
+        db_table = "advice"
 
     @property
     def entity_field(self):
@@ -300,6 +305,8 @@ class Advice(TimestampableModel):
                 ultimate_end_user=self.ultimate_end_user,
                 consignee=self.consignee,
                 third_party=self.third_party,
+                level=self.level,
+                team=self.team,
             )
             existing_object.delete()
         except Advice.DoesNotExist:
@@ -320,7 +327,7 @@ class Advice(TimestampableModel):
         )
 
 
-# class TeamAdvice(Advice):
+# class Advice(Advice):
 #     team = models.ForeignKey(Team, on_delete=models.CASCADE)
 #
 #     # pylint: disable=W0221
@@ -331,7 +338,7 @@ class Advice(TimestampableModel):
 #             self.proviso = None
 #
 #         try:
-#             existing_object = TeamAdvice.objects.get(
+#             existing_object = Advice.objects.get(
 #                 case=self.case,
 #                 team=self.team,
 #                 good=self.good,
@@ -343,14 +350,14 @@ class Advice(TimestampableModel):
 #                 third_party=self.third_party,
 #             )
 #             existing_object.delete()
-#         except TeamAdvice.DoesNotExist:
+#         except Advice.DoesNotExist:
 #             pass
 #
 #         # We override the parent class save() method so we only delete existing team level objects
 #         super(Advice, self).save(*args, **kwargs)
 #
 #
-# class FinalAdvice(Advice):
+# class Advice(Advice):
 #     # pylint: disable=W0221
 #     # pylint: disable=E1003
 #     def save(self, *args, **kwargs):
@@ -359,7 +366,7 @@ class Advice(TimestampableModel):
 #             self.proviso = None
 #
 #         try:
-#             existing_object = FinalAdvice.objects.get(
+#             existing_object = Advice.objects.get(
 #                 case=self.case,
 #                 good=self.good,
 #                 goods_type=self.goods_type,
@@ -370,7 +377,7 @@ class Advice(TimestampableModel):
 #                 third_party=self.third_party,
 #             )
 #             existing_object.delete()
-#         except FinalAdvice.DoesNotExist:
+#         except Advice.DoesNotExist:
 #             pass
 #         # We override the parent class save() method so we only delete existing final level objects
 #         super(Advice, self).save(*args, **kwargs)

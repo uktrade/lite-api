@@ -4,7 +4,7 @@ from rest_framework import status
 
 from cases.enums import AdviceType
 from cases.helpers import get_serialized_entities_from_final_advice_on_case
-from cases.models import TeamAdvice, FinalAdvice, Advice
+from cases.models import Advice, Advice, Advice
 from conf import constants
 from conf.helpers import convert_queryset_to_str
 from goods.enums import PvGrading
@@ -17,7 +17,7 @@ from test_helpers.clients import DataTestClient
 from users.models import GovUser, Role
 
 
-class CreateCaseFinalAdviceTests(DataTestClient):
+class CreateCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_draft_standard_application(self.organisation)
@@ -56,10 +56,10 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         Final advice is created on first call
         """
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, TeamAdvice)
-        self.create_advice(self.gov_user_2, self.standard_case, "end_user", AdviceType.PROVISO, TeamAdvice)
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, Advice)
+        self.create_advice(self.gov_user_2, self.standard_case, "end_user", AdviceType.PROVISO, Advice)
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, Advice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, Advice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -81,9 +81,9 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         The type should show conflicting if there are conflicting types in the advice on a single object
         """
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, TeamAdvice)
-        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, Advice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, Advice)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"][0]
@@ -102,7 +102,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
             (self.gov_user_3, PvGrading.NATO_CONFIDENTIAL),
         ]
         for user, pv_grading in inputs:
-            self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice, pv_grading)
+            self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, Advice, pv_grading)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -120,7 +120,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         pv_grading = PvGrading.OCCAR_CONFIDENTIAL
         inputs = [self.gov_user, self.gov_user_2, self.gov_user_3]
         for user in inputs:
-            self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice, pv_grading)
+            self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, Advice, pv_grading)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -141,7 +141,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
             (self.gov_user_3, AdviceType.APPROVE),
         ]
         for user, advice_type in inputs:
-            self.create_advice(user, self.standard_case, "good", advice_type, TeamAdvice, pv_grading)
+            self.create_advice(user, self.standard_case, "good", advice_type, Advice, pv_grading)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -160,7 +160,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
             (self.gov_user_3, AdviceType.APPROVE, PvGrading.NATO_CONFIDENTIAL),
         ]
         for user, advice_type, pv_grading in inputs:
-            self.create_advice(user, self.standard_case, "good", advice_type, TeamAdvice, pv_grading)
+            self.create_advice(user, self.standard_case, "good", advice_type, Advice, pv_grading)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -208,7 +208,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         self.assertEqual(response_data["type"]["key"], data["type"])
         self.assertEqual(response_data["end_user"], data["end_user"])
 
-        advice_object = FinalAdvice.objects.get()
+        advice_object = Advice.objects.get()
 
         # Ensure that proviso details aren't added unless the type sent is PROVISO
         if advice_type != AdviceType.PROVISO:
@@ -251,7 +251,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         No permissions are required to view any tier of advice
         """
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, FinalAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
         self.gov_user.role.permissions.set([])
         self.gov_user.save()
         response = self.client.get(self.standard_case_url, **self.gov_headers)
@@ -262,7 +262,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         Logically blocks the submission of lower tier advice if higher tier advice exists
         """
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, FinalAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         data = {
             "text": "I Am Easy to Find",
@@ -281,7 +281,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         No residual data is left to block lower tier advice being submitted after a clear
         """
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, FinalAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         self.client.delete(self.standard_case_url, **self.gov_headers)
 
@@ -302,7 +302,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         Logically blocks the submission of lower tier advice if higher tier advice exists
         """
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, FinalAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         data = {
             "text": "I Am Easy to Find",
@@ -321,7 +321,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         No residual data is left to block lower tier advice being submitted after a clear
         """
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, FinalAdvice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         self.client.delete(self.standard_case_url, **self.gov_headers)
 
@@ -342,9 +342,9 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         """
         Audit trail is created when clearing or combining advice
         """
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, TeamAdvice)
-        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, TeamAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice)
+        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, Advice)
+        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         self.client.get(self.standard_case_url, **self.gov_headers)
         self.client.delete(self.standard_case_url, **self.gov_headers)
@@ -358,8 +358,8 @@ class CreateCaseFinalAdviceTests(DataTestClient):
         Because of the shared parent class, make sure the parent class "save" method is overridden by the child class
         """
         self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice)
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, TeamAdvice)
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, FinalAdvice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice)
+        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, Advice)
 
         self.client.get(self.standard_case_url, **self.gov_headers)
 
@@ -391,7 +391,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
 
         self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
 
-        advice_object = FinalAdvice.objects.get(entity_id=self.standard_application.end_user.party.id)
+        advice_object = Advice.objects.get(entity_id=self.standard_application.end_user.party.id)
         self.assertEqual(str(advice_object.end_user.id), data["end_user"])
         self.assertEqual(advice_object.entity, advice_object.end_user)
 

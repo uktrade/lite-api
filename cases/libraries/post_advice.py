@@ -5,7 +5,7 @@ from rest_framework.exceptions import ErrorDetail
 from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
 from cases.libraries.get_case import get_case
-from cases.models import FinalAdvice, TeamAdvice, Advice
+from cases.models import Advice, Advice, Advice
 from conf import constants
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
@@ -28,12 +28,12 @@ def check_if_user_cannot_manage_team_advice(case, user):
 
 
 def check_if_final_advice_exists(case):
-    if FinalAdvice.objects.filter(case=case):
+    if Advice.objects.filter(case=case):
         return JsonResponse({"errors": "Final advice already exists for this case"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def check_if_team_advice_exists(case, user):
-    if TeamAdvice.objects.filter(case=case, team=user.team):
+    if Advice.objects.filter(case=case, team=user.team):
         return JsonResponse(
             {"errors": "Team advice from your team already exists for this case"}, status=status.HTTP_400_BAD_REQUEST
         )
@@ -87,7 +87,7 @@ def post_advice(request, case, serializer_object, team=False):
 
 def case_advice_contains_refusal(case_id):
     case = get_case(case_id)
-    team_advice = TeamAdvice.objects.filter(case=case)
+    team_advice = Advice.objects.filter(case=case)
     flag = Flag.objects.get(id=SystemFlags.REFUSAL_FLAG_ID)
 
     refuse_advice_found = False
