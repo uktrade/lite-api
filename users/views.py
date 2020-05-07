@@ -10,7 +10,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
-from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
+from conf.authentication import (
+    ExporterAuthentication,
+    ExporterOnlyAuthentication,
+    GovAuthentication,
+    HawkOnlyAuthentication,
+)
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date, str_to_bool
@@ -38,7 +43,7 @@ class AuthenticateExporterUser(APIView):
     Authenticate user
     """
 
-    permission_classes = (AllowAny,)
+    authentication_classes = (HawkOnlyAuthentication,)
 
     @swagger_auto_schema(responses={400: "JSON parse error", 403: "Forbidden"})
     def post(self, request, *args, **kwargs):
@@ -130,7 +135,7 @@ class UserMeDetail(APIView):
     Get the user from request
     """
 
-    authentication_classes = (ExporterOnlyAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
 
     def get(self, request):
         org_pk = request.headers["Organisation-Id"]
