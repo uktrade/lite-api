@@ -9,7 +9,7 @@ from rest_framework import authentication
 
 from conf import settings
 from conf.exceptions import PermissionDeniedError
-from conf.settings import DEBUG, PERFORM_HAWK_AUTHENTICATION
+from conf.settings import PERFORM_HAWK_AUTHENTICATION
 from gov_users.enums import GovUserStatuses
 from organisations.enums import OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
@@ -132,6 +132,23 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
         exporter_user = get_user_by_pk(token_to_user_pk(exporter_user_token))
 
         return exporter_user, hawk_receiver
+
+
+class HawkOnlyAuthentication(authentication.BaseAuthentication):
+    def authenticate(self, request):
+        """
+        When given a user token, validate that the user exists
+        """
+
+        # First, establish that the request has come from an authorised LITE API client
+        # by checking that the request is correctly Hawk signed
+        try:
+            hawk_receiver = _authorise(request)
+        except HawkFail as e:
+            logging.warning(f"Failed HAWK authentication {e}")
+            raise e
+
+        return None, hawk_receiver
 
 
 class GovAuthentication(authentication.BaseAuthentication):
