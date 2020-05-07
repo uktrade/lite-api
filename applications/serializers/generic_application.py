@@ -43,7 +43,6 @@ class TinyCaseTypeSerializer(serializers.ModelSerializer):
 
 
 class GenericApplicationListSerializer(serializers.ModelSerializer):
-    exporter_user_notification_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     case_type = TinyCaseTypeSerializer()
 
@@ -56,19 +55,8 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
             "status",
             "updated_at",
             "reference_code",
-            "exporter_user_notification_count",
         )
         read_only_fields = fields
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.exporter_user = kwargs["context"]["exporter_user"]
-        self.organisation_id = kwargs["context"]["organisation_id"]
-
-    def get_exporter_user_notification_count(self, instance):
-        return get_exporter_user_notification_total_count(
-            exporter_user=self.exporter_user, organisation_id=self.organisation_id, case=instance
-        )
 
     def get_status(self, instance):
         if instance.status:

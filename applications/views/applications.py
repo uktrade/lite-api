@@ -78,6 +78,7 @@ from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from users.libraries.notifications import get_case_notifications
 from users.models import ExporterUser
 from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -86,9 +87,6 @@ from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer
-
-    def get_serializer_context(self):
-        return {"exporter_user": self.request.user, "organisation_id": get_request_user_organisation_id(self.request)}
 
     def get_queryset(self):
         """
@@ -124,7 +122,11 @@ class ApplicationList(ListCreateAPIView):
                 case_type_id=CaseTypeEnum.HMRC.id
             )
 
-        return applications
+        return applications.prefetch_related("status", "case_type")
+
+    def get_paginated_response(self, data):
+        data = get_case_notifications(data, self.request)
+        return super().get_paginated_response(data)
 
     def post(self, request, **kwargs):
         """
