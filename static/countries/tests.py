@@ -10,7 +10,7 @@ class CountriesTests(DataTestClient):
     url = reverse("static:countries:countries")
 
     def test_get_countries(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.exporter_headers)
         countries = response.json()["countries"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -22,7 +22,9 @@ class CountriesTests(DataTestClient):
         country_one = Country.objects.first()
         country_two = Country.objects.last()
 
-        response = self.client.get(self.url + f"?exclude={country_one.id}&exclude={country_two.id}")
+        response = self.client.get(
+            self.url + f"?exclude={country_one.id}&exclude={country_two.id}", **self.exporter_headers
+        )
         countries = response.json()["countries"]
         country_names = [country["name"] for country in countries]
 
@@ -32,7 +34,7 @@ class CountriesTests(DataTestClient):
         self.assertNotIn(country_two.name, country_names)
 
     def test_get_country(self):
-        response = self.client.get(reverse("static:countries:country", kwargs={"pk": "GB"}))
+        response = self.client.get(reverse("static:countries:country", kwargs={"pk": "GB"}), **self.exporter_headers)
         response_data = response.json()
         country = Country.objects.get(pk="GB")
 

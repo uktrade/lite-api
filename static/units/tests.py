@@ -10,7 +10,7 @@ class UnitsTests(DataTestClient):
     url = reverse("static:units:units")
 
     def test_get_units(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.exporter_headers)
         units = response.json()["units"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

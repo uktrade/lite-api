@@ -136,6 +136,8 @@ HAWK_CREDENTIALS = {
 
 HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60 if not DEBUG else 3600  # When DEBUG is TRUE, allow more time to debug responses
 
+PERFORM_HAWK_AUTHENTICATION = "test" not in sys.argv
+
 WSGI_APPLICATION = "conf.wsgi.application"
 
 SWAGGER_SETTINGS = {"DEFAULT_INFO": "conf.urls.api_info"}
