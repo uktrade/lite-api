@@ -141,8 +141,8 @@ class ExporterUser(BaseUser):
             user=self, organisation=organisation, content_object=content_object, case=case
         )
 
-    def get_role(self, organisation):
-        return self.relationship.get(organisation=organisation).role
+    def get_role(self, organisation_id):
+        return self.relationship.get(organisation_id=organisation_id).role
 
     def set_role(self, organisation, role):
         uor = self.relationship.get(organisation=organisation)

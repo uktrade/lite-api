@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from cases.enums import CaseTypeEnum
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
@@ -72,6 +73,7 @@ class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
         self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
+        self.organisation_id = kwargs.get("context").get("organisation_id") if "context" in kwargs else None
         if not isinstance(self.exporter_user, ExporterUser):
             self.fields.pop("exporter_user_notification_count")
 
@@ -121,4 +123,6 @@ class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
         return end_user_advisory_query
 
     def get_exporter_user_notification_count(self, instance):
-        return get_exporter_user_notification_individual_count(exporter_user=self.exporter_user, case=instance)
+        return get_exporter_user_notification_individual_count(
+            exporter_user=self.exporter_user, organisation_id=self.organisation_id, case=instance
+        )

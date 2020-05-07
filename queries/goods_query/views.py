@@ -20,6 +20,7 @@ from goods.libraries.get_pv_grading import get_pv_grading_value_from_key
 from goods.models import Good
 from goods.serializers import ClcControlGoodSerializer
 from lite_content.lite_api import strings
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from queries.goods_query.helpers import get_starting_status
 from queries.goods_query.models import GoodsQuery
 from queries.goods_query.serializers import PVGradingResponseSerializer
@@ -59,7 +60,7 @@ class GoodsQueriesCreate(APIView):
         data = request.data
         good = get_good(data["good_id"])
 
-        data["organisation"] = request.user.organisation
+        data["organisation"] = get_request_user_organisation_id(request)
 
         is_clc_required = good.is_good_controlled == GoodControlled.UNSURE
         is_pv_grading_required = good.is_pv_graded == GoodPvGraded.GRADING_REQUIRED
@@ -75,7 +76,7 @@ class GoodsQueriesCreate(APIView):
             clc_raised_reasons=data.get("clc_raised_reasons"),
             pv_grading_raised_reasons=data.get("pv_grading_raised_reasons"),
             good=good,
-            organisation=data["organisation"],
+            organisation_id=data["organisation"],
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_starting_status(is_clc_required),
             submitted_at=django.utils.timezone.now(),
