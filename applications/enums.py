@@ -63,6 +63,9 @@ class GoodsTypeCategory:
             if key == choice:
                 return value
 
+    IMMUTABLE_GOODS = [CRYPTOGRAPHIC, MEDIA, DEALER]
+    IMMUTABLE_DESTINATIONS = [CRYPTOGRAPHIC, MEDIA, DEALER, UK_CONTINENTAL_SHELF]
+
 
 class ApplicationExportLicenceOfficialType:
     YES = "yes"

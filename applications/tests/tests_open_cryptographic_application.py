@@ -3,76 +3,76 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory
-from applications.models import OpenApplication, CountryOnApplication
+from applications.models import OpenApplication, CountryOnApplication, PartyOnApplication
 from cases.enums import CaseTypeReferenceEnum
 from goodstype.models import GoodsType
 from goodstype.tests.factories import GoodsTypeFactory
+from parties.enums import PartyType
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
-class OpenMediaTests(DataTestClient):
+class OpenCryptographicTests(DataTestClient):
     url = reverse("applications:applications")
 
-    def test_create_draft_open_media_application_generates_goods(self):
+    def test_create_draft_open_cryptographic_application_generates_goods(self):
         data = {
             "name": "Test",
             "application_type": CaseTypeReferenceEnum.OIEL,
             "export_type": ApplicationExportType.TEMPORARY,
-            "goodstype_category": GoodsTypeCategory.MEDIA,
+            "goodstype_category": GoodsTypeCategory.CRYPTOGRAPHIC,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(OpenApplication.objects.count(), 1)
-        self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 6)
+        self.assertEqual(GoodsType.objects.filter(application=OpenApplication.objects.first()).count(), 3)
 
-    def test_export_type_is_set_to_temporary(self):
+    def test_export_type_is_set_to_permanent(self):
         data = {
             "name": "Test",
             "application_type": CaseTypeReferenceEnum.OIEL,
-            "goodstype_category": GoodsTypeCategory.MEDIA,
+            "goodstype_category": GoodsTypeCategory.CRYPTOGRAPHIC,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.TEMPORARY)
+        self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.PERMANENT)
 
-    def test_export_type_override_permanent_to_temporary(self):
+    def test_export_type_override_temporary_to_permanent(self):
         data = {
             "name": "Test",
-            "export_type": ApplicationExportType.PERMANENT,
+            "export_type": ApplicationExportType.TEMPORARY,
             "application_type": CaseTypeReferenceEnum.OIEL,
-            "goodstype_category": GoodsTypeCategory.MEDIA,
+            "goodstype_category": GoodsTypeCategory.CRYPTOGRAPHIC,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.TEMPORARY)
+        self.assertEqual(OpenApplication.objects.first().export_type, ApplicationExportType.PERMANENT)
 
-    def test_all_countries_added_media(self):
+    def test_permitted_countries_added_cryptographic(self):
         data = {
             "name": "Test",
             "export_type": ApplicationExportType.PERMANENT,
             "application_type": CaseTypeReferenceEnum.OIEL,
-            "goodstype_category": GoodsTypeCategory.MEDIA,
+            "goodstype_category": GoodsTypeCategory.CRYPTOGRAPHIC,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
-            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(),
-            Country.objects.count(),
+            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(), 213,
         )
 
-    def test_cannot_add_goodstypes_on_media_application(self):
+    def test_cannot_add_goodstypes_on_cryptographic_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
-        application.goodstype_category = GoodsTypeCategory.MEDIA
+        application.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
         application.save()
         initial_goods_count = GoodsType.objects.all().count()
         url = reverse("applications:application_goodstypes", kwargs={"pk": application.id})
@@ -82,10 +82,10 @@ class OpenMediaTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(GoodsType.objects.all().count(), initial_goods_count)
 
-    def test_cannot_remove_goodstype_from_open_media_application(self):
+    def test_cannot_remove_goodstype_from_open_cryptographic_application(self):
         self.create_draft_open_application(self.organisation)
         application = self.create_draft_open_application(organisation=self.organisation)
-        application.goodstype_category = GoodsTypeCategory.MEDIA
+        application.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
         application.save()
         goodstype = GoodsTypeFactory(application=application)
         initial_goods_count = GoodsType.objects.all().count()
@@ -98,9 +98,9 @@ class OpenMediaTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(GoodsType.objects.all().count(), initial_goods_count)
 
-    def test_cannot_change_countries_on_media_application(self):
+    def test_cannot_change_countries_on_cryptographic_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
-        application.goodstype_category = GoodsTypeCategory.MEDIA
+        application.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
         application.save()
         initial_countries_count = CountryOnApplication.objects.filter(application=application).count()
         data = {"countries": Country.objects.all()[:10].values_list("id", flat=True)}
@@ -110,13 +110,13 @@ class OpenMediaTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(CountryOnApplication.objects.filter(application=application).count(), initial_countries_count)
 
-    def test_cannot_change_countries_on_goodstype_on_media_application(self):
+    def test_cannot_change_countries_on_goodstype_on_cryptographic_application(self):
         country_1 = get_country("ES")
         country_2 = get_country("US")
         country_3 = get_country("FR")
 
         application = self.create_draft_open_application(organisation=self.organisation)
-        application.goodstype_category = GoodsTypeCategory.MEDIA
+        application.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
         application.save()
         goodstype = GoodsType.objects.filter(application=application).first()
         initial_countries_count = goodstype.countries.count()
@@ -127,3 +127,54 @@ class OpenMediaTests(DataTestClient):
         goodstype.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(goodstype.countries.count(), initial_countries_count)
+
+    def test_set_third_parties_on_draft_open_cryptographic(self):
+        application = self.create_draft_open_application(organisation=self.organisation)
+        application.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
+        application.save()
+        third_party_qs = PartyOnApplication.objects.filter(
+            party__type=PartyType.THIRD_PARTY, application=application, deleted_at__isnull=True
+        )
+        data = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "individual",
+            "website": "https://www.gov.uk",
+            "type": PartyType.THIRD_PARTY,
+            "role": "agent",
+        }
+
+        url = reverse("applications:parties", kwargs={"pk": application.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(third_party_qs.count(), 1)
+
+    def test_submit_open_cryptographic_application(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        data = {
+            "name": "Test",
+            "application_type": CaseTypeReferenceEnum.OIEL,
+            "export_type": ApplicationExportType.TEMPORARY,
+            "goodstype_category": GoodsTypeCategory.CRYPTOGRAPHIC,
+        }
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        application_id = response.json()["id"]
+        data = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "individual",
+            "website": "https://www.gov.uk",
+            "type": PartyType.THIRD_PARTY,
+            "role": "agent",
+        }
+
+        url = reverse("applications:parties", kwargs={"pk": application_id})
+        self.client.post(url, data, **self.exporter_headers)
+
+        url = reverse("applications:application_submit", kwargs={"pk": application_id})
+        response = self.client.put(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

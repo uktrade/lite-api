@@ -67,15 +67,15 @@ class EndPointTests(SimpleTestCase):
             # set up headers data in csv if not already done
             csv_data.append(["env", env("PERFORMANCE_TEST_HOST")])
             csv_data.append([])
-            csv_data.append(["url", "response_time"])
+            csv_data.append(["response_time", "test", "url"])
 
         super().setUpClass()
 
     def tearDown(self):
         if self.time:
-            csv_data.append([self.appended_address, self.time])
+            csv_data.append([self.time, self._testMethodName, self.appended_address])
         else:
-            csv_data.append([self._testMethodName, "Error"])
+            csv_data.append(["Error", self._testMethodName, ""])
 
         # print out the function and time function took to run
         print("\n" + self._testMethodName + ", " + str(self.time) if self.time else "Error")
@@ -135,18 +135,21 @@ class EndPointTests(SimpleTestCase):
 
     def _get_application_by_case_type(self, case_type, attribute):
         response = self.call_endpoint(self.get_exporter(), "/applications/", save_results=False).json()
-        for page in range(1, response["total_pages"]):
+        for page in range(0, response["total_pages"]):
             for application in response["results"]:
                 if application["case_type"]["sub_type"]["key"] == case_type:
                     self.__setattr__(attribute, application)
                     break
             else:
                 response = self.call_endpoint(
-                    self.get_exporter(), "/applications/page=" + str(page + 1), save_results=False
+                    self.get_exporter(), "/applications/?page=" + str(page + 1), save_results=False
                 ).json()
                 continue
 
             break
+
+        if not self.__getattribute__(attribute):
+            raise IndexError(f"No application of type {case_type} was found")
 
     def get_application_goodstype_id(self):
         if not self.goods_type_id:
@@ -155,7 +158,10 @@ class EndPointTests(SimpleTestCase):
                 "/applications/" + self.get_open_application()["id"] + "/goodstypes/",
                 save_results=False,
             )
-            self.goods_type_id = response.json()["goods"][0]["id"]
+            try:
+                self.goods_type_id = response.json()["goods"][0]["id"]
+            except IndexError:
+                raise IndexError("No goodstype were found for application")
 
         return self.goods_type_id
 
@@ -166,16 +172,20 @@ class EndPointTests(SimpleTestCase):
                 "/applications/" + self.get_standard_application()["id"] + "/parties/",
                 save_results=False,
             )
-
-            self.application_party_id = response.json()["parties"][0]["id"]
+            try:
+                self.application_party_id = response.json()["parties"][0]["id"]
+            except IndexError:
+                raise IndexError("No parties were found on application")
 
         return self.application_party_id
 
     def get_good_id(self):
         if not self.good_id:
             response = self.call_endpoint(self.get_exporter(), "/goods/", save_results=False)
-
-            self.good_id = response.json()["results"][0]["id"]
+            try:
+                self.good_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("No goods were found in list")
 
         return self.good_id
 
@@ -184,8 +194,11 @@ class EndPointTests(SimpleTestCase):
             response = self.call_endpoint(
                 self.get_exporter(), "/goods/" + self.get_good_id() + "/documents/", save_results=False
             )
+            try:
+                self.good_document_id = response.json()["documents"][0]["id"]
+            except IndexError:
+                raise IndexError("No documents were found for good")
 
-            self.good_document_id = response.json()["documents"][0]["id"]
         return self.good_document_id
 
     def get_organisation_user_id(self):
@@ -195,8 +208,10 @@ class EndPointTests(SimpleTestCase):
                 "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/users/",
                 save_results=False,
             )
-
-            self.organisation_user_id = response.json()["results"][0]["id"]
+            try:
+                self.organisation_user_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("No users found for organisation")
 
         return self.organisation_user_id
 
@@ -207,8 +222,10 @@ class EndPointTests(SimpleTestCase):
                 "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/roles/",
                 save_results=False,
             )
-
-            self.organisation_role_id = response.json()["results"][0]["id"]
+            try:
+                self.organisation_role_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("No roles found for organisation")
 
         return self.organisation_role_id
 
@@ -220,7 +237,10 @@ class EndPointTests(SimpleTestCase):
                 save_results=False,
             )
 
-            self.organisation_site_id = response.json()["sites"][0]["id"]
+            try:
+                self.organisation_site_id = response.json()["sites"][0]["id"]
+            except IndexError:
+                raise IndexError("No sites found for organisation")
 
         return self.organisation_site_id
 
@@ -228,15 +248,21 @@ class EndPointTests(SimpleTestCase):
         if not self.end_user_advisory_id:
             response = self.call_endpoint(self.get_exporter(), "/queries/end-user-advisories/", save_results=False)
 
-            self.end_user_advisory_id = response.json()["results"][0]["id"]
+            try:
+                self.end_user_advisory_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("No end user advisories exist for the organisation")
 
         return self.end_user_advisory_id
 
     def get_users_id(self):
         if not self.users_id:
-            response = self.call_endpoint(self.get_exporter(), "/users/", save_results=False)
+            exporter = self.get_exporter()
+            response = self.call_endpoint(
+                exporter, "/organisations/" + exporter["ORGANISATION-ID"] + "/users/", save_results=False
+            )
 
-            self.users_id = response.json()["users"][0]["id"]
+            self.users_id = response.json()["results"][0]["id"]
 
         return self.users_id
 
@@ -252,7 +278,7 @@ class EndPointTests(SimpleTestCase):
         if not self.queue_id:
             response = self.call_endpoint(self.get_gov_user(), "/queues/", save_results=False)
 
-            self.queue_id = response.json()["queues"][0]["id"]
+            self.queue_id = response.json()["results"][0]["id"]
 
         return self.queue_id
 
@@ -260,7 +286,10 @@ class EndPointTests(SimpleTestCase):
         if not self.picklist_id:
             response = self.call_endpoint(self.get_gov_user(), "/picklist/", save_results=False)
 
-            self.picklist_id = response.json()["picklist_items"][0]["id"]
+            try:
+                self.picklist_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("no picklists exists")
 
         return self.picklist_id
 
@@ -268,7 +297,10 @@ class EndPointTests(SimpleTestCase):
         if not self.letter_template_id:
             response = self.call_endpoint(self.get_gov_user(), "/letter-templates/", save_results=False)
 
-            self.letter_template_id = response.json()["results"][0]["id"]
+            try:
+                self.letter_template_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("no letter templates exist")
 
         return self.letter_template_id
 
@@ -292,7 +324,10 @@ class EndPointTests(SimpleTestCase):
         if not self.flag_id:
             response = self.call_endpoint(self.get_gov_user(), "/flags/", save_results=False)
 
-            self.flag_id = response.json()["flags"][0]["id"]
+            try:
+                self.flag_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("no flags exist")
 
         return self.flag_id
 
@@ -300,7 +335,10 @@ class EndPointTests(SimpleTestCase):
         if not self.flagging_rule_id:
             response = self.call_endpoint(self.get_gov_user(), "/flags/rules/", save_results=False)
 
-            self.flagging_rule_id = response.json()["results"][0]["id"]
+            try:
+                self.flagging_rule_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("no flagging rules exist")
 
         return self.flagging_rule_id
 
@@ -317,7 +355,10 @@ class EndPointTests(SimpleTestCase):
             response = self.call_endpoint(
                 self.get_gov_user(), "/cases/" + self.get_case_id() + "/documents/", save_results=False
             )
-            self.case_document = response.json()["documents"][0]
+            try:
+                self.case_document = response.json()["documents"][0]
+            except IndexError:
+                raise IndexError("No case documents exists for this case")
 
         return self.case_document
 
@@ -326,8 +367,10 @@ class EndPointTests(SimpleTestCase):
             response = self.call_endpoint(
                 self.get_gov_user(), self.url + self.get_case_id() + "/ecju-queries/", save_results=False
             )
-
-            self.case_ecju_query_id = response.json()["ecju_queries"][0]["id"]
+            try:
+                self.case_ecju_query_id = response.json()["ecju_queries"][0]["id"]
+            except IndexError:
+                raise IndexError("No ecju queries exists for this case")
 
         return self.case_ecju_query_id
 
@@ -335,6 +378,9 @@ class EndPointTests(SimpleTestCase):
         if not self.routing_rule_id:
             response = self.call_endpoint(self.get_gov_user(), "/routing-rules/", save_results=False)
 
-            self.routing_rule_id = response.json()["results"][0]["id"]
+            try:
+                self.routing_rule_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("No routing rules exist or you do not have permission to access them")
 
         return self.routing_rule_id
