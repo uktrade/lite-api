@@ -2,7 +2,6 @@ import logging
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
-from functools import partial
 from mohawk import Receiver
 from mohawk.exc import HawkFail, AlreadyProcessed
 from rest_framework import authentication
