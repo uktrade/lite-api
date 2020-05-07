@@ -201,9 +201,11 @@ class ApplicationExternalLocations(APIView):
             for location_id in location_ids:
                 new_location = get_location(location_id, user_organisation)
 
-                if new_location.country and (
-                    previous_location_countries and new_location.country.id not in previous_location_countries
-                ) or new_location.location_type == "sea_based":
+                if (
+                    new_location.country
+                    and (previous_location_countries and new_location.country.id not in previous_location_countries)
+                    or new_location.location_type == "sea_based"
+                ):
                     return (
                         None,
                         {
