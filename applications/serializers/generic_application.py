@@ -42,21 +42,13 @@ class TinyCaseTypeSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class GenericApplicationListSerializer(serializers.ModelSerializer):
-    status = serializers.SerializerMethodField()
+class GenericApplicationListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
     case_type = TinyCaseTypeSerializer()
-
-    class Meta:
-        model = BaseApplication
-        fields = (
-            "id",
-            "name",
-            "case_type",
-            "status",
-            "updated_at",
-            "reference_code",
-        )
-        read_only_fields = fields
+    status = serializers.SerializerMethodField()
+    updated_at = serializers.DateTimeField()
+    reference_code = serializers.CharField()
 
     def get_status(self, instance):
         if instance.status:
