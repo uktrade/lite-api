@@ -131,7 +131,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         self.hmrc_exporter_headers = {
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.hmrc_exporter_user),
-            "HTTP_ORGANISATION_ID": self.hmrc_organisation.id,
+            "HTTP_ORGANISATION_ID": str(self.hmrc_organisation.id),
         }
 
         self.queue = self.create_queue("Initial Queue", self.team)
