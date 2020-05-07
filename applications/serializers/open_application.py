@@ -41,33 +41,33 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     class Meta:
         model = OpenApplication
         fields = (
-                GenericApplicationViewSerializer.Meta.fields
-                + PartiesSerializerMixin.Meta.fields
-                + (
-                    "activity",
-                    "usage",
-                    "goods_types",
-                    "destinations",
-                    "additional_documents",
-                    "is_military_end_use_controls",
-                    "military_end_use_controls_ref",
-                    "is_informed_wmd",
-                    "informed_wmd_ref",
-                    "is_suspected_wmd",
-                    "suspected_wmd_ref",
-                    "intended_end_use",
-                    "licence",
-                    "is_shipped_waybill_or_lading",
-                    "non_waybill_or_lading_route_details",
-                    "temp_export_details",
-                    "is_temp_direct_control",
-                    "temp_direct_control_details",
-                    "proposed_return_date",
-                    "trade_control_activity",
-                    "trade_control_product_categories",
-                    "goodstype_category",
-                    "contains_firearm_goods",
-                )
+            GenericApplicationViewSerializer.Meta.fields
+            + PartiesSerializerMixin.Meta.fields
+            + (
+                "activity",
+                "usage",
+                "goods_types",
+                "destinations",
+                "additional_documents",
+                "is_military_end_use_controls",
+                "military_end_use_controls_ref",
+                "is_informed_wmd",
+                "informed_wmd_ref",
+                "is_suspected_wmd",
+                "suspected_wmd_ref",
+                "intended_end_use",
+                "licence",
+                "is_shipped_waybill_or_lading",
+                "non_waybill_or_lading_route_details",
+                "temp_export_details",
+                "is_temp_direct_control",
+                "temp_direct_control_details",
+                "proposed_return_date",
+                "trade_control_activity",
+                "trade_control_product_categories",
+                "goodstype_category",
+                "contains_firearm_goods",
+            )
         )
 
     def get_goods_types(self, application):
