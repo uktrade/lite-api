@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from lite_content.lite_api import strings
+from organisations.enums import LocationType
 from organisations.models import ExternalLocation
 from test_helpers.clients import DataTestClient
 
@@ -43,7 +44,7 @@ class OrganisationExternalLocationsTests(DataTestClient):
             "name": "regional site",
             "address": "123 Test",
             "country": "",
-            "location_type": "land_based",
+            "location_type": LocationType.LAND_BASED,
             "application_type": "sicl",
         }
 
@@ -61,7 +62,7 @@ class OrganisationExternalLocationsTests(DataTestClient):
         data = {
             "name": "regional site",
             "address": "123 Test",
-            "location_type": "sea_based",
+            "location_type": LocationType.SEA_BASED,
             "application_type": "sicl",
         }
 
@@ -70,7 +71,7 @@ class OrganisationExternalLocationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["external_location"]["name"], "regional site")
         self.assertEqual(response.json()["external_location"]["address"], "123 Test")
-        self.assertEqual(response.json()["external_location"]["location_type"], "sea_based")
+        self.assertEqual(response.json()["external_location"]["location_type"], LocationType.SEA_BASED)
         self.assertEqual(response.json()["external_location"]["country"], None)
         self.assertEqual(ExternalLocation.objects.all().count(), 2)
 

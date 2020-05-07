@@ -11,7 +11,7 @@ from conf.serializers import (
 )
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Organisations
-from organisations.enums import OrganisationType, OrganisationStatus
+from organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
 from users.libraries.get_user import get_user_organisation_relationship
@@ -302,7 +302,7 @@ class SiclExternalLocationSerializer(serializers.ModelSerializer):
     )
 
     def validate(self, data):
-        if data["location_type"] == "land_based" and not data["country"]:
+        if data["location_type"] == LocationType.LAND_BASED and not data["country"]:
             raise serializers.ValidationError({"country": strings.Addresses.NULL_COUNTRY})
         return super().validate(data)
 
