@@ -1,17 +1,15 @@
-import operator
-from functools import reduce
-
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
+from rest_framework.views import APIView
 
 from applications.models import BaseApplication
-from conf.authentication import SharedAuthentication, OrganisationAuthentication
+from conf.authentication import SharedAuthentication, OrganisationAuthentication, GovAuthentication
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
-from conf.permissions import check_user_has_permission
+from conf.permissions import check_user_has_permission, assert_user_has_permission
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus, OrganisationType
 from organisations.libraries.get_organisation import get_organisation_by_pk
@@ -20,6 +18,7 @@ from organisations.serializers import (
     OrganisationDetailSerializer,
     OrganisationCreateUpdateSerializer,
     OrganisationListSerializer,
+    OrganisationStatusUpdateSerializer,
 )
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -40,17 +39,23 @@ class OrganisationsList(generics.ListCreateAPIView):
         ):
             raise PermissionError("Exporters aren't allowed to view other organisations")
 
+        organisations = Organisation.objects.all()
         org_types = self.request.query_params.getlist("org_type", [])
-        search_term = self.request.query_params.get("search_term", "")
-
-        query = [Q(name__icontains=search_term) | Q(registration_number__icontains=search_term)]
-
-        result = Organisation.objects.filter(reduce(operator.and_, query))
+        search_term = self.request.query_params.get("search_term")
+        status = self.request.query_params.get("status")
 
         if org_types:
-            result = result.filter(Q(type__in=org_types))
+            organisations = organisations.filter(type__in=org_types)
 
-        return result
+        if search_term:
+            organisations = organisations.filter(
+                Q(name__icontains=search_term) | Q(registration_number__icontains=search_term)
+            )
+
+        if status:
+            organisations = organisations.filter(status=status)
+
+        return organisations
 
     @transaction.atomic
     @swagger_auto_schema(request_body=OrganisationCreateUpdateSerializer, responses={400: "JSON parse error"})
@@ -120,3 +125,62 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
         for application in applications:
             apply_flagging_rules_to_case(application)
+
+
+class OrganisationsMatchingDetail(APIView):
+    @staticmethod
+    def _property_has_multiple_occurances(queryset, property, property_name):
+        return property and property in queryset.values_list(property_name, flat=True)
+
+    def get(self, request, pk):
+        matching_properties = []
+        organisation = get_organisation_by_pk(pk)
+        organisations_with_matching_details = Organisation.objects.filter(
+            Q(name__isnull=False, name=organisation.name)
+            | Q(eori_number__isnull=False, eori_number=organisation.eori_number)
+            | Q(registration_number__isnull=False, registration_number=organisation.registration_number)
+            | Q(
+                primary_site__address__address_line_1__isnull=False,
+                primary_site__address__address_line_1=organisation.primary_site.address.address_line_1,
+            )
+            | Q(
+                primary_site__address__address__isnull=False,
+                primary_site__address__address=organisation.primary_site.address.address,
+            )
+        ).exclude(id=pk)
+
+        if organisations_with_matching_details.exists():
+            if self._property_has_multiple_occurances(organisations_with_matching_details, organisation.name, "name"):
+                matching_properties.append(Organisations.MatchingProperties.NAME)
+
+            if self._property_has_multiple_occurances(
+                organisations_with_matching_details, organisation.eori_number, "eori_number"
+            ):
+                matching_properties.append(Organisations.MatchingProperties.EORI)
+
+            if self._property_has_multiple_occurances(
+                organisations_with_matching_details, organisation.registration_number, "registration_number"
+            ):
+                matching_properties.append(Organisations.MatchingProperties.REGISTRATION)
+
+            if self._property_has_multiple_occurances(
+                organisations_with_matching_details,
+                organisation.primary_site.address.address_line_1,
+                "primary_site__address__address_line_1",
+            ) or self._property_has_multiple_occurances(
+                organisations_with_matching_details,
+                organisation.primary_site.address.address,
+                "primary_site__address__address",
+            ):
+                matching_properties.append(Organisations.MatchingProperties.ADDRESS)
+
+        return JsonResponse({"matching_properties": matching_properties})
+
+
+class OrganisationStatusView(generics.UpdateAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = OrganisationStatusUpdateSerializer
+
+    def get_object(self):
+        assert_user_has_permission(self.request.user, GovPermissions.MANAGE_ORGANISATIONS)
+        return get_organisation_by_pk(self.kwargs["pk"])
