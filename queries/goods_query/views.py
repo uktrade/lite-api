@@ -161,9 +161,11 @@ class GoodQueryCLCResponse(APIView):
                         },
                     )
 
-                    query.good.flags.clear()
-                    query.good.save()
-                    apply_flagging_rules_to_case(query)
+                flag = Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID)
+                query.good.flags.remove(flag)
+                query.good.status = GoodStatus.VERIFIED
+                query.good.save()
+                apply_flagging_rules_to_case(query)
 
                 audit_trail_service.create(
                     actor=request.user, verb=AuditType.CLC_RESPONSE, action_object=query.good, target=query.get_case(),
