@@ -11,6 +11,7 @@ from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
+from teams.serializers import TeamReadOnlySerializer
 from users.models import GovUser
 
 
@@ -28,6 +29,7 @@ class CaseAdviceSerializerNew(serializers.Serializer):
     type = KeyValueChoiceField(choices=AdviceType.choices)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
     level = serializers.SerializerMethodField()
+    team = serializers.SerializerMethodField()
 
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
@@ -46,7 +48,15 @@ class CaseAdviceSerializerNew(serializers.Serializer):
     )
 
     def get_level(self, instance):
-        return type(Advice.objects.get_subclass(id=instance.id)).__name__
+        return type(instance).__name__
+
+    def get_team(self, instance):
+        print('\n')
+        print('instance here')
+        print(instance)
+        print('\n')
+        if hasattr(instance, "team"):
+            return TeamReadOnlySerializer(instance.team)
 
     def to_representation(self, instance):
         repr_dict = super().to_representation(instance)

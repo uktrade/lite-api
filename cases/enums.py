@@ -268,6 +268,18 @@ class AdviceType:
         return {choice[0]: choice[1] for choice in cls.choices}
 
 
+class AdviceLevel:
+    USER = "user"
+    TEAM = "team"
+    FINAL = "final"
+
+    choices = [
+        (USER, "User"),
+        (TEAM, "Team"),
+        (FINAL, "Final"),
+    ]
+
+
 class CaseDocumentState:
     UPLOADED = "UPLOADED"
     GENERATED = "GENERATED"
