@@ -170,18 +170,6 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["exporter_user_notification_count"], 3)
 
-    def test_get_good_with_notifications_success(self):
-        case = self._create_clc_query_with_notifications()
-
-        response = self.client.get(
-            reverse_lazy("goods:good", kwargs={"pk": str(case.good_id)}) + "?full_detail=True", **self.exporter_headers
-        )
-        response_data = response.json()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("exporter_user_notification_count", response_data["good"]["query"])
-        self.assertEqual(len(response_data["good"]["query"]["exporter_user_notification_count"]), 3)
-
     def test_get_end_user_advisory_queries_with_notifications_success(self):
         self._create_end_user_advisory_query_with_notifications()
 

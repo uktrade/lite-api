@@ -168,7 +168,9 @@ class GoodList(ListCreateAPIView):
 
         notifications = (
             ExporterNotification.objects.filter(
-                user=self.request.user, organisation=self.request.user.organisation, case__id__in=goods_queries.keys()
+                user=self.request.user,
+                organisation_id=get_request_user_organisation_id(self.request),
+                case__id__in=goods_queries.keys(),
             )
             .values("case")
             .annotate(count=Count("case"))
@@ -241,7 +243,13 @@ class GoodDetail(APIView):
                 raise Http404
 
             if str_to_bool(request.GET.get("full_detail")):
-                serializer = GoodSerializerExporterFullDetail(good, context={"exporter_user": request.user, "organisation_id": get_request_user_organisation_id(request)})
+                serializer = GoodSerializerExporterFullDetail(
+                    good,
+                    context={
+                        "exporter_user": request.user,
+                        "organisation_id": get_request_user_organisation_id(request),
+                    },
+                )
             else:
                 serializer = GoodSerializerExporter(good)
 
