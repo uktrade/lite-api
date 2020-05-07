@@ -24,7 +24,7 @@ from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
 from goods.models import Good, GoodDocument
 from goods.serializers import (
-    GoodSerializer,
+    GoodCreateSerializer,
     GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
     ClcControlGoodSerializer,
@@ -193,7 +193,7 @@ class GoodList(ListCreateAPIView):
         data["organisation"] = request.user.organisation.id
         data["status"] = GoodStatus.DRAFT
 
-        serializer = GoodSerializer(data=data)
+        serializer = GoodCreateSerializer(data=data)
 
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 
@@ -211,13 +211,13 @@ class GoodDocumentCriteriaCheck(APIView):
                 serializer = GoodMissingDocumentSerializer(instance=good, data=data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
-                    good_data = GoodSerializer(good).data
+                    good_data = GoodCreateSerializer(good).data
                 else:
                     return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 good.missing_document_reason = None
                 good.save()
-                good_data = GoodSerializer(good).data
+                good_data = GoodCreateSerializer(good).data
         else:
             return JsonResponse(
                 data={"errors": {"has_document_to_upload": [strings.Goods.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
@@ -237,7 +237,10 @@ class GoodDetail(APIView):
             if good.organisation != request.user.organisation:
                 raise Http404
 
-            serializer = GoodSerializer(good, context={"exporter_user": request.user})
+            if str_to_bool(request.GET.get("full_detail")):
+                serializer = GoodSerializerExporterFullDetail(good, context={"exporter_user": request.user})
+            else:
+                serializer = GoodSerializerExporter(good)
 
             # If there's a query with this good, update the notifications on it
             query = GoodsQuery.objects.filter(good=good)
@@ -269,7 +272,7 @@ class GoodDetail(APIView):
                 good_on_application.delete()
 
         data["organisation"] = request.user.organisation.id
-        serializer = GoodSerializer(instance=good, data=data, partial=True)
+        serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
 
     def delete(self, request, pk):

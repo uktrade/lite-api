@@ -107,11 +107,11 @@ def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
     {"goods": [{"id": ...,},], "end_user": {"id": ...,},]
     """
     from cases.models import FinalAdvice
-    from goods.serializers import GoodSerializer
+    from goods.serializers import GoodCreateSerializer
     from goodstype.serializers import GoodsTypeSerializer
 
     advice_entity_field_map = {
-        "good": {"serializer": GoodSerializer, "case_relationship": "goods"},
+        "good": {"serializer": GoodCreateSerializer, "case_relationship": "goods"},
         "goods_type": {"serializer": GoodsTypeSerializer, "case_relationship": "goods_types"},
         "country": {"serializer": CountrySerializer, "case_relationship": "countries"},
         "end_user": {"serializer": PartySerializer, "case_relationship": "end_user"},

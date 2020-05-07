@@ -8,7 +8,7 @@ from cases.models import TeamAdvice, FinalAdvice, Advice
 from conf import constants
 from conf.helpers import convert_queryset_to_str
 from goods.enums import PvGrading
-from goods.serializers import GoodSerializer
+from goods.serializers import GoodCreateSerializer
 from parties.serializers import PartySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -434,7 +434,7 @@ class CreateCaseFinalAdviceTests(DataTestClient):
 
         serialized_entities = get_serialized_entities_from_final_advice_on_case(case=self.standard_application)
         self.assertIn("goods", serialized_entities)
-        self.assertEqual(serialized_entities["goods"], [GoodSerializer(good).data])
+        self.assertEqual(serialized_entities["goods"], [GoodCreateSerializer(good).data])
 
         entity_field = Advice.ENTITY_FIELDS.copy()
         entity_field.remove("good")
