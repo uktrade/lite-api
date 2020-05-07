@@ -12,7 +12,6 @@ from goods.models import Good, GoodDocument, PvGradingDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
-from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
 from static.control_list_entries.serializers import ControlListEntryViewSerializer, ControlListEntrySerializerSimple
