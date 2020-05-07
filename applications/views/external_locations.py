@@ -13,6 +13,7 @@ from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, application_in_non_readonly_state
 from lite_content.lite_api.strings import ExternalLocations
+from organisations.enums import LocationType
 from organisations.libraries.get_external_location import get_location
 from organisations.libraries.get_site import has_previous_sites
 from organisations.models import ExternalLocation
@@ -204,7 +205,7 @@ class ApplicationExternalLocations(APIView):
                 if (
                     new_location.country
                     and (previous_location_countries and new_location.country.id not in previous_location_countries)
-                    or new_location.location_type == "sea_based"
+                    or new_location.location_type == LocationType.SEA_BASED
                 ):
                     return (
                         None,
