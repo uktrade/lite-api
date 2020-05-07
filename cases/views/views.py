@@ -223,14 +223,6 @@ class CaseAdvice(APIView):
             return post_advice(request, self.case, CaseAdviceSerializer, team=False)
 
 
-class ViewTeamAdvice(APIView):
-    def get(self, request, pk, team_pk):
-        team_advice = TeamAdvice.objects.filter(case__pk=pk, team__pk=team_pk)
-
-        serializer = CaseTeamAdviceSerializer(team_advice, many=True)
-        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
-
-
 class CaseTeamAdvice(APIView):
     authentication_classes = (GovAuthentication,)
 
@@ -322,15 +314,6 @@ class FinalAdviceDocuments(APIView):
             advice_documents[advice_type]["document"] = document
 
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
-
-
-class ViewFinalAdvice(APIView):
-    def get(self, request, pk):
-        case = get_case(pk)
-        final_advice = FinalAdvice.objects.filter(case=case)
-
-        serializer = CaseFinalAdviceSerializer(final_advice, many=True)
-        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
 
 class CaseFinalAdvice(APIView):

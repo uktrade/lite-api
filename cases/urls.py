@@ -25,10 +25,8 @@ urlpatterns = [
     ),
     path("<uuid:pk>/user-advice/", views.CaseAdvice.as_view(), name="case_advice"),
     path("<uuid:pk>/team-advice/", views.CaseTeamAdvice.as_view(), name="case_team_advice",),
-    path("<uuid:pk>/view-team-advice/<uuid:team_pk>/", views.ViewTeamAdvice.as_view(), name="view_team_advice",),
     path("<uuid:pk>/final-advice/", views.CaseFinalAdvice.as_view(), name="case_final_advice",),
     path("<uuid:pk>/final-advice-documents/", views.FinalAdviceDocuments.as_view(), name="final_advice_documents",),
-    path("<uuid:pk>/view-final-advice/", views.ViewFinalAdvice.as_view(), name="view_final_advice",),
     path(
         "<uuid:pk>/goods-countries-decisions/",
         views.GoodsCountriesDecisions.as_view(),
