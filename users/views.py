@@ -45,7 +45,7 @@ class AuthenticateExporterUser(APIView):
 
     authentication_classes = (HawkOnlyAuthentication,)
 
-    @swagger_auto_schema(responses={400: "JSON parse error", 403: "Forbidden"})
+    @swagger_auto_schema(responses={403: "Forbidden"})
     def post(self, request, *args, **kwargs):
         """
         Takes user details from sso and checks them against our whitelisted users
@@ -135,7 +135,7 @@ class UserMeDetail(APIView):
     Get the user from request
     """
 
-    authentication_classes = (ExporterAuthentication,)
+    authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
         org_pk = request.headers["Organisation-Id"]

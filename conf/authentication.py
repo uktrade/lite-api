@@ -113,6 +113,10 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
 
 
 class ExporterOnlyAuthentication(authentication.BaseAuthentication):
+    """
+    Authenticates an exporter user without their organisation
+    """
+
     def authenticate(self, request):
         """
         When given a user token, validate that the user exists
