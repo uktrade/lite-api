@@ -13,7 +13,11 @@ def get_organisation_by_pk(pk):
 
 
 def get_request_user_organisation_id(request):
-    return UUID(request.META.get(ORGANISATION_ID))
+    org_token = request.META.get(ORGANISATION_ID)
+    if isinstance(org_token, str):
+        return UUID(org_token)
+    else:
+        return org_token
 
 
 def get_request_user_organisation(request):
