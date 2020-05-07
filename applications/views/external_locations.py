@@ -203,7 +203,7 @@ class ApplicationExternalLocations(APIView):
 
                 if new_location.country and (
                     previous_location_countries and new_location.country.id not in previous_location_countries
-                ):
+                ) or new_location.location_type == "sea_based":
                     return (
                         None,
                         {
