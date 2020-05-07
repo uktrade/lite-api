@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from applications.libraries.sites_helpers import add_sites_to_application
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from organisations.models import Site
 from organisations.serializers import SiteListSerializer
 from users.models import ExporterUser
@@ -25,7 +26,9 @@ class ApplicationSites(APIView):
     @transaction.atomic
     @authorised_users(ExporterUser)
     def post(self, request, application):
-        sites = Site.objects.filter(organisation=request.user.organisation, id__in=request.data.get("sites", []))
+        sites = Site.objects.filter(
+            organisation_id=get_request_user_organisation_id(request), id__in=request.data.get("sites", [])
+        )
         add_sites_to_application(request.user, sites, application)
 
         return JsonResponse(data={"sites": {}}, status=status.HTTP_201_CREATED)
