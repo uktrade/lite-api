@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from cases.enums import CaseTypeReferenceEnum
 from conf.authentication import ExporterAuthentication
+from organisations.enums import LocationType
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer, SiclExternalLocationSerializer
 
@@ -13,9 +14,13 @@ class ExternalLocationList(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     def get(self, request, org_pk):
+        application_type = request.GET.get("application_type")
         external_locations = ExternalLocation.objects.filter(organisation=org_pk).exclude(
             country__id__in=request.GET.getlist("exclude")
         )
+        if application_type not in [CaseTypeReferenceEnum.OICL, CaseTypeReferenceEnum.SICL]:
+            external_locations = external_locations.exclude(location_type=LocationType.SEA_BASED)
+
         serializer = ExternalLocationSerializer(external_locations, many=True)
         return JsonResponse(data={"external_locations": serializer.data})
 
