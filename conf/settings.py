@@ -19,7 +19,6 @@ env = Env(
     SUPPRESS_TEST_OUTPUT=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
-    SYSTEM_USER=(str, ""),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -220,5 +219,3 @@ RECENTLY_UPDATED_WORKING_DAYS = env(
 SECURE_BROWSER_XSS_FILTER = True
 
 STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")
-
-SYSTEM_USER = json.loads(env("SYSTEM_USER").replace("=>", ":")) if env("SYSTEM_USER") else {}

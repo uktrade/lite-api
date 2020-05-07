@@ -12,13 +12,13 @@ class Command(SeedCommand):
 
     help = "Creates case types"
     info = "Seeding case types"
-    success = "Successfully seeded case types"
     seed_command = "seedcasetypes"
 
     @transaction.atomic
     def operation(self, *args, **options):
         case_type_list = CaseTypeEnum.case_type_list
         data = []
+
         # Convert extended_enums_list from list of objects to list of dicts
         for case_type_obj in case_type_list:
             case_type_dict = dict(
