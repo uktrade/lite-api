@@ -47,7 +47,9 @@ class DraftTests(DataTestClient):
         self.assertEqual(StandardApplication.objects.count(), 1)
 
     @parameterized.expand([CaseTypeReferenceEnum.SIEL, CaseTypeReferenceEnum.SITL])
-    def test_create_draft_SIEL_or_SITL_application_without_answering_firearms_question_failure(self, case_type_reference):
+    def test_create_draft_SIEL_or_SITL_application_without_answering_firearms_question_failure(
+        self, case_type_reference
+    ):
         """
         Ensure we cannot create a standard application without answering the firearms question
         """
