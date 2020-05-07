@@ -102,8 +102,8 @@ class UserDetail(APIView):
         """
         user = get_user_by_pk(pk)
         if request.user.id != pk:
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, request.user.organisation)
-        relationship = get_user_organisation_relationship(user, request.user.organisation)
+            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, get_request_user_organisation_id(request))
+        relationship = get_user_organisation_relationship(user, get_request_user_organisation(request))
 
         serializer = ExporterUserViewSerializer(user, context=relationship)
         return JsonResponse(data={"user": serializer.data})

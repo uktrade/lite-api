@@ -37,7 +37,7 @@ class EndUserAdvisoriesList(ListAPIView):
         ids = [item["id"] for item in data]
         notifications = (
             ExporterNotification.objects.filter(
-                user=self.request.user, organisation=self.request.user.organisation, case__id__in=ids
+                user=self.request.user, organisation_id=get_request_user_organisation_id(self.request), case__id__in=ids
             )
             .values("case")
             .annotate(count=Count("case"))
