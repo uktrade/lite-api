@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 from cases.enums import CaseTypeEnum
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
-from organisations.libraries.get_organisation import get_request_user_organisation_id
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
