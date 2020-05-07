@@ -236,30 +236,16 @@ class GoodDocumentCreateSerializer(serializers.ModelSerializer):
         return good_document
 
 
-class GoodDocumentViewSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(read_only=True)
-    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
+class GoodDocumentViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    created_at = serializers.DateTimeField()
+    name = serializers.CharField()
+    description = serializers.CharField()
     user = ExporterUserSimpleSerializer()
-    organisation = OrganisationDetailSerializer()
     s3_key = serializers.SerializerMethodField()
 
     def get_s3_key(self, instance):
         return instance.s3_key if instance.safe else "File not ready"
-
-    class Meta:
-        model = GoodDocument
-        fields = (
-            "id",
-            "name",
-            "s3_key",
-            "user",
-            "organisation",
-            "size",
-            "good",
-            "created_at",
-            "safe",
-            "description",
-        )
 
 
 class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
