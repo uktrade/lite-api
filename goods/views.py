@@ -302,8 +302,7 @@ class GoodDocuments(APIView):
         """
         Returns a list of documents on the specified good
         """
-        good = get_good(pk)
-        good_documents = GoodDocument.objects.filter(good=good).order_by("-created_at")
+        good_documents = GoodDocument.objects.filter(good_id=pk).order_by("-created_at")
         serializer = GoodDocumentViewSerializer(good_documents, many=True)
 
         return JsonResponse({"documents": serializer.data})
