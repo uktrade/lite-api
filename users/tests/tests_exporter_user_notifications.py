@@ -174,7 +174,7 @@ class ExporterUserNotificationTests(DataTestClient):
         case = self._create_clc_query_with_notifications()
 
         response = self.client.get(
-            reverse_lazy("goods:good", kwargs={"pk": str(case.good_id)}), **self.exporter_headers
+            reverse_lazy("goods:good", kwargs={"pk": str(case.good_id)}) + "?full_detail=True", **self.exporter_headers
         )
         response_data = response.json()
 

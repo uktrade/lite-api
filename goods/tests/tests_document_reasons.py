@@ -64,7 +64,7 @@ class GoodDocumentMissingReasonsTests(DataTestClient):
 
         # Get good and check the missing document reason is removed
         url = reverse("goods:good", kwargs={"pk": self.good.id})
-        response = self.client.get(url, **self.exporter_headers)
+        response = self.client.get(url + "?full_detail=True", **self.exporter_headers)
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertFalse(response.json()["good"]["missing_document_reason"])

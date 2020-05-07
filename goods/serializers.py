@@ -323,7 +323,8 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
 
         if self.goods_query:
             serializer = ExporterReadGoodQuerySerializer(
-                instance=self.goods_query, context={"exporter_user": self.context.get("exporter_user"), "total_count": False}
+                instance=self.goods_query,
+                context={"exporter_user": self.context.get("exporter_user"), "total_count": False},
             )
             return serializer.data
         return None
