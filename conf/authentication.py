@@ -190,16 +190,15 @@ def _authorise(request):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
-    if not DEBUG:
-        return Receiver(
-            _lookup_credentials,
-            request.META["HTTP_AUTHORIZATION"],
-            request.build_absolute_uri(),
-            request.method,
-            content=request.body,
-            content_type=request.content_type,
-            seen_nonce=_seen_nonce,
-        )
+    return Receiver(
+        _lookup_credentials,
+        request.META["HTTP_AUTHORIZATION"],
+        request.build_absolute_uri(),
+        request.method,
+        content=request.body,
+        content_type=request.content_type,
+        seen_nonce=_seen_nonce,
+    )
 
 
 def _seen_nonce(access_key_id, nonce, _):
@@ -210,7 +209,7 @@ def _seen_nonce(access_key_id, nonce, _):
     cache_key = f"hawk:{access_key_id}:{nonce}"
 
     # cache.add only adds key if it isn't present
-    seen_cache_key = not cache.add(cache_key, True, timeout=settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS,)
+    seen_cache_key = not cache.add(cache_key, True, timeout=settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS)
 
     if seen_cache_key:
         raise AlreadyProcessed(f"Already seen nonce {nonce}")

@@ -129,11 +129,12 @@ REST_FRAMEWORK = {
 AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 
 HAWK_CREDENTIALS = {
-    "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": "sha256",},
-    "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": "sha256",},
+    "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": "sha256"},
+    "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": "sha256"},
 }
 
-HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
+# Longer expiry time when DEBUG is TRUE to allow more time when debugging responses
+HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60 if not DEBUG else 3600
 
 WSGI_APPLICATION = "conf.wsgi.application"
 
