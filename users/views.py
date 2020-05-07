@@ -17,8 +17,7 @@ from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_d
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import Users
 from organisations.enums import OrganisationStatus
-from organisations.libraries.get_organisation import get_organisation_by_pk, get_request_user_organisation_id, \
-    get_request_user_organisation
+from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from queues.models import Queue
