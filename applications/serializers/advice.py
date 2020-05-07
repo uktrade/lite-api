@@ -48,6 +48,16 @@ class CaseAdviceSerializerNew(serializers.Serializer):
     def get_level(self, instance):
         return type(Advice.objects.get_subclass(id=instance.id)).__name__
 
+    def to_representation(self, instance):
+        repr_dict = super().to_representation(instance)
+        entities = ["end_user", "consignee", "ultimate_end_user", "third_party", "country", "good", "goods_type"]
+
+        for entity in entities:
+            if entity in repr_dict and not repr_dict[entity]:
+                del repr_dict[entity]
+
+        return repr_dict
+
 
 class CountryWithFlagsSerializer(serializers.Serializer):
     id = serializers.CharField()
