@@ -194,16 +194,7 @@ class CaseDetailSerializer(CaseSerializer):
     queue_names = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
-    # advice = PrimaryKeyRelatedSerializerField(queryset=Advice.objects.all(),
-    #                                           many=True,
-    #                                           serializer=CaseAdviceSerializerNew)
-    team_advice = PrimaryKeyRelatedSerializerField(
-        queryset=Advice.objects.all(), source="advice", many=True, serializer=CaseAdviceSerializerNew
-    )
-    # final_advice = PrimaryKeyRelatedSerializerField(queryset=Advice.objects.all(),
-    #                                                 many=True,
-    #                                                 source='advice',
-    #                                                 serializer=CaseAdviceSerializerNew)
+    advice = CaseAdviceSerializerNew(many=True)
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
@@ -213,11 +204,7 @@ class CaseDetailSerializer(CaseSerializer):
     audit_notification = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-
-    advice = serializers.SerializerMethodField()
-
-    def get_advice(self, nis):
-        return []
+    advice = CaseAdviceSerializerNew(many=True)
 
     class Meta:
         model = Case
@@ -232,8 +219,6 @@ class CaseDetailSerializer(CaseSerializer):
             "query",
             "has_advice",
             "advice",
-            "team_advice",
-            # "final_advice",
             "all_flags",
             "case_officer",
             "audit_notification",
@@ -502,12 +487,6 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
 class CaseAdviceSerializer(CaseAdviceSerializer):
     team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), serializer=TeamSerializer)
 
-    class Meta:
-        model = Advice
-        fields = "__all__"
-
-
-class CaseAdviceSerializer(CaseAdviceSerializer):
     class Meta:
         model = Advice
         fields = "__all__"

@@ -261,7 +261,7 @@ class CaseTeamAdvice(APIView):
         serializer = self.serializer_object(team_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseTeamAdviceSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -349,7 +349,7 @@ class CaseFinalAdvice(APIView):
         serializer = self.serializer_object(final_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseFinalAdviceSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case

@@ -28,8 +28,8 @@ class CaseAdviceSerializerNew(serializers.Serializer):
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
     type = KeyValueChoiceField(choices=AdviceType.choices)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
-    level = serializers.SerializerMethodField()
-    team = serializers.SerializerMethodField()
+    level = serializers.CharField()
+    team = TeamReadOnlySerializer()
 
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
@@ -47,20 +47,9 @@ class CaseAdviceSerializerNew(serializers.Serializer):
         queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
     )
 
-    def get_level(self, instance):
-        return type(instance).__name__
-
-    def get_team(self, instance):
-        print("\n")
-        print("instance here")
-        print(instance)
-        print("\n")
-        if hasattr(instance, "team"):
-            return TeamReadOnlySerializer(instance.team)
-
     def to_representation(self, instance):
         repr_dict = super().to_representation(instance)
-        entities = ["end_user", "consignee", "ultimate_end_user", "third_party", "country", "good", "goods_type"]
+        entities = ["team", "end_user", "consignee", "ultimate_end_user", "third_party", "country", "good", "goods_type"]
 
         for entity in entities:
             if entity in repr_dict and not repr_dict[entity]:
