@@ -56,6 +56,11 @@ def post_advice(request, case, level, team=False):
 
     data = request.data
 
+    print('\n')
+    print('DATA RECEIVED')
+    print(data)
+    print('\n')
+
     # Update the case and user in each piece of advice
     refusal_error = False
     for advice in data:

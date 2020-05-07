@@ -3,7 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import AdviceType
-from cases.helpers import get_serialized_entities_from_final_advice_on_case
+from cases.libraries.advice import get_serialized_entities_from_final_advice_on_case
 from cases.models import Advice, Advice, Advice
 from conf import constants
 from conf.helpers import convert_queryset_to_str

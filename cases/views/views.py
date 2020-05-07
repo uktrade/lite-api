@@ -12,7 +12,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
-from cases.helpers import create_grouped_advice
+from cases.libraries.advice import group_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
@@ -241,13 +241,13 @@ class TeamAdvice(APIView):
 
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
-            create_grouped_advice(self.case, self.request.user, advice, Advice)
+            group_advice(self.case, advice, request.user)
             case_advice_contains_refusal(pk)
 
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_TEAM_ADVICE, target=self.case,
             )
-            team_advice = Advice.objects.filter(case=self.case, team=team).order_by("created_at")
+            team_advice = Advice.objects.get_team_advice(self.case, team)
         else:
             team_advice = self.team_advice
 
@@ -328,8 +328,8 @@ class FinalAdvice(APIView):
         """
         if len(self.final_advice) == 0:
             assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-            # We pass in the class of advice we are creating
-            create_grouped_advice(self.case, self.request.user, self.team_advice, Advice)
+
+            group_advice(self.case, self.team_advice, request.user)
 
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case,
