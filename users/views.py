@@ -10,14 +10,14 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
-from conf.authentication import ExporterAuthentication, ExporterOnlyAuthentication, GovAuthentication
+from conf.authentication import ExporterAuthentication, GovAuthentication, ExporterOnlyAuthentication
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date, str_to_bool
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import Users
 from organisations.enums import OrganisationStatus
-from organisations.libraries.get_organisation import get_organisation_by_pk
+from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from queues.models import Queue
@@ -81,7 +81,7 @@ class CreateUser(APIView):
         Create Exporter within the same organisation that current user is logged into
         """
         data = request.data
-        data["organisation"] = request.user.organisation.id
+        data["organisation"] = get_request_user_organisation_id(request)
         data["role"] = UUID(data["role"])
 
         serializer = ExporterUserCreateUpdateSerializer(data=data)
@@ -115,7 +115,7 @@ class UserDetail(APIView):
         """
         user = get_user_by_pk(pk)
         data = request.data
-        data["organisation"] = request.user.organisation.id
+        data["organisation"] = get_request_user_organisation_id(request)
 
         serializer = ExporterUserCreateUpdateSerializer(user, data=data, partial=True)
         if serializer.is_valid():
@@ -187,7 +187,9 @@ class NotificationViewSet(APIView):
         """
         Count the number of application, eua_query and goods_query exporter user notifications
         """
-        notification_queryset = self.queryset.filter(user=request.user, organisation=request.user.organisation)
+        notification_queryset = self.queryset.filter(
+            user=request.user, organisation_id=get_request_user_organisation_id(request)
+        )
         application_queryset = self._build_queryset(
             queryset=notification_queryset,
             filter=dict(case__case_type__type=CaseTypeTypeEnum.APPLICATION),
@@ -233,7 +235,7 @@ class AssignSites(UpdateAPIView):
             raise PermissionDenied()
 
         sites = request.data.get("sites", [])
-        organisation = get_organisation_by_pk(self.request.META["HTTP_ORGANISATION_ID"])
+        organisation = get_request_user_organisation(request)
         request_user_relationship = get_user_organisation_relationship(request.user, organisation)
         user_organisation_relationship = get_user_organisation_relationship(kwargs["pk"], organisation)
 

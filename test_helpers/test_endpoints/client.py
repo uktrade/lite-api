@@ -1,6 +1,7 @@
 import requests
 
 from conf.settings import env
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 
 
 def get(request, appended_address):
@@ -23,7 +24,7 @@ def post(request, appended_address, json):
             headers={
                 "EXPORTER-USER-TOKEN": str(request.user.user_token),
                 "X-Correlation-Id": str(request.correlation),
-                "ORGANISATION-ID": str(request.user.organisation),
+                "ORGANISATION-ID": get_request_user_organisation_id(request),
             },
         )
     else:
