@@ -313,12 +313,11 @@ class FinalAdvice(APIView):
     case = None
     team_advice = None
     final_advice = None
-    serializer_object = None
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
-        self.team_advice = Advice.objects.filter(case=self.case)
-        self.final_advice = Advice.objects.filter(case=self.case).order_by("created_at")
+        self.team_advice = Advice.objects.get_team_advice(case=self.case)
+        self.final_advice = Advice.objects.get_final_advice(case=self.case).order_by("created_at")
 
         return super(FinalAdvice, self).dispatch(request, *args, **kwargs)
 
@@ -338,7 +337,7 @@ class FinalAdvice(APIView):
         else:
             final_advice = self.final_advice
 
-        serializer = self.serializer_object(final_advice, many=True)
+        serializer = CaseAdviceSerializer(final_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
