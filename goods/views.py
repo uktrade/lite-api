@@ -29,7 +29,7 @@ from goods.serializers import (
     GoodDocumentCreateSerializer,
     ClcControlGoodSerializer,
     GoodListSerializer,
-    GoodWithFlagsSerializer,
+    GoodSerializerInternal,
     GoodMissingDocumentSerializer,
 )
 from goodstype.helpers import get_goods_type
@@ -244,7 +244,7 @@ class GoodDetail(APIView):
             if query:
                 delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=query)
         else:
-            serializer = GoodWithFlagsSerializer(good)
+            serializer = GoodSerializerInternal(good)
 
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 

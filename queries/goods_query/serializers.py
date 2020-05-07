@@ -3,7 +3,7 @@ from rest_framework import serializers
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from goods.enums import PvGrading
 from goods.models import PvGradingDetails
-from goods.serializers import GoodWithFlagsSerializer
+from goods.serializers import GoodSerializerInternal
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
@@ -19,7 +19,7 @@ class GoodsQuerySerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
     )
-    good = GoodWithFlagsSerializer(read_only=True)
+    good = GoodSerializerInternal(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
     status = serializers.SerializerMethodField()
 

@@ -16,7 +16,7 @@ from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
-from static.control_list_entries.serializers import ControlListEntryViewSerializer
+from static.control_list_entries.serializers import ControlListEntryViewSerializer, ControlListEntrySerializerSimple
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
@@ -319,15 +319,18 @@ class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
         )
 
 
-class GoodWithFlagsSerializer(GoodSerializer):
-    flags = serializers.SerializerMethodField()
+class GoodsFlagSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
 
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
 
-    class Meta:
-        model = Good
-        fields = "__all__"
+class GoodSerializerInternal(serializers.Serializer):
+    id = serializers.UUIDField()
+    control_list_entries = ControlListEntrySerializerSimple(many=True)
+    comment = serializers.CharField()
+    is_good_controlled = serializers.CharField()
+    report_summary = serializers.CharField()
+    flags = GoodsFlagSerializer(many=True)
 
 
 class ClcControlGoodSerializer(serializers.ModelSerializer):

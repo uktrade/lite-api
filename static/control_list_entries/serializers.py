@@ -1,6 +1,11 @@
 from rest_framework import serializers
 
 
+class ControlListEntrySerializerSimple(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True)
+    rating = serializers.CharField(read_only=True)
+
+
 class ControlListEntrySerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     rating = serializers.CharField(read_only=True)
