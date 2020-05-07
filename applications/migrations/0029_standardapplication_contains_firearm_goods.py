@@ -2,6 +2,27 @@
 
 from django.db import migrations, models
 
+def convert_goods_categories(apps, schema_editor):
+    StandardApplication = apps.get_model("applications", "StandardApplication")
+    standard_applications = StandardApplication.objects.all()
+
+    for application in standard_applications:
+        if application.goods_categories:
+            application.contains_firearm_goods = "firearms" in application.goods_categories
+            application.goods_categories = None
+            application.save()
+
+
+def reverse_goods_categories(apps, schema_editor):
+    StandardApplication = apps.get_model("applications", "StandardApplication")
+    standard_applications = StandardApplication.objects.all()
+
+    for application in standard_applications:
+        if application.contains_firearm_goods:
+            application.goods_categories = "firearms"
+        application.contains_firearm_goods = None
+        application.save()
+
 
 class Migration(migrations.Migration):
 
@@ -15,4 +36,11 @@ class Migration(migrations.Migration):
             name="contains_firearm_goods",
             field=models.BooleanField(blank=True, default=None, null=True),
         ),
+        migrations.RunPython(convert_goods_categories, reverse_code=reverse_goods_categories),
+        migrations.RemoveField(model_name="standardapplication", name="goods_categories", ),
+        migrations.AddField(
+            model_name="openapplication",
+            name="contains_firearm_goods",
+            field=models.BooleanField(blank=True, default=None, null=True),
+        )
     ]
