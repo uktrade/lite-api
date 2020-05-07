@@ -7,8 +7,8 @@ from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
 from cases.enums import CaseTypeSubTypeEnum
-from conf.authentication import ORGANISATION_ID
 from lite_content.lite_api import strings
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 
@@ -140,7 +140,7 @@ def authorised_users(user_type):
 
             if isinstance(request.request.user, ExporterUser):
                 application = _get_application(request, kwargs)
-                organisation_id = request.request.META.get(ORGANISATION_ID)
+                organisation_id = get_request_user_organisation_id(request.request)
 
                 if (
                     application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
