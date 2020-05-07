@@ -205,7 +205,10 @@ class ApplicationExternalLocations(APIView):
                 if (
                     new_location.country
                     and (previous_location_countries and new_location.country.id not in previous_location_countries)
-                    or new_location.location_type == LocationType.SEA_BASED
+                    or (
+                        str(new_location.id) not in previous_location_ids
+                        and new_location.location_type == LocationType.SEA_BASED
+                    )
                 ):
                     return (
                         None,
