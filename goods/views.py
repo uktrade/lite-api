@@ -30,6 +30,8 @@ from goods.serializers import (
     ClcControlGoodSerializer,
     GoodListSerializer,
     GoodSerializerInternal,
+    GoodSerializerExporter,
+    GoodSerializerExporterFullDetail,
     GoodMissingDocumentSerializer,
 )
 from goodstype.helpers import get_goods_type

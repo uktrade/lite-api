@@ -3,7 +3,6 @@ from rest_framework import serializers
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from goods.enums import PvGrading
 from goods.models import PvGradingDetails
-from goods.serializers import GoodSerializerInternal
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
@@ -16,6 +15,8 @@ from users.libraries.notifications import (
 
 
 class GoodsQuerySerializer(serializers.ModelSerializer):
+    from goods.serializers import GoodSerializerInternal
+
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
     )
