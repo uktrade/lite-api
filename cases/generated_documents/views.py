@@ -20,6 +20,7 @@ from conf.decorators import authorised_users
 from conf.helpers import str_to_bool
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.enums import UserType
 from users.models import GovUser
 
@@ -42,7 +43,9 @@ class GeneratedDocuments(generics.ListAPIView):
 
         if user.type == UserType.EXPORTER:
             documents = GeneratedCaseDocument.objects.filter(case=case, visible_to_exporter=True)
-            delete_exporter_notifications(user=user, organisation=user.organisation, objects=documents)
+            delete_exporter_notifications(
+                user=user, organisation_id=get_request_user_organisation_id(self.request), objects=documents
+            )
         else:
             documents = GeneratedCaseDocument.objects.filter(case=case)
 
