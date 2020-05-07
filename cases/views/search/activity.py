@@ -13,7 +13,7 @@ from users.models import GovUser, GovNotification
 
 
 class CaseActivityView(APIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
         data = request.GET
