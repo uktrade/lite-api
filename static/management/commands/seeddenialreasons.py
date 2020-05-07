@@ -13,7 +13,6 @@ class Command(SeedCommand):
 
     help = "Seeds denial reasons"
     info = "Seeding denial reasons"
-    success = "Successfully seeded denial reasons"
     seed_command = "seeddenialreasons"
 
     @transaction.atomic

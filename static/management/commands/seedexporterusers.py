@@ -32,7 +32,6 @@ class Command(SeedCommand):
 
     help = "Seeds exporter users to organisations"
     info = "Seeding exporter users"
-    success = "Successfully seeded exporter users"
     seed_command = "seedexporterusers"
 
     @transaction.atomic
@@ -88,11 +87,11 @@ class Command(SeedCommand):
 
     @classmethod
     def _get_exporter_users(cls):
-        admin_users = cls._parse_users("INTERNAL_ADMIN_TEAM_USERS")
+        admin_users = cls._parse_users("INTERNAL_USERS")
         exporter_users = cls._parse_users("EXPORTER_USERS")
         exporter_user_emails = [exporter_user["email"] for exporter_user in exporter_users]
 
-        # Add INTERNAL_ADMIN_TEAM_USERS to exporter_users list if they have not been defined in EXPORTER_USERS
+        # Add INTERNAL_USERS to exporter_users list if they have not been defined in EXPORTER_USERS
         for user in admin_users:
             email = user["email"]
 
