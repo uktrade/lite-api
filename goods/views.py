@@ -37,6 +37,7 @@ from goods.serializers import (
 from goodstype.helpers import get_goods_type
 from goodstype.serializers import ClcControlGoodTypeSerializer
 from lite_content.lite_api import strings
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser, ExporterNotification
@@ -130,14 +131,14 @@ class GoodList(ListCreateAPIView):
     pagination_class = GoodListPaginator
 
     def get_serializer_context(self):
-        return {"exporter_user": self.request.user}
+        return {"exporter_user": self.request.user, "organisation_id": get_request_user_organisation_id(self.request)}
 
     def get_queryset(self):
         description = self.request.GET.get("description", "")
         part_number = self.request.GET.get("part_number", "")
         control_list_entry = self.request.GET.get("control_list_entry")
         for_application = self.request.GET.get("for_application")
-        organisation = self.request.user.organisation.id
+        organisation = get_request_user_organisation_id(self.request)
 
         queryset = Good.objects.filter(
             organisation_id=organisation, description__icontains=description, part_number__icontains=part_number,
@@ -192,7 +193,7 @@ class GoodList(ListCreateAPIView):
         Add a good to to an organisation
         """
         data = request.data
-        data["organisation"] = request.user.organisation.id
+        data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
 
         serializer = GoodCreateSerializer(data=data)
@@ -236,18 +237,20 @@ class GoodDetail(APIView):
         good = get_good(pk)
 
         if isinstance(request.user, ExporterUser):
-            if good.organisation != request.user.organisation:
+            if good.organisation.id != get_request_user_organisation_id(request):
                 raise Http404
 
             if str_to_bool(request.GET.get("full_detail")):
-                serializer = GoodSerializerExporterFullDetail(good, context={"exporter_user": request.user})
+                serializer = GoodSerializerExporterFullDetail(good, context={"exporter_user": request.user, "organisation_id": get_request_user_organisation_id(request)})
             else:
                 serializer = GoodSerializerExporter(good)
 
             # If there's a query with this good, update the notifications on it
             query = GoodsQuery.objects.filter(good=good)
             if query:
-                delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=query)
+                delete_exporter_notifications(
+                    user=request.user, organisation_id=get_request_user_organisation_id(request), objects=query
+                )
         else:
             serializer = GoodSerializerInternal(good)
 
@@ -256,7 +259,7 @@ class GoodDetail(APIView):
     def put(self, request, pk):
         good = get_good(pk)
 
-        if good.organisation != request.user.organisation:
+        if good.organisation.id != get_request_user_organisation_id(request):
             raise Http404
 
         if good.status == GoodStatus.SUBMITTED:
@@ -273,14 +276,14 @@ class GoodDetail(APIView):
             for good_on_application in GoodOnApplication.objects.filter(good=good):
                 good_on_application.delete()
 
-        data["organisation"] = request.user.organisation.id
+        data["organisation"] = get_request_user_organisation_id(request)
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
 
     def delete(self, request, pk):
         good = get_good(pk)
 
-        if good.organisation != request.user.organisation:
+        if good.organisation.id != get_request_user_organisation_id(request):
             raise Http404
 
         if good.status != GoodStatus.DRAFT:
@@ -317,7 +320,7 @@ class GoodDocuments(APIView):
         good_id = str(good.id)
         data = request.data
 
-        if good.organisation != request.user.organisation:
+        if good.organisation.id != get_request_user_organisation_id(request):
             delete_documents_on_bad_request(data)
             raise Http404
 
@@ -330,7 +333,7 @@ class GoodDocuments(APIView):
         for document in data:
             document["good"] = good_id
             document["user"] = request.user.id
-            document["organisation"] = request.user.organisation.id
+            document["organisation"] = get_request_user_organisation_id(request)
 
         serializer = GoodDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
@@ -377,7 +380,7 @@ class GoodDocumentDetail(APIView):
         """
         good = get_good(pk)
 
-        if good.organisation != request.user.organisation:
+        if good.organisation.id != get_request_user_organisation_id(request):
             raise Http404
 
         if good.status != GoodStatus.DRAFT:
