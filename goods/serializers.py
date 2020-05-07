@@ -8,7 +8,6 @@ from common.libraries import (
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
-from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument, PvGradingDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
@@ -16,10 +15,8 @@ from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
-from queries.goods_query.serializers import ExporterReadGoodQuerySerializer
 from static.control_list_entries.serializers import ControlListEntryViewSerializer, ControlListEntrySerializerSimple
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
-from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
@@ -322,6 +319,8 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
         return None
 
     def get_query(self, instance):
+        from queries.goods_query.serializers import ExporterReadGoodQuerySerializer
+
         if self.goods_query:
             serializer = ExporterReadGoodQuerySerializer(
                 instance=self.goods_query, context={"exporter_user": self.context.get("exporter_user"), "total_count": False}
