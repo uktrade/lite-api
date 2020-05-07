@@ -2,7 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.enums import ApplicationExportType
-from applications.enums import GoodsCategory
 from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum

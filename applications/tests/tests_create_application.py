@@ -5,7 +5,6 @@ from rest_framework.reverse import reverse
 from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
-    GoodsCategory,
     GoodsTypeCategory,
 )
 from applications.models import (
@@ -36,7 +35,7 @@ class DraftTests(DataTestClient):
             "export_type": ApplicationExportType.TEMPORARY,
             "have_you_been_informed": ApplicationExportLicenceOfficialType.YES,
             "reference_number_on_information_form": "123",
-            "contains_firearm_goods": "yes",
+            "contains_firearm_goods": True,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -47,7 +46,8 @@ class DraftTests(DataTestClient):
         self.assertEqual(response_data["id"], str(standard_application.id))
         self.assertEqual(StandardApplication.objects.count(), 1)
 
-    def test_create_draft_standard_application_without_answering_firearms_question_failure(self):
+    @parameterized.expand([CaseTypeReferenceEnum.SIEL, CaseTypeReferenceEnum.SITL])
+    def test_create_draft_SIEL_or_SITL_application_without_answering_firearms_question_failure(self, case_type_reference):
         """
         Ensure we cannot create a standard application without answering the firearms question
         """
@@ -129,7 +129,7 @@ class DraftTests(DataTestClient):
             "application_type": CaseTypeReferenceEnum.OIEL,
             "export_type": ApplicationExportType.TEMPORARY,
             "goodstype_category": GoodsTypeCategory.MILITARY,
-            "contains_firearm_goods": "yes",
+            "contains_firearm_goods": True,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)

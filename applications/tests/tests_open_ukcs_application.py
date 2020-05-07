@@ -20,7 +20,7 @@ class OpenUKCSTests(DataTestClient):
             "application_type": CaseTypeReferenceEnum.OIEL,
             "export_type": ApplicationExportType.PERMANENT,
             "goodstype_category": GoodsTypeCategory.UK_CONTINENTAL_SHELF,
-            "contains_firearm_goods": "yes",
+            "contains_firearm_goods": True,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
@@ -34,7 +34,7 @@ class OpenUKCSTests(DataTestClient):
             "export_type": ApplicationExportType.PERMANENT,
             "application_type": CaseTypeReferenceEnum.OIEL,
             "goodstype_category": GoodsTypeCategory.UK_CONTINENTAL_SHELF,
-            "contains_firearm_goods": "yes",
+            "contains_firearm_goods": True,
         }
 
         response = self.client.post(self.url, data, **self.exporter_headers)
