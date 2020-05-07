@@ -10,6 +10,7 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.serializers import CaseNoteSerializer
 from conf.authentication import SharedAuthentication
 from lite_content.lite_api import strings
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
@@ -25,7 +26,9 @@ class CaseNoteList(APIView):
         case_notes = get_case_notes_from_case(case, only_show_notes_visible_to_exporter=is_user_exporter)
 
         if isinstance(request.user, ExporterUser):
-            delete_exporter_notifications(user=request.user, organisation=request.user.organisation, objects=case_notes)
+            delete_exporter_notifications(
+                user=request.user, organisation_id=get_request_user_organisation_id(request), objects=case_notes
+            )
 
         serializer = self.serializer(case_notes, many=True)
         return JsonResponse(data={"case_notes": serializer.data})

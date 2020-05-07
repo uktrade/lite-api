@@ -12,7 +12,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission, assert_user_has_permission
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus, OrganisationType
-from organisations.libraries.get_organisation import get_organisation_by_pk
+from organisations.libraries.get_organisation import get_organisation_by_pk, get_request_user_organisation
 from organisations.models import Organisation
 from organisations.serializers import (
     OrganisationDetailSerializer,
@@ -35,7 +35,7 @@ class OrganisationsList(generics.ListCreateAPIView):
         """ List all organisations. """
         if (
             getattr(self.request.user, "type", None) != UserType.INTERNAL
-            and self.request.user.organisation.type != OrganisationType.HMRC
+            and get_request_user_organisation(self.request).type != OrganisationType.HMRC
         ):
             raise PermissionError("Exporters aren't allowed to view other organisations")
 
