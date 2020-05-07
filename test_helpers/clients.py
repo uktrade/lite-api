@@ -121,7 +121,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         self.exporter_headers = {
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.exporter_user),
-            "HTTP_ORGANISATION_ID": self.organisation.id,
+            "HTTP_ORGANISATION_ID": str(self.organisation.id),
         }
 
         self.default_role = Role.objects.get(id=Roles.INTERNAL_DEFAULT_ROLE_ID)
