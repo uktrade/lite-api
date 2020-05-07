@@ -13,7 +13,6 @@ class Command(SeedCommand):
 
     help = "Seeds flags"
     info = "Seeding flags"
-    success = "Successfully seeded flags"
     seed_command = "seedflags"
 
     @transaction.atomic
