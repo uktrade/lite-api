@@ -63,9 +63,12 @@ class GenericApplicationListSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.exporter_user = kwargs["context"]["exporter_user"]
+        self.organisation_id = kwargs["context"]["organisation_id"]
 
     def get_exporter_user_notification_count(self, instance):
-        return get_exporter_user_notification_total_count(exporter_user=self.exporter_user, case=instance)
+        return get_exporter_user_notification_total_count(
+            exporter_user=self.exporter_user, organisation_id=self.organisation_id, case=instance
+        )
 
     def get_status(self, instance):
         if instance.status:
@@ -117,6 +120,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.exporter_user = kwargs.get("context").get("exporter_user") if "context" in kwargs else None
+        self.organisation_id = kwargs.get("context").get("organisation_id") if "context" in kwargs else None
         if not isinstance(self.exporter_user, ExporterUser):
             self.fields.pop("exporter_user_notification_count")
 
@@ -145,7 +149,9 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
         return instance.pk
 
     def get_exporter_user_notification_count(self, instance):
-        return get_exporter_user_notification_individual_count(exporter_user=self.exporter_user, case=instance)
+        return get_exporter_user_notification_individual_count(
+            exporter_user=self.exporter_user, organisation_id=self.organisation_id, case=instance,
+        )
 
     def get_is_major_editable(self, instance):
         return instance.is_major_editable()

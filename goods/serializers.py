@@ -89,7 +89,10 @@ class GoodListSerializer(serializers.ModelSerializer):
 
     def get_query(self, instance):
         return get_good_query_with_notifications(
-            good=instance, exporter_user=self.context.get("exporter_user"), total_count=True
+            good=instance,
+            exporter_user=self.context.get("exporter_user"),
+            organisation_id=self.context.get("organisation_id"),
+            total_count=True,
         )
 
 
@@ -171,7 +174,10 @@ class GoodSerializer(serializers.ModelSerializer):
     def get_query(self, instance):
         if isinstance(instance, Good):
             return get_good_query_with_notifications(
-                good=instance, exporter_user=self.context.get("exporter_user"), total_count=False
+                good=instance,
+                exporter_user=self.context.get("exporter_user"),
+                organisation_id=self.context.get("organisation_id"),
+                total_count=False,
             )
 
         return None

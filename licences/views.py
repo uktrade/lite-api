@@ -8,6 +8,7 @@ from conf.authentication import ExporterAuthentication
 from licences.models import Licence
 from licences.serializers.view_licence import LicenceSerializer
 from licences.serializers.view_licences import LicenceListSerializer
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from parties.enums import PartyType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
@@ -37,7 +38,9 @@ class Licences(ListCreateAPIView):
         end_user = self.request.GET.get("end_user")
         active_only = self.request.GET.get("active_only") == "True"
 
-        licences = Licence.objects.filter(application__organisation=self.request.user.organisation, is_complete=True)
+        licences = Licence.objects.filter(
+            application__organisation_id=get_request_user_organisation_id(self.request), is_complete=True
+        )
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
