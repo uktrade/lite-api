@@ -26,10 +26,7 @@ from static.statuses.libraries.get_case_status import (
     get_case_status_by_status,
 )
 from static.statuses.models import CaseStatus
-from users.libraries.notifications import (
-    get_exporter_user_notification_total_count,
-    get_exporter_user_notification_individual_count,
-)
+from users.libraries.notifications import get_exporter_user_notification_individual_count
 from users.models import ExporterUser
 
 
