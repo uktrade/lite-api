@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework.fields import CharField
 
 from applications.enums import (
-    GoodsCategory,
     YesNoChoiceType,
     ApplicationExportLicenceOfficialType,
     ApplicationExportType,

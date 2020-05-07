@@ -8,7 +8,6 @@ from separatedvaluesfield.models import SeparatedValuesField
 from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
-    GoodsCategory,
     ServiceEquipmentType,
     MTCRAnswers,
     GoodsTypeCategory,

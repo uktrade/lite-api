@@ -1,4 +1,4 @@
-from applications.enums import GoodsCategory, GoodsTypeCategory
+from applications.enums import GoodsTypeCategory
 from applications.models import BaseApplication, StandardApplication, OpenApplication
 from datetime import date
 
