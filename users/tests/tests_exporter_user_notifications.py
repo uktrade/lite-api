@@ -117,7 +117,7 @@ class ExporterUserNotificationTests(DataTestClient):
         self.add_exporter_user_to_org(org_2, self.exporter_user)
         self.exporter_headers = {
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(self.exporter_user),
-            "HTTP_ORGANISATION_ID": org_2.id,
+            "HTTP_ORGANISATION_ID": str(org_2.id),
         }
         application = self.create_standard_application_case(org_2)
         self.create_case_note(application, "This is a test note 3", self.gov_user, True)
