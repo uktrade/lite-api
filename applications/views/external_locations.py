@@ -15,6 +15,7 @@ from conf.decorators import authorised_users, application_in_non_readonly_state
 from lite_content.lite_api.strings import ExternalLocations
 from organisations.libraries.get_external_location import get_location
 from organisations.libraries.get_site import has_previous_sites
+from organisations.libraries.get_organisation import get_request_user_organisation
 from organisations.models import ExternalLocation
 from organisations.serializers import ExternalLocationSerializer
 from static.statuses.enums import CaseStatusEnum
@@ -57,7 +58,7 @@ class ApplicationExternalLocations(APIView):
         ]
 
         new_locations, errors = self._get_new_locations(
-            application, request.user.organisation, location_ids, previous_locations, previous_location_ids
+            application, get_request_user_organisation(request), location_ids, previous_locations, previous_location_ids
         )
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)

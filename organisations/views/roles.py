@@ -10,6 +10,7 @@ from conf.authentication import ExporterAuthentication
 from conf.constants import Roles, ExporterPermissions
 from conf.permissions import assert_user_has_permission
 from gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.enums import UserType
 from users.libraries.get_role import get_role_by_pk
 from users.models import Role
@@ -95,6 +96,6 @@ class PermissionsView(APIView):
         """
         Return list of all permissions
         """
-        permissions = request.user.get_role(request.user.organisation).permissions.values()
+        permissions = request.user.get_role(get_request_user_organisation_id(request)).permissions.values()
         serializer = PermissionSerializer(permissions, many=True)
         return JsonResponse(data={"permissions": serializer.data})

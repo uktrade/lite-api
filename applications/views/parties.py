@@ -13,6 +13,7 @@ from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import Party
 from parties.serializers import PartySerializer
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
@@ -28,7 +29,7 @@ class ApplicationPartyView(APIView):
         """
 
         data = request.data
-        data["organisation"] = request.user.organisation.id
+        data["organisation"] = get_request_user_organisation_id(request)
 
         if not application.is_major_editable():
             return JsonResponse(
