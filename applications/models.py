@@ -12,6 +12,7 @@ from applications.enums import (
     ServiceEquipmentType,
     MTCRAnswers,
     GoodsTypeCategory,
+    ContractType,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
@@ -320,6 +321,10 @@ class CountryOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(OpenApplication, related_name="application_countries", on_delete=models.CASCADE)
     country = models.ForeignKey(Country, related_name="countries_on_application", on_delete=models.CASCADE)
+    contract_types = SeparatedValuesField(
+        max_length=50, choices=ContractType.choices, blank=True, null=True, default=None
+    )
+    other_contract_type_text = models.CharField(max_length=150, blank=True, null=True, default=None)
 
 
 class PartyOnApplication(TimestampableModel):
