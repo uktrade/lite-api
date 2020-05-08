@@ -48,6 +48,8 @@ from goodstype.helpers import get_goods_type
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api.strings import Documents, Cases
+from organisations.libraries.get_organisation import get_request_user_organisation_id
+from queues.serializers import TinyQueueSerializer
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
@@ -179,7 +181,7 @@ class ExporterCaseDocumentDownload(APIView):
 
     def get(self, request, case_pk, document_pk):
         case = get_case(case_pk)
-        if case.organisation != request.user.organisation:
+        if case.organisation.id != get_request_user_organisation_id(request):
             return HttpResponse(status.HTTP_401_UNAUTHORIZED)
         try:
             document = CaseDocument.objects.get(id=document_pk, case=case)
@@ -373,7 +375,7 @@ class CaseEcjuQueries(APIView):
         if isinstance(request.user, ExporterUser):
             serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)
             delete_exporter_notifications(
-                user=request.user, organisation=request.user.organisation, objects=case_ecju_queries
+                user=request.user, organisation_id=get_request_user_organisation_id(request), objects=case_ecju_queries
             )
         else:
             serializer = EcjuQueryGovSerializer(case_ecju_queries, many=True)

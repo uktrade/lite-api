@@ -25,7 +25,7 @@ def add_goods_flags_to_submitted_application(application: BaseApplication):
             if good_on_application.good.status == GoodStatus.DRAFT:
                 good_on_application.good.status = GoodStatus.SUBMITTED
                 good_on_application.good.save()
-            _add_good_not_yet_verified_system_flag_to_good(good_on_application.good)
+                _add_good_not_yet_verified_system_flag_to_good(good_on_application.good)
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
         for goods_type_on_application in GoodsType.objects.filter(application=application):
             _add_good_not_yet_verified_system_flag_to_good(goods_type_on_application)

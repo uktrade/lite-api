@@ -88,8 +88,13 @@ class ExporterReadGoodQuerySerializer(serializers.ModelSerializer):
 
     def get_exporter_user_notification_count(self, instance):
         exporter_user = self.context.get("exporter_user")
+        organisation_id = self.context.get("organisation_id")
         if exporter_user:
             if self.context.get("total_count"):
-                return get_exporter_user_notification_total_count(exporter_user=exporter_user, case=instance)
+                return get_exporter_user_notification_total_count(
+                    exporter_user=exporter_user, organisation_id=organisation_id, case=instance
+                )
             else:
-                return get_exporter_user_notification_individual_count(exporter_user=exporter_user, case=instance)
+                return get_exporter_user_notification_individual_count(
+                    exporter_user=exporter_user, organisation_id=organisation_id, case=instance
+                )
