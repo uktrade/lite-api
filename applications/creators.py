@@ -350,7 +350,7 @@ def _validate_open_licence(draft, errors):
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
     errors = _validate_temporary_export_details(draft, errors)
     errors = _validate_route_of_goods(draft, errors)
-    if draft.goodstype_category == "military":
+    if draft.goodstype_category == GoodsTypeCategory.MILITARY:
         errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True, open_application=True)
 
     return errors
