@@ -47,17 +47,127 @@ class SlaCaseTests(DataTestClient):
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
 
-    @parameterized.expand(
-        [
-            (CaseTypeSubTypeEnum.STANDARD, STANDARD_APPLICATION_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.OPEN, OPEN_APPLICATION_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.HMRC, HMRC_QUERY_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.EXHIBITION, MOD_CLEARANCE_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.F680, MOD_CLEARANCE_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.GIFTING, MOD_CLEARANCE_TARGET_DAYS),
-        ]
-    )
-    def test_sla_update_application(self, application_type, target):
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_standard_application(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.STANDARD,
+        target=STANDARD_APPLICATION_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_open_application(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.OPEN,
+        target=OPEN_APPLICATION_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_hmrc_query(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.HMRC,
+        target=HMRC_QUERY_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_exhibition_mod(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.EXHIBITION,
+        target=MOD_CLEARANCE_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_F680_mod(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.F680,
+        target=MOD_CLEARANCE_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_gifting_mod(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.GIFTING,
+        target=MOD_CLEARANCE_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
         application = self.case_types[application_type]
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
