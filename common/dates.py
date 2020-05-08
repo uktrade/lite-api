@@ -60,7 +60,6 @@ def working_hours_in_range(start_date, end_date):
             seconds_count -= SECONDS_IN_DAY
 
     # Divide by number of seconds in an hour and cast to an int to floor value with no decimal points
-    # seconds_count = seconds_count if seconds_count > 0 else 0
     return int(seconds_count // SECONDS_IN_HOUR)
 
 
