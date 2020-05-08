@@ -47,17 +47,127 @@ class SlaCaseTests(DataTestClient):
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
 
-    @parameterized.expand(
-        [
-            (CaseTypeSubTypeEnum.STANDARD, STANDARD_APPLICATION_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.OPEN, OPEN_APPLICATION_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.HMRC, HMRC_QUERY_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.EXHIBITION, MOD_CLEARANCE_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.F680, MOD_CLEARANCE_TARGET_DAYS),
-            (CaseTypeSubTypeEnum.GIFTING, MOD_CLEARANCE_TARGET_DAYS),
-        ]
-    )
-    def test_sla_update_application(self, application_type, target):
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_standard_application(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.STANDARD,
+        target=STANDARD_APPLICATION_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_open_application(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.OPEN,
+        target=OPEN_APPLICATION_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_hmrc_query(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.HMRC,
+        target=HMRC_QUERY_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_exhibition_mod(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.EXHIBITION,
+        target=MOD_CLEARANCE_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_F680_mod(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.F680,
+        target=MOD_CLEARANCE_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        application = self.case_types[application_type]
+        case = self.submit_application(application)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+
+        results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, 1)
+        self.assertEqual(case.sla_days, 1)
+        self.assertEqual(case.sla_remaining_days, target - 1)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_update_gifting_mod(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        application_type=CaseTypeSubTypeEnum.GIFTING,
+        target=MOD_CLEARANCE_TARGET_DAYS,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
         application = self.case_types[application_type]
         case = self.submit_application(application)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
@@ -86,7 +196,11 @@ class SlaCaseTests(DataTestClient):
 
 
 class SlaRulesTests(DataTestClient):
-    def test_sla_cutoff_window(self):
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_sla_cutoff_window(self, mock_is_weekend, mock_is_bank_holiday):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
         times = [
             HOUR_BEFORE_CUTOFF,
             SLA_UPDATE_CUTOFF_TIME,
@@ -129,15 +243,17 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
 
-    @parameterized.expand(
-        [
-            (datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc), 0),
-            (datetime.combine(TODAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc), 1),
-            (datetime.combine(YESTERDAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc), 0),
-            (datetime.combine(YESTERDAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc), 0),
-        ]
-    )
-    def test_unanswered_ecju_queries(self, created_at, expected_results):
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_unanswered_ecju_queries_today_before_cutoff(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        created_at=datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc),
+        expected_results=0,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
         self.create_ecju_query(case)
@@ -152,20 +268,182 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @parameterized.expand(
-        [
-            (datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc), 0),
-            (datetime.combine(TODAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc), 0),
-            (datetime.combine(YESTERDAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc), 1),
-            (datetime.combine(YESTERDAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc), 0),
-        ]
-    )
-    def test_answered_ecju_queries(self, responded_at, expected_results):
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_unanswered_ecju_queries_today_after_cutoff(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        created_at=datetime.combine(TODAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc),
+        expected_results=1,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        case = self.create_standard_application_case(self.organisation)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+        self.create_ecju_query(case)
+        EcjuQuery.objects.all().update(created_at=created_at)
+
+        with patch(
+            "cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+        ):
+            results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, expected_results)
+        self.assertEqual(case.sla_days, expected_results)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_unanswered_ecju_queries_yesterday_before_cutoff(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        created_at=datetime.combine(YESTERDAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc),
+        expected_results=0,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        case = self.create_standard_application_case(self.organisation)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+        self.create_ecju_query(case)
+        EcjuQuery.objects.all().update(created_at=created_at)
+
+        with patch(
+            "cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+        ):
+            results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, expected_results)
+        self.assertEqual(case.sla_days, expected_results)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_unanswered_ecju_queries_yesterday_after_cutoff(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        created_at=datetime.combine(YESTERDAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc),
+        expected_results=0,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        case = self.create_standard_application_case(self.organisation)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+        self.create_ecju_query(case)
+        EcjuQuery.objects.all().update(created_at=created_at)
+
+        with patch(
+            "cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+        ):
+            results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, expected_results)
+        self.assertEqual(case.sla_days, expected_results)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_answered_ecju_queries_today_before_cutoff(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        responded_at=datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc),
+        expected_results=0,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
         case = self.create_standard_application_case(self.organisation)
         _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
         query = self.create_ecju_query(case)
-        with patch("django.utils.timezone.now", return_value=responded_at):
-            query.save()
+        query.created_at = datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc)
+        query.responded_at = responded_at
+        query.save()
+
+        with patch(
+            "cases.sla.yesterday",
+            return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
+        ):
+            results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, expected_results)
+        self.assertEqual(case.sla_days, expected_results)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_answered_ecju_queries_today_after_cutoff(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        responded_at=datetime.combine(TODAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc),
+        expected_results=0,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        case = self.create_standard_application_case(self.organisation)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+        query = self.create_ecju_query(case)
+        query.created_at = datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc)
+        query.responded_at = responded_at
+        query.save()
+
+        with patch(
+            "cases.sla.yesterday",
+            return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
+        ):
+            results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, expected_results)
+        self.assertEqual(case.sla_days, expected_results)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_answered_ecju_queries_yesterday_before_cutoff(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        responded_at=datetime.combine(YESTERDAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc),
+        expected_results=0,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        case = self.create_standard_application_case(self.organisation)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+        query = self.create_ecju_query(case)
+        query.created_at = datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc)
+        query.responded_at = responded_at
+        query.save()
+
+        with patch(
+            "cases.sla.yesterday",
+            return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
+        ):
+            results = update_cases_sla.now()
+        case.refresh_from_db()
+
+        self.assertEqual(results, expected_results)
+        self.assertEqual(case.sla_days, expected_results)
+
+    @mock.patch("cases.sla.is_weekend")
+    @mock.patch("cases.sla.is_bank_holiday")
+    def test_answered_ecju_queries_yesterday_after_cutoff(
+        self,
+        mock_is_weekend,
+        mock_is_bank_holiday,
+        responded_at=datetime.combine(YESTERDAY, time=HOUR_AFTER_CUTOFF, tzinfo=timezone.utc),
+        expected_results=0,
+    ):
+        mock_is_weekend.return_value = False
+        mock_is_bank_holiday.return_value = False
+        case = self.create_standard_application_case(self.organisation)
+        _set_submitted_at(case, HOUR_BEFORE_CUTOFF)
+        query = self.create_ecju_query(case)
+        query.created_at = datetime.combine(TODAY, time=HOUR_BEFORE_CUTOFF, tzinfo=timezone.utc)
+        query.responded_at = responded_at
+        query.save()
 
         with patch(
             "cases.sla.yesterday",
