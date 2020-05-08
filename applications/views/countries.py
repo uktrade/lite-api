@@ -123,3 +123,27 @@ class ApplicationCountries(APIView):
             removed_countries.delete()
 
             return JsonResponse(data={"countries": countries_data}, status=status.HTTP_201_CREATED)
+
+
+class ApplicationContractTypes(APIView):
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
+    def post(self, request, application):
+
+        if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
+
+        data = request.data
+
+        print("countries", data.get("countries"))
+        print("contract_types", data.get("contract_types"))
+
+        for country in data.get("countries"):
+            coa = CountryOnApplication.objects.get(country_id=country, application=application)
+            coa.contract_types = data.get("contract_types")
+
+            if "other_contract_type" in data.get("contract_types"):
+                coa.other_contract_type_text = data.get("other_text")
+
+            coa.save()
+
+        return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
