@@ -151,7 +151,7 @@ class ServiceEquipmentType(Enum):
         }[self]
 
 
-class ContractType(Enum):
+class ContractType:
     NUCLEAR_RELATED = "nuclear_related"
     NAVY = "navy"
     ARMY = "army"
