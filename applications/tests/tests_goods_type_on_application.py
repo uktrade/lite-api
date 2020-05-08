@@ -56,7 +56,7 @@ class GoodsTypeOnApplicationTests(DataTestClient):
         self.assertEquals(response_data["description"], "Widget")
         self.assertEquals(response_data["is_good_controlled"], True)
         self.assertEquals(
-            response_data["control_list_entries"],
+            sorted(response_data["control_list_entries"], key=lambda i: i["rating"]),
             [
                 {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
                 {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
