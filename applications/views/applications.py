@@ -170,7 +170,7 @@ class ApplicationExisting(APIView):
     def get(self, request):
         organisation = get_request_user_organisation(request)
         if organisation.type == "hmrc":
-            has_queries = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation).exists()
+            has_queries = HmrcQuery.objects.submitted(hmrc_organisation=organisation).exists()
             return JsonResponse(data={"queries": has_queries})
         else:
             has_licences = Licence.objects.filter(application__organisation=organisation).exists()
