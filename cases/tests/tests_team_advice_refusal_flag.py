@@ -29,7 +29,7 @@ class CasesFilterAndSortTests(DataTestClient):
         self.gov_user.role = role
         self.gov_user.save()
 
-        self.url = reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id})
+        self.url = reverse("cases:team_advice", kwargs={"pk": self.standard_case.id})
 
     def test_combine_user_refusal_creates_flag(self):
         self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.REFUSE, Advice)

@@ -8,14 +8,9 @@ from test_helpers.clients import DataTestClient
 class EditCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.standard_application = self.create_draft_standard_application(self.organisation)
-        self.standard_case = self.submit_application(self.standard_application)
-
         self.open_application = self.create_draft_open_application(self.organisation)
         self.open_case = self.submit_application(self.open_application)
-
-        self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.standard_case.id})
-        self.open_case_url = reverse("cases:case_advice", kwargs={"pk": self.open_case.id})
+        self.open_case_url = reverse("cases:user_advice", kwargs={"pk": self.open_case.id})
 
     def test_edit_standard_case_advice_twice_only_shows_once(self):
         """

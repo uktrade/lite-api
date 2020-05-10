@@ -6,6 +6,7 @@ from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, Li
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
+from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -39,7 +40,7 @@ from cases.serializers import (
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
-from conf.exceptions import NotFoundError
+from conf.exceptions import NotFoundError, BadRequestError
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
@@ -233,9 +234,8 @@ class TeamAdvice(APIView):
 
     def get(self, request, pk):
         """
-        Concatenates all advice for a case and returns it or just returns if team advice already exists
+        Concatenates all advice for a case
         """
-
         if self.team_advice.filter(team=request.user.team).count() == 0:
             user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user)
             if user_cannot_manage_team_advice:
@@ -249,12 +249,8 @@ class TeamAdvice(APIView):
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_TEAM_ADVICE, target=self.case,
             )
-            team_advice = Advice.objects.get_team_advice(self.case, team)
-        else:
-            team_advice = self.team_advice
 
-        serializer = CaseAdviceSerializer(team_advice, many=True)
-        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
@@ -459,10 +455,19 @@ class GoodsCountriesDecisions(APIView):
 
     def post(self, request, pk):
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        data = JSONParser().parse(request).get("good_countries")
+        data = request.data.get("good_countries")
+
+        if not data:
+            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
+
+        country_count = CountryOnApplication.objects.filter(application=get_case(data[0]["case"])).count()
+
+        if len(data) != country_count:
+            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
 
         serializer = GoodCountryDecisionSerializer(data=data, many=True)
-        if serializer.is_valid():
+
+        if serializer.is_valid(raise_exception=True):
             for item in data:
                 GoodCountryDecision(
                     good=get_goods_type(item["good"]),
@@ -472,8 +477,6 @@ class GoodsCountriesDecisions(APIView):
                 ).save()
 
             return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class Destination(APIView):
@@ -505,13 +508,12 @@ class CaseOfficer(APIView):
             )
 
         data = {"case_officer": gov_user_pk}
-
         serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             user = get_user_by_pk(gov_user_pk)
-
             serializer.save()
+
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
@@ -520,8 +522,6 @@ class CaseOfficer(APIView):
             )
 
             return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     @transaction.atomic
     def delete(self, request, pk):

@@ -23,9 +23,9 @@ urlpatterns = [
         views.ExporterCaseDocumentDownload.as_view(),
         name="document_download",
     ),
-    path("<uuid:pk>/user-advice/", views.UserAdvice.as_view(), name="case_advice"),
-    path("<uuid:pk>/team-advice/", views.TeamAdvice.as_view(), name="case_team_advice", ),
-    path("<uuid:pk>/final-advice/", views.FinalAdvice.as_view(), name="case_final_advice", ),
+    path("<uuid:pk>/user-advice/", views.UserAdvice.as_view(), name="user_advice"),
+    path("<uuid:pk>/team-advice/", views.TeamAdvice.as_view(), name="team_advice",),
+    path("<uuid:pk>/final-advice/", views.FinalAdvice.as_view(), name="case_final_advice",),
     path("<uuid:pk>/final-advice-documents/", views.FinalAdviceDocuments.as_view(), name="final_advice_documents",),
     path(
         "<uuid:pk>/goods-countries-decisions/",

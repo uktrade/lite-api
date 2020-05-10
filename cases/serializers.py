@@ -194,7 +194,6 @@ class CaseDetailSerializer(CaseSerializer):
     queue_names = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
-    advice = CaseAdviceSerializer(many=True)
     flags = serializers.SerializerMethodField()
     query = QueryViewSerializer(read_only=True)
     application = serializers.SerializerMethodField()
@@ -471,6 +470,5 @@ class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = (
-            "id",
             "case_officer",
         )

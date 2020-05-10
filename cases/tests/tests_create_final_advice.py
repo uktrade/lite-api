@@ -4,7 +4,8 @@ from rest_framework import status
 
 from cases.enums import AdviceType
 from cases.libraries.advice import get_serialized_entities_from_final_advice_on_case
-from cases.models import Advice, Advice, Advice
+from cases.models import Advice
+from cases.tests.factories import FinalAdviceFactory
 from conf import constants
 from conf.helpers import convert_queryset_to_str
 from goods.enums import PvGrading
@@ -21,6 +22,7 @@ class CreateCaseAdviceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_draft_standard_application(self.organisation)
+        self.good = self.standard_application.goods.first().good
         self.standard_case = self.submit_application(self.standard_application)
 
         team_2 = Team(name="2")
@@ -62,10 +64,10 @@ class CreateCaseAdviceTests(DataTestClient):
         self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, Advice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
+        response_data = response.json()["case"]["advice"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 2)
+        self.assertEqual(len(response_data), 4)
 
         end_user, good = None, None
         for data in response_data:
@@ -86,7 +88,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, Advice)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"][0]
+        response_data = response.json()["case"]["advice"][0]
 
         self.assertEqual(response_data.get("type").get("key"), "conflicting")
         self.assertEqual(response_data.get("proviso"), "I am easy to proviso")
@@ -105,7 +107,7 @@ class CreateCaseAdviceTests(DataTestClient):
             self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, Advice, pv_grading)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
+        response_data = response.json()["case"]["advice"]
 
         self.assertEqual(response_data[0].get("type").get("key"), "proviso")
         self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
@@ -123,7 +125,7 @@ class CreateCaseAdviceTests(DataTestClient):
             self.create_advice(user, self.standard_case, "good", AdviceType.PROVISO, Advice, pv_grading)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
+        response_data = response.json()["case"]["advice"]
 
         self.assertEqual(response_data[0].get("type").get("key"), "proviso")
         self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
@@ -144,7 +146,7 @@ class CreateCaseAdviceTests(DataTestClient):
             self.create_advice(user, self.standard_case, "good", advice_type, Advice, pv_grading)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
+        response_data = response.json()["case"]["advice"]
 
         self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
         self.assertNotIn("\n-------\n", response_data[0]["collated_pv_grading"])
@@ -160,10 +162,14 @@ class CreateCaseAdviceTests(DataTestClient):
             (self.gov_user_3, AdviceType.APPROVE, PvGrading.NATO_CONFIDENTIAL),
         ]
         for user, advice_type, pv_grading in inputs:
-            self.create_advice(user, self.standard_case, "good", advice_type, Advice, pv_grading)
+            FinalAdviceFactory(user=user,
+                               case=self.standard_case,
+                               good=self.good,
+                               type=advice_type,
+                               pv_grading=pv_grading)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
-        response_data = response.json()["advice"]
+        response_data = response.json()["case"]["advice"]
 
         self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
         self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
@@ -199,35 +205,9 @@ class CreateCaseAdviceTests(DataTestClient):
             data["denial_reasons"] = ["1a", "1b", "1c"]
 
         response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
-        response_data = response.json()["advice"][0]
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        self.assertEqual(response_data["text"], data["text"])
-        self.assertEqual(response_data["note"], data["note"])
-        self.assertEqual(response_data["type"]["key"], data["type"])
-        self.assertEqual(response_data["end_user"], data["end_user"])
-
-        advice_object = Advice.objects.get()
-
-        # Ensure that proviso details aren't added unless the type sent is PROVISO
-        if advice_type != AdviceType.PROVISO:
-            self.assertTrue("proviso" not in response_data)
-            self.assertEqual(advice_object.proviso, None)
-        else:
-            self.assertEqual(response_data["proviso"], data["proviso"])
-            self.assertEqual(advice_object.proviso, data["proviso"])
-
-        # Ensure that refusal details aren't added unless the type sent is REFUSE
-        if advice_type != AdviceType.REFUSE:
-            self.assertTrue("denial_reasons" not in response_data)
-            self.assertEqual(advice_object.denial_reasons.count(), 0)
-        else:
-            self.assertCountEqual(response_data["denial_reasons"], data["denial_reasons"])
-            self.assertCountEqual(
-                convert_queryset_to_str(advice_object.denial_reasons.values_list("id", flat=True)),
-                data["denial_reasons"],
-            )
+        self.assertIsNotNone(Advice.objects.get())
 
     def test_user_cannot_create_final_advice_without_permissions(self):
         """
@@ -247,22 +227,11 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_user_can_see_already_created_final_advice_without_additional_permissions(self,):
-        """
-        No permissions are required to view any tier of advice
-        """
-        self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.PROVISO, Advice)
-        self.gov_user.role.permissions.set([])
-        self.gov_user.save()
-        response = self.client.get(self.standard_case_url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
     def test_cannot_submit_user_level_advice_if_final_advice_exists_on_that_case(self):
         """
         Logically blocks the submission of lower tier advice if higher tier advice exists
         """
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.PROVISO, Advice)
+        FinalAdviceFactory(user=self.gov_user_2, case=self.standard_case, good=self.good)
 
         data = {
             "text": "I Am Easy to Find",
@@ -272,7 +241,7 @@ class CreateCaseAdviceTests(DataTestClient):
         }
 
         response = self.client.post(
-            reverse("cases:case_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
+            reverse("cases:user_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -293,7 +262,7 @@ class CreateCaseAdviceTests(DataTestClient):
         }
 
         response = self.client.post(
-            reverse("cases:case_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
+            reverse("cases:user_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -312,7 +281,7 @@ class CreateCaseAdviceTests(DataTestClient):
         }
 
         response = self.client.post(
-            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
+            reverse("cases:team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -333,7 +302,7 @@ class CreateCaseAdviceTests(DataTestClient):
         }
 
         response = self.client.post(
-            reverse("cases:case_team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
+            reverse("cases:team_advice", kwargs={"pk": self.standard_case.id}), **self.gov_headers, data=[data]
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

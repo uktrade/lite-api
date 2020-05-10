@@ -23,16 +23,13 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
     type = KeyValueChoiceField(choices=AdviceType.choices)
     level = serializers.CharField()
-    proviso = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        allow_null=True,
-        max_length=5000,
-    )
+    proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000,)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
 
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
-    team = PrimaryKeyRelatedSerializerField(queryset=Team.objects.all(), required=False, serializer=TeamReadOnlySerializer)
+    team = PrimaryKeyRelatedSerializerField(
+        queryset=Team.objects.all(), required=False, serializer=TeamReadOnlySerializer
+    )
 
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
@@ -52,11 +49,24 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         repr_dict = super().to_representation(instance)
-        entities = ["team", "end_user", "consignee", "ultimate_end_user", "third_party", "country", "good", "goods_type"]
+        fields = [
+            "team",
+            "end_user",
+            "consignee",
+            "ultimate_end_user",
+            "third_party",
+            "country",
+            "good",
+            "goods_type",
+            "proviso",
+            "denial_reasons",
+            "pv_grading",
+            "collated_pv_grading",
+        ]
 
-        for entity in entities:
-            if entity in repr_dict and not repr_dict[entity]:
-                del repr_dict[entity]
+        for field in fields:
+            if field in repr_dict and not repr_dict[field]:
+                del repr_dict[field]
 
         return repr_dict
 

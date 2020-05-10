@@ -47,7 +47,6 @@ def check_refusal_errors(advice):
 
 
 def post_advice(request, case, level, team=False):
-
     if CaseStatusEnum.is_terminal(case.status.status):
         return JsonResponse(
             data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
@@ -55,11 +54,6 @@ def post_advice(request, case, level, team=False):
         )
 
     data = request.data
-
-    print('\n')
-    print('DATA RECEIVED')
-    print(data)
-    print('\n')
 
     # Update the case and user in each piece of advice
     refusal_error = False
