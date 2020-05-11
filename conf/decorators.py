@@ -13,7 +13,7 @@ from users.models import ExporterUser
 
 def _get_application_id(request, kwargs):
     if "pk" in kwargs:
-        return kwargs.pop("pk")
+        return kwargs.get("pk")
     elif "application" in request.request.data:
         return request.request.data["application"]
     else:
