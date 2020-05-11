@@ -15,6 +15,7 @@ def get(appended_address, headers):
     sender = _get_hawk_sender(url, "GET", "text/plain", None)
 
     headers["Authorization"] = sender.request_header
+    headers["content-type"] = sender.req_resource.content_type
     response = requests.get(url, headers=headers)
 
     _verify_api_response(response, sender)
@@ -28,9 +29,11 @@ def post(appended_address, headers, request_data):
     if not appended_address.endswith("/"):
         url = url + "/"
 
-    sender = _get_hawk_sender(url, "POST", "application/json", json.dumps(request_data))
+    content_type = "application/json"
+    sender = _get_hawk_sender(url, "POST", content_type, json.dumps(request_data))
 
     headers["Authorization"] = sender.request_header
+    headers["content-type"] = sender.req_resource.content_type
     response = requests.post(url, headers=headers, json=request_data)
 
     _verify_api_response(response, sender)
