@@ -35,9 +35,9 @@ def allowed_application_types(application_types: [str]):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
+            sub_type = BaseApplication.objects.filter(pk=kwargs.pop("pk")).values_list("case__case_type__sub_type", flat=True)[0]
 
-            if application.case_type.sub_type not in application_types:
+            if sub_type not in application_types:
                 return JsonResponse(
                     data={
                         "errors": [
@@ -63,7 +63,7 @@ def application_in_state(is_editable=False, is_major_editable=False):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            status = BaseApplication.objects.filter(pk=kwargs.pop("pk")).values_list("status__status", flat=True)[0]
+            status = BaseApplication.objects.filter(pk=kwargs.pop("pk")).values_list("case__status__status", flat=True)[0]
 
             if is_editable and status in CaseStatusEnum.read_only_statuses():
                 return JsonResponse(
