@@ -183,7 +183,12 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
         # Approve the existing good
         advice_text = "looks good to me"
         self.create_advice(
-            self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.USER, advice_text=advice_text
+            self.gov_user,
+            self.standard_application,
+            "good",
+            AdviceType.APPROVE,
+            AdviceLevel.USER,
+            advice_text=advice_text,
         )
 
         # Refuse a second good
@@ -191,7 +196,12 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
             self.standard_application, self.create_good("a thing", self.organisation)
         )
         self.create_advice(
-            self.gov_user, self.standard_application, "", AdviceType.REFUSE, AdviceLevel.USER, good=second_good_on_app.good
+            self.gov_user,
+            self.standard_application,
+            "",
+            AdviceType.REFUSE,
+            AdviceLevel.USER,
+            good=second_good_on_app.good,
         )
 
         # NLR a third good
@@ -222,7 +232,9 @@ class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
 
     def test_get_proviso_goods_success(self):
         # Proviso the existing good
-        advice = self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.PROVISO, AdviceLevel.USER)
+        advice = self.create_advice(
+            self.gov_user, self.standard_application, "good", AdviceType.PROVISO, AdviceLevel.USER
+        )
 
         response = self.client.get(self.url, **self.gov_headers)
         data = response.json()["goods"]

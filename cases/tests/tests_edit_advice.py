@@ -22,7 +22,7 @@ class EditCaseAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "country": "GB",
-            "level": AdviceLevel.USER
+            "level": AdviceLevel.USER,
         }
 
         self.client.post(self.open_case_url, **self.gov_headers, data=[data])

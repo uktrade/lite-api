@@ -53,7 +53,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, AdviceLevel.TEAM)
         self.create_advice(self.gov_user_2, self.standard_case, "end_user", AdviceType.PROVISO, AdviceLevel.TEAM)
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
+        self.create_advice(
+            self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM
+        )
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -224,7 +226,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         """
         Audit trail is created when clearing or combining advice
         """
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.USER)
+        self.create_advice(
+            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.USER
+        )
         self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, AdviceLevel.USER)
         self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER)
 
@@ -272,8 +276,12 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         Same advice type, same pv grading
         """
         pv_grading = PvGrading.UK_OFFICIAL
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading)
-        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading)
+        self.create_advice(
+            self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading
+        )
+        self.create_advice(
+            self.gov_user_3, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading
+        )
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -287,8 +295,12 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         """
         pv_grading = PvGrading.UK_OFFICIAL
         pv_grading_2 = PvGrading.UK_OFFICIAL_SENSITIVE
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading)
-        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading_2)
+        self.create_advice(
+            self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading
+        )
+        self.create_advice(
+            self.gov_user_3, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading_2
+        )
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -302,8 +314,12 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         """
         pv_grading = PvGrading.UK_OFFICIAL
         pv_grading_2 = PvGrading.UK_OFFICIAL_SENSITIVE
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading)
-        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER, pv_grading_2)
+        self.create_advice(
+            self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading
+        )
+        self.create_advice(
+            self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER, pv_grading_2
+        )
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -316,8 +332,12 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         Different advice type, same pv gradings
         """
         pv_grading = PvGrading.UK_OFFICIAL
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading)
-        self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER, pv_grading)
+        self.create_advice(
+            self.gov_user_2, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.USER, pv_grading
+        )
+        self.create_advice(
+            self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.USER, pv_grading
+        )
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]

@@ -61,7 +61,9 @@ class CreateCaseAdviceTests(DataTestClient):
         self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.PROVISO, AdviceLevel.TEAM)
         self.create_advice(self.gov_user_2, self.standard_case, "end_user", AdviceType.PROVISO, AdviceLevel.TEAM)
         self.create_advice(self.gov_user, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
-        self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
+        self.create_advice(
+            self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM
+        )
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
@@ -307,7 +309,9 @@ class CreateCaseAdviceTests(DataTestClient):
         """
         Audit trail is created when clearing or combining advice
         """
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
+        self.create_advice(
+            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM
+        )
         self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.REFUSE, AdviceLevel.TEAM)
         self.create_advice(self.gov_user_3, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.TEAM)
 
@@ -322,9 +326,15 @@ class CreateCaseAdviceTests(DataTestClient):
         """
         Because of the shared parent class, make sure the parent class "save" method is overridden by the child class
         """
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.USER)
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
-        self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.FINAL)
+        self.create_advice(
+            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.USER
+        )
+        self.create_advice(
+            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM
+        )
+        self.create_advice(
+            self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.FINAL
+        )
 
         self.client.get(self.standard_case_url, **self.gov_headers)
 

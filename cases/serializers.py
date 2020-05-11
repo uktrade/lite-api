@@ -469,6 +469,4 @@ class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Case
-        fields = (
-            "case_officer",
-        )
+        fields = ("case_officer",)

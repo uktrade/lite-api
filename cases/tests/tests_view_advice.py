@@ -27,23 +27,23 @@ class ViewCaseAdviceTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for advice in [user_advice, team_advice, final_advice]:
             comparison_dict = {
-                    "id": str(advice.id),
-                    "text": advice.text,
-                    "note": advice.note,
-                    "level": advice.level,
-                    "case": str(advice.case.id),
-                    "type": {"key": advice.type, "value": "Approve"},
-                    "updated_at": date_to_drf_date(advice.updated_at),
-                    "created_at": date_to_drf_date(advice.created_at),
-                    "good": str(self.good.id),
-                    "user": {
-                        "email": self.gov_user.email,
-                        "first_name": self.gov_user.first_name,
-                        "last_name": self.gov_user.last_name,
-                        "id": str(self.gov_user.id),
-                        "status": "Active",
-                    }
-                }
+                "id": str(advice.id),
+                "text": advice.text,
+                "note": advice.note,
+                "level": advice.level,
+                "case": str(advice.case.id),
+                "type": {"key": advice.type, "value": "Approve"},
+                "updated_at": date_to_drf_date(advice.updated_at),
+                "created_at": date_to_drf_date(advice.created_at),
+                "good": str(self.good.id),
+                "user": {
+                    "email": self.gov_user.email,
+                    "first_name": self.gov_user.first_name,
+                    "last_name": self.gov_user.last_name,
+                    "id": str(self.gov_user.id),
+                    "status": "Active",
+                },
+            }
 
             if advice.level == AdviceLevel.TEAM:
                 comparison_dict["team"] = {"id": str(self.team.id), "name": self.team.name}

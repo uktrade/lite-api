@@ -53,16 +53,11 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         self.assertEqual(len(response.json()["data"]), len(data["good_countries"]))
 
     def test_saving_overwrites_previous_assignment(self):
-        self.create_good_country_decision(self.case, self.goods_type_1, get_country('US'), "approve")
+        self.create_good_country_decision(self.case, self.goods_type_1, get_country("US"), "approve")
 
         data = {
             "good_countries": [
-                {
-                    "good": str(self.goods_type_1.id),
-                    "country": "US",
-                    "decision": "refuse",
-                    "case": str(self.case.id),
-                }
+                {"good": str(self.goods_type_1.id), "country": "US", "decision": "refuse", "case": str(self.case.id),}
             ]
         }
 
