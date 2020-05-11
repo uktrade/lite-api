@@ -1,13 +1,12 @@
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.exceptions import ErrorDetail
 from rest_framework.views import APIView
 
 from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
-from applications.serializers.open_application import ContractTypeSerializer
+from applications.serializers.open_application import ContractTypeSerializer, CountryOnApplicationViewSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
@@ -15,9 +14,7 @@ from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import allowed_application_types, authorised_users
 from conf.exceptions import BadRequestError
-from lite_content.lite_api import strings
 from static.countries.helpers import get_country
-from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
@@ -33,8 +30,8 @@ class ApplicationCountries(APIView):
         """
         View countries belonging to an open licence application
         """
-        countries = Country.include_special_countries.filter(countries_on_application__application=application)
-        countries_data = CountrySerializer(countries, many=True).data
+        countries = CountryOnApplication.objects.filter(application=application)
+        countries_data = CountryOnApplicationViewSerializer(countries, many=True).data
 
         return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
 
@@ -137,9 +134,6 @@ class ApplicationContractTypes(APIView):
 
         data = request.data
 
-        print("country", data.get("countries"))
-        print("contract_types", data.get("contract_types"))
-
         for country in data.get("countries"):
             errors = self._set_contract_types_for_country(application, country, data)
             if errors:
@@ -154,5 +148,4 @@ class ApplicationContractTypes(APIView):
         if serializer.is_valid():
             serializer.save()
         else:
-            print(serializer.errors)
             return serializer.errors

@@ -24,7 +24,7 @@ from licences.models import Licence
 from licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
-from static.countries.serializers import CountryWithFlagsSerializer
+from static.countries.serializers import CountryWithFlagsSerializer, CountrySerializer
 from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
@@ -240,5 +240,11 @@ class ContractTypeSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not ContractType.OTHER_CONTRACT_TYPE in self.get_initial().get("contract_types"):
+        if ContractType.OTHER_CONTRACT_TYPE not in self.get_initial().get("contract_types"):
             self.fields.pop("other_contract_type_text")
+
+
+class CountryOnApplicationViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountryOnApplication
+        fields = "__all__"

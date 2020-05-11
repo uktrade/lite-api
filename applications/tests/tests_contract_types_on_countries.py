@@ -47,7 +47,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
         response = self.client.post(url, data, **self.exporter_headers)
-        print(response.json())
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @tag("2146")
@@ -68,7 +67,12 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.post(url, data, **self.exporter_headers)
         coa = CountryOnApplication.objects.get(country_id="GB", application=application)
 
-        print(response.json())
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(set(coa.contract_types).issubset(set(contract_types)))
         self.assertEqual(coa.other_contract_type_text, other_text)
+
+        response = self.client.get(
+            reverse("applications:countries", kwargs={"pk": application.id}), **self.exporter_headers
+        )
+
+        print(response.json())
