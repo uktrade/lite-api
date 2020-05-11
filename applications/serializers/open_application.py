@@ -245,6 +245,8 @@ class ContractTypeSerializer(serializers.ModelSerializer):
 
 
 class CountryOnApplicationViewSerializer(serializers.ModelSerializer):
+    country = CountrySerializer()
+
     class Meta:
         model = CountryOnApplication
         fields = "__all__"
