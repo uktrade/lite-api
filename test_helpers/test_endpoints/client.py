@@ -12,7 +12,7 @@ def get(appended_address, headers):
     if not url.endswith("/") and "?" not in url:
         url = url + "/"
 
-    sender = _get_hawk_sender(url, "GET", "text/plain", None)
+    sender = _get_hawk_sender(url, "GET", "application/json", None)
 
     headers["Authorization"] = sender.request_header
     headers["content-type"] = sender.req_resource.content_type
@@ -29,8 +29,7 @@ def post(appended_address, headers, request_data):
     if not appended_address.endswith("/"):
         url = url + "/"
 
-    content_type = "application/json"
-    sender = _get_hawk_sender(url, "POST", content_type, json.dumps(request_data))
+    sender = _get_hawk_sender(url, "POST", "application/json", json.dumps(request_data))
 
     headers["Authorization"] = sender.request_header
     headers["content-type"] = sender.req_resource.content_type
