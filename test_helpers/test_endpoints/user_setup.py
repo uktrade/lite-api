@@ -9,7 +9,8 @@ def login_exporter():
         "user_profile": {"first_name": "first_name", "last_name": "last_name"},
     }
 
-    response, _ = post(request=None, appended_address="/users/authenticate/", request_data=exporter_user)
+    response = post(appended_address="/users/authenticate/", headers={}, request_data=exporter_user).json()
+
     exporter_user = {
         "email": exporter_user["email"],
         "EXPORTER-USER-TOKEN": response["token"],
@@ -17,7 +18,8 @@ def login_exporter():
         "ORGANISATION-ID": "None",
     }
 
-    response = get(request=exporter_user, appended_address=f"/users/me/")
+    response = get(appended_address="/users/me/", headers=exporter_user)
+
     organisation_name = env("PERFORMANCE_EXPORTER_ORGANISATION")
     if organisation_name:
         for organisation in response.json()["organisations"]:
@@ -27,7 +29,6 @@ def login_exporter():
 
         if exporter_user["ORGANISATION-ID"] == "None":
             AttributeError("organisation with that name was not found")
-
     else:
         # if no organisation name is defined, the first organisation is selected
         exporter_user["ORGANISATION-ID"] = response.json()["organisations"][0]["id"]
@@ -38,7 +39,8 @@ def login_exporter():
 def login_internal():
     gov_user = {"email": env("PERFORMANCE_GOV_USER"), "first_name": "test", "last_name": "er"}
 
-    response, _ = post(request=None, appended_address="/gov-users/authenticate/", request_data=gov_user)
+    response = post(appended_address="/gov-users/authenticate/", headers={}, request_data=gov_user).json()
+
     gov_user = {
         "email": gov_user["email"],
         "GOV-USER-TOKEN": response["token"],

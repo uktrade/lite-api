@@ -139,7 +139,7 @@ class UserMeDetail(APIView):
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
-        org_pk = request.headers["Organisation-Id"]
+        org_pk = request.headers["ORGANISATION-ID"]
         user = request.user
         relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(user=user)
 
