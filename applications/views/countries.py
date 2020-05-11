@@ -142,6 +142,8 @@ class ApplicationContractTypes(APIView):
             coa.contract_types = data.get("contract_types")
 
             if "other_contract_type" in data.get("contract_types"):
+                if not data.get("other_text"):
+                    return JsonResponse(data={"error": "give text"}, status=status.HTTP_400_BAD_REQUEST)
                 coa.other_contract_type_text = data.get("other_text")
 
             coa.save()
