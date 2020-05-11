@@ -1,20 +1,6 @@
 from conf.settings import env
 
 from test_helpers.test_endpoints.client import get, post
-from json import loads as serialize
-
-
-def get_users(env_variable):
-    user = env(env_variable)
-    # The JSON representation of the variable is different on environments, so it needs to be parsed first
-    parsed_user = user.replace("=>", ":")
-
-    try:
-        serialized_user = serialize(parsed_user)
-    except ValueError:
-        raise ValueError(f"{parsed_user} is an an acceptable value")
-
-    return serialized_user
 
 
 def login_exporter():
@@ -23,7 +9,7 @@ def login_exporter():
         "user_profile": {"first_name": "first_name", "last_name": "last_name"},
     }
 
-    response, _ = post(request=None, appended_address="/users/authenticate/", json=exporter_user)
+    response, _ = post(request=None, appended_address="/users/authenticate/", request_data=exporter_user)
     exporter_user = {
         "email": exporter_user["email"],
         "EXPORTER-USER-TOKEN": response["token"],
@@ -52,7 +38,7 @@ def login_exporter():
 def login_internal():
     gov_user = {"email": env("PERFORMANCE_GOV_USER"), "first_name": "test", "last_name": "er"}
 
-    response, _ = post(request=None, appended_address="/gov-users/authenticate/", json=gov_user)
+    response, _ = post(request=None, appended_address="/gov-users/authenticate/", request_data=gov_user)
     gov_user = {
         "email": gov_user["email"],
         "GOV-USER-TOKEN": response["token"],

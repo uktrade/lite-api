@@ -59,7 +59,7 @@ def _get_headers(request, sender: Sender):
 
 def _get_hawk_sender(url, method, content_type, content):
     return Sender(
-        credentials={"id": "lite-api-client", "key": env("LITE_API_HAWK_KEY"), "algorithm": "sha256"},
+        credentials={"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": "sha256"},
         url=url,
         method=method,
         content=content,
