@@ -8,7 +8,6 @@ from separatedvaluesfield.models import SeparatedValuesField
 from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
-    GoodsCategory,
     ServiceEquipmentType,
     MTCRAnswers,
     GoodsTypeCategory,
@@ -175,9 +174,7 @@ class StandardApplication(BaseApplication):
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, blank=True, null=True, default=None, max_length=50,
     )
-    goods_categories = SeparatedValuesField(
-        max_length=150, choices=GoodsCategory.choices, blank=True, null=True, default=None
-    )
+    contains_firearm_goods = models.BooleanField(blank=True, default=None, null=True)
     is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
     non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
     temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
@@ -209,6 +206,7 @@ class OpenApplication(BaseApplication):
         choices=TradeControlProductCategory.choices, blank=False, null=True, max_length=50
     )
     goodstype_category = models.CharField(choices=GoodsTypeCategory.choices, blank=False, null=True, max_length=100)
+    contains_firearm_goods = models.BooleanField(blank=True, default=None, null=True)
 
 
 # MOD Clearances Applications
