@@ -24,7 +24,7 @@ class EndUserAdvisoryViewTests(DataTestClient):
         self.assertEqual(end_user_data["name"], query.end_user.name)
         self.assertEqual(end_user_data["website"], query.end_user.website)
         self.assertEqual(end_user_data["address"], query.end_user.address)
-        self.assertEqual(end_user_data["country"]["id"], query.end_user.country.id)
+        self.assertEqual(end_user_data["country"]["name"], query.end_user.country.name)
 
     def test_view_end_user_advisory_query_on_organisation(self):
         """

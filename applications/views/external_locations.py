@@ -13,6 +13,7 @@ from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_users, application_in_non_readonly_state
 from lite_content.lite_api.strings import ExternalLocations
+from organisations.enums import LocationType
 from organisations.libraries.get_external_location import get_location
 from organisations.libraries.get_site import has_previous_sites
 from organisations.libraries.get_organisation import get_request_user_organisation
@@ -99,7 +100,7 @@ class ApplicationExternalLocations(APIView):
 
             # Transhipment and Trade Control applications can't have sites based in certain countries
             if application.case_type.id in [*CaseTypeEnum.trade_control_case_type_ids(), CaseTypeEnum.SITL.id]:
-                if new_location.country.id in TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES:
+                if new_location.country and new_location.country.id in TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES:
                     return (
                         None,
                         {
@@ -135,6 +136,8 @@ class ApplicationExternalLocations(APIView):
                 payload={
                     "locations": [
                         location.external_location.name + " " + location.external_location.country.name
+                        if location.external_location.country
+                        else location.external_location.name
                         for location in removed_locations
                     ]
                 },
@@ -145,7 +148,12 @@ class ApplicationExternalLocations(APIView):
                 actor=user,
                 verb=AuditType.ADD_EXTERNAL_LOCATIONS_TO_APPLICATION,
                 target=application.get_case(),
-                payload={"locations": [location.name + " " + location.country.name for location in new_locations]},
+                payload={
+                    "locations": [
+                        location.name + " " + location.country.name if location.country else location.name
+                        for location in new_locations
+                    ]
+                },
             )
 
         if method != "append_location":
@@ -195,7 +203,14 @@ class ApplicationExternalLocations(APIView):
             for location_id in location_ids:
                 new_location = get_location(location_id, user_organisation)
 
-                if previous_location_countries and new_location.country.id not in previous_location_countries:
+                if (
+                    new_location.country
+                    and (previous_location_countries and new_location.country.id not in previous_location_countries)
+                    or (
+                        str(new_location.id) not in previous_location_ids
+                        and new_location.location_type == LocationType.SEA_BASED
+                    )
+                ):
                     return (
                         None,
                         {
@@ -253,6 +268,8 @@ class ApplicationRemoveExternalLocation(APIView):
                 payload={
                     "locations": [
                         location.external_location.name + " " + location.external_location.country.name
+                        if location.external_location.country
+                        else location.external_location.name
                         for location in removed_locations
                     ]
                 },
