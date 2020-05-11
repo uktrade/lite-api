@@ -40,6 +40,9 @@ def working_hours_in_range(start_date, end_date):
     """
     seconds_count = (end_date - start_date).total_seconds()
 
+    if not is_working_day(start_date) and start_date.date() == end_date.date():
+        return 0
+
     # If start_date is a non-working day, subtract the total seconds that were remaining on that day
     if not is_working_day(start_date):
         seconds_count -= SECONDS_IN_DAY - get_time_in_seconds_from_datetime(start_date)

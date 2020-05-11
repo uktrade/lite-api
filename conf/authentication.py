@@ -26,10 +26,12 @@ class ExporterAuthentication(authentication.BaseAuthentication):
         When given a user token and an organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation
         """
+        from organisations.libraries.get_organisation import get_request_user_organisation_id
+
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(exporter_user_token)
-            organisation_id = request.META.get(ORGANISATION_ID)
+            organisation_id = get_request_user_organisation_id(request)
         else:
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 
@@ -55,10 +57,12 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         When given a user token and an organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation
         """
+        from organisations.libraries.get_organisation import get_request_user_organisation_id
+
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
             user_id = token_to_user_pk(exporter_user_token)
-            organisation_id = request.META.get(ORGANISATION_ID)
+            organisation_id = get_request_user_organisation_id(request)
         else:
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
 

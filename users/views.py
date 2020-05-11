@@ -17,7 +17,7 @@ from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_d
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import Users
 from organisations.enums import OrganisationStatus
-from organisations.libraries.get_organisation import get_organisation_by_pk, get_request_user_organisation_id
+from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from organisations.libraries.get_site import get_site
 from organisations.models import Site
 from queues.models import Queue
@@ -101,9 +101,10 @@ class UserDetail(APIView):
         Get user from pk
         """
         user = get_user_by_pk(pk)
+        organisation = get_request_user_organisation(request)
         if request.user.id != pk:
-            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, request.user.organisation)
-        relationship = get_user_organisation_relationship(user, request.user.organisation)
+            assert_user_has_permission(request.user, ExporterPermissions.ADMINISTER_USERS, organisation)
+        relationship = get_user_organisation_relationship(user, organisation)
 
         serializer = ExporterUserViewSerializer(user, context=relationship)
         return JsonResponse(data={"user": serializer.data})
@@ -235,7 +236,7 @@ class AssignSites(UpdateAPIView):
             raise PermissionDenied()
 
         sites = request.data.get("sites", [])
-        organisation = get_organisation_by_pk(self.request.META["HTTP_ORGANISATION_ID"])
+        organisation = get_request_user_organisation(request)
         request_user_relationship = get_user_organisation_relationship(request.user, organisation)
         user_organisation_relationship = get_user_organisation_relationship(kwargs["pk"], organisation)
 

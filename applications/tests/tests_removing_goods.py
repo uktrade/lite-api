@@ -123,7 +123,7 @@ class RemovingGoodsOffDraftsTests(DataTestClient):
         permission_denied_user = UserOrganisationRelationship.objects.get(organisation=other_organisation).user
         permission_denied_user_headers = {
             "HTTP_EXPORTER_USER_TOKEN": user_to_token(permission_denied_user),
-            "HTTP_ORGANISATION_ID": other_organisation.id,
+            "HTTP_ORGANISATION_ID": str(other_organisation.id),
         }
 
         response = self.client.delete(url, **permission_denied_user_headers)

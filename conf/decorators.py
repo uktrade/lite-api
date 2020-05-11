@@ -3,12 +3,14 @@ from functools import wraps
 from django.http import JsonResponse
 from rest_framework import status
 
+from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication
 from cases.enums import CaseTypeSubTypeEnum
-from conf.authentication import ORGANISATION_ID
 from lite_content.lite_api import strings
+from parties.enums import PartyType
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from users.models import ExporterUser
 
@@ -140,7 +142,7 @@ def authorised_users(user_type):
 
             if isinstance(request.request.user, ExporterUser):
                 application = _get_application(request, kwargs)
-                organisation_id = request.request.META.get(ORGANISATION_ID)
+                organisation_id = get_request_user_organisation_id(request.request)
 
                 if (
                     application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
@@ -157,6 +159,42 @@ def authorised_users(user_type):
                             ]
                         },
                         status=status.HTTP_403_FORBIDDEN,
+                    )
+
+            return func(request, *args, **kwargs)
+
+        return inner
+
+    return decorator
+
+
+def allowed_party_type_for_open_application_goodstype_category():
+    """
+    Will restrict any parties being created on open applications based on goodstype category
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def inner(request, *args, **kwargs):
+            application = _get_application(request, kwargs)
+
+            party_type = request.request.data.get("type")
+
+            if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN and party_type:
+                if (
+                    application.goodstype_category == GoodsTypeCategory.MILITARY
+                    and party_type == PartyType.ULTIMATE_END_USER
+                ):
+                    pass
+                elif (
+                    application.goodstype_category == GoodsTypeCategory.CRYPTOGRAPHIC
+                    and party_type == PartyType.THIRD_PARTY
+                ):
+                    pass
+                else:
+                    return JsonResponse(
+                        data={"errors": ["This type of party can not be added to this type of open application"]},
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
 
             return func(request, *args, **kwargs)
