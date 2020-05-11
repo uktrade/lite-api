@@ -21,26 +21,6 @@ class ApplicationExportType:
     ]
 
 
-class GoodsCategory:
-    ANTI_PIRACY = "anti_piracy"
-    MARITIME_ANTI_PIRACY = "maritime_anti_piracy"
-    FIREARMS = "firearms"
-    INCORPORATED_GOODS = "incorporated_goods"
-
-    choices = [
-        (ANTI_PIRACY, "Anti-piracy"),
-        (MARITIME_ANTI_PIRACY, "Maritime anti-piracy"),
-        (FIREARMS, "Firearms"),
-        (INCORPORATED_GOODS, "Incorporated goods"),
-    ]
-
-    @classmethod
-    def get_text(cls, choice):
-        for key, value in cls.choices:
-            if key == choice:
-                return value
-
-
 class GoodsTypeCategory:
     MILITARY = "military"
     CRYPTOGRAPHIC = "cryptographic"
