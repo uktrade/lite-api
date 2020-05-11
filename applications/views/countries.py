@@ -144,11 +144,11 @@ class ApplicationContractTypes(APIView):
         if country:
             for country in CountryOnApplication.objects.filter(application=application):
                 self._set_contract_types_for_country(
-                    application, country, data.get_list("contract_types"), data.get("other_text")
+                    application, country, data.get("contract_types"), data.get("other_text")
                 )
         else:
             self._set_contract_types_for_country(
-                application, country, data.get_list("contract_types"), data.get("other_text")
+                application, country, data.get("contract_types"), data.get("other_text")
             )
 
         return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
