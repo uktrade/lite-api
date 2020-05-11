@@ -3,6 +3,7 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
+from applications.enums import GoodsTypeCategory
 from applications.models import PartyOnApplication
 from lite_content.lite_api.strings import PartyErrors
 from parties.enums import PartyType
@@ -291,3 +292,30 @@ class UltimateEndUsersOnDraft(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.draft.end_user.party.id, self.draft.ultimate_end_users.first().party.copy_of.id)
         self.assertEqual(response.json()["ultimate_end_user"]["copy_of"], str(ultimate_end_user["copy_of"]))
+
+    def test_set_ueu_on_military_open_application_success(self):
+        """
+        Given a draft open application
+        When I try to add an ultimate end user to the application
+        Then I should get a 201 pass
+        And party should be created
+        """
+        pre_test_ueu_count = Party.objects.filter(type=PartyType.ULTIMATE_END_USER).count()
+        data = {
+            "name": "UK Government",
+            "address": "Westminster, London SW1A 0AA",
+            "country": "GB",
+            "sub_type": "commercial",
+            "website": "https://www.gov.uk",
+            "type": PartyType.ULTIMATE_END_USER,
+        }
+
+        open_draft = self.create_draft_open_application(self.organisation)
+        open_draft.goodstype_category = GoodsTypeCategory.MILITARY
+        open_draft.save()
+        url = reverse("applications:parties", kwargs={"pk": open_draft.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Party.objects.filter(type=PartyType.ULTIMATE_END_USER).count(), (pre_test_ueu_count + 1))
