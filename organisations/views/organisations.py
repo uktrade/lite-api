@@ -128,6 +128,8 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
 
 class OrganisationsMatchingDetail(APIView):
+    authentication_classes = (GovAuthentication,)
+
     @staticmethod
     def _property_has_multiple_occurances(queryset, property, property_name):
         return property and property in queryset.values_list(property_name, flat=True)

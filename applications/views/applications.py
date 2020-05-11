@@ -593,6 +593,8 @@ class ApplicationDurationView(APIView):
 
 
 class ApplicationCopy(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
     @transaction.atomic
     def post(self, request, pk):
         """
