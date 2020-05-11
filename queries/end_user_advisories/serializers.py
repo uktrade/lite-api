@@ -3,8 +3,7 @@ from datetime import datetime, timezone
 from rest_framework import serializers
 
 from cases.enums import CaseTypeEnum
-from conf.serializers import PrimaryKeyRelatedSerializerField
-from organisations.libraries.get_organisation import get_request_user_organisation_id
+from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from parties.enums import SubType
@@ -12,36 +11,26 @@ from parties.serializers import PartySerializer
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status, get_status_value_from_case_status_enum
-from users.libraries.notifications import (
-    get_exporter_user_notification_individual_count,
-    get_exporter_user_notification_total_count,
-)
+from users.libraries.notifications import get_exporter_user_notification_individual_count
 from users.models import ExporterUser
 
 
-class EndUserAdvisoryListSerializer(serializers.ModelSerializer):
-    end_user = PartySerializer()
-    exporter_user_notification_count = serializers.SerializerMethodField()
+class EndUserAdvisoryListCountrySerializer(serializers.Serializer):
+    name = serializers.CharField()
 
-    class Meta:
-        model = EndUserAdvisoryQuery
-        fields = (
-            "id",
-            "end_user",
-            "reference_code",
-            "exporter_user_notification_count",
-        )
-        read_only_fields = fields
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.exporter_user = kwargs["context"]["request"].user
-        self.organisation_id = get_request_user_organisation_id(kwargs["context"]["request"])
+class EndUserAdvisoryListPartySerializer(serializers.Serializer):
+    name = serializers.CharField()
+    address = serializers.CharField()
+    country = EndUserAdvisoryListCountrySerializer()
+    website = serializers.CharField()
+    sub_type = KeyValueChoiceField(choices=SubType.choices)
 
-    def get_exporter_user_notification_count(self, instance):
-        return get_exporter_user_notification_total_count(
-            exporter_user=self.exporter_user, organisation_id=self.organisation_id, case=instance
-        )
+
+class EndUserAdvisoryListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    end_user = EndUserAdvisoryListPartySerializer()
+    reference_code = serializers.CharField()
 
 
 class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
