@@ -12,7 +12,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_to_view_application, application_in_non_readonly_state
+from conf.decorators import authorised_to_view_application, application_in_state
 from lite_content.lite_api.strings import ExternalLocations
 from organisations.libraries.get_external_location import get_location
 from organisations.libraries.get_site import has_previous_sites
@@ -43,7 +43,7 @@ class ApplicationExternalLocations(APIView):
 
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
-    @application_in_non_readonly_state()
+    @application_in_state(is_editable=True)
     def post(self, request, pk):
         application = get_application(pk)
         data = request.data

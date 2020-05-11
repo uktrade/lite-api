@@ -47,6 +47,11 @@ class CaseStatusEnum:
         WITHDRAWN,
     ]
 
+    _major_editable_statuses = [
+        APPLICANT_EDITING,
+        DRAFT
+    ]
+
     _terminal_statuses = [CLOSED, DEREGISTERED, FINALISED, REGISTERED, REVOKED, SURRENDERED, WITHDRAWN]
 
     goods_query_statuses = [CLC, PV]
@@ -136,6 +141,10 @@ class CaseStatusEnum:
     @classmethod
     def read_only_statuses(cls):
         return cls._read_only_statuses
+
+    @classmethod
+    def major_editable_statuses(cls):
+        return cls._major_editable_statuses
 
     @classmethod
     def terminal_statuses(cls):

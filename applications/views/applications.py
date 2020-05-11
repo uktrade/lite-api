@@ -40,7 +40,6 @@ from applications.models import (
     PartyOnApplication,
     F680ClearanceApplication,
 )
-from licences.models import Licence
 from applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
@@ -50,26 +49,25 @@ from applications.serializers.good import (
     GoodOnApplicationLicenceQuantitySerializer,
     GoodOnApplicationLicenceQuantityCreateSerializer,
 )
-from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.libraries.get_flags import get_flags
 from cases.models import FinalAdvice
-from cases.sla import get_application_target_sla
 from cases.serializers import SimpleFinalAdviceSerializer
+from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
     authorised_to_view_application,
-    application_in_major_editable_state,
-    application_in_editable_state,
     allowed_application_types,
 )
 from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
+from licences.models import Licence
+from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
@@ -201,7 +199,7 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @authorised_to_view_application(ExporterUser)
-    @application_in_editable_state()
+    @application_in_state(is_editable=True)
     def put(self, request, pk):
         """
         Update an application instance
@@ -314,7 +312,7 @@ class ApplicationSubmission(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    @application_in_major_editable_state()
+    @application_in_state(is_major_editable=True)
     @authorised_to_view_application(ExporterUser)
     def put(self, request, pk):
         """
@@ -803,7 +801,7 @@ class ExhibitionDetails(ListCreateAPIView):
     queryset = BaseApplication.objects.all()
     serializer = ExhibitionClearanceDetailSerializer
 
-    @application_in_major_editable_state()
+    @application_in_state(is_major_editable=True)
     @authorised_to_view_application(ExporterUser)
     def post(self, request, pk):
         application = get_application(pk)
@@ -871,7 +869,7 @@ class ApplicationRouteOfGoods(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_to_view_application(ExporterUser)
-    @application_in_major_editable_state()
+    @application_in_state(is_major_editable=True)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
     def put(self, request, pk):
         """ Update an application instance with route of goods data. """

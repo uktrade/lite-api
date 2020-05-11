@@ -3,13 +3,12 @@ from functools import wraps
 from django.http import JsonResponse
 from rest_framework import status
 
-from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, HmrcQuery
 from cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
-from static.statuses.libraries.case_status_validate import is_case_status_draft
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -56,64 +55,25 @@ def allowed_application_types(application_types: [str]):
     return decorator
 
 
-def application_in_major_editable_state():
+def application_in_state(is_editable=False, is_major_editable=False):
     """
-    Checks if application is in a major-editable state;
-    A Major editable state is either APPLICANT_EDITING or DRAFT
+    Checks if application is in an editable or major-editable state
     """
 
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
+            status = BaseApplication.objects.filter(pk=kwargs.pop("pk")).values_list("status__status", flat=True)[0]
 
-            if not application.is_major_editable():
+            if is_editable and status in CaseStatusEnum.read_only_statuses():
+                return JsonResponse(
+                    data={"errors": [f"Application status {status} is read-only."]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if is_major_editable and status not in CaseStatusEnum.major_editable_statuses():
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            return func(request, *args, **kwargs)
-
-        return inner
-
-    return decorator
-
-
-def application_in_editable_state():
-    """ Check if an application is in an editable state. """
-
-    def decorator(func):
-        @wraps(func)
-        def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
-
-            if not application.is_editable():
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            return func(request, *args, **kwargs)
-
-        return inner
-
-    return decorator
-
-
-def application_in_non_readonly_state():
-    """ Validate that an application is not in a readonly state. """
-
-    def decorator(func):
-        @wraps(func)
-        def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
-
-            if is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
-                read_only=True
-            ):
-                return JsonResponse(
-                    data={"errors": [f"Application status {application.status.status} is read-only."]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

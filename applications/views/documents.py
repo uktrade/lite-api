@@ -20,8 +20,6 @@ from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_to_view_application,
     allowed_application_types,
-    application_in_major_editable_state,
-    application_in_editable_state,
 )
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
 from goodstype.helpers import get_goods_type
@@ -48,7 +46,7 @@ class ApplicationDocumentView(APIView):
     @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
-    @application_in_editable_state()
+    @application_in_state(is_editable=True)
     def post(self, request, pk):
         """
         Upload additional document onto an application
@@ -74,7 +72,7 @@ class ApplicationDocumentDetailView(APIView):
     @swagger_auto_schema(request_body=ApplicationDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @authorised_to_view_application(ExporterUser)
-    @application_in_editable_state()
+    @application_in_state(is_editable=True)
     def delete(self, request, pk, doc_pk):
         """
         Delete an additional document on an application
@@ -99,7 +97,7 @@ class GoodsTypeDocumentView(APIView):
     @swagger_auto_schema(request_body=GoodsTypeDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
-    @application_in_major_editable_state()
+    @application_in_state(is_major_editable=True)
     @authorised_to_view_application(ExporterUser)
     def post(self, request, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)

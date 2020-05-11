@@ -10,7 +10,6 @@ from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_to_view_application,
     allowed_application_types,
-    application_in_major_editable_state,
 )
 from users.models import ExporterUser
 
@@ -20,7 +19,7 @@ class TemporaryExportDetails(UpdateAPIView):
 
     @authorised_to_view_application(ExporterUser)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
-    @application_in_major_editable_state()
+    @application_in_state(is_major_editable=True)
     def put(self, request, pk):
         application = get_application(pk)
         serializer = get_temp_export_details_update_serializer(application.export_type)

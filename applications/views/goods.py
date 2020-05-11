@@ -19,7 +19,6 @@ from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_to_view_application,
-    application_in_major_editable_state,
     allowed_application_types,
 )
 from conf.exceptions import BadRequestError
@@ -30,8 +29,8 @@ from goodstype.helpers import get_goods_type, delete_goods_type_document_if_exis
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
-from static.countries.models import Country
 from organisations.libraries.get_organisation import get_request_user_organisation_id
+from static.countries.models import Country
 from users.models import ExporterUser
 
 
@@ -65,7 +64,7 @@ class ApplicationGoodsOnApplication(APIView):
             CaseTypeSubTypeEnum.F680,
         ]
     )
-    @application_in_major_editable_state()
+    @application_in_state(is_major_editable=True)
     @authorised_to_view_application(ExporterUser)
     def post(self, request, pk):
         application = get_application(pk)
@@ -162,7 +161,7 @@ class ApplicationGoodsTypes(APIView):
         return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @application_in_major_editable_state()
+    @application_in_state(is_major_editable=True)
     @authorised_to_view_application(ExporterUser)
     def post(self, request, pk):
         """
@@ -245,7 +244,7 @@ class ApplicationGoodsTypeCountries(APIView):
 
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    @application_in_major_editable_state()
+    @application_in_state(is_major_editable=True)
     @authorised_to_view_application(ExporterUser)
     def put(self, request, pk):
         application = get_application(pk)
