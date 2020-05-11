@@ -47,6 +47,8 @@ class EndUserAdvisoriesList(ListAPIView):
         for item in data:
             if item["id"] in cases_with_notifications:
                 item["exporter_user_notification_count"] = cases_with_notifications[item["id"]]
+            else:
+                item["exporter_user_notification_count"] = 0
 
         return super().get_paginated_response(data)
 
