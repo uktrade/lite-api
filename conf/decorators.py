@@ -1,6 +1,6 @@
 from functools import wraps
 
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from rest_framework import status
 
 from applications.models import BaseApplication, HmrcQuery
@@ -20,6 +20,15 @@ def _get_application_id(request, kwargs):
         return JsonResponse(data={"errors": ["Application was not found"]}, status=status.HTTP_404_NOT_FOUND,)
 
 
+def _get_application(request, kwargs):
+    pk = _get_application_id(request, kwargs)
+    result = BaseApplication.objects.filter(pk=pk)
+    if not result.exists():
+        raise Http404
+    else:
+        return result
+
+
 def allowed_application_types(application_types: [str]):
     """
     Checks if application is the correct type for the request
@@ -28,9 +37,7 @@ def allowed_application_types(application_types: [str]):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            sub_type = BaseApplication.objects.filter(pk=_get_application_id(request, kwargs)).values_list(
-                "case_type__sub_type", flat=True
-            )[0]
+            sub_type = _get_application(request, kwargs).values_list("case_type__sub_type", flat=True)[0]
 
             if sub_type not in application_types:
                 return JsonResponse(
@@ -58,9 +65,7 @@ def application_in_state(is_editable=False, is_major_editable=False):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            application_status = BaseApplication.objects.filter(pk=_get_application_id(request, kwargs)).values_list(
-                "status__status", flat=True
-            )[0]
+            application_status = _get_application(request, kwargs).values_list("status__status", flat=True)[0]
 
             if is_editable and application_status in CaseStatusEnum.read_only_statuses():
                 return JsonResponse(
@@ -98,7 +103,7 @@ def authorised_to_view_application(user_type):
             if isinstance(request.request.user, ExporterUser):
                 pk = _get_application_id(request, kwargs)
                 organisation_id = get_request_user_organisation_id(request.request)
-                required_application_details = BaseApplication.objects.filter(pk=pk).values(
+                required_application_details = _get_application(request, kwargs).values(
                     "case_type__sub_type", "organisation_id"
                 )[0]
 

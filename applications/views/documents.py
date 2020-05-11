@@ -64,7 +64,7 @@ class ApplicationDocumentDetailView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_to_view_application(ExporterUser)
-    def get(self, request, doc_pk):
+    def get(self, request, pk, doc_pk):
         """
         View an additional document on an application
         """
@@ -91,7 +91,7 @@ class GoodsTypeDocumentView(APIView):
 
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @authorised_to_view_application(ExporterUser)
-    def get(self, request, goods_type_pk):
+    def get(self, request, pk, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
         return get_goods_type_document(goods_type)
 
@@ -100,7 +100,7 @@ class GoodsTypeDocumentView(APIView):
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @application_in_state(is_major_editable=True)
     @authorised_to_view_application(ExporterUser)
-    def post(self, request, goods_type_pk):
+    def post(self, request, pk, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
         return upload_goods_type_document(goods_type, request.data)
 
@@ -108,7 +108,7 @@ class GoodsTypeDocumentView(APIView):
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.HMRC])
     @authorised_to_view_application(ExporterUser)
-    def delete(self, request, goods_type_pk):
+    def delete(self, request, pk, goods_type_pk):
         goods_type = get_goods_type(goods_type_pk)
         if not goods_type:
             return JsonResponse(data={"error": "No such goods type"}, status=status.HTTP_400_BAD_REQUEST)
