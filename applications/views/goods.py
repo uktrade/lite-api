@@ -20,6 +20,7 @@ from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_to_view_application,
     allowed_application_types,
+    application_in_state,
 )
 from conf.exceptions import BadRequestError
 from goods.enums import GoodStatus

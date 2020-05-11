@@ -6,7 +6,7 @@ from applications.helpers import get_application_end_use_details_update_serializ
 from applications.libraries.edit_applications import save_and_audit_end_use_details
 from applications.libraries.get_applications import get_application
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_to_view_application
+from conf.decorators import authorised_to_view_application, application_in_state
 from users.models import ExporterUser
 
 

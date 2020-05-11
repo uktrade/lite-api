@@ -59,6 +59,7 @@ from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
+    application_in_state,
     authorised_to_view_application,
     allowed_application_types,
 )

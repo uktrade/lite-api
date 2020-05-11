@@ -13,7 +13,7 @@ from users.models import ExporterUser
 
 def _get_application_id(request, kwargs):
     if "pk" in kwargs:
-        return kwargs.get("pk")
+        return kwargs.pop("pk")
     elif "application" in request.request.data:
         return request.request.data["application"]
     else:
@@ -29,7 +29,7 @@ def allowed_application_types(application_types: [str]):
         @wraps(func)
         def inner(request, *args, **kwargs):
             sub_type = BaseApplication.objects.filter(pk=_get_application_id(request, kwargs)).values_list(
-                "case__case_type__sub_type", flat=True
+                "case_type__sub_type", flat=True
             )[0]
 
             if sub_type not in application_types:
@@ -58,16 +58,17 @@ def application_in_state(is_editable=False, is_major_editable=False):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            status = BaseApplication.objects.filter(pk=_get_application_id(request, kwargs)).values_list(
-                "case__status__status", flat=True
+            application_status = BaseApplication.objects.filter(pk=_get_application_id(request, kwargs)).values_list(
+                "status__status", flat=True
             )[0]
 
-            if is_editable and status in CaseStatusEnum.read_only_statuses():
+            if is_editable and application_status in CaseStatusEnum.read_only_statuses():
                 return JsonResponse(
-                    data={"errors": [f"Application status {status} is read-only."]}, status=status.HTTP_400_BAD_REQUEST,
+                    data={"errors": [f"Application status {application_status} is read-only."]},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            if is_major_editable and status not in CaseStatusEnum.major_editable_statuses():
+            if is_major_editable and application_status not in CaseStatusEnum.major_editable_statuses():
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]},
                     status=status.HTTP_400_BAD_REQUEST,
