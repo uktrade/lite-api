@@ -2,7 +2,7 @@ import asyncio
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
-from django.db import models, IntegrityError
+from django.db import models
 from django.utils import timezone
 
 from audit_trail.enums import AuditType
