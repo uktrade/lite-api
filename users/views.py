@@ -4,7 +4,7 @@ from django.db.models import Count, CharField, Value, QuerySet
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
-from rest_framework.exceptions import ParseError, PermissionDenied
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
