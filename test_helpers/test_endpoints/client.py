@@ -7,7 +7,7 @@ from conf.settings import env
 
 
 def get(appended_address, headers):
-    url = env("PERFORMANCE_TEST_HOST") + appended_address
+    url = env("PERFORMANCE_TEST_HOST") + appended_address.replace(" ", "%20")
 
     if not url.endswith("/") and "?" not in url:
         url = url + "/"
