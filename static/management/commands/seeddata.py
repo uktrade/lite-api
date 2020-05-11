@@ -107,37 +107,25 @@ class Command(SeedCommand):
                 ids_to_add = set([org.id for org in organisations]) - set(membership_ids)
                 to_add = [org for id_to_add in ids_to_add for org in organisations if org.id == id_to_add]
             else:
-                try:
-                    UserOrganisationRelationship.objects.get(user=exporter_user, organisation=organisation)
-                except Exception:
+                user = self.organisation_get_user(organisation, exporter_user)
+                if user is None:
                     to_add.append(organisation)
 
-            uors = [
-                UserOrganisationRelationship.objects.create(
-                    organisation=organisation, user=exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID
-                )
+            added_users = [
+                self.organisation_add_user(organisation=organisation, exporter_user=exporter_user)
                 for organisation in to_add
             ]
 
-            self.stdout.write(self.style.SUCCESS(f"Added {exporter_user.email} to {len(uors)} organisations"))
+            self.stdout.write(self.style.SUCCESS(f"Added {exporter_user.email} to {len(added_users)} organisations"))
             return
 
         if action == "remove-user":
             org, exporter_user, organisation = self.parse_user_options(options)
 
             if org == "all":
-                count, _ = (
-                    UserOrganisationRelationship.objects.select_related("organisation")
-                    .filter(user=exporter_user)
-                    .delete()
-                )
+                count, _ = self.organisation_delete_user_from_all(exporter_user=exporter_user)
             else:
-                try:
-                    count, _ = UserOrganisationRelationship.objects.filter(
-                        user=exporter_user, organisation=organisation
-                    ).delete()
-                except Exception:
-                    raise Exception(f"An Exporter User with email: '{exporter_user.email}' is not in organisation")
+                count, _ = self.organisation_delete_user(organisation=organisation, exporter_user=exporter_user)
 
             self.stdout.write(self.style.SUCCESS(f"Removed {exporter_user.email} from {count} organisations"))
             return
@@ -223,6 +211,32 @@ class Command(SeedCommand):
             org_primary,
         )
         return organisation
+
+    @staticmethod
+    def organisation_add_user(organisation, exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID):
+        return UserOrganisationRelationship.objects.create(
+            organisation=organisation, user=exporter_user, role_id=role_id
+        )
+
+    @staticmethod
+    def organisation_get_user(organisation, exporter_user):
+        try:
+            return UserOrganisationRelationship.objects.get(user=exporter_user, organisation=organisation)
+        except UserOrganisationRelationship.DoesNotExist:
+            return None
+
+    @staticmethod
+    def organisation_delete_user_from_all(exporter_user):
+        return UserOrganisationRelationship.objects.select_related("organisation").filter(user=exporter_user).delete()
+
+    @staticmethod
+    def organisation_delete_user(organisation, exporter_user):
+        try:
+            return UserOrganisationRelationship.objects.filter(
+                user=exporter_user, organisation=organisation
+            ).delete()
+        except Exception:
+            return 0, None
 
     @staticmethod
     def app_factory(org, applications_to_add, max_goods_to_use):
