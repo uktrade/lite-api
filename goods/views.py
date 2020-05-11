@@ -71,6 +71,9 @@ class GoodsListControlCode(APIView):
             serializer_class = ClcControlGoodTypeSerializer
             get_good_func = get_goods_type
 
+        if not isinstance(objects, list):
+            objects = [objects]
+
         for good_id in objects:
             good = get_good_func(good_id)
             serializer = serializer_class(good, data=data)

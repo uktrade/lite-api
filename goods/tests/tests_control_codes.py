@@ -121,7 +121,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.control_list_entries.count(), 0)
