@@ -16,6 +16,7 @@ from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
 from static.control_list_entries.serializers import ControlListEntryViewSerializer, ControlListEntrySerializerSimple
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
+from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
 from users.serializers import ExporterUserSimpleSerializer
 
@@ -289,6 +290,7 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
     status = KeyValueChoiceField(choices=GoodStatus.choices)
     query = serializers.SerializerMethodField()
     case_officer = serializers.SerializerMethodField()
+    case_status = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super(GoodSerializerExporterFullDetail, self).__init__(*args, **kwargs)
@@ -312,6 +314,15 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
                 context={"exporter_user": self.context.get("exporter_user"), "total_count": False},
             )
             return serializer.data
+        return None
+
+    def get_case_status(self, instance):
+        if self.goods_query:
+            return {
+                "key": self.goods_query.status.status,
+                "value": get_status_value_from_case_status_enum(self.goods_query.status.status),
+            }
+
         return None
 
     def get_case_officer(self, instance):
