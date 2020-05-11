@@ -24,4 +24,4 @@ class StatusesResponseTests(EndPointTests):
     url = "/static/statuses/"
 
     def test_statuses(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)

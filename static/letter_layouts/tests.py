@@ -36,4 +36,4 @@ class LetterLayoutsResponseTests(EndPointTests):
     url = "/static/letter-layouts/"
 
     def test_letter_layouts(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)

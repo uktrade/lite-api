@@ -23,4 +23,4 @@ class GoodItemTypesResponseTests(EndPointTests):
     url = "/static/item-types/"
 
     def test_item_types(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)

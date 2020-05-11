@@ -24,4 +24,4 @@ class F680ClearanceTypesResponseTests(EndPointTests):
     url = "/static/f680-clearance-types/"
 
     def test_F680_clearance_types(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)

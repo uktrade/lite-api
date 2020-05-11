@@ -21,4 +21,4 @@ class DenialReasonsResponseTests(EndPointTests):
     url = "/static/denial-reasons/"
 
     def test_denial_reasons(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)

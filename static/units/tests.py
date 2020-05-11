@@ -21,4 +21,4 @@ class UnitsResponseTests(EndPointTests):
     url = "/static/units/"
 
     def test_units(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)

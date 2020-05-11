@@ -88,7 +88,7 @@ class ControlListEntriesResponseTests(EndPointTests):
     url = "/static/control-list-entries/"
 
     def test_control_list_entries(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)
 
     def test_control_list_entries_flattened(self):
-        self.call_endpoint(self.get_exporter(), self.url + "?flatten=True")
+        self.call_endpoint(self.get_exporter_headers(), self.url + "?flatten=True")

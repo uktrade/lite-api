@@ -30,4 +30,4 @@ class PrivateVentureGradingsResponseTests(EndPointTests):
     url = "/static/private-venture-gradings/"
 
     def test_private_venture_gradings(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)

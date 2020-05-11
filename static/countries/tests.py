@@ -49,4 +49,4 @@ class CountriesResponseTests(EndPointTests):
     url = "/static/countries/"
 
     def test_countries(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)
