@@ -136,10 +136,10 @@ class ApplicationContractTypes(APIView):
 
         data = request.data
 
-        print("country", data.get("country"))
+        print("country", data.get("countries"))
         print("contract_types", data.get("contract_types"))
 
-        for country in data.get("country"):
+        for country in data.get("countries"):
             self._set_contract_types_for_country(
                 application, country, data.get("contract_types"), data.get("other_text")
             )
