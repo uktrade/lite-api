@@ -47,10 +47,7 @@ class CaseStatusEnum:
         WITHDRAWN,
     ]
 
-    _major_editable_statuses = [
-        APPLICANT_EDITING,
-        DRAFT
-    ]
+    _major_editable_statuses = [APPLICANT_EDITING, DRAFT]
 
     _terminal_statuses = [CLOSED, DEREGISTERED, FINALISED, REGISTERED, REVOKED, SURRENDERED, WITHDRAWN]
 
