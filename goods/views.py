@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse, Http404, HttpResponse
+from django.http import JsonResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView

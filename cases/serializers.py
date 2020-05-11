@@ -1,6 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
@@ -21,20 +20,15 @@ from cases.models import (
     CaseNote,
     CaseAssignment,
     CaseDocument,
-    Advice,
     EcjuQuery,
-    Advice,
     Advice,
     GoodCountryDecision,
     CaseType,
 )
-from conf.helpers import convert_queryset_to_str, ensure_x_items_not_none
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
-from goods.enums import PvGrading
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
-from gov_users.serializers import GovUserViewSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
@@ -42,9 +36,7 @@ from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from queues.serializers import CasesQueueViewSerializer
 from static.countries.models import Country
-from static.denial_reasons.models import DenialReason
 from static.statuses.enums import CaseStatusEnum
-from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
 from users.models import BaseUser, GovUser, ExporterUser, GovNotification

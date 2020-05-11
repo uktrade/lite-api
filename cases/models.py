@@ -22,7 +22,6 @@ from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
 from organisations.models import Organisation
-from picklists.enums import PicklistType
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason

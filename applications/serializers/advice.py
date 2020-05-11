@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from cases.enums import AdviceType
 from cases.models import Advice
-from conf.helpers import ensure_x_items_not_none, convert_queryset_to_str
+from conf.helpers import ensure_x_items_not_none
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from flags.enums import FlagStatuses
 from goods.models import Good

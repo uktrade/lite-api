@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from cases.enums import AdviceType, AdviceLevel
+from cases.enums import AdviceType
 from cases.models import Advice
 from goods.enums import PvGrading
 from parties.serializers import PartySerializer
@@ -10,7 +10,6 @@ from static.countries.serializers import CountrySerializer
 def group_advice(case, advice, user, new_level):
     advice_entities = {entity_field: defaultdict(list) for entity_field in Advice.ENTITY_FIELDS}
 
-    advice_level = advice[0].level
     for advice in advice:
         advice_entities[advice.entity_field][advice.entity].append(advice)
 
@@ -102,7 +101,6 @@ def get_serialized_entities_from_final_advice_on_case(case, advice_type=None):
     E.G.
     {"goods": [{"id": ...,},], "end_user": {"id": ...,},]
     """
-    from cases.models import Advice
     from goods.serializers import GoodSerializer
     from goodstype.serializers import GoodsTypeSerializer
 

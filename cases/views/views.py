@@ -50,7 +50,6 @@ from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api.strings import Documents, Cases
 from organisations.libraries.get_organisation import get_request_user_organisation_id
-from queues.serializers import TinyQueueSerializer
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue

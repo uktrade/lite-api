@@ -3,16 +3,16 @@ from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
 from applications.serializers.advice import CaseAdviceSerializer
-from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
+from audit_trail.enums import AuditType
 from cases.libraries.get_case import get_case
-from cases.models import Advice, Advice, Advice
+from cases.models import Advice
 from conf import constants
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
-from static.statuses.enums import CaseStatusEnum
 from lite_content.lite_api import strings
+from static.statuses.enums import CaseStatusEnum
 
 
 def check_if_user_cannot_manage_team_advice(case, user):
