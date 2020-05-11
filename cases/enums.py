@@ -94,6 +94,7 @@ class CaseTypeSubTypeEnum:
         """
         return application_type in [
             CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
             CaseTypeSubTypeEnum.EXHIBITION,
             CaseTypeSubTypeEnum.F680,
