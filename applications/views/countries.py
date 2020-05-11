@@ -142,9 +142,9 @@ class ApplicationContractTypes(APIView):
         country = data.get("country")
 
         if country:
-            for country in CountryOnApplication.objects.filter(application=application):
+            for coa in CountryOnApplication.objects.filter(application=application):
                 self._set_contract_types_for_country(
-                    application, country, data.get("contract_types"), data.get("other_text")
+                    application, coa.country.id, data.get("contract_types"), data.get("other_text")
                 )
         else:
             self._set_contract_types_for_country(
