@@ -11,7 +11,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users, application_in_non_readonly_state
+from conf.decorators import authorised_to_view_application, application_in_non_readonly_state
 from lite_content.lite_api.strings import ExternalLocations
 from organisations.libraries.get_external_location import get_location
 from organisations.libraries.get_site import has_previous_sites
@@ -30,9 +30,9 @@ class ApplicationExternalLocations(APIView):
 
     BROKERING = "Brokering"
 
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
-        external_locations_ids = ExternalLocationOnApplication.objects.filter(application=application).values_list(
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
+        external_locations_ids = ExternalLocationOnApplication.objects.filter(application_id=pk).values_list(
             "external_location", flat=True
         )
         external_locations = ExternalLocation.objects.filter(id__in=external_locations_ids)
@@ -41,9 +41,10 @@ class ApplicationExternalLocations(APIView):
         return JsonResponse(data={"external_locations": serializer.data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
-    @authorised_users(ExporterUser)
+    @authorised_to_view_application(ExporterUser)
     @application_in_non_readonly_state()
-    def post(self, request, application):
+    def post(self, request, pk):
+        application = get_application(pk)
         data = request.data
         location_ids = data.get("external_locations")
 
@@ -214,8 +215,9 @@ class ApplicationExternalLocations(APIView):
 class ApplicationRemoveExternalLocation(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
-    def delete(self, request, application, ext_loc_pk):
+    @authorised_to_view_application(ExporterUser)
+    def delete(self, request, pk, ext_loc_pk):
+        application = get_application(pk)
         if not is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
             read_only=True
         ):

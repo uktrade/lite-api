@@ -9,7 +9,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
-    authorised_users,
+    authorised_to_view_application,
     allowed_application_types,
 )
 from conf.exceptions import BadRequestError
@@ -36,11 +36,12 @@ class ApplicationPartyView(APIView):
             CaseTypeSubTypeEnum.OPEN,
         ]
     )
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
         """
         Add a party to an application.
         """
+        application = get_application(pk)
 
         if (
             application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
@@ -105,11 +106,12 @@ class ApplicationPartyView(APIView):
             CaseTypeSubTypeEnum.OPEN,
         ]
     )
-    @authorised_users(ExporterUser)
-    def delete(self, request, application, party_pk):
+    @authorised_to_view_application(ExporterUser)
+    def delete(self, request, pk, party_pk):
         """
         Removes a party from application.
         """
+        application = get_application(pk)
         if (
             application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
             and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
@@ -150,11 +152,12 @@ class ApplicationPartyView(APIView):
             CaseTypeSubTypeEnum.OPEN,
         ]
     )
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
         """
         Get parties for an application
         """
+        application = get_application(pk)
         if (
             application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
             and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
@@ -186,11 +189,12 @@ class CopyPartyView(APIView):
             CaseTypeSubTypeEnum.OPEN,
         ]
     )
-    @authorised_users(ExporterUser)
-    def get(self, request, application, party_pk):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk, party_pk):
         """
         Get parties for an application
         """
+        application = get_application(pk)
         if (
             application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
             and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC

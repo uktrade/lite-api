@@ -11,7 +11,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
-from conf.decorators import allowed_application_types, authorised_users
+from conf.decorators import allowed_application_types, authorised_to_view_application
 from conf.exceptions import BadRequestError
 from static.countries.helpers import get_country
 from static.countries.models import Country
@@ -25,21 +25,22 @@ class ApplicationCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
         """
         View countries belonging to an open licence application
         """
-        countries = Country.include_special_countries.filter(countries_on_application__application=application)
+        countries = Country.include_special_countries.filter(countries_on_application__application_id=pk)
         countries_data = CountrySerializer(countries, many=True).data
 
         return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
         """ Add countries to an open licence application. """
+        application = get_application(pk)
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
         data = request.data

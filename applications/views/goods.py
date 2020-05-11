@@ -17,7 +17,7 @@ from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
-    authorised_users,
+    authorised_to_view_application,
     application_in_major_editable_state,
     allowed_application_types,
 )
@@ -49,9 +49,9 @@ class ApplicationGoodsOnApplication(APIView):
             CaseTypeSubTypeEnum.F680,
         ]
     )
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
-        goods = GoodOnApplication.objects.filter(application=application)
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
+        goods = GoodOnApplication.objects.filter(application_id=pk)
         goods_data = GoodOnApplicationViewSerializer(goods, many=True).data
 
         return JsonResponse(data={"goods": goods_data})
@@ -65,8 +65,9 @@ class ApplicationGoodsOnApplication(APIView):
         ]
     )
     @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
+        application = get_application(pk)
         data = request.data
         data["application"] = application.id
 
@@ -152,20 +153,21 @@ class ApplicationGoodsTypes(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
-        goods_types = GoodsType.objects.filter(application=application).order_by("created_at")
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
+        goods_types = GoodsType.objects.filter(application_id=pk).order_by("created_at")
         goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
 
         return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
     @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
         """
         Post a goodstype
         """
+        application = get_application(pk)
         if (
             hasattr(application, "goodstype_category")
             and application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS
@@ -192,11 +194,12 @@ class ApplicationGoodsType(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_users(ExporterUser)
-    def get(self, request, application, goodstype_pk):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk, goodstype_pk):
         """
         Gets a goodstype
         """
+        application = get_application(pk)
         goods_type = get_goods_type(goodstype_pk)
         default_countries = Country.objects.filter(countries_on_application__application=application)
 
@@ -205,11 +208,12 @@ class ApplicationGoodsType(APIView):
         return JsonResponse(data={"good": goods_type_data}, status=status.HTTP_200_OK)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_users(ExporterUser)
-    def delete(self, request, application, goodstype_pk):
+    @authorised_to_view_application(ExporterUser)
+    def delete(self, request, pk, goodstype_pk):
         """
         Deletes a goodstype
         """
+        application = get_application(pk)
         if (
             hasattr(application, "goodstype_category")
             and application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS
@@ -241,8 +245,9 @@ class ApplicationGoodsTypeCountries(APIView):
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def put(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def put(self, request, pk):
+        application = get_application(pk)
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
         data = request.data

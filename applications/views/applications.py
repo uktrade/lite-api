@@ -61,7 +61,7 @@ from cases.serializers import SimpleFinalAdviceSerializer
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
-    authorised_users,
+    authorised_to_view_application,
     application_in_major_editable_state,
     application_in_editable_state,
     allowed_application_types,
@@ -183,11 +183,12 @@ class ApplicationExisting(APIView):
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
         """
         Retrieve an application instance
         """
+        application = get_application(pk)
         serializer = get_application_view_serializer(application)
         data = serializer(
             application,
@@ -199,12 +200,13 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         ).data
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
-    @authorised_users(ExporterUser)
+    @authorised_to_view_application(ExporterUser)
     @application_in_editable_state()
-    def put(self, request, application):
+    def put(self, request, pk):
         """
         Update an application instance
         """
+        application = get_application(pk)
         serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()
@@ -290,11 +292,13 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-    @authorised_users(ExporterUser)
-    def delete(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def delete(self, request, pk):
         """
         Deleting an application should only be allowed for draft applications
         """
+        application = get_application(pk)
+
         if not is_case_status_draft(application.status.status):
             return JsonResponse(
                 data={"errors": strings.Applications.Generic.DELETE_SUBMITTED_APPLICATION_ERROR},
@@ -311,12 +315,13 @@ class ApplicationSubmission(APIView):
 
     @transaction.atomic
     @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def put(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def put(self, request, pk):
         """
         Submit a draft application which will set its submitted_at datetime and status before creating a case
         Depending on the application subtype, this will also submit the declaration of the licence
         """
+        application = get_application(pk)
         old_status = application.status.status
 
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
@@ -799,8 +804,9 @@ class ExhibitionDetails(ListCreateAPIView):
     serializer = ExhibitionClearanceDetailSerializer
 
     @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
+        application = get_application(pk)
         serializer = self.serializer(instance=application, data=request.data)
         if serializer.is_valid():
             old_title = application.title
@@ -864,12 +870,13 @@ class ExhibitionDetails(ListCreateAPIView):
 class ApplicationRouteOfGoods(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
+    @authorised_to_view_application(ExporterUser)
     @application_in_major_editable_state()
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
-    def put(self, request, application):
+    def put(self, request, pk):
         """ Update an application instance with route of goods data. """
 
+        application = get_application(pk)
         serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()

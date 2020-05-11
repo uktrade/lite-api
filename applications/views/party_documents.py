@@ -6,7 +6,7 @@ from applications.enums import GoodsTypeCategory
 from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
 from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
-from conf.decorators import authorised_users, allowed_application_types
+from conf.decorators import authorised_to_view_application, allowed_application_types
 from conf.exceptions import BadRequestError
 from parties.serializers import PartyDocumentSerializer
 from users.models import ExporterUser
@@ -29,8 +29,10 @@ class PartyDocumentView(APIView):
             CaseTypeSubTypeEnum.OPEN,
         ]
     )
-    @authorised_users(ExporterUser)
-    def get(self, request, application, party_pk):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk, party_pk):
+        application = get_application(pk)
+
         if (
             application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
             and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
@@ -52,8 +54,9 @@ class PartyDocumentView(APIView):
             CaseTypeSubTypeEnum.OPEN,
         ]
     )
-    @authorised_users(ExporterUser)
-    def post(self, request, application, party_pk):
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk, party_pk):
+        application = get_application(pk)
         if (
             application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
             and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
@@ -75,8 +78,9 @@ class PartyDocumentView(APIView):
             CaseTypeSubTypeEnum.OPEN,
         ]
     )
-    @authorised_users(ExporterUser)
-    def delete(self, request, application, party_pk):
+    @authorised_to_view_application(ExporterUser)
+    def delete(self, request, pk, party_pk):
+        application = get_application(pk)
         if (
             application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
             and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC

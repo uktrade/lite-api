@@ -5,7 +5,7 @@ from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
-from applications.models import BaseApplication
+from applications.models import BaseApplication, HmrcQuery
 from cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -124,7 +124,7 @@ def application_in_non_readonly_state():
     return decorator
 
 
-def authorised_users(user_type):
+def authorised_to_view_application(user_type):
     """
     Checks if the user is the correct type and if they have access to the application being requested
     """
@@ -139,16 +139,18 @@ def authorised_users(user_type):
                 )
 
             if isinstance(request.request.user, ExporterUser):
-                application = _get_application(request, kwargs)
+                pk = kwargs.get("pk")
                 organisation_id = get_request_user_organisation_id(request.request)
+                required_application_details = BaseApplication.objects.filter(pk=pk).values(
+                    "case_type__sub_type", "organisation_id"
+                )[0]
 
-                if (
-                    application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
-                    and application.hmrc_organisation.id != organisation_id
-                ) or (
-                    application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC
-                    and application.organisation.id != organisation_id
-                ):
+                if required_application_details["case_type__sub_type"] == CaseTypeSubTypeEnum.HMRC:
+                    has_access = HmrcQuery.objects.filter(pk=pk, hmrc_organisation=organisation_id).exists()
+                else:
+                    has_access = required_application_details["organisation_id"] == organisation_id
+
+                if not has_access:
                     return JsonResponse(
                         data={
                             "errors": [
