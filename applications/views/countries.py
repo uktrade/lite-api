@@ -136,29 +136,42 @@ class ApplicationContractTypes(APIView):
 
         data = request.data
 
-        print("countries", data.get("countries"))
+        print("country", data.get("country"))
         print("contract_types", data.get("contract_types"))
 
-        for country in data.get("countries"):
-            coa = CountryOnApplication.objects.get(country_id=country, application=application)
-            coa.contract_types = data.get("contract_types")
+        country = data.get("country")
 
-            if "other_contract_type" in data.get("contract_types"):
-                if not data.get("other_text"):
-                    return JsonResponse(
-                        data={
-                            "errors": {
-                                "other_text": [
-                                    ErrorDetail(
-                                        string=strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE, code="blank"
-                                    )
-                                ]
-                            }
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                coa.other_contract_type_text = data.get("other_text")
-
-            coa.save()
+        if country:
+            for country in CountryOnApplication.objects.filter(application=application):
+                self._set_contract_types_for_country(
+                    application, country, data.get_list("contract_types"), data.get("other_text")
+                )
+        else:
+            self._set_contract_types_for_country(
+                application, country, data.get_list("contract_types"), data.get("other_text")
+            )
 
         return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def _set_contract_types_for_country(application, country, contract_types, other_text):
+        coa = CountryOnApplication.objects.get(country_id=country, application=application)
+        coa.contract_types = contract_types
+
+        if "other_contract_type" in contract_types:
+            if not other_text:
+                return JsonResponse(
+                    data={
+                        "errors": {
+                            "other_text": [
+                                ErrorDetail(
+                                    string=strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE, code="blank"
+                                )
+                            ]
+                        }
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            coa.other_contract_type_text = other_text
+
+        coa.save()
