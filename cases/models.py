@@ -1,7 +1,8 @@
+import asyncio
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
-from django.db import models
+from django.db import models, IntegrityError
 from django.utils import timezone
 
 from audit_trail.enums import AuditType
@@ -72,7 +73,7 @@ class Case(TimestampableModel):
 
     def save(self, *args, **kwargs):
         if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
-            self.reference_code = generate_reference_code(self)
+            self.reference_code = asyncio.run(generate_reference_code(self))
 
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None

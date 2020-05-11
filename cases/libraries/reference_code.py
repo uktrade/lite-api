@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 
 from applications.enums import ApplicationExportType
@@ -7,6 +8,7 @@ LICENCE_APPLICATION_PREFIX = "GB"
 SEPARATOR = "/"
 
 
+@asyncio.coroutine
 def generate_reference_code(case):
     from cases.models import CaseReferenceCode
 
