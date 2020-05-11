@@ -2,7 +2,6 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import GoodsTypeCategory
 from applications.libraries.get_applications import get_application
 from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
@@ -10,15 +9,14 @@ from audit_trail.enums import AuditType
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_to_view_application,
-    allowed_application_types,
+    allowed_party_type_for_open_application_goodstype_category,
 )
-from conf.exceptions import BadRequestError
 from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from parties.enums import PartyType
 from parties.models import Party
 from parties.serializers import PartySerializer
-from organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
