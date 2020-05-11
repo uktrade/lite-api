@@ -171,7 +171,7 @@ class ApplicationExisting(APIView):
     def get(self, request):
         organisation = get_request_user_organisation(request)
         if organisation.type == "hmrc":
-            has_queries = HmrcQuery.objects.submitted(hmrc_organisation=self.request.user.organisation).exists()
+            has_queries = HmrcQuery.objects.submitted(hmrc_organisation=organisation).exists()
             return JsonResponse(data={"queries": has_queries})
         else:
             has_licences = Licence.objects.filter(application__organisation=organisation).exists()
@@ -210,13 +210,6 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         case = application.get_case()
         data = request.data.copy()
         serializer = serializer(application, data=data, context=get_request_user_organisation(request), partial=True)
-
-        # Prevent minor edits of the goods categories
-        if not application.is_major_editable() and request.data.get("goods_categories"):
-            return JsonResponse(
-                data={"errors": {"goods_categories": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Prevent minor edits of the clearance level
         if not application.is_major_editable() and request.data.get("clearance_level"):

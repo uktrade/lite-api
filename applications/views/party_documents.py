@@ -2,7 +2,6 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 
-from applications.enums import GoodsTypeCategory
 from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
 from applications.libraries.get_applications import get_application
 from cases.enums import CaseTypeSubTypeEnum
@@ -20,73 +19,21 @@ class PartyDocumentView(APIView):
 
     authentication_classes = (ExporterAuthentication,)
 
-    @allowed_application_types(
-        [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.F680,
-            CaseTypeSubTypeEnum.OPEN,
-        ]
-    )
     @authorised_to_view_application(ExporterUser)
-    def get(self, request, pk, party_pk):
-        application = get_application(pk)
-
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
-            raise BadRequestError(detail="You cannot do this action for this type of open application")
-
+    def get(self, request, application, party_pk):
         party = application.get_party(party_pk)
         return get_party_document(party)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types(
-        [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.F680,
-            CaseTypeSubTypeEnum.OPEN,
-        ]
-    )
     @authorised_to_view_application(ExporterUser)
-    def post(self, request, pk, party_pk):
-        application = get_application(pk)
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
-            raise BadRequestError(detail="You cannot do this action for this type of open application")
-
+    def post(self, request, application, party_pk):
         party = application.get_party(party_pk)
         return upload_party_document(party, request.data, application, request.user)
 
     @swagger_auto_schema(request_body=PartyDocumentSerializer, responses={400: "JSON parse error"})
     @transaction.atomic
-    @allowed_application_types(
-        [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.HMRC,
-            CaseTypeSubTypeEnum.EXHIBITION,
-            CaseTypeSubTypeEnum.GIFTING,
-            CaseTypeSubTypeEnum.F680,
-            CaseTypeSubTypeEnum.OPEN,
-        ]
-    )
     @authorised_to_view_application(ExporterUser)
-    def delete(self, request, pk, party_pk):
-        application = get_application(pk)
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
-            raise BadRequestError(detail="You cannot do this action for this type of open application")
-
+    def delete(self, request, application, party_pk):
         party = application.get_party(party_pk)
         return delete_party_document(party, application, request.user)
