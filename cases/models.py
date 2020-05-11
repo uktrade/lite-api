@@ -293,22 +293,48 @@ class Advice(TimestampableModel):
     def save(self, *args, **kwargs):
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
             self.proviso = None
-
+        print('\n-Deleting')
+        print(self.level)
+        print(self.type)
         try:
-            existing_object = Advice.objects.get(
-                case=self.case,
-                user=self.user,
-                good=self.good,
-                goods_type=self.goods_type,
-                country=self.country,
-                end_user=self.end_user,
-                ultimate_end_user=self.ultimate_end_user,
-                consignee=self.consignee,
-                third_party=self.third_party,
-                level=self.level,
-                team=self.team,
-            )
-            existing_object.delete()
+            if self.level == AdviceLevel.TEAM:
+                Advice.objects.get(
+                    case=self.case,
+                    team=self.team,
+                    level=AdviceLevel.TEAM,
+                    good=self.good,
+                    goods_type=self.goods_type,
+                    country=self.country,
+                    end_user=self.end_user,
+                    ultimate_end_user=self.ultimate_end_user,
+                    consignee=self.consignee,
+                    third_party=self.third_party,
+                ).delete()
+            elif self.level == AdviceLevel.FINAL:
+                Advice.objects.get(
+                    case=self.case,
+                    good=self.good,
+                    level=AdviceLevel.FINAL,
+                    goods_type=self.goods_type,
+                    country=self.country,
+                    end_user=self.end_user,
+                    ultimate_end_user=self.ultimate_end_user,
+                    consignee=self.consignee,
+                    third_party=self.third_party,
+                ).delete()
+            elif self.level == AdviceLevel.USER:
+                Advice.objects.get(
+                    case=self.case,
+                    good=self.good,
+                    user=self.user,
+                    level=AdviceLevel.USER,
+                    goods_type=self.goods_type,
+                    country=self.country,
+                    end_user=self.end_user,
+                    ultimate_end_user=self.ultimate_end_user,
+                    consignee=self.consignee,
+                    third_party=self.third_party,
+                ).delete()
         except Advice.DoesNotExist:
             pass
 

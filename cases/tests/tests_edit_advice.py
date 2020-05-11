@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from cases.enums import AdviceType
+from cases.enums import AdviceType, AdviceLevel
 from cases.models import Advice
 from test_helpers.clients import DataTestClient
 
@@ -22,6 +22,7 @@ class EditCaseAdviceTests(DataTestClient):
             "text": "I Am Easy to Find",
             "note": "I Am Easy to Find",
             "country": "GB",
+            "level": AdviceLevel.USER
         }
 
         self.client.post(self.open_case_url, **self.gov_headers, data=[data])

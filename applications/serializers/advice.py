@@ -46,6 +46,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     third_party = serializers.PrimaryKeyRelatedField(
         queryset=Party.objects.filter(type=PartyType.THIRD_PARTY), required=False
     )
+    collated_pv_grading = serializers.CharField(default=None, allow_blank=True, allow_null=True, max_length=120)
 
     def to_representation(self, instance):
         repr_dict = super().to_representation(instance)

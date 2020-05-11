@@ -218,7 +218,7 @@ class UserAdvice(APIView):
             return post_advice(request, self.case, AdviceLevel.USER)
 
 
-class TeamAdvice(APIView):
+class TeamAdviceView(APIView):
     authentication_classes = (GovAuthentication,)
 
     case = None
@@ -230,7 +230,7 @@ class TeamAdvice(APIView):
         self.advice = Advice.objects.filter(case=self.case)
         self.team_advice = Advice.objects.get_team_advice(self.case)
 
-        return super(TeamAdvice, self).dispatch(request, *args, **kwargs)
+        return super(TeamAdviceView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
@@ -243,14 +243,19 @@ class TeamAdvice(APIView):
 
             team = self.request.user.team
             advice = self.advice.filter(user__team=team)
-            group_advice(self.case, advice, request.user)
+            group_advice(self.case, advice, request.user, AdviceLevel.TEAM)
             case_advice_contains_refusal(pk)
 
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_TEAM_ADVICE, target=self.case,
             )
 
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
+            team_advice = Advice.objects.filter(case=self.case, team=team).order_by("-created_at")
+        else:
+            team_advice = self.team_advice
+
+        serializer = CaseAdviceSerializer(team_advice, many=True)
+        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
@@ -326,7 +331,7 @@ class FinalAdvice(APIView):
         if len(self.final_advice) == 0:
             assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
-            group_advice(self.case, self.team_advice, request.user)
+            group_advice(self.case, self.team_advice, request.user, AdviceLevel.FINAL)
 
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case,

@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import AdviceType, CaseTypeEnum
+from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from cases.models import Advice
 from test_helpers.clients import DataTestClient
 
@@ -11,8 +11,8 @@ class AdviceDocumentsTests(DataTestClient):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
         self.advice = [AdviceType.APPROVE, AdviceType.REFUSE]
-        self.create_advice(self.gov_user, self.case, "good", self.advice[0], Advice)
-        self.create_advice(self.gov_user, self.case, "end_user", self.advice[1], Advice)
+        self.create_advice(self.gov_user, self.case, "good", self.advice[0], AdviceLevel.FINAL)
+        self.create_advice(self.gov_user, self.case, "end_user", self.advice[1], AdviceLevel.FINAL)
         self.template = self.create_letter_template(name="Template", case_types=[CaseTypeEnum.SIEL.id])
         self.url = reverse("cases:final_advice_documents", kwargs={"pk": self.case.id})
 

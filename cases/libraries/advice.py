@@ -7,19 +7,19 @@ from parties.serializers import PartySerializer
 from static.countries.serializers import CountrySerializer
 
 
-def group_advice(case, advice, user):
+def group_advice(case, advice, user, new_level):
     advice_entities = {entity_field: defaultdict(list) for entity_field in Advice.ENTITY_FIELDS}
 
     advice_level = advice[0].level
-
+    print("advice_level: ", advice_level)
     for advice in advice:
         advice_entities[advice.entity_field][advice.entity].append(advice)
 
     for entity_field in Advice.ENTITY_FIELDS:
-        collate_advice(entity_field, advice_level, advice_entities[entity_field], case, user)
+        collate_advice(entity_field, new_level, advice_entities[entity_field], case, user)
 
 
-def collate_advice(entity_field, advice_level, collection, case, user):
+def collate_advice(entity_field, new_level, collection, case, user):
     for key, advice_list in collection.items():
         denial_reasons = []
 
@@ -29,8 +29,9 @@ def collate_advice(entity_field, advice_level, collection, case, user):
 
         # Set outside the constructor so it can apply only when necessary
         advice.team = user.team
-        advice.level = AdviceLevel.FINAL if advice_level == AdviceLevel.TEAM else AdviceLevel.TEAM
-
+        print('Old advice level:', advice.level)
+        advice.level = new_level
+        print('New advice level:', advice.level)
         setattr(advice, entity_field, key)
 
         advice.save()
@@ -45,6 +46,7 @@ def deduplicate_advice(advice_list):
     deduplicated = []
     matches = False
     for advice in advice_list:
+        print("advice list:", advice.level)
         for item in deduplicated:
             # Compare each piece of unique advice against the new piece of advice being introduced
             matches = advice.equals(item)
@@ -66,6 +68,8 @@ def construct_coalesced_advice_values(
     }
     break_text = "\n-------\n"
     for advice in deduplicated_advice:
+        print('deduped advice: ', advice.level)
+        print(advice_type)
         for denial_reason in advice.denial_reasons.values_list("id", flat=True):
             denial_reasons.append(denial_reason)
 
