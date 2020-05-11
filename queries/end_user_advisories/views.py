@@ -20,6 +20,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.end_user_advisories.serializers import EndUserAdvisoryViewSerializer, EndUserAdvisoryListSerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from users.libraries.notifications import get_case_notifications
 from users.models import ExporterNotification
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
@@ -34,22 +35,7 @@ class EndUserAdvisoriesList(ListAPIView):
         ).select_related("end_user", "end_user__country")
 
     def get_paginated_response(self, data):
-        ids = [item["id"] for item in data]
-        notifications = (
-            ExporterNotification.objects.filter(
-                user=self.request.user, organisation_id=get_request_user_organisation_id(self.request), case_id__in=ids
-            )
-            .values("case")
-            .annotate(count=Count("case"))
-        )
-        cases_with_notifications = {str(notification["case"]): notification["count"] for notification in notifications}
-
-        for item in data:
-            if item["id"] in cases_with_notifications:
-                item["exporter_user_notification_count"] = cases_with_notifications[item["id"]]
-            else:
-                item["exporter_user_notification_count"] = 0
-
+        data = get_case_notifications(data, self.request)
         return super().get_paginated_response(data)
 
     def post(self, request):
