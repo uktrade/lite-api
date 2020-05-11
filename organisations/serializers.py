@@ -9,8 +9,9 @@ from conf.serializers import (
     KeyValueChoiceField,
     CountrySerializerField,
 )
+from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Organisations
-from organisations.enums import OrganisationType, OrganisationStatus
+from organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
 from users.libraries.get_user import get_user_organisation_relationship
@@ -283,12 +284,35 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()
-    country = CountrySerializerField()
+    country = CountrySerializerField(required=True)
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
 
     class Meta:
         model = ExternalLocation
         fields = ("id", "name", "address", "country", "organisation")
+
+
+class SiclExternalLocationSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(error_messages={"blank": strings.ExternalLocations.Errors.NULL_NAME})
+    address = serializers.CharField(error_messages={"blank": strings.ExternalLocations.Errors.NULL_ADDRESS})
+    country = CountrySerializerField(required=False)
+    organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
+    location_type = serializers.CharField(
+        required=True,
+        error_messages={
+            "required": strings.ExternalLocations.Errors.LOCATION_TYPE,
+            "blank": strings.ExternalLocations.Errors.LOCATION_TYPE,
+        },
+    )
+
+    def validate(self, data):
+        if data["location_type"] == LocationType.LAND_BASED and not data["country"]:
+            raise serializers.ValidationError({"country": strings.Addresses.NULL_COUNTRY})
+        return super().validate(data)
+
+    class Meta:
+        model = ExternalLocation
+        fields = ("id", "name", "address", "country", "organisation", "location_type")
 
 
 class OrganisationUserListView(serializers.ModelSerializer):
