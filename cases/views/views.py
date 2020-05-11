@@ -336,7 +336,7 @@ class FinalAdvice(APIView):
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case,
             )
-            final_advice = Advice.objects.filter(case=self.case).order_by("created_at")
+            final_advice = Advice.objects.filter(case=self.case).order_by("-created_at")
         else:
             final_advice = self.final_advice
 

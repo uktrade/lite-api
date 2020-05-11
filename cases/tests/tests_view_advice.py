@@ -24,9 +24,6 @@ class ViewCaseAdviceTests(DataTestClient):
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["case"]["advice"]
 
-        from pprint import pprint
-        pprint(response_data)
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for advice in [user_advice, team_advice, final_advice]:
             comparison_dict = {

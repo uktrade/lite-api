@@ -82,9 +82,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"][0]
 
-        from pprint import pprint
-        pprint(response.json())
-
         self.assertEqual(response_data.get("type").get("key"), "conflicting")
         self.assertEqual(response_data.get("proviso"), "I am easy to proviso")
         self.assertCountEqual(["1a", "1b", "1c"], response_data["denial_reasons"])
@@ -296,9 +293,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
 
-        from pprint import pprint
-        pprint(response_data)
-
         self.assertNotIn("\n-------\n", response_data[0]["text"])
         self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
 
@@ -313,8 +307,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
         response_data = response.json()["advice"]
-        from pprint import pprint
-        pprint(response_data)
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
         self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])

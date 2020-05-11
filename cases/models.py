@@ -293,9 +293,6 @@ class Advice(TimestampableModel):
     def save(self, *args, **kwargs):
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
             self.proviso = None
-        print('\n-Deleting')
-        print(self.level)
-        print(self.type)
         try:
             if self.level == AdviceLevel.TEAM:
                 Advice.objects.get(

@@ -64,12 +64,10 @@ class CreateCaseAdviceTests(DataTestClient):
         self.create_advice(self.gov_user_2, self.standard_case, "good", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
 
         response = self.client.get(self.standard_case_url, **self.gov_headers)
-        from pprint import pprint
-        pprint(response.json())
         response_data = response.json()["advice"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response_data), 2)
+        self.assertEqual(len(response_data), 6)
 
         end_user, good = None, None
         for data in response_data:

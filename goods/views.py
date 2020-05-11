@@ -86,6 +86,7 @@ class GoodsListControlCode(APIView):
                 serializer.save()
 
                 new_control_list_entries = list(good.control_list_entries.all()) or [strings.Goods.GOOD_NO_CONTROL_CODE]
+
                 if strings.Goods.GOOD_NO_CONTROL_CODE not in new_control_list_entries:
                     new_control_list_entries = [clc.rating for clc in new_control_list_entries]
                 else:
@@ -106,9 +107,9 @@ class GoodsListControlCode(APIView):
                         },
                     )
 
-            apply_good_flagging_rules_for_case(case)
+        apply_good_flagging_rules_for_case(case)
 
-            return JsonResponse(data={}, status=status.HTTP_200_OK)
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class GoodList(ListCreateAPIView):
