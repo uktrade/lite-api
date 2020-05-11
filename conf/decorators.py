@@ -4,13 +4,11 @@ from django.http import JsonResponse, Http404
 from rest_framework import status
 
 from applications.enums import GoodsTypeCategory
-from applications.libraries.case_status_helpers import get_case_statuses
-from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, HmrcQuery
 from cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
-from parties.enums import PartyType
 from organisations.libraries.get_organisation import get_request_user_organisation_id
+from parties.enums import PartyType
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 

@@ -1,6 +1,5 @@
 import json
 
-from django.db.models import Count
 from django.http import JsonResponse
 from rest_framework import status, serializers
 from rest_framework.generics import ListAPIView
@@ -21,7 +20,6 @@ from queries.end_user_advisories.serializers import EndUserAdvisoryViewSerialize
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.notifications import get_case_notifications
-from users.models import ExporterNotification
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
