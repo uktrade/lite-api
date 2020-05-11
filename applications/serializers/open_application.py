@@ -2,7 +2,7 @@ from django.db.models import Min, Case, When, BinaryField
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.enums import ApplicationExportType, GoodsTypeCategory
+from applications.enums import ApplicationExportType, GoodsTypeCategory, ContractType
 from applications.libraries.goodstype_category_helpers import (
     set_goods_and_countries_for_open_media_application,
     set_goods_and_countries_for_open_crypto_application,
@@ -10,7 +10,7 @@ from applications.libraries.goodstype_category_helpers import (
     set_destinations_for_uk_continental_shelf_application,
 )
 from applications.mixins.serializers import PartiesSerializerMixin
-from applications.models import OpenApplication
+from applications.models import OpenApplication, CountryOnApplication
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -228,3 +228,17 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
                 data, "non_waybill_or_lading_route_details", strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS
             )
         return super().validate(data)
+
+
+class ContractTypeSerializer(serializers.ModelSerializer):
+    contract_types = serializers.MultipleChoiceField(choices=ContractType.choices)
+    other_contract_type_text = serializers.CharField(max_length=150, required=True, allow_blank=False)
+
+    class Meta:
+        model = CountryOnApplication
+        fields = ("contract_types", "other_contract_type_text")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not ContractType.OTHER_CONTRACT_TYPE in self.get_initial().get("contract_types"):
+            self.fields.pop("other_contract_type_text")

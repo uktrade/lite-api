@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
+from applications.serializers.open_application import ContractTypeSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
@@ -140,31 +141,18 @@ class ApplicationContractTypes(APIView):
         print("contract_types", data.get("contract_types"))
 
         for country in data.get("countries"):
-            self._set_contract_types_for_country(
-                application, country, data.get("contract_types"), data.get("other_text")
-            )
+            errors = self._set_contract_types_for_country(application, country, data)
+            if errors:
+                return JsonResponse(data=errors, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
 
     @staticmethod
-    def _set_contract_types_for_country(application, country, contract_types, other_text):
+    def _set_contract_types_for_country(application, country, data):
         coa = CountryOnApplication.objects.get(country_id=country, application=application)
-        coa.contract_types = contract_types
-
-        if "other_contract_type" in contract_types:
-            if not other_text:
-                return JsonResponse(
-                    data={
-                        "errors": {
-                            "other_text": [
-                                ErrorDetail(
-                                    string=strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE, code="blank"
-                                )
-                            ]
-                        }
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            coa.other_contract_type_text = other_text
-
-        coa.save()
+        serializer = ContractTypeSerializer(coa, data=data)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            print(serializer.errors)
+            return serializer.errors

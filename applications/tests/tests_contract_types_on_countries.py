@@ -11,10 +11,7 @@ class ContractTypeOnCountryTests(DataTestClient):
     def test_set_contract_type_on_country_on_application_success(self):
         application = self.create_open_application_case(self.organisation)
 
-        data = {
-            "countries": ["GB"],
-            "contract_types": ["navy"],
-        }
+        data = {"countries": ["GB"], "contract_types": ["navy"], "other_contract_type_text": None}
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
@@ -29,10 +26,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         application = self.create_open_application_case(self.organisation)
         CountryOnApplication(country_id="FR", application=application).save()
 
-        data = {
-            "countries": ["GB", "FR"],
-            "contract_types": ["navy", "army"],
-        }
+        data = {"countries": ["GB", "FR"], "contract_types": ["navy", "army"], "other_contract_type_text": ""}
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
@@ -41,5 +35,17 @@ class ContractTypeOnCountryTests(DataTestClient):
         coa_fr = CountryOnApplication.objects.get(country_id="FR", application=application)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(coa_gb.contract_types, ["navy", "army"])
-        self.assertEqual(coa_fr.contract_types, ["navy", "army"])
+        self.assertTrue(set(coa_gb.contract_types).issubset({"navy", "army"}))
+        self.assertTrue(set(coa_fr.contract_types).issubset({"navy", "army"}))
+
+    @tag("2146")
+    def test_set_other_contract_type_without_text_on_country_on_application_failure(self):
+        application = self.create_open_application_case(self.organisation)
+
+        data = {"countries": ["GB"], "contract_types": ["other_contract_type"], "other_contract_type_text": ""}
+
+        url = reverse("applications:contract_types", kwargs={"pk": application.id})
+
+        response = self.client.post(url, data, **self.exporter_headers)
+        print(response.json())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
