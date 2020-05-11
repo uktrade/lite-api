@@ -40,6 +40,7 @@ class ApplicationDocumentView(APIView):
         """
         View all additional documents on an application
         """
+        application = get_application(pk)
         documents = ApplicationDocumentSerializer(ApplicationDocument.objects.filter(application_id=pk), many=True).data
 
         return JsonResponse({"documents": documents, "editable": application.is_major_editable()})

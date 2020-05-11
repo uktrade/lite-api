@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from applications.constants import TRANSHIPMENT_AND_TRADE_CONTROL_BANNED_COUNTRIES
 from applications.libraries.case_status_helpers import get_case_statuses
+from applications.libraries.get_applications import get_application
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from applications.serializers.location import ExternalLocationOnApplicationSerializer
 from audit_trail import service as audit_trail_service
