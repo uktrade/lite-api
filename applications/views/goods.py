@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
+from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers.good import (

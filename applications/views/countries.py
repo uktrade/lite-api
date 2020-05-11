@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
+from applications.libraries.get_applications import get_application
 from applications.models import CountryOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType

@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 
 from applications.enums import GoodsTypeCategory
 from applications.libraries.document_helpers import upload_party_document, delete_party_document, get_party_document
+from applications.libraries.get_applications import get_application
 from cases.enums import CaseTypeSubTypeEnum
 from conf.authentication import ExporterAuthentication
 from conf.decorators import authorised_to_view_application, allowed_application_types
