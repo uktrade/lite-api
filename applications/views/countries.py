@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.exceptions import ErrorDetail
 from rest_framework.views import APIView
 
 from applications.enums import GoodsTypeCategory
@@ -13,6 +14,7 @@ from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import allowed_application_types, authorised_users
 from conf.exceptions import BadRequestError
+from lite_content.lite_api import strings
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
@@ -143,7 +145,18 @@ class ApplicationContractTypes(APIView):
 
             if "other_contract_type" in data.get("contract_types"):
                 if not data.get("other_text"):
-                    return JsonResponse(data={"error": "give text"}, status=status.HTTP_400_BAD_REQUEST)
+                    return JsonResponse(
+                        data={
+                            "errors": {
+                                "other_text": [
+                                    ErrorDetail(
+                                        string=strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE, code="blank"
+                                    )
+                                ]
+                            }
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
                 coa.other_contract_type_text = data.get("other_text")
 
             coa.save()
