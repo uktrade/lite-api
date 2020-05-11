@@ -317,7 +317,7 @@ class GoodDocumentDetail(APIView):
         """
         good = get_good(pk)
 
-        if good.organisation != request.user.organisation:
+        if good.organisation.id != get_request_user_organisation_id(request):
             raise Http404
 
         if good.status != GoodStatus.DRAFT:
