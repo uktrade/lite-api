@@ -150,7 +150,7 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
             logging.warning(f"Failed HAWK authentication {e}")
             raise e
 
-        return None, hawk_receiver
+        return AnonymousUser, hawk_receiver
 
 
 class GovAuthentication(authentication.BaseAuthentication):
@@ -205,7 +205,7 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
         elif organisation is not None and organisation != "None":
             return HmrcExporterAuthentication().authenticate(request)
         else:
-            return AnonymousUser, None
+            return HawkOnlyAuthentication().authenticate(request)
 
 
 def _authorise(request):
