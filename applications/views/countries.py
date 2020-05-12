@@ -137,7 +137,7 @@ class ApplicationContractTypes(APIView):
         for country in data.get("countries"):
             errors = self._set_contract_types_for_country(application, country, data)
             if errors:
-                return JsonResponse(data=errors, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(data={"error": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
 
