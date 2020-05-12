@@ -7,7 +7,7 @@ from conf.settings import env
 
 
 def get(appended_address, headers):
-    url = _build_absolute_uri(appended_address)
+    url = _build_absolute_uri(appended_address.replace(" ", "%20"))
 
     sender = _get_hawk_sender(url, "GET", "application/json", None)
 
@@ -35,7 +35,7 @@ def post(appended_address, headers, request_data):
 
 
 def _build_absolute_uri(appended_address):
-    url = env("PERFORMANCE_TEST_HOST") + appended_address.replace(" ", "%20")
+    url = env("PERFORMANCE_TEST_HOST") + appended_address
 
     if not url.endswith("/") and "?" not in url:
         url = url + "/"
