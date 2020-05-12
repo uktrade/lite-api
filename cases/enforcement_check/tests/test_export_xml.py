@@ -1,0 +1,38 @@
+from uuid import UUID
+
+from django.urls import reverse
+from rest_framework import status
+from xml.etree import ElementTree
+
+from test_helpers.clients import DataTestClient
+
+
+class ExportXML(DataTestClient):
+    def test_export_xml(self):
+        url = reverse("cases:enforcement_check", kwargs={"queue_pk": self.queue.pk})
+        application = self.create_standard_application_case(self.organisation)
+        application.queues.set([self.queue])
+        application_id_int = application.pk.int
+
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = ElementTree.fromstring(response.content.decode("utf-8"))
+        for stakeholder in data:
+            # ELA_ID
+            self.assertEqual(stakeholder[0].text, str(application_id_int))
+            # SH_ID
+            self.assertIsNotNone(stakeholder[2].text)
+            party = application.parties.get(party__id=UUID(int=int(stakeholder[2].text))).party
+            self.assertIsNotNone(party)
+            # SH_TYPE
+            self.assertEqual(stakeholder[3].text, party.type.upper())
+            # COUNTRY
+            self.assertEqual(stakeholder[4].text, party.country.name)
+            # ORG_NAME
+            self.assertEqual(stakeholder[5].text, party.organisation.name)
+            # PD_SURNAME
+            self.assertEqual(stakeholder[6].text, party.name)
+            # ADDRESS1
+            self.assertEqual(stakeholder[9].text, party.address)
+
