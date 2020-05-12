@@ -111,10 +111,11 @@ class ApplicationPartyView(APIView):
         return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)
 
     @authorised_to_view_application(ExporterUser)
-    def get(self, request, application):
+    def get(self, request, pk):
         """
         Get parties for an application
         """
+        application = get_application(pk)
 
         application_parties = application.active_parties.all().filter(deleted_at__isnull=True).select_related("party")
 
@@ -132,7 +133,7 @@ class CopyPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_to_view_application(ExporterUser)
-    def get(self, request, application, party_pk):
+    def get(self, request, pk, party_pk):
         """
         Get parties for an application
         """
