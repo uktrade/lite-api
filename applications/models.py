@@ -322,7 +322,7 @@ class CountryOnApplication(models.Model):
     application = models.ForeignKey(OpenApplication, related_name="application_countries", on_delete=models.CASCADE)
     country = models.ForeignKey(Country, related_name="countries_on_application", on_delete=models.CASCADE)
     contract_types = SeparatedValuesField(
-        max_length=250, choices=ContractType.choices, blank=True, null=True, default=None
+        max_length=300, choices=ContractType.choices, blank=True, null=True, default=None
     )
     other_contract_type_text = models.CharField(max_length=150, blank=True, null=True, default=None)
 
