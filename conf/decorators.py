@@ -4,6 +4,7 @@ from django.http import JsonResponse, Http404
 from rest_framework import status
 
 from applications.enums import GoodsTypeCategory
+from applications.libraries.get_applications import get_application
 from applications.models import BaseApplication, HmrcQuery
 from cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
@@ -140,7 +141,8 @@ def allowed_party_type_for_open_application_goodstype_category():
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs).first()
+            application_id = _get_application_id(request, kwargs)
+            application = get_application(application_id)
 
             party_type = request.request.data.get("type")
 

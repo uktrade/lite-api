@@ -80,10 +80,12 @@ class ApplicationPartyView(APIView):
         return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
 
     @authorised_to_view_application(ExporterUser)
-    def delete(self, request, application, party_pk):
+    def delete(self, request, pk, party_pk):
         """
         Removes a party from application.
         """
+        application = get_application(pk)
+
         try:
             poa = application.active_parties.all().get(party__pk=party_pk)
         except PartyOnApplication.DoesNotExist:
