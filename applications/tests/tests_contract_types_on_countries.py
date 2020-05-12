@@ -15,7 +15,7 @@ class ContractTypeOnCountryTests(DataTestClient):
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         coa = CountryOnApplication.objects.get(country_id="GB", application=application)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -30,7 +30,7 @@ class ContractTypeOnCountryTests(DataTestClient):
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         coa_gb = CountryOnApplication.objects.get(country_id="GB", application=application)
         coa_fr = CountryOnApplication.objects.get(country_id="FR", application=application)
 
@@ -46,7 +46,7 @@ class ContractTypeOnCountryTests(DataTestClient):
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @tag("2146")
@@ -64,7 +64,7 @@ class ContractTypeOnCountryTests(DataTestClient):
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
-        response = self.client.post(url, data, **self.exporter_headers)
+        response = self.client.put(url, data, **self.exporter_headers)
         coa = CountryOnApplication.objects.get(country_id="GB", application=application)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
