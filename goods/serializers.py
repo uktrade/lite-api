@@ -301,9 +301,7 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
-        if documents.exists():
-            return SimpleGoodDocumentViewSerializer(documents, many=True).data
-        return None
+        return SimpleGoodDocumentViewSerializer(documents, many=True).data
 
     def get_query(self, instance):
         from queries.goods_query.serializers import ExporterReadGoodQuerySerializer
@@ -314,7 +312,6 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
                 context={"exporter_user": self.context.get("exporter_user"), "total_count": False},
             )
             return serializer.data
-        return None
 
     def get_case_status(self, instance):
         if self.goods_query:
@@ -323,12 +320,9 @@ class GoodSerializerExporterFullDetail(GoodSerializerExporter):
                 "value": get_status_value_from_case_status_enum(self.goods_query.status.status),
             }
 
-        return None
-
     def get_case_officer(self, instance):
         if self.goods_query:
             return GovUserSimpleSerializer(self.goods_query.case_officer).data
-        return None
 
 
 class ClcControlGoodSerializer(serializers.ModelSerializer):
