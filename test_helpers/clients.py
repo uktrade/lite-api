@@ -32,7 +32,7 @@ from goodstype.tests.factories import GoodsTypeFactory
 from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
 from cases.sla import get_application_target_sla
 from conf import settings
 from conf.constants import Roles
@@ -527,12 +527,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_advice(
-        user, case, advice_field, advice_type, advice_level, pv_grading=None, advice_text="This is some text", good=None
+        user, case, advice_field, advice_type, level, pv_grading=None, advice_text="This is some text", good=None
     ):
-        advice = advice_level(
+        advice = Advice(
             user=user,
             case=case,
             type=advice_type,
+            level=level,
             note="This is a note to the exporter",
             text=advice_text,
             pv_grading=pv_grading,
