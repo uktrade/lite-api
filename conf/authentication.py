@@ -30,19 +30,13 @@ USER_NOT_FOUND_ERROR = "User does not exist"
 class ExporterAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         """
-        When given a user token and an organisation id, validate that the user belongs to the
+        When given an exporter user token and an organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation
         """
 
         from organisations.libraries.get_organisation import get_request_user_organisation_id
 
-        # First, establish that the request has come from an authorised LITE API client
-        # by checking that the request is correctly Hawk signed
-        try:
-            hawk_receiver = _authorise(request)
-        except HawkFail as e:
-            logging.warning(f"Failed HAWK authentication {e}")
-            raise e
+        _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
@@ -70,18 +64,12 @@ class ExporterAuthentication(authentication.BaseAuthentication):
 class HmrcExporterAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         """
-        When given a user token and an organisation id, validate that the user belongs to the
+        When given an exporter user token and an HMRC organisation id, validate that the user belongs to the
         organisation and that they're allowed to access that organisation
         """
         from organisations.libraries.get_organisation import get_request_user_organisation_id
 
-        # First, establish that the request has come from an authorised LITE API client
-        # by checking that the request is correctly Hawk signed
-        try:
-            hawk_receiver = _authorise(request)
-        except HawkFail as e:
-            logging.warning(f"Failed HAWK authentication {e}")
-            raise e
+        _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
@@ -89,6 +77,11 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
             organisation_id = get_request_user_organisation_id(request)
         else:
             raise PermissionDeniedError(MISSING_TOKEN_ERROR)
+
+        try:
+            exporter_user = ExporterUser.objects.get(id=user_id)
+        except ExporterUser.DoesNotExist:
+            raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
 
         if not Organisation.objects.filter(
             id=organisation_id, status=OrganisationStatus.ACTIVE, type=OrganisationType.HMRC
@@ -100,27 +93,16 @@ class HmrcExporterAuthentication(authentication.BaseAuthentication):
         ).exists():
             raise PermissionDeniedError(USER_DEACTIVATED_ERROR)
 
-        try:
-            exporter_user = ExporterUser.objects.get(id=user_id)
-        except ExporterUser.DoesNotExist:
-            raise PermissionDeniedError(USER_NOT_FOUND_ERROR)
-
         return exporter_user, hawk_receiver
 
 
 class ExporterOnlyAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         """
-        When given a user token, validate that the user exists
+        When given an exporter user token, validate that the user exists
         """
 
-        # First, establish that the request has come from an authorised LITE API client
-        # by checking that the request is correctly Hawk signed
-        try:
-            hawk_receiver = _authorise(request)
-        except HawkFail as e:
-            logging.warning(f"Failed HAWK authentication {e}")
-            raise e
+        _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
 
         if request.META.get(EXPORTER_USER_TOKEN_HEADER):
             exporter_user_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
@@ -139,11 +121,10 @@ class ExporterOnlyAuthentication(authentication.BaseAuthentication):
 class HawkOnlyAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         """
-        When given a user token, validate that the user exists
+        Establish that the request has come from an authorised LITE API client
+        by checking that the request is correctly Hawk signed
         """
 
-        # First, establish that the request has come from an authorised LITE API client
-        # by checking that the request is correctly Hawk signed
         try:
             hawk_receiver = _authorise(request)
         except HawkFail as e:
@@ -156,17 +137,10 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
 class GovAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         """
-        When given a user token token validate that they're a government user
-        and that their account is active
+        When given an exporter user token, validate that the user exists and that their account is active
         """
 
-        # First, establish that the request has come from an authorised LITE API client
-        # by checking that the request is correctly Hawk signed
-        try:
-            hawk_receiver = _authorise(request)
-        except HawkFail as e:
-            logging.warning(f"Failed HAWK authentication {e}")
-            raise e
+        _, hawk_receiver = HawkOnlyAuthentication().authenticate(request)
 
         if request.META.get(GOV_USER_TOKEN_HEADER):
             gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
@@ -187,6 +161,10 @@ class GovAuthentication(authentication.BaseAuthentication):
 
 class SharedAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
+        """
+        When given an exporter or gov user token, validate that the user exists
+        """
+
         exporter_token = request.META.get(EXPORTER_USER_TOKEN_HEADER)
 
         if exporter_token:
@@ -197,6 +175,10 @@ class SharedAuthentication(authentication.BaseAuthentication):
 
 class OrganisationAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
+        """
+        Used to create organisations as a gov or exporter (HMRC or non-registered) user token
+        """
+
         gov_user_token = request.META.get(GOV_USER_TOKEN_HEADER)
         organisation = request.META.get(ORGANISATION_ID, None)
 
@@ -254,12 +236,3 @@ def _lookup_credentials(access_key_id):
         "algorithm": "sha256",
         **credentials,
     }
-
-
-def sign_rendered_response(request, response):
-    if hasattr(request, "auth") and isinstance(request.auth, Receiver):
-        response["Server-Authorization"] = request.auth.respond(
-            content=response.content, content_type=response["Content-Type"],
-        )
-
-    return response

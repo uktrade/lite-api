@@ -1,9 +1,9 @@
 import logging
 import time
 import uuid
-from django.db import connection
 
-from conf.authentication import sign_rendered_response
+from django.db import connection
+from mohawk import Receiver
 
 
 class LoggingMiddleware:
@@ -39,7 +39,11 @@ class HawkSigningMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        response = sign_rendered_response(request, response)
+        # Sign response
+        if hasattr(request, "auth") and isinstance(request.auth, Receiver):
+            response["Server-Authorization"] = request.auth.respond(
+                content=response.content, content_type=response["Content-Type"],
+            )
 
         return response
 
