@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 from compat import get_model
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q, Case, When, BinaryField
 
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
@@ -247,17 +247,19 @@ class CaseReferenceCodeManager(models.Manager):
     def create(self):
         CaseReferenceCode = self.model
         year = datetime.now().year
-        case_reference_code, _ = CaseReferenceCode.objects.select_for_update().get_or_create(
-            defaults={"year": year, "reference_number": 0}
-        )
+        with transaction.atomic():
+            case_reference_code, _ = CaseReferenceCode.objects.select_for_update().get_or_create(
+                defaults={"year": year, "reference_number": 0}
+            )
 
-        if case_reference_code.year != year:
-            case_reference_code.year = year
-            case_reference_code.reference_number = 1
-        else:
-            case_reference_code.reference_number += 1
+            if case_reference_code.year != year:
+                case_reference_code.year = year
+                case_reference_code.reference_number = 1
+            else:
+                case_reference_code.reference_number += 1
 
-        case_reference_code.save()
+            case_reference_code.save()
+
         return case_reference_code
 
 
