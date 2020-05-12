@@ -158,35 +158,32 @@ class GoodList(ListCreateAPIView):
         return queryset
 
     def get_paginated_response(self, data):
-        ids = [item["id"] for item in data]
         # Get the goods queries for the goods and format in a dict
+        ids = [item["id"] for item in data]
         goods_queries = GoodsQuery.objects.filter(good_id__in=ids).values("id", "good_id")
-        goods_queries = {
-            str(query["id"]): {"good": str(query["good_id"]), "exporter_user_notification_count": 0}
-            for query in goods_queries
-        }
+        goods_queries = {str(query["id"]): {"good_id": str(query["good_id"])} for query in goods_queries}
 
-        notifications = (
+        goods_query_notifications = (
             ExporterNotification.objects.filter(
                 user=self.request.user,
                 organisation_id=get_request_user_organisation_id(self.request),
-                case__id__in=goods_queries.keys(),
+                case_id__in=goods_queries.keys(),
             )
-            .values("case")
-            .annotate(count=Count("case"))
+            .values("case_id")
+            .annotate(count=Count("case_id"))
         )
-        # Set notification count for all results
-        for notification in notifications:
-            goods_queries[str(notification["case"])]["exporter_user_notification_count"] = notification["count"]
 
-        # Ditch the goods query and just get the notifications for that good
-        goods_notifications = {
-            query["good"]: query["exporter_user_notification_count"] for query in goods_queries.values()
-        }
+        # Map goods_query_notifications to goods
+        goods_notifications = {}
+        for notification in goods_query_notifications:
+            case_id = str(notification["case_id"])
+            good_id = goods_queries[case_id]["good_id"]
+            goods_query_notification_count = notification["count"]
+            goods_notifications[good_id] = goods_query_notification_count
 
+        # Set notification counts on each good
         for item in data:
-            if item["id"] in goods_notifications:
-                item["exporter_user_notification_count"] = goods_notifications[item["id"]]
+            item["exporter_user_notification_count"] = goods_notifications.get(item["id"], 0)
 
         return super().get_paginated_response(data)
 
