@@ -31,7 +31,8 @@ from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
-from organisations.serializers import TinyOrganisationViewSerializer
+from organisations.serializers import TinyOrganisationViewSerializer, OrganisationDetailSerializer, \
+    OrganisationCaseSerializer
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from queues.serializers import CasesQueueViewSerializer
@@ -138,9 +139,6 @@ class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    queues = PrimaryKeyRelatedSerializerField(
-        queryset=Queue.objects.all(), many=True, serializer=CasesQueueViewSerializer
-    )
     assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
     status = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
@@ -149,7 +147,7 @@ class CaseListSerializer(serializers.Serializer):
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
     organisation = PrimaryKeyRelatedSerializerField(
-        queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
+        queryset=Organisation.objects.all(), serializer=OrganisationCaseSerializer
     )
 
     def __init__(self, *args, **kwargs):
