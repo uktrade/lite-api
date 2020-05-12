@@ -26,7 +26,7 @@ class ApplicationPartyView(APIView):
 
     @allowed_party_type_for_open_application_goodstype_category()
     @authorised_to_view_application(ExporterUser)
-    def post(self, request, application):
+    def post(self, request, pk):
         """
         Add a party to an application.
         """

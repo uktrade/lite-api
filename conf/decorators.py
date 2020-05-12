@@ -140,7 +140,7 @@ def allowed_party_type_for_open_application_goodstype_category():
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
+            application = _get_application(request, kwargs).first()
 
             party_type = request.request.data.get("type")
 
