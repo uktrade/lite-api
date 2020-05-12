@@ -19,6 +19,7 @@ from cases.enums import CaseTypeEnum
 from cases.models import Case
 from common.models import TimestampableModel
 from documents.models import Document
+from flags.models import Flag
 from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
@@ -325,6 +326,7 @@ class CountryOnApplication(models.Model):
         max_length=300, choices=ContractType.choices, blank=True, null=True, default=None
     )
     other_contract_type_text = models.CharField(max_length=150, blank=True, null=True, default=None)
+    flags = models.ManyToManyField(Flag, related_name="countries_on_applications")
 
 
 class PartyOnApplication(TimestampableModel):
