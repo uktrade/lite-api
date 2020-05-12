@@ -130,7 +130,7 @@ class FilterAndSortTests(DataTestClient):
         """
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
-        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}&sort=status'
+        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}'
 
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
@@ -238,27 +238,6 @@ class FilterAndSortTests(DataTestClient):
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
             self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
-    def test_get_cases_no_filter_sort_by_status_ascending(self):
-        """
-        Given multiple Cases exist with different statuses and case-types
-        When a user requests to view all Cases sorted by case_type
-        Then all Cases are sorted in ascending order and returned
-        """
-        all_cases = self.application_cases + self.clc_cases
-        all_cases = [{"status": case.status.status, "status_ordering": case.status.priority,} for case in all_cases]
-        all_cases_sorted = sorted(all_cases, key=lambda k: k["status_ordering"])
-        url = f"{self.url}?sort=status"
-
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(all_cases), len(response_data["cases"]))
-
-        # Assert ordering
-        for case, expected_case in zip(response_data["cases"], all_cases_sorted):
-            self.assertEqual(case["status"]["key"], expected_case["status"])
-
     def test_get_app_type_cases_sorted_by_status_descending(self):
         """
         Given multiple Cases exist with different statuses and case-types
@@ -274,7 +253,7 @@ class FilterAndSortTests(DataTestClient):
             reverse=True,
         )
 
-        url = f"{self.url}?case_type={CaseTypeEnum.SIEL.reference}&sort=-status"
+        url = f"{self.url}?case_type={CaseTypeEnum.SIEL.reference}"
 
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
@@ -498,7 +477,7 @@ class TestQueueOrdering(DataTestClient):
             team=self.gov_user.team, cases=[standard_app, clc_query_1, clc_query_2, hmrc_query_1, hmrc_query_2]
         )
 
-        url = reverse("cases:search") + "?queue_id=" + str(queue.id) + "&sort=status"
+        url = reverse("cases:search") + "?queue_id=" + str(queue.id)
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
