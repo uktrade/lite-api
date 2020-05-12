@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
@@ -72,13 +71,22 @@ class Case(TimestampableModel):
     objects = CaseManager()
 
     def save(self, *args, **kwargs):
-        if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
-            self.reference_code = asyncio.run(generate_reference_code(self))
-
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
             self.queues.clear()
             CaseAssignment.objects.filter(case=self).delete()
+
+        if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
+            while True:
+                self.reference_code = generate_reference_code(self)
+                last_case = (
+                    Case.objects.filter(submitted_at__isnull=False).order_by("-submitted_at").first().reference_code
+                )
+                our_reference_code = self.reference_code.split("/")[2]
+                last_case_ref_code = last_case.split("/")[2]
+
+                if our_reference_code != last_case_ref_code:
+                    break
 
         super(Case, self).save(*args, **kwargs)
 
