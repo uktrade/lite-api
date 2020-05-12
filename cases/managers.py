@@ -249,6 +249,8 @@ class CaseReferenceCodeManager(models.Manager):
         year = datetime.now().year
 
         # transaction.atomic is required to lock the database (which is achieved using select_for_update)
+        #  we lock the case reference code record so that multiple cases being assigned a record don't end up with same
+        #  number if both access function at same time.
         with transaction.atomic():
             case_reference_code, _ = CaseReferenceCode.objects.select_for_update().get_or_create(
                 defaults={"year": year, "reference_number": 0}
