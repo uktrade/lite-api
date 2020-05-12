@@ -127,7 +127,7 @@ class ApplicationCountries(APIView):
 
 class ApplicationContractTypes(APIView):
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    def post(self, request, application):
+    def put(self, request, application):
 
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
