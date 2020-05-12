@@ -77,16 +77,7 @@ class Case(TimestampableModel):
             CaseAssignment.objects.filter(case=self).delete()
 
         if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
-            while True:
-                self.reference_code = generate_reference_code(self)
-                last_case = (
-                    Case.objects.filter(submitted_at__isnull=False).order_by("-submitted_at").first().reference_code
-                )
-                our_reference_code = self.reference_code.split("/")[2]
-                last_case_ref_code = last_case.split("/")[2]
-
-                if our_reference_code != last_case_ref_code:
-                    break
+            self.reference_code = generate_reference_code(self)
 
         super(Case, self).save(*args, **kwargs)
 
@@ -175,7 +166,7 @@ class Case(TimestampableModel):
 class CaseReferenceCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_number = models.IntegerField()
-    year = models.IntegerField(editable=False)
+    year = models.IntegerField(editable=False, unique=True)
 
     objects = CaseReferenceCodeManager()
 
