@@ -24,7 +24,7 @@ from licences.models import Licence
 from licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
-from static.countries.serializers import CountryWithFlagsSerializer
+from applications.serializers.advice import CountryWithFlagsSerializer
 from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseType, FinalAdvice
+from cases.models import CaseType, Advice
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from goodstype.models import GoodsType
 from licences.models import Licence
@@ -153,13 +153,13 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
 
     def get_goods(self, instance):
         if instance.goods.exists():
-            approved_goods = FinalAdvice.objects.filter(
+            approved_goods = Advice.objects.filter(
                 case_id=instance.id, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
             ).values_list("good", flat=True)
             goods = instance.goods.filter(good_id__in=approved_goods)
             return GoodOnLicenceSerializer(goods, many=True).data
         elif instance.goods_type.exists():
-            approved_goods = FinalAdvice.objects.filter(
+            approved_goods = Advice.objects.filter(
                 case_id=instance.id, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
             ).values_list("goods_type", flat=True)
             goods = instance.goods_type.filter(id__in=approved_goods)
