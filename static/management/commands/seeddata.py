@@ -334,7 +334,6 @@ class Command(SeedCommand):
         parser.add_argument("--min", help="min number of items", type=int)
         parser.add_argument("-e", "--email", help="user email", type=str)
         parser.add_argument("--max-goods", help="max number of goods", type=int)
-        parser.add_argument("--applications", help="number of applications", type=int)
         parser.add_argument("-r", "--remove", action="store_true", help="remove an item or items")
 
     def operation(self, *args, **options):
