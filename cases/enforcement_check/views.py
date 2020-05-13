@@ -3,6 +3,8 @@ from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from audit_trail import service as audit_trail_service
+from audit_trail.enums import AuditType
 from cases.enforcement_check.export_xml import export_cases_xml
 from cases.models import Case
 from conf.authentication import GovAuthentication
@@ -32,5 +34,8 @@ class EnforcementCheckView(APIView):
         # Remove flag now that XML has been produced
         for case in cases:
             case.flags.remove(enforcement_check_flag)
+            audit_trail_service.create(
+                actor=request.user, verb=AuditType.ENFORCEMENT_CHECK, target=case,
+            )
 
         return HttpResponse(xml, content_type="text/xml")
