@@ -32,13 +32,7 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         self.goods_type_2 = self.goods_types[1]
 
         # Add a country to the draft
-        self.country_1 = get_country("ES")
-        self.country_2 = get_country("US")
-        self.country_3 = get_country("FR")
-
-        self.all_countries = [self.country_1, self.country_2, self.country_3]
-        for country in self.all_countries:
-            CountryOnApplication(application=self.open_draft, country=country).save()
+        CountryOnApplication(application=self.open_draft, country=get_country("US")).save()
 
         self.case = self.submit_application(self.open_draft)
 
@@ -47,17 +41,8 @@ class CreateGoodsCountriesDecisions(DataTestClient):
     def test_make_goods_countries_decisions_success(self):
         data = {
             "good_countries": [
-                {"good": str(self.goods_type_1.id), "country": "ZM", "decision": "approve", "case": str(self.case.id)},
-                {"good": str(self.goods_type_1.id), "country": "LR", "decision": "refuse", "case": str(self.case.id)},
-                {
-                    "good": str(self.goods_type_1.id),
-                    "country": "AL",
-                    "decision": "no_licence_required",
-                    "case": str(self.case.id),
-                },
-                {"good": str(self.goods_type_2.id), "country": "BW", "decision": "approve", "case": str(self.case.id)},
-                {"good": str(self.goods_type_2.id), "country": "DE", "decision": "approve", "case": str(self.case.id)},
-                {"good": str(self.goods_type_2.id), "country": "SC", "decision": "approve", "case": str(self.case.id)},
+                {"good": str(self.goods_type_1.id), "country": "US", "decision": "approve", "case": str(self.case.id)},
+                {"good": str(self.goods_type_2.id), "country": "US", "decision": "approve", "case": str(self.case.id)},
             ]
         }
 
@@ -68,16 +53,11 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         self.assertEqual(len(response.json()["data"]), len(data["good_countries"]))
 
     def test_saving_overwrites_previous_assignment(self):
-        self.create_good_country_decision(self.case, self.goods_type_1, self.country_1, "approve")
+        self.create_good_country_decision(self.case, self.goods_type_1, get_country("US"), "approve")
 
         data = {
             "good_countries": [
-                {
-                    "good": str(self.goods_type_1.id),
-                    "country": str(self.country_1.id),
-                    "decision": "refuse",
-                    "case": str(self.case.id),
-                }
+                {"good": str(self.goods_type_1.id), "country": "US", "decision": "refuse", "case": str(self.case.id),}
             ]
         }
 

@@ -269,8 +269,32 @@ class AdviceType:
         return {choice[0]: choice[1] for choice in cls.choices}
 
 
+class AdviceLevel:
+    USER = "user"
+    TEAM = "team"
+    FINAL = "final"
+
+    choices = [
+        (USER, "User"),
+        (TEAM, "Team"),
+        (FINAL, "Final"),
+    ]
+
+
 class CaseDocumentState:
     UPLOADED = "UPLOADED"
     GENERATED = "GENERATED"
 
     choices = [(UPLOADED, "Uploaded"), (GENERATED, "Generated")]
+
+
+class ECJUQueryType:
+    ECJU = "ecju_query"
+    PRE_VISIT_QUESTIONNAIRE = "pre_visit_questionnaire"
+    COMPLIANCE_ACTIONS = "compliance_actions"
+
+    choices = [
+        (ECJU, "Standard query"),
+        (PRE_VISIT_QUESTIONNAIRE, "Pre-visit question"),
+        (COMPLIANCE_ACTIONS, "Compliance action"),
+    ]

@@ -3,7 +3,6 @@ from rest_framework import serializers
 from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from goods.enums import PvGrading
 from goods.models import PvGradingDetails
-from goods.serializers import GoodWithFlagsSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import TinyOrganisationViewSerializer
@@ -16,10 +15,12 @@ from users.libraries.notifications import (
 
 
 class GoodsQuerySerializer(serializers.ModelSerializer):
+    from goods.serializers import GoodSerializerInternal
+
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=TinyOrganisationViewSerializer
     )
-    good = GoodWithFlagsSerializer(read_only=True)
+    good = GoodSerializerInternal(read_only=True)
     submitted_at = serializers.DateTimeField(read_only=True)
     status = serializers.SerializerMethodField()
 
@@ -27,6 +28,7 @@ class GoodsQuerySerializer(serializers.ModelSerializer):
         model = GoodsQuery
         fields = (
             "id",
+            "clc_control_list_entry",
             "clc_raised_reasons",
             "pv_grading_raised_reasons",
             "good",
@@ -78,6 +80,7 @@ class ExporterReadGoodQuerySerializer(serializers.ModelSerializer):
             "id",
             "reference_code",
             "clc_responded",
+            "clc_control_list_entry",
             "clc_raised_reasons",
             "pv_grading_responded",
             "pv_grading_raised_reasons",

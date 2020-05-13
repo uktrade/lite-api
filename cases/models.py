@@ -1,4 +1,5 @@
 import uuid
+from collections import defaultdict
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
@@ -11,6 +12,8 @@ from cases.enums import (
     CaseTypeTypeEnum,
     CaseTypeSubTypeEnum,
     CaseTypeReferenceEnum,
+    ECJUQueryType,
+    AdviceLevel,
 )
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
@@ -19,7 +22,6 @@ from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
 from organisations.models import Organisation
-from picklists.enums import PicklistType
 from queues.models import Queue
 from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
@@ -71,13 +73,13 @@ class Case(TimestampableModel):
     objects = CaseManager()
 
     def save(self, *args, **kwargs):
-        if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
-            self.reference_code = generate_reference_code(self)
-
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
             self.queues.clear()
             CaseAssignment.objects.filter(case=self).delete()
+
+        if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
+            self.reference_code = generate_reference_code(self)
 
         super(Case, self).save(*args, **kwargs)
 
@@ -92,22 +94,20 @@ class Case(TimestampableModel):
 
         return Case.objects.get(id=self.id)
 
-    def get_users(self, queue=None):
+    def get_users(self):
         case_assignments = self.case_assignments.select_related("queue", "user").order_by("queue__name")
-        if queue:
-            case_assignments = case_assignments.filter(queue=queue)
+        return_value = defaultdict(list)
 
-        users = [
-            {
-                "first_name": case_assignment.user.first_name,
-                "last_name": case_assignment.user.last_name,
-                "email": case_assignment.user.email,
-                "queue": case_assignment.queue.name,
-            }
-            for case_assignment in case_assignments
-        ]
+        for assignment in case_assignments:
+            return_value[assignment.queue.name].append(
+                {
+                    "id": assignment.user.id,
+                    "first_name": assignment.user.first_name,
+                    "last_name": assignment.user.last_name,
+                }
+            )
 
-        return users
+        return return_value
 
     def parameter_set(self):
         """
@@ -166,7 +166,7 @@ class Case(TimestampableModel):
 class CaseReferenceCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_number = models.IntegerField()
-    year = models.IntegerField(editable=False)
+    year = models.IntegerField(editable=False, unique=True)
 
     objects = CaseReferenceCodeManager()
 
@@ -252,11 +252,13 @@ class Advice(TimestampableModel):
     type = models.CharField(choices=AdviceType.choices, max_length=30)
     text = models.TextField(default=None, blank=True, null=True)
     note = models.TextField(default=None, blank=True, null=True)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True)
+    level = models.CharField(choices=AdviceLevel.choices, max_length=30)
 
     # Optional goods/destinations
-    good = models.ForeignKey("goods.Good", on_delete=models.CASCADE, null=True)
-    goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE, null=True)
-    country = models.ForeignKey("countries.Country", on_delete=models.CASCADE, null=True)
+    good = models.ForeignKey("goods.Good", related_name="advice", on_delete=models.CASCADE, null=True)
+    goods_type = models.ForeignKey("goodstype.GoodsType", related_name="advice", on_delete=models.CASCADE, null=True)
+    country = models.ForeignKey("countries.Country", related_name="advice", on_delete=models.CASCADE, null=True)
     end_user = models.ForeignKey("parties.Party", on_delete=models.CASCADE, null=True)
     ultimate_end_user = models.ForeignKey(
         "parties.Party", on_delete=models.CASCADE, related_name="ultimate_end_user", null=True
@@ -273,6 +275,9 @@ class Advice(TimestampableModel):
 
     objects = AdviceManager()
 
+    class Meta:
+        db_table = "advice"
+
     @property
     def entity_field(self):
         for field in self.ENTITY_FIELDS:
@@ -287,20 +292,45 @@ class Advice(TimestampableModel):
     def save(self, *args, **kwargs):
         if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
             self.proviso = None
-
         try:
-            existing_object = Advice.objects.get(
-                case=self.case,
-                user=self.user,
-                good=self.good,
-                goods_type=self.goods_type,
-                country=self.country,
-                end_user=self.end_user,
-                ultimate_end_user=self.ultimate_end_user,
-                consignee=self.consignee,
-                third_party=self.third_party,
-            )
-            existing_object.delete()
+            if self.level == AdviceLevel.TEAM:
+                Advice.objects.get(
+                    case=self.case,
+                    team=self.team,
+                    level=AdviceLevel.TEAM,
+                    good=self.good,
+                    goods_type=self.goods_type,
+                    country=self.country,
+                    end_user=self.end_user,
+                    ultimate_end_user=self.ultimate_end_user,
+                    consignee=self.consignee,
+                    third_party=self.third_party,
+                ).delete()
+            elif self.level == AdviceLevel.FINAL:
+                Advice.objects.get(
+                    case=self.case,
+                    good=self.good,
+                    level=AdviceLevel.FINAL,
+                    goods_type=self.goods_type,
+                    country=self.country,
+                    end_user=self.end_user,
+                    ultimate_end_user=self.ultimate_end_user,
+                    consignee=self.consignee,
+                    third_party=self.third_party,
+                ).delete()
+            elif self.level == AdviceLevel.USER:
+                Advice.objects.get(
+                    case=self.case,
+                    good=self.good,
+                    user=self.user,
+                    level=AdviceLevel.USER,
+                    goods_type=self.goods_type,
+                    country=self.country,
+                    end_user=self.end_user,
+                    ultimate_end_user=self.ultimate_end_user,
+                    consignee=self.consignee,
+                    third_party=self.third_party,
+                ).delete()
         except Advice.DoesNotExist:
             pass
 
@@ -317,62 +347,6 @@ class Advice(TimestampableModel):
                 [x for x in self.denial_reasons.values_list()] == [x for x in other.denial_reasons.values_list()],
             ]
         )
-
-
-class TeamAdvice(Advice):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-
-    # pylint: disable=W0221
-    # pylint: disable=E1003
-    def save(self, *args, **kwargs):
-
-        if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
-            self.proviso = None
-
-        try:
-            existing_object = TeamAdvice.objects.get(
-                case=self.case,
-                team=self.team,
-                good=self.good,
-                goods_type=self.goods_type,
-                country=self.country,
-                end_user=self.end_user,
-                ultimate_end_user=self.ultimate_end_user,
-                consignee=self.consignee,
-                third_party=self.third_party,
-            )
-            existing_object.delete()
-        except TeamAdvice.DoesNotExist:
-            pass
-
-        # We override the parent class save() method so we only delete existing team level objects
-        super(Advice, self).save(*args, **kwargs)
-
-
-class FinalAdvice(Advice):
-    # pylint: disable=W0221
-    # pylint: disable=E1003
-    def save(self, *args, **kwargs):
-
-        if self.type != AdviceType.PROVISO and self.type != AdviceType.CONFLICTING:
-            self.proviso = None
-
-        try:
-            existing_object = FinalAdvice.objects.get(
-                case=self.case,
-                good=self.good,
-                goods_type=self.goods_type,
-                country=self.country,
-                end_user=self.end_user,
-                ultimate_end_user=self.ultimate_end_user,
-                consignee=self.consignee,
-                third_party=self.third_party,
-            )
-            existing_object.delete()
-        except FinalAdvice.DoesNotExist:
-            pass
-        # We override the parent class save() method so we only delete existing final level objects
-        super(Advice, self).save(*args, **kwargs)
 
 
 class EcjuQuery(TimestampableModel):
@@ -392,7 +366,7 @@ class EcjuQuery(TimestampableModel):
         ExporterUser, related_name="exportuser_ecju_query", on_delete=models.CASCADE, default=None, null=True,
     )
     query_type = models.CharField(
-        choices=PicklistType.choices, max_length=50, default=PicklistType.ECJU, null=False, blank=False
+        choices=ECJUQueryType.choices, max_length=50, default=ECJUQueryType.ECJU, null=False, blank=False
     )
 
     notifications = GenericRelation(ExporterNotification, related_query_name="ecju_query")
