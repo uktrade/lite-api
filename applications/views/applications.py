@@ -68,7 +68,8 @@ from conf.decorators import (
 )
 from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
-from flags.enums import FlagStatuses
+from flags.enums import FlagStatuses, SystemFlags
+from flags.models import Flag
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
@@ -154,6 +155,13 @@ class ApplicationList(ListCreateAPIView):
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         application = serializer.save()
+        if application.case_type.sub_type in [
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
+            CaseTypeSubTypeEnum.HMRC,
+        ]:
+            # Add enforcement required flag
+            application.flags.add(Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED))
 
         return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
 
