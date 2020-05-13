@@ -6,13 +6,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0021_remove_team_final_advice'),
+        ("cases", "0021_remove_team_final_advice"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='casereferencecode',
-            name='year',
-            field=models.IntegerField(editable=False, unique=True),
+            model_name="casereferencecode", name="year", field=models.IntegerField(editable=False, unique=True),
         ),
     ]
