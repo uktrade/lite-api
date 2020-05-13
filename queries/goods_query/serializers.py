@@ -28,6 +28,7 @@ class GoodsQuerySerializer(serializers.ModelSerializer):
         model = GoodsQuery
         fields = (
             "id",
+            "clc_control_list_entry",
             "clc_raised_reasons",
             "pv_grading_raised_reasons",
             "good",
@@ -79,6 +80,7 @@ class ExporterReadGoodQuerySerializer(serializers.ModelSerializer):
             "id",
             "reference_code",
             "clc_responded",
+            "clc_control_list_entry",
             "clc_raised_reasons",
             "pv_grading_responded",
             "pv_grading_raised_reasons",

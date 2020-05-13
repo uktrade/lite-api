@@ -15,7 +15,7 @@ class CaseOfficerTests(DataTestClient):
     def test_assign_gov_user(self):
         request = self.client.put(self.url, data={"gov_user_pk": self.user.id}, **self.gov_headers)
 
-        self.assertEqual(request.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(request.status_code, status.HTTP_200_OK)
         self.case.refresh_from_db()
 
         self.assertIsNotNone(self.case.case_officer)
@@ -26,16 +26,8 @@ class CaseOfficerTests(DataTestClient):
 
         request = self.client.delete(self.url, data={}, **self.gov_headers)
 
-        self.assertEqual(request.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(request.status_code, status.HTTP_200_OK)
 
         self.case.refresh_from_db()
 
         self.assertIsNone(self.case.case_officer)
-
-    def test_get_case_officer(self):
-        self.case.case_officer = self.user
-        self.case.save()
-
-        request = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(request.status_code, status.HTTP_200_OK)
