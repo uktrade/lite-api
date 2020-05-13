@@ -19,7 +19,7 @@ faker = Faker()
 faker.add_provider(OrganisationProvider)
 
 
-class SeedDataBase:
+class ActionBase:
     @staticmethod
     def organisation_get_first_n(org_count):
         organisations = list(Organisation.objects.all())
@@ -59,7 +59,7 @@ class SeedDataBase:
         added = list()
         role_id = Roles.EXPORTER_SUPER_USER_ROLE_ID
         for _ in range(required_users_count):
-            email, first_name, last_name = SeedDataBase.fake_export_user_details(company_email_domain)
+            email, first_name, last_name = ActionBase.fake_export_user_details(company_email_domain)
             user, created = ExporterUser.objects.get_or_create(first_name=first_name, last_name=last_name, email=email)
             new_org_user = UserOrganisationRelationship(user=user, organisation=organisation, role_id=role_id)
             new_org_user.save()
@@ -114,7 +114,7 @@ class SeedDataBase:
 
     @staticmethod
     def app_factory(org, applications_to_add, max_goods_to_use):
-        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use, )
+        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use,)
         return len(submitted_applications)
 
     @staticmethod
@@ -127,7 +127,7 @@ class SeedDataBase:
         existing_sites = len(sites)
         if existing_sites >= site_count:
             return sites, 0
-        added = [SiteFactory(organisation=organisation) for _ in range(site_count-existing_sites)]
+        added = [SiteFactory(organisation=organisation) for _ in range(site_count - existing_sites)]
         return list(sites) + added, len(added)
 
     @staticmethod
@@ -136,11 +136,11 @@ class SeedDataBase:
         if uuid is not None:
             organisations = [Organisation.objects.get(id=UUID(uuid))]
         if org_count is not None:
-            organisations = SeedDataBase.organisation_get_first_n(org_count)
+            organisations = ActionBase.organisation_get_first_n(org_count)
         return organisations
 
 
-class ActionOrg(SeedDataBase):
+class ActionOrg(ActionBase):
     def action(self, options):
         org_count = self.get_arg(options, "count", 1)
         site_max = self.get_arg(options, "site_max", 1)
@@ -157,7 +157,7 @@ class ActionOrg(SeedDataBase):
         return organisations
 
 
-class ActionAddFakeUsers(SeedDataBase):
+class ActionAddFakeUsers(ActionBase):
     def action(self, options):
         print("Add fake users to organisations")
         org_count = self.get_arg(options, "count", 1)
@@ -168,10 +168,7 @@ class ActionAddFakeUsers(SeedDataBase):
         organisations = self.organisation_get_first_n(org_count)
 
         # ensure the correct number of users
-        users = [
-            self.organisation_get_create_users(organisation, user_max, user_min)
-            for organisation in organisations
-        ]
+        users = [self.organisation_get_create_users(organisation, user_max, user_min) for organisation in organisations]
         added_counts = [len(added) for users, added in users]
 
         print(
@@ -181,7 +178,7 @@ class ActionAddFakeUsers(SeedDataBase):
         return
 
 
-class ActionUser(SeedDataBase):
+class ActionUser(ActionBase):
     def action(self, options):
         org_uuid = self.get_arg(options, "uuid")
         user_email = self.get_arg(options, "email")
@@ -194,8 +191,8 @@ class ActionUser(SeedDataBase):
         if org_uuid == "all":
             membership = (
                 UserOrganisationRelationship.objects.select_related("organisation")
-                    .filter(user=exporter_user)
-                    .values_list("organisation__id")
+                .filter(user=exporter_user)
+                .values_list("organisation__id")
             )
             organisations = Organisation.objects.all()
             ids_to_add = set([org.id for org in organisations]) - set(membership)
@@ -225,7 +222,7 @@ class ActionUser(SeedDataBase):
         return
 
 
-class ActionSiel(SeedDataBase):
+class ActionSiel(ActionBase):
     def action(self, options):
         print("Add SIEL applications to organisations")
         org_count = self.get_arg(options, "count", 1)
@@ -255,7 +252,7 @@ class ActionSiel(SeedDataBase):
         return apps
 
 
-class ActionStats(SeedDataBase):
+class ActionStats(ActionBase):
     def action(self, options):
         print(
             f"Organisations:{Organisation.objects.all().count()}"
@@ -266,7 +263,7 @@ class ActionStats(SeedDataBase):
         )
 
 
-class ActionSites(SeedDataBase):
+class ActionSites(ActionBase):
     def action(self, options):
         print("Add sites to organisations")
         min_items = self.get_arg(options, "min", 1)
@@ -285,7 +282,7 @@ class ActionSites(SeedDataBase):
         print(f"added {sum(added_counts)} goods in total")
 
 
-class ActionGoods(SeedDataBase):
+class ActionGoods(ActionBase):
     def action(self, options):
         print("Add goods to organisations")
         goods_min = self.get_arg(options, "min", 1)
@@ -297,14 +294,10 @@ class ActionGoods(SeedDataBase):
         goods_count = random.randint(goods_min, goods_max)
 
         added_results = [
-            self.organisation_get_create_goods(organisation, goods_count)
-            for organisation in organisations
+            self.organisation_get_create_goods(organisation, goods_count) for organisation in organisations
         ]
 
-        added_goods = [
-            len(goods_added)
-            for _, goods_added in added_results
-        ]
+        added_goods = [len(goods_added) for _, goods_added in added_results]
 
         print(f"ensured between {goods_min} and {goods_max} goods for {org_count} organisations")
         print(f"added {sum(added_goods)} goods in total")
