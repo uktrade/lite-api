@@ -198,7 +198,7 @@ def _authorise(request):
         return Receiver(
             _lookup_credentials,
             request.META["HTTP_AUTHORIZATION"],
-            request.build_absolute_uri(),
+            request.build_absolute_uri().replace("http", "https"),
             request.method,
             content=request.body,
             content_type=request.content_type,
