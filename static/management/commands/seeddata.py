@@ -9,7 +9,7 @@ from organisations.models import Organisation, Site
 from organisations.tests.factories import SiteFactory
 from organisations.tests.providers import OrganisationProvider
 from static.management.SeedCommand import SeedCommand
-from static.management.commands.seedapplication import Command as AppCommand
+from static.management.commands.seedapplications import Command as AppCommand
 from static.management.commands.seedorganisation import Command as OrgCommand
 from users.models import UserOrganisationRelationship, ExporterUser
 from goods.models import Good

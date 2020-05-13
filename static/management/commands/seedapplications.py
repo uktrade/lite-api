@@ -37,13 +37,13 @@ def choose_some_goods(goods_ids):
 
 class Command(SeedCommand):
     """
-    pipenv run ./manage.py seedapplication -count <number of applications> -goods <number of verified goods to choose from>
+    pipenv run ./manage.py seedapplications -count <number of applications> -goods <number of verified goods to choose from>
     """
 
     help = "Seeds applications for an individual or all organisations"
     info = "Seeding applications"
     success = "Successfully seeded applications"
-    seed_command = "seedapplication"
+    seed_command = "seedapplications"
 
     def add_arguments(self, parser):
         # Named (optional) arguments
