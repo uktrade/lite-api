@@ -3,6 +3,9 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import CountryOnApplication
+from cases.libraries.get_flags import get_ordered_flags
+from flags.tests.factories import FlagFactory
+from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
@@ -118,3 +121,21 @@ class ContractTypeOnCountryTests(DataTestClient):
 
         coa.refresh_from_db()
         self.assertEqual(coa.other_contract_type_text, None)
+
+    @tag("2146", "flags")
+    def test_flags_are_returned_correctly(self):
+        application = self.create_open_application_case(self.organisation)
+        falg = FlagFactory(team=self.team)
+        flag = FlagFactory(team=self.team)
+        Country.objects.get(id="GB").flags.set([falg.id, flag.id])
+
+        data = {
+            "countries": ["GB"],
+            "contract_types": ["navy"],
+            "other_contract_type_text": "",
+        }
+
+        url = reverse("applications:contract_types", kwargs={"pk": application.id})
+        self.client.put(url, data, **self.exporter_headers)
+
+        get_ordered_flags(application, self.team)

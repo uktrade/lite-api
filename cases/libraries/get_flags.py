@@ -44,14 +44,13 @@ def get_destination_flags(case, case_type):
     if case_type == CaseTypeSubTypeEnum.EUA:
         return get_end_user_advisory_by_pk(case.id).end_user.flags.all()
     elif case_type == CaseTypeSubTypeEnum.OPEN:
-        ids = (
+        ids = set(
             CountryOnApplication.objects.filter(application=case)
             .prefetch_related("country__flags")
-            .values_list("country__flags", "flags")
+            .values_list("country__flags", flat=True)
         )
-        print("\n\n")
-        print(ids)
-        print("\n\n")
+
+        ids = ids | set(CountryOnApplication.objects.filter(application=case).values_list("flags", flat=True))
 
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
         ids = (
