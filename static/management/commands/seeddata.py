@@ -60,7 +60,7 @@ class ActionBase:
         role_id = Roles.EXPORTER_SUPER_USER_ROLE_ID
         for _ in range(required_users_count):
             email, first_name, last_name = ActionBase.fake_export_user_details(company_email_domain)
-            user, created = ExporterUser.objects.get_or_create(first_name=first_name, last_name=last_name, email=email)
+            user, _ = ExporterUser.objects.get_or_create(first_name=first_name, last_name=last_name, email=email)
             new_org_user = UserOrganisationRelationship(user=user, organisation=organisation, role_id=role_id)
             new_org_user.save()
             added.append(new_org_user)
@@ -109,7 +109,7 @@ class ActionBase:
     def organisation_delete_user(organisation, exporter_user):
         try:
             return UserOrganisationRelationship.objects.filter(user=exporter_user, organisation=organisation).delete()
-        except Exception:
+        except UserOrganisationRelationship.DoesNotExist:
             return 0, None
 
     @staticmethod
@@ -169,7 +169,7 @@ class ActionAddFakeUsers(ActionBase):
 
         # ensure the correct number of users
         users = [self.organisation_get_create_users(organisation, user_max, user_min) for organisation in organisations]
-        added_counts = [len(added) for users, added in users]
+        added_counts = [len(added) for _, added in users]
 
         print(
             f"{len(organisations)} organisations"

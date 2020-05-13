@@ -52,7 +52,6 @@ class Command(SeedCommand):
         parser.add_argument("--count", help="Number of applications to seed", type=int)
         parser.add_argument("--goods", help="Number of goods to seed", type=int)
 
-    @transaction.atomic
     def operation(self, *args, **options):
         org_id = options.get("org_id") or None
         count = options.get("count") or 1
