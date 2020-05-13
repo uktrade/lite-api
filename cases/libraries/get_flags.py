@@ -48,10 +48,10 @@ def get_destination_flags(case, case_type):
     return Flag.objects.filter(id__in=ids).select_related("team")
 
 
-def annotate_my_team_flags(flags, priority, team):
+def annotate_my_team_flags(flags, order, team):
     for flag in flags:
-        flag.my_team = flag.team.id == team.id
-        flag.priority = priority
+        flag.my_team = flag.team.id != team.id
+        flag.order = order
 
     return flags
 
@@ -79,6 +79,6 @@ def get_ordered_flags(case: Case, team: Team):
     organisation_flags = annotate_my_team_flags(case.organisation.flags.all(), 3, team)
 
     all_flags = [*goods_flags, *destination_flags, *case_flags, *organisation_flags]
-    all_flags = sorted(all_flags, key=lambda x: (x.my_team, x.level, x.priority))
+    all_flags = sorted(all_flags, key=lambda x: (x.my_team, x.order, x.priority))
 
     return CaseListFlagSerializer(all_flags, many=True).data
