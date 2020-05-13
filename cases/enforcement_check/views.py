@@ -5,6 +5,8 @@ from cases.enforcement_check.export_xml import export_cases_xml
 from cases.enums import CaseTypeTypeEnum
 from cases.models import Case, CaseType
 from conf.authentication import GovAuthentication
+from conf.constants import GovPermissions
+from conf.permissions import assert_user_has_permission
 
 
 class EnforcementCheckView(APIView):
@@ -14,6 +16,8 @@ class EnforcementCheckView(APIView):
         """
         Fetch enforcement check XML for cases on queue
         """
+        assert_user_has_permission(request.user, GovPermissions.ENFORCEMENT_CHECK)
+
         query_types = CaseType.objects.filter(type=CaseTypeTypeEnum.QUERY)
         application_ids = (
             Case.objects.filter(queues=queue_pk).exclude(case_type__in=query_types).values_list("pk", flat=True)
