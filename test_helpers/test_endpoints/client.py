@@ -9,7 +9,7 @@ from conf.settings import env
 def get(appended_address, headers):
     url = _build_absolute_uri(appended_address.replace(" ", "%20"))
 
-    sender = _get_hawk_sender(url, "GET", "application/json", None)
+    sender = _get_hawk_sender(url, "GET", "application/json", "")
 
     headers["Authorization"] = sender.request_header
     headers["content-type"] = sender.req_resource.content_type
