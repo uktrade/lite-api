@@ -40,9 +40,6 @@ class CasesResponseTests(EndPointTests):
     def test_cases_final_advice(self):
         self.call_endpoint(self.get_gov_headers(), self.url + self.get_case_id() + "/final-advice/")
 
-    def test_cases_view_final_advice(self):
-        self.call_endpoint(self.get_gov_headers(), self.url + self.get_case_id() + "/view-final-advice/")
-
     def test_cases_final_advice_documents(self):
         self.call_endpoint(self.get_gov_headers(), self.url + self.get_case_id() + "/final-advice-documents/")
 
