@@ -99,3 +99,22 @@ class ContractTypeOnCountryTests(DataTestClient):
 
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @tag("2146", "clear")
+    def test_removing_other_clears_text(self):
+        application = self.create_open_application_case(self.organisation)
+
+        data = {
+            "countries": ["GB"],
+            "contract_types": ["navy"],
+            "other_contract_type_text": "",
+        }
+
+        url = reverse("applications:contract_types", kwargs={"pk": application.id})
+        coa = CountryOnApplication.objects.get(country_id="GB", application=application)
+        coa.other_contract_type_text = "this is text"
+        coa.save()
+        self.client.put(url, data, **self.exporter_headers)
+
+        coa.refresh_from_db()
+        self.assertEqual(coa.other_contract_type_text, None)
