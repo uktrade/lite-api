@@ -73,13 +73,13 @@ class Case(TimestampableModel):
     objects = CaseManager()
 
     def save(self, *args, **kwargs):
-        if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
-            self.reference_code = generate_reference_code(self)
-
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
             self.queues.clear()
             CaseAssignment.objects.filter(case=self).delete()
+
+        if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
+            self.reference_code = generate_reference_code(self)
 
         super(Case, self).save(*args, **kwargs)
 
@@ -166,7 +166,7 @@ class Case(TimestampableModel):
 class CaseReferenceCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_number = models.IntegerField()
-    year = models.IntegerField(editable=False)
+    year = models.IntegerField(editable=False, unique=True)
 
     objects = CaseReferenceCodeManager()
 
