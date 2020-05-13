@@ -267,9 +267,11 @@ class GoodsFlagSerializer(serializers.Serializer):
 
 class GoodSerializerInternal(serializers.Serializer):
     id = serializers.UUIDField()
+    description = serializers.CharField()
+    part_number = serializers.CharField()
     control_list_entries = ControlListEntrySerializerSimple(many=True)
     comment = serializers.CharField()
-    is_good_controlled = serializers.CharField()
+    is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
     report_summary = serializers.CharField()
     flags = GoodsFlagSerializer(many=True)
     documents = serializers.SerializerMethodField()
