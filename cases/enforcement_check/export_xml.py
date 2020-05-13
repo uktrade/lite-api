@@ -5,6 +5,7 @@ from xml.sax.saxutils import escape  # nosec
 from applications.models import PartyOnApplication
 from conf.exceptions import BadRequestError
 from lite_content.lite_api.strings import Cases
+from parties.enums import PartyRole, PartyType
 
 
 def dict_to_xml(parent, data):
@@ -12,6 +13,15 @@ def dict_to_xml(parent, data):
         element = ElementTree.SubElement(parent, key)
         if value:
             element.text = escape(str(value))
+
+
+def get_party_sh_type(party_on_application):
+    if party_on_application["party__role"] == PartyRole.CONTACT:
+        return "CONTACT"
+    elif party_on_application["party__type"] == PartyType.THIRD_PARTY:
+        return "OTHER"
+    else:
+        return party_on_application["party__type"].upper()
 
 
 def export_party_on_application_xml(base, party_on_application):
@@ -22,7 +32,7 @@ def export_party_on_application_xml(base, party_on_application):
             "ELA_ID": party_on_application["application_id"].int,
             "ELA_DETAIL_ID": None,
             "SH_ID": party_on_application["party_id"].int,
-            "SH_TYPE": party_on_application["party__type"].upper(),
+            "SH_TYPE": get_party_sh_type(party_on_application),
             "COUNTRY": party_on_application["party__country__name"],
             "ORG_NAME": party_on_application["party__organisation__name"],
             "PD_SURNAME": party_on_application["party__name"],
@@ -47,6 +57,7 @@ def export_cases_xml(case_ids):
             "party__country__name",
             "party__organisation__name",
             "party__address",
+            "party__role",
         )
     )
 

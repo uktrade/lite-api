@@ -8,6 +8,7 @@ from conf.constants import GovPermissions
 from flags.enums import SystemFlags
 from flags.models import Flag
 from lite_content.lite_api.strings import Cases
+from parties.enums import PartyType, PartyRole
 from test_helpers.clients import DataTestClient
 
 
@@ -37,7 +38,9 @@ class ExportXML(DataTestClient):
             party = application.parties.get(party__id=UUID(int=int(stakeholder[2].text))).party
             self.assertIsNotNone(party)
             # SH_TYPE
-            self.assertEqual(stakeholder[3].text, party.type.upper())
+            self.assertEqual(
+                stakeholder[3].text, party.type.upper() if party.type != PartyType.THIRD_PARTY else "OTHER"
+            )
             # COUNTRY
             self.assertEqual(stakeholder[4].text, party.country.name)
             # ORG_NAME
@@ -46,6 +49,29 @@ class ExportXML(DataTestClient):
             self.assertEqual(stakeholder[6].text, party.name)
             # ADDRESS1
             self.assertEqual(stakeholder[9].text, party.address)
+
+    def test_export_xml_with_contact_success(self):
+        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        application = self.create_standard_application_case(self.organisation, parties=False)
+        application.queues.set([self.queue])
+        application.flags.add(self.enforcement_check_flag)
+        self.create_party(
+            "Contact", self.organisation, PartyType.THIRD_PARTY, application=application, role=PartyRole.CONTACT
+        )
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
+        stakeholder = data[0]
+
+        self.assertEqual(stakeholder[0].text, str(application.pk.int))
+        # SH_ID
+        self.assertIsNotNone(stakeholder[2].text)
+        party = application.parties.get(party__id=UUID(int=int(stakeholder[2].text))).party
+        self.assertIsNotNone(party)
+        # SH_TYPE
+        self.assertEqual(stakeholder[3].text, "CONTACT")
 
     def test_export_xml_no_permission_failure(self):
         response = self.client.get(self.url, **self.gov_headers)
