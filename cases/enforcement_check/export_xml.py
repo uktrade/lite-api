@@ -1,6 +1,6 @@
 from xml.dom import minidom  # nosec
 from xml.etree import ElementTree  # nosec
-from xml.sax.saxutils import escape # nosec
+from xml.sax.saxutils import escape  # nosec
 
 from applications.models import PartyOnApplication
 
