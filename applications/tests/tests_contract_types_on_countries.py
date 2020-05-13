@@ -90,8 +90,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
-
-        print(response.json())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @tag("2146", "no-field")
     def test_no_contract_types_field_failure(self):
@@ -105,5 +104,4 @@ class ContractTypeOnCountryTests(DataTestClient):
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
-
-        print(response.json())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
