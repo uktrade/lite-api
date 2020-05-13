@@ -281,6 +281,11 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class OrganisationCaseSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteListSerializer)
+
+
 class ExternalLocationSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     address = serializers.CharField()

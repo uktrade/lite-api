@@ -274,6 +274,11 @@ class GoodSerializerInternal(serializers.Serializer):
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
     report_summary = serializers.CharField()
     flags = GoodsFlagSerializer(many=True)
+    documents = serializers.SerializerMethodField()
+
+    def get_documents(self, instance):
+        documents = GoodDocument.objects.filter(good=instance)
+        return SimpleGoodDocumentViewSerializer(documents, many=True).data
 
 
 class GoodSerializerExporter(serializers.Serializer):
