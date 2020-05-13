@@ -240,6 +240,8 @@ class ContractTypeSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if not self.get_initial().get("contract_types"):
+            self.initial_data["contract_types"] = []
         if ContractType.OTHER_CONTRACT_TYPE not in self.get_initial().get("contract_types"):
             self.fields.pop("other_contract_type_text")
 
