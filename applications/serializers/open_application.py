@@ -253,6 +253,7 @@ class ContractTypeSerializer(serializers.ModelSerializer):
             self.initial_data["contract_types"] = []
         if ContractType.OTHER_CONTRACT_TYPE not in self.get_initial().get("contract_types"):
             self.fields.pop("other_contract_type_text")
+            self.instance.other_contract_type_text.clear()
 
 
 class CountryOnApplicationViewSerializer(serializers.ModelSerializer):
