@@ -22,10 +22,7 @@ def get_goods_flags(case, case_type):
         CaseTypeSubTypeEnum.GIFTING,
         CaseTypeSubTypeEnum.F680,
     ]:
-        ids = (
-            GoodOnApplication.objects.filter(application_id=case.id)
-                .values_list("good__flags", flat=True)
-        )
+        ids = GoodOnApplication.objects.filter(application_id=case.id).values_list("good__flags", flat=True)
     elif case_type in [
         CaseTypeSubTypeEnum.OPEN,
         CaseTypeSubTypeEnum.HMRC,
@@ -43,12 +40,10 @@ def get_destination_flags(case, case_type):
     if case_type == CaseTypeSubTypeEnum.EUA:
         return get_end_user_advisory_by_pk(case.id).end_user.flags.all()
     elif case_type == CaseTypeSubTypeEnum.OPEN:
-        ids = (
-            CountryOnApplication.objects.filter(application=case).values_list("country__flags", flat=True)
-        )
+        ids = CountryOnApplication.objects.filter(application=case).values_list("country__flags", flat=True)
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
-        ids = (
-            case.baseapplication.parties.filter(deleted_at__isnull=True, party__flags__isnull=False).values_list("party__flags", flat=True)
+        ids = case.baseapplication.parties.filter(deleted_at__isnull=True, party__flags__isnull=False).values_list(
+            "party__flags", flat=True
         )
 
     return Flag.objects.filter(id__in=ids).select_related("team")

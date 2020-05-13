@@ -32,8 +32,11 @@ from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
-from organisations.serializers import TinyOrganisationViewSerializer, OrganisationDetailSerializer, \
-    OrganisationCaseSerializer
+from organisations.serializers import (
+    TinyOrganisationViewSerializer,
+    OrganisationDetailSerializer,
+    OrganisationCaseSerializer,
+)
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from queues.serializers import CasesQueueViewSerializer
