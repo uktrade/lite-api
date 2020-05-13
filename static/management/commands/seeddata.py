@@ -107,10 +107,7 @@ class ActionBase:
 
     @staticmethod
     def organisation_delete_user(organisation, exporter_user):
-        try:
-            return UserOrganisationRelationship.objects.filter(user=exporter_user, organisation=organisation).delete()
-        except UserOrganisationRelationship.DoesNotExist:
-            return 0, None
+        return UserOrganisationRelationship.objects.filter(user=exporter_user, organisation=organisation).delete()
 
     @staticmethod
     def app_factory(org, applications_to_add, max_goods_to_use):
