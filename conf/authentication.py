@@ -197,7 +197,8 @@ def _authorise(request):
     if PERFORM_HAWK_AUTHENTICATION:
         return Receiver(
             _lookup_credentials,
-            request.META["HTTP_AUTHORIZATION"],
+            request.META["HTTP_HAWK_AUTHENTICATION"],
+            # build_absolute_uri() returns 'http' which is incorrect since our clients communicate via https
             request.build_absolute_uri().replace("http", "https"),
             request.method,
             content=request.body,

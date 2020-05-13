@@ -11,7 +11,7 @@ def get(appended_address, headers):
 
     sender = _get_hawk_sender(url, "GET", "application/json", "")
 
-    headers["Authorization"] = sender.request_header
+    headers["hawk-authentication"] = sender.request_header
     headers["content-type"] = sender.req_resource.content_type
     response = requests.get(url, headers=headers)
 
@@ -25,7 +25,7 @@ def post(appended_address, headers, request_data):
 
     sender = _get_hawk_sender(url, "POST", "application/json", json.dumps(request_data))
 
-    headers["Authorization"] = sender.request_header
+    headers["hawk-authentication"] = sender.request_header
     headers["content-type"] = sender.req_resource.content_type
     response = requests.post(url, headers=headers, json=request_data)
 
