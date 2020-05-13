@@ -195,11 +195,6 @@ def _authorise(request):
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
     if PERFORM_HAWK_AUTHENTICATION:
-        print("#######################################")
-        print(request.build_absolute_uri())
-        print(request.method)
-        print(request.body)
-        print("#######################################")
         return Receiver(
             _lookup_credentials,
             request.META["HTTP_AUTHORIZATION"],
