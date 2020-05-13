@@ -39,7 +39,6 @@ class CasesSearchView(generics.ListAPIView):
                 case_type=CaseTypeEnum.reference_to_id(request.GET.get("case_type")),
                 assigned_user=request.GET.get("assigned_user"),
                 case_officer=request.GET.get("case_officer"),
-                sort=request.GET.get("sort"),
                 include_hidden=include_hidden,
             )
         )
