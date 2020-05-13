@@ -27,6 +27,7 @@ from cases.models import (
 )
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
+from flags.serializers import CaseListFlagSerializer
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from lite_content.lite_api import strings
