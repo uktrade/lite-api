@@ -46,7 +46,7 @@ def _build_absolute_uri(appended_address):
 def _get_hawk_sender(url, method, content_type, content):
     return Sender(
         credentials={"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": "sha256"},
-        url=url.replace("https", "http"),
+        url=url,
         method=method,
         content_type=content_type,
         content=content,
