@@ -6,6 +6,7 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 
 from applications.models import BaseApplication
+from audit_trail.enums import AuditType
 from conf.authentication import SharedAuthentication, OrganisationAuthentication, GovAuthentication
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
@@ -20,6 +21,7 @@ from organisations.serializers import (
     OrganisationListSerializer,
     OrganisationStatusUpdateSerializer,
 )
+from audit_trail import service as audit_trail_service
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
@@ -74,6 +76,17 @@ class OrganisationsList(generics.ListCreateAPIView):
         if serializer.is_valid(raise_exception=True):
             if not validate_only:
                 serializer.save()
+
+            # Audit the creation of the organisation
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.CREATED_ORGANISATION,
+                target=get_organisation_by_pk(serializer.data.get("id")),
+                payload={
+                    "organisation_name": serializer.data.get("name"),
+                },
+            )
+
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -102,6 +115,18 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
         if serializer.is_valid(raise_exception=True):
             if str_to_bool(request.data.get("validate_only", False)):
                 return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
+
+            # Audit the edit of the organisation
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.UPDATED_ORGANISATION,
+                target=organisation,
+                payload={
+                    "organisation_field": "name",
+                    "previous_value": organisation.name,
+                    "new_value": request.data.get('name'),
+                },
+            )
 
             serializer.save()
 

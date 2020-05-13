@@ -93,4 +93,6 @@ audit_type_format = {
     ),
     AuditType.UPDATED_ROUTE_OF_GOODS: 'updated {route_of_goods_field} from "{previous_value}" to "{new_value}"',
     AuditType.RERUN_ROUTING_RULES: "reran the routing rules",
+    AuditType.UPDATED_ORGANISATION: 'updated the organisation {organisation_field} from "{previous_value}" to "{new_value}"',
+    AuditType.CREATED_ORGANISATION: 'created the organisation - "{organisation_name}"',
 }

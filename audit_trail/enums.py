@@ -80,6 +80,8 @@ class AuditType(LiteEnum):
     UPDATED_EXHIBITION_DETAILS_REQUIRED_BY_DATE = autostr()
     UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE = autostr()
     UPDATED_ROUTE_OF_GOODS = autostr()
+    UPDATED_ORGANISATION = autostr()
+    CREATED_ORGANISATION = autostr()
     RERUN_ROUTING_RULES = autostr()
 
     def human_readable(self):
