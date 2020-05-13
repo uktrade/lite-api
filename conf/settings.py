@@ -17,6 +17,7 @@ env = Env(
     LOG_LEVEL=(str, "INFO"),
     BACKGROUND_TASK_ENABLED=(bool, False),
     SUPPRESS_TEST_OUTPUT=(bool, False),
+    HAWK_AUTHENTICATION_ENABLED=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
 )
@@ -137,9 +138,8 @@ HAWK_CREDENTIALS = {
     "lite-performance": {"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
 }
 
-HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60 if not DEBUG else 3600  # When DEBUG is TRUE, allow more time to debug responses
-
-PERFORM_HAWK_AUTHENTICATION = "test" not in sys.argv
+HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED")
+HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
 
 WSGI_APPLICATION = "conf.wsgi.application"
 

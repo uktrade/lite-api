@@ -8,7 +8,7 @@ from rest_framework import authentication
 
 from conf import settings
 from conf.exceptions import PermissionDeniedError
-from conf.settings import PERFORM_HAWK_AUTHENTICATION
+from conf.settings import HAWK_AUTHENTICATION_ENABLED
 from gov_users.enums import GovUserStatuses
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.models import Organisation
@@ -194,7 +194,7 @@ def _authorise(request):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
-    if PERFORM_HAWK_AUTHENTICATION:
+    if HAWK_AUTHENTICATION_ENABLED:
         return Receiver(
             _lookup_credentials,
             request.META["HTTP_HAWK_AUTHENTICATION"],

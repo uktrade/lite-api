@@ -3,19 +3,23 @@ import json
 import requests
 from mohawk import Sender
 
-from conf.settings import env
+from conf.settings import env, HAWK_AUTHENTICATION_ENABLED
 
 
 def get(appended_address, headers):
     url = _build_absolute_uri(appended_address.replace(" ", "%20"))
 
-    sender = _get_hawk_sender(url, "GET", "application/json", "")
+    if HAWK_AUTHENTICATION_ENABLED:
+        sender = _get_hawk_sender(url, "GET", "application/json", "")
 
-    headers["hawk-authentication"] = sender.request_header
-    headers["content-type"] = sender.req_resource.content_type
-    response = requests.get(url, headers=headers)
+        headers["hawk-authentication"] = sender.request_header
+        headers["content-type"] = sender.req_resource.content_type
+        response = requests.get(url, headers=headers)
 
-    _verify_api_response(response, sender)
+        _verify_api_response(response, sender)
+    else:
+        headers["content-type"] = "application/json"
+        response = requests.get(url, headers=headers)
 
     return response
 
@@ -23,13 +27,17 @@ def get(appended_address, headers):
 def post(appended_address, headers, request_data):
     url = _build_absolute_uri(appended_address)
 
-    sender = _get_hawk_sender(url, "POST", "application/json", json.dumps(request_data))
+    if HAWK_AUTHENTICATION_ENABLED:
+        sender = _get_hawk_sender(url, "POST", "application/json", json.dumps(request_data))
 
-    headers["hawk-authentication"] = sender.request_header
-    headers["content-type"] = sender.req_resource.content_type
-    response = requests.post(url, headers=headers, json=request_data)
+        headers["hawk-authentication"] = sender.request_header
+        headers["content-type"] = sender.req_resource.content_type
+        response = requests.post(url, headers=headers, json=request_data)
 
-    _verify_api_response(response, sender)
+        _verify_api_response(response, sender)
+    else:
+        headers["content-type"] = "application/json"
+        response = requests.post(url, headers=headers, json=request_data)
 
     return response
 
