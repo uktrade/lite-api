@@ -4,8 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from cases.enforcement_check.export_xml import export_cases_xml
-from cases.enums import CaseTypeTypeEnum
-from cases.models import Case, CaseType
+from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
