@@ -92,3 +92,18 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
 
         print(response.json())
+
+    @tag("2146", "no-field")
+    def test_no_contract_types_field_failure(self):
+        application = self.create_open_application_case(self.organisation)
+
+        data = {
+            "countries": ["GB"],
+            "other_contract_type_text": "",
+        }
+
+        url = reverse("applications:contract_types", kwargs={"pk": application.id})
+
+        response = self.client.put(url, data, **self.exporter_headers)
+
+        print(response.json())
