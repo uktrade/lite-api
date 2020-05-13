@@ -82,7 +82,7 @@ class Command(SeedCommand):
         return organisation, submitted_applications, goods_added_to_org
 
     @classmethod
-    def ensure_verified_goods_exist(cls, number_of_goods, organisation, tc):
+    def ensure_verified_goods_exist(cls, number_of_goods, organisation, tc=DataTestClient()):
         required_goods_names = [f"{organisation.name} - Product {i + 1}" for i in range(number_of_goods)]
         existing_goods = [good for good in Good.objects.filter(organisation_id=organisation.pk)]
         names_of_goods_to_add = set(required_goods_names) - set([good.description for good in existing_goods])

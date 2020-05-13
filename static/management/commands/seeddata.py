@@ -116,6 +116,10 @@ class SeedDataBase:
         _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use,)
         return len(submitted_applications)
 
+    @staticmethod
+    def organisation_get_create_goods(organisation, goods_count):
+        return AppCommand.ensure_verified_goods_exist(organisation=organisation, number_of_goods=goods_count)
+
 
 class ActionOrg(SeedDataBase):
     def action(self, options):
@@ -206,26 +210,28 @@ class ActionSiel(SeedDataBase):
     def action(self, options):
         print("Add SIEL applications to organisations")
         org_count = self.get_arg(options, "count", 1)
-        app_count = self.get_arg(options, "applications", None)
-        max_goods = self.get_arg(options, "max_goods", 1)
+        app_count_min = self.get_arg(options, "min", 1)
+        app_count_max = self.get_arg(options, "min", 1)
+        max_goods = self.get_arg(options, "max_goods", 6)
         uuid = self.get_arg(options, "uuid", None)
 
         organisations = None
         if uuid is not None:
             organisations = [Organisation.objects.get(id=UUID(uuid))]
-        if app_count is not None:
+        if org_count is not None:
             organisations = self.organisation_get_first_n(org_count)
 
         # ensure the correct number of standard applications per org
         org_app_counts = [
             (org, StandardApplication.objects.filter(organisation_id=org.id).count()) for org in organisations
         ]
+        app_count = random.randint(app_count_min, app_count_max)
         applications_to_add = [(org, app_count - count) for org, count in org_app_counts if count < app_count]
         apps = [
             self.app_factory(org=org, max_goods_to_use=max_goods, applications_to_add=apps_to_add)
             for org, apps_to_add in applications_to_add
         ]
-        print(f"ensured {app_count} applications for {org_count} organisations")
+        print(f"ensured between {app_count_min} and {app_count_max} applications for {org_count} organisations")
         print(f"added {sum(apps)} applications in total")
         return apps
 
@@ -247,6 +253,36 @@ class ActionSites(SeedDataBase):
         pass
 
 
+class ActionGoods(SeedDataBase):
+    def action(self, options):
+        print("Add goods to organisations")
+        org_count = self.get_arg(options, "count", 1)
+        goods_min = self.get_arg(options, "min", 1)
+        goods_max = self.get_arg(options, "min", 1)
+        uuid = self.get_arg(options, "uuid", None)
+
+        organisations = None
+        if uuid is not None:
+            organisations = [Organisation.objects.get(id=UUID(uuid))]
+        if org_count is not None:
+            organisations = self.organisation_get_first_n(org_count)
+
+        goods_count = random.randint(goods_min, goods_max)
+
+        added_results = [
+            self.organisation_get_create_goods(organisation, goods_count)
+            for organisation in organisations
+        ]
+
+        added_goods = [
+            len(goods_added)
+            for _, goods_added in added_results
+        ]
+
+        print(f"ensured between {goods_min} and {goods_max} goods for {org_count} organisations")
+        print(f"added {sum(added_goods)} goods in total")
+
+
 class Command(SeedCommand):
     help = "Seeds data"
     info = "Seeding data"
@@ -259,6 +295,7 @@ class Command(SeedCommand):
         "siel": ActionSiel(),
         "site": ActionSites(),
         "stats": ActionStats(),
+        "goods": ActionGoods(),
     }
 
     def add_arguments(self, parser):
