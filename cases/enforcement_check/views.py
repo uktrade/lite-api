@@ -9,6 +9,8 @@ from cases.models import Case, CaseType
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
+from flags.enums import SystemFlags
+from flags.models import Flag
 
 
 class EnforcementCheckView(APIView):
@@ -19,14 +21,16 @@ class EnforcementCheckView(APIView):
         Fetch enforcement check XML for cases on queue
         """
         assert_user_has_permission(request.user, GovPermissions.ENFORCEMENT_CHECK)
+        enforcement_check_flag = Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+        cases = Case.objects.filter(queues=queue_pk, flags=enforcement_check_flag)
 
-        query_types = CaseType.objects.filter(type=CaseTypeTypeEnum.QUERY)
-        application_ids = (
-            Case.objects.filter(queues=queue_pk).exclude(case_type__in=query_types).values_list("pk", flat=True)
-        )
-
-        if not application_ids:
+        if not cases:
             return JsonResponse({"errors": ["No matching cases found"]}, status=status.HTTP_400_BAD_REQUEST)
 
-        xml = export_cases_xml(application_ids)
+        xml = export_cases_xml(cases.values_list("pk", flat=True))
+
+        # Remove flag now that XML has been produced
+        for case in cases:
+            case.flags.remove(enforcement_check_flag)
+
         return HttpResponse(xml, content_type="text/xml")

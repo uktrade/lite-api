@@ -34,9 +34,9 @@ def export_party_on_application_xml(base, party_on_application):
     return stakeholder
 
 
-def export_cases_xml(application_ids):
+def export_cases_xml(case_ids):
     parties_on_applications = (
-        PartyOnApplication.objects.filter(application_id__in=application_ids)
+        PartyOnApplication.objects.filter(application_id__in=case_ids)
         .prefetch_related("party")
         .values(
             "application_id",
