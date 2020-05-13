@@ -23,17 +23,14 @@ class EnforcementCheckView(APIView):
         Fetch enforcement check XML for cases on queue
         """
         assert_user_has_permission(request.user, GovPermissions.ENFORCEMENT_CHECK)
-        enforcement_check_flag = Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
-        cases = Case.objects.filter(queues=queue_pk, flags=enforcement_check_flag)
+        cases = Case.objects.filter(queues=queue_pk, flags=Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED))
 
         if not cases:
             return JsonResponse({"errors": [Cases.EnforcementCheck.NO_CASES]}, status=status.HTTP_400_BAD_REQUEST)
 
         xml = export_cases_xml(cases.values_list("pk", flat=True))
 
-        # Remove flag now that XML has been produced
         for case in cases:
-            case.flags.remove(enforcement_check_flag)
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.ENFORCEMENT_CHECK, target=case,
             )

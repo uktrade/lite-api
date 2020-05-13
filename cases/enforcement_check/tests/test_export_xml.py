@@ -47,8 +47,6 @@ class ExportXML(DataTestClient):
             # ADDRESS1
             self.assertEqual(stakeholder[9].text, party.address)
 
-        self.assertFalse(self.enforcement_check_flag in application.flags.all())
-
     def test_export_xml_no_permission_failure(self):
         response = self.client.get(self.url, **self.gov_headers)
 
