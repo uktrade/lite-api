@@ -177,7 +177,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
             return {"type": "end_user", "data": ""}
 
     def get_additional_documents(self, instance):
-        documents = ApplicationDocument.objects.filter(application=instance)
+        documents = ApplicationDocument.objects.filter(application=instance).order_by("created_at")
         return ApplicationDocumentSerializer(documents, many=True).data
 
 

@@ -25,7 +25,7 @@ class GeneratedCaseDocumentGovSerializer(serializers.ModelSerializer):
         )
 
 
-class FinalAdviceDocumentGovSerializer(serializers.ModelSerializer):
+class AdviceDocumentGovSerializer(serializers.ModelSerializer):
     user = GovUserViewSerializer()
     advice_type = KeyValueChoiceField(choices=AdviceType.choices)
 

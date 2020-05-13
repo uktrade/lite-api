@@ -639,7 +639,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.assertEqual(list(self.copied_application.case_ecju_query.all()), [])
         self.assertEqual(list(self.copied_application.case_note.all()), [])
         self.assertEqual(list(self.copied_application.goodcountrydecision_set.all()), [])
-        self.assertEqual(list(self.copied_application.advice_set.all()), [])
+        self.assertEqual(list(self.copied_application.get_case().advice.all()), [])
         self.assertEqual(list(self.copied_application.applicationdocument_set.all()), [])
         self.assertEqual(list(self.copied_application.casedocument_set.all()), [])
 

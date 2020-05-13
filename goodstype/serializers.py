@@ -99,7 +99,7 @@ class GoodsTypeViewSerializer(serializers.Serializer):
         self.default_countries = default_countries
 
     def get_flags(self, instance):
-        return list(instance.flags.filter().values("id", "name"))
+        return list(instance.flags.filter().values("id", "name", "colour", "label"))
 
     def get_countries(self, instance):
         countries = instance.countries

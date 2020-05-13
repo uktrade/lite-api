@@ -8,14 +8,13 @@ from common.libraries import (
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
-from goods.libraries.get_goods import get_good_query_with_notifications
 from goods.models import Good, GoodDocument, PvGradingDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
-from organisations.serializers import OrganisationDetailSerializer
 from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
+from static.control_list_entries.serializers import ControlListEntryViewSerializer, ControlListEntrySerializerSimple
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
@@ -60,43 +59,15 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
         return validated_data
 
 
-class GoodListSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(max_length=280)
-    control_list_entries = ControlListEntryField(many=True)
+class GoodListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    description = serializers.CharField()
+    control_list_entries = ControlListEntryViewSerializer(many=True)
+    part_number = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
-    documents = serializers.SerializerMethodField()
-    is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
-    query = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Good
-        fields = (
-            "id",
-            "description",
-            "control_list_entries",
-            "is_good_controlled",
-            "part_number",
-            "status",
-            "documents",
-            "query",
-            "missing_document_reason",
-        )
-
-    def get_documents(self, instance):
-        documents = GoodDocument.objects.filter(good=instance)
-        if documents:
-            return SimpleGoodDocumentViewSerializer(documents, many=True).data
-
-    def get_query(self, instance):
-        return get_good_query_with_notifications(
-            good=instance,
-            exporter_user=self.context.get("exporter_user"),
-            organisation_id=self.context.get("organisation_id"),
-            total_count=True,
-        )
 
 
-class GoodSerializer(serializers.ModelSerializer):
+class GoodCreateSerializer(serializers.ModelSerializer):
     """
     This serializer contains a nested creatable and writable serializer: PvGradingDetailsSerializer.
     By default, nested serializers provide the ability to only retrieve data;
@@ -116,11 +87,6 @@ class GoodSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     status = KeyValueChoiceField(read_only=True, choices=GoodStatus.choices)
     not_sure_details_details = serializers.CharField(allow_blank=True, required=False)
-    case_id = serializers.SerializerMethodField()
-    case_officer = serializers.SerializerMethodField()
-    query = serializers.SerializerMethodField()
-    case_status = serializers.SerializerMethodField()
-    documents = serializers.SerializerMethodField()
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices, read_only=True)
     is_pv_graded = KeyValueChoiceField(
         choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
@@ -133,16 +99,11 @@ class GoodSerializer(serializers.ModelSerializer):
             "id",
             "description",
             "is_good_controlled",
-            "case_id",
-            "case_officer",
             "control_list_entries",
             "part_number",
             "organisation",
             "status",
             "not_sure_details_details",
-            "query",
-            "documents",
-            "case_status",
             "is_pv_graded",
             "pv_grading_details",
             "missing_document_reason",
@@ -151,7 +112,7 @@ class GoodSerializer(serializers.ModelSerializer):
         )
 
     def __init__(self, *args, **kwargs):
-        super(GoodSerializer, self).__init__(*args, **kwargs)
+        super(GoodCreateSerializer, self).__init__(*args, **kwargs)
 
         if self.get_initial().get("is_good_controlled") == GoodControlled.YES:
             self.fields["control_list_entries"] = ControlListEntryField(required=True, many=True)
@@ -162,42 +123,6 @@ class GoodSerializer(serializers.ModelSerializer):
         self.goods_query_case = (
             GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
         )
-
-    def get_case_id(self, instance):
-        return str(self.goods_query_case.id) if self.goods_query_case else None
-
-    def get_case_officer(self, instance):
-        if self.goods_query_case:
-            return GovUserSimpleSerializer(self.goods_query_case.case_officer).data
-        return None
-
-    def get_query(self, instance):
-        if isinstance(instance, Good):
-            return get_good_query_with_notifications(
-                good=instance,
-                exporter_user=self.context.get("exporter_user"),
-                organisation_id=self.context.get("organisation_id"),
-                total_count=False,
-            )
-
-        return None
-
-    def get_case_status(self, instance):
-        if self.goods_query_case:
-            return {
-                "key": self.goods_query_case.status.status,
-                "value": get_status_value_from_case_status_enum(self.goods_query_case.status.status),
-            }
-
-        return None
-
-    def get_documents(self, instance):
-        if isinstance(instance, Good):
-            documents = GoodDocument.objects.filter(good=instance)
-            if documents.exists():
-                return SimpleGoodDocumentViewSerializer(documents, many=True).data
-
-        return None
 
     def validate(self, value):
         is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
@@ -210,11 +135,11 @@ class GoodSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if validated_data.get("pv_grading_details"):
-            validated_data["pv_grading_details"] = GoodSerializer._create_pv_grading_details(
+            validated_data["pv_grading_details"] = GoodCreateSerializer._create_pv_grading_details(
                 validated_data["pv_grading_details"]
             )
 
-        return super(GoodSerializer, self).create(validated_data)
+        return super(GoodCreateSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
         instance.description = validated_data.get("description", instance.description)
@@ -226,7 +151,7 @@ class GoodSerializer(serializers.ModelSerializer):
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
         if validated_data.get("is_pv_graded"):
-            instance.pv_grading_details = GoodSerializer._create_update_or_delete_pv_grading_details(
+            instance.pv_grading_details = GoodCreateSerializer._create_update_or_delete_pv_grading_details(
                 is_pv_graded=instance.is_pv_graded == GoodPvGraded.YES,
                 pv_grading_details=validated_data.get("pv_grading_details"),
                 instance=instance.pv_grading_details,
@@ -245,13 +170,13 @@ class GoodSerializer(serializers.ModelSerializer):
         :return:
         """
         if not is_pv_graded and instance:
-            return GoodSerializer._delete_pv_grading_details(instance)
+            return GoodCreateSerializer._delete_pv_grading_details(instance)
 
         if pv_grading_details:
             if instance:
-                return GoodSerializer._update_pv_grading_details(pv_grading_details, instance)
+                return GoodCreateSerializer._update_pv_grading_details(pv_grading_details, instance)
 
-            return GoodSerializer._create_pv_grading_details(pv_grading_details)
+            return GoodCreateSerializer._create_pv_grading_details(pv_grading_details)
 
         return None
 
@@ -311,30 +236,16 @@ class GoodDocumentCreateSerializer(serializers.ModelSerializer):
         return good_document
 
 
-class GoodDocumentViewSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(read_only=True)
-    good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all())
+class GoodDocumentViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    created_at = serializers.DateTimeField()
+    name = serializers.CharField()
+    description = serializers.CharField()
     user = ExporterUserSimpleSerializer()
-    organisation = OrganisationDetailSerializer()
     s3_key = serializers.SerializerMethodField()
 
     def get_s3_key(self, instance):
         return instance.s3_key if instance.safe else "File not ready"
-
-    class Meta:
-        model = GoodDocument
-        fields = (
-            "id",
-            "name",
-            "s3_key",
-            "user",
-            "organisation",
-            "size",
-            "good",
-            "created_at",
-            "safe",
-            "description",
-        )
 
 
 class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
@@ -349,15 +260,69 @@ class SimpleGoodDocumentViewSerializer(serializers.ModelSerializer):
         )
 
 
-class GoodWithFlagsSerializer(GoodSerializer):
-    flags = serializers.SerializerMethodField()
+class GoodsFlagSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
 
-    def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
 
-    class Meta:
-        model = Good
-        fields = "__all__"
+class GoodSerializerInternal(serializers.Serializer):
+    id = serializers.UUIDField()
+    control_list_entries = ControlListEntrySerializerSimple(many=True)
+    comment = serializers.CharField()
+    is_good_controlled = serializers.CharField()
+    report_summary = serializers.CharField()
+    flags = GoodsFlagSerializer(many=True)
+
+
+class GoodSerializerExporter(serializers.Serializer):
+    id = serializers.UUIDField()
+    description = serializers.CharField()
+    control_list_entries = ControlListEntryField(many=True)
+    part_number = serializers.CharField()
+    is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
+    is_pv_graded = KeyValueChoiceField(choices=GoodPvGraded.choices)
+
+
+class GoodSerializerExporterFullDetail(GoodSerializerExporter):
+    case_id = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
+    missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
+    status = KeyValueChoiceField(choices=GoodStatus.choices)
+    query = serializers.SerializerMethodField()
+    case_officer = serializers.SerializerMethodField()
+    case_status = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        super(GoodSerializerExporterFullDetail, self).__init__(*args, **kwargs)
+        self.goods_query = GoodsQuery.objects.filter(good=self.instance).first()
+
+    def get_case_id(self, instance):
+        return str(self.goods_query.id) if self.goods_query else None
+
+    def get_documents(self, instance):
+        documents = GoodDocument.objects.filter(good=instance)
+        return SimpleGoodDocumentViewSerializer(documents, many=True).data
+
+    def get_query(self, instance):
+        from queries.goods_query.serializers import ExporterReadGoodQuerySerializer
+
+        if self.goods_query:
+            serializer = ExporterReadGoodQuerySerializer(
+                instance=self.goods_query,
+                context={"exporter_user": self.context.get("exporter_user"), "total_count": False},
+            )
+            return serializer.data
+
+    def get_case_status(self, instance):
+        if self.goods_query:
+            return {
+                "key": self.goods_query.status.status,
+                "value": get_status_value_from_case_status_enum(self.goods_query.status.status),
+            }
+
+    def get_case_officer(self, instance):
+        if self.goods_query:
+            return GovUserSimpleSerializer(self.goods_query.case_officer).data
 
 
 class ClcControlGoodSerializer(serializers.ModelSerializer):
@@ -388,7 +353,7 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
         initialize_good_or_goods_type_control_list_entries_serializer(self)
 
     def update(self, instance, validated_data):
-        instance.is_good_controlled = validated_data.get("is_good_controlled")
+        instance.is_good_controlled = validated_data.get("is_good_controlled", instance.is_good_controlled)
         instance = update_good_or_goods_type_control_list_entries_details(instance, validated_data)
         instance.status = GoodStatus.VERIFIED
         instance.save()

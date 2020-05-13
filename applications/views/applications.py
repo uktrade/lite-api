@@ -40,7 +40,6 @@ from applications.models import (
     PartyOnApplication,
     F680ClearanceApplication,
 )
-from licences.models import Licence
 from applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
@@ -50,19 +49,14 @@ from applications.serializers.good import (
     GoodOnApplicationLicenceQuantitySerializer,
     GoodOnApplicationLicenceQuantityCreateSerializer,
 )
-from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.libraries.get_flags import get_flags
-from cases.models import FinalAdvice
+from cases.models import Advice
+from cases.serializers import SimpleAdviceSerializer
 from cases.sla import get_application_target_sla
-from cases.serializers import SimpleFinalAdviceSerializer
-from conf.authentication import (
-    ExporterAuthentication,
-    SharedAuthentication,
-    GovAuthentication,
-)
+from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
     authorised_users,
@@ -74,6 +68,8 @@ from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses
 from goodstype.models import GoodsType
+from licences.models import Licence
+from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
@@ -454,7 +450,7 @@ class ApplicationFinaliseView(APIView):
     approved_goods_on_application = None
 
     def dispatch(self, request, *args, **kwargs):
-        self.approved_goods_advice = FinalAdvice.objects.filter(
+        self.approved_goods_advice = Advice.objects.filter(
             case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO], good_id__isnull=False,
         )
         self.approved_goods_on_application = GoodOnApplication.objects.filter(
@@ -473,7 +469,7 @@ class ApplicationFinaliseView(APIView):
         for good_advice in self.approved_goods_advice:
             for good in goods_on_application:
                 if str(good_advice.good.id) == good["good"]["id"]:
-                    good["advice"] = SimpleFinalAdviceSerializer(good_advice).data
+                    good["advice"] = SimpleAdviceSerializer(good_advice).data
 
         return JsonResponse({"goods": goods_on_application})
 
