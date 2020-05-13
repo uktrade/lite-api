@@ -26,7 +26,7 @@ class EnforcementCheckView(APIView):
         )
 
         if not application_ids:
-            return JsonResponse({"errors": "No matching cases found"}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"errors": ["No matching cases found"]}, status=status.HTTP_400_BAD_REQUEST)
 
         xml = export_cases_xml(application_ids)
         return HttpResponse(xml, content_type="text/xml")

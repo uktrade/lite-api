@@ -45,3 +45,25 @@ class ExportXML(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_export_xml_no_cases_in_queue_failure(self):
+        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        application = self.create_standard_application_case(self.organisation)
+        queue = self.create_queue("Other", self.team)
+        application.queues.set([queue])
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"][0], "No matching cases found")
+
+    def test_export_xml_no_parties_in_cases_failure(self):
+        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        application = self.create_open_application_case(self.organisation)
+        application.queues.set([self.queue])
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"][0], "No parties found on applications")
+
