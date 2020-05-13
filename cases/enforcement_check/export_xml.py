@@ -1,5 +1,6 @@
 from xml.dom import minidom  # nosec
 from xml.etree import ElementTree  # nosec
+from xml.sax.saxutils import escape # nosec
 
 from applications.models import PartyOnApplication
 
@@ -8,7 +9,7 @@ def dict_to_xml(parent, data):
     for key, value in data.items():
         element = ElementTree.SubElement(parent, key)
         if value:
-            element.text = str(value)
+            element.text = escape(str(value))
 
 
 def export_party_on_application_xml(base, party_on_application):
