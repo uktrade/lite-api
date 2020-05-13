@@ -162,7 +162,7 @@ class ActionAddFakeUsers(SeedDataBase):
         print("Add fake users to organisations")
         org_count = self.get_arg(options, "count", 1)
         user_min = self.get_arg(options, "min", 1)
-        user_max = self.get_arg(options, "max", 1)
+        user_max = self.get_arg(options, "max", max(1, user_min))
 
         # ensure the correct number of organisations
         organisations = self.organisation_get_first_n(org_count)
@@ -230,7 +230,7 @@ class ActionSiel(SeedDataBase):
         print("Add SIEL applications to organisations")
         org_count = self.get_arg(options, "count", 1)
         app_count_min = self.get_arg(options, "min", 1)
-        app_count_max = self.get_arg(options, "min", 1)
+        app_count_max = self.get_arg(options, "max", max(1, app_count_min))
         goods_count_max = self.get_arg(options, "max_goods", 1)
         uuid = self.get_arg(options, "uuid", "default") if not "default" else None
 
@@ -270,7 +270,7 @@ class ActionSites(SeedDataBase):
     def action(self, options):
         print("Add sites to organisations")
         min_items = self.get_arg(options, "min", 1)
-        max_items = self.get_arg(options, "max", 1)
+        max_items = self.get_arg(options, "max", max(1, min_items))
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", "default") if not "default" else None
         organisations = self.organisations_from_uuid_or_count(org_count, uuid)
@@ -281,7 +281,7 @@ class ActionSites(SeedDataBase):
         ]
         added_counts = [count for sites, count in site_results]
 
-        print(f"ensured between {min_items} and {max_items} goods for {org_count} organisations")
+        print(f"ensured between {min_items} and {max_items} sites for {org_count} organisations")
         print(f"added {sum(added_counts)} goods in total")
 
 
@@ -289,7 +289,7 @@ class ActionGoods(SeedDataBase):
     def action(self, options):
         print("Add goods to organisations")
         goods_min = self.get_arg(options, "min", 1)
-        goods_max = self.get_arg(options, "max", 1)
+        goods_max = self.get_arg(options, "max", max(1, goods_min))
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", "default") if not "default" else None
         organisations = self.organisations_from_uuid_or_count(org_count, uuid)
@@ -322,7 +322,7 @@ class Command(SeedCommand):
         "siel": ActionSiel(),
         "site": ActionSites(),
         "stats": ActionStats(),
-        "goods": ActionGoods(),
+        "good": ActionGoods(),
     }
 
     def add_arguments(self, parser):
