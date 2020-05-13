@@ -197,3 +197,7 @@ class ContractType:
         for key, value in cls.choices:
             if key == choice:
                 return value
+
+    @classmethod
+    def get_flag_name(cls, choice):
+        return cls.get_text(choice)[:25]

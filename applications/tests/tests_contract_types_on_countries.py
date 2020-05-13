@@ -2,6 +2,7 @@ from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
+from applications.enums import ContractType
 from applications.models import CountryOnApplication
 from test_helpers.clients import DataTestClient
 

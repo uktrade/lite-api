@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import GoodsTypeCategory
+from applications.enums import GoodsTypeCategory, ContractType
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
 from applications.serializers.open_application import ContractTypeSerializer, CountryOnApplicationViewSerializer
@@ -14,6 +14,7 @@ from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import allowed_application_types, authorised_users
 from conf.exceptions import BadRequestError
+from flags.models import Flag
 from static.countries.helpers import get_country
 from static.countries.serializers import CountrySerializer
 from static.statuses.enums import CaseStatusEnum
@@ -149,3 +150,10 @@ class ApplicationContractTypes(APIView):
             serializer.save()
         else:
             return serializer.errors
+
+        flags = [
+            Flag.objects.get(name=ContractType.get_flag_name(contract_type))
+            for contract_type in data.get("contract_types")
+        ]
+
+        coa.flags.set(flags)
