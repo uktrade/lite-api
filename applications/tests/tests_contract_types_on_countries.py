@@ -71,12 +71,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertTrue(set(coa.contract_types).issubset(set(contract_types)))
         self.assertEqual(coa.other_contract_type_text, other_text)
 
-        response = self.client.get(
-            reverse("applications:countries", kwargs={"pk": application.id}), **self.exporter_headers
-        )
-
-        print(response.json())
-
     @tag("2146", "no-contract")
     def test_no_contract_types_failure(self):
         application = self.create_open_application_case(self.organisation)
