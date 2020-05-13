@@ -4,17 +4,22 @@ from django.urls import reverse
 from rest_framework import status
 from xml.etree import ElementTree
 
+from conf.constants import GovPermissions
 from test_helpers.clients import DataTestClient
 
 
 class ExportXML(DataTestClient):
-    def test_export_xml(self):
-        url = reverse("cases:enforcement_check", kwargs={"queue_pk": self.queue.pk})
+    def setUp(self):
+        super().setUp()
+        self.url = reverse("cases:enforcement_check", kwargs={"queue_pk": self.queue.pk})
+
+    def test_export_xml_success(self):
+        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation)
         application.queues.set([self.queue])
         application_id_int = application.pk.int
 
-        response = self.client.get(url, **self.gov_headers)
+        response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = ElementTree.fromstring(response.content.decode("utf-8"))
@@ -35,4 +40,9 @@ class ExportXML(DataTestClient):
             self.assertEqual(stakeholder[6].text, party.name)
             # ADDRESS1
             self.assertEqual(stakeholder[9].text, party.address)
+
+    def test_export_xml_no_permission_failure(self):
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
