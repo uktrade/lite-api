@@ -21,7 +21,7 @@ def export_party_on_application_xml(base, party_on_application):
             "SH_ID": party_on_application["party_id"].int,
             "SH_TYPE": party_on_application["party__type"].upper(),
             "COUNTRY": party_on_application["party__country__name"],
-            "ORG_NAME":  party_on_application["party__organisation__name"],
+            "ORG_NAME": party_on_application["party__organisation__name"],
             "PD_SURNAME": party_on_application["party__name"],
             "PD_FORENAME": None,
             "PD_MIDDLE_INITIALS": None,
@@ -47,10 +47,10 @@ def export_cases_xml(application_ids):
         )
     )
 
-    base = ElementTree.Element('ENFORCEMENT_CHECK')
+    base = ElementTree.Element("ENFORCEMENT_CHECK")
     for poa in parties_on_applications:
         export_party_on_application_xml(base, poa)
 
-    xml = ElementTree.tostring(base, encoding='utf-8', method='xml')  # noqa
+    xml = ElementTree.tostring(base, encoding="utf-8", method="xml")  # noqa
     reparsed = minidom.parseString(xml)  # noqa
     return reparsed.toprettyxml()

@@ -24,4 +24,4 @@ class EnforcementCheckView(APIView):
         )
 
         xml = export_cases_xml(application_ids)
-        return HttpResponse(xml, content_type='text/xml')
+        return HttpResponse(xml, content_type="text/xml")

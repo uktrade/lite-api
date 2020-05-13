@@ -45,4 +45,3 @@ class ExportXML(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
