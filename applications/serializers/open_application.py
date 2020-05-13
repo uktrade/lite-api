@@ -231,7 +231,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
 
 class ContractTypeSerializer(serializers.ModelSerializer):
-    contract_types = serializers.MultipleChoiceField(choices=ContractType.choices)
+    contract_types = serializers.MultipleChoiceField(choices=ContractType.choices, allow_empty=False)
     other_contract_type_text = serializers.CharField(max_length=150, required=True, allow_blank=False)
 
     class Meta:

@@ -2,7 +2,6 @@ from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
-from applications.enums import ContractType
 from applications.models import CountryOnApplication
 from test_helpers.clients import DataTestClient
 
@@ -75,5 +74,21 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.get(
             reverse("applications:countries", kwargs={"pk": application.id}), **self.exporter_headers
         )
+
+        print(response.json())
+
+    @tag("2146", "no-contract")
+    def test_no_contract_types_failure(self):
+        application = self.create_open_application_case(self.organisation)
+
+        data = {
+            "countries": ["GB"],
+            "contract_types": [],
+            "other_contract_type_text": "",
+        }
+
+        url = reverse("applications:contract_types", kwargs={"pk": application.id})
+
+        response = self.client.put(url, data, **self.exporter_headers)
 
         print(response.json())
