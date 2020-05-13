@@ -231,8 +231,17 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
 
 
 class ContractTypeSerializer(serializers.ModelSerializer):
-    contract_types = serializers.MultipleChoiceField(choices=ContractType.choices, allow_empty=False)
-    other_contract_type_text = serializers.CharField(max_length=150, required=True, allow_blank=False)
+    contract_types = serializers.MultipleChoiceField(
+        choices=ContractType.choices,
+        allow_empty=False,
+        error_messages={"empty": strings.ContractTypes.NO_CONTRACT_TYPES},
+    )
+    other_contract_type_text = serializers.CharField(
+        max_length=150,
+        required=True,
+        allow_blank=False,
+        error_messages={"blank": strings.ContractTypes.OTHER_TEXT_BLANK},
+    )
 
     class Meta:
         model = CountryOnApplication

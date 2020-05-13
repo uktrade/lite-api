@@ -38,7 +38,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertTrue(set(coa_gb.contract_types).issubset({"navy", "army"}))
         self.assertTrue(set(coa_fr.contract_types).issubset({"navy", "army"}))
 
-    @tag("2146")
+    @tag("2146", "errors")
     def test_set_other_contract_type_without_text_on_country_on_application_failure(self):
         application = self.create_open_application_case(self.organisation)
 
@@ -86,7 +86,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @tag("2146", "no-field")
+    @tag("2146", "no-field", "errors")
     def test_no_contract_types_field_failure(self):
         application = self.create_open_application_case(self.organisation)
 
