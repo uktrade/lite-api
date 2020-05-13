@@ -213,7 +213,7 @@ class ActionSiel(SeedDataBase):
         app_count_min = self.get_arg(options, "min", 1)
         app_count_max = self.get_arg(options, "min", 1)
         max_goods = self.get_arg(options, "max_goods", 6)
-        uuid = self.get_arg(options, "uuid", None)
+        uuid = self.get_arg(options, "uuid", "default") if not "default" else None
 
         organisations = None
         if uuid is not None:
@@ -259,7 +259,7 @@ class ActionGoods(SeedDataBase):
         org_count = self.get_arg(options, "count", 1)
         goods_min = self.get_arg(options, "min", 1)
         goods_max = self.get_arg(options, "min", 1)
-        uuid = self.get_arg(options, "uuid", None)
+        uuid = self.get_arg(options, "uuid", "default") if not "default" else None
 
         organisations = None
         if uuid is not None:
