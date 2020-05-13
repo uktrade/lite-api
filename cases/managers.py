@@ -14,6 +14,7 @@ from queues.constants import (
     MY_ASSIGNED_CASES_QUEUE_ID,
     MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
 )
+from static.control_list_entries.models import ControlListEntry
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -77,6 +78,26 @@ class CaseQuerySet(models.QuerySet):
 
         return self.order_by(f"{order}status__priority")
 
+    def with_case_reference_code(self, case_reference):
+        return self.filter(reference_code__icontains=case_reference)
+
+    def with_organisation(self, organisation_name):
+        return self.filter(organisation__name=organisation_name)
+
+    def with_exporter_site_name(self, exporter_site_name):
+        from applications.models import SiteOnApplication
+        case_ids = SiteOnApplication.objects.filter(site__name=exporter_site_name).values_list("application__id", flat=True)
+        return self.filter(pk__in=case_ids)
+
+    def with_control_list_entries(self, control_list_entries):
+        return self.filter(baseapplication__goods__good__control_list_entries__rating__in=control_list_entries)
+
+    def with_flags(self, flags):
+        return self.filter(flags__name__in=flags)
+
+    def with_country(self, country):
+        return self.filter(baseapplication__application_countries__country=country)
+
     def order_by_date(self, order="-"):
         """
         :param order: ('', '-')
@@ -125,6 +146,15 @@ class CaseManager(models.Manager):
         assigned_user=None,
         case_officer=None,
         include_hidden=None,
+
+        organisation_name=None,
+        case_reference=None,  # gov case number
+        exporter_reference=None,
+        exporter_site_name=None,
+        exporter_site_address=None,
+        control_list_entries=None,
+        flags=None,
+        country=None,
     ):
         """
         Search for a user's available cases given a set of search parameters.
@@ -144,19 +174,17 @@ class CaseManager(models.Manager):
             )
         )
 
-        team_id = user.team.id
-
-        if not include_hidden:
+        if not include_hidden and user is not None:
             EcjuQuery = get_model("cases", "ecjuquery")
 
             case_qs = case_qs.exclude(
-                id__in=EcjuQuery.objects.filter(raised_by_user__team_id=team_id, responded_at__isnull=True)
+                id__in=EcjuQuery.objects.filter(raised_by_user__team_id=user.team.id, responded_at__isnull=True)
                 .values("case_id")
                 .distinct()
             )
 
-        if queue_id:
-            case_qs = case_qs.filter_based_on_queue(queue_id=queue_id, team_id=team_id, user=user)
+        if queue_id and user is not None:
+            case_qs = case_qs.filter_based_on_queue(queue_id=queue_id, team_id=user.team.id, user=user)
 
         if status:
             case_qs = case_qs.has_status(status=status)
@@ -174,6 +202,24 @@ class CaseManager(models.Manager):
             if case_officer == self.NOT_ASSIGNED:
                 case_officer = None
             case_qs = case_qs.assigned_as_case_officer(user=case_officer)
+
+        if case_reference is not None:
+            case_qs = case_qs.with_case_reference_code(case_reference)
+
+        if organisation_name is not None:
+            case_qs = case_qs.with_organisation(organisation_name)
+
+        if exporter_site_name is not None:
+            case_qs = case_qs.with_exporter_site_name(exporter_site_name)
+
+        if control_list_entries is not None:
+            case_qs = case_qs.with_control_list_entries(control_list_entries)
+
+        if flags is not None:
+            case_qs = case_qs.with_flags(flags)
+
+        if country is not None:
+            case_qs = case_qs.with_country(country)
 
         if is_work_queue:
             case_qs = case_qs.annotate(
