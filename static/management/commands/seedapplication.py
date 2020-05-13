@@ -22,9 +22,9 @@ def verify_good(good):
 def add_good(good, draft):
     quantity = random.randint(1, 10)
     value = random.randint(10, 10000) * quantity
-    goa = GoodOnApplication(good=good, application=draft, quantity=quantity, unit=Units.NAR, value=value)
-    goa.save()
-    return goa
+    return GoodOnApplication.objects.create(
+        good=good, application=draft, quantity=quantity, unit=Units.NAR, value=value
+    )
 
 
 def add_goods_to_application(goods_ids, draft):

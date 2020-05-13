@@ -45,11 +45,11 @@ class ActionBase:
         return organisations + created_organisations, len(created_organisations)
 
     @staticmethod
-    def get_arg(options, name, default=None):
+    def get_arg(options, name, default=None, required=True):
         var = options.get(name)
         if var is None:
             var = default
-        if var is None:
+        if (var is None) and required:
             raise Exception(f"{name} not specified!")
         print(f"{name}={var}")
         return var
@@ -132,12 +132,9 @@ class ActionBase:
 
     @staticmethod
     def organisations_from_uuid_or_count(org_count, uuid):
-        organisations = None
         if uuid is not None:
-            organisations = [Organisation.objects.get(id=UUID(uuid))]
-        if org_count is not None:
-            organisations = ActionBase.organisation_get_first_n(org_count)
-        return organisations
+            return [Organisation.objects.get(id=UUID(uuid))]
+        return ActionBase.organisation_get_first_n(org_count)
 
 
 class ActionOrg(ActionBase):
@@ -145,7 +142,7 @@ class ActionOrg(ActionBase):
         org_count = self.get_arg(options, "count", 1)
         site_max = self.get_arg(options, "site_max", 1)
         site_min = self.get_arg(options, "site_min", 1)
-        user_email = self.get_arg(options, "user_email", "default") if not "default" else None
+        user_email = self.get_arg(options, "user_email", required=False)
 
         # ensure the correct number of organisations
         organisations, created_count = self.get_create_organisations(org_count, user_email, site_min, site_max)
@@ -159,13 +156,13 @@ class ActionOrg(ActionBase):
 
 class ActionAddFakeUsers(ActionBase):
     def action(self, options):
-        print("Add fake users to organisations")
-        org_count = self.get_arg(options, "count", 1)
+        print("Add fake export users to organisations")
         user_min = self.get_arg(options, "min", 1)
         user_max = self.get_arg(options, "max", max(1, user_min))
 
-        # ensure the correct number of organisations
-        organisations = self.organisation_get_first_n(org_count)
+        org_count = self.get_arg(options, "count", 1)
+        uuid = self.get_arg(options, "uuid", required=False)
+        organisations = self.organisations_from_uuid_or_count(org_count, uuid)
 
         # ensure the correct number of users
         users = [self.organisation_get_create_users(organisation, user_max, user_min) for organisation in organisations]
@@ -229,7 +226,7 @@ class ActionSiel(ActionBase):
         app_count_min = self.get_arg(options, "min", 1)
         app_count_max = self.get_arg(options, "max", max(1, app_count_min))
         goods_count_max = self.get_arg(options, "max_goods", 1)
-        uuid = self.get_arg(options, "uuid", "default") if not "default" else None
+        uuid = self.get_arg(options, "uuid", required=False)
 
         organisations = None
         if uuid is not None:
@@ -269,7 +266,7 @@ class ActionSites(ActionBase):
         min_items = self.get_arg(options, "min", 1)
         max_items = self.get_arg(options, "max", max(1, min_items))
         org_count = self.get_arg(options, "count", 1)
-        uuid = self.get_arg(options, "uuid", "default") if not "default" else None
+        uuid = self.get_arg(options, "uuid", required=False)
         organisations = self.organisations_from_uuid_or_count(org_count, uuid)
 
         site_results = [
@@ -288,7 +285,7 @@ class ActionGoods(ActionBase):
         goods_min = self.get_arg(options, "min", 1)
         goods_max = self.get_arg(options, "max", max(1, goods_min))
         org_count = self.get_arg(options, "count", 1)
-        uuid = self.get_arg(options, "uuid", "default") if not "default" else None
+        uuid = self.get_arg(options, "uuid", required=False)
         organisations = self.organisations_from_uuid_or_count(org_count, uuid)
 
         goods_count = random.randint(goods_min, goods_max)

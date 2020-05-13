@@ -638,14 +638,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         if add_a_good:
             # Add a good to the standard application
-            self.good_on_application = GoodOnApplication(
+            self.good_on_application = GoodOnApplication.objects.create(
                 good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
                 application=application,
                 quantity=10,
                 unit=Units.NAR,
                 value=500,
             )
-            self.good_on_application.save()
 
         self.create_party("End User", organisation, PartyType.END_USER, application)
         self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
