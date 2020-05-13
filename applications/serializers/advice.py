@@ -25,6 +25,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
     level = serializers.CharField()
     proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000,)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
+    footnote = serializers.CharField()
 
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     team = PrimaryKeyRelatedSerializerField(
@@ -113,6 +114,15 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
             for data in self.initial_data:
                 if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
                     raise ValidationError({"end_user": ["Only one item (such as an end_user) can be given at a time"]})
+
+            if self.context.get("footnote_permission"):
+                if self.initial_data.get("footnote_required") == "true":
+                    self.fields["footnote"].required = True
+                elif self.initial_data.get("footnote_required") == "false":
+                    self.fields["footnote"].required = False
+                    self.initial_data.pop("footnote")
+            else:
+                raise ValidationError({"footnotes_required": ["Select if a footnote is required or not for advice"]})
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):

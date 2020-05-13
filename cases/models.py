@@ -255,6 +255,9 @@ class Advice(TimestampableModel):
     team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True)
     level = models.CharField(choices=AdviceLevel.choices, max_length=30)
 
+    # optional footnotes for advice
+    footnote = models.TextField(blank=True, null=True)
+
     # Optional goods/destinations
     good = models.ForeignKey("goods.Good", related_name="advice", on_delete=models.CASCADE, null=True)
     goods_type = models.ForeignKey("goodstype.GoodsType", related_name="advice", on_delete=models.CASCADE, null=True)
