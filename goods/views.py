@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import JsonResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -24,12 +24,14 @@ from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
 from goods.models import Good, GoodDocument
 from goods.serializers import (
-    GoodSerializer,
+    GoodCreateSerializer,
     GoodDocumentViewSerializer,
     GoodDocumentCreateSerializer,
     ClcControlGoodSerializer,
     GoodListSerializer,
-    GoodWithFlagsSerializer,
+    GoodSerializerInternal,
+    GoodSerializerExporter,
+    GoodSerializerExporterFullDetail,
     GoodMissingDocumentSerializer,
 )
 from goodstype.helpers import get_goods_type
@@ -38,7 +40,7 @@ from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from queries.goods_query.models import GoodsQuery
 from static.statuses.enums import CaseStatusEnum
-from users.models import ExporterUser
+from users.models import ExporterUser, ExporterNotification
 from workflow.flagging_rules_automation import apply_good_flagging_rules_for_case
 
 
@@ -113,7 +115,6 @@ class GoodsListControlCode(APIView):
 
 
 class GoodList(ListCreateAPIView):
-    model = Good
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GoodListSerializer
     pagination_class = GoodListPaginator
@@ -141,7 +142,39 @@ class GoodList(ListCreateAPIView):
             )
             queryset = queryset.filter(Q(id__in=good_document_ids) | Q(missing_document_reason__isnull=False))
 
+        queryset = queryset.prefetch_related("control_list_entries")
+
         return queryset
+
+    def get_paginated_response(self, data):
+        # Get the goods queries for the goods and format in a dict
+        ids = [item["id"] for item in data]
+        goods_queries = GoodsQuery.objects.filter(good_id__in=ids).values("id", "good_id")
+        goods_queries = {str(query["id"]): {"good_id": str(query["good_id"])} for query in goods_queries}
+
+        goods_query_notifications = (
+            ExporterNotification.objects.filter(
+                user=self.request.user,
+                organisation_id=get_request_user_organisation_id(self.request),
+                case_id__in=goods_queries.keys(),
+            )
+            .values("case_id")
+            .annotate(count=Count("case_id"))
+        )
+
+        # Map goods_query_notifications to goods
+        goods_notifications = {}
+        for notification in goods_query_notifications:
+            case_id = str(notification["case_id"])
+            good_id = goods_queries[case_id]["good_id"]
+            goods_query_notification_count = notification["count"]
+            goods_notifications[good_id] = goods_query_notification_count
+
+        # Set notification counts on each good
+        for item in data:
+            item["exporter_user_notification_count"] = goods_notifications.get(item["id"], 0)
+
+        return super().get_paginated_response(data)
 
     def post(self, request, *args, **kwargs):
         """
@@ -151,7 +184,7 @@ class GoodList(ListCreateAPIView):
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
 
-        serializer = GoodSerializer(data=data)
+        serializer = GoodCreateSerializer(data=data)
 
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 
@@ -169,13 +202,13 @@ class GoodDocumentCriteriaCheck(APIView):
                 serializer = GoodMissingDocumentSerializer(instance=good, data=data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
-                    good_data = GoodSerializer(good).data
+                    good_data = GoodCreateSerializer(good).data
                 else:
                     return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 good.missing_document_reason = None
                 good.save()
-                good_data = GoodSerializer(good).data
+                good_data = GoodCreateSerializer(good).data
         else:
             return JsonResponse(
                 data={"errors": {"has_document_to_upload": [strings.Goods.DOCUMENT_CHECK_OPTION_NOT_SELECTED]}},
@@ -195,10 +228,16 @@ class GoodDetail(APIView):
             if good.organisation.id != get_request_user_organisation_id(request):
                 raise Http404
 
-            serializer = GoodSerializer(
-                good,
-                context={"exporter_user": request.user, "organisation_id": get_request_user_organisation_id(request)},
-            )
+            if str_to_bool(request.GET.get("full_detail")):
+                serializer = GoodSerializerExporterFullDetail(
+                    good,
+                    context={
+                        "exporter_user": request.user,
+                        "organisation_id": get_request_user_organisation_id(request),
+                    },
+                )
+            else:
+                serializer = GoodSerializerExporter(good)
 
             # If there's a query with this good, update the notifications on it
             query = GoodsQuery.objects.filter(good=good)
@@ -207,7 +246,7 @@ class GoodDetail(APIView):
                     user=request.user, organisation_id=get_request_user_organisation_id(request), objects=query
                 )
         else:
-            serializer = GoodWithFlagsSerializer(good)
+            serializer = GoodSerializerInternal(good)
 
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
@@ -232,7 +271,7 @@ class GoodDetail(APIView):
                 good_on_application.delete()
 
         data["organisation"] = get_request_user_organisation_id(request)
-        serializer = GoodSerializer(instance=good, data=data, partial=True)
+        serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
 
     def delete(self, request, pk):
@@ -260,8 +299,7 @@ class GoodDocuments(APIView):
         """
         Returns a list of documents on the specified good
         """
-        good = get_good(pk)
-        good_documents = GoodDocument.objects.filter(good=good).order_by("-created_at")
+        good_documents = GoodDocument.objects.filter(good_id=pk).order_by("-created_at")
         serializer = GoodDocumentViewSerializer(good_documents, many=True)
 
         return JsonResponse({"documents": serializer.data})
