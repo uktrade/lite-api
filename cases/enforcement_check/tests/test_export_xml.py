@@ -7,6 +7,7 @@ from xml.etree import ElementTree  # nosec
 from conf.constants import GovPermissions
 from flags.enums import SystemFlags
 from flags.models import Flag
+from lite_content.lite_api.strings import Cases
 from test_helpers.clients import DataTestClient
 
 
@@ -63,7 +64,7 @@ class ExportXML(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"][0], "No matching cases found")
+        self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_CASES)
 
     def test_export_xml_no_cases_with_flag_in_queue_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -73,7 +74,7 @@ class ExportXML(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"][0], "No matching cases found")
+        self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_CASES)
 
     def test_export_xml_no_parties_in_cases_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -84,4 +85,4 @@ class ExportXML(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"][0], "No parties found on applications")
+        self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_PARTIES)

@@ -4,6 +4,7 @@ from xml.sax.saxutils import escape  # nosec
 
 from applications.models import PartyOnApplication
 from conf.exceptions import BadRequestError
+from lite_content.lite_api.strings import Cases
 
 
 def dict_to_xml(parent, data):
@@ -50,7 +51,7 @@ def export_cases_xml(case_ids):
     )
 
     if not parties_on_applications:
-        raise BadRequestError("No parties found on applications")
+        raise BadRequestError(Cases.EnforcementCheck.NO_PARTIES)
 
     base = ElementTree.Element("ENFORCEMENT_CHECK")
     for poa in parties_on_applications:

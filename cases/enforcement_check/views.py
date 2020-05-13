@@ -10,6 +10,7 @@ from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
+from lite_content.lite_api.strings import Cases
 
 
 class EnforcementCheckView(APIView):
@@ -24,7 +25,7 @@ class EnforcementCheckView(APIView):
         cases = Case.objects.filter(queues=queue_pk, flags=enforcement_check_flag)
 
         if not cases:
-            return JsonResponse({"errors": ["No matching cases found"]}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"errors": [Cases.EnforcementCheck.NO_CASES]}, status=status.HTTP_400_BAD_REQUEST)
 
         xml = export_cases_xml(cases.values_list("pk", flat=True))
 
