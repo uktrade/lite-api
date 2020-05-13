@@ -5,7 +5,8 @@ from faker import Faker
 from applications.models import StandardApplication
 from conf.constants import Roles
 from organisations.enums import OrganisationType
-from organisations.models import Organisation
+from organisations.models import Organisation, Site
+from organisations.tests.factories import SiteFactory
 from organisations.tests.providers import OrganisationProvider
 from static.management.SeedCommand import SeedCommand
 from static.management.commands.seedapplication import Command as AppCommand
@@ -113,12 +114,30 @@ class SeedDataBase:
 
     @staticmethod
     def app_factory(org, applications_to_add, max_goods_to_use):
-        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use,)
+        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use, )
         return len(submitted_applications)
 
     @staticmethod
     def organisation_get_create_goods(organisation, goods_count):
         return AppCommand.ensure_verified_goods_exist(organisation=organisation, number_of_goods=goods_count)
+
+    @staticmethod
+    def organisation_get_create_sites(organisation, site_count):
+        sites = Site.objects.filter(organisation=organisation)
+        existing_sites = len(sites)
+        if existing_sites >= site_count:
+            return sites, 0
+        added = [SiteFactory(organisation=organisation) for _ in range(site_count-existing_sites)]
+        return list(sites) + added, len(added)
+
+    @staticmethod
+    def organisations_from_uuid_or_count(org_count, uuid):
+        organisations = None
+        if uuid is not None:
+            organisations = [Organisation.objects.get(id=UUID(uuid))]
+        if org_count is not None:
+            organisations = SeedDataBase.organisation_get_first_n(org_count)
+        return organisations
 
 
 class ActionOrg(SeedDataBase):
@@ -175,8 +194,8 @@ class ActionUser(SeedDataBase):
         if org_uuid == "all":
             membership = (
                 UserOrganisationRelationship.objects.select_related("organisation")
-                .filter(user=exporter_user)
-                .values_list("organisation__id")
+                    .filter(user=exporter_user)
+                    .values_list("organisation__id")
             )
             organisations = Organisation.objects.all()
             ids_to_add = set([org.id for org in organisations]) - set(membership)
@@ -212,7 +231,7 @@ class ActionSiel(SeedDataBase):
         org_count = self.get_arg(options, "count", 1)
         app_count_min = self.get_arg(options, "min", 1)
         app_count_max = self.get_arg(options, "min", 1)
-        max_goods = self.get_arg(options, "max_goods", 6)
+        goods_count_max = self.get_arg(options, "max_goods", 1)
         uuid = self.get_arg(options, "uuid", "default") if not "default" else None
 
         organisations = None
@@ -228,7 +247,7 @@ class ActionSiel(SeedDataBase):
         app_count = random.randint(app_count_min, app_count_max)
         applications_to_add = [(org, app_count - count) for org, count in org_app_counts if count < app_count]
         apps = [
-            self.app_factory(org=org, max_goods_to_use=max_goods, applications_to_add=apps_to_add)
+            self.app_factory(org=org, max_goods_to_use=goods_count_max, applications_to_add=apps_to_add)
             for org, apps_to_add in applications_to_add
         ]
         print(f"ensured between {app_count_min} and {app_count_max} applications for {org_count} organisations")
@@ -249,23 +268,31 @@ class ActionStats(SeedDataBase):
 
 class ActionSites(SeedDataBase):
     def action(self, options):
-        print("Add sites to organisations - NOT IMPLEMENTED")
-        pass
+        print("Add sites to organisations")
+        min_items = self.get_arg(options, "min", 1)
+        max_items = self.get_arg(options, "max", 1)
+        org_count = self.get_arg(options, "count", 1)
+        uuid = self.get_arg(options, "uuid", "default") if not "default" else None
+        organisations = self.organisations_from_uuid_or_count(org_count, uuid)
+
+        site_results = [
+            self.organisation_get_create_sites(organisation, random.randint(min_items, max_items))
+            for organisation in organisations
+        ]
+        added_counts = [count for sites, count in site_results]
+
+        print(f"ensured between {min_items} and {max_items} goods for {org_count} organisations")
+        print(f"added {sum(added_counts)} goods in total")
 
 
 class ActionGoods(SeedDataBase):
     def action(self, options):
         print("Add goods to organisations")
-        org_count = self.get_arg(options, "count", 1)
         goods_min = self.get_arg(options, "min", 1)
-        goods_max = self.get_arg(options, "min", 1)
+        goods_max = self.get_arg(options, "max", 1)
+        org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", "default") if not "default" else None
-
-        organisations = None
-        if uuid is not None:
-            organisations = [Organisation.objects.get(id=UUID(uuid))]
-        if org_count is not None:
-            organisations = self.organisation_get_first_n(org_count)
+        organisations = self.organisations_from_uuid_or_count(org_count, uuid)
 
         goods_count = random.randint(goods_min, goods_max)
 
