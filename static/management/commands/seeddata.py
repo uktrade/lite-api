@@ -206,11 +206,15 @@ class ActionSiel(SeedDataBase):
     def action(self, options):
         print("Add SIEL applications to organisations")
         org_count = self.get_arg(options, "count", 1)
-        app_count = self.get_arg(options, "applications", 1)
+        app_count = self.get_arg(options, "applications", None)
         max_goods = self.get_arg(options, "max_goods", 1)
+        uuid = self.get_arg(options, "uuid", None)
 
-        # ensure the correct number of organisations
-        organisations = self.organisation_get_first_n(org_count)
+        organisations = None
+        if uuid is not None:
+            organisations = [Organisation.objects.get(id=UUID(uuid))]
+        if app_count is not None:
+            organisations = self.organisation_get_first_n(org_count)
 
         # ensure the correct number of standard applications per org
         org_app_counts = [
@@ -221,7 +225,7 @@ class ActionSiel(SeedDataBase):
             self.app_factory(org=org, max_goods_to_use=max_goods, applications_to_add=apps_to_add)
             for org, apps_to_add in applications_to_add
         ]
-        print(f"ensured {app_count} applications for the first {org_count} organisations")
+        print(f"ensured {app_count} applications for {org_count} organisations")
         print(f"added {sum(apps)} applications in total")
         return apps
 
