@@ -1,4 +1,6 @@
+from compat import JsonResponse
 from django.http import HttpResponse
+from rest_framework import status
 from rest_framework.views import APIView
 
 from cases.enforcement_check.export_xml import export_cases_xml
@@ -22,6 +24,9 @@ class EnforcementCheckView(APIView):
         application_ids = (
             Case.objects.filter(queues=queue_pk).exclude(case_type__in=query_types).values_list("pk", flat=True)
         )
+
+        if not application_ids:
+            return JsonResponse({"errors": "No matching cases found"}, status=status.HTTP_400_BAD_REQUEST)
 
         xml = export_cases_xml(application_ids)
         return HttpResponse(xml, content_type="text/xml")

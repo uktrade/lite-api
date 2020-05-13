@@ -3,6 +3,7 @@ from xml.etree import ElementTree  # nosec
 from xml.sax.saxutils import escape  # nosec
 
 from applications.models import PartyOnApplication
+from conf.exceptions import NotFoundError
 
 
 def dict_to_xml(parent, data):
@@ -47,6 +48,9 @@ def export_cases_xml(application_ids):
             "party__address",
         )
     )
+
+    if not parties_on_applications:
+        raise NotFoundError({"parties": "No parties found on applications"})
 
     base = ElementTree.Element("ENFORCEMENT_CHECK")
     for poa in parties_on_applications:
