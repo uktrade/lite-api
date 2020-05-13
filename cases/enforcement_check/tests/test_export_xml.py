@@ -2,7 +2,7 @@ from uuid import UUID
 
 from django.urls import reverse
 from rest_framework import status
-from xml.etree import ElementTree  # noqa
+from xml.etree import ElementTree  # nosec
 
 from conf.constants import GovPermissions
 from test_helpers.clients import DataTestClient
@@ -22,7 +22,7 @@ class ExportXML(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = ElementTree.fromstring(response.content.decode("utf-8"))  # noqa
+        data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
         for stakeholder in data:
             # ELA_ID
             self.assertEqual(stakeholder[0].text, str(application_id_int))

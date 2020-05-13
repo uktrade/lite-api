@@ -1,5 +1,5 @@
-from xml.dom import minidom  # noqa
-from xml.etree import ElementTree  # noqa
+from xml.dom import minidom  # nosec
+from xml.etree import ElementTree  # nosec
 
 from applications.models import PartyOnApplication
 
@@ -51,6 +51,6 @@ def export_cases_xml(application_ids):
     for poa in parties_on_applications:
         export_party_on_application_xml(base, poa)
 
-    xml = ElementTree.tostring(base, encoding="utf-8", method="xml")  # noqa
-    reparsed = minidom.parseString(xml)  # noqa
+    xml = ElementTree.tostring(base, encoding="utf-8", method="xml")  # nosec
+    reparsed = minidom.parseString(xml)  # nosec
     return reparsed.toprettyxml()
