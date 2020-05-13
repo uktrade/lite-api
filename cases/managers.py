@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 from compat import get_model
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q, Case, When, BinaryField
 
 from cases.enums import AdviceLevel
@@ -248,15 +248,23 @@ class CaseReferenceCodeManager(models.Manager):
     def create(self):
         CaseReferenceCode = self.model
         year = datetime.now().year
-        case_reference_code, _ = CaseReferenceCode.objects.get_or_create(defaults={"year": year, "reference_number": 0})
 
-        if case_reference_code.year != year:
-            case_reference_code.year = year
-            case_reference_code.reference_number = 1
-        else:
-            case_reference_code.reference_number += 1
+        # transaction.atomic is required to lock the database (which is achieved using select_for_update)
+        #  we lock the case reference code record so that multiple cases being assigned a record don't end up with same
+        #  number if both access function at same time.
+        with transaction.atomic():
+            case_reference_code, _ = CaseReferenceCode.objects.select_for_update().get_or_create(
+                defaults={"year": year, "reference_number": 0}
+            )
 
-        case_reference_code.save()
+            if case_reference_code.year != year:
+                case_reference_code.year = year
+                case_reference_code.reference_number = 1
+            else:
+                case_reference_code.reference_number += 1
+
+            case_reference_code.save()
+
         return case_reference_code
 
 
