@@ -49,7 +49,10 @@ def get_destination_flags(case, case_type):
             .prefetch_related("country__flags")
             .values_list("country__flags", "flags")
         )
+        print("\n\n")
         print(ids)
+        print("\n\n")
+
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
         ids = (
             case.baseapplication.parties.filter(deleted_at__isnull=True, party__flags__isnull=False)
