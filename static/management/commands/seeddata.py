@@ -120,7 +120,7 @@ class ActionBase:
         return AppCommand.ensure_verified_goods_exist(organisation=organisation, number_of_goods=goods_count)
 
     @staticmethod
-    def organisation_get_create_sites(organisation, site_count):
+    def organisation_get_create_sites(organisation, site_count) -> (list, int):
         sites = Site.objects.filter(organisation=organisation)
         existing_sites = len(sites)
         if existing_sites >= site_count:
@@ -128,18 +128,12 @@ class ActionBase:
         added = [SiteFactory(organisation=organisation) for _ in range(site_count - existing_sites)]
         return list(sites) + added, len(added)
 
-    @staticmethod
-    def organisations_from_uuid_or_count(org_count, uuid):
-        if uuid is not None:
-            return [Organisation.objects.get(id=UUID(uuid))]
-        return ActionBase.organisation_get_first_n(org_count)
-
 
 class ActionOrg(ActionBase):
     def action(self, options):
         org_count = self.get_arg(options, "count", 1)
-        site_max = self.get_arg(options, "site_max", 1)
         site_min = self.get_arg(options, "site_min", 1)
+        site_max = self.get_arg(options, "site_max", max(1, site_min))
         user_email = self.get_arg(options, "user_email", required=False)
 
         # ensure the correct number of organisations
@@ -157,10 +151,9 @@ class ActionAddFakeUsers(ActionBase):
         print("Add fake export users to organisations")
         user_min = self.get_arg(options, "min", 1)
         user_max = self.get_arg(options, "max", max(1, user_min))
-
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
-        organisations = self.organisations_from_uuid_or_count(org_count, uuid)
+        organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
 
         # ensure the correct number of users
         users = [self.organisation_get_create_users(organisation, user_max, user_min) for organisation in organisations]
@@ -187,7 +180,7 @@ class ActionUser(ActionBase):
             membership = (
                 UserOrganisationRelationship.objects.select_related("organisation")
                 .filter(user=exporter_user)
-                .values_list("organisation__id")
+                .values_list("organisation_id")
             )
             organisations = Organisation.objects.all()
             ids_to_add = set([org.id for org in organisations]) - set(membership)
@@ -218,30 +211,36 @@ class ActionUser(ActionBase):
 class ActionSiel(ActionBase):
     def action(self, options):
         print("Add SIEL applications to organisations")
-        org_count = self.get_arg(options, "count", 1)
         app_count_min = self.get_arg(options, "min", 1)
         app_count_max = self.get_arg(options, "max", max(1, app_count_min))
         goods_count_max = self.get_arg(options, "max_goods", 1)
+        org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
+        organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
 
-        organisations = None
-        if uuid is not None:
-            organisations = [Organisation.objects.get(id=UUID(uuid))]
-        if org_count is not None:
-            organisations = self.organisation_get_first_n(org_count)
-
-        # ensure the correct number of standard applications per org
+        # figure out the correct number of standard applications to add to each organisation
         org_app_counts = [
-            (org, StandardApplication.objects.filter(organisation_id=org.id).count()) for org in organisations
+            (
+                org,
+                StandardApplication.objects.filter(organisation_id=org.id).count(),
+                random.randint(app_count_min, app_count_max),
+            )
+            for org in organisations
         ]
-        app_count = random.randint(app_count_min, app_count_max)
-        applications_to_add = [(org, app_count - count) for org, count in org_app_counts if count < app_count]
+        applications_to_add_per_org = [
+            (org, required_app_count - current_app_count)
+            for org, current_app_count, required_app_count in org_app_counts
+            if current_app_count < required_app_count
+        ]
+
         apps = [
             self.app_factory(org=org, max_goods_to_use=goods_count_max, applications_to_add=apps_to_add)
-            for org, apps_to_add in applications_to_add
+            for org, apps_to_add in applications_to_add_per_org
         ]
-        print(f"ensured between {app_count_min} and {app_count_max} applications for {org_count} organisations")
-        print(f"added {sum(apps)} applications in total")
+        print(
+            f"ensured between {app_count_min} and {app_count_max} applications for {org_count} organisations"
+            f"added {sum(apps)} applications in total"
+        )
         return apps
 
 
@@ -261,9 +260,10 @@ class ActionSites(ActionBase):
         print("Add sites to organisations")
         min_items = self.get_arg(options, "min", 1)
         max_items = self.get_arg(options, "max", max(1, min_items))
+
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
-        organisations = self.organisations_from_uuid_or_count(org_count, uuid)
+        organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
 
         site_results = [
             self.organisation_get_create_sites(organisation, random.randint(min_items, max_items))
@@ -272,7 +272,7 @@ class ActionSites(ActionBase):
         added_counts = [count for sites, count in site_results]
 
         print(f"ensured between {min_items} and {max_items} sites for {org_count} organisations")
-        print(f"added {sum(added_counts)} goods in total")
+        print(f"added {sum(added_counts)} site in total")
 
 
 class ActionGoods(ActionBase):
@@ -282,12 +282,11 @@ class ActionGoods(ActionBase):
         goods_max = self.get_arg(options, "max", max(1, goods_min))
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
-        organisations = self.organisations_from_uuid_or_count(org_count, uuid)
-
-        goods_count = random.randint(goods_min, goods_max)
+        organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
 
         added_results = [
-            self.organisation_get_create_goods(organisation, goods_count) for organisation in organisations
+            self.organisation_get_create_goods(organisation, random.randint(goods_min, goods_max))
+            for organisation in organisations
         ]
 
         added_goods = [len(goods_added) for _, goods_added in added_results]
@@ -324,7 +323,7 @@ class Command(SeedCommand):
 
     def operation(self, *args, **options):
         action = options.get("action")
-        if action is None:
+        if not action:
             raise Exception("action not specified!")
         self.stdout.write(self.style.SUCCESS(f"action = {action}"))
         self.action_map[action].action(options)
