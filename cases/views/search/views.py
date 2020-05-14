@@ -42,7 +42,8 @@ class CasesSearchView(generics.ListAPIView):
                 include_hidden=include_hidden,
             )
         )
-        queues = get_all_queues(include_team=False, include_case_count=True, user=request.user)
+        queues = get_all_queues(include_team_info=False, include_case_count=True, user=request.user)
+
         cases = CaseListSerializer(
             page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
         ).data

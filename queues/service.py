@@ -16,7 +16,7 @@ from queues.constants import (
 from queues.models import Queue
 
 
-def get_system_queues(include_team=True, include_case_count=False, user=None) -> List[Dict]:
+def get_system_queues(include_team_info=True, include_case_count=False, user=None) -> List[Dict]:
     """
     Returns a list of system queues in dictionary format with optional team and case count information
     """
@@ -27,7 +27,7 @@ def get_system_queues(include_team=True, include_case_count=False, user=None) ->
     for id, name in SYSTEM_QUEUES.items():
         system_queue_dict = {"id": id, "name": name, "team": None}
 
-        if not include_team:
+        if not include_team_info:
             system_queue_dict.pop("team")
 
         if case_counts:
@@ -52,10 +52,10 @@ def get_cases_count(user) -> Dict:
     return cases_count
 
 
-def get_work_queues_qs(include_team=True, include_case_count=False) -> QuerySet:
+def get_work_queues_qs(include_team_info=True, include_case_count=False) -> QuerySet:
     queue_qs = Queue.objects.all()
 
-    if not include_team:
+    if not include_team_info:
         queue_qs = queue_qs.defer("team")
 
     if include_case_count:
@@ -64,15 +64,21 @@ def get_work_queues_qs(include_team=True, include_case_count=False) -> QuerySet:
     return queue_qs
 
 
-def get_work_queues(include_team=True, include_case_count=False) -> List[Dict]:
-    return list(get_work_queues_qs(include_team, include_case_count).values())
+def get_work_queues(include_team_info=True, include_case_count=False) -> List[Dict]:
+    return list(get_work_queues_qs(include_team_info, include_case_count).values())
 
 
-def get_all_queues(include_team=True, include_case_count=False, user=None) -> List[Dict]:
+def get_team_queues(include_team_info=True, include_case_count=False) -> List[Dict]:
+    pass
+
+
+def get_all_queues(include_team_info=True, include_case_count=False, user=None) -> List[Dict]:
     """
     Returns all queues with the values id, name, optional case_count and optional team
     """
-    return get_system_queues(include_team, include_case_count, user) + get_work_queues(include_team, include_case_count)
+    return get_system_queues(include_team_info, include_case_count, user) + get_work_queues(
+        include_team_info, include_case_count
+    )
 
 
 def get_queue(pk):

@@ -136,6 +136,7 @@ HAWK_CREDENTIALS = {
     "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
     "lite-e2e": {"id": "lite-e2e", "key": env("LITE_E2E_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
     "lite-performance": {"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
+    "lite-stream": {"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
 }
 
 HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED")
