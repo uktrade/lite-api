@@ -11,7 +11,7 @@ class ItemTypeTests(DataTestClient):
     url = reverse("static:item-types:item_types")
 
     def test_get_good_item_types(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.exporter_headers)
         types = response.json()["item_types"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -23,4 +23,4 @@ class GoodItemTypesResponseTests(EndPointTests):
     url = "/static/item-types/"
 
     def test_item_types(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)

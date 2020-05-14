@@ -89,10 +89,10 @@ class Command(SeedCommand):
         self.print_separator()
 
         if errors:
-            error_messages = "\n"
+            error_messages = ""
 
             for error in errors:
-                error_messages += f"\n{error[0]} - {error[1]}"
+                error_messages += f"\n\n{error[0]} -> {error[1]}"
 
             raise Exception(error_messages)
 

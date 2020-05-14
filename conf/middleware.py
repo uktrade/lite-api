@@ -1,7 +1,9 @@
 import logging
 import time
 import uuid
+
 from django.db import connection
+from mohawk import Receiver
 
 
 class LoggingMiddleware:
@@ -17,7 +19,7 @@ class LoggingMiddleware:
         response = self.get_response(request)
         logging.info(
             {
-                "user": request.user.id,
+                "user": request.user.id if request.user else None,
                 "message": "liteolog api",
                 "corrID": request.correlation,
                 "type": "http response",
@@ -26,6 +28,22 @@ class LoggingMiddleware:
                 "elapsed_time": time.time() - start,
             }
         )
+
+        return response
+
+
+class HawkSigningMiddleware:
+    def __init__(self, get_response=None):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        # Sign response
+        if hasattr(request, "auth") and isinstance(request.auth, Receiver):
+            response["Server-Authorization"] = request.auth.respond(
+                content=response.content, content_type=response["Content-Type"],
+            )
 
         return response
 

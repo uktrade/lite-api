@@ -5,19 +5,19 @@ class GovUsersResponseTests(EndPointTests):
     url = "/gov-users/"
 
     def test_gov_users_list(self):
-        self.call_endpoint(self.get_gov_user(), self.url)
+        self.call_endpoint(self.get_gov_headers(), self.url)
 
     def test_gov_users_detail(self):
-        self.call_endpoint(self.get_gov_user(), self.url + self.get_gov_user_id())
+        self.call_endpoint(self.get_gov_headers(), self.url + self.get_gov_user_id())
 
     def test_roles_list(self):
-        self.call_endpoint(self.get_gov_user(), self.url + "roles/")
+        self.call_endpoint(self.get_gov_headers(), self.url + "roles/")
 
     def test_roles_detail(self):
-        self.call_endpoint(self.get_gov_user(), self.url + self.get_gov_user_role_id())
+        self.call_endpoint(self.get_gov_headers(), self.url + self.get_gov_user_role_id())
 
     def test_permissions(self):
-        self.call_endpoint(self.get_gov_user(), self.url + "permissions/")
+        self.call_endpoint(self.get_gov_headers(), self.url + "permissions/")
 
     def test_me(self):
-        self.call_endpoint(self.get_gov_user(), self.url + "me/")
+        self.call_endpoint(self.get_gov_headers(), self.url + "me/")

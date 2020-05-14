@@ -83,6 +83,8 @@ class RoutingRulesDetail(RetrieveUpdateAPIView):
 
 
 class RoutingRulesActiveStatus(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def put(self, request, pk):
         status = request.data.get("status")
 
