@@ -19,13 +19,14 @@ from users.models import GovUser
 
 
 class CaseAdviceSerializer(serializers.ModelSerializer):
-    text = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000)
+    text = serializers.CharField(required=True, max_length=5000)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
-    type = KeyValueChoiceField(choices=AdviceType.choices)
+    type = KeyValueChoiceField(choices=AdviceType.choices, required=True)
     level = serializers.CharField()
     proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000,)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
-    footnote = serializers.CharField()
+    footnote = serializers.CharField(required=False, allow_blank=True)
+    footnote_required = serializers.BooleanField(required=False)
 
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     team = PrimaryKeyRelatedSerializerField(
@@ -77,7 +78,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         Check that the denial reasons are set if type is REFUSE
         """
         for data in self.initial_data:
-            if data["type"] == AdviceType.REFUSE and not data["denial_reasons"]:
+            if data.get("type") and data["type"] == AdviceType.REFUSE and not data["denial_reasons"]:
                 raise serializers.ValidationError("Select at least one denial reason")
 
         return value
@@ -87,7 +88,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         Check that the proviso is set if type is REFUSE
         """
         for data in self.initial_data:
-            if data["type"] == AdviceType.PROVISO and not data["proviso"]:
+            if data.get("type") and data["type"] == AdviceType.PROVISO and not data["proviso"]:
                 raise ValidationError("Enter a proviso")
 
         return value
@@ -116,13 +117,16 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
                     raise ValidationError({"end_user": ["Only one item (such as an end_user) can be given at a time"]})
 
             if self.context.get("footnote_permission"):
-                if self.initial_data.get("footnote_required") == "true":
+                self.fields["footnote_required"].required = True
+                if self.initial_data[0].get("footnote_required") == "True":
                     self.fields["footnote"].required = True
-                elif self.initial_data.get("footnote_required") == "false":
-                    self.fields["footnote"].required = False
-                    self.initial_data.pop("footnote")
+                    self.fields["footnote"].allow_blank = False
+                if self.initial_data[0].get("footnote_required") == "False":
+                    self.fields["footnote"].allow_null = True
+                    self.initial_data[0]["footnote"] = None
             else:
-                raise ValidationError({"footnotes_required": ["Select if a footnote is required or not for advice"]})
+                self.fields["footnote"].allow_null = True
+                self.initial_data[0]["footnote"] = None
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):

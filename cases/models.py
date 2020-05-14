@@ -256,7 +256,8 @@ class Advice(TimestampableModel):
     level = models.CharField(choices=AdviceLevel.choices, max_length=30)
 
     # optional footnotes for advice
-    footnote = models.TextField(blank=True, null=True)
+    footnote = models.TextField(blank=True, null=True, default=None)
+    footnote_required = models.BooleanField(null=True, blank=True, default=None)
 
     # Optional goods/destinations
     good = models.ForeignKey("goods.Good", related_name="advice", on_delete=models.CASCADE, null=True)
@@ -310,7 +311,7 @@ class Advice(TimestampableModel):
                     third_party=self.third_party,
                 ).delete()
             elif self.level == AdviceLevel.FINAL:
-                Advice.objects.get(
+                old_advice = Advice.objects.get(
                     case=self.case,
                     good=self.good,
                     level=AdviceLevel.FINAL,
@@ -320,7 +321,10 @@ class Advice(TimestampableModel):
                     ultimate_end_user=self.ultimate_end_user,
                     consignee=self.consignee,
                     third_party=self.third_party,
-                ).delete()
+                )
+                self.footnote = old_advice.footnote
+                self.footnote_required = old_advice.footnote_required
+                old_advice.delete()
             elif self.level == AdviceLevel.USER:
                 Advice.objects.get(
                     case=self.case,

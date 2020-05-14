@@ -5,9 +5,11 @@ from rest_framework.exceptions import ErrorDetail
 from applications.serializers.advice import CaseAdviceSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
+from cases.enums import AdviceLevel
 from cases.libraries.get_case import get_case
 from cases.models import Advice
 from conf import constants
+from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
@@ -41,7 +43,7 @@ def check_if_team_advice_exists(case, user):
 
 
 def check_refusal_errors(advice):
-    if advice["type"].lower() == "refuse" and not advice["text"]:
+    if advice.get("type") and advice["type"].lower() == "refuse" and not advice["text"]:
         return {"text": [ErrorDetail(string=strings.Cases.ADVICE_REFUSAL_ERROR, code="blank")]}
     return None
 
@@ -66,7 +68,12 @@ def post_advice(request, case, level, team=False):
         if not refusal_error:
             refusal_error = check_refusal_errors(advice)
 
-    serializer = CaseAdviceSerializer(data=data, many=True)
+    # we only need to know if the user has the permission if not final advice
+    footnote_permission = (
+        assert_user_has_permission(request.user, GovPermissions.MAINTAIN_FOOTNOTES) and level != AdviceLevel.FINAL
+    )
+
+    serializer = CaseAdviceSerializer(data=data, many=True, context={"footnote_permission": footnote_permission,})
 
     if serializer.is_valid() and not refusal_error:
         serializer.save()
