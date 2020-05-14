@@ -68,9 +68,11 @@ def _verify_api_response(response, sender):
             content=response.content,
             content_type=response.headers["Content-Type"],
         )
-    except Exception:  # noqa
+    except Exception as exc:  # noqa
         if "server-authorization" not in response.headers:
             print(
                 "No server_authorization header found in response from the LITE API" " - probable API HAWK auth failure"
             )
+        else:
+            print(f"Unhandled exception {type(exc).__name__}: {exc}")
         print("We were unable to authenticate your client")
