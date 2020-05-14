@@ -91,10 +91,9 @@ class ActionBase:
 
     @staticmethod
     def organisation_get_create_user(organisation, exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID):
-        user, _ = UserOrganisationRelationship.objects.get_or_create(
+        return UserOrganisationRelationship.objects.get_or_create(
             organisation=organisation, user=exporter_user, role_id=role_id
         )
-        return user
 
     @staticmethod
     def organisation_get_user(organisation, exporter_user):
@@ -196,12 +195,13 @@ class ActionUser(ActionBase):
         else:
             to_add.append(Organisation.objects.get(id=UUID(org_uuid)))
 
-        added_users = [
+        added_users_results = [
             self.organisation_get_create_user(organisation=organisation, exporter_user=exporter_user)
             for organisation in to_add
         ]
 
-        print(f"Added {exporter_user.email} to {len(added_users)} organisations")
+        added_users_count = sum([1 for _, created in added_users_results if created])
+        print(f"Added {exporter_user.email} to {added_users_count} organisations")
         return
 
     def remove(self, org_uuid, exporter_user):
