@@ -4,10 +4,13 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.views import APIView
-
 from applications.models import BaseApplication
 from audit_trail.enums import AuditType
-from conf.authentication import SharedAuthentication, OrganisationAuthentication, GovAuthentication
+from conf.authentication import (
+    SharedAuthentication,
+    OrganisationAuthentication,
+    GovAuthentication,
+)
 from conf.constants import GovPermissions
 from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission, assert_user_has_permission
@@ -143,8 +146,10 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
 
 
 class OrganisationsMatchingDetail(APIView):
+    authentication_classes = (SharedAuthentication,)
+
     @staticmethod
-    def _property_has_multiple_occurances(queryset, property, property_name):
+    def _property_has_multiple_occurrences(queryset, property, property_name):
         return property and property in queryset.values_list(property_name, flat=True)
 
     def get(self, request, pk):
@@ -165,24 +170,24 @@ class OrganisationsMatchingDetail(APIView):
         ).exclude(id=pk)
 
         if organisations_with_matching_details.exists():
-            if self._property_has_multiple_occurances(organisations_with_matching_details, organisation.name, "name"):
+            if self._property_has_multiple_occurrences(organisations_with_matching_details, organisation.name, "name"):
                 matching_properties.append(Organisations.MatchingProperties.NAME)
 
-            if self._property_has_multiple_occurances(
-                    organisations_with_matching_details, organisation.eori_number, "eori_number"
+            if self._property_has_multiple_occurrences(
+                organisations_with_matching_details, organisation.eori_number, "eori_number"
             ):
                 matching_properties.append(Organisations.MatchingProperties.EORI)
 
-            if self._property_has_multiple_occurances(
-                    organisations_with_matching_details, organisation.registration_number, "registration_number"
+            if self._property_has_multiple_occurrences(
+                organisations_with_matching_details, organisation.registration_number, "registration_number"
             ):
                 matching_properties.append(Organisations.MatchingProperties.REGISTRATION)
 
-            if self._property_has_multiple_occurances(
-                    organisations_with_matching_details,
-                    organisation.primary_site.address.address_line_1,
-                    "primary_site__address__address_line_1",
-            ) or self._property_has_multiple_occurances(
+            if self._property_has_multiple_occurrences(
+                organisations_with_matching_details,
+                organisation.primary_site.address.address_line_1,
+                "primary_site__address__address_line_1",
+            ) or self._property_has_multiple_occurrences(
                 organisations_with_matching_details,
                 organisation.primary_site.address.address,
                 "primary_site__address__address",

@@ -23,7 +23,7 @@ class CLCListTests(DataTestClient):
                     self._validate_returned_clc(child, full_detail=full_detail)
 
     def test_get_clc_list(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["control_list_entries"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -31,7 +31,7 @@ class CLCListTests(DataTestClient):
             self._validate_returned_clc(item, full_detail=True)
 
     def test_get_flattened_clc_list(self):
-        response = self.client.get(self.url + "?flatten=True")
+        response = self.client.get(self.url + "?flatten=True", **self.exporter_headers)
         response_data = response.json()["control_list_entries"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -58,7 +58,7 @@ class CLCTests(DataTestClient):
 
     def test_get_clc_with_parent(self):
         url = reverse(self.url, kwargs={"rating": self.child_rating.rating},)
-        response = self.client.get(url)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["control_list_entry"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -71,7 +71,7 @@ class CLCTests(DataTestClient):
         )
 
         url = reverse(self.url, kwargs={"rating": self.parent_rating.rating},)
-        response = self.client.get(url)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["control_list_entry"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -88,7 +88,7 @@ class ControlListEntriesResponseTests(EndPointTests):
     url = "/static/control-list-entries/"
 
     def test_control_list_entries(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)
 
     def test_control_list_entries_flattened(self):
-        self.call_endpoint(self.get_exporter(), self.url + "?flatten=True")
+        self.call_endpoint(self.get_exporter_headers(), self.url + "?flatten=True")

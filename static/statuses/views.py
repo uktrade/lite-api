@@ -3,16 +3,21 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
 from cases.views.search.service import get_case_status_list
+from conf.authentication import SharedAuthentication
 from static.statuses.models import CaseStatus
 
 
 class StatusesAsList(APIView):
+    authentication_classes = (SharedAuthentication,)
+
     def get(self, request):
         statuses = get_case_status_list()
         return JsonResponse(data={"statuses": statuses}, status=HTTP_200_OK)
 
 
 class StatusProperties(APIView):
+    authentication_classes = (SharedAuthentication,)
+
     def get(self, request, status):
         """ Return is_read_only and is_terminal properties for a case status. """
         status_properties = CaseStatus.objects.filter(status=status).values_list("is_read_only", "is_terminal")[0]

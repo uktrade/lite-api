@@ -5,7 +5,7 @@ class EUAResponseTests(EndPointTests):
     url = "/queries/end-user-advisories/"
 
     def test_end_user_advisory_list(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)
 
     def test_end_user_advisory_details(self):
-        self.call_endpoint(self.get_exporter(), self.url + self.get_end_user_advisory_id())
+        self.call_endpoint(self.get_exporter_headers(), self.url + self.get_end_user_advisory_id())
