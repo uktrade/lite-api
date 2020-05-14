@@ -13,7 +13,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission, assert_user_has_permission
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus, OrganisationType
-from organisations.helpers import audit_edited_organisation_fields
+from organisations.helpers import audit_edited_organisation_fields, audit_reviewed_organisation
 from organisations.libraries.get_organisation import get_organisation_by_pk, get_request_user_organisation
 from organisations.models import Organisation
 from organisations.serializers import (
@@ -37,8 +37,8 @@ class OrganisationsList(generics.ListCreateAPIView):
     def get_queryset(self):
         """ List all organisations. """
         if (
-            getattr(self.request.user, "type", None) != UserType.INTERNAL
-            and get_request_user_organisation(self.request).type != OrganisationType.HMRC
+                getattr(self.request.user, "type", None) != UserType.INTERNAL
+                and get_request_user_organisation(self.request).type != OrganisationType.HMRC
         ):
             raise PermissionError("Exporters aren't allowed to view other organisations")
 
@@ -79,12 +79,12 @@ class OrganisationsList(generics.ListCreateAPIView):
                 serializer.save()
 
             # Audit the creation of the organisation
-            if bool(request.user.is_anonymous) == False:
+            # if bool(request.user.is_anonymous) == False:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.CREATED_ORGANISATION,
                     target=get_organisation_by_pk(serializer.data.get("id")),
-                    payload={"organisation_name": serializer.data.get("name"),},
+                    payload={"organisation_name": serializer.data.get("name"), },
                 )
 
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
@@ -101,7 +101,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
         org_name_changed = False
 
         if not check_user_has_permission(request.user, GovPermissions.MANAGE_ORGANISATIONS):
-            return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST,)
+            return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST, )
 
         if request.data.get("name", organisation.name) != organisation.name:
             org_name_changed = True
@@ -169,19 +169,19 @@ class OrganisationsMatchingDetail(APIView):
                 matching_properties.append(Organisations.MatchingProperties.NAME)
 
             if self._property_has_multiple_occurances(
-                organisations_with_matching_details, organisation.eori_number, "eori_number"
+                    organisations_with_matching_details, organisation.eori_number, "eori_number"
             ):
                 matching_properties.append(Organisations.MatchingProperties.EORI)
 
             if self._property_has_multiple_occurances(
-                organisations_with_matching_details, organisation.registration_number, "registration_number"
+                    organisations_with_matching_details, organisation.registration_number, "registration_number"
             ):
                 matching_properties.append(Organisations.MatchingProperties.REGISTRATION)
 
             if self._property_has_multiple_occurances(
-                organisations_with_matching_details,
-                organisation.primary_site.address.address_line_1,
-                "primary_site__address__address_line_1",
+                    organisations_with_matching_details,
+                    organisation.primary_site.address.address_line_1,
+                    "primary_site__address__address_line_1",
             ) or self._property_has_multiple_occurances(
                 organisations_with_matching_details,
                 organisation.primary_site.address.address,
@@ -199,3 +199,15 @@ class OrganisationStatusView(generics.UpdateAPIView):
     def get_object(self):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_ORGANISATIONS)
         return get_organisation_by_pk(self.kwargs["pk"])
+
+    def update(self, request, *args, **kwargs):
+        organisation = self.get_object()
+        serializer = self.get_serializer(organisation, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            audit_reviewed_organisation(request.user, organisation, serializer.data["status"]["key"])
+
+            return JsonResponse(data={"status": serializer.data}, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

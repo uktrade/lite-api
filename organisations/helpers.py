@@ -1,6 +1,6 @@
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from organisations.enums import OrganisationType
+from organisations.enums import OrganisationType, OrganisationStatus
 
 
 def audit_edited_organisation_fields(user, organisation, new_org):
@@ -60,5 +60,26 @@ def audit_edited_organisation_fields(user, organisation, new_org):
                 "organisation_field": "registration number",
                 "previous_value": organisation.registration_number,
                 "new_value": new_org.get("registration_number"),
+            },
+        )
+
+
+def audit_reviewed_organisation(user, organisation, decision):
+    if decision == OrganisationStatus.ACTIVE:
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.APPROVED_ORGANISATION,
+            target=organisation,
+            payload={
+                "organisation_name": organisation.name,
+            },
+        )
+    elif decision == OrganisationStatus.REJECTED:
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.REJECTED_ORGANISATION,
+            target=organisation,
+            payload={
+                "organisation_name": organisation.name,
             },
         )
