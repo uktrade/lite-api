@@ -61,9 +61,16 @@ def _get_hawk_sender(url, method, content_type, content):
     )
 
 
-def _verify_api_response(response, sender: Sender):
-    sender.accept_response(
-        response_header=response.headers["server-authorization"],
-        content=response.content,
-        content_type=response.headers["Content-Type"],
-    )
+def _verify_api_response(response, sender):
+    try:
+        sender.accept_response(
+            response.headers["server-authorization"],
+            content=response.content,
+            content_type=response.headers["Content-Type"],
+        )
+    except Exception:  # noqa
+        if "server-authorization" not in response.headers:
+            print(
+                "No server_authorization header found in response from the LITE API" " - probable API HAWK auth failure"
+            )
+        print("We were unable to authenticate your client")
