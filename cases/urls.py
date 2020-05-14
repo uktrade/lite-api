@@ -10,7 +10,7 @@ app_name = "cases"
 urlpatterns = [
     path("", search_views.CasesSearchView.as_view(), name="search"),
     path(
-        "enforcement-check/<uuid:queue_pk>", enforcement_check.EnforcementCheckView.as_view(), name="enforcement_check"
+        "enforcement-check/<uuid:queue_pk>/", enforcement_check.EnforcementCheckView.as_view(), name="enforcement_check"
     ),
     path("destinations/<str:pk>/", views.Destination.as_view(), name="destination"),
     path("<uuid:pk>/", views.CaseDetail.as_view(), name="case"),

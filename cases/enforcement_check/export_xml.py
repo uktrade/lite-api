@@ -6,11 +6,16 @@ from applications.models import PartyOnApplication, SiteOnApplication
 from parties.enums import PartyRole, PartyType
 
 
+EMPTY_VALUE = "$REPLACE$"
+
+
 def dict_to_xml(parent, data):
     for key, value in data.items():
         element = ElementTree.SubElement(parent, key)
         if value:
             element.text = escape(str(value))
+        else:
+            element.text = EMPTY_VALUE
 
 
 def entity_to_xml(
@@ -135,5 +140,5 @@ def export_cases_xml(cases):
 
     # Export XML
     xml = ElementTree.tostring(base, encoding="utf-8", method="xml")  # nosec
-    reparsed = minidom.parseString(xml)  # nosec
-    return reparsed.toprettyxml()
+    reparsed = minidom.parseString(xml).toprettyxml()  # nosec
+    return reparsed.replace(EMPTY_VALUE, "")
