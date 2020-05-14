@@ -120,7 +120,7 @@ def export_organisations_on_applications(cases, xml_base):
             organisation=org["organisation__name"],
             address_line_1=org["organisation__primary_site__address__address_line_1"]
             or org["organisation__primary_site__address__address"],
-            address_line_2=org["organisation__primary_site__address__address_line_2"]
+            address_line_2=org["organisation__primary_site__address__address_line_2"],
         )
 
 
