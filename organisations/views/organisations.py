@@ -13,6 +13,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission, assert_user_has_permission
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus, OrganisationType
+from organisations.helpers import audit_edited_organisation_fields
 from organisations.libraries.get_organisation import get_organisation_by_pk, get_request_user_organisation
 from organisations.models import Organisation
 from organisations.serializers import (
@@ -78,14 +79,13 @@ class OrganisationsList(generics.ListCreateAPIView):
                 serializer.save()
 
             # Audit the creation of the organisation
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.CREATED_ORGANISATION,
-                target=get_organisation_by_pk(serializer.data.get("id")),
-                payload={
-                    "organisation_name": serializer.data.get("name"),
-                },
-            )
+            if bool(request.user.is_anonymous) == False:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.CREATED_ORGANISATION,
+                    target=get_organisation_by_pk(serializer.data.get("id")),
+                    payload={"organisation_name": serializer.data.get("name"),},
+                )
 
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 
@@ -116,17 +116,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
             if str_to_bool(request.data.get("validate_only", False)):
                 return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
 
-            # Audit the edit of the organisation
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.UPDATED_ORGANISATION,
-                target=organisation,
-                payload={
-                    "organisation_field": "name",
-                    "previous_value": organisation.name,
-                    "new_value": request.data.get('name'),
-                },
-            )
+            audit_edited_organisation_fields(request.user, organisation, request.data)
 
             serializer.save()
 

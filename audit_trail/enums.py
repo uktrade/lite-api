@@ -82,6 +82,10 @@ class AuditType(LiteEnum):
     UPDATED_ROUTE_OF_GOODS = autostr()
     UPDATED_ORGANISATION = autostr()
     CREATED_ORGANISATION = autostr()
+    REJECTED_ORGANISATION = autostr()
+    APPROVED_ORGANISATION = autostr()
+    REMOVED_FLAG_ON_ORGANISATION = autostr()
+    ADDED_FLAG_ON_ORGANISATION = autostr()
     RERUN_ROUTING_RULES = autostr()
 
     def human_readable(self):

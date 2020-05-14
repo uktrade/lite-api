@@ -95,4 +95,9 @@ audit_type_format = {
     AuditType.RERUN_ROUTING_RULES: "reran the routing rules",
     AuditType.UPDATED_ORGANISATION: 'updated the organisation {organisation_field} from "{previous_value}" to "{new_value}"',
     AuditType.CREATED_ORGANISATION: 'created the organisation - "{organisation_name}"',
+    AuditType.REJECTED_ORGANISATION: 'rejected the organisation - "{organisation_name}"',
+    AuditType.APPROVED_ORGANISATION: 'approved the organisation - "{organisation_name}"',
+    AuditType.REMOVED_FLAG_ON_ORGANISATION: 'removed the flag "{flag_name}" from the organisation',
+    AuditType.ADDED_FLAG_ON_ORGANISATION: 'added the flag "{flag_name}" to the organisation',
+
 }
