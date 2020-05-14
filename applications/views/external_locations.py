@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -277,4 +277,4 @@ class ApplicationRemoveExternalLocation(APIView):
 
         removed_locations.delete()
 
-        return JsonResponse(data={"success": "External location deleted"}, status=status.HTTP_204_NO_CONTENT)
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)

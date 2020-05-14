@@ -4,10 +4,9 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication
+from conf.authentication import GovAuthentication, HawkOnlyAuthentication
 from conf.constants import Roles, GovPermissions
 from conf.custom_views import OptionalPaginationView
 from gov_users.enums import GovUserStatuses
@@ -21,7 +20,7 @@ from users.models import GovUser
 
 
 class AuthenticateGovUser(APIView):
-    permission_classes = (AllowAny,)
+    authentication_classes = (HawkOnlyAuthentication,)
 
     @swagger_auto_schema(responses={403: "Forbidden"})
     def post(self, request, *args, **kwargs):

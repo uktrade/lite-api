@@ -40,7 +40,6 @@ from applications.models import (
     PartyOnApplication,
     F680ClearanceApplication,
 )
-from licences.models import Licence
 from applications.serializers.exhibition_clearance import ExhibitionClearanceDetailSerializer
 from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
@@ -50,14 +49,13 @@ from applications.serializers.good import (
     GoodOnApplicationLicenceQuantitySerializer,
     GoodOnApplicationLicenceQuantityCreateSerializer,
 )
-from licences.serializers.create_licence import LicenceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.libraries.get_flags import get_flags
 from cases.models import Advice
-from cases.sla import get_application_target_sla
 from cases.serializers import SimpleAdviceSerializer
+from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
@@ -71,6 +69,8 @@ from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses, SystemFlags
 from flags.models import Flag
 from goodstype.models import GoodsType
+from licences.models import Licence
+from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
@@ -597,6 +597,8 @@ class ApplicationDurationView(APIView):
 
 
 class ApplicationCopy(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
     @transaction.atomic
     def post(self, request, pk):
         """

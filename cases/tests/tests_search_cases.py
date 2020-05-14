@@ -130,7 +130,7 @@ class FilterAndSortTests(DataTestClient):
         """
         case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
         clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
-        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}&sort=status'
+        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}'
 
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["results"]
@@ -237,57 +237,6 @@ class FilterAndSortTests(DataTestClient):
         for case in response_data["cases"]:
             case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
             self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
-
-    def test_get_cases_no_filter_sort_by_status_ascending(self):
-        """
-        Given multiple Cases exist with different statuses and case-types
-        When a user requests to view all Cases sorted by case_type
-        Then all Cases are sorted in ascending order and returned
-        """
-        all_cases = self.application_cases + self.clc_cases
-        all_cases = [{"status": case.status.status, "status_ordering": case.status.priority,} for case in all_cases]
-        all_cases_sorted = sorted(all_cases, key=lambda k: k["status_ordering"])
-        url = f"{self.url}?sort=status"
-
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(all_cases), len(response_data["cases"]))
-
-        # Assert ordering
-        for case, expected_case in zip(response_data["cases"], all_cases_sorted):
-            self.assertEqual(case["status"]["key"], expected_case["status"])
-
-    def test_get_app_type_cases_sorted_by_status_descending(self):
-        """
-        Given multiple Cases exist with different statuses and case-types
-        When a user requests to view all Cases sorted by case_type
-        Then all Cases are sorted in descending order and returned
-        """
-        application_cases_sorted = sorted(
-            [
-                {"status": case.status.status, "status_ordering": case.status.priority, "id": str(case.id),}
-                for case in self.application_cases
-            ],
-            key=lambda k: k["status_ordering"],
-            reverse=True,
-        )
-
-        url = f"{self.url}?case_type={CaseTypeEnum.SIEL.reference}&sort=-status"
-
-        response = self.client.get(url, **self.gov_headers)
-        response_data = response.json()["results"]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self.application_cases), len(response_data["cases"]))
-        for case, expected_case in zip(response_data["cases"], application_cases_sorted):
-            # Assert Case Type
-            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
-            self.assertEqual(case_type_reference, CaseTypeEnum.SIEL.reference)
-            # Assert ordering
-            self.assertEqual(case["status"]["key"], expected_case["status"])
-            self.assertEqual(case["id"], expected_case["id"])
 
 
 class FilterQueueUpdatedCasesTests(DataTestClient):
@@ -471,43 +420,6 @@ class TestQueueOrdering(DataTestClient):
             str(hmrc_query_1.id),
             str(clc_query_1.id),
             str(standard_app.id),
-            str(clc_query_2.id),
-            str(hmrc_query_2.id),
-        ]
-        self.assertEqual(actual_case_order_ids, expected_case_order_ids)
-
-    def test_work_queue_returns_cases_in_expected_order_when_sorting(self):
-        """Test that a work queue returns cases in expected order (sorted by status)."""
-        standard_app = self.create_standard_application_case(self.organisation, "Example Application")
-        standard_app.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
-        standard_app.save()
-        clc_query_1 = self.create_clc_query("Example CLC Query", self.organisation)
-        clc_query_1.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
-        clc_query_1.save()
-        clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
-        clc_query_2.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
-        clc_query_2.save()
-        hmrc_query_1 = self.submit_application(self.create_hmrc_query(self.organisation))
-        hmrc_query_1.status = get_case_status_by_status(CaseStatusEnum.RESUBMITTED)
-        hmrc_query_1.save()
-        hmrc_query_2 = self.submit_application(self.create_hmrc_query(self.organisation, have_goods_departed=True))
-        hmrc_query_2.status = get_case_status_by_status(CaseStatusEnum.UNDER_REVIEW)
-        hmrc_query_2.save()
-
-        queue = QueueFactory(
-            team=self.gov_user.team, cases=[standard_app, clc_query_1, clc_query_2, hmrc_query_1, hmrc_query_2]
-        )
-
-        url = reverse("cases:search") + "?queue_id=" + str(queue.id) + "&sort=status"
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
-        expected_case_order_ids = [
-            str(clc_query_1.id),
-            str(standard_app.id),
-            str(hmrc_query_1.id),
             str(clc_query_2.id),
             str(hmrc_query_2.id),
         ]
