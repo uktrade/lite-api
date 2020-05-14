@@ -4,13 +4,18 @@ from django.db.models import Count, CharField, Value, QuerySet
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
-from rest_framework.exceptions import ParseError, PermissionDenied
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, ListAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
-from conf.authentication import ExporterAuthentication, GovAuthentication, ExporterOnlyAuthentication
+from conf.authentication import (
+    ExporterAuthentication,
+    GovAuthentication,
+    ExporterOnlyAuthentication,
+    HawkOnlyAuthentication,
+)
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date, str_to_bool
@@ -38,18 +43,15 @@ class AuthenticateExporterUser(APIView):
     Authenticate user
     """
 
-    permission_classes = (AllowAny,)
+    authentication_classes = (HawkOnlyAuthentication,)
 
-    @swagger_auto_schema(responses={400: "JSON parse error", 403: "Forbidden"})
+    @swagger_auto_schema(responses={403: "Forbidden"})
     def post(self, request, *args, **kwargs):
         """
         Takes user details from sso and checks them against our whitelisted users
         Returns a token which is just our ID for the user
         """
-        try:
-            data = request.data
-        except ParseError:
-            return JsonResponse(data={"errors": "Invalid Json"}, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
 
         try:
             user = ExporterUser.objects.get(email=data.get("email"))
@@ -134,7 +136,7 @@ class UserMeDetail(APIView):
     authentication_classes = (ExporterOnlyAuthentication,)
 
     def get(self, request):
-        org_pk = request.headers["Organisation-Id"]
+        org_pk = request.headers["ORGANISATION-ID"]
         user = request.user
         relationships = UserOrganisationRelationship.objects.select_related("organisation").filter(user=user)
 
