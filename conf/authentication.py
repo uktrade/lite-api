@@ -126,7 +126,7 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
         """
 
         try:
-            hawk_receiver = _authorise(request)
+            hawk_receiver = _authenticate(request)
         except HawkFail as e:
             logging.warning(f"Failed HAWK authentication {e}")
             raise e
@@ -190,10 +190,11 @@ class OrganisationAuthentication(authentication.BaseAuthentication):
             return HawkOnlyAuthentication().authenticate(request)
 
 
-def _authorise(request):
+def _authenticate(request):
     """
     Raises a HawkFail exception if the passed request cannot be authenticated
     """
+
     if HAWK_AUTHENTICATION_ENABLED:
         return Receiver(
             _lookup_credentials,
@@ -212,6 +213,7 @@ def _seen_nonce(access_key_id, nonce, _):
     Returns if the passed access_key_id/nonce combination has been
     used within settings.HAWK_RECEIVER_NONCE_EXPIRY_SECONDS
     """
+
     cache_key = f"hawk:{access_key_id}:{nonce}"
 
     # cache.add only adds key if it isn't present
@@ -227,6 +229,7 @@ def _lookup_credentials(access_key_id):
     """
     Raises HawkFail if the access key ID cannot be found.
     """
+
     try:
         credentials = settings.HAWK_CREDENTIALS[access_key_id]
     except KeyError as exc:
