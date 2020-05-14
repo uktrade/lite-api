@@ -2,13 +2,16 @@ import factory
 
 from addresses.tests.factories import AddressFactory
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.models import StandardApplication, SiteOnApplication, GoodOnApplication, CountryOnApplication
+from applications.models import StandardApplication, SiteOnApplication, GoodOnApplication, CountryOnApplication, \
+    PartyOnApplication
 from cases.enums import AdviceLevel, AdviceType
 from cases.enums import CaseTypeEnum
 from cases.models import Advice
 from goods.tests.factories import GoodFactory
 from organisations.models import Site
 from organisations.tests.factories import OrganisationFactory
+from parties.enums import SubType, PartyType
+from parties.models import Party
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -106,12 +109,14 @@ class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
 
 
 class CountryFactory(factory.django.DjangoModelFactory):
+    id = factory.Iterator(["UK", "IT", "SP"])
     name = factory.Iterator(["United Kingdom", "Italy", "Spain"])
     is_eu = False
     type = factory.Iterator(["1", "2", "3"])
 
     class Meta:
         model = Country
+        django_get_or_create = ('id', 'name')
 
 
 class CountryOnApplicationFactory(factory.django.DjangoModelFactory):
@@ -150,3 +155,22 @@ class FinalAdviceFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Advice
+
+
+class PartyFactory(factory.django.DjangoModelFactory):
+    address = factory.Faker("address")
+    name = factory.Faker("name")
+    country = factory.SubFactory(CountryFactory)
+    sub_type = SubType.OTHER
+    type = PartyType.CONSIGNEE
+
+    class Meta:
+        model = Party
+
+
+class PartyOnApplicationFactory(factory.django.DjangoModelFactory):
+    party = factory.SubFactory(PartyFactory)
+    application = factory.SubFactory(ApplicationFactory)
+
+    class Meta:
+        model = PartyOnApplication

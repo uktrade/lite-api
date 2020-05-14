@@ -15,7 +15,6 @@ from queues.constants import (
     MY_ASSIGNED_CASES_QUEUE_ID,
     MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
 )
-from static.control_list_entries.models import ControlListEntry
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -99,6 +98,38 @@ class CaseQuerySet(models.QuerySet):
     def with_country(self, country):
         return self.filter(baseapplication__application_countries__country=country)
 
+    def with_advice(self, advice_type, level):
+        return self.filter(advice__type=advice_type, advice__level=level)
+
+    def with_sla_days_range(self, min_sla, max_sla):
+        qs = self.filter()
+        if min_sla:
+            qs = qs.filter(sla_remaining_days__gte=min_sla)
+        if max_sla:
+            qs = qs.filter(sla_remaining_days__lte=max_sla)
+        return qs
+
+    def with_submitted_range(self, submitted_from, submitted_to):
+        qs = self.filter()
+        if submitted_from:
+            qs = qs.filter(submitted_at__date__gte=submitted_from)
+        if submitted_to:
+            qs = qs.filter(submitted_at__date__lte=submitted_to)
+        return qs
+
+    def with_party_name(self, party_name):
+        return self.filter(baseapplication__parties__party__name__icontains=party_name)
+
+    def with_party_address(self, party_address):
+        return self.filter(baseapplication__parties__party__address__icontains=party_address)
+
+    def with_goods_related_description(self, goods_related_description):
+        return self.filter(
+            Q(baseapplication__goods__good__description__icontains=goods_related_description) |
+            Q(baseapplication__goods__good__comment__icontains=goods_related_description) |
+            Q(baseapplication__goods__good__report_summary__icontains=goods_related_description)
+        )
+
     def order_by_date(self, order="-"):
         """
         :param order: ('', '-')
@@ -156,6 +187,15 @@ class CaseManager(models.Manager):
         control_list_entries=None,
         flags=None,
         country=None,
+        team_advice_type=None,
+        final_advice_type=None,
+        min_sla_days_remaining=None,
+        max_sla_days_remaining=None,
+        submitted_from=None,
+        submitted_to=None,
+        party_name=None,
+        party_address=None,
+        goods_related_description=None,
     ):
         """
         Search for a user's available cases given a set of search parameters.
@@ -225,6 +265,27 @@ class CaseManager(models.Manager):
 
         if country is not None:
             case_qs = case_qs.with_country(country)
+
+        if team_advice_type is not None:
+            case_qs = case_qs.with_advice(team_advice_type, AdviceLevel.TEAM)
+
+        if final_advice_type is not None:
+            case_qs = case_qs.with_advice(final_advice_type, AdviceLevel.FINAL)
+
+        if min_sla_days_remaining is not None or max_sla_days_remaining is not None:
+            case_qs = case_qs.with_sla_days_range(min_sla=min_sla_days_remaining, max_sla=max_sla_days_remaining)
+
+        if submitted_from is not None or submitted_to is not None:
+            case_qs = case_qs.with_submitted_range(submitted_from=submitted_from, submitted_to=submitted_to)
+
+        if party_name is not None:
+            case_qs = case_qs.with_party_name(party_name)
+
+        if party_address is not None:
+            case_qs = case_qs.with_party_address(party_address)
+
+        if goods_related_description is not None:
+            case_qs = case_qs.with_goods_related_description(goods_related_description)
 
         if is_work_queue:
             case_qs = case_qs.annotate(
