@@ -5,6 +5,7 @@ from rest_framework import status
 from applications.models import CountryOnApplication
 from cases.libraries.get_flags import get_ordered_flags
 from flags.tests.factories import FlagFactory
+from lite_content.lite_api import strings
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
@@ -139,3 +140,13 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.client.put(url, data, **self.exporter_headers)
 
         get_ordered_flags(application, self.team)
+
+    @tag("2146", "submit")
+    def test_submit_without_sectors_on_each_country_failure(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        application = self.create_draft_open_application(self.organisation)
+
+        url = reverse("applications:application_submit", kwargs={"pk": application.id})
+        response = self.client.put(url, **self.exporter_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES, response.json()["errors"]["contract_types"])
