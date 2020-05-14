@@ -17,6 +17,7 @@ env = Env(
     LOG_LEVEL=(str, "INFO"),
     BACKGROUND_TASK_ENABLED=(bool, False),
     SUPPRESS_TEST_OUTPUT=(bool, False),
+    HAWK_AUTHENTICATION_ENABLED=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
 )
@@ -91,6 +92,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "conf.middleware.LoggingMiddleware",
     "conf.middleware.DBLoggingMiddleware",
+    "conf.middleware.HawkSigningMiddleware",
 ]
 
 ROOT_URLCONF = "conf.urls"
@@ -126,6 +128,18 @@ REST_FRAMEWORK = {
 }
 
 AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
+
+SHA_ALGORITHM = "sha256"
+
+HAWK_CREDENTIALS = {
+    "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
+    "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
+    "lite-e2e": {"id": "lite-e2e", "key": env("LITE_E2E_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
+    "lite-performance": {"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
+}
+
+HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED")
+HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
 
 WSGI_APPLICATION = "conf.wsgi.application"
 

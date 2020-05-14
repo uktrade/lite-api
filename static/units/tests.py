@@ -10,7 +10,7 @@ class UnitsTests(DataTestClient):
     url = reverse("static:units:units")
 
     def test_get_units(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, **self.exporter_headers)
         units = response.json()["units"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -21,4 +21,4 @@ class UnitsResponseTests(EndPointTests):
     url = "/static/units/"
 
     def test_units(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)
