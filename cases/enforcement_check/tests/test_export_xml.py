@@ -79,7 +79,9 @@ class ExportXML(DataTestClient):
         application = self.create_standard_application_case(self.organisation, parties=False, site=False)
         application.queues.set([self.queue])
         application.flags.add(self.enforcement_check_flag)
-        site_on_application = SiteOnApplication.objects.create(site=self.organisation.primary_site, application=application)
+        site_on_application = SiteOnApplication.objects.create(
+            site=self.organisation.primary_site, application=application
+        )
         site = site_on_application.site
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -128,14 +130,3 @@ class ExportXML(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_CASES)
-
-    def test_export_xml_no_parties_in_cases_failure(self):
-        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
-        application = self.create_open_application_case(self.organisation)
-        application.queues.set([self.queue])
-        application.flags.add(self.enforcement_check_flag)
-
-        response = self.client.get(self.url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_ENTITIES)

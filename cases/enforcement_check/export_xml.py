@@ -45,29 +45,8 @@ def export_party_on_application_xml(base, party_on_application):
     return stakeholder
 
 
-def export_site_on_application_xml(base, site_on_application):
-    stakeholder = ElementTree.SubElement(base, "STAKEHOLDER")
-    dict_to_xml(
-        stakeholder,
-        {
-            "ELA_ID": site_on_application["application_id"].int,
-            "ELA_DETAIL_ID": None,
-            "SH_ID": site_on_application["site_id"].int,
-            "SH_TYPE": "SOURCE",
-            "COUNTRY": site_on_application["site__address__country__name"],
-            "ORG_NAME": site_on_application["site__organisation__name"],
-            "PD_SURNAME": None,
-            "PD_FORENAME": None,
-            "PD_MIDDLE_INITIALS": None,
-            "ADDRESS1": site_on_application["site__address__address_line_1"] or site_on_application["site__address__address"],
-            "ADDRESS2": site_on_application["site__address__address_line_2"],
-        },
-    )
-    return stakeholder
-
-
-def export_cases_xml(case_ids):
-    parties_on_applications = (
+def get_parties_on_applications(case_ids):
+    return (
         PartyOnApplication.objects.filter(application_id__in=case_ids)
         .prefetch_related("party")
         .values(
@@ -82,7 +61,31 @@ def export_cases_xml(case_ids):
         )
     )
 
-    sites_on_application = (
+
+def export_site_on_application_xml(base, site_on_application):
+    stakeholder = ElementTree.SubElement(base, "STAKEHOLDER")
+    dict_to_xml(
+        stakeholder,
+        {
+            "ELA_ID": site_on_application["application_id"].int,
+            "ELA_DETAIL_ID": None,
+            "SH_ID": site_on_application["site_id"].int,
+            "SH_TYPE": "SOURCE",
+            "COUNTRY": site_on_application["site__address__country__name"],
+            "ORG_NAME": site_on_application["site__organisation__name"],
+            "PD_SURNAME": None,
+            "PD_FORENAME": None,
+            "PD_MIDDLE_INITIALS": None,
+            "ADDRESS1": site_on_application["site__address__address_line_1"]
+            or site_on_application["site__address__address"],
+            "ADDRESS2": site_on_application["site__address__address_line_2"],
+        },
+    )
+    return stakeholder
+
+
+def get_sites_on_applications(case_ids):
+    return (
         SiteOnApplication.objects.filter(application_id__in=case_ids)
         .prefetch_related("site", "site__address")
         .values(
@@ -92,18 +95,20 @@ def export_cases_xml(case_ids):
             "site__address__address",
             "site__address__address_line_1",
             "site__address__address_line_2",
-            "site__address__country__name"
+            "site__address__country__name",
         )
     )
 
-    if not parties_on_applications and not sites_on_application:
-        raise BadRequestError(Cases.EnforcementCheck.NO_ENTITIES)
+
+def export_cases_xml(case_ids):
+    parties_on_applications = get_parties_on_applications(case_ids)
+    sites_on_applications = get_sites_on_applications(case_ids)
 
     # Build XML structure
     base = ElementTree.Element("ENFORCEMENT_CHECK")
     for poa in parties_on_applications:
         export_party_on_application_xml(base, poa)
-    for soa in sites_on_application:
+    for soa in sites_on_applications:
         export_site_on_application_xml(base, soa)
 
     # Export XML
