@@ -5,13 +5,13 @@ class QueuesResponseTests(EndPointTests):
     url = "/queues/"
 
     def test_queues_list(self):
-        self.call_endpoint(self.get_gov_user(), self.url)
+        self.call_endpoint(self.get_gov_headers(), self.url)
 
     def test_queues_list_without_pagination(self):
-        self.call_endpoint(self.get_gov_user(), self.url + "?disable_pagination=True")
+        self.call_endpoint(self.get_gov_headers(), self.url + "?disable_pagination=True")
 
     def test_queues_detail(self):
-        self.call_endpoint(self.get_gov_user(), self.url + self.get_queue_id())
+        self.call_endpoint(self.get_gov_headers(), self.url + self.get_queue_id())
 
     def test_queues_assignments(self):
-        self.call_endpoint(self.get_gov_user(), self.url + self.get_queue_id() + "/case-assignments/")
+        self.call_endpoint(self.get_gov_headers(), self.url + self.get_queue_id() + "/case-assignments/")
