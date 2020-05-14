@@ -21,7 +21,7 @@ class ExportXML(DataTestClient):
 
     def test_export_xml_with_parties_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
-        application = self.create_standard_application_case(self.organisation)
+        application = self.create_standard_application_case(self.organisation, site=False)
         application.queues.set([self.queue])
         application.flags.add(self.enforcement_check_flag)
         application_id_int = application.pk.int
@@ -31,7 +31,8 @@ class ExportXML(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
-        for stakeholder in data:
+        # Does not include the organisation (last item)
+        for stakeholder in data[:-1]:
             # ELA_ID
             self.assertEqual(stakeholder[0].text, str(application_id_int))
             # SH_ID
@@ -103,6 +104,32 @@ class ExportXML(DataTestClient):
         self.assertEqual(stakeholder[9].text, site.address.address_line_1)
         # ADDRESS2
         self.assertEqual(stakeholder[10].text, site.address.address_line_2)
+
+    def test_export_xml_organisation_only_success(self):
+        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        application = self.create_standard_application_case(self.organisation, parties=False, site=False)
+        application.queues.set([self.queue])
+        application.flags.add(self.enforcement_check_flag)
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
+        stakeholder = data[0]
+
+        self.assertEqual(stakeholder[0].text, str(application.pk.int))
+        # SH_ID
+        self.assertIsNotNone(stakeholder[2].text, str(self.organisation.pk.int))
+        # SH_TYPE
+        self.assertEqual(stakeholder[3].text, "LICENSEE")
+        # COUNTRY
+        self.assertEqual(stakeholder[4].text, self.organisation.primary_site.address.country.name)
+        # ORG_NAME
+        self.assertEqual(stakeholder[5].text, self.organisation.name)
+        # ADDRESS1
+        self.assertEqual(stakeholder[9].text, self.organisation.primary_site.address.address_line_1)
+        # ADDRESS2
+        self.assertEqual(stakeholder[10].text, self.organisation.primary_site.address.address_line_2)
 
     def test_export_xml_no_permission_failure(self):
         response = self.client.get(self.url, **self.gov_headers)

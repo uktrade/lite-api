@@ -28,7 +28,7 @@ class EnforcementCheckView(APIView):
         if not cases:
             return JsonResponse({"errors": [Cases.EnforcementCheck.NO_CASES]}, status=status.HTTP_400_BAD_REQUEST)
 
-        xml = export_cases_xml(cases.values_list("pk", flat=True))
+        xml = export_cases_xml(cases)
 
         for case in cases:
             audit_trail_service.create(

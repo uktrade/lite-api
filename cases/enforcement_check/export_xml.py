@@ -100,9 +100,45 @@ def get_sites_on_applications(case_ids):
     )
 
 
-def export_cases_xml(case_ids):
+def export_organisation_on_application_xml(base, organisation_on_application):
+    stakeholder = ElementTree.SubElement(base, "STAKEHOLDER")
+    dict_to_xml(
+        stakeholder,
+        {
+            "ELA_ID": organisation_on_application["id"].int,
+            "ELA_DETAIL_ID": None,
+            "SH_ID": organisation_on_application["organisation_id"].int,
+            "SH_TYPE": "LICENSEE",
+            "COUNTRY": organisation_on_application["organisation__primary_site__address__country__name"],
+            "ORG_NAME": organisation_on_application["organisation__name"],
+            "PD_SURNAME": None,
+            "PD_FORENAME": None,
+            "PD_MIDDLE_INITIALS": None,
+            "ADDRESS1": organisation_on_application["organisation__primary_site__address__address_line_1"]
+            or organisation_on_application["organisation__primary_site__address__address"],
+            "ADDRESS2": organisation_on_application["organisation__primary_site__address__address_line_2"],
+        },
+    )
+    return stakeholder
+
+
+def get_organisations_on_applications(cases):
+    return cases.prefetch_related("organisation", "organisation__primary_site").values(
+        "id",
+        "organisation_id",
+        "organisation__name",
+        "organisation__primary_site__address__address",
+        "organisation__primary_site__address__address_line_1",
+        "organisation__primary_site__address__address_line_2",
+        "organisation__primary_site__address__country__name",
+    )
+
+
+def export_cases_xml(cases):
+    case_ids = cases.values_list("pk", flat=True)
     parties_on_applications = get_parties_on_applications(case_ids)
     sites_on_applications = get_sites_on_applications(case_ids)
+    organisations_on_applications = get_organisations_on_applications(cases)
 
     # Build XML structure
     base = ElementTree.Element("ENFORCEMENT_CHECK")
@@ -110,6 +146,8 @@ def export_cases_xml(case_ids):
         export_party_on_application_xml(base, poa)
     for soa in sites_on_applications:
         export_site_on_application_xml(base, soa)
+    for org in organisations_on_applications:
+        export_organisation_on_application_xml(base, org)
 
     # Export XML
     xml = ElementTree.tostring(base, encoding="utf-8", method="xml")  # nosec
