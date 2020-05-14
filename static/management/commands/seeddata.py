@@ -61,8 +61,9 @@ class ActionBase:
         for _ in range(required_users_count):
             email, first_name, last_name = ActionBase.fake_export_user_details(company_email_domain)
             user, _ = ExporterUser.objects.get_or_create(first_name=first_name, last_name=last_name, email=email)
-            new_org_user = UserOrganisationRelationship(user=user, organisation=organisation, role_id=role_id)
-            new_org_user.save()
+            new_org_user = UserOrganisationRelationship.objects.create(
+                user=user, organisation=organisation, role_id=role_id
+            )
             added.append(new_org_user)
         return added
 
@@ -89,10 +90,11 @@ class ActionBase:
         return organisation
 
     @staticmethod
-    def organisation_add_user(organisation, exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID):
-        return UserOrganisationRelationship.objects.create(
+    def organisation_get_create_user(organisation, exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID):
+        user, _ = UserOrganisationRelationship.objects.get_or_create(
             organisation=organisation, user=exporter_user, role_id=role_id
         )
+        return user
 
     @staticmethod
     def organisation_get_user(organisation, exporter_user):
@@ -192,13 +194,10 @@ class ActionUser(ActionBase):
             ids_to_add = set([org.id for org in organisations]) - set(membership)
             to_add = [org for id_to_add in ids_to_add for org in organisations if org.id == id_to_add]
         else:
-            organisation = Organisation.objects.get(id=UUID(org_uuid))
-            user = self.organisation_get_user(organisation, exporter_user)
-            if user is None:
-                to_add.append(organisation)
+            to_add.append(Organisation.objects.get(id=UUID(org_uuid)))
 
         added_users = [
-            self.organisation_add_user(organisation=organisation, exporter_user=exporter_user)
+            self.organisation_get_create_user(organisation=organisation, exporter_user=exporter_user)
             for organisation in to_add
         ]
 
