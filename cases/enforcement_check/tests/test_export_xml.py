@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from xml.etree import ElementTree  # nosec
 
+from applications.models import SiteOnApplication
 from conf.constants import GovPermissions
 from flags.enums import SystemFlags
 from flags.models import Flag
@@ -18,7 +19,7 @@ class ExportXML(DataTestClient):
         self.url = reverse("cases:enforcement_check", kwargs={"queue_pk": self.queue.pk})
         self.enforcement_check_flag = Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
-    def test_export_xml_success(self):
+    def test_export_xml_with_parties_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation)
         application.queues.set([self.queue])
@@ -72,6 +73,34 @@ class ExportXML(DataTestClient):
         self.assertIsNotNone(party)
         # SH_TYPE
         self.assertEqual(stakeholder[3].text, "CONTACT")
+
+    def test_export_xml_with_site_success(self):
+        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        application = self.create_standard_application_case(self.organisation, parties=False, site=False)
+        application.queues.set([self.queue])
+        application.flags.add(self.enforcement_check_flag)
+        site_on_application = SiteOnApplication.objects.create(site=self.organisation.primary_site, application=application)
+        site = site_on_application.site
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
+        stakeholder = data[0]
+
+        self.assertEqual(stakeholder[0].text, str(application.pk.int))
+        # SH_ID
+        self.assertIsNotNone(stakeholder[2].text, str(site.pk.int))
+        # SH_TYPE
+        self.assertEqual(stakeholder[3].text, "SOURCE")
+        # COUNTRY
+        self.assertEqual(stakeholder[4].text, site.address.country.name)
+        # ORG_NAME
+        self.assertEqual(stakeholder[5].text, site.organisation.name)
+        # ADDRESS1
+        self.assertEqual(stakeholder[9].text, site.address.address_line_1)
+        # ADDRESS2
+        self.assertEqual(stakeholder[10].text, site.address.address_line_2)
 
     def test_export_xml_no_permission_failure(self):
         response = self.client.get(self.url, **self.gov_headers)
