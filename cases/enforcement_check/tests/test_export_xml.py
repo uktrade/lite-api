@@ -109,4 +109,4 @@ class ExportXML(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_PARTIES)
+        self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_ENTITIES)
