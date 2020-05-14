@@ -17,7 +17,7 @@ class CaseStatusEnum:
     REOPENED_DUE_TO_ORG_CHANGES = "reopened_due_to_org_changes"
     RESUBMITTED = "resubmitted"
     REVOKED = "revoked"
-    ODG_ADVICE = "odg_advice"
+    OGD_ADVICE = "ogd_advice"
     SUBMITTED = "submitted"
     SURRENDERED = "surrendered"
     SUSPENDED = "suspended"
@@ -46,7 +46,7 @@ class CaseStatusEnum:
         SURRENDERED,
         SUSPENDED,
         WITHDRAWN,
-        ODG_ADVICE,
+        OGD_ADVICE,
     ]
 
     _terminal_statuses = [CLOSED, DEREGISTERED, FINALISED, REGISTERED, REVOKED, SURRENDERED, WITHDRAWN]
@@ -81,7 +81,7 @@ class CaseStatusEnum:
         (UNDER_FINAL_REVIEW, "Under final review"),
         (UNDER_REVIEW, "Under review"),
         (WITHDRAWN, "Withdrawn"),
-        (ODG_ADVICE, "ODG Advice"),
+        (OGD_ADVICE, "OGD Advice"),
     ]
 
     priority = {
@@ -90,7 +90,7 @@ class CaseStatusEnum:
         RESUBMITTED: 3,
         INITIAL_CHECKS: 4,
         UNDER_REVIEW: 5,
-        ODG_ADVICE: 6,
+        OGD_ADVICE: 6,
         UNDER_FINAL_REVIEW: 7,
         FINALISED: 8,
         CLC: 9,
