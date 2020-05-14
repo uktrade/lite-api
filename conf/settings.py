@@ -134,6 +134,16 @@ SHA_ALGORITHM = "sha256"
 HAWK_CREDENTIALS = {
     "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
     "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
+    "hmrc-integration": {
+        "id": "hmrc-integration",
+        "key": env("LITE_HMRC_INTEGRATION_HAWK_KEY"),
+        "algorithm": SHA_ALGORITHM,
+    },
+    "activity-stream": {
+        "id": "activity-stream",
+        "key": env("LITE_ACTIVITY_STREAM_HAWK_KEY"),
+        "algorithm": SHA_ALGORITHM,
+    },
     "lite-e2e": {"id": "lite-e2e", "key": env("LITE_E2E_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
     "lite-performance": {"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
 }
