@@ -82,6 +82,7 @@ class AuditType(LiteEnum):
     UPDATED_ROUTE_OF_GOODS = autostr()
     UPDATED_ORGANISATION = autostr()
     CREATED_ORGANISATION = autostr()
+    REGISTER_ORGANISATION = autostr()
     REJECTED_ORGANISATION = autostr()
     APPROVED_ORGANISATION = autostr()
     REMOVED_FLAG_ON_ORGANISATION = autostr()

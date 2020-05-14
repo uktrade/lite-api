@@ -1,4 +1,5 @@
 from copy import deepcopy
+from json import loads
 
 from rest_framework import serializers
 
@@ -23,14 +24,25 @@ class AuditSerializer(serializers.ModelSerializer):
         )
 
     def get_user(self, instance):
-        return {
-            "first_name": instance.actor.first_name,
-            "last_name": instance.actor.last_name,
-        }
+
+        if AuditType(instance.verb) == AuditType.REGISTER_ORGANISATION:
+            payload = deepcopy(instance.payload)
+            return {
+                "first_name": payload["email"],
+                "last_name": "",
+            }
+        else:
+            return {
+                "first_name": instance.actor.first_name,
+                "last_name": instance.actor.last_name,
+            }
 
     def get_text(self, instance):
         verb = AuditType(instance.verb)
         payload = deepcopy(instance.payload)
+
+        if verb == AuditType.REGISTER_ORGANISATION:
+            payload["email"] = ""
 
         for key in payload:
             # If value is a list, join by comma.

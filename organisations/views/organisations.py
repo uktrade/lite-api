@@ -82,12 +82,18 @@ class OrganisationsList(generics.ListCreateAPIView):
                 serializer.save()
 
             # Audit the creation of the organisation
-            # if bool(request.user.is_anonymous) == False:
+            if not request.user.is_anonymous:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.CREATED_ORGANISATION,
                     target=get_organisation_by_pk(serializer.data.get("id")),
-                    payload={"organisation_name": serializer.data.get("name"), },
+                    payload={"organisation_name": serializer.data.get("name")},
+                )
+            else:
+                audit_trail_service.create_system_user_audit(
+                    verb=AuditType.REGISTER_ORGANISATION,
+                    target=get_organisation_by_pk(serializer.data.get("id")),
+                    payload={"email": request.data["user"]["email"], "organisation_name": serializer.data.get("name")},
                 )
 
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
