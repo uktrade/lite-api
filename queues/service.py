@@ -16,13 +16,43 @@ from queues.constants import (
 from queues.models import Queue
 
 
+def get_queue(pk):
+    """
+    Returns the specified queue (system or user created)
+    """
+    return next((queue for queue in get_system_queues() if queue["id"] == str(pk)), None) or helpers.get_queue(pk=pk)
+
+
+def get_queues_qs(filters=None, include_team_info=True, include_case_count=False) -> QuerySet:
+    """
+    Returns a queryset of queues with optional team and case count information
+    """
+    queue_qs = Queue.objects.filter(**filters) if filters else Queue.objects.all()
+
+    if not include_team_info:
+        queue_qs = queue_qs.defer("team")
+
+    if include_case_count:
+        queue_qs = queue_qs.annotate(case_count=Count("cases"))
+
+    return queue_qs
+
+
+def get_team_queues(team_id, include_team_info=True, include_case_count=False) -> List[Dict]:
+    """
+    Returns a list of team queues in dictionary format with optional team and case count information
+    """
+    filters = {"team_id": team_id}
+    return list(get_queues_qs(filters, include_team_info, include_case_count).values())
+
+
 def get_system_queues(include_team_info=True, include_case_count=False, user=None) -> List[Dict]:
     """
     Returns a list of system queues in dictionary format with optional team and case count information
     """
     system_queues = []
 
-    case_counts = get_cases_count(user) if include_case_count and user else {}
+    case_counts = _get_system_queues_case_count(user) if include_case_count and user else {}
 
     for id, name in SYSTEM_QUEUES.items():
         system_queue_dict = {"id": id, "name": name, "team": None}
@@ -38,8 +68,13 @@ def get_system_queues(include_team_info=True, include_case_count=False, user=Non
     return system_queues
 
 
-def get_cases_count(user) -> Dict:
+def _get_system_queues_case_count(user) -> Dict:
+    """
+    Returns a dictionary of system queues and their case count
+    """
+
     case_qs = Case.objects.submitted()
+
     cases_count = {
         ALL_CASES_QUEUE_ID: case_qs.count(),
         OPEN_CASES_QUEUE_ID: case_qs.is_open().count(),
@@ -50,39 +85,3 @@ def get_cases_count(user) -> Dict:
     }
 
     return cases_count
-
-
-def get_work_queues_qs(include_team_info=True, include_case_count=False) -> QuerySet:
-    queue_qs = Queue.objects.all()
-
-    if not include_team_info:
-        queue_qs = queue_qs.defer("team")
-
-    if include_case_count:
-        queue_qs = queue_qs.annotate(case_count=Count("cases"))
-
-    return queue_qs
-
-
-def get_work_queues(include_team_info=True, include_case_count=False) -> List[Dict]:
-    return list(get_work_queues_qs(include_team_info, include_case_count).values())
-
-
-def get_team_queues(include_team_info=True, include_case_count=False) -> List[Dict]:
-    pass
-
-
-def get_all_queues(include_team_info=True, include_case_count=False, user=None) -> List[Dict]:
-    """
-    Returns all queues with the values id, name, optional case_count and optional team
-    """
-    return get_system_queues(include_team_info, include_case_count, user) + get_work_queues(
-        include_team_info, include_case_count
-    )
-
-
-def get_queue(pk):
-    """
-    Returns the specified queue (system or user created)
-    """
-    return next((queue for queue in get_system_queues() if queue["id"] == str(pk)), None) or helpers.get_queue(pk=pk)
