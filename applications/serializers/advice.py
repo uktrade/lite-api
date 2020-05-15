@@ -9,6 +9,7 @@ from flags.enums import FlagStatuses
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserListSerializer
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
@@ -19,14 +20,20 @@ from users.models import GovUser
 
 
 class CaseAdviceSerializer(serializers.ModelSerializer):
-    text = serializers.CharField(required=True, max_length=5000)
+    text = serializers.CharField(required=True, max_length=5000, error_messages={"blank": strings.Advice.TEXT})
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
-    type = KeyValueChoiceField(choices=AdviceType.choices, required=True)
+    type = KeyValueChoiceField(
+        choices=AdviceType.choices, required=True, error_messages={"required": strings.Advice.TYPE}
+    )
     level = serializers.CharField()
     proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000,)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
-    footnote = serializers.CharField(required=False, allow_blank=True)
-    footnote_required = serializers.BooleanField(required=False)
+    footnote = serializers.CharField(
+        required=False, allow_blank=True, error_messages={"blank": strings.Advice.FOOTNOTE}
+    )
+    footnote_required = serializers.BooleanField(
+        required=False, error_messages={"required": strings.Advice.FOOTNOTE_REQUIRED}
+    )
 
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     team = PrimaryKeyRelatedSerializerField(
