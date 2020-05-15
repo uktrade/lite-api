@@ -5,7 +5,7 @@ from rest_framework.exceptions import ErrorDetail
 from applications.serializers.advice import CaseAdviceSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import AdviceLevel
+from cases.enums import AdviceLevel, AdviceType
 from cases.libraries.get_case import get_case
 from cases.models import Advice
 from conf import constants
@@ -43,7 +43,7 @@ def check_if_team_advice_exists(case, user):
 
 
 def check_refusal_errors(advice):
-    if advice.get("type") and advice["type"].lower() == "refuse" and not advice["text"]:
+    if advice.get("type") and advice["type"].lower() == AdviceType.REFUSE and not advice["text"]:
         return {"text": [ErrorDetail(string=strings.Cases.ADVICE_REFUSAL_ERROR, code="blank")]}
     return None
 
