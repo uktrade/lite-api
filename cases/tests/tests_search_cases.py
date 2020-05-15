@@ -46,7 +46,7 @@ class FilterAndSortTests(DataTestClient):
             self.queue.save()
             self.clc_cases.append(clc_query)
 
-    def test_get_cases_no_filter_returns_only_system_and_users_team_queues(self):
+    def test_get_cases_returns_only_system_and_users_team_queues(self):
         system_and_team_queue_ids = sorted([*SYSTEM_QUEUES.keys(), str(self.queue.id)])
 
         response = self.client.get(self.url, **self.gov_headers)
