@@ -484,6 +484,8 @@ class GoodsCountriesDecisions(APIView):
 
 
 class Destination(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def get(self, request, pk):
         destination = get_destination(pk)
 

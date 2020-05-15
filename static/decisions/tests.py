@@ -10,7 +10,7 @@ class DecisionsTests(DataTestClient):
     def test_get_decisions_success(self):
         url = reverse("static:decisions:decisions")
 
-        response = self.client.get(url)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["decisions"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -23,4 +23,4 @@ class DecisionsResponseTests(EndPointTests):
     url = "/static/decisions/"
 
     def test_decisions(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)

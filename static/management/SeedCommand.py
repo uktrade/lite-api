@@ -44,7 +44,7 @@ class SeedCommand(ABC, BaseCommand):
             return error_message
 
         if not settings.SUPPRESS_TEST_OUTPUT:
-            self.stdout.write(self.style.SUCCESS(f"\n{self.success}"))
+            self.stdout.write(self.style.SUCCESS(f"\n\n{self.success}"))
 
     @transaction.atomic
     def operation(self, *args, **options):

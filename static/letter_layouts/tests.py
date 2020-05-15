@@ -13,7 +13,7 @@ class LetterLayoutsTests(DataTestClient):
 
     def test_get_letter_layouts_success(self):
         url = reverse("static:letter_layouts:letter_layouts")
-        response = self.client.get(url)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()["results"][0]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -23,7 +23,7 @@ class LetterLayoutsTests(DataTestClient):
 
     def test_get_letter_layout_success(self):
         url = reverse("static:letter_layouts:letter_layout", kwargs={"pk": self.letter_layout.id})
-        response = self.client.get(url)
+        response = self.client.get(url, **self.exporter_headers)
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -36,4 +36,4 @@ class LetterLayoutsResponseTests(EndPointTests):
     url = "/static/letter-layouts/"
 
     def test_letter_layouts(self):
-        self.call_endpoint(self.get_exporter(), self.url)
+        self.call_endpoint(self.get_exporter_headers(), self.url)
