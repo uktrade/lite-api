@@ -103,7 +103,9 @@ class ExportXML(DataTestClient):
         # ADDRESS1
         self.assertEqual(stakeholder[9].text, site.address.address_line_1)
         # ADDRESS2
-        self.assertEqual(stakeholder[10].text, site.address.address_line_2)
+        self.assertEqual(
+            stakeholder[10].text, f"{site.address.address_line_2}, {site.address.postcode}, {site.address.city}"
+        )
 
     def test_export_xml_organisation_only_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -129,7 +131,10 @@ class ExportXML(DataTestClient):
         # ADDRESS1
         self.assertEqual(stakeholder[9].text, self.organisation.primary_site.address.address_line_1)
         # ADDRESS2
-        self.assertEqual(stakeholder[10].text, self.organisation.primary_site.address.address_line_2)
+        self.assertEqual(
+            stakeholder[10].text,
+            f"{self.organisation.primary_site.address.address_line_2}, {self.organisation.primary_site.address.postcode}, {self.organisation.primary_site.address.city}",
+        )
 
     def test_export_xml_no_permission_failure(self):
         response = self.client.get(self.url, **self.gov_headers)

@@ -90,6 +90,8 @@ def export_sites_on_applications(case_ids, xml_base):
             "site__address__address_line_1",
             "site__address__address_line_2",
             "site__address__country__name",
+            "site__address__postcode",
+            "site__address__city",
         )
     )
     for soa in sites_on_applications:
@@ -101,12 +103,14 @@ def export_sites_on_applications(case_ids, xml_base):
             country=soa["site__address__country__name"],
             organisation=soa["site__organisation__name"],
             address_line_1=soa["site__address__address_line_1"] or soa["site__address__address"],
-            address_line_2=soa["site__address__address_line_2"],
+            address_line_2=f"{soa['site__address__address_line_2']}, {soa['site__address__postcode']}, {soa['site__address__city']}",
         )
 
 
 def export_organisations_on_applications(cases, xml_base):
-    organisations_on_applications = cases.prefetch_related("organisation", "organisation__primary_site").values(
+    organisations_on_applications = cases.prefetch_related(
+        "organisation", "organisation__primary_site__address"
+    ).values(
         "id",
         "organisation_id",
         "organisation__name",
@@ -114,6 +118,8 @@ def export_organisations_on_applications(cases, xml_base):
         "organisation__primary_site__address__address_line_1",
         "organisation__primary_site__address__address_line_2",
         "organisation__primary_site__address__country__name",
+        "organisation__primary_site__address__postcode",
+        "organisation__primary_site__address__city",
     )
     for org in organisations_on_applications:
         entity_to_xml(
@@ -125,7 +131,7 @@ def export_organisations_on_applications(cases, xml_base):
             organisation=org["organisation__name"],
             address_line_1=org["organisation__primary_site__address__address_line_1"]
             or org["organisation__primary_site__address__address"],
-            address_line_2=org["organisation__primary_site__address__address_line_2"],
+            address_line_2=f"{org['organisation__primary_site__address__address_line_2']}, {org['organisation__primary_site__address__postcode']}, {org['organisation__primary_site__address__city']}",
         )
 
 
