@@ -3,7 +3,7 @@ import datetime
 from django.utils import timezone
 
 from audit_trail.models import Audit
-from cases.enums import AdviceLevel
+from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice
 from licences.models import Licence
 from parties.enums import PartyRole
@@ -32,10 +32,7 @@ def add_months(start_date, months):
 
 
 def get_applicant_context(applicant):
-    return {
-        "name": " ".join([applicant.first_name, applicant.last_name]),
-        "email": applicant.email
-    }
+    return {"name": " ".join([applicant.first_name, applicant.last_name]), "email": applicant.email}
 
 
 def get_organisation_context(organisation):
@@ -92,6 +89,36 @@ def get_third_parties_context(third_parties):
     return third_parties_context
 
 
+def get_good_context(good_on_application, advice):
+    good_context = {
+        "description": good_on_application.good.description,
+        "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
+        "reason": advice.text,
+        "note": advice.note,
+    }
+    if good_on_application.licenced_quantity:
+        good_context["quantity"] = good_on_application.licenced_quantity
+    if good_on_application.licenced_value:
+        good_context["value"] = good_on_application.licenced_value
+    if advice.proviso:
+        good_context["proviso_reason"] = advice.proviso
+    return good_context
+
+
+def get_goods_context(goods, final_advice):
+    final_advice = final_advice.filter(good_id__isnull=False)
+    goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
+    goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods.all()}
+
+    for advice in final_advice:
+        good_on_application = goods_on_application[advice.good_id]
+        goods_context[advice.type].append(get_good_context(good_on_application, advice))
+
+    # Move proviso elements into approved because they are treated the same
+    goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))
+    return goods_context
+
+
 def get_document_context(case):
     date, time = get_date_and_time()
     licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
@@ -111,4 +138,5 @@ def get_document_context(case):
             get_party_context(ultimate_end_user.party) for ultimate_end_user in case.ultimate_end_users
         ],
         "third_parties": get_third_parties_context(case.third_parties) if case.third_parties else None,
+        "goods": get_goods_context(case.goods, final_advice) if hasattr(case, "goods") else None,
     }
