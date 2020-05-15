@@ -132,11 +132,13 @@ def get_document_context(case):
         "applicant": get_applicant_context(applicant_audit.actor) if applicant_audit else None,
         "organisation": get_organisation_context(case.organisation),
         "licence": get_licence_context(licence) if licence else None,
-        "end_user": get_party_context(case.end_user.party) if case.end_user else None,
-        "consignee": get_party_context(case.consignee.party) if case.consignee else None,
+        "end_user": get_party_context(case.end_user.party) if hasattr(case, "end_user") and case.end_user else None,
+        "consignee": get_party_context(case.consignee.party) if hasattr(case, "consignee") and case.consignee else None,
         "ultimate_end_users": [
             get_party_context(ultimate_end_user.party) for ultimate_end_user in case.ultimate_end_users
-        ],
-        "third_parties": get_third_parties_context(case.third_parties) if case.third_parties else None,
-        "goods": get_goods_context(case.goods, final_advice) if hasattr(case, "goods") else None,
+        ]
+        if hasattr(case, "ultimate_end_users") and case.ultimate_end_users else [],
+        "third_parties": get_third_parties_context(case.third_parties)
+        if hasattr(case, "third_parties") and case.third_parties else [],
+        "goods": get_goods_context(case.goods, final_advice) if hasattr(case, "goods") and case.goods else None,
     }
