@@ -95,7 +95,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
             )
         qs = CountryOnApplication.objects.filter(application=application)
 
-        coa_list = [qs.get(country_id=c.id) for c in countries]
+        coa_list = [qs.get(country=c.id) for c in countries]
 
         serializer = CountryOnApplicationViewSerializer(coa_list, many=True, context={"flags": True})
 
