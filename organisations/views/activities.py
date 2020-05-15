@@ -4,8 +4,7 @@ from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
 from audit_trail.serializers import AuditSerializer
-from cases.libraries.get_case import get_case
-from conf.authentication import ExporterAuthentication, GovAuthentication
+from conf.authentication import GovAuthentication
 from organisations.models import Organisation
 
 

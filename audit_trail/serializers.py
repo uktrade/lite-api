@@ -1,5 +1,4 @@
 from copy import deepcopy
-from json import loads
 
 from rest_framework import serializers
 
