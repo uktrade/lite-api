@@ -93,8 +93,12 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 )
                 .order_by("-contains_flags", "highest_flag_priority", "name")
             )
+        qs = CountryOnApplication.objects.filter(application=application)
 
-        serializer = CountryWithFlagsSerializer(countries, many=True, context={"active_flags_only": True})
+        coa_list = [qs.get(country_id=c.id) for c in countries]
+
+        serializer = CountryOnApplicationViewSerializer(coa_list, many=True, context={"flags": True})
+
         return {"type": "countries", "data": serializer.data}
 
     def get_licence(self, instance):
@@ -257,8 +261,18 @@ class ContractTypeSerializer(serializers.ModelSerializer):
 
 
 class CountryOnApplicationViewSerializer(serializers.ModelSerializer):
-    country = CountrySerializer()
+    country = serializers.SerializerMethodField()
+    flags = serializers.SerializerMethodField()
 
     class Meta:
         model = CountryOnApplication
         fields = "__all__"
+
+    def get_country(self):
+        if self.context.flags:
+            return CountryWithFlagsSerializer(self.initial_data["country"], context={"with_active_flags": True})
+        else:
+            return CountrySerializer(self.initial_data["country"])
+
+    def get_flags(self, instance):
+        return list(instance.flags.values("id", "name"))

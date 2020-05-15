@@ -1,3 +1,4 @@
+from django.db.models import Min, Case, When, BinaryField
 from django.test import tag
 from django.urls import reverse
 from rest_framework import status
@@ -150,3 +151,12 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES, response.json()["errors"]["contract_types"])
+
+    @tag("2146", "get-details")
+    def test_get_details(self):
+        application = self.create_open_application_case(self.organisation)
+        #
+        url = reverse("applications:application", kwargs={"pk": application.id})
+        response = self.client.get(url, **self.gov_headers)
+
+        print(response.json())
