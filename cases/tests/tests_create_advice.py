@@ -118,7 +118,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertEqual(response_data["footnote"], None)
         self.assertEqual(response_data["footnote_required"], None)
 
-    def test_cannot_create_advice_without_footnote_and_and_having_permission(self):
+    def test_cannot_create_advice_without_footnote_and_having_permission(self):
         self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
         data = {
             "text": "I Am Easy to Find",

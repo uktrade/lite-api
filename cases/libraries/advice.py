@@ -94,7 +94,7 @@ def construct_coalesced_advice_values(
         type=advice_type,
         collated_pv_grading=pv_grading,
         footnote=break_text.join(fields["footnote"]),
-        footnote_required=True if len(fields["footnote"]) else False,
+        footnote_required=len(fields["footnote"]) > 0,
     )
 
 
