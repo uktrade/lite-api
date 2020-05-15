@@ -3,6 +3,8 @@ import datetime
 from django.utils import timezone
 
 from audit_trail.models import Audit
+from cases.enums import AdviceLevel
+from cases.models import Advice
 from licences.models import Licence
 from parties.enums import PartyRole
 
@@ -27,6 +29,13 @@ def add_months(start_date, months):
 
     new_date = datetime.date(year=year, month=month, day=start_date.day)
     return new_date.strftime(DATE_FORMAT)
+
+
+def get_applicant_context(applicant):
+    return {
+        "name": " ".join([applicant.first_name, applicant.last_name]),
+        "email": applicant.email
+    }
 
 
 def get_organisation_context(organisation):
@@ -87,11 +96,13 @@ def get_document_context(case):
     date, time = get_date_and_time()
     licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
     applicant_audit = Audit.objects.filter(target_object_id=case.id).first()
+    final_advice = Advice.objects.filter(level=AdviceLevel.FINAL, case_id=case.pk)
 
     return {
         "reference": case.reference_code,
         "date": date,
         "time": time,
+        "applicant": get_applicant_context(applicant_audit.actor) if applicant_audit else None,
         "organisation": get_organisation_context(case.organisation),
         "licence": get_licence_context(licence) if licence else None,
         "end_user": get_party_context(case.end_user.party) if case.end_user else None,
