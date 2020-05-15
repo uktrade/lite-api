@@ -1,34 +1,9 @@
-import datetime
-
-from django.utils import timezone
-
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice
+from conf.helpers import get_date_and_time, add_months, DATE_FORMAT
 from licences.models import Licence
 from parties.enums import PartyRole
-
-DATE_FORMAT = "%D %B %Y"
-TIME_FORMAT = "%I:%M %p"
-
-
-def get_date_and_time():
-    now = timezone.now()
-    return now.strftime(DATE_FORMAT), now.strftime(TIME_FORMAT)
-
-
-def add_months(start_date, months):
-    year = start_date.year
-    month = start_date.month
-
-    for _ in range(months):
-        month += 1
-        if month == 13:
-            year += 1
-            month = 1
-
-    new_date = datetime.date(year=year, month=month, day=start_date.day)
-    return new_date.strftime(DATE_FORMAT)
 
 
 def get_applicant_context(applicant):
