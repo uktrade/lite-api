@@ -219,6 +219,6 @@ class OrganisationStatusView(generics.UpdateAPIView):
             serializer.save()
             audit_reviewed_organisation(request.user, organisation, serializer.data["status"]["key"])
 
-            return JsonResponse(data={"status": serializer.data}, status=status.HTTP_200_OK)
+            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
