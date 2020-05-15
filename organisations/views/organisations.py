@@ -40,8 +40,8 @@ class OrganisationsList(generics.ListCreateAPIView):
     def get_queryset(self):
         """ List all organisations. """
         if (
-                getattr(self.request.user, "type", None) != UserType.INTERNAL
-                and get_request_user_organisation(self.request).type != OrganisationType.HMRC
+            getattr(self.request.user, "type", None) != UserType.INTERNAL
+            and get_request_user_organisation(self.request).type != OrganisationType.HMRC
         ):
             raise PermissionError("Exporters aren't allowed to view other organisations")
 
@@ -110,7 +110,7 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
         org_name_changed = False
 
         if not check_user_has_permission(request.user, GovPermissions.MANAGE_ORGANISATIONS):
-            return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST, )
+            return JsonResponse(data={"errors": Organisations.NO_PERM_TO_EDIT}, status=status.HTTP_400_BAD_REQUEST,)
 
         if request.data.get("name", organisation.name) != organisation.name:
             org_name_changed = True

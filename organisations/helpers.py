@@ -70,16 +70,12 @@ def audit_reviewed_organisation(user, organisation, decision):
             actor=user,
             verb=AuditType.APPROVED_ORGANISATION,
             target=organisation,
-            payload={
-                "organisation_name": organisation.name,
-            },
+            payload={"organisation_name": organisation.name,},
         )
     elif decision == OrganisationStatus.REJECTED:
         audit_trail_service.create(
             actor=user,
             verb=AuditType.REJECTED_ORGANISATION,
             target=organisation,
-            payload={
-                "organisation_name": organisation.name,
-            },
+            payload={"organisation_name": organisation.name,},
         )
