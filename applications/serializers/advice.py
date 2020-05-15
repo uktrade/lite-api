@@ -123,25 +123,28 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
                 if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
                     raise ValidationError({"end_user": ["Only one item (such as an end_user) can be given at a time"]})
 
-            # if the user has permission to maintain footnotes for advice,
-            #  they have to explicitly state if a footnote is required.
-            if self.context.get("footnote_permission"):
-                self.fields["footnote_required"].required = True
-                self.fields["footnote_required"].allow_null = False
-                # if a footnote is required, we have to validate each footnote is given
-                if self.initial_data[0].get("footnote_required") == "True":
-                    self.fields["footnote"].required = True
-                    self.fields["footnote"].allow_null = False
-                    self.fields["footnote"].allow_blank = False
-                # if a footnote is not required, we remove any footnotes that may already exist on the objects.
-                if self.initial_data[0].get("footnote_required") == "False":
-                    for i in range(0, len(self.initial_data)):
-                        self.initial_data[i]["footnote"] = None
-            else:
-                # If the user does not have permission, we do not allow the user to set any footnote details.
+            self._footnote_fields_setup()
+
+    def _footnote_fields_setup(self):
+        # if the user has permission to maintain footnotes for advice,
+        #  they have to explicitly state if a footnote is required.
+        if self.context.get("footnote_permission"):
+            self.fields["footnote_required"].required = True
+            self.fields["footnote_required"].allow_null = False
+            # if a footnote is required, we have to validate each footnote is given
+            if self.initial_data[0].get("footnote_required") == "True":
+                self.fields["footnote"].required = True
+                self.fields["footnote"].allow_null = False
+                self.fields["footnote"].allow_blank = False
+            # if a footnote is not required, we remove any footnotes that may already exist on the objects.
+            if self.initial_data[0].get("footnote_required") == "False":
                 for i in range(0, len(self.initial_data)):
                     self.initial_data[i]["footnote"] = None
-                    self.initial_data[i]["footnote_required"] = None
+        else:
+            # If the user does not have permission, we do not allow the user to set any footnote details.
+            for i in range(0, len(self.initial_data)):
+                self.initial_data[i]["footnote"] = None
+                self.initial_data[i]["footnote_required"] = None
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):
