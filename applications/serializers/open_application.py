@@ -275,4 +275,6 @@ class CountryOnApplicationViewSerializer(serializers.ModelSerializer):
             return CountrySerializer(instance.country).data
 
     def get_flags(self, instance):
-        return list(instance.flags.values("id", "name"))
+        if self.context.get("flags"):
+            return list(instance.flags.values("id", "name"))
+        return []
