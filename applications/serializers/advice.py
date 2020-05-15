@@ -133,7 +133,10 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
                     self.initial_data[0]["footnote"] = None
             else:
                 self.fields["footnote"].allow_null = True
-                self.initial_data[0]["footnote"] = None
+                self.fields["footnote_required"].allow_null = True
+                for i in range(0, len(self.initial_data)):
+                    self.initial_data[i]["footnote"] = None
+                    self.initial_data[i]["footnote_required"] = None
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):
