@@ -155,13 +155,6 @@ class ApplicationList(ListCreateAPIView):
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         application = serializer.save()
-        if application.case_type.sub_type in [
-            CaseTypeSubTypeEnum.STANDARD,
-            CaseTypeSubTypeEnum.OPEN,
-            CaseTypeSubTypeEnum.HMRC,
-        ]:
-            # Add enforcement required flag
-            application.flags.add(Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED))
 
         return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
 
@@ -360,6 +353,13 @@ class ApplicationSubmission(APIView):
                 apply_flagging_rules_to_case(application)
                 create_submitted_audit(request, application, old_status)
                 run_routing_rules(application)
+
+        if application.case_type.sub_type in [
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
+            CaseTypeSubTypeEnum.HMRC,
+        ]:
+            application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)

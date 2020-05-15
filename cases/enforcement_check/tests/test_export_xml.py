@@ -17,13 +17,12 @@ class ExportXML(DataTestClient):
     def setUp(self):
         super().setUp()
         self.url = reverse("cases:enforcement_check", kwargs={"queue_pk": self.queue.pk})
-        self.enforcement_check_flag = Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
     def test_export_xml_with_parties_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation, site=False)
         application.queues.set([self.queue])
-        application.flags.add(self.enforcement_check_flag)
+        application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
         application_id_int = application.pk.int
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -56,7 +55,7 @@ class ExportXML(DataTestClient):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation, parties=False)
         application.queues.set([self.queue])
-        application.flags.add(self.enforcement_check_flag)
+        application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
         self.create_party(
             "Contact", self.organisation, PartyType.THIRD_PARTY, application=application, role=PartyRole.CONTACT
         )
@@ -79,7 +78,7 @@ class ExportXML(DataTestClient):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation, parties=False, site=False)
         application.queues.set([self.queue])
-        application.flags.add(self.enforcement_check_flag)
+        application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
         site_on_application = SiteOnApplication.objects.create(
             site=self.organisation.primary_site, application=application
         )
@@ -111,7 +110,7 @@ class ExportXML(DataTestClient):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation, parties=False, site=False)
         application.queues.set([self.queue])
-        application.flags.add(self.enforcement_check_flag)
+        application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
         response = self.client.get(self.url, **self.gov_headers)
 
@@ -144,7 +143,7 @@ class ExportXML(DataTestClient):
     def test_export_xml_no_cases_in_queue_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation)
-        application.flags.add(self.enforcement_check_flag)
+        application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
         queue = self.create_queue("Other", self.team)
         application.queues.set([queue])
 
