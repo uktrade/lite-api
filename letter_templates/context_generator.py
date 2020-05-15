@@ -137,8 +137,10 @@ def get_document_context(case):
         "ultimate_end_users": [
             get_party_context(ultimate_end_user.party) for ultimate_end_user in case.ultimate_end_users
         ]
-        if hasattr(case, "ultimate_end_users") and case.ultimate_end_users else [],
+        if hasattr(case, "ultimate_end_users") and case.ultimate_end_users
+        else [],
         "third_parties": get_third_parties_context(case.third_parties)
-        if hasattr(case, "third_parties") and case.third_parties else [],
+        if hasattr(case, "third_parties") and case.third_parties
+        else [],
         "goods": get_goods_context(case.goods, final_advice) if hasattr(case, "goods") and case.goods else None,
     }

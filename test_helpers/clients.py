@@ -852,7 +852,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_standard_application_case(self, organisation: Organisation, reference_name="Standard Application Case", user=None):
+    def create_standard_application_case(
+        self, organisation: Organisation, reference_name="Standard Application Case", user=None
+    ):
         """
         Creates a complete standard application case
         """
