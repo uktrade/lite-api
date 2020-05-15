@@ -27,6 +27,8 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
+from audit_trail.enums import AuditType
+from audit_trail import service as audit_trail_service
 from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
 from licences.models import Licence
@@ -297,7 +299,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return team
 
     @staticmethod
-    def submit_application(application: BaseApplication):
+    def submit_application(application: BaseApplication, user=None):
         application.submitted_at = datetime.now(timezone.utc)
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
@@ -307,6 +309,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             set_case_flags_on_submitted_standard_or_open_application(application)
 
         add_goods_flags_to_submitted_application(application)
+        if user:
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.UPDATED_STATUS,
+                target=application.get_case(),
+                payload={"status": {"new": application.status.status, "old": CaseStatusEnum.DRAFT}},
+            )
 
         return application
 
@@ -843,13 +852,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_standard_application_case(self, organisation: Organisation, reference_name="Standard Application Case"):
+    def create_standard_application_case(self, organisation: Organisation, reference_name="Standard Application Case", user=None):
         """
         Creates a complete standard application case
         """
         draft = self.create_draft_standard_application(organisation, reference_name)
 
-        return self.submit_application(draft)
+        return self.submit_application(draft, user=user)
 
     def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
         end_user = self.create_party("name", self.organisation, PartyType.END_USER)
