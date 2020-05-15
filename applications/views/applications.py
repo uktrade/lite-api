@@ -67,7 +67,6 @@ from conf.decorators import (
 from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses, SystemFlags
-from flags.models import Flag
 from goodstype.models import GoodsType
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
