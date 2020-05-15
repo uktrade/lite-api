@@ -26,7 +26,7 @@ def entity_to_xml(
         stakeholder,
         {
             "ELA_ID": application_id.int,
-            "ELA_DETAIL_ID": None,
+            "ELA_DETAIL_ID": id.int,
             "SH_ID": id.int,
             "SH_TYPE": type,
             "COUNTRY": country,
