@@ -31,10 +31,10 @@ class PartyDocumentView(APIView):
     )
     @authorised_users(ExporterUser)
     def get(self, request, application, party_pk):
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN and application.goodstype_category not in [
+            GoodsTypeCategory.CRYPTOGRAPHIC,
+            GoodsTypeCategory.MILITARY,
+        ]:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
         party = application.get_party(party_pk)
@@ -54,10 +54,10 @@ class PartyDocumentView(APIView):
     )
     @authorised_users(ExporterUser)
     def post(self, request, application, party_pk):
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN and application.goodstype_category not in [
+            GoodsTypeCategory.CRYPTOGRAPHIC,
+            GoodsTypeCategory.MILITARY,
+        ]:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
         party = application.get_party(party_pk)
@@ -77,10 +77,10 @@ class PartyDocumentView(APIView):
     )
     @authorised_users(ExporterUser)
     def delete(self, request, application, party_pk):
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN and application.goodstype_category not in [
+            GoodsTypeCategory.CRYPTOGRAPHIC,
+            GoodsTypeCategory.MILITARY,
+        ]:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
         party = application.get_party(party_pk)
