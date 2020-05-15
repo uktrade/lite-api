@@ -31,7 +31,7 @@ def create(actor, verb, action_object=None, target=None, payload=None, ignore_ca
 
 
 @validate_kwargs
-def create_system_user_audit(verb, action_object=None, target=None, ignore_case_status=False):
+def create_system_user_audit(verb, action_object=None, target=None, ignore_case_status=False, payload={}):
     system_user = BaseUser.objects.get(id=SystemUser.id)
 
     return Audit.objects.create(
@@ -39,7 +39,7 @@ def create_system_user_audit(verb, action_object=None, target=None, ignore_case_
         verb=verb.value,
         action_object=action_object,
         target=target,
-        payload={},
+        payload=payload,
         ignore_case_status=ignore_case_status,
     )
 
