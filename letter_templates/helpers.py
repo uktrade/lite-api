@@ -6,6 +6,7 @@ from markdown import markdown
 from conf import settings
 from conf.exceptions import NotFoundError
 from conf.settings import CSS_ROOT
+from letter_templates.context_generator import get_document_context
 from letter_templates.exceptions import InvalidVarException
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
@@ -58,7 +59,7 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
         context = {"content": text}
         template = template.render(Context(context))
         if case:
-            context = {"case": case}
+            context = get_document_context(case)
             template = django_engine.from_string(template)
             template = template.render(Context(context))
 
