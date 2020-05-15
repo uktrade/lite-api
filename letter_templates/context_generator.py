@@ -6,6 +6,12 @@ from licences.models import Licence
 from parties.enums import PartyRole
 
 
+def get_details_context(case):
+    return {
+        "end_use_details": case.baseapplication.intended_end_use if hasattr(case, "baseapplication") else None,
+    }
+
+
 def get_applicant_context(applicant):
     return {"name": " ".join([applicant.first_name, applicant.last_name]), "email": applicant.email}
 
@@ -104,6 +110,7 @@ def get_document_context(case):
         "reference": case.reference_code,
         "date": date,
         "time": time,
+        "details": get_details_context(case),
         "applicant": get_applicant_context(applicant_audit.actor) if applicant_audit else None,
         "organisation": get_organisation_context(case.organisation),
         "licence": get_licence_context(licence) if licence else None,
