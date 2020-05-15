@@ -148,7 +148,6 @@ HAWK_CREDENTIALS = {
     "lite-performance": {"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
 }
 
-HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED") and "test" not in sys.argv
 HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
 
 WSGI_APPLICATION = "conf.wsgi.application"
@@ -223,7 +222,9 @@ if "test" not in sys.argv:
         "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},
         "loggers": {"": {"handlers": ["console"], "level": env("LOG_LEVEL").upper()}},
     }
+    HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED")
 else:
+    HAWK_AUTHENTICATION_ENABLED = False
     LOGGING = {"version": 1, "disable_existing_loggers": True}
 
 RECENTLY_UPDATED_WORKING_DAYS = env(
