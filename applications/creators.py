@@ -113,7 +113,7 @@ def _validate_countries(draft, errors, is_mandatory):
         results = CountryOnApplication.objects.filter(application=draft)
         if len(results) == 0:
             errors["countries"] = [strings.Applications.Open.NO_COUNTRIES_SET]
-        else:
+        elif getattr(draft, "goodstype_category", None) in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
             for coa in results:
                 if not coa.contract_types:
                     errors["contract_types"] = [strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES]
