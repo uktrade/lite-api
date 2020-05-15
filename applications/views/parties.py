@@ -42,10 +42,10 @@ class ApplicationPartyView(APIView):
         Add a party to an application.
         """
 
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN and application.goodstype_category not in [
+            GoodsTypeCategory.CRYPTOGRAPHIC,
+            GoodsTypeCategory.MILITARY,
+        ]:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
         data = request.data
@@ -110,10 +110,10 @@ class ApplicationPartyView(APIView):
         """
         Removes a party from application.
         """
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN and application.goodstype_category not in [
+            GoodsTypeCategory.CRYPTOGRAPHIC,
+            GoodsTypeCategory.MILITARY,
+        ]:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
         try:
@@ -155,10 +155,10 @@ class ApplicationPartyView(APIView):
         """
         Get parties for an application
         """
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN and application.goodstype_category not in [
+            GoodsTypeCategory.CRYPTOGRAPHIC,
+            GoodsTypeCategory.MILITARY,
+        ]:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
         application_parties = application.active_parties.all().filter(deleted_at__isnull=True).select_related("party")
@@ -191,10 +191,10 @@ class CopyPartyView(APIView):
         """
         Get parties for an application
         """
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and application.goodstype_category != GoodsTypeCategory.CRYPTOGRAPHIC
-        ):
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN and application.goodstype_category not in [
+            GoodsTypeCategory.CRYPTOGRAPHIC,
+            GoodsTypeCategory.MILITARY,
+        ]:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
         detail = Party.objects.copy_detail(pk=party_pk)
