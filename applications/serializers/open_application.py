@@ -269,7 +269,7 @@ class CountryOnApplicationViewSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_country(self, instance):
-        if self.context.flags:
+        if self.context.get("flags"):
             return CountryWithFlagsSerializer(instance.country, context={"with_active_flags": True})
         else:
             return CountrySerializer(instance.country)
