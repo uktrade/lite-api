@@ -59,8 +59,7 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
         context = {"content": text}
         template = template.render(Context(context))
         if case:
-            # TODO change to context generator
-            context = {"case": case}
+            context = get_document_context(case)
             template = django_engine.from_string(template)
             template = template.render(Context(context))
 
