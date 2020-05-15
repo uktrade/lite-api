@@ -18,6 +18,19 @@ class ExportXML(DataTestClient):
         super().setUp()
         self.url = reverse("cases:enforcement_check", kwargs={"queue_pk": self.queue.pk})
 
+    @staticmethod
+    def _xml_to_dict(stakeholder):
+        return {
+            "ELA_ID": stakeholder[0].text,
+            "SH_ID": stakeholder[2].text,
+            "SH_TYPE": stakeholder[3].text,
+            "COUNTRY": stakeholder[4].text,
+            "ORG_NAME": stakeholder[5].text,
+            "PD_SURNAME": stakeholder[6].text,
+            "ADDRESS1": stakeholder[9].text,
+            "ADDRESS2": stakeholder[10].text,
+        }
+
     def test_export_xml_with_parties_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation, site=False)
@@ -32,24 +45,18 @@ class ExportXML(DataTestClient):
         data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
         # Does not include the organisation (last item)
         for stakeholder in data[:-1]:
-            # ELA_ID
-            self.assertEqual(stakeholder[0].text, str(application_id_int))
-            # SH_ID
-            self.assertIsNotNone(stakeholder[2].text)
-            party = application.parties.get(party__id=UUID(int=int(stakeholder[2].text))).party
+            stakeholder = self._xml_to_dict(stakeholder)
+            self.assertEqual(stakeholder["ELA_ID"], str(application_id_int))
+            self.assertIsNotNone(stakeholder["SH_ID"])
+            party = application.parties.get(party__id=UUID(int=int(stakeholder["SH_ID"]))).party
             self.assertIsNotNone(party)
-            # SH_TYPE
             self.assertEqual(
-                stakeholder[3].text, party.type.upper() if party.type != PartyType.THIRD_PARTY else "OTHER"
+                stakeholder["SH_TYPE"], party.type.upper() if party.type != PartyType.THIRD_PARTY else "OTHER"
             )
-            # COUNTRY
-            self.assertEqual(stakeholder[4].text, party.country.name)
-            # ORG_NAME
-            self.assertEqual(stakeholder[5].text, party.organisation.name)
-            # PD_SURNAME
-            self.assertEqual(stakeholder[6].text, party.name)
-            # ADDRESS1
-            self.assertEqual(stakeholder[9].text, party.address)
+            self.assertEqual(stakeholder["COUNTRY"], party.country.name)
+            self.assertEqual(stakeholder["ORG_NAME"], party.organisation.name)
+            self.assertEqual(stakeholder["PD_SURNAME"], party.name)
+            self.assertEqual(stakeholder["ADDRESS1"], party.address)
 
     def test_export_xml_with_contact_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -64,15 +71,13 @@ class ExportXML(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
-        stakeholder = data[0]
+        stakeholder = self._xml_to_dict(data[0])
 
-        self.assertEqual(stakeholder[0].text, str(application.pk.int))
-        # SH_ID
-        self.assertIsNotNone(stakeholder[2].text)
-        party = application.parties.get(party__id=UUID(int=int(stakeholder[2].text))).party
+        self.assertEqual(stakeholder["ELA_ID"], str(application.pk.int))
+        self.assertIsNotNone(stakeholder["SH_ID"])
+        party = application.parties.get(party__id=UUID(int=int(stakeholder["SH_ID"]))).party
         self.assertIsNotNone(party)
-        # SH_TYPE
-        self.assertEqual(stakeholder[3].text, "CONTACT")
+        self.assertEqual(stakeholder["SH_TYPE"], "CONTACT")
 
     def test_export_xml_with_site_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -88,22 +93,16 @@ class ExportXML(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
-        stakeholder = data[0]
+        stakeholder = self._xml_to_dict(data[0])
 
-        self.assertEqual(stakeholder[0].text, str(application.pk.int))
-        # SH_ID
-        self.assertIsNotNone(stakeholder[2].text, str(site.pk.int))
-        # SH_TYPE
-        self.assertEqual(stakeholder[3].text, "SOURCE")
-        # COUNTRY
-        self.assertEqual(stakeholder[4].text, site.address.country.name)
-        # ORG_NAME
-        self.assertEqual(stakeholder[5].text, site.organisation.name)
-        # ADDRESS1
-        self.assertEqual(stakeholder[9].text, site.address.address_line_1)
-        # ADDRESS2
+        self.assertEqual(stakeholder["ELA_ID"], str(application.pk.int))
+        self.assertEqual(stakeholder["SH_ID"], str(site.pk.int))
+        self.assertEqual(stakeholder["SH_TYPE"], "SOURCE")
+        self.assertEqual(stakeholder["COUNTRY"], site.address.country.name)
+        self.assertEqual(stakeholder["ORG_NAME"], site.organisation.name)
+        self.assertEqual(stakeholder["ADDRESS1"], site.address.address_line_1)
         self.assertEqual(
-            stakeholder[10].text, f"{site.address.address_line_2}, {site.address.postcode}, {site.address.city}"
+            stakeholder["ADDRESS2"], f"{site.address.address_line_2}, {site.address.postcode}, {site.address.city}"
         )
 
     def test_export_xml_organisation_only_success(self):
@@ -116,22 +115,16 @@ class ExportXML(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
-        stakeholder = data[0]
+        stakeholder = self._xml_to_dict(data[0])
 
-        self.assertEqual(stakeholder[0].text, str(application.pk.int))
-        # SH_ID
-        self.assertIsNotNone(stakeholder[2].text, str(self.organisation.pk.int))
-        # SH_TYPE
-        self.assertEqual(stakeholder[3].text, "LICENSEE")
-        # COUNTRY
-        self.assertEqual(stakeholder[4].text, self.organisation.primary_site.address.country.name)
-        # ORG_NAME
-        self.assertEqual(stakeholder[5].text, self.organisation.name)
-        # ADDRESS1
-        self.assertEqual(stakeholder[9].text, self.organisation.primary_site.address.address_line_1)
-        # ADDRESS2
+        self.assertEqual(stakeholder["ELA_ID"], str(application.pk.int))
+        self.assertIsNotNone(stakeholder["SH_ID"], str(self.organisation.pk.int))
+        self.assertEqual(stakeholder["SH_TYPE"], "LICENSEE")
+        self.assertEqual(stakeholder["COUNTRY"], self.organisation.primary_site.address.country.name)
+        self.assertEqual(stakeholder["ORG_NAME"], self.organisation.name)
+        self.assertEqual(stakeholder["ADDRESS1"], self.organisation.primary_site.address.address_line_1)
         self.assertEqual(
-            stakeholder[10].text,
+            stakeholder["ADDRESS2"],
             f"{self.organisation.primary_site.address.address_line_2}, {self.organisation.primary_site.address.postcode}, {self.organisation.primary_site.address.city}",
         )
 
