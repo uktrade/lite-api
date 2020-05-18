@@ -1,3 +1,4 @@
+from applications.models import ExternalLocationOnApplication
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType
 from conf.helpers import add_months, DATE_FORMAT
@@ -100,6 +101,12 @@ class DocumentContextGenerationTests(DataTestClient):
     def _assert_site(self, context, site):
         self.assertEqual(context["name"], site.name)
         self._assert_address(context, site.address)
+
+    def _assert_external_location(self, context, external_location):
+        self.assertEqual(context["name"], external_location.name)
+        self.assertEqual(context["address"], external_location.address)
+        self.assertEqual(context["country"]["name"], external_location.country.name)
+        self.assertEqual(context["country"]["code"], external_location.country.id)
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types
@@ -206,3 +213,12 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
         self.assertEqual(context["reference"], case.reference_code)
         self._assert_site(context["sites"][0], site)
+
+    def test_generate_context_with_external_locations(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        location = self.create_external_location("external", self.organisation)
+        ExternalLocationOnApplication.objects.create(external_location=location, application=case)
+
+        context = get_document_context(case)
+        self.assertEqual(context["reference"], case.reference_code)
+        self._assert_external_location(context["external_locations"][0], location)

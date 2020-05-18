@@ -3,7 +3,7 @@ from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice, EcjuQuery, CaseNote
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT
 from licences.models import Licence
-from organisations.models import Site
+from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
 
 
@@ -165,6 +165,17 @@ def _get_site_context(site):
     }
 
 
+def _get_external_location_context(location):
+    return {
+        "name": location.name,
+        "address": location.address,
+        "country": {
+            "name": location.country.name,
+            "code": location.country.id,
+        }
+    }
+
+
 def get_document_context(case):
     date, time = get_date_and_time()
     licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
@@ -173,6 +184,7 @@ def get_document_context(case):
     ecju_queries = EcjuQuery.objects.filter(case=case)
     notes = CaseNote.objects.filter(case=case)
     sites = Site.objects.filter(sites_on_application__application_id=case.pk)
+    external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
 
     return {
         "reference": case.reference_code,
@@ -200,5 +212,6 @@ def get_document_context(case):
         else None,
         "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
         "notes": [_get_case_note_context(note) for note in notes],
-        "sites": [_get_site_context(site) for site in sites]
+        "sites": [_get_site_context(site) for site in sites],
+        "external_locations": [_get_external_location_context(location) for location in external_locations],
     }
