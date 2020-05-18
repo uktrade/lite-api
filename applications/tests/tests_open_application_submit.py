@@ -17,6 +17,9 @@ class OpenApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_draft_open_application(self.organisation)
+        coa = CountryOnApplication.objects.get(application=self.draft)
+        coa.contract_types = "[navy]"
+        coa.save()
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
@@ -66,7 +69,7 @@ class OpenApplicationTests(DataTestClient):
             response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_standard_application_declaration_submit_success(self):
+    def test_open_application_declaration_submit_success(self):
         data = {
             "submit_declaration": True,
             "agreed_to_declaration": True,
@@ -94,9 +97,6 @@ class OpenApplicationTests(DataTestClient):
         }
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
-        coa = CountryOnApplication.objects.get(application=self.draft)
-        coa.contract_types = "[navy]"
-        coa.save()
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

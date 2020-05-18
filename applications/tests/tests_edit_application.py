@@ -3,8 +3,8 @@ from parameterized import parameterized, parameterized_class
 from rest_framework import status
 
 from applications.libraries.case_status_helpers import get_case_statuses
-from audit_trail.models import Audit
 from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from goods.enums import PvGrading
 from lite_content.lite_api import strings
@@ -397,12 +397,11 @@ class EditExhibitionApplicationsTests(DataTestClient):
     def test_edit_exhibition_required_by_date_draft_success(self):
         data = {
             "title": self.application.title,
-            "required_by_date": "2020-05-15",
+            "required_by_date": "2021-05-15",
             "first_exhibition_date": self.application.first_exhibition_date,
         }
 
         response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
-
         response_data = response.json()["application"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
