@@ -1,6 +1,5 @@
 from rest_framework import generics
 
-from cases.enums import CaseTypeEnum
 from cases.libraries.dates import make_date_from_params
 from cases.models import Case
 from cases.serializers import CaseListSerializer
@@ -43,7 +42,7 @@ class CasesSearchView(generics.ListAPIView):
                 is_work_queue=is_work_queue,
                 user=request.user,
                 include_hidden=include_hidden,
-                **filters
+                **filters,
             )
         )
         queues = get_system_queues(
@@ -68,7 +67,12 @@ class CasesSearchView(generics.ListAPIView):
             {
                 "queues": queues,
                 "cases": cases,
-                "filters": {"statuses": statuses, "case_types": case_types, "gov_users": gov_users, "advice_types": advice_types},
+                "filters": {
+                    "statuses": statuses,
+                    "case_types": case_types,
+                    "gov_users": gov_users,
+                    "advice_types": advice_types,
+                },
                 "is_system_queue": context["is_system_queue"],
                 "is_work_queue": is_work_queue,
                 "queue": queue,

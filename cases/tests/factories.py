@@ -2,8 +2,13 @@ import factory
 
 from addresses.tests.factories import AddressFactory
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.models import StandardApplication, SiteOnApplication, GoodOnApplication, CountryOnApplication, \
-    PartyOnApplication
+from applications.models import (
+    StandardApplication,
+    SiteOnApplication,
+    GoodOnApplication,
+    CountryOnApplication,
+    PartyOnApplication,
+)
 from cases.enums import AdviceLevel, AdviceType
 from cases.enums import CaseTypeEnum
 from cases.models import Advice
@@ -22,7 +27,7 @@ class ApplicationFactory(factory.django.DjangoModelFactory):
     name = "Application Test Name"
     export_type = ApplicationExportType.PERMANENT
     case_type_id = CaseTypeEnum.SIEL.id
-    have_you_been_informed = ApplicationExportLicenceOfficialType.YES,
+    have_you_been_informed = (ApplicationExportLicenceOfficialType.YES,)
     reference_number_on_information_form = ""
     activity = "Trade"
     usage = "Trade"
@@ -116,7 +121,7 @@ class CountryFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Country
-        django_get_or_create = ('id', 'name')
+        django_get_or_create = ("id", "name")
 
 
 class CountryOnApplicationFactory(factory.django.DjangoModelFactory):

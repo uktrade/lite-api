@@ -5,8 +5,13 @@ from django.utils import timezone
 from cases.enums import AdviceType
 from cases.models import Case
 from cases.tests.factories import (
-    SiteOnApplicationFactory, ApplicationFactory, GoodOnApplicationFactory, TeamAdviceFactory, FinalAdviceFactory,
-    PartyOnApplicationFactory, PartyFactory
+    SiteOnApplicationFactory,
+    ApplicationFactory,
+    GoodOnApplicationFactory,
+    TeamAdviceFactory,
+    FinalAdviceFactory,
+    PartyOnApplicationFactory,
+    PartyFactory,
 )
 from flags.tests.factories import FlagFactory
 from goods.enums import GoodControlled
@@ -66,18 +71,19 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_4.first().pk, application_2.pk)
 
         # Search on common substring of both application references
-        match = (
-            SequenceMatcher(None, application_1.reference_code, application_2.reference_code)
-            .find_longest_match(0, len(application_1.reference_code), 0, len(application_2.reference_code))
+        match = SequenceMatcher(None, application_1.reference_code, application_2.reference_code).find_longest_match(
+            0, len(application_1.reference_code), 0, len(application_2.reference_code)
         )
 
-        qs_5 = Case.objects.search(case_reference=application_1.reference_code[match.a: match.a + match.size])
+        qs_5 = Case.objects.search(case_reference=application_1.reference_code[match.a : match.a + match.size])
 
         self.assertEqual(qs_5.count(), 2)
 
     def test_filter_by_good_control_list_entry(self):
         application = ApplicationFactory()
-        good = GoodFactory(organisation=application.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
+        good = GoodFactory(
+            organisation=application.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"]
+        )
         GoodOnApplicationFactory(application=application, good=good)
 
         qs_1 = Case.objects.search(control_list_entry="")
@@ -249,7 +255,7 @@ class FilterAndSortTests(DataTestClient):
         qs_1 = Case.objects.search(party_address=poa_1.party.address)
         qs_2 = Case.objects.search(party_address=poa_2.party.address)
         qs_3 = Case.objects.search(party_address=poa_3.party.address)
-        qs_4 = Case.objects.search(party_address=poa_2.party.address[0:int(len(poa_2.party.address) / 2)])
+        qs_4 = Case.objects.search(party_address=poa_2.party.address[0 : int(len(poa_2.party.address) / 2)])
 
         self.assertEqual(qs_1.count(), 1)
         self.assertEqual(qs_2.count(), 1)
@@ -266,15 +272,12 @@ class FilterAndSortTests(DataTestClient):
             organisation=application_1.organisation,
             description="Desc 1",
             comment="Comment 1",
-            report_summary="Report Summary 1"
+            report_summary="Report Summary 1",
         )
         GoodOnApplicationFactory(application=application_1, good=good_1)
         application_2 = ApplicationFactory()
         good_2 = GoodFactory(
-            organisation=application_2.organisation,
-            description="afdaf",
-            comment="asdfsadf",
-            report_summary="asdfdsf"
+            organisation=application_2.organisation, description="afdaf", comment="asdfsadf", report_summary="asdfdsf"
         )
         GoodOnApplicationFactory(application=application_2, good=good_2)
 

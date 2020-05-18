@@ -86,7 +86,10 @@ class CaseQuerySet(models.QuerySet):
 
     def with_exporter_site_name(self, exporter_site_name):
         from applications.models import SiteOnApplication
-        case_ids = SiteOnApplication.objects.filter(site__name=exporter_site_name).values_list("application__id", flat=True)
+
+        case_ids = SiteOnApplication.objects.filter(site__name=exporter_site_name).values_list(
+            "application__id", flat=True
+        )
         return self.filter(pk__in=case_ids)
 
     def with_control_list_entry(self, control_list_entry):
@@ -125,9 +128,9 @@ class CaseQuerySet(models.QuerySet):
 
     def with_goods_related_description(self, goods_related_description):
         return self.filter(
-            Q(baseapplication__goods__good__description__icontains=goods_related_description) |
-            Q(baseapplication__goods__good__comment__icontains=goods_related_description) |
-            Q(baseapplication__goods__good__report_summary__icontains=goods_related_description)
+            Q(baseapplication__goods__good__description__icontains=goods_related_description)
+            | Q(baseapplication__goods__good__comment__icontains=goods_related_description)
+            | Q(baseapplication__goods__good__report_summary__icontains=goods_related_description)
         )
 
     def order_by_date(self, order="-"):
@@ -178,10 +181,8 @@ class CaseManager(models.Manager):
         assigned_user=None,
         case_officer=None,
         include_hidden=None,
-
         organisation_name=None,
         case_reference=None,  # gov case number
-        exporter_reference=None,
         exporter_site_name=None,
         exporter_site_address=None,
         control_list_entry=None,
@@ -196,8 +197,8 @@ class CaseManager(models.Manager):
         party_name=None,
         party_address=None,
         goods_related_description=None,
-        **kwargs
-    ):
+        **kwargs,
+    ):  # noqa
         """
         Search for a user's available cases given a set of search parameters.
         """
