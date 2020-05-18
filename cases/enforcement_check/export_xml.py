@@ -6,9 +6,6 @@ from applications.models import PartyOnApplication, SiteOnApplication, ExternalL
 from parties.enums import PartyRole, PartyType
 
 
-EMPTY_VALUE = "$REPLACE$"
-
-
 def export_cases_xml(cases):
     """
     Takes a list of cases and converts into XML for the enforcement unit.
@@ -26,7 +23,7 @@ def export_cases_xml(cases):
     # Export XML
     xml = ElementTree.tostring(base, encoding="utf-8", method="xml")  # nosec
     reparsed = minidom.parseString(xml).toprettyxml()  # nosec
-    return reparsed.replace(EMPTY_VALUE, "")
+    return reparsed
 
 
 def _dict_to_xml(parent, data):
@@ -34,8 +31,6 @@ def _dict_to_xml(parent, data):
         element = ElementTree.SubElement(parent, key)
         if value:
             element.text = escape(str(value))
-        else:
-            element.text = EMPTY_VALUE
 
 
 def _get_address_line_2(address_line_2, postcode, city):
