@@ -8,7 +8,7 @@ from cases.views.search import service
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, NON_WORK_QUEUES
-from queues.service import get_all_queues
+from queues.service import get_system_queues, get_team_queues
 
 
 class CasesSearchView(generics.ListAPIView):
@@ -21,9 +21,11 @@ class CasesSearchView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
+        is_system_queue = queue_id in SYSTEM_QUEUES.keys()
+
         context = {
-            "is_system_queue": queue_id in SYSTEM_QUEUES.keys(),
             "queue_id": queue_id,
+            "is_system_queue": is_system_queue,
             "is_work_queue": is_work_queue,
         }
 
@@ -44,7 +46,10 @@ class CasesSearchView(generics.ListAPIView):
                 **filters
             )
         )
-        queues = get_all_queues(include_team=False, include_case_count=True, user=request.user)
+        queues = get_system_queues(
+            include_team_info=False, include_case_count=True, user=request.user
+        ) + get_team_queues(team_id=request.user.team_id, include_team_info=False, include_case_count=True)
+
         cases = CaseListSerializer(
             page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
         ).data
