@@ -6,12 +6,14 @@ from cases.enums import AdviceType
 from cases.models import Case
 from cases.tests.factories import (
     SiteOnApplicationFactory,
-    ApplicationFactory,
+    StandardApplicationFactory,
     GoodOnApplicationFactory,
     TeamAdviceFactory,
     FinalAdviceFactory,
     PartyOnApplicationFactory,
     PartyFactory,
+    CountryOnApplicationFactory,
+    CountryFactory
 )
 from flags.tests.factories import FlagFactory
 from goods.enums import GoodControlled
@@ -40,8 +42,8 @@ class FilterAndSortTests(DataTestClient):
         self.assertNotEqual(site_on_application_1.site.name, site_on_application_2.site.name)
 
     def test_filter_with_organisation_name(self):
-        application_1 = ApplicationFactory()
-        application_2 = ApplicationFactory()
+        application_1 = StandardApplicationFactory()
+        application_2 = StandardApplicationFactory()
 
         qs_1 = Case.objects.search(organisation_name=application_1.organisation.name)
         qs_2 = Case.objects.search(organisation_name=application_2.organisation.name)
@@ -52,8 +54,8 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_2.first().pk, application_2.pk)
 
     def test_filter_with_case_reference_code(self):
-        application_1 = ApplicationFactory()
-        application_2 = ApplicationFactory()
+        application_1 = StandardApplicationFactory()
+        application_2 = StandardApplicationFactory()
 
         qs_1 = Case.objects.search(case_reference=application_1.reference_code)
         qs_2 = Case.objects.search(case_reference=application_1.reference_code[4:])
@@ -80,7 +82,7 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_5.count(), 2)
 
     def test_filter_by_good_control_list_entry(self):
-        application = ApplicationFactory()
+        application = StandardApplicationFactory()
         good = GoodFactory(
             organisation=application.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"]
         )
@@ -97,11 +99,11 @@ class FilterAndSortTests(DataTestClient):
     def test_filter_by_flags(self):
         flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)
         flag_2 = FlagFactory(name="Name_2", level="Destination", team=self.gov_user.team, priority=10)
-        application_1 = ApplicationFactory()
+        application_1 = StandardApplicationFactory()
         application_1.flags.add(flag_1)
-        application_2 = ApplicationFactory()
+        application_2 = StandardApplicationFactory()
         application_2.flags.add(flag_2)
-        application_3 = ApplicationFactory()
+        application_3 = StandardApplicationFactory()
         application_3.flags.add(flag_2)
 
         qs_1 = Case.objects.search(flags=[flag_1.name])
@@ -114,15 +116,25 @@ class FilterAndSortTests(DataTestClient):
         """
         What qualifies as a country on a case?
         """
-        #
-        # country_on_application = CountryOnApplicationFactory()
-        #
-        # qs_1 = Case.objects.search(country=country_on_application.country.name)
-        #
-        # self.assertEqual(qs_1.count(), 1)
+        country_1 = CountryFactory(id="GB")
+        country_2 = CountryFactory(id="SP")
+        country_on_application = CountryOnApplicationFactory(country=country_1)
+        country_on_application = CountryOnApplicationFactory(
+            application=country_on_application.application,
+            country=country_1
+        )
+        party_on_application = PartyOnApplicationFactory(party=PartyFactory(country=country_2))
+
+        qs_1 = Case.objects.search(country=country_1)
+        qs_2 = Case.objects.search(country=country_2)
+
+        self.assertEqual(qs_1.count(), 1)
+        self.assertEqual(qs_2.count(), 1)
+        self.assertEqual(qs_1.first().pk, country_on_application.application.pk)
+        self.assertEqual(qs_2.first().pk, party_on_application.application.pk)
 
     def test_filter_by_team_advice(self):
-        application = ApplicationFactory()
+        application = StandardApplicationFactory()
         good = GoodFactory(organisation=application.organisation)
         TeamAdviceFactory(user=self.gov_user, team=self.team, case=application, good=good, type=AdviceType.APPROVE)
 
@@ -134,7 +146,7 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_2.first().pk, application.pk)
 
     def test_filter_by_final_advice(self):
-        application = ApplicationFactory()
+        application = StandardApplicationFactory()
         good = GoodFactory(organisation=application.organisation)
         FinalAdviceFactory(user=self.gov_user, team=self.team, case=application, good=good, type=AdviceType.APPROVE)
 
@@ -146,9 +158,9 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_2.first().pk, application.pk)
 
     def test_filter_sla_days_range(self):
-        application_1 = ApplicationFactory(sla_remaining_days=1)
-        application_2 = ApplicationFactory(sla_remaining_days=3)
-        application_3 = ApplicationFactory(sla_remaining_days=5)
+        application_1 = StandardApplicationFactory(sla_remaining_days=1)
+        application_2 = StandardApplicationFactory(sla_remaining_days=3)
+        application_3 = StandardApplicationFactory(sla_remaining_days=5)
 
         qs_1 = Case.objects.search(min_sla_days_remaining=0, max_sla_days_remaining=2)
         qs_2 = Case.objects.search(min_sla_days_remaining=2, max_sla_days_remaining=4)
@@ -178,9 +190,9 @@ class FilterAndSortTests(DataTestClient):
         day_6 = timezone.datetime(day=15, month=10, year=2020)
         day_7 = timezone.datetime(day=16, month=10, year=2020)
 
-        application_1 = ApplicationFactory(submitted_at=day_2)
-        application_2 = ApplicationFactory(submitted_at=day_4)
-        application_3 = ApplicationFactory(submitted_at=day_6)
+        application_1 = StandardApplicationFactory(submitted_at=day_2)
+        application_2 = StandardApplicationFactory(submitted_at=day_4)
+        application_3 = StandardApplicationFactory(submitted_at=day_6)
 
         qs_1 = Case.objects.search(submitted_from=day_1.date(), submitted_to=day_3.date())
         qs_2 = Case.objects.search(submitted_from=day_3.date(), submitted_to=day_5.date())
@@ -208,9 +220,9 @@ class FilterAndSortTests(DataTestClient):
         day_6 = timezone.datetime(day=15, month=10, year=2020)
         day_7 = timezone.datetime(day=16, month=10, year=2020)
 
-        application_1 = ApplicationFactory(submitted_at=day_2)
-        application_2 = ApplicationFactory(submitted_at=day_4)
-        application_3 = ApplicationFactory(submitted_at=day_6)
+        application_1 = StandardApplicationFactory(submitted_at=day_2)
+        application_2 = StandardApplicationFactory(submitted_at=day_4)
+        application_3 = StandardApplicationFactory(submitted_at=day_6)
 
         qs_1 = Case.objects.search(submitted_from=day_1.date(), submitted_to=day_3.date())
         qs_2 = Case.objects.search(submitted_from=day_3.date(), submitted_to=day_5.date())
@@ -267,7 +279,7 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_4.first().pk, poa_2.application.pk)
 
     def test_filter_by_goods_related_description(self):
-        application_1 = ApplicationFactory()
+        application_1 = StandardApplicationFactory()
         good_1 = GoodFactory(
             organisation=application_1.organisation,
             description="Desc 1",
@@ -275,7 +287,7 @@ class FilterAndSortTests(DataTestClient):
             report_summary="Report Summary 1",
         )
         GoodOnApplicationFactory(application=application_1, good=good_1)
-        application_2 = ApplicationFactory()
+        application_2 = StandardApplicationFactory()
         good_2 = GoodFactory(
             organisation=application_2.organisation, description="afdaf", comment="asdfsadf", report_summary="asdfdsf"
         )

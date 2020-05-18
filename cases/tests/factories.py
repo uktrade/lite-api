@@ -8,7 +8,7 @@ from applications.models import (
     GoodOnApplication,
     CountryOnApplication,
     PartyOnApplication,
-)
+    OpenApplication)
 from cases.enums import AdviceLevel, AdviceType
 from cases.enums import CaseTypeEnum
 from cases.models import Advice
@@ -23,7 +23,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.enums import UserStatuses, UserType
 
 
-class ApplicationFactory(factory.django.DjangoModelFactory):
+class StandardApplicationFactory(factory.django.DjangoModelFactory):
     name = "Application Test Name"
     export_type = ApplicationExportType.PERMANENT
     case_type_id = CaseTypeEnum.SIEL.id
@@ -44,6 +44,27 @@ class ApplicationFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = StandardApplication
+
+
+class OpenApplicationFactory(factory.django.DjangoModelFactory):
+    name = "Application Test Name"
+    export_type = ApplicationExportType.PERMANENT
+    case_type_id = CaseTypeEnum.SIEL.id
+    activity = "Trade"
+    usage = "Trade"
+    organisation = factory.SubFactory(OrganisationFactory)
+    status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+    is_military_end_use_controls = False
+    is_informed_wmd = False
+    is_suspected_wmd = False
+    is_eu_military = False
+    is_compliant_limitations_eu = None
+    intended_end_use = "this is our intended end use"
+    is_shipped_waybill_or_lading = True
+    non_waybill_or_lading_route_details = None
+
+    class Meta:
+        model = OpenApplication
 
 
 class RoleFactory(factory.django.DjangoModelFactory):
@@ -95,7 +116,7 @@ class SiteFactory(factory.django.DjangoModelFactory):
 
 
 class SiteOnApplicationFactory(factory.django.DjangoModelFactory):
-    application = factory.SubFactory(ApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
+    application = factory.SubFactory(StandardApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
     site = factory.SubFactory(SiteFactory, organisation=factory.SelfAttribute("..organisation"))
 
     class Meta:
@@ -106,7 +127,7 @@ class SiteOnApplicationFactory(factory.django.DjangoModelFactory):
 
 
 class GoodOnApplicationFactory(factory.django.DjangoModelFactory):
-    application = factory.SubFactory(ApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
+    application = factory.SubFactory(StandardApplicationFactory, organisation=factory.SelfAttribute("..organisation"))
     good = factory.SubFactory(GoodFactory, organisation=factory.SelfAttribute("..organisation"))
 
     class Meta:
@@ -121,11 +142,11 @@ class CountryFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Country
-        django_get_or_create = ("id", "name")
+        django_get_or_create = ("id",)
 
 
 class CountryOnApplicationFactory(factory.django.DjangoModelFactory):
-    application = factory.SubFactory(ApplicationFactory)
+    application = factory.SubFactory(OpenApplicationFactory)
     country = factory.SubFactory(CountryFactory)
 
     class Meta:
@@ -175,7 +196,7 @@ class PartyFactory(factory.django.DjangoModelFactory):
 
 class PartyOnApplicationFactory(factory.django.DjangoModelFactory):
     party = factory.SubFactory(PartyFactory)
-    application = factory.SubFactory(ApplicationFactory)
+    application = factory.SubFactory(StandardApplicationFactory)
 
     class Meta:
         model = PartyOnApplication

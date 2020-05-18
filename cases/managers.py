@@ -99,7 +99,10 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(flags__name__in=flags)
 
     def with_country(self, country):
-        return self.filter(baseapplication__application_countries__country=country)
+        return self.filter(
+            Q(baseapplication__parties__party__country=country) |
+            Q(baseapplication__openapplication__application_countries__country=country)
+        )
 
     def with_advice(self, advice_type, level):
         return self.filter(advice__type=advice_type, advice__level=level)
@@ -306,7 +309,7 @@ class CaseManager(models.Manager):
         if isinstance(sort, str):
             case_qs = case_qs.order_by_status(order="-" if sort.startswith("-") else "")
 
-        return case_qs
+        return case_qs.distinct()
 
     def submitted(self):
         draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
