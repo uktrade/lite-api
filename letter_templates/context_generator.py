@@ -74,6 +74,8 @@ def _get_good_context(good_on_application, advice=None):
     good_context = {
         "description": good_on_application.good.description,
         "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
+        "is_controlled": good_on_application.good.is_good_controlled,
+        "part_number": good_on_application.good.part_number,
     }
     if advice:
         good_context["reason"] = advice.text

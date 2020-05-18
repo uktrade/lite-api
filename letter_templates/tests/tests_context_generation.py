@@ -55,6 +55,8 @@ class DocumentContextGenerationTests(DataTestClient):
             context["control_list_entries"],
             [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         )
+        self.assertEqual(context["is_controlled"], good_on_application.good.is_good_controlled)
+        self.assertEqual(context["part_number"], good_on_application.good.part_number)
 
     def _assert_good_with_advice(self, context, advice, good_on_application):
         goods = context[advice.type if advice.type != AdviceType.PROVISO else AdviceType.APPROVE]
