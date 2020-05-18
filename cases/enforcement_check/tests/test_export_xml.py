@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from xml.etree import ElementTree  # nosec
 
-from applications.models import SiteOnApplication
+from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from cases.enforcement_check.export_xml import _get_address_line_2
 from conf.constants import GovPermissions
 from flags.enums import SystemFlags
@@ -106,6 +106,27 @@ class ExportXML(DataTestClient):
             stakeholder["ADDRESS2"],
             _get_address_line_2(site.address.address_line_2, site.address.postcode, site.address.city),
         )
+
+    def test_export_xml_with_external_location_success(self):
+        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        application = self.create_standard_application_case(self.organisation, parties=False, site=False)
+        application.queues.set([self.queue])
+        application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+        location = self.create_external_location("external", self.organisation)
+        ExternalLocationOnApplication.objects.create(external_location=location, application=application)
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = ElementTree.fromstring(response.content.decode("utf-8"))  # nosec
+        stakeholder = self._xml_to_dict(data[0])
+
+        self.assertEqual(stakeholder["ELA_ID"], str(application.pk.int))
+        self.assertEqual(stakeholder["SH_ID"], str(location.pk.int))
+        self.assertEqual(stakeholder["SH_TYPE"], "SOURCE")
+        self.assertEqual(stakeholder["COUNTRY"], location.country.name)
+        self.assertEqual(stakeholder["ORG_NAME"], location.organisation.name)
+        self.assertEqual(stakeholder["ADDRESS1"], location.address)
 
     def test_export_xml_organisation_only_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])

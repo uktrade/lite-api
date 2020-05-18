@@ -2,7 +2,7 @@ from xml.dom import minidom  # nosec
 from xml.etree import ElementTree  # nosec
 from xml.sax.saxutils import escape  # nosec
 
-from applications.models import PartyOnApplication, SiteOnApplication
+from applications.models import PartyOnApplication, SiteOnApplication, ExternalLocationOnApplication
 from parties.enums import PartyRole, PartyType
 
 
@@ -17,6 +17,7 @@ def export_cases_xml(cases):
     base = ElementTree.Element("ENFORCEMENT_CHECK")
     _export_parties_on_application(case_ids, base)
     _export_sites_on_applications(case_ids, base)
+    _export_external_locations_on_applications(case_ids, base)
     _export_organisations_on_applications(cases, base)
 
     # Export XML
@@ -96,6 +97,30 @@ def _export_parties_on_application(case_ids, xml_base):
             organisation=poa["party__organisation__name"],
             name=poa["party__name"],
             address_line_1=poa["party__address"],
+        )
+
+
+def _export_external_locations_on_applications(case_ids, xml_base):
+    external_locations = (
+        ExternalLocationOnApplication.objects.filter(application_id__in=case_ids)
+        .prefetch_related("external_location")
+        .values(
+            "application_id",
+            "external_location_id",
+            "external_location__country__name",
+            "external_location__organisation__name",
+            "external_location__address",
+        )
+    )
+    for location in external_locations:
+        _entity_to_xml(
+            xml_base,
+            application_id=location["application_id"],
+            id=location["external_location_id"],
+            type="SOURCE",
+            country=location["external_location__country__name"],
+            organisation=location["external_location__organisation__name"],
+            address_line_1=location["external_location__address"],
         )
 
 
