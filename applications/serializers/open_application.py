@@ -11,6 +11,7 @@ from applications.libraries.goodstype_category_helpers import (
 )
 from applications.mixins.serializers import PartiesSerializerMixin
 from applications.models import OpenApplication, CountryOnApplication
+from applications.serializers.advice import CountryWithFlagsSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -24,7 +25,7 @@ from licences.models import Licence
 from licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
-from static.countries.serializers import CountryWithFlagsSerializer, CountrySerializer
+from static.countries.serializers import CountrySerializer
 from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
