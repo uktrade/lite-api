@@ -2,7 +2,7 @@ from applications.models import ApplicationDocument
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice, EcjuQuery, CaseNote
-from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT
+from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
@@ -15,16 +15,35 @@ def _get_address(address):
         "postcode": address.postcode,
         "city": address.city,
         "region": address.region,
-        "country": {
-            "name": address.country.name,
-            "code": address.country.id,
-        }
+        "country": {"name": address.country.name, "code": address.country.id,},
     }
 
 
 def _get_details_context(case):
     return {
-        "end_use_details": case.baseapplication.intended_end_use if hasattr(case, "baseapplication") else None,
+        "end_use_details": getattr(case, "intended_end_use"),
+        "military_end_use_controls": friendly_boolean(getattr(case, "is_military_end_use_controls")),
+        "military_end_use_controls_reference": getattr(case, "military_end_use_controls_ref"),
+        "informed_wmd": friendly_boolean(getattr(case, "is_informed_wmd")),
+        "informed_wmd_reference": getattr(case, "informed_wmd_ref"),
+        "suspected_wmd": friendly_boolean(getattr(case, "is_suspected_wmd")),
+        "suspected_wmd_reference": getattr(case, "suspected_wmd_ref"),
+        "eu_military": friendly_boolean(getattr(case, "is_eu_military")),
+        "compliant_limitations_eu": friendly_boolean(getattr(case, "is_compliant_limitations_eu")),
+        "compliant_limitations_eu_reference": getattr(case, "compliant_limitations_eu_ref"),
+        # Standard Application
+        "export_type": getattr(case, "export_type"),
+        "reference_number_on_information_form": getattr(case, "reference_number_on_information_form"),
+        "has_been_informed": friendly_boolean(getattr(case, "have_you_been_informed")),
+        "contains_firearm_goods": friendly_boolean(getattr(case, "contains_firearm_goods")),
+        "shipped_waybill_or_lading": friendly_boolean(getattr(case, "is_shipped_waybill_or_lading")),
+        "non_waybill_or_lading_route_details": getattr(case, "non_waybill_or_lading_route_details"),
+        "proposed_return_date": case.proposed_return_date.strftime(DATE_FORMAT)
+        if getattr(case, "proposed_return_date")
+        else None,
+        "trade_control_activity": getattr(case, "trade_control_activity"),
+        "trade_control_activity_other": getattr(case, "trade_control_activity_other"),
+        "trade_control_product_categories": getattr(case, "trade_control_product_categories"),
     }
 
 
@@ -39,10 +58,7 @@ def _get_organisation_context(organisation):
         "sic_number": organisation.sic_number,
         "vat_number": organisation.vat_number,
         "registration_number": organisation.registration_number,
-        "primary_site": {
-            "name": organisation.primary_site.name,
-            **_get_address(organisation.primary_site.address)
-        },
+        "primary_site": {"name": organisation.primary_site.name, **_get_address(organisation.primary_site.address)},
     }
 
 
@@ -160,29 +176,19 @@ def _get_case_note_context(note):
 
 
 def _get_site_context(site):
-    return {
-        "name": site.name,
-        **_get_address(site.address)
-    }
+    return {"name": site.name, **_get_address(site.address)}
 
 
 def _get_external_location_context(location):
     return {
         "name": location.name,
         "address": location.address,
-        "country": {
-            "name": location.country.name,
-            "code": location.country.id,
-        }
+        "country": {"name": location.country.name, "code": location.country.id},
     }
 
 
 def _get_document_context(document):
-    return {
-        "id": str(document.id),
-        "name": document.name,
-        "description": document.description
-    }
+    return {"id": str(document.id), "name": document.name, "description": document.description}
 
 
 def get_document_context(case):
@@ -204,22 +210,16 @@ def get_document_context(case):
         "applicant": _get_applicant_context(applicant_audit.actor) if applicant_audit else None,
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
-        "end_user": _get_party_context(case.end_user.party) if hasattr(case, "end_user") and case.end_user else None,
-        "consignee": _get_party_context(case.consignee.party)
-        if hasattr(case, "consignee") and case.consignee
-        else None,
+        "end_user": _get_party_context(case.end_user.party) if getattr(case, "end_user") else None,
+        "consignee": _get_party_context(case.consignee.party) if getattr(case, "consignee") else None,
         "ultimate_end_users": [
             _get_party_context(ultimate_end_user.party) for ultimate_end_user in case.ultimate_end_users
         ]
-        if hasattr(case, "ultimate_end_users") and case.ultimate_end_users
+        if getattr(case, "ultimate_end_users")
         else [],
-        "third_parties": _get_third_parties_context(case.third_parties)
-        if hasattr(case, "third_parties") and case.third_parties
-        else [],
+        "third_parties": _get_third_parties_context(case.third_parties) if getattr(case, "third_parties") else [],
         "goods": _get_goods_context(case.goods, final_advice) if hasattr(case, "goods") and case.goods else None,
-        "goods_type": _get_goods_type_context(case.goods_type)
-        if hasattr(case, "goods_type") and case.goods_type
-        else None,
+        "goods_type": _get_goods_type_context(case.goods_type) if getattr(case, "goods_type") else None,
         "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
         "notes": [_get_case_note_context(note) for note in notes],
         "sites": [_get_site_context(site) for site in sites],

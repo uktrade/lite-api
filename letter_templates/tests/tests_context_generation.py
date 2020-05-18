@@ -1,10 +1,14 @@
+from datetime import date
+
+from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.models import ExternalLocationOnApplication
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType
-from conf.helpers import add_months, DATE_FORMAT
+from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
 from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
 from static.countries.models import Country
+from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
 
 
@@ -15,7 +19,9 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["email"], applicant.email)
 
     def _assert_address(self, context, address):
-        self.assertEqual(context["address_line_1"], address.address_line_1 or address.address,)
+        self.assertEqual(
+            context["address_line_1"], address.address_line_1 or address.address,
+        )
         self.assertEqual(context["address_line_2"], address.address_line_2)
         self.assertEqual(context["postcode"], address.postcode)
         self.assertEqual(context["city"], address.city)
@@ -113,6 +119,30 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["name"], document.name)
         self.assertEqual(context["description"], document.description)
 
+    def _assert_base_application_details(self, context, case):
+        self.assertEqual(context["end_use_details"], case.intended_end_use),
+        self.assertEqual(context["military_end_use_controls"], friendly_boolean(case.is_military_end_use_controls)),
+        self.assertEqual(context["military_end_use_controls_reference"], case.military_end_use_controls_ref),
+        self.assertEqual(context["informed_wmd"], friendly_boolean(case.is_informed_wmd)),
+        self.assertEqual(context["informed_wmd_reference"], case.informed_wmd_ref),
+        self.assertEqual(context["suspected_wmd"], friendly_boolean(case.is_suspected_wmd)),
+        self.assertEqual(context["suspected_wmd_reference"], case.suspected_wmd_ref),
+        self.assertEqual(context["eu_military"], friendly_boolean(case.is_eu_military)),
+        self.assertEqual(context["compliant_limitations_eu"], friendly_boolean(case.is_compliant_limitations_eu)),
+        self.assertEqual(context["compliant_limitations_eu_reference"], case.compliant_limitations_eu_ref),
+
+    def _assert_standard_application_details(self, context, case):
+        self.assertEqual(context["export_type"], case.export_type),
+        self.assertEqual(context["reference_number_on_information_form"], case.reference_number_on_information_form),
+        self.assertEqual(context["has_been_informed"], friendly_boolean(case.have_you_been_informed)),
+        self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods)),
+        self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading)),
+        self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details),
+        self.assertEqual(context["proposed_return_date"], case.proposed_return_date.strftime(DATE_FORMAT)),
+        self.assertEqual(context["trade_control_activity"], case.trade_control_activity),
+        self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other),
+        self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories),
+
     def test_generate_context_with_parties(self):
         # Standard application with all party types
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
@@ -184,14 +214,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_licence(context["licence"], licence)
 
-    def test_generate_context_with_application_details(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-
-        context = get_document_context(case)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self.assertEqual(context["details"]["end_use_details"], case.baseapplication.intended_end_use)
-
     def test_generate_context_with_ecju_query(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         ecju_query = self.create_ecju_query(case)
@@ -239,3 +261,42 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_document(context["documents"][0], document)
+
+    def test_generate_context_with_application_details(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        case.intended_end_use = "abc"
+        case.is_military_end_use_controls = True
+        case.military_end_use_controls_ref = "123"
+        case.is_informed_wmd = False
+        case.informed_wmd_ref = "456"
+        case.is_suspected_wmd = True
+        case.suspected_wmd_ref = "789"
+        case.is_eu_military = False
+        case.is_compliant_limitations_eu = None
+        case.compliant_limitations_eu_ref = "012"
+        case.save()
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_base_application_details(context["details"], case)
+
+    def test_generate_context_with_standard_application_details(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        case.export_type = ApplicationExportType.TEMPORARY
+        case.reference_number_on_information_form = "123"
+        case.has_you_been_informed = ApplicationExportLicenceOfficialType.YES
+        case.contains_firearm_goods = True
+        case.shipped_waybill_or_lading = False
+        case.non_waybill_or_lading_route_details = "abc"
+        case.proposed_return_date = date(year=2020, month=1, day=1)
+        case.trade_control_activity = TradeControlActivity.MARITIME_ANTI_PIRACY
+        case.trade_control_activity_other = "other"
+        case.trade_control_product_categories = [TradeControlProductCategory.CATEGORY_A]
+        case.save()
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_base_application_details(context["details"], case)
+        self._assert_standard_application_details(context["details"], case)
