@@ -1,4 +1,3 @@
-from compat import JsonResponse
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -12,7 +11,6 @@ from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
-from lite_content.lite_api.strings import Cases
 
 
 class EnforcementCheckView(APIView):
@@ -26,7 +24,7 @@ class EnforcementCheckView(APIView):
         cases = Case.objects.filter(queues=queue_pk, flags=Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED))
 
         if not cases:
-            return JsonResponse({"message": Cases.EnforcementCheck.NO_CASES}, status=status.HTTP_200_OK)
+            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
 
         xml = export_cases_xml(cases)
 
