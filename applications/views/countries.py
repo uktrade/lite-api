@@ -130,7 +130,7 @@ class ApplicationContractTypes(APIView):
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     def put(self, request, application):
 
-        if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
+        if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
         data = request.data
