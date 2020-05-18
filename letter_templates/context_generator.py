@@ -100,6 +100,23 @@ def get_goods_context(goods, final_advice):
     return goods_context
 
 
+def get_goods_type_context(goods_type):
+    goods_type_context = {}
+    countries = set(goods_type.values_list("countries", "countries__name"))
+
+    for country_id, country_name in countries:
+        goods = goods_type.filter(countries=country_id)
+        goods_type_context[country_name] = [
+            {
+                "description": good.description,
+                "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
+            }
+            for good in goods
+        ]
+
+    return goods_type_context
+
+
 def get_document_context(case):
     date, time = get_date_and_time()
     licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
@@ -125,4 +142,7 @@ def get_document_context(case):
         if hasattr(case, "third_parties") and case.third_parties
         else [],
         "goods": get_goods_context(case.goods, final_advice) if hasattr(case, "goods") and case.goods else None,
+        "goods_type": get_goods_type_context(case.goods_type)
+        if hasattr(case, "goods_type") and case.goods_type
+        else None,
     }

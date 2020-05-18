@@ -3,6 +3,7 @@ from cases.enums import AdviceLevel, AdviceType
 from conf.helpers import add_months, DATE_FORMAT
 from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
+from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
@@ -59,6 +60,15 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(goods[0]["reason"], advice.text)
         self.assertEqual(goods[0]["note"], advice.note)
 
+    def _assert_goods_type(self, context, country, goods_type):
+        goods_types = context[country.name]
+        self.assertEqual(len(goods_types), 1)
+        self.assertEqual(goods_types[0]["description"], goods_type.description)
+        self.assertEqual(
+            goods_types[0]["control_list_entries"],
+            [clc.rating for clc in goods_type.control_list_entries.all()],
+        )
+
     def test_generate_context(self):
         # Standard application with all party types
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
@@ -101,6 +111,17 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["reference"], case.reference_code)
         self._assert_good(context["goods"], final_advice, case.goods.all()[0])
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["proviso_reason"], final_advice.proviso)
+
+    def test_generate_context_with_goods_types(self):
+        case = self.create_open_application_case(self.organisation)
+        case.goods_type.first().countries.set([Country.objects.first()])
+        case.goods_type.last().countries.set([Country.objects.last()])
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["reference"], case.reference_code)
+        self._assert_goods_type(context["goods_type"], Country.objects.first(), case.goods_type.first())
+        self._assert_goods_type(context["goods_type"], Country.objects.last(), case.goods_type.last())
 
     def test_generate_context_with_licence(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
