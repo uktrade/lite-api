@@ -93,6 +93,8 @@ class GoodsTypeViewSerializer(serializers.Serializer):
     countries = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
+    comment = serializers.CharField()
+    report_summary = serializers.CharField()
 
     def __init__(self, instance=None, data=empty, default_countries=None, **kwargs):
         super().__init__(instance, data, **kwargs)
