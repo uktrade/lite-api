@@ -77,7 +77,7 @@ class FilterAndSortTests(DataTestClient):
 
     def test_filter_by_good_control_list_entry(self):
         application = ApplicationFactory()
-        good = GoodFactory(organisation=application.organisation, is_good_controlled=GoodControlled.YES, control_list_entry="ML1a")
+        good = GoodFactory(organisation=application.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
         GoodOnApplicationFactory(application=application, good=good)
 
         qs_1 = Case.objects.search(control_list_entry="")
