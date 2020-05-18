@@ -76,6 +76,28 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertTrue(set(coa.contract_types).issubset(set(contract_types)))
         self.assertEqual(coa.other_contract_type_text, other_text)
 
+    @tag("2146")
+    def test_set_other_contract_text_without_other_on_country_on_application_success_other_text_not_stored(self):
+        application = self.create_open_application_case(self.organisation)
+
+        contract_types = ["navy", "army"]
+        other_text = "This is some text"
+
+        data = {
+            "countries": ["GB"],
+            "contract_types": contract_types,
+            "other_contract_type_text": other_text,
+        }
+
+        url = reverse("applications:contract_types", kwargs={"pk": application.id})
+
+        response = self.client.put(url, data, **self.exporter_headers)
+        coa = CountryOnApplication.objects.get(country_id="GB", application=application)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(set(coa.contract_types).issubset(set(contract_types)))
+        self.assertEqual(coa.other_contract_type_text, "")
+
     @tag("2146", "no-contract")
     def test_no_contract_types_failure(self):
         application = self.create_open_application_case(self.organisation)
@@ -151,12 +173,3 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES, response.json()["errors"]["contract_types"])
-
-    @tag("2146", "get-details")
-    def test_get_details(self):
-        application = self.create_open_application_case(self.organisation)
-        #
-        url = reverse("applications:application", kwargs={"pk": application.id})
-        response = self.client.get(url, **self.gov_headers)
-
-        print(response.json())
