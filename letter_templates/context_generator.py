@@ -3,7 +3,22 @@ from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice, EcjuQuery, CaseNote
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT
 from licences.models import Licence
+from organisations.models import Site
 from parties.enums import PartyRole
+
+
+def _get_address(address):
+    return {
+        "address_line_1": address.address_line_1 or address.address,
+        "address_line_2": address.address_line_2,
+        "postcode": address.postcode,
+        "city": address.city,
+        "region": address.region,
+        "country": {
+            "name": address.country.name,
+            "code": address.country.id,
+        }
+    }
 
 
 def _get_details_context(case):
@@ -25,16 +40,7 @@ def _get_organisation_context(organisation):
         "registration_number": organisation.registration_number,
         "primary_site": {
             "name": organisation.primary_site.name,
-            "address_line_1": organisation.primary_site.address.address_line_1
-            or organisation.primary_site.address.address,
-            "address_line_2": organisation.primary_site.address.address_line_2,
-            "postcode": organisation.primary_site.address.postcode,
-            "city": organisation.primary_site.address.city,
-            "region": organisation.primary_site.address.region,
-            "country": {
-                "name": organisation.primary_site.address.country.name,
-                "code": organisation.primary_site.address.country.id,
-            },
+            **_get_address(organisation.primary_site.address)
         },
     }
 
@@ -152,6 +158,13 @@ def _get_case_note_context(note):
     }
 
 
+def _get_site_context(site):
+    return {
+        "name": site.name,
+        **_get_address(site.address)
+    }
+
+
 def get_document_context(case):
     date, time = get_date_and_time()
     licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
@@ -159,6 +172,7 @@ def get_document_context(case):
     final_advice = Advice.objects.filter(level=AdviceLevel.FINAL, case_id=case.pk)
     ecju_queries = EcjuQuery.objects.filter(case=case)
     notes = CaseNote.objects.filter(case=case)
+    sites = Site.objects.filter(sites_on_application__application_id=case.pk)
 
     return {
         "reference": case.reference_code,
@@ -186,4 +200,5 @@ def get_document_context(case):
         else None,
         "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
         "notes": [_get_case_note_context(note) for note in notes],
+        "sites": [_get_site_context(site) for site in sites]
     }

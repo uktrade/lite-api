@@ -13,6 +13,15 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["name"], " ".join([applicant.first_name, applicant.last_name]))
         self.assertEqual(context["email"], applicant.email)
 
+    def _assert_address(self, context, address):
+        self.assertEqual(context["address_line_1"], address.address_line_1 or address.address,)
+        self.assertEqual(context["address_line_2"], address.address_line_2)
+        self.assertEqual(context["postcode"], address.postcode)
+        self.assertEqual(context["city"], address.city)
+        self.assertEqual(context["region"], address.region)
+        self.assertEqual(context["country"]["name"], address.country.name)
+        self.assertEqual(context["country"]["code"], address.country.id)
+
     def _assert_organisation(self, context, organisation):
         self.assertEqual(context["name"], organisation.name)
         self.assertEqual(context["eori_number"], organisation.eori_number)
@@ -20,16 +29,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["vat_number"], organisation.vat_number)
         self.assertEqual(context["registration_number"], organisation.registration_number)
         self.assertEqual(context["primary_site"]["name"], organisation.primary_site.name)
-        self.assertEqual(
-            context["primary_site"]["address_line_1"],
-            organisation.primary_site.address.address_line_1 or organisation.primary_site.address.address,
-        )
-        self.assertEqual(context["primary_site"]["address_line_2"], organisation.primary_site.address.address_line_2)
-        self.assertEqual(context["primary_site"]["postcode"], organisation.primary_site.address.postcode)
-        self.assertEqual(context["primary_site"]["city"], organisation.primary_site.address.city)
-        self.assertEqual(context["primary_site"]["region"], organisation.primary_site.address.region)
-        self.assertEqual(context["primary_site"]["country"]["name"], organisation.primary_site.address.country.name)
-        self.assertEqual(context["primary_site"]["country"]["code"], organisation.primary_site.address.country.id)
+        self._assert_address(context["primary_site"], organisation.primary_site.address)
 
     def _assert_licence(self, context, licence):
         self.assertEqual(context["start_date"], licence.start_date.strftime(DATE_FORMAT))
@@ -96,6 +96,10 @@ class DocumentContextGenerationTests(DataTestClient):
         )
         self.assertIsNotNone(context["date"])
         self.assertIsNotNone(context["time"])
+
+    def _assert_site(self, context, site):
+        self.assertEqual(context["name"], site.name)
+        self._assert_address(context, site.address)
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types
@@ -194,3 +198,11 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
         self.assertEqual(context["reference"], case.reference_code)
         self._assert_note(context["notes"][0], note)
+
+    def test_generate_context_with_site(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        site = case.application_sites.first().site
+
+        context = get_document_context(case)
+        self.assertEqual(context["reference"], case.reference_code)
+        self._assert_site(context["sites"][0], site)
