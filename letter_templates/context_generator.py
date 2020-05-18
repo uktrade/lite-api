@@ -1,6 +1,6 @@
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType
-from cases.models import Advice, EcjuQuery
+from cases.models import Advice, EcjuQuery, CaseNote
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT
 from licences.models import Licence
 from parties.enums import PartyRole
@@ -89,7 +89,10 @@ def _get_good_context(good_on_application, advice):
 def _get_goods_context(goods, final_advice):
     final_advice = final_advice.filter(good_id__isnull=False)
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
-    goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods.all()}
+    goods_on_application = {
+        good_on_application.good_id: good_on_application
+        for good_on_application in goods.all().order_by("good__description")
+    }
 
     for advice in final_advice:
         good_on_application = goods_on_application[advice.good_id]
@@ -138,12 +141,22 @@ def _get_ecju_query_context(query):
     return query_context
 
 
+def _get_case_note_context(note):
+    return {
+        "text": note.text,
+        "user": " ".join([note.user.first_name, note.user.last_name]),
+        "date": note.created_at.strftime(DATE_FORMAT),
+        "time": note.created_at.strftime(TIME_FORMAT),
+    }
+
+
 def get_document_context(case):
     date, time = get_date_and_time()
     licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
     applicant_audit = Audit.objects.filter(target_object_id=case.id).first()
     final_advice = Advice.objects.filter(level=AdviceLevel.FINAL, case_id=case.pk)
     ecju_queries = EcjuQuery.objects.filter(case=case)
+    notes = CaseNote.objects.filter(case=case)
 
     return {
         "reference": case.reference_code,
@@ -170,4 +183,5 @@ def get_document_context(case):
         if hasattr(case, "goods_type") and case.goods_type
         else None,
         "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
+        "notes": [_get_case_note_context(note) for note in notes],
     }

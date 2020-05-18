@@ -84,6 +84,14 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertIsNotNone(context["response"]["date"])
         self.assertIsNotNone(context["response"]["time"])
 
+    def _assert_note(self, context, note):
+        self.assertEqual(context["text"], note.text)
+        self.assertEqual(
+            context["user"], " ".join([note.user.first_name, note.user.last_name]),
+        )
+        self.assertIsNotNone(context["date"])
+        self.assertIsNotNone(context["time"])
+
     def test_generate_context(self):
         # Standard application with all party types
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
@@ -165,3 +173,11 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
         self.assertEqual(context["reference"], case.reference_code)
         self._assert_ecju_query(context["ecju_queries"][0], ecju_query)
+
+    def test_generate_context_with_case_note(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        note = self.create_case_note(case, "text", self.gov_user)
+
+        context = get_document_context(case)
+        self.assertEqual(context["reference"], case.reference_code)
+        self._assert_note(context["notes"][0], note)
