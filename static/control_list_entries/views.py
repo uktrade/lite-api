@@ -3,6 +3,7 @@ from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
+from conf.authentication import SharedAuthentication
 from static.control_list_entries.helpers import get_control_list_entry
 from static.control_list_entries.models import ControlListEntry
 from static.control_list_entries.serializers import ControlListEntrySerializerWithLinks
@@ -13,6 +14,8 @@ class ControlListEntriesList(APIView):
     """
     List all Control Ratings
     """
+
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request):
         """
@@ -37,6 +40,8 @@ class ControlListEntryDetail(APIView):
     """
     Details of a specific control list entry
     """
+
+    authentication_classes = (SharedAuthentication,)
 
     def get(self, request, rating):
         """

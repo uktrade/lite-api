@@ -19,8 +19,8 @@ class EndPointTests(SimpleTestCase):
     """
 
     # request headers
-    exporter = None
-    gov_user = None
+    exporter_headers = None
+    gov_headers = None
 
     # output variables
     time = None
@@ -52,7 +52,7 @@ class EndPointTests(SimpleTestCase):
     routing_rule_id = None
 
     def call_endpoint(self, user, appended_address, save_results=True):
-        response = get(user, appended_address)
+        response = get(appended_address, user)
 
         if save_results:
             # if save is set this is the final endpoint we wish to hit, and we want to store the time against
@@ -91,23 +91,23 @@ class EndPointTests(SimpleTestCase):
 
         super().tearDownClass()
 
-    def get_exporter(self):
+    def get_exporter_headers(self):
         """
         Will try and get or fetch the exporter headers
         :return: exporter headers
         """
-        if not self.exporter:
-            self.exporter = login_exporter()
-        return self.exporter
+        if not self.exporter_headers:
+            self.exporter_headers = login_exporter()
+        return self.exporter_headers
 
-    def get_gov_user(self):
+    def get_gov_headers(self):
         """
         Will try and get or fetch the gov user headers
         :return: gov user headers
         """
-        if not self.gov_user:
-            self.gov_user = login_internal()
-        return self.gov_user
+        if not self.gov_headers:
+            self.gov_headers = login_internal()
+        return self.gov_headers
 
     def get_standard_application(self):
         """
@@ -134,7 +134,7 @@ class EndPointTests(SimpleTestCase):
         return self.open_application_id
 
     def _get_application_by_case_type(self, case_type, attribute):
-        response = self.call_endpoint(self.get_exporter(), "/applications/", save_results=False).json()
+        response = self.call_endpoint(self.get_exporter_headers(), "/applications/", save_results=False).json()
         for page in range(0, response["total_pages"]):
             for application in response["results"]:
                 if application["case_type"]["sub_type"]["key"] == case_type:
@@ -142,7 +142,7 @@ class EndPointTests(SimpleTestCase):
                     break
             else:
                 response = self.call_endpoint(
-                    self.get_exporter(), "/applications/?page=" + str(page + 1), save_results=False
+                    self.get_exporter_headers(), "/applications/?page=" + str(page + 1), save_results=False
                 ).json()
                 continue
 
@@ -154,7 +154,7 @@ class EndPointTests(SimpleTestCase):
     def get_application_goodstype_id(self):
         if not self.goods_type_id:
             response = self.call_endpoint(
-                self.get_exporter(),
+                self.get_exporter_headers(),
                 "/applications/" + self.get_open_application()["id"] + "/goodstypes/",
                 save_results=False,
             )
@@ -168,7 +168,7 @@ class EndPointTests(SimpleTestCase):
     def get_party_on_application_id(self):
         if not self.application_party_id:
             response = self.call_endpoint(
-                self.get_exporter(),
+                self.get_exporter_headers(),
                 "/applications/" + self.get_standard_application()["id"] + "/parties/",
                 save_results=False,
             )
@@ -181,7 +181,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_good_id(self):
         if not self.good_id:
-            response = self.call_endpoint(self.get_exporter(), "/goods/", save_results=False)
+            response = self.call_endpoint(self.get_exporter_headers(), "/goods/", save_results=False)
             try:
                 self.good_id = response.json()["results"][0]["id"]
             except IndexError:
@@ -192,7 +192,7 @@ class EndPointTests(SimpleTestCase):
     def get_good_document_id(self):
         if not self.good_document_id:
             response = self.call_endpoint(
-                self.get_exporter(), "/goods/" + self.get_good_id() + "/documents/", save_results=False
+                self.get_exporter_headers(), "/goods/" + self.get_good_id() + "/documents/", save_results=False
             )
             try:
                 self.good_document_id = response.json()["documents"][0]["id"]
@@ -204,8 +204,8 @@ class EndPointTests(SimpleTestCase):
     def get_organisation_user_id(self):
         if not self.organisation_user_id:
             response = self.call_endpoint(
-                self.get_exporter(),
-                "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/users/",
+                self.get_exporter_headers(),
+                "/organisations/" + self.get_exporter_headers()["ORGANISATION-ID"] + "/users/",
                 save_results=False,
             )
             try:
@@ -218,8 +218,8 @@ class EndPointTests(SimpleTestCase):
     def get_organisation_role_id(self):
         if not self.organisation_role_id:
             response = self.call_endpoint(
-                self.get_exporter(),
-                "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/roles/",
+                self.get_exporter_headers(),
+                "/organisations/" + self.get_exporter_headers()["ORGANISATION-ID"] + "/roles/",
                 save_results=False,
             )
             try:
@@ -232,8 +232,8 @@ class EndPointTests(SimpleTestCase):
     def get_organisation_site_id(self):
         if not self.organisation_site_id:
             response = self.call_endpoint(
-                self.get_exporter(),
-                "/organisations/" + self.get_exporter()["ORGANISATION-ID"] + "/sites/",
+                self.get_exporter_headers(),
+                "/organisations/" + self.get_exporter_headers()["ORGANISATION-ID"] + "/sites/",
                 save_results=False,
             )
 
@@ -246,7 +246,9 @@ class EndPointTests(SimpleTestCase):
 
     def get_end_user_advisory_id(self):
         if not self.end_user_advisory_id:
-            response = self.call_endpoint(self.get_exporter(), "/queries/end-user-advisories/", save_results=False)
+            response = self.call_endpoint(
+                self.get_exporter_headers(), "/queries/end-user-advisories/", save_results=False
+            )
 
             try:
                 self.end_user_advisory_id = response.json()["results"][0]["id"]
@@ -257,7 +259,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_users_id(self):
         if not self.users_id:
-            exporter = self.get_exporter()
+            exporter = self.get_exporter_headers()
             response = self.call_endpoint(
                 exporter, "/organisations/" + exporter["ORGANISATION-ID"] + "/users/", save_results=False
             )
@@ -268,7 +270,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_team_id(self):
         if not self.team_id:
-            response = self.call_endpoint(self.get_gov_user(), "/teams/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/teams/", save_results=False)
 
             self.team_id = response.json()["teams"][0]["id"]
 
@@ -276,7 +278,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_queue_id(self):
         if not self.queue_id:
-            response = self.call_endpoint(self.get_gov_user(), "/queues/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/queues/", save_results=False)
 
             self.queue_id = response.json()["results"][0]["id"]
 
@@ -284,7 +286,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_picklist_id(self):
         if not self.picklist_id:
-            response = self.call_endpoint(self.get_gov_user(), "/picklist/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/picklist/", save_results=False)
 
             try:
                 self.picklist_id = response.json()["results"][0]["id"]
@@ -295,7 +297,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_letter_template_id(self):
         if not self.letter_template_id:
-            response = self.call_endpoint(self.get_gov_user(), "/letter-templates/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/letter-templates/", save_results=False)
 
             try:
                 self.letter_template_id = response.json()["results"][0]["id"]
@@ -306,7 +308,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_gov_user_id(self):
         if not self.gov_user_id:
-            response = self.call_endpoint(self.get_gov_user(), "/gov-users/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/gov-users/", save_results=False)
 
             self.gov_user_id = response.json()["results"][0]["id"]
 
@@ -314,7 +316,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_gov_user_role_id(self):
         if not self.gov_user_role_id:
-            response = self.call_endpoint(self.get_gov_user(), "/gov-users/roles/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/gov-users/roles/", save_results=False)
 
             self.gov_user_role_id = response.json()["roles"][0]["id"]
 
@@ -322,7 +324,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_flag_id(self):
         if not self.flag_id:
-            response = self.call_endpoint(self.get_gov_user(), "/flags/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/flags/", save_results=False)
 
             try:
                 self.flag_id = response.json()["results"][0]["id"]
@@ -333,7 +335,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_flagging_rules_id(self):
         if not self.flagging_rule_id:
-            response = self.call_endpoint(self.get_gov_user(), "/flags/rules/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/flags/rules/", save_results=False)
 
             try:
                 self.flagging_rule_id = response.json()["results"][0]["id"]
@@ -344,7 +346,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_case_id(self):
         if not self.case_id:
-            response = self.call_endpoint(self.get_gov_user(), "/cases/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/cases/", save_results=False)
 
             self.case_id = response.json()["results"]["cases"][0]["id"]
 
@@ -353,7 +355,7 @@ class EndPointTests(SimpleTestCase):
     def get_case_document(self):
         if not self.case_document:
             response = self.call_endpoint(
-                self.get_gov_user(), "/cases/" + self.get_case_id() + "/documents/", save_results=False
+                self.get_gov_headers(), "/cases/" + self.get_case_id() + "/documents/", save_results=False
             )
             try:
                 self.case_document = response.json()["documents"][0]
@@ -365,7 +367,7 @@ class EndPointTests(SimpleTestCase):
     def get_case_ecju_query_id(self):
         if not self.case_ecju_query_id:
             response = self.call_endpoint(
-                self.get_gov_user(), self.url + self.get_case_id() + "/ecju-queries/", save_results=False
+                self.get_gov_headers(), self.url + self.get_case_id() + "/ecju-queries/", save_results=False
             )
             try:
                 self.case_ecju_query_id = response.json()["ecju_queries"][0]["id"]
@@ -376,7 +378,7 @@ class EndPointTests(SimpleTestCase):
 
     def get_routing_rule_id(self):
         if not self.routing_rule_id:
-            response = self.call_endpoint(self.get_gov_user(), "/routing-rules/", save_results=False)
+            response = self.call_endpoint(self.get_gov_headers(), "/routing-rules/", save_results=False)
 
             try:
                 self.routing_rule_id = response.json()["results"][0]["id"]

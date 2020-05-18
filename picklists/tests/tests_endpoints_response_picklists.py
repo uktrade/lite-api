@@ -5,10 +5,10 @@ class PicklistsResponseTests(EndPointTests):
     url = "/picklist/"
 
     def test_picklist_list(self):
-        self.call_endpoint(self.get_gov_user(), self.url)
+        self.call_endpoint(self.get_gov_headers(), self.url)
 
     def test_picklist_list_for_inputs(self):
-        self.call_endpoint(self.get_gov_user(), self.url + "?disable_pagination=True")
+        self.call_endpoint(self.get_gov_headers(), self.url + "?disable_pagination=True")
 
     def test_picklist_detail(self):
-        self.call_endpoint(self.get_gov_user(), self.url + self.get_picklist_id())
+        self.call_endpoint(self.get_gov_headers(), self.url + self.get_picklist_id())

@@ -2,7 +2,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.enums import ApplicationExportType
-from applications.enums import GoodsCategory
 from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
@@ -284,7 +283,7 @@ class StandardApplicationTests(DataTestClient):
     def test_submit_standard_application_adds_system_case_flags_success(self):
         self.draft.is_military_end_use_controls = True
         self.draft.is_informed_wmd = True
-        self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
+        self.draft.contains_firearm_goods = True
         self.draft.save()
         data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
 
@@ -295,14 +294,13 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(SystemFlags.MILITARY_END_USE_ID, case_flags)
         self.assertIn(SystemFlags.WMD_END_USE_ID, case_flags)
-        self.assertIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)
         self.assertIn(SystemFlags.FIREARMS_ID, case_flags)
 
     def test_resubmit_edited_standard_application_removes_system_case_flags_success(self):
         # Create draft application with properties that have associated system flags
         self.draft.is_military_end_use_controls = True
         self.draft.is_suspected_wmd = True
-        self.draft.goods_categories = [GoodsCategory.MARITIME_ANTI_PIRACY, GoodsCategory.FIREARMS]
+        self.draft.contains_firearm_goods = True
         self.draft.save()
 
         # Submit application (this function also adds system flags)
@@ -315,7 +313,7 @@ class StandardApplicationTests(DataTestClient):
         # Update application properties
         self.draft.is_military_end_use_controls = False
         self.draft.is_suspected_wmd = False
-        self.draft.goods_categories = None
+        self.draft.contains_firearm_goods = False
         self.draft.save()
 
         # Re-submit application

@@ -8,13 +8,13 @@ from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from goods.enums import ItemType
 from goods.models import Good
-from goods.serializers import GoodSerializer
+from goods.serializers import GoodCreateSerializer, GoodSerializerInternal
 from lite_content.lite_api import strings
 from static.units.enums import Units
 
 
 class GoodOnApplicationLicenceQuantitySerializer(serializers.ModelSerializer):
-    good = GoodSerializer(read_only=True)
+    good = GoodCreateSerializer(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
 
     class Meta:
@@ -62,7 +62,7 @@ class GoodOnApplicationLicenceQuantityCreateSerializer(serializers.ModelSerializ
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
-    good = GoodSerializer(read_only=True)
+    good = GoodSerializerInternal(read_only=True)
     unit = KeyValueChoiceField(choices=Units.choices)
     flags = serializers.SerializerMethodField()
 

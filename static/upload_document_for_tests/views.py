@@ -5,10 +5,13 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from conf.authentication import SharedAuthentication
 from conf.settings import env
 
 
 class UploadDocumentForTests(APIView):
+    authentication_classes = (SharedAuthentication,)
+
     def get(self, request):
         upload_document_endpoint_enabled = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
