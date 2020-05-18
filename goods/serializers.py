@@ -275,6 +275,8 @@ class GoodSerializerInternal(serializers.Serializer):
     report_summary = serializers.CharField()
     flags = GoodsFlagSerializer(many=True)
     documents = serializers.SerializerMethodField()
+    grading_comment = serializers.CharField()
+    pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
