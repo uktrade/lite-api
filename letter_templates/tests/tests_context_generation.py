@@ -65,9 +65,24 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(len(goods_types), 1)
         self.assertEqual(goods_types[0]["description"], goods_type.description)
         self.assertEqual(
-            goods_types[0]["control_list_entries"],
-            [clc.rating for clc in goods_type.control_list_entries.all()],
+            goods_types[0]["control_list_entries"], [clc.rating for clc in goods_type.control_list_entries.all()],
         )
+
+    def _assert_ecju_query(self, context, ecju_query):
+        self.assertEqual(context["question"]["text"], ecju_query.question)
+        self.assertEqual(
+            context["question"]["user"],
+            " ".join([ecju_query.raised_by_user.first_name, ecju_query.raised_by_user.last_name]),
+        )
+        self.assertIsNotNone(context["question"]["date"])
+        self.assertIsNotNone(context["question"]["time"])
+        self.assertEqual(context["response"]["text"], ecju_query.response)
+        self.assertEqual(
+            context["response"]["user"],
+            " ".join([ecju_query.responded_by_user.first_name, ecju_query.responded_by_user.last_name]),
+        )
+        self.assertIsNotNone(context["response"]["date"])
+        self.assertIsNotNone(context["response"]["time"])
 
     def test_generate_context(self):
         # Standard application with all party types
@@ -139,3 +154,14 @@ class DocumentContextGenerationTests(DataTestClient):
 
         self.assertEqual(context["reference"], case.reference_code)
         self.assertEqual(context["details"]["end_use_details"], case.baseapplication.intended_end_use)
+
+    def test_generate_context_with_ecju_query(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        ecju_query = self.create_ecju_query(case)
+        ecju_query.response = "abc"
+        ecju_query.responded_by_user = self.exporter_user
+        ecju_query.save()
+
+        context = get_document_context(case)
+        self.assertEqual(context["reference"], case.reference_code)
+        self._assert_ecju_query(context["ecju_queries"][0], ecju_query)
