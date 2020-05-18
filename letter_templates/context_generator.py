@@ -70,29 +70,29 @@ def _get_third_parties_context(third_parties):
     return third_parties_context
 
 
-def _get_good_context(good_on_application, advice):
+def _get_good_context(good_on_application, advice=None):
     good_context = {
         "description": good_on_application.good.description,
         "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
-        "reason": advice.text,
-        "note": advice.note,
     }
+    if advice:
+        good_context["reason"] = advice.text
+        good_context["note"] = advice.note
+        if advice.proviso:
+            good_context["proviso_reason"] = advice.proviso
     if good_on_application.licenced_quantity:
         good_context["quantity"] = good_on_application.licenced_quantity
     if good_on_application.licenced_value:
         good_context["value"] = good_on_application.licenced_value
-    if advice.proviso:
-        good_context["proviso_reason"] = advice.proviso
     return good_context
 
 
 def _get_goods_context(goods, final_advice):
     final_advice = final_advice.filter(good_id__isnull=False)
+    goods = goods.all().order_by("good__description")
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
-    goods_on_application = {
-        good_on_application.good_id: good_on_application
-        for good_on_application in goods.all().order_by("good__description")
-    }
+    goods_context["all"] = [_get_good_context(good_on_application) for good_on_application in goods]
+    goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods}
 
     for advice in final_advice:
         good_on_application = goods_on_application[advice.good_id]

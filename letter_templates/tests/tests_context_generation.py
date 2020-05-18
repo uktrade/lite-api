@@ -49,14 +49,17 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(len(context[third_party.role]), 1)
         self._assert_party(context[third_party.role][0], third_party)
 
-    def _assert_good(self, context, advice, good_on_application):
-        goods = context[advice.type if advice.type != AdviceType.PROVISO else AdviceType.APPROVE]
-        self.assertEqual(len(goods), 1)
-        self.assertEqual(goods[0]["description"], good_on_application.good.description)
+    def _assert_good(self, context, good_on_application):
+        self.assertEqual(context["description"], good_on_application.good.description)
         self.assertEqual(
-            goods[0]["control_list_entries"],
+            context["control_list_entries"],
             [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         )
+
+    def _assert_good_with_advice(self, context, advice, good_on_application):
+        goods = context[advice.type if advice.type != AdviceType.PROVISO else AdviceType.APPROVE]
+        self.assertEqual(len(goods), 1)
+        self._assert_good(goods[0], good_on_application)
         self.assertEqual(goods[0]["reason"], advice.text)
         self.assertEqual(goods[0]["note"], advice.note)
 
@@ -92,7 +95,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertIsNotNone(context["date"])
         self.assertIsNotNone(context["time"])
 
-    def test_generate_context(self):
+    def test_generate_context_with_parties(self):
         # Standard application with all party types
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         self.create_party("Ultimate end user", self.organisation, PartyType.ULTIMATE_END_USER, case)
@@ -112,6 +115,14 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(len(context["third_parties"]), 2)
         self._assert_third_party(context["third_parties"], case.third_parties[0].party)
 
+    def test_generate_context_with_goods(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["reference"], case.reference_code)
+        self._assert_good(context["goods"]["all"][0], case.goods.all()[0])
+
     def test_generate_context_with_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
@@ -121,7 +132,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["reference"], case.reference_code)
-        self._assert_good(context["goods"], final_advice, case.goods.all()[0])
+        self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
 
     def test_generate_context_with_proviso_advice_on_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
@@ -132,7 +143,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["reference"], case.reference_code)
-        self._assert_good(context["goods"], final_advice, case.goods.all()[0])
+        self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["proviso_reason"], final_advice.proviso)
 
     def test_generate_context_with_goods_types(self):
