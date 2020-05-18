@@ -26,7 +26,7 @@ class EnforcementCheckView(APIView):
         cases = Case.objects.filter(queues=queue_pk, flags=Flag.objects.get(id=SystemFlags.ENFORCEMENT_CHECK_REQUIRED))
 
         if not cases:
-            return JsonResponse({"errors": [Cases.EnforcementCheck.NO_CASES]}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({"errors": [Cases.EnforcementCheck.NO_CASES]}, status=status.HTTP_404_NOT_FOUND)
 
         xml = export_cases_xml(cases)
 
