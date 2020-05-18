@@ -397,7 +397,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
     def test_edit_exhibition_required_by_date_draft_success(self):
         data = {
             "title": self.application.title,
-            "required_by_date": "2021-05-15",
+            "required_by_date": "2022-05-15",
             "first_exhibition_date": self.application.first_exhibition_date,
         }
 
