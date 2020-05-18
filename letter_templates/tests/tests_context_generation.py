@@ -108,6 +108,11 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["country"]["name"], external_location.country.name)
         self.assertEqual(context["country"]["code"], external_location.country.id)
 
+    def _assert_document(self, context, document):
+        self.assertEqual(context["id"], str(document.id))
+        self.assertEqual(context["name"], document.name)
+        self.assertEqual(context["description"], document.description)
+
     def test_generate_context_with_parties(self):
         # Standard application with all party types
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
@@ -195,6 +200,7 @@ class DocumentContextGenerationTests(DataTestClient):
         ecju_query.save()
 
         context = get_document_context(case)
+
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_ecju_query(context["ecju_queries"][0], ecju_query)
 
@@ -203,6 +209,7 @@ class DocumentContextGenerationTests(DataTestClient):
         note = self.create_case_note(case, "text", self.gov_user)
 
         context = get_document_context(case)
+
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_note(context["notes"][0], note)
 
@@ -211,6 +218,7 @@ class DocumentContextGenerationTests(DataTestClient):
         site = case.application_sites.first().site
 
         context = get_document_context(case)
+
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_site(context["sites"][0], site)
 
@@ -220,5 +228,14 @@ class DocumentContextGenerationTests(DataTestClient):
         ExternalLocationOnApplication.objects.create(external_location=location, application=case)
 
         context = get_document_context(case)
+
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_external_location(context["external_locations"][0], location)
+
+    def test_generate_context_with_document(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        document = self.create_application_document(case)
+
+        context = get_document_context(case)
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_document(context["documents"][0], document)

@@ -1,3 +1,4 @@
+from applications.models import ApplicationDocument
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice, EcjuQuery, CaseNote
@@ -176,6 +177,14 @@ def _get_external_location_context(location):
     }
 
 
+def _get_document_context(document):
+    return {
+        "id": str(document.id),
+        "name": document.name,
+        "description": document.description
+    }
+
+
 def get_document_context(case):
     date, time = get_date_and_time()
     licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
@@ -185,6 +194,7 @@ def get_document_context(case):
     notes = CaseNote.objects.filter(case=case)
     sites = Site.objects.filter(sites_on_application__application_id=case.pk)
     external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
+    documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
 
     return {
         "case_reference": case.reference_code,
@@ -214,4 +224,5 @@ def get_document_context(case):
         "notes": [_get_case_note_context(note) for note in notes],
         "sites": [_get_site_context(site) for site in sites],
         "external_locations": [_get_external_location_context(location) for location in external_locations],
+        "documents": [_get_document_context(document) for document in documents],
     }
