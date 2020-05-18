@@ -187,9 +187,9 @@ def get_document_context(case):
     external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
 
     return {
-        "reference": case.reference_code,
-        "date": date,
-        "time": time,
+        "case_reference": case.reference_code,
+        "current_date": date,
+        "current_time": time,
         "details": _get_details_context(case),
         "applicant": _get_applicant_context(applicant_audit.actor) if applicant_audit else None,
         "organisation": _get_organisation_context(case.organisation),

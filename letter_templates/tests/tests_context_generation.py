@@ -115,9 +115,9 @@ class DocumentContextGenerationTests(DataTestClient):
 
         context = get_document_context(case)
 
-        self.assertEqual(context["reference"], case.reference_code)
-        self.assertIsNotNone(context["date"])
-        self.assertIsNotNone(context["time"])
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertIsNotNone(context["current_date"])
+        self.assertIsNotNone(context["current_time"])
         self._assert_applicant(context["applicant"], case)
         self._assert_organisation(context["organisation"], self.organisation)
         self._assert_party(context["end_user"], case.end_user.party)
@@ -133,7 +133,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
         context = get_document_context(case)
 
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_good(context["goods"]["all"][0], case.goods.all()[0])
 
     def test_generate_context_with_advice_on_goods(self):
@@ -144,7 +144,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
         context = get_document_context(case)
 
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
 
     def test_generate_context_with_proviso_advice_on_goods(self):
@@ -155,7 +155,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
         context = get_document_context(case)
 
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["proviso_reason"], final_advice.proviso)
 
@@ -166,7 +166,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
         context = get_document_context(case)
 
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_goods_type(context["goods_type"], Country.objects.first(), case.goods_type.first())
         self._assert_goods_type(context["goods_type"], Country.objects.last(), case.goods_type.last())
 
@@ -176,7 +176,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
         context = get_document_context(case)
 
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_licence(context["licence"], licence)
 
     def test_generate_context_with_application_details(self):
@@ -184,7 +184,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
         context = get_document_context(case)
 
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self.assertEqual(context["details"]["end_use_details"], case.baseapplication.intended_end_use)
 
     def test_generate_context_with_ecju_query(self):
@@ -195,7 +195,7 @@ class DocumentContextGenerationTests(DataTestClient):
         ecju_query.save()
 
         context = get_document_context(case)
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_ecju_query(context["ecju_queries"][0], ecju_query)
 
     def test_generate_context_with_case_note(self):
@@ -203,7 +203,7 @@ class DocumentContextGenerationTests(DataTestClient):
         note = self.create_case_note(case, "text", self.gov_user)
 
         context = get_document_context(case)
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_note(context["notes"][0], note)
 
     def test_generate_context_with_site(self):
@@ -211,7 +211,7 @@ class DocumentContextGenerationTests(DataTestClient):
         site = case.application_sites.first().site
 
         context = get_document_context(case)
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_site(context["sites"][0], site)
 
     def test_generate_context_with_external_locations(self):
@@ -220,5 +220,5 @@ class DocumentContextGenerationTests(DataTestClient):
         ExternalLocationOnApplication.objects.create(external_location=location, application=case)
 
         context = get_document_context(case)
-        self.assertEqual(context["reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_external_location(context["external_locations"][0], location)
