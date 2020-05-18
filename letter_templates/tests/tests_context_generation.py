@@ -9,6 +9,7 @@ from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
 from static.countries.models import Country
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
+from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
@@ -64,6 +65,9 @@ class DocumentContextGenerationTests(DataTestClient):
         )
         self.assertEqual(context["is_controlled"], good_on_application.good.is_good_controlled)
         self.assertEqual(context["part_number"], good_on_application.good.part_number)
+        self.assertTrue(str(good_on_application.quantity) in context["applied_for_quantity"])
+        self.assertTrue(Units.dict_format[good_on_application.unit] in context["applied_for_quantity"])
+        self.assertEqual(context["applied_for_value"], f"£{good_on_application.value}")
 
     def _assert_good_with_advice(self, context, advice, good_on_application):
         goods = context[advice.type if advice.type != AdviceType.PROVISO else AdviceType.APPROVE]
@@ -71,6 +75,9 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_good(goods[0], good_on_application)
         self.assertEqual(goods[0]["reason"], advice.text)
         self.assertEqual(goods[0]["note"], advice.note)
+        self.assertTrue(str(good_on_application.licenced_quantity) in goods[0]["quantity"])
+        self.assertTrue(Units.dict_format[good_on_application.unit] in goods[0]["quantity"])
+        self.assertEqual(goods[0]["value"], f"£{good_on_application.licenced_value}")
 
     def _assert_goods_type(self, context, country, goods_type):
         goods_types = context[country.name]
@@ -176,6 +183,10 @@ class DocumentContextGenerationTests(DataTestClient):
         final_advice = self.create_advice(
             self.gov_user, case, "good", AdviceType.APPROVE, AdviceLevel.FINAL, advice_text="abc",
         )
+        good = case.goods.first()
+        good.licenced_quantity = 10
+        good.licenced_value = 15
+        good.save()
 
         context = get_document_context(case)
 
@@ -187,6 +198,10 @@ class DocumentContextGenerationTests(DataTestClient):
         final_advice = self.create_advice(
             self.gov_user, case, "good", AdviceType.PROVISO, AdviceLevel.FINAL, advice_text="abc",
         )
+        good = case.goods.first()
+        good.licenced_quantity = 15
+        good.licenced_value = 20
+        good.save()
 
         context = get_document_context(case)
 

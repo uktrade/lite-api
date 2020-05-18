@@ -55,12 +55,31 @@ def friendly_boolean(boolean):
     """
     Returns 'Yes' if a boolean is equal to True, else 'No'
     """
-    if boolean is None:
+    if boolean is None or boolean == "":
         return None
     elif boolean is True or str(boolean).lower() == "true":
         return "Yes"
     else:
         return "No"
+
+
+def pluralise_unit(unit, value):
+    """
+    Modify units given from the API to include an 's' if the
+    value is not singular.
+
+    Units require an (s) at the end of their names to
+    use this functionality.
+    """
+    is_singular = value == "1"
+
+    if "(s)" in unit:
+        if is_singular:
+            return unit.replace("(s)", "")
+        else:
+            return unit.replace("(s)", "s")
+
+    return unit
 
 
 def get_date_and_time():

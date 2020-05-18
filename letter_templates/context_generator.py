@@ -1,11 +1,14 @@
+from django.contrib.humanize.templatetags.humanize import intcomma
+
 from applications.models import ApplicationDocument
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice, EcjuQuery, CaseNote
-from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
+from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
+from static.units.enums import Units
 
 
 def _get_address(address):
@@ -21,29 +24,29 @@ def _get_address(address):
 
 def _get_details_context(case):
     return {
-        "end_use_details": getattr(case, "intended_end_use"),
-        "military_end_use_controls": friendly_boolean(getattr(case, "is_military_end_use_controls")),
-        "military_end_use_controls_reference": getattr(case, "military_end_use_controls_ref"),
-        "informed_wmd": friendly_boolean(getattr(case, "is_informed_wmd")),
-        "informed_wmd_reference": getattr(case, "informed_wmd_ref"),
-        "suspected_wmd": friendly_boolean(getattr(case, "is_suspected_wmd")),
-        "suspected_wmd_reference": getattr(case, "suspected_wmd_ref"),
-        "eu_military": friendly_boolean(getattr(case, "is_eu_military")),
-        "compliant_limitations_eu": friendly_boolean(getattr(case, "is_compliant_limitations_eu")),
-        "compliant_limitations_eu_reference": getattr(case, "compliant_limitations_eu_ref"),
+        "end_use_details": getattr(case, "intended_end_use", ""),
+        "military_end_use_controls": friendly_boolean(getattr(case, "is_military_end_use_controls", "")),
+        "military_end_use_controls_reference": getattr(case, "military_end_use_controls_ref", ""),
+        "informed_wmd": friendly_boolean(getattr(case, "is_informed_wmd", "")),
+        "informed_wmd_reference": getattr(case, "informed_wmd_ref", ""),
+        "suspected_wmd": friendly_boolean(getattr(case, "is_suspected_wmd", "")),
+        "suspected_wmd_reference": getattr(case, "suspected_wmd_ref", ""),
+        "eu_military": friendly_boolean(getattr(case, "is_eu_military", "")),
+        "compliant_limitations_eu": friendly_boolean(getattr(case, "is_compliant_limitations_eu", "")),
+        "compliant_limitations_eu_reference": getattr(case, "compliant_limitations_eu_ref", ""),
         # Standard Application
         "export_type": getattr(case, "export_type"),
-        "reference_number_on_information_form": getattr(case, "reference_number_on_information_form"),
-        "has_been_informed": friendly_boolean(getattr(case, "have_you_been_informed")),
-        "contains_firearm_goods": friendly_boolean(getattr(case, "contains_firearm_goods")),
-        "shipped_waybill_or_lading": friendly_boolean(getattr(case, "is_shipped_waybill_or_lading")),
-        "non_waybill_or_lading_route_details": getattr(case, "non_waybill_or_lading_route_details"),
+        "reference_number_on_information_form": getattr(case, "reference_number_on_information_form", ""),
+        "has_been_informed": friendly_boolean(getattr(case, "have_you_been_informed", "")),
+        "contains_firearm_goods": friendly_boolean(getattr(case, "contains_firearm_goods", "")),
+        "shipped_waybill_or_lading": friendly_boolean(getattr(case, "is_shipped_waybill_or_lading", "")),
+        "non_waybill_or_lading_route_details": getattr(case, "non_waybill_or_lading_route_details", ""),
         "proposed_return_date": case.proposed_return_date.strftime(DATE_FORMAT)
-        if getattr(case, "proposed_return_date")
+        if getattr(case, "proposed_return_date", "")
         else None,
-        "trade_control_activity": getattr(case, "trade_control_activity"),
-        "trade_control_activity_other": getattr(case, "trade_control_activity_other"),
-        "trade_control_product_categories": getattr(case, "trade_control_product_categories"),
+        "trade_control_activity": getattr(case, "trade_control_activity", ""),
+        "trade_control_activity_other": getattr(case, "trade_control_activity_other", ""),
+        "trade_control_product_categories": getattr(case, "trade_control_product_categories", ""),
     }
 
 
@@ -93,12 +96,18 @@ def _get_third_parties_context(third_parties):
     return third_parties_context
 
 
+def _format_quantity(quantity, unit):
+    return " ".join([intcomma(quantity), pluralise_unit(Units.dict_format[unit], quantity),])
+
+
 def _get_good_context(good_on_application, advice=None):
     good_context = {
         "description": good_on_application.good.description,
         "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         "is_controlled": good_on_application.good.is_good_controlled,
         "part_number": good_on_application.good.part_number,
+        "applied_for_quantity": _format_quantity(good_on_application.quantity, good_on_application.unit),
+        "applied_for_value": f"£{good_on_application.value}"
     }
     if advice:
         good_context["reason"] = advice.text
@@ -106,9 +115,9 @@ def _get_good_context(good_on_application, advice=None):
         if advice.proviso:
             good_context["proviso_reason"] = advice.proviso
     if good_on_application.licenced_quantity:
-        good_context["quantity"] = good_on_application.licenced_quantity
+        good_context["quantity"] = _format_quantity(good_on_application.licenced_quantity, good_on_application.unit)
     if good_on_application.licenced_value:
-        good_context["value"] = good_on_application.licenced_value
+        good_context["value"] = f"£{good_on_application.licenced_value}"
     return good_context
 
 
@@ -210,16 +219,16 @@ def get_document_context(case):
         "applicant": _get_applicant_context(applicant_audit.actor) if applicant_audit else None,
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
-        "end_user": _get_party_context(case.end_user.party) if getattr(case, "end_user") else None,
-        "consignee": _get_party_context(case.consignee.party) if getattr(case, "consignee") else None,
+        "end_user": _get_party_context(case.end_user.party) if getattr(case, "end_user", "") else None,
+        "consignee": _get_party_context(case.consignee.party) if getattr(case, "consignee", "") else None,
         "ultimate_end_users": [
             _get_party_context(ultimate_end_user.party) for ultimate_end_user in case.ultimate_end_users
         ]
-        if getattr(case, "ultimate_end_users")
+        if getattr(case, "ultimate_end_users", "")
         else [],
-        "third_parties": _get_third_parties_context(case.third_parties) if getattr(case, "third_parties") else [],
-        "goods": _get_goods_context(case.goods, final_advice) if hasattr(case, "goods") and case.goods else None,
-        "goods_type": _get_goods_type_context(case.goods_type) if getattr(case, "goods_type") else None,
+        "third_parties": _get_third_parties_context(case.third_parties) if getattr(case, "third_parties", "") else [],
+        "goods": _get_goods_context(case.goods, final_advice) if getattr(case, "goods", "") else None,
+        "goods_type": _get_goods_type_context(case.goods_type) if getattr(case, "goods_type", "") else None,
         "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
         "notes": [_get_case_note_context(note) for note in notes],
         "sites": [_get_site_context(site) for site in sites],
