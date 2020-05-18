@@ -5,7 +5,7 @@ from open_general_licences.models import OpenGeneralLicence
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
 
 
-class RoutingRulesList(ListCreateAPIView):
+class OpenGeneralLicenceList(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
     queryset = OpenGeneralLicence.objects.all()
@@ -29,6 +29,6 @@ class RoutingRulesList(ListCreateAPIView):
         return filtered_qs
 
 
-class RoutingRulesDetail(RetrieveUpdateAPIView):
+class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
