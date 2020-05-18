@@ -160,7 +160,7 @@ class ExportXML(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_export_xml_no_cases_in_queue_failure(self):
+    def test_export_xml_no_cases_in_queue(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation)
         application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
@@ -169,15 +169,15 @@ class ExportXML(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_CASES)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["message"], Cases.EnforcementCheck.NO_CASES)
 
-    def test_export_xml_no_cases_with_flag_in_queue_failure(self):
+    def test_export_xml_no_cases_with_flag_in_queue(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation)
         application.queues.set([self.queue])
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_CASES)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["message"], Cases.EnforcementCheck.NO_CASES)
