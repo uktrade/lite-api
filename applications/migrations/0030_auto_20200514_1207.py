@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("flags", "0007_flag_blocks_approval"),
-        ("applications", "0028_openapplication_goodstype_category"),
+        ("applications", "0029_standardapplication_contains_firearm_goods.py"),
     ]
 
     operations = [
