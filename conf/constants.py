@@ -20,6 +20,7 @@ class GovPermissions(Enum):
     ACTIVATE_FLAGS = "Activate and deactivate flags"
     MANAGE_PICKLISTS = "Manage picklists"
     ENFORCEMENT_CHECK = "Enforcement check permission"
+    MAINTAIN_FOOTNOTES = "Create footnotes"
 
 
 class ExporterPermissions(Enum):
