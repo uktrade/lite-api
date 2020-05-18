@@ -21,7 +21,7 @@ class RoutingRulesList(ListCreateAPIView):
             filtered_qs = filtered_qs.filter(control_list_entries_id__contains=filter_data.get("control_list_entry"))
 
         if filter_data.get("country"):
-            filtered_qs = filtered_qs.filter(country_id__contains=filter_data.get("country"))
+            filtered_qs = filtered_qs.filter(countries_id__contains=filter_data.get("country"))
 
         if filter_data.get("status"):
             filtered_qs = filtered_qs.filter(status=filter_data.get("status"))
