@@ -99,7 +99,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
 
         coa_list = [qs.get(country_id=c.id) for c in countries]
 
-        serializer = CountryOnApplicationViewSerializer(coa_list, many=True, context={"flags": True})
+        serializer = CountryOnApplicationViewSerializer(coa_list, many=True, context={"active_flags_only": True})
 
         return {"type": "countries", "data": serializer.data}
 
@@ -281,7 +281,7 @@ class CountryOnApplicationViewSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_country(self, instance):
-        if self.context.get("flags"):
+        if self.context.get("active_flags_only"):
             return CountryWithFlagsSerializer(instance.country, context={"with_active_flags": True}).data
         else:
             return CountrySerializer(instance.country).data
