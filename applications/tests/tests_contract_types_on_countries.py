@@ -96,7 +96,7 @@ class ContractTypeOnCountryTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(set(coa.contract_types).issubset(set(contract_types)))
-        self.assertEqual(coa.other_contract_type_text, "")
+        self.assertEqual(coa.other_contract_type_text, None)
 
     @tag("2146", "no-contract")
     def test_no_contract_types_failure(self):
