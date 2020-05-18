@@ -19,6 +19,7 @@ class GovPermissions(Enum):
     MANAGE_ALL_ROUTING_RULES = "Manage all routing rules"
     ACTIVATE_FLAGS = "Activate and deactivate flags"
     MANAGE_PICKLISTS = "Manage picklists"
+    MAINTAIN_FOOTNOTES = "Create footnotes"
 
 
 class ExporterPermissions(Enum):
