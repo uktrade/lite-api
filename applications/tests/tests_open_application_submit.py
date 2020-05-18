@@ -1,13 +1,13 @@
-from applications.enums import ApplicationExportType
-from cases.enums import CaseTypeEnum
-from flags.enums import SystemFlags
-from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
 
+from applications.enums import ApplicationExportType
 from applications.models import SiteOnApplication, CountryOnApplication
+from cases.enums import CaseTypeEnum
 from cases.models import Case, CaseType
+from flags.enums import SystemFlags
 from goodstype.models import GoodsType
+from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
@@ -94,6 +94,9 @@ class OpenApplicationTests(DataTestClient):
         }
 
         url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
+        coa = CountryOnApplication.objects.get(application=self.draft)
+        coa.contract_types = "[navy]"
+        coa.save()
         response = self.client.put(url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
