@@ -170,7 +170,7 @@ class CaseManager(models.Manager):
     def get_queryset(self):
         return CaseQuerySet(self.model, using=self.db)
 
-    def search(
+    def search(  # noqa
         self,
         queue_id=None,
         is_work_queue=None,
@@ -198,7 +198,7 @@ class CaseManager(models.Manager):
         party_address=None,
         goods_related_description=None,
         **kwargs,
-    ):  # noqa
+    ):
         """
         Search for a user's available cases given a set of search parameters.
         """
