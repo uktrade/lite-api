@@ -28,7 +28,7 @@ def reverse_goods_categories(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("applications", "0028_openapplication_goodstype_category"),
+        ("applications", "0029_auto_20200514_1207"),
     ]
 
     operations = [
