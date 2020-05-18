@@ -75,20 +75,18 @@ class FilterAndSortTests(DataTestClient):
 
         self.assertEqual(qs_5.count(), 2)
 
-    def test_filter_by_good_control_list_entries(self):
+    def test_filter_by_good_control_list_entry(self):
         application = ApplicationFactory()
-        good = GoodFactory(organisation=application.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"])
+        good = GoodFactory(organisation=application.organisation, is_good_controlled=GoodControlled.YES, control_list_entry="ML1a")
         GoodOnApplicationFactory(application=application, good=good)
 
-        qs_1 = Case.objects.search(control_list_entries=[])
-        qs_2 = Case.objects.search(control_list_entries=["ML1b"])
-        qs_3 = Case.objects.search(control_list_entries=["ML1a"])
-        qs_4 = Case.objects.search(control_list_entries=["ML1a", "ML1b"])
+        qs_1 = Case.objects.search(control_list_entry="")
+        qs_2 = Case.objects.search(control_list_entry="ML1b")
+        qs_3 = Case.objects.search(control_list_entry="ML1a")
 
         self.assertEqual(qs_1.count(), 0)
         self.assertEqual(qs_2.count(), 0)
         self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 1)
 
     def test_filter_by_flags(self):
         flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)

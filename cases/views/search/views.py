@@ -1,6 +1,7 @@
 from rest_framework import generics
 
 from cases.enums import CaseTypeEnum
+from cases.libraries.dates import make_date_from_params
 from cases.models import Case
 from cases.serializers import CaseListSerializer
 from cases.views.search import service
@@ -29,17 +30,18 @@ class CasesSearchView(generics.ListAPIView):
         # we include hidden cases in non work queues (all cases, all open cases)
         # and if the flag to include hidden is added
         include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
+        filters = {key.replace("filters.", ""): value for key, value in request.GET.items() if key.startswith("filters.")}
+
+        filters["submitted_from"] = make_date_from_params("submitted_from", filters)
+        filters["submitted_to"] = make_date_from_params("submitted_to", filters)
 
         page = self.paginate_queryset(
             Case.objects.search(
                 queue_id=queue_id,
                 is_work_queue=is_work_queue,
                 user=request.user,
-                status=request.GET.get("status"),
-                case_type=CaseTypeEnum.reference_to_id(request.GET.get("case_type")),
-                assigned_user=request.GET.get("assigned_user"),
-                case_officer=request.GET.get("case_officer"),
                 include_hidden=include_hidden,
+                **filters
             )
         )
         queues = get_all_queues(include_team=False, include_case_count=True, user=request.user)
@@ -55,12 +57,13 @@ class CasesSearchView(generics.ListAPIView):
         statuses = service.get_case_status_list()
         case_types = service.get_case_type_type_list()
         gov_users = service.get_gov_users_list()
+        advice_types = service.get_advice_types_list()
 
         return self.get_paginated_response(
             {
                 "queues": queues,
                 "cases": cases,
-                "filters": {"statuses": statuses, "case_types": case_types, "gov_users": gov_users},
+                "filters": {"statuses": statuses, "case_types": case_types, "gov_users": gov_users, "advice_types": advice_types},
                 "is_system_queue": context["is_system_queue"],
                 "is_work_queue": is_work_queue,
                 "queue": queue,

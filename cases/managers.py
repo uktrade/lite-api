@@ -5,7 +5,7 @@ from compat import get_model
 from django.db import models, transaction
 from django.db.models import Q, Case, When, BinaryField
 
-from cases.enums import AdviceLevel
+from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from queues.constants import (
     ALL_CASES_QUEUE_ID,
@@ -89,8 +89,8 @@ class CaseQuerySet(models.QuerySet):
         case_ids = SiteOnApplication.objects.filter(site__name=exporter_site_name).values_list("application__id", flat=True)
         return self.filter(pk__in=case_ids)
 
-    def with_control_list_entries(self, control_list_entries):
-        return self.filter(baseapplication__goods__good__control_list_entries__rating__in=control_list_entries)
+    def with_control_list_entry(self, control_list_entry):
+        return self.filter(baseapplication__goods__good__control_list_entries__rating__in=[control_list_entry])
 
     def with_flags(self, flags):
         return self.filter(flags__name__in=flags)
@@ -104,9 +104,9 @@ class CaseQuerySet(models.QuerySet):
     def with_sla_days_range(self, min_sla, max_sla):
         qs = self.filter()
         if min_sla:
-            qs = qs.filter(sla_remaining_days__gte=min_sla)
+            qs = qs.filter(sla_remaining_days__gte=int(min_sla))
         if max_sla:
-            qs = qs.filter(sla_remaining_days__lte=max_sla)
+            qs = qs.filter(sla_remaining_days__lte=int(max_sla))
         return qs
 
     def with_submitted_range(self, submitted_from, submitted_to):
@@ -184,7 +184,7 @@ class CaseManager(models.Manager):
         exporter_reference=None,
         exporter_site_name=None,
         exporter_site_address=None,
-        control_list_entries=None,
+        control_list_entry=None,
         flags=None,
         country=None,
         team_advice_type=None,
@@ -196,6 +196,7 @@ class CaseManager(models.Manager):
         party_name=None,
         party_address=None,
         goods_related_description=None,
+        **kwargs
     ):
         """
         Search for a user's available cases given a set of search parameters.
@@ -235,6 +236,7 @@ class CaseManager(models.Manager):
             case_qs = case_qs.has_status(status=status)
 
         if case_type:
+            case_type = CaseTypeEnum.reference_to_id(case_type)
             case_qs = case_qs.is_type(case_type=case_type)
 
         if assigned_user:
@@ -257,8 +259,8 @@ class CaseManager(models.Manager):
         if exporter_site_name is not None:
             case_qs = case_qs.with_exporter_site_name(exporter_site_name)
 
-        if control_list_entries is not None:
-            case_qs = case_qs.with_control_list_entries(control_list_entries)
+        if control_list_entry is not None:
+            case_qs = case_qs.with_control_list_entry(control_list_entry)
 
         if flags is not None:
             case_qs = case_qs.with_flags(flags)
