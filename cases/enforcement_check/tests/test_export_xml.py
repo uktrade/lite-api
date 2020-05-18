@@ -169,7 +169,7 @@ class ExportXML(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_CASES)
 
     def test_export_xml_no_cases_with_flag_in_queue_failure(self):
@@ -179,5 +179,5 @@ class ExportXML(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.json()["errors"][0], Cases.EnforcementCheck.NO_CASES)
