@@ -169,8 +169,7 @@ class ExportXML(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["message"], Cases.EnforcementCheck.NO_CASES)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_export_xml_no_cases_with_flag_in_queue(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -179,5 +178,4 @@ class ExportXML(DataTestClient):
 
         response = self.client.get(self.url, **self.gov_headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["message"], Cases.EnforcementCheck.NO_CASES)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
