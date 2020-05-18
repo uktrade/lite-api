@@ -9,6 +9,7 @@ from flags.enums import FlagStatuses
 from goods.models import Good
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserListSerializer
+from lite_content.lite_api import strings
 from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
@@ -19,12 +20,20 @@ from users.models import GovUser
 
 
 class CaseAdviceSerializer(serializers.ModelSerializer):
-    text = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000)
+    text = serializers.CharField(required=True, max_length=5000, error_messages={"blank": strings.Advice.TEXT})
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=200)
-    type = KeyValueChoiceField(choices=AdviceType.choices)
+    type = KeyValueChoiceField(
+        choices=AdviceType.choices, required=True, error_messages={"required": strings.Advice.TYPE}
+    )
     level = serializers.CharField()
     proviso = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=5000,)
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True, required=False)
+    footnote = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, error_messages={"blank": strings.Advice.FOOTNOTE}
+    )
+    footnote_required = serializers.BooleanField(
+        required=False, allow_null=True, error_messages={"required": strings.Advice.FOOTNOTE_REQUIRED}
+    )
 
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     team = PrimaryKeyRelatedSerializerField(
@@ -76,7 +85,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         Check that the denial reasons are set if type is REFUSE
         """
         for data in self.initial_data:
-            if data["type"] == AdviceType.REFUSE and not data["denial_reasons"]:
+            if data.get("type") and data["type"] == AdviceType.REFUSE and not data["denial_reasons"]:
                 raise serializers.ValidationError("Select at least one denial reason")
 
         return value
@@ -86,7 +95,7 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
         Check that the proviso is set if type is REFUSE
         """
         for data in self.initial_data:
-            if data["type"] == AdviceType.PROVISO and not data["proviso"]:
+            if data.get("type") and data["type"] == AdviceType.PROVISO and not data["proviso"]:
                 raise ValidationError("Enter a proviso")
 
         return value
@@ -113,6 +122,29 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
             for data in self.initial_data:
                 if not ensure_x_items_not_none([data.get(x) for x in application_fields], 1):
                     raise ValidationError({"end_user": ["Only one item (such as an end_user) can be given at a time"]})
+
+            self._footnote_fields_setup()
+
+    def _footnote_fields_setup(self):
+        # if the user has permission to maintain footnotes for advice,
+        #  they have to explicitly state if a footnote is required.
+        if self.context.get("footnote_permission"):
+            self.fields["footnote_required"].required = True
+            self.fields["footnote_required"].allow_null = False
+            # if a footnote is required, we have to validate each footnote is given
+            if self.initial_data[0].get("footnote_required") == "True":
+                self.fields["footnote"].required = True
+                self.fields["footnote"].allow_null = False
+                self.fields["footnote"].allow_blank = False
+            # if a footnote is not required, we remove any footnotes that may already exist on the objects.
+            if self.initial_data[0].get("footnote_required") == "False":
+                for i in range(0, len(self.initial_data)):
+                    self.initial_data[i]["footnote"] = None
+        else:
+            # If the user does not have permission, we do not allow the user to set any footnote details.
+            for i in range(0, len(self.initial_data)):
+                self.initial_data[i]["footnote"] = None
+                self.initial_data[i]["footnote_required"] = None
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):

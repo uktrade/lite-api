@@ -240,8 +240,8 @@ class TeamAdviceView(APIView):
             if user_cannot_manage_team_advice:
                 return user_cannot_manage_team_advice
 
-            team = self.request.user.team
-            advice = self.advice.filter(user__team=team)
+            team = self.request.user.team_id
+            advice = self.advice.filter(user__team_id=team)
             group_advice(self.case, advice, request.user, AdviceLevel.TEAM)
             case_advice_contains_refusal(pk)
 
@@ -249,7 +249,7 @@ class TeamAdviceView(APIView):
                 actor=request.user, verb=AuditType.CREATED_TEAM_ADVICE, target=self.case,
             )
 
-            team_advice = Advice.objects.filter(case=self.case, team=team).order_by("-created_at")
+            team_advice = Advice.objects.filter(case=self.case, team_id=team).order_by("-created_at")
         else:
             team_advice = self.team_advice
 

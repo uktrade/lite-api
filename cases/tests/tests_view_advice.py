@@ -43,6 +43,8 @@ class ViewCaseAdviceTests(DataTestClient):
                     "id": str(self.gov_user.id),
                     "status": "Active",
                 },
+                "footnote": None,
+                "footnote_required": None,
             }
 
             if advice.level == AdviceLevel.TEAM:
