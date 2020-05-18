@@ -6,25 +6,44 @@ from applications.models import PartyOnApplication, SiteOnApplication
 from parties.enums import PartyRole, PartyType
 
 
-def dict_to_xml(parent, data):
+def export_cases_xml(cases):
+    """
+    Takes a list of cases and converts into XML for the enforcement unit.
+    XML includes party details, sites & the organisation for each application.
+    """
+    case_ids = cases.values_list("pk", flat=True)
+
+    # Build XML structure
+    base = ElementTree.Element("ENFORCEMENT_CHECK")
+    _export_parties_on_application(case_ids, base)
+    _export_sites_on_applications(case_ids, base)
+    _export_organisations_on_applications(cases, base)
+
+    # Export XML
+    xml = ElementTree.tostring(base, encoding="utf-8", method="xml")  # nosec
+    reparsed = minidom.parseString(xml).toprettyxml()  # nosec
+    return reparsed
+
+
+def _dict_to_xml(parent, data):
     for key, value in data.items():
         element = ElementTree.SubElement(parent, key)
         if value:
             element.text = escape(str(value))
 
 
-def get_address_line_2(address_line_2, postcode, city):
+def _get_address_line_2(address_line_2, postcode, city):
     if address_line_2:
         return ", ".join([address_line_2, postcode, city])
     else:
         return ", ".join([postcode, city])
 
 
-def entity_to_xml(
+def _entity_to_xml(
     base, application_id, id, type, country, organisation, address_line_1, name=None, address_line_2=None
 ):
     stakeholder = ElementTree.SubElement(base, "STAKEHOLDER")
-    dict_to_xml(
+    _dict_to_xml(
         stakeholder,
         {
             "ELA_ID": application_id.int,
@@ -43,7 +62,7 @@ def entity_to_xml(
     return stakeholder
 
 
-def get_party_sh_type(type, role):
+def _get_party_sh_type(type, role):
     if role == PartyRole.CONTACT:
         return "CONTACT"
     elif type == PartyType.THIRD_PARTY:
@@ -52,7 +71,7 @@ def get_party_sh_type(type, role):
         return type.upper()
 
 
-def export_parties_on_application(case_ids, xml_base):
+def _export_parties_on_application(case_ids, xml_base):
     parties_on_applications = (
         PartyOnApplication.objects.filter(application_id__in=case_ids)
         .prefetch_related("party")
@@ -68,11 +87,11 @@ def export_parties_on_application(case_ids, xml_base):
         )
     )
     for poa in parties_on_applications:
-        entity_to_xml(
+        _entity_to_xml(
             xml_base,
             application_id=poa["application_id"],
             id=poa["party_id"],
-            type=get_party_sh_type(type=poa["party__type"], role=poa["party__role"]),
+            type=_get_party_sh_type(type=poa["party__type"], role=poa["party__role"]),
             country=poa["party__country__name"],
             organisation=poa["party__organisation__name"],
             name=poa["party__name"],
@@ -80,7 +99,7 @@ def export_parties_on_application(case_ids, xml_base):
         )
 
 
-def export_sites_on_applications(case_ids, xml_base):
+def _export_sites_on_applications(case_ids, xml_base):
     sites_on_applications = (
         SiteOnApplication.objects.filter(application_id__in=case_ids)
         .prefetch_related("site", "site__address")
@@ -97,7 +116,7 @@ def export_sites_on_applications(case_ids, xml_base):
         )
     )
     for soa in sites_on_applications:
-        entity_to_xml(
+        _entity_to_xml(
             xml_base,
             application_id=soa["application_id"],
             id=soa["site_id"],
@@ -105,13 +124,13 @@ def export_sites_on_applications(case_ids, xml_base):
             country=soa["site__address__country__name"],
             organisation=soa["site__organisation__name"],
             address_line_1=soa["site__address__address_line_1"] or soa["site__address__address"],
-            address_line_2=get_address_line_2(
+            address_line_2=_get_address_line_2(
                 soa["site__address__address_line_2"], soa["site__address__postcode"], soa["site__address__city"]
             ),
         )
 
 
-def export_organisations_on_applications(cases, xml_base):
+def _export_organisations_on_applications(cases, xml_base):
     organisations_on_applications = cases.prefetch_related(
         "organisation", "organisation__primary_site__address"
     ).values(
@@ -126,7 +145,7 @@ def export_organisations_on_applications(cases, xml_base):
         "organisation__primary_site__address__city",
     )
     for org in organisations_on_applications:
-        entity_to_xml(
+        _entity_to_xml(
             xml_base,
             application_id=org["id"],
             id=org["organisation_id"],
@@ -135,24 +154,9 @@ def export_organisations_on_applications(cases, xml_base):
             organisation=org["organisation__name"],
             address_line_1=org["organisation__primary_site__address__address_line_1"]
             or org["organisation__primary_site__address__address"],
-            address_line_2=get_address_line_2(
+            address_line_2=_get_address_line_2(
                 org["organisation__primary_site__address__address_line_2"],
                 org["organisation__primary_site__address__postcode"],
                 org["organisation__primary_site__address__city"],
             ),
         )
-
-
-def export_cases_xml(cases):
-    case_ids = cases.values_list("pk", flat=True)
-
-    # Build XML structure
-    base = ElementTree.Element("ENFORCEMENT_CHECK")
-    export_parties_on_application(case_ids, base)
-    export_sites_on_applications(case_ids, base)
-    export_organisations_on_applications(cases, base)
-
-    # Export XML
-    xml = ElementTree.tostring(base, encoding="utf-8", method="xml")  # nosec
-    reparsed = minidom.parseString(xml).toprettyxml()  # nosec
-    return reparsed

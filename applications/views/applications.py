@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ErrorDetail
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
+from uuid import UUID
 
 from applications import constants
 from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
@@ -358,7 +359,8 @@ class ApplicationSubmission(APIView):
             CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.HMRC,
         ]:
-            application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+            if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
+                application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)

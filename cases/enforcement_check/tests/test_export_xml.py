@@ -5,7 +5,7 @@ from rest_framework import status
 from xml.etree import ElementTree  # nosec
 
 from applications.models import SiteOnApplication
-from cases.enforcement_check.export_xml import get_address_line_2
+from cases.enforcement_check.export_xml import _get_address_line_2
 from conf.constants import GovPermissions
 from flags.enums import SystemFlags
 from flags.models import Flag
@@ -104,7 +104,7 @@ class ExportXML(DataTestClient):
         self.assertEqual(stakeholder["ADDRESS1"], site.address.address_line_1)
         self.assertEqual(
             stakeholder["ADDRESS2"],
-            get_address_line_2(site.address.address_line_2, site.address.postcode, site.address.city),
+            _get_address_line_2(site.address.address_line_2, site.address.postcode, site.address.city),
         )
 
     def test_export_xml_organisation_only_success(self):
@@ -127,7 +127,7 @@ class ExportXML(DataTestClient):
         self.assertEqual(stakeholder["ADDRESS1"], self.organisation.primary_site.address.address_line_1)
         self.assertEqual(
             stakeholder["ADDRESS2"],
-            get_address_line_2(
+            _get_address_line_2(
                 self.organisation.primary_site.address.address_line_2,
                 self.organisation.primary_site.address.postcode,
                 self.organisation.primary_site.address.city,
