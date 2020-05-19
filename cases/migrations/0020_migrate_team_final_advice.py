@@ -40,6 +40,7 @@ def copy_data(advice):
 
 
 def migrate(apps, schema_editor):
+    Advice = apps.get_model("cases", "Advice")
     TeamAdvice = apps.get_model("cases", "TeamAdvice")
     FinalAdvice = apps.get_model("cases", "FinalAdvice")
 
