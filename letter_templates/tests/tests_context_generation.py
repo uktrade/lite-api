@@ -342,7 +342,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["details"], case)
+        self._assert_base_application_details(context["application_details"], case)
 
     def test_generate_context_with_standard_application_details(self):
         case = self.create_standard_application_case(self.organisation)
@@ -361,8 +361,8 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["details"], case)
-        self._assert_standard_application_details(context["details"], case)
+        self._assert_base_application_details(context["application_details"], case)
+        self._assert_standard_application_details(context["application_details"], case)
 
     def test_generate_context_with_open_application_details(self):
         case = self.create_open_application_case(self.organisation)
@@ -382,8 +382,8 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["details"], case)
-        self._assert_open_application_details(context["details"], case)
+        self._assert_base_application_details(context["application_details"], case)
+        self._assert_open_application_details(context["application_details"], case)
 
     def test_generate_context_with_hmrc_query_details(self):
         case = self.create_hmrc_query(self.organisation)
@@ -391,8 +391,8 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["details"], case)
-        self._assert_hmrc_query_details(context["details"], case)
+        self._assert_base_application_details(context["application_details"], case)
+        self._assert_hmrc_query_details(context["application_details"], case)
 
     def test_generate_context_with_exhibition_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
@@ -402,8 +402,8 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["details"], case)
-        self._assert_exhibition_clearance_details(context["details"], case)
+        self._assert_base_application_details(context["application_details"], case)
+        self._assert_exhibition_clearance_details(context["application_details"], case)
 
     def test_generate_context_with_f680_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
@@ -424,8 +424,8 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["details"], case)
-        self._assert_f680_clearance_details(context["details"], case)
+        self._assert_base_application_details(context["application_details"], case)
+        self._assert_f680_clearance_details(context["application_details"], case)
 
     def test_generate_context_with_gifting_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
@@ -433,4 +433,4 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["details"], case)
+        self._assert_base_application_details(context["application_details"], case)

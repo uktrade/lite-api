@@ -24,7 +24,7 @@ def _get_address(address):
     }
 
 
-def _get_details_context(case):
+def _get_application_details_context(case):
     return {
         "end_use_details": getattr(case, "intended_end_use", ""),
         "military_end_use_controls": friendly_boolean(getattr(case, "is_military_end_use_controls", "")),
@@ -250,7 +250,7 @@ def get_document_context(case):
         "case_reference": case.reference_code,
         "current_date": date,
         "current_time": time,
-        "details": _get_details_context(case),
+        "application_details": _get_application_details_context(case),
         "applicant": _get_applicant_context(applicant_audit.actor) if applicant_audit else None,
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
