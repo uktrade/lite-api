@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import transaction
 from django.http import JsonResponse
 from rest_framework import status
@@ -31,15 +33,26 @@ class ApplicationCountries(APIView):
         """
         View countries belonging to an open licence application
         """
+        print("\nGetting countries heavy")
+        time_alpha = datetime.now()
+        time_1 = datetime.now()
         countries = CountryOnApplication.objects.filter(application=application)
+        time_2 = datetime.now()
+        print("Time to get queryset of ", len(countries), " countries: ", time_2 - time_1)
+        time_3 = datetime.now()
         countries_data = CountryOnApplicationViewSerializer(countries, many=True).data
-
+        time_4 = datetime.now()
+        print("Time to serialize ", len(countries), "countries: ", time_4 - time_3)
+        time_omega = datetime.now()
+        print("Time to get countries heavy: ", time_omega - time_alpha)
         return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     @authorised_users(ExporterUser)
     def post(self, request, application):
+        print("\nPosting countries")
+        time_alpha = datetime.now()
         """ Add countries to an open licence application. """
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
@@ -123,54 +136,80 @@ class ApplicationCountries(APIView):
                 )
 
             removed_countries.delete()
-
+            time_omega = datetime.now()
+            print("Time to post countries: ", time_omega - time_alpha)
             return JsonResponse(data={"countries": countries_data}, status=status.HTTP_201_CREATED)
 
 
 class ApplicationContractTypes(APIView):
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     def put(self, request, application):
+        print("\nPutting contract types")
+        time_alpha = datetime.now()
 
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
         data = request.data
 
-        errors = self.validate_data(data)
+        time_1 = datetime.now()
+        serialized_data, errors = self.validate_data(data)
+        time_2 = datetime.now()
+        print("Time to serialize: ", time_2 - time_1)
+
+        countries = data.get("countries")
+        serialized_contract_types = serialized_data.get("contract_types")
+
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
-        contract_types = [",".join(data.get("contract_types"))]
 
-        flags = [
-            Flag.objects.get(name=ContractType.get_flag_name(contract_type)).id
-            for contract_type in data.get("contract_types")
-        ]
-        qs = CountryOnApplication.objects.filter(country__in=data.get("countries"), application=application)
+        contract_types = [",".join(serialized_contract_types)]
+
+        time_3 = datetime.now()
+        qs = CountryOnApplication.objects.filter(country__in=countries, application=application)
+        time_4 = datetime.now()
+        print("Time to get queryset: ", time_4 - time_3)
+
+        time_5 = datetime.now()
         qs.update(
-            contract_types=contract_types, other_contract_type_text=data.get("other_contract_type_text"), flags=flags
+            contract_types=contract_types, other_contract_type_text=serialized_data.get("other_contract_type_text")
         )
-        print(
-            CountryOnApplication.objects.get(country=data.get("countries").first(), application=application).flags.all()
-        )
+        time_6 = datetime.now()
+        print("Time to update coas: ", time_6 - time_5)
 
-        # [c.flags.set(flags) for c in qs]
-
+        time_7 = datetime.now()
+        [
+            Flag.objects.get(name=ContractType.get_flag_name(contract_type)).countries_on_applications.set(qs)
+            for contract_type in serialized_contract_types
+        ]
+        time_8 = datetime.now()
+        print("Time to set coas on flags: ", time_8 - time_7)
+        print("queryset lenght: ", len(qs))
+        time_omega = datetime.now()
+        print("Time to put contract types: ", time_omega - time_alpha)
         return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
 
     @staticmethod
     def validate_data(data):
         serializer = ContractTypeDataSerializer(data=data)
-        if not serializer.is_valid():
-            return serializer.errors
+        if serializer.is_valid():
+            return serializer.data, None
+        else:
+            return None, serializer.errors
 
 
 class LightCountries(APIView):
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     def get(self, request, application):
-        countries = (
-            CountryOnApplication.objects.filter(application=application)
-            .prefetch_related("country_id", "country__name")
-            .values("contract_types", "other_contract_type_text", "country_id", "country__name")
-        )
-
-        return JsonResponse(data={"countries": [country for country in countries]}, status=status.HTTP_200_OK)
+        time_alpha = datetime.now()
+        countries = [
+            country
+            for country in (
+                CountryOnApplication.objects.filter(application=application)
+                .prefetch_related("country_id", "country__name")
+                .values("contract_types", "other_contract_type_text", "country_id", "country__name")
+            )
+        ]
+        time_omega = datetime.now()
+        print("\nTime to get light countries: ", time_omega - time_alpha)
+        return JsonResponse(data={"countries": countries}, status=status.HTTP_200_OK)

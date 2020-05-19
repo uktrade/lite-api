@@ -3,6 +3,7 @@ from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
+from applications.enums import ContractType
 from applications.models import CountryOnApplication
 from cases.libraries.get_flags import get_ordered_flags
 from flags.tests.factories import FlagFactory
@@ -12,7 +13,7 @@ from test_helpers.clients import DataTestClient
 
 
 class ContractTypeOnCountryTests(DataTestClient):
-    @tag("2146")
+    @tag("2146", "only")
     def test_set_contract_type_on_country_on_application_success(self):
         application = self.create_open_application_case(self.organisation)
 
@@ -26,7 +27,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(coa.contract_types, ["navy"])
 
-    @tag("2146")
+    @tag("2146", "multiple")
     def test_set_multiple_contract_types_on_country_on_application_success(self):
         application = self.create_open_application_case(self.organisation)
         CountryOnApplication(country_id="FR", application=application).save()
@@ -155,14 +156,17 @@ class ContractTypeOnCountryTests(DataTestClient):
 
         data = {
             "countries": ["GB"],
-            "contract_types": ["navy"],
+            "contract_types": ["navy", "army"],
             "other_contract_type_text": "",
         }
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
         self.client.put(url, data, **self.exporter_headers)
 
-        get_ordered_flags(application, self.team)
+        ordered_flags = get_ordered_flags(application, self.team)
+
+        self.assertIn("Navy", str(ordered_flags))
+        self.assertIn("Army", str(ordered_flags))
 
     @tag("2146", "submit")
     def test_submit_without_sectors_on_each_country_failure(self):
@@ -173,3 +177,35 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES, response.json()["errors"]["contract_types"])
+
+    @tag("2146", "big-data")
+    def test_big_data(self):
+        application = self.create_draft_open_application(self.organisation)
+        country_ids = [c.id for c in Country.objects.all()]
+
+        data = {"countries": country_ids}
+        url = reverse("applications:countries", kwargs={"pk": application.id})
+
+        self.client.post(url, data, **self.exporter_headers)
+
+        self.client.get(url, **self.exporter_headers)
+
+        print("\nBefore putting contract types")
+        url = reverse("applications:country_contract_types", kwargs={"pk": application.id})
+        self.client.get(url, **self.exporter_headers)
+
+        contract_types = [ct[0] for ct in ContractType.choices]
+
+        data = {
+            "countries": country_ids,
+            "contract_types": contract_types,
+            "other_contract_type_text": "This is text",
+        }
+
+        url = reverse("applications:contract_types", kwargs={"pk": application.id})
+        self.client.put(url, data, **self.exporter_headers)
+
+        print("\nAfter putting contract types")
+        url = reverse("applications:country_contract_types", kwargs={"pk": application.id})
+        self.client.get(url, **self.exporter_headers)
+        print("\n")

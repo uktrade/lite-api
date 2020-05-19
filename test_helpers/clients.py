@@ -176,17 +176,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 ]
             ]
         )
-
-        if settings.TIME_TESTS:
+        if True:
+            # if settings.TIME_TESTS:
             self.tick = datetime.now()
 
     def tearDown(self):
         """
         Print output time for tests if settings.TIME_TESTS is set to True
         """
-        if settings.SUPPRESS_TEST_OUTPUT:
-            pass
-        elif settings.TIME_TESTS:
+        # if settings.SUPPRESS_TEST_OUTPUT:
+        #     pass
+        if True:
+            # elif settings.TIME_TESTS:
             self.tock = datetime.now()
 
             diff = self.tock - self.tick
