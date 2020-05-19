@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from applications.enums import GoodsTypeCategory, ContractType
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.models import CountryOnApplication
-from applications.serializers.open_application import ContractTypeSerializer, CountryOnApplicationViewSerializer
+from applications.serializers.open_application import ContractTypeDataSerializer, CountryOnApplicationViewSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
@@ -98,8 +98,9 @@ class ApplicationCountries(APIView):
             removed_countries = previous_countries.filter(country__id__in=removed_country_ids)
 
             # Append new Countries to application (only in unsubmitted/applicant editing statuses)
-            for country in new_countries:
-                CountryOnApplication(country=country, application=application).save()
+            CountryOnApplication.objects.bulk_create(
+                [CountryOnApplication(country=country, application=application) for country in new_countries]
+            )
 
             countries_data = CountrySerializer(new_countries, many=True).data
 
@@ -135,25 +136,37 @@ class ApplicationContractTypes(APIView):
 
         data = request.data
 
-        for country in data.get("countries"):
-            errors = self._set_contract_types_for_country(application, country, data)
-            if errors:
-                return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+        errors = self.validate_data(data)
+        if errors:
+            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+        contract_types = [",".join(data.get("contract_types"))]
 
-        return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
-
-    @staticmethod
-    def _set_contract_types_for_country(application, country, data):
-        coa = CountryOnApplication.objects.get(country_id=country, application=application)
-        serializer = ContractTypeSerializer(coa, data=data)
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            return serializer.errors
+        qs = CountryOnApplication.objects.filter(country__in=data.get("countries"), application=application)
+        qs.update(contract_types=contract_types, other_contract_type_text=data.get("other_contract_type_text"))
 
         flags = [
             Flag.objects.get(name=ContractType.get_flag_name(contract_type))
             for contract_type in data.get("contract_types")
         ]
 
-        coa.flags.set(flags)
+        [c.flags.set(flags) for c in qs]
+
+        return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def validate_data(data):
+        serializer = ContractTypeDataSerializer(data=data)
+        if not serializer.is_valid():
+            return serializer.errors
+
+
+class LightCountries(APIView):
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
+    def get(self, request, application):
+        countries = (
+            CountryOnApplication.objects.filter(application=application)
+            .prefetch_related("country_id", "country__name")
+            .values("contract_types", "other_contract_type_text", "country_id", "country__name")
+        )
+
+        return JsonResponse(data={"countries": [country for country in countries]}, status=status.HTTP_200_OK)

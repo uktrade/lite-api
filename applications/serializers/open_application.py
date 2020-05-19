@@ -245,7 +245,7 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
         return super().validate(data)
 
 
-class ContractTypeSerializer(serializers.ModelSerializer):
+class ContractTypeDataSerializer(serializers.Serializer):
     contract_types = serializers.MultipleChoiceField(
         choices=ContractType.choices,
         allow_empty=False,
@@ -258,10 +258,6 @@ class ContractTypeSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.ContractTypes.OTHER_TEXT_BLANK},
     )
 
-    class Meta:
-        model = CountryOnApplication
-        fields = ("contract_types", "other_contract_type_text")
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.get_initial().get("contract_types"):
@@ -271,13 +267,12 @@ class ContractTypeSerializer(serializers.ModelSerializer):
             self.instance.other_contract_type_text = None
 
 
-class CountryOnApplicationViewSerializer(serializers.ModelSerializer):
-    country = serializers.SerializerMethodField()
-    flags = serializers.SerializerMethodField()
-
-    class Meta:
-        model = CountryOnApplication
-        fields = "__all__"
+class CountryOnApplicationViewSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    country = serializers.SerializerMethodField(read_only=True)
+    flags = serializers.SerializerMethodField(read_only=True)
+    contract_types = serializers.SerializerMethodField(read_only=True)
+    other_contract_type_text = serializers.CharField(read_only=True, allow_null=True)
 
     def get_country(self, instance):
         if self.context.get("active_flags_only"):
@@ -287,3 +282,6 @@ class CountryOnApplicationViewSerializer(serializers.ModelSerializer):
 
     def get_flags(self, instance):
         return list(instance.flags.values("id", "name"))
+
+    def get_contract_types(self, instance):
+        return instance.contract_types
