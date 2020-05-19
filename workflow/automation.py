@@ -29,6 +29,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
         # look at each team one at a time
         for team in Team.objects.all():
             team_rule_tier = None
+
             # get each active routing rule for the given team, at the current status of the case,
             #   ordered by tier ascending
             for rule in (
@@ -40,6 +41,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                 #   sense, so only break once routing rules tier changes
                 if team_rule_tier and team_rule_tier != rule.tier:
                     break
+
                 for parameter_set in rule.parameter_sets():
                     # If the rule set is a subset of the case's set we wish to assign the user and queue to the case,
                     #   and set the team rule tier for the future.
@@ -66,7 +68,8 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                 old_status = case.status
                 case.status = next_status
                 case.save()
-                audit_trail_service.create_system_user_audit(
+                audit_trail_service.create(
+                    actor=system_user,
                     verb=AuditType.UPDATED_STATUS,
                     target=case,
                     payload={
