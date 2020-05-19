@@ -1,4 +1,4 @@
-class OpenGeneralLicenceStatuses:
+class OpenGeneralLicenceStatus:
     ACTIVE = "active"
     DEACTIVATED = "deactivated"
 

@@ -4,7 +4,7 @@ from django.db import models
 
 from cases.models import CaseType
 from common.models import TimestampableModel
-from open_general_licences.enums import OpenGeneralLicenceStatuses
+from open_general_licences.enums import OpenGeneralLicenceStatus
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 
@@ -20,10 +20,10 @@ class OpenGeneralLicence(TimestampableModel):
     countries = models.ManyToManyField(Country, related_name="OpenGeneralLicence", default=[])
     control_list_entries = models.ManyToManyField(ControlListEntry, related_name="OpenGeneralLicence")
     status = models.CharField(
-        choices=OpenGeneralLicenceStatuses.choices,
+        choices=OpenGeneralLicenceStatus.choices,
         null=False,
         blank=False,
-        default=OpenGeneralLicenceStatuses.ACTIVE,
+        default=OpenGeneralLicenceStatus.ACTIVE,
         max_length=20,
     )
 

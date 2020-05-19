@@ -1,7 +1,7 @@
 import factory
 
 from open_general_licences import models
-from open_general_licences.enums import OpenGeneralLicenceStatuses
+from open_general_licences.enums import OpenGeneralLicenceStatus
 from static.control_list_entries.helpers import get_control_list_entry
 
 
@@ -10,7 +10,7 @@ class OpenGeneralLicenceFactory(factory.django.DjangoModelFactory):
     description = factory.Faker("word")
     url = factory.Faker("url")
     case_type = NotImplementedError()
-    status = OpenGeneralLicenceStatuses.ACTIVE
+    status = OpenGeneralLicenceStatus.ACTIVE
 
     class Meta:
         model = models.OpenGeneralLicence
