@@ -35,3 +35,4 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
+    queryset = OpenGeneralLicence.objects.all()
