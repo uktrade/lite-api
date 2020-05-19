@@ -198,6 +198,15 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["uk_service_equipment_type"], case.uk_service_equipment_type.to_representation())
         self.assertEqual(context["prospect_value"], case.prospect_value)
 
+    def _assert_end_user_advisory_details(self, context, case):
+        self.assertEqual(context["note"], case.note)
+        self.assertEqual(context["query_reason"], case.reasoning)
+        self.assertEqual(context["nature_of_business"], case.nature_of_business)
+        self.assertEqual(context["contact_name"], case.contact_name)
+        self.assertEqual(context["contact_email"], case.contact_email)
+        self.assertEqual(context["contact_job_title"], case.contact_job_title)
+        self.assertEqual(context["contact_telephone"], case.contact_telephone)
+
     def test_generate_context_with_parties(self):
         # Standard application with all party types
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
@@ -434,3 +443,12 @@ class DocumentContextGenerationTests(DataTestClient):
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_base_application_details(context["application_details"], case)
+
+    def test_generate_context_with_end_user_advisory_query_details(self):
+        case = self.create_end_user_advisory(note="abc", reasoning="def", organisation=self.organisation)
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_party(context["end_user"], case.end_user)
+        self._assert_end_user_advisory_details(context["query_details"], case)

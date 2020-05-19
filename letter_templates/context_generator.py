@@ -85,6 +85,19 @@ def _get_application_details_context(case):
     }
 
 
+def _get_query_details_context(case):
+    return {
+        # End User Advisory Query (end user found in main body)
+        "note": getattr(case, "note", ""),
+        "query_reason": getattr(case, "reasoning", ""),
+        "nature_of_business": getattr(case, "nature_of_business", ""),
+        "contact_name": getattr(case, "contact_name", ""),
+        "contact_email": getattr(case, "contact_email", ""),
+        "contact_job_title": getattr(case, "contact_job_title", ""),
+        "contact_telephone": getattr(case, "contact_telephone", ""),
+    }
+
+
 def _get_applicant_context(applicant):
     return {"name": " ".join([applicant.first_name, applicant.last_name]), "email": applicant.email}
 
@@ -246,15 +259,24 @@ def get_document_context(case):
     external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
 
+    # Handle end user for EUA queries & applications
+    if getattr(case, "end_user", ""):
+        end_user = case.end_user
+        if getattr(end_user, "party", ""):
+            end_user = end_user.party
+    else:
+        end_user = None
+
     return {
         "case_reference": case.reference_code,
         "current_date": date,
         "current_time": time,
         "application_details": _get_application_details_context(case),
+        "query_details": _get_query_details_context(case),
         "applicant": _get_applicant_context(applicant_audit.actor) if applicant_audit else None,
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
-        "end_user": _get_party_context(case.end_user.party) if getattr(case, "end_user", "") else None,
+        "end_user": _get_party_context(end_user) if end_user else None,
         "consignee": _get_party_context(case.consignee.party) if getattr(case, "consignee", "") else None,
         "ultimate_end_users": [
             _get_party_context(ultimate_end_user.party) for ultimate_end_user in case.ultimate_end_users
