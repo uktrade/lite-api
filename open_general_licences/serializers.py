@@ -11,7 +11,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     url = serializers.URLField(required=True, allow_blank=False, allow_null=False)
     case_type = serializers.PrimaryKeyRelatedField(
-        queryset=CaseType.objects.all(), many=True, required=True, allow_null=False, allow_empty=False
+        queryset=CaseType.objects.all(), required=True, allow_null=False, allow_empty=False
     )
     countries = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.all(), many=True, required=True, allow_null=False, allow_empty=False

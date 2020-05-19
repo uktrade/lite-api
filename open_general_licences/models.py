@@ -25,6 +25,6 @@ class OpenGeneralLicence(TimestampableModel):
     )
 
     class Meta:
-        db_table = "OpenGeneralLicence"
+        db_table = "open_general_licence"
         ordering = ["name"]
         indexes = [models.Index(fields=["status", "name"])]
