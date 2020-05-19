@@ -1,6 +1,12 @@
 from datetime import date
 
-from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsTypeCategory
+from applications.enums import (
+    ApplicationExportType,
+    ApplicationExportLicenceOfficialType,
+    GoodsTypeCategory,
+    MTCRAnswers,
+    ServiceEquipmentType,
+)
 from applications.models import ExternalLocationOnApplication
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
@@ -8,6 +14,7 @@ from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
 from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
 from static.countries.models import Country
+from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -171,6 +178,25 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["first_exhibition_date"], case.first_exhibition_date.strftime(DATE_FORMAT))
         self.assertEqual(context["required_by_date"], case.required_by_date.strftime(DATE_FORMAT))
         self.assertEqual(context["reason_for_clearance"], case.reason_for_clearance)
+
+    def _assert_f680_clearance_details(self, context, case):
+        self.assertEqual(
+            context["types"], [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in case.types.all()]
+        )
+        self.assertEqual(context["expedited"], friendly_boolean(case.expedited))
+        self.assertEqual(context["expedited_date"], case.expedited_date.strftime(DATE_FORMAT))
+        self.assertEqual(context["foreign_technology"], friendly_boolean(case.foreign_technology))
+        self.assertEqual(context["foreign_technology_description"], case.foreign_technology_description)
+        self.assertEqual(context["locally_manufactured"], friendly_boolean(case.locally_manufactured))
+        self.assertEqual(context["locally_manufactured_description"], case.locally_manufactured_description)
+        self.assertEqual(context["mtcr_type"], case.mtcr_type.to_representation())
+        self.assertEqual(
+            context["electronic_warfare_requirement"], friendly_boolean(case.electronic_warfare_requirement)
+        )
+        self.assertEqual(context["uk_service_equipment"], friendly_boolean(case.uk_service_equipment))
+        self.assertEqual(context["uk_service_equipment_description"], case.uk_service_equipment_description)
+        self.assertEqual(context["uk_service_equipment_type"], case.uk_service_equipment_type.to_representation())
+        self.assertEqual(context["prospect_value"], case.prospect_value)
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types
@@ -378,3 +404,25 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_base_application_details(context["details"], case)
         self._assert_exhibition_clearance_details(context["details"], case)
+
+    def test_generate_context_with_f680_clearance_details(self):
+        case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
+        case.expedited = True
+        case.expedited_date = date(year=2020, month=1, day=1)
+        case.foreign_technology = False
+        case.foreign_technology_description = "abc"
+        case.locally_manufactured = True
+        case.locally_manufactured_description = "def"
+        case.mtcr_type = MTCRAnswers.CATEGORY_1
+        case.electronic_warfare_requirement = None
+        case.uk_service_equipment = False
+        case.uk_service_equipment_description = "ghi"
+        case.uk_service_equipment_type = ServiceEquipmentType.MOD_FUNDED
+        case.prospect_value = 500.50
+        case.save()
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_base_application_details(context["details"], case)
+        self._assert_f680_clearance_details(context["details"], case)

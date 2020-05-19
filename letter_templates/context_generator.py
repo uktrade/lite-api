@@ -9,6 +9,7 @@ from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
+from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.units.enums import Units
 
 
@@ -63,6 +64,24 @@ def _get_details_context(case):
         if getattr(case, "required_by_date", "")
         else None,
         "reason_for_clearance": getattr(case, "reason_for_clearance", ""),
+        # F680 Clearance
+        "types": [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in case.types.all()]
+        if getattr(case, "types", "")
+        else None,
+        "expedited": friendly_boolean(getattr(case, "expedited", "")),
+        "expedited_date": case.expedited_date.strftime(DATE_FORMAT) if getattr(case, "expedited_date", "") else None,
+        "foreign_technology": friendly_boolean(getattr(case, "foreign_technology", "")),
+        "foreign_technology_description": getattr(case, "foreign_technology_description", ""),
+        "locally_manufactured": friendly_boolean(getattr(case, "locally_manufactured", "")),
+        "locally_manufactured_description": getattr(case, "locally_manufactured_description", ""),
+        "mtcr_type": case.mtcr_type.to_representation() if getattr(case, "mtcr_type", "") else None,
+        "electronic_warfare_requirement": friendly_boolean(getattr(case, "electronic_warfare_requirement", "")),
+        "uk_service_equipment": friendly_boolean(getattr(case, "uk_service_equipment", "")),
+        "uk_service_equipment_description": getattr(case, "uk_service_equipment_description", ""),
+        "uk_service_equipment_type": case.uk_service_equipment_type.to_representation()
+        if getattr(case, "uk_service_equipment_type", "")
+        else None,
+        "prospect_value": getattr(case, "prospect_value", ""),
     }
 
 
