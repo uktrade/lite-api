@@ -34,7 +34,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(case.status.status, CaseStatusEnum.DRAFT)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.DRAFT)
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
 
     def test_submit_standard_application_with_incorporated_good_success(self):
         draft = self.create_standard_application_with_incorporated_good(self.organisation)

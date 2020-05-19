@@ -94,7 +94,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [strings.Cases.PDF_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
-        self.assertTrue(Audit.objects.count() == 0)
+        self.assertTrue(Audit.objects.count() == 1)
         self.assertTrue(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
@@ -115,7 +115,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [strings.Cases.UPLOAD_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
-        self.assertTrue(Audit.objects.count() == 0)
+        self.assertTrue(Audit.objects.count() == 1)
         self.assertTrue(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
