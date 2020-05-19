@@ -39,9 +39,7 @@ class CasesSearchView(generics.ListAPIView):
 
         filters["submitted_from"] = make_date_from_params("submitted_from", filters)
         filters["submitted_to"] = make_date_from_params("submitted_to", filters)
-        from pprint import pprint
-        print('\n')
-        pprint(filters)
+
         page = self.paginate_queryset(
             Case.objects.search(
                 queue_id=queue_id,

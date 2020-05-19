@@ -7,7 +7,6 @@ from django.db.models import Q, Case, When, BinaryField
 
 from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
-from flags.models import Flag
 from queues.constants import (
     ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
@@ -82,11 +81,24 @@ class CaseQuerySet(models.QuerySet):
     def with_case_reference_code(self, case_reference):
         return self.filter(reference_code__icontains=case_reference)
 
+    def with_exporter_application_reference(self, exporter_application_reference):
+        return self.filter(baseapplication__name__icontains=exporter_application_reference)
+
     def with_organisation(self, organisation_name):
         return self.filter(organisation__name=organisation_name)
 
     def with_exporter_site_name(self, exporter_site_name):
         return self.filter(baseapplication__application_sites__site__name=exporter_site_name)
+
+    def with_exporter_site_address(self, exporter_site_address):
+        return self.filter(
+            Q(baseapplication__application_sites__site__address__address_line_1__icontains=exporter_site_address) |
+            Q(baseapplication__application_sites__site__address__address_line_2__icontains=exporter_site_address) |
+            Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address) |
+            Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address) |
+            Q(baseapplication__application_sites__site__address__postcode__icontains=exporter_site_address) |
+            Q(baseapplication__application_sites__site__address__address__icontains=exporter_site_address)
+        )
 
     def with_control_list_entry(self, control_list_entry):
         return self.filter(baseapplication__goods__good__control_list_entries__rating__in=[control_list_entry])
@@ -188,6 +200,7 @@ class CaseManager(models.Manager):
         include_hidden=None,
         organisation_name=None,
         case_reference=None,  # gov case number
+        exporter_application_reference=None,
         exporter_site_name=None,
         exporter_site_address=None,
         control_list_entry=None,
@@ -202,6 +215,7 @@ class CaseManager(models.Manager):
         party_name=None,
         party_address=None,
         goods_related_description=None,
+        sort_by_sla_remaining=None
         **kwargs,
     ):
         """
@@ -259,11 +273,17 @@ class CaseManager(models.Manager):
         if case_reference:
             case_qs = case_qs.with_case_reference_code(case_reference)
 
+        if exporter_application_reference:
+            case_qs = case_qs.with_exporter_application_reference(exporter_application_reference)
+
         if organisation_name:
             case_qs = case_qs.with_organisation(organisation_name)
 
         if exporter_site_name:
             case_qs = case_qs.with_exporter_site_name(exporter_site_name)
+
+        if exporter_site_address:
+            case_qs = case_qs.with_exporter_site_address(exporter_site_address)
 
         if control_list_entry:
             case_qs = case_qs.with_control_list_entry(control_list_entry)
@@ -310,6 +330,9 @@ class CaseManager(models.Manager):
 
         if isinstance(sort, str):
             case_qs = case_qs.order_by_status(order="-" if sort.startswith("-") else "")
+
+        if sort_by_sla_remaining:
+            case_qs = case_qs.order_by("sla_remaining_days")
 
         return case_qs.distinct()
 

@@ -53,6 +53,23 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_1.first().pk, application_1.pk)
         self.assertEqual(qs_2.first().pk, application_2.pk)
 
+    def test_filter_with_exporter_application_reference(self):
+        name_1 = "Ref 1"
+        name_2 = "Ref 2"
+        application_1 = StandardApplicationFactory(name=name_1)
+        application_2 = StandardApplicationFactory(name=name_2)
+
+        qs_1 = Case.objects.search(exporter_application_reference=name_1)
+        qs_2 = Case.objects.search(exporter_application_reference=name_2)
+        qs_3 = Case.objects.search(exporter_application_reference="Ref")
+
+        self.assertEqual(qs_1.count(), 1)
+        self.assertEqual(qs_2.count(), 1)
+        self.assertEqual(qs_3.count(), 2)
+
+        self.assertEqual(qs_1.first().pk, application_1.pk)
+        self.assertEqual(qs_2.first().pk, application_2.pk)
+
     def test_filter_with_case_reference_code(self):
         application_1 = StandardApplicationFactory()
         application_2 = StandardApplicationFactory()
