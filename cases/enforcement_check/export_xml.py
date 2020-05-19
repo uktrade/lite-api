@@ -3,6 +3,7 @@ from xml.etree import ElementTree  # nosec
 from xml.sax.saxutils import escape  # nosec
 
 from applications.models import PartyOnApplication, SiteOnApplication, ExternalLocationOnApplication
+from cases.models import EnforcementCheckID
 from parties.enums import PartyRole, PartyType
 
 
@@ -26,6 +27,11 @@ def export_cases_xml(cases):
     return reparsed
 
 
+def uuid_to_enforcement_id(uuid):
+    enforcement_check_id, _ = EnforcementCheckID.objects.get_or_create(entity_id=uuid)
+    return enforcement_check_id.id
+
+
 def _dict_to_xml(parent, data):
     for key, value in data.items():
         element = ElementTree.SubElement(parent, key)
@@ -47,9 +53,9 @@ def _entity_to_xml(
     _dict_to_xml(
         stakeholder,
         {
-            "ELA_ID": application_id.int,
-            "ELA_DETAIL_ID": id.int,
-            "SH_ID": id.int,
+            "ELA_ID": uuid_to_enforcement_id(application_id),
+            "ELA_DETAIL_ID": uuid_to_enforcement_id(id),
+            "SH_ID": uuid_to_enforcement_id(id),
             "SH_TYPE": type,
             "COUNTRY": country,
             "ORG_NAME": organisation,
