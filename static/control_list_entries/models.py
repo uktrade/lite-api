@@ -8,7 +8,7 @@ class ControlListEntry(models.Model):
     rating = models.CharField(max_length=100, unique=True)
     text = models.TextField(blank=False, null=False)
     parent = models.ForeignKey("self", related_name="children", default=None, null=True, on_delete=models.CASCADE)
-    is_decontrolled = models.BooleanField(default=False)
+    category = models.CharField(max_length=100, default="")
 
     class Meta:
         db_table = "control_list_entry"
@@ -19,7 +19,7 @@ class ControlListEntry(models.Model):
     children = property(__children)
 
     @classmethod
-    def create(cls, rating, text, parent, is_decontrolled):
-        control_list_entry = cls(rating=rating, text=text, parent=parent, is_decontrolled=is_decontrolled)
+    def create(cls, rating, text, parent):
+        control_list_entry = cls(rating=rating, text=text, parent=parent)
         control_list_entry.save()
         return control_list_entry
