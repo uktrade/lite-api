@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("control_list_entries", "0004_remove_is_decontrolled"),
+        ("control_list_entries", "0004_remove_decontrolled_entries"),
     ]
 
     operations = [
