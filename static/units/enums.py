@@ -25,6 +25,4 @@ class Units:
         (ITG, "Intangible"),
     ]
 
-    dict_format = {
-        key: value for key, value in choices
-    }
+    dict_format = {key: value for key, value in choices}

@@ -127,28 +127,32 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["description"], document.description)
 
     def _assert_base_application_details(self, context, case):
-        self.assertEqual(context["end_use_details"], case.intended_end_use),
-        self.assertEqual(context["military_end_use_controls"], friendly_boolean(case.is_military_end_use_controls)),
-        self.assertEqual(context["military_end_use_controls_reference"], case.military_end_use_controls_ref),
-        self.assertEqual(context["informed_wmd"], friendly_boolean(case.is_informed_wmd)),
-        self.assertEqual(context["informed_wmd_reference"], case.informed_wmd_ref),
-        self.assertEqual(context["suspected_wmd"], friendly_boolean(case.is_suspected_wmd)),
-        self.assertEqual(context["suspected_wmd_reference"], case.suspected_wmd_ref),
-        self.assertEqual(context["eu_military"], friendly_boolean(case.is_eu_military)),
-        self.assertEqual(context["compliant_limitations_eu"], friendly_boolean(case.is_compliant_limitations_eu)),
-        self.assertEqual(context["compliant_limitations_eu_reference"], case.compliant_limitations_eu_ref),
+        self.assertEqual(context["end_use_details"], case.intended_end_use)
+        self.assertEqual(context["military_end_use_controls"], friendly_boolean(case.is_military_end_use_controls))
+        self.assertEqual(context["military_end_use_controls_reference"], case.military_end_use_controls_ref)
+        self.assertEqual(context["informed_wmd"], friendly_boolean(case.is_informed_wmd))
+        self.assertEqual(context["informed_wmd_reference"], case.informed_wmd_ref)
+        self.assertEqual(context["suspected_wmd"], friendly_boolean(case.is_suspected_wmd))
+        self.assertEqual(context["suspected_wmd_reference"], case.suspected_wmd_ref)
+        self.assertEqual(context["eu_military"], friendly_boolean(case.is_eu_military))
+        self.assertEqual(context["compliant_limitations_eu"], friendly_boolean(case.is_compliant_limitations_eu))
+        self.assertEqual(context["compliant_limitations_eu_reference"], case.compliant_limitations_eu_ref)
 
     def _assert_standard_application_details(self, context, case):
-        self.assertEqual(context["export_type"], case.export_type),
-        self.assertEqual(context["reference_number_on_information_form"], case.reference_number_on_information_form),
-        self.assertEqual(context["has_been_informed"], friendly_boolean(case.have_you_been_informed)),
-        self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods)),
-        self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading)),
-        self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details),
-        self.assertEqual(context["proposed_return_date"], case.proposed_return_date.strftime(DATE_FORMAT)),
-        self.assertEqual(context["trade_control_activity"], case.trade_control_activity),
-        self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other),
-        self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories),
+        self.assertEqual(context["export_type"], case.export_type)
+        self.assertEqual(context["reference_number_on_information_form"], case.reference_number_on_information_form)
+        self.assertEqual(context["has_been_informed"], friendly_boolean(case.have_you_been_informed))
+        self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods))
+        self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading))
+        self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details)
+        self.assertEqual(context["proposed_return_date"], case.proposed_return_date.strftime(DATE_FORMAT))
+        self.assertEqual(context["trade_control_activity"], case.trade_control_activity)
+        self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other)
+        self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
+
+    def _assert_hmrc_query_details(self, context, case):
+        self.assertEqual(context["query_reason"], case.reasoning)
+        self.assertEqual(context["have_goods_departed"], friendly_boolean(case.have_goods_departed))
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types
@@ -315,3 +319,12 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_base_application_details(context["details"], case)
         self._assert_standard_application_details(context["details"], case)
+
+    def test_generate_context_with_hmrc_query_details(self):
+        case = self.create_hmrc_query(self.organisation)
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_base_application_details(context["details"], case)
+        self._assert_hmrc_query_details(context["details"], case)

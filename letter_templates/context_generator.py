@@ -47,6 +47,9 @@ def _get_details_context(case):
         "trade_control_activity": getattr(case, "trade_control_activity", ""),
         "trade_control_activity_other": getattr(case, "trade_control_activity_other", ""),
         "trade_control_product_categories": getattr(case, "trade_control_product_categories", ""),
+        # HMRC Query
+        "query_reason": getattr(case, "reasoning", ""),
+        "have_goods_departed": friendly_boolean(getattr(case, "have_goods_departed", "")),
     }
 
 
@@ -107,7 +110,7 @@ def _get_good_context(good_on_application, advice=None):
         "is_controlled": good_on_application.good.is_good_controlled,
         "part_number": good_on_application.good.part_number,
         "applied_for_quantity": _format_quantity(good_on_application.quantity, good_on_application.unit),
-        "applied_for_value": f"£{good_on_application.value}"
+        "applied_for_value": f"£{good_on_application.value}",
     }
     if advice:
         good_context["reason"] = advice.text
