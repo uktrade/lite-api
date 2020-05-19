@@ -90,6 +90,9 @@ class CaseQuerySet(models.QuerySet):
     def with_exporter_site_name(self, exporter_site_name):
         return self.filter(baseapplication__application_sites__site__name=exporter_site_name)
 
+    def with_sla_days_elapsed(self, sla_days_elapsed):
+        return self.filter(sla_days=sla_days_elapsed)
+
     def with_exporter_site_address(self, exporter_site_address):
         return self.filter(
             Q(baseapplication__application_sites__site__address__address_line_1__icontains=exporter_site_address) |
@@ -216,6 +219,7 @@ class CaseManager(models.Manager):
         party_address=None,
         goods_related_description=None,
         sort_by_sla_remaining=None,
+        sla_days_elapsed=None,
         **kwargs,
     ):
         """
@@ -240,7 +244,7 @@ class CaseManager(models.Manager):
             )
         )
 
-        if not include_hidden and user is not None:
+        if not include_hidden and user:
             EcjuQuery = get_model("cases", "ecjuquery")
 
             case_qs = case_qs.exclude(
@@ -249,7 +253,7 @@ class CaseManager(models.Manager):
                 .distinct()
             )
 
-        if queue_id and user is not None:
+        if queue_id and user:
             case_qs = case_qs.filter_based_on_queue(queue_id=queue_id, team_id=user.team.id, user=user)
 
         if status:
@@ -302,6 +306,9 @@ class CaseManager(models.Manager):
 
         if min_sla_days_remaining or max_sla_days_remaining:
             case_qs = case_qs.with_sla_days_range(min_sla=min_sla_days_remaining, max_sla=max_sla_days_remaining)
+
+        if sla_days_elapsed:
+            case_qs = case_qs.with_sla_days_elapsed(sla_days_elapsed)
 
         if submitted_from or submitted_to:
             case_qs = case_qs.with_submitted_range(submitted_from=submitted_from, submitted_to=submitted_to)
