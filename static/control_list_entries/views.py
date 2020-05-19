@@ -21,18 +21,18 @@ class ControlListEntriesList(APIView):
         """
         Returns list of all Control List Entries
         """
+        queryset = ControlListEntry.objects.all().prefetch_related("children")
+
         if request.GET.get("flatten"):
             return JsonResponse(
                 data={
                     "control_list_entries": list(
-                        ControlListEntry.objects.filter(is_decontrolled=False, rating__isnull=False).values(
-                            "rating", "text"
-                        )
+                        queryset.filter(is_decontrolled=False, rating__isnull=False).values("rating", "text")
                     )
                 }
             )
 
-        serializer = ControlListEntrySerializerWithLinks(ControlListEntry.objects.filter(parent=None), many=True)
+        serializer = ControlListEntrySerializerWithLinks(queryset.filter(parent=None), many=True)
         return JsonResponse(data={"control_list_entries": serializer.data})
 
 
