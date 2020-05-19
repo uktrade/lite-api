@@ -1,6 +1,6 @@
 from datetime import date
 
-from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
+from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsTypeCategory
 from applications.models import ExternalLocationOnApplication
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType
@@ -149,6 +149,18 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["trade_control_activity"], case.trade_control_activity)
         self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other)
         self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
+
+    def _assert_open_application_details(self, context, case):
+        self.assertEqual(context["export_type"], case.export_type)
+        self.assertEqual(context["reference_number_on_information_form"], case.reference_number_on_information_form)
+        self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods))
+        self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading))
+        self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details)
+        self.assertEqual(context["proposed_return_date"], case.proposed_return_date.strftime(DATE_FORMAT))
+        self.assertEqual(context["trade_control_activity"], case.trade_control_activity)
+        self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other)
+        self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
+        self.assertEqual(context["goodstype_category"], GoodsTypeCategory.get_text(case.goodstype_category))
 
     def _assert_hmrc_query_details(self, context, case):
         self.assertEqual(context["query_reason"], case.reasoning)
@@ -301,7 +313,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_base_application_details(context["details"], case)
 
     def test_generate_context_with_standard_application_details(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        case = self.create_standard_application_case(self.organisation)
         case.export_type = ApplicationExportType.TEMPORARY
         case.reference_number_on_information_form = "123"
         case.has_you_been_informed = ApplicationExportLicenceOfficialType.YES
@@ -319,6 +331,27 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_base_application_details(context["details"], case)
         self._assert_standard_application_details(context["details"], case)
+
+    def test_generate_context_with_open_application_details(self):
+        case = self.create_open_application_case(self.organisation)
+        case.export_type = ApplicationExportType.TEMPORARY
+        case.reference_number_on_information_form = "123"
+        case.has_you_been_informed = ApplicationExportLicenceOfficialType.YES
+        case.contains_firearm_goods = True
+        case.shipped_waybill_or_lading = False
+        case.non_waybill_or_lading_route_details = "abc"
+        case.proposed_return_date = date(year=2020, month=1, day=1)
+        case.trade_control_activity = TradeControlActivity.MARITIME_ANTI_PIRACY
+        case.trade_control_activity_other = "other"
+        case.trade_control_product_categories = [TradeControlProductCategory.CATEGORY_A]
+        case.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
+        case.save()
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_base_application_details(context["details"], case)
+        self._assert_open_application_details(context["details"], case)
 
     def test_generate_context_with_hmrc_query_details(self):
         case = self.create_hmrc_query(self.organisation)

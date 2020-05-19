@@ -1,5 +1,6 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
 
+from applications.enums import GoodsTypeCategory
 from applications.models import ApplicationDocument
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType
@@ -34,7 +35,7 @@ def _get_details_context(case):
         "eu_military": friendly_boolean(getattr(case, "is_eu_military", "")),
         "compliant_limitations_eu": friendly_boolean(getattr(case, "is_compliant_limitations_eu", "")),
         "compliant_limitations_eu_reference": getattr(case, "compliant_limitations_eu_ref", ""),
-        # Standard Application
+        # Standard/ Open Application
         "export_type": getattr(case, "export_type", ""),
         "reference_number_on_information_form": getattr(case, "reference_number_on_information_form", ""),
         "has_been_informed": friendly_boolean(getattr(case, "have_you_been_informed", "")),
@@ -47,6 +48,9 @@ def _get_details_context(case):
         "trade_control_activity": getattr(case, "trade_control_activity", ""),
         "trade_control_activity_other": getattr(case, "trade_control_activity_other", ""),
         "trade_control_product_categories": getattr(case, "trade_control_product_categories", ""),
+        "goodstype_category": GoodsTypeCategory.get_text(case.goodstype_category)
+        if getattr(case, "goodstype_category", "")
+        else None,
         # HMRC Query
         "query_reason": getattr(case, "reasoning", ""),
         "have_goods_departed": friendly_boolean(getattr(case, "have_goods_departed", "")),
