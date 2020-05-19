@@ -247,7 +247,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return external_location
 
     @staticmethod
-    def create_party(name, organisation, party_type, application=None, pk=None, country_code="GB"):
+    def create_party(
+        name, organisation, party_type, application=None, pk=None, country_code="GB", role=PartyRole.AGENT
+    ):
         if not pk:
             pk = uuid.uuid4()
 
@@ -263,7 +265,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         }
 
         if party_type == PartyType.THIRD_PARTY:
-            data["role"] = PartyRole.AGENT
+            data["role"] = role
 
         party = Party(**data)
         party.save()
@@ -630,6 +632,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         organisation: Organisation,
         reference_name="Standard Draft",
         safe_document=True,
+        parties=True,
+        site=True,
         case_type_id=CaseTypeEnum.SIEL.id,
     ):
         application = StandardApplication(
@@ -665,17 +669,20 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
         self.good_on_application.save()
-        self.create_party("End User", organisation, PartyType.END_USER, application)
-        self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
-        self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
-        # Set the application party documents
 
-        self.add_party_documents(application, safe_document)
+        if parties:
+            self.create_party("End User", organisation, PartyType.END_USER, application)
+            self.create_party("Consignee", organisation, PartyType.CONSIGNEE, application)
+            self.create_party("Third party", organisation, PartyType.THIRD_PARTY, application)
+            # Set the application party documents
+
+            self.add_party_documents(application, safe_document)
 
         self.create_application_document(application)
 
         # Add a site to the application
-        SiteOnApplication(site=organisation.primary_site, application=application).save()
+        if site:
+            SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
 
@@ -864,11 +871,13 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
-    def create_standard_application_case(self, organisation: Organisation, reference_name="Standard Application Case"):
+    def create_standard_application_case(
+        self, organisation: Organisation, reference_name="Standard Application Case", parties=True, site=True
+    ):
         """
         Creates a complete standard application case
         """
-        draft = self.create_draft_standard_application(organisation, reference_name)
+        draft = self.create_draft_standard_application(organisation, reference_name, parties=parties, site=site)
 
         return self.submit_application(draft, self.exporter_user)
 
