@@ -3,7 +3,7 @@ from datetime import date
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType, GoodsTypeCategory
 from applications.models import ExternalLocationOnApplication
 from audit_trail.models import Audit
-from cases.enums import AdviceLevel, AdviceType
+from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
 from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
@@ -165,6 +165,12 @@ class DocumentContextGenerationTests(DataTestClient):
     def _assert_hmrc_query_details(self, context, case):
         self.assertEqual(context["query_reason"], case.reasoning)
         self.assertEqual(context["have_goods_departed"], friendly_boolean(case.have_goods_departed))
+
+    def _assert_exhibition_clearance_details(self, context, case):
+        self.assertEqual(context["exhibition_title"], case.title)
+        self.assertEqual(context["first_exhibition_date"], case.first_exhibition_date.strftime(DATE_FORMAT))
+        self.assertEqual(context["required_by_date"], case.required_by_date.strftime(DATE_FORMAT))
+        self.assertEqual(context["reason_for_clearance"], case.reason_for_clearance)
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types
@@ -361,3 +367,14 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_base_application_details(context["details"], case)
         self._assert_hmrc_query_details(context["details"], case)
+
+    def test_generate_context_with_exhibition_clearance_details(self):
+        case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
+        case.reason_for_clearance = "abc"
+        case.save()
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_base_application_details(context["details"], case)
+        self._assert_exhibition_clearance_details(context["details"], case)

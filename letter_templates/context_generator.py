@@ -54,6 +54,15 @@ def _get_details_context(case):
         # HMRC Query
         "query_reason": getattr(case, "reasoning", ""),
         "have_goods_departed": friendly_boolean(getattr(case, "have_goods_departed", "")),
+        # Exhibition Clearance
+        "exhibition_title": getattr(case, "title", ""),
+        "first_exhibition_date": case.first_exhibition_date.strftime(DATE_FORMAT)
+        if getattr(case, "first_exhibition_date", "")
+        else None,
+        "required_by_date": case.required_by_date.strftime(DATE_FORMAT)
+        if getattr(case, "required_by_date", "")
+        else None,
+        "reason_for_clearance": getattr(case, "reason_for_clearance", ""),
     }
 
 
