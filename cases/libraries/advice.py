@@ -60,6 +60,7 @@ def construct_coalesced_advice_values(
         "pv_grading": set(),
         "proviso": set(),
         "collated_pv_grading": set(),
+        "footnote": set(),
     }
     break_text = "\n-------\n"
     for advice in deduplicated_advice:
@@ -92,6 +93,8 @@ def construct_coalesced_advice_values(
         user=user,
         type=advice_type,
         collated_pv_grading=pv_grading,
+        footnote=break_text.join(fields["footnote"]),
+        footnote_required=len(fields["footnote"]) > 0,
     )
 
 

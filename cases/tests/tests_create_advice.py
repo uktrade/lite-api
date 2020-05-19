@@ -6,6 +6,7 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import AdviceType
 from cases.models import Advice
+from conf.constants import GovPermissions
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -97,3 +98,86 @@ class CreateCaseAdviceTests(DataTestClient):
         response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_cannot_add_footnote_without_permission(self):
+        self.gov_user.role.permissions.remove(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+            "footnote_required": "True",
+            "footnote": "footnote",
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        response_data = response.json()["advice"][0]
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["footnote"], None)
+        self.assertEqual(response_data["footnote_required"], None)
+
+    def test_cannot_create_advice_without_footnote_and_having_permission(self):
+        self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_can_create_advice_with_footnote_not_required(self):
+        self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+            "footnote_required": "False",
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        response_data = response.json()["advice"][0]
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["footnote"], None)
+        self.assertEqual(response_data["footnote_required"], False)
+
+    def test_cannot_create_advice_with_footnote_required_and_no_footnote(self):
+        self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+            "footnote_required": "True",
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_can_create_advice_with_footnote_not_required(self):
+        self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+            "footnote_required": "True",
+            "footnote": "footnote",
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        response_data = response.json()["advice"][0]
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["footnote"], "footnote")
+        self.assertEqual(response_data["footnote_required"], True)

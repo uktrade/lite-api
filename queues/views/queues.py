@@ -7,7 +7,7 @@ from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer, QueueListSerializer
-from queues.service import get_queue, get_work_queues_qs, get_system_queues
+from queues.service import get_queue, get_queues_qs, get_system_queues
 
 
 class QueuesList(generics.ListAPIView):
@@ -21,7 +21,7 @@ class QueuesList(generics.ListAPIView):
 
         if str_to_bool(include_system) and str(disable_pagination):
             system_queue_data = get_system_queues()
-            work_queue_data = self.get_serializer(get_work_queues_qs(), many=True).data
+            work_queue_data = self.get_serializer(get_queues_qs(), many=True).data
             return JsonResponse(data=system_queue_data + work_queue_data, safe=False, status=status.HTTP_200_OK)
 
         return super().get(request, *args, **kwargs)
