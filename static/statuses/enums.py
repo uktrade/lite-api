@@ -115,13 +115,13 @@ class CaseStatusEnum:
 
     @classmethod
     def get_text(cls, status):
-        for k, v in cls.choices:
+        for k, v in [*cls.choices, (cls.DRAFT, "Draft")]:
             if status == k:
                 return v
 
     @classmethod
     def get_value(cls, status):
-        for k, v in cls.choices:
+        for k, v in [*cls.choices, (cls.DRAFT, "Draft")]:
             if status == v:
                 return k
 

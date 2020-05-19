@@ -3,6 +3,7 @@ from rest_framework import status
 
 from applications.enums import ApplicationExportType
 from applications.models import SiteOnApplication, GoodOnApplication, PartyOnApplication
+from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case, CaseType
@@ -267,7 +268,19 @@ class StandardApplicationTests(DataTestClient):
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
         for good_on_application in GoodOnApplication.objects.filter(application=case):
             self.assertEqual(good_on_application.good.status, GoodStatus.SUBMITTED)
-        self.assertEqual(Audit.objects.all().count(), 1)
+
+        case_status_audits = Audit.objects.filter(target_object_id=case.id, verb=AuditType.UPDATED_STATUS).values_list(
+            "payload", flat=True
+        )
+        self.assertIn(
+            {
+                "status": {
+                    "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
+                    "old": CaseStatusEnum.get_text(CaseStatusEnum.DRAFT),
+                }
+            },
+            case_status_audits,
+        )
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
         data = {"submit_declaration": True, "agreed_to_declaration": False, "agreed_to_foi": True}

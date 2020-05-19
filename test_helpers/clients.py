@@ -631,6 +631,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             intended_end_use="this is our intended end use",
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
+            status_id="00000000-0000-0000-0000-000000000000",
         )
 
         application.save()
@@ -781,6 +782,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             intended_end_use="intended end use is none of your business",
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
+            status_id="00000000-0000-0000-0000-000000000000",
         )
 
         application.save()

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, Dict
+from typing import Optional
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
