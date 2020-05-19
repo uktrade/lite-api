@@ -63,10 +63,14 @@ def migrate(apps, schema_editor):
                 denial_reason.save()
 
 
+def reverse_migrate(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [("cases", "0019_prep_advice_model"), ("teams", "0002_auto_20200307_1805")]
 
     operations = [
-        migrations.RunPython(migrate),
+        migrations.RunPython(migrate, reverse_migrate),
     ]
