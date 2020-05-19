@@ -92,25 +92,35 @@ class FilterAndSortTests(DataTestClient):
         qs_2 = Case.objects.search(control_list_entry="ML1b")
         qs_3 = Case.objects.search(control_list_entry="ML1a")
 
-        self.assertEqual(qs_1.count(), 0)
+        self.assertEqual(qs_1.count(), 1)
         self.assertEqual(qs_2.count(), 0)
         self.assertEqual(qs_3.count(), 1)
 
     def test_filter_by_flags(self):
         flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)
         flag_2 = FlagFactory(name="Name_2", level="Destination", team=self.gov_user.team, priority=10)
+        flag_3 = FlagFactory(name="Name_3", level="good", team=self.gov_user.team, priority=1)
         application_1 = StandardApplicationFactory()
         application_1.flags.add(flag_1)
         application_2 = StandardApplicationFactory()
         application_2.flags.add(flag_2)
         application_3 = StandardApplicationFactory()
         application_3.flags.add(flag_2)
+        application_4 = StandardApplicationFactory()
+        GoodOnApplicationFactory(
+            good=GoodFactory(organisation=application_4.organisation, flags=[flag_3]),
+            application=application_4,
+         )
 
-        qs_1 = Case.objects.search(flags=[flag_1.name])
-        qs_2 = Case.objects.search(flags=[flag_2.name])
+        qs_1 = Case.objects.search(flags=[flag_1.id])
+        qs_2 = Case.objects.search(flags=[flag_2.id])
+        qs_3 = Case.objects.search(flags=[flag_3.id])
 
         self.assertEqual(qs_1.count(), 1)
         self.assertEqual(qs_2.count(), 2)
+        self.assertEqual(qs_3.count(), 1)
+        self.assertEqual(qs_3.first().pk, application_4.pk)
+
 
     def test_filter_by_country(self):
         """

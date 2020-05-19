@@ -31,11 +31,17 @@ class CasesSearchView(generics.ListAPIView):
         # we include hidden cases in non work queues (all cases, all open cases)
         # and if the flag to include hidden is added
         include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
-        filters = {key: value for key, value in request.GET.items() if key not in ["hidden", "queue_id"]}
+        filters = {
+            key.replace('[]', ''): value if "[]" not in key else request.GET.getlist(key)
+            for key, value in request.GET.items()
+            if key not in ["hidden", "queue_id"]
+        }
 
         filters["submitted_from"] = make_date_from_params("submitted_from", filters)
         filters["submitted_to"] = make_date_from_params("submitted_to", filters)
-
+        from pprint import pprint
+        print('\n')
+        pprint(filters)
         page = self.paginate_queryset(
             Case.objects.search(
                 queue_id=queue_id,

@@ -7,6 +7,7 @@ from django.db.models import Q, Case, When, BinaryField
 
 from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
+from flags.models import Flag
 from queues.constants import (
     ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
@@ -85,23 +86,24 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(organisation__name=organisation_name)
 
     def with_exporter_site_name(self, exporter_site_name):
-        from applications.models import SiteOnApplication
-
-        case_ids = SiteOnApplication.objects.filter(site__name=exporter_site_name).values_list(
-            "application__id", flat=True
-        )
-        return self.filter(pk__in=case_ids)
+        return self.filter(baseapplication__application_sites__site__name=exporter_site_name)
 
     def with_control_list_entry(self, control_list_entry):
         return self.filter(baseapplication__goods__good__control_list_entries__rating__in=[control_list_entry])
 
     def with_flags(self, flags):
-        return self.filter(flags__name__in=flags)
-
-    def with_country(self, country):
         return self.filter(
-            Q(baseapplication__parties__party__country=country) |
-            Q(baseapplication__openapplication__application_countries__country=country)
+            Q(flags__id__in=flags) |
+            Q(organisation__flags__id__in=flags) |
+            Q(baseapplication__openapplication__application_countries__country__flags__id__in=flags) |
+            Q(baseapplication__goods__good__flags__id__in=flags) |
+            Q(baseapplication__goods_type__flags__id__in=flags)
+        )
+
+    def with_country(self, country_id):
+        return self.filter(
+            Q(baseapplication__parties__party__country_id=country_id) |
+            Q(baseapplication__openapplication__application_countries__country_id=country_id)
         )
 
     def with_advice(self, advice_type, level):
@@ -254,43 +256,43 @@ class CaseManager(models.Manager):
                 case_officer = None
             case_qs = case_qs.assigned_as_case_officer(user=case_officer)
 
-        if case_reference is not None:
+        if case_reference:
             case_qs = case_qs.with_case_reference_code(case_reference)
 
-        if organisation_name is not None:
+        if organisation_name:
             case_qs = case_qs.with_organisation(organisation_name)
 
-        if exporter_site_name is not None:
+        if exporter_site_name:
             case_qs = case_qs.with_exporter_site_name(exporter_site_name)
 
-        if control_list_entry is not None:
+        if control_list_entry:
             case_qs = case_qs.with_control_list_entry(control_list_entry)
 
-        if flags is not None:
+        if flags:
             case_qs = case_qs.with_flags(flags)
 
-        if country is not None:
+        if country:
             case_qs = case_qs.with_country(country)
 
-        if team_advice_type is not None:
+        if team_advice_type:
             case_qs = case_qs.with_advice(team_advice_type, AdviceLevel.TEAM)
 
-        if final_advice_type is not None:
+        if final_advice_type:
             case_qs = case_qs.with_advice(final_advice_type, AdviceLevel.FINAL)
 
-        if min_sla_days_remaining is not None or max_sla_days_remaining is not None:
+        if min_sla_days_remaining or max_sla_days_remaining:
             case_qs = case_qs.with_sla_days_range(min_sla=min_sla_days_remaining, max_sla=max_sla_days_remaining)
 
-        if submitted_from is not None or submitted_to is not None:
+        if submitted_from or submitted_to:
             case_qs = case_qs.with_submitted_range(submitted_from=submitted_from, submitted_to=submitted_to)
 
-        if party_name is not None:
+        if party_name:
             case_qs = case_qs.with_party_name(party_name)
 
-        if party_address is not None:
+        if party_address:
             case_qs = case_qs.with_party_address(party_address)
 
-        if goods_related_description is not None:
+        if goods_related_description:
             case_qs = case_qs.with_goods_related_description(goods_related_description)
 
         if is_work_queue:

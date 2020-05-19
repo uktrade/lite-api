@@ -47,7 +47,7 @@ class FlagsListCreateView(ListCreateAPIView):
         level = self.request.GET.get("level")
         priority = self.request.GET.get("priority")
         team = self.request.GET.get("team")
-        only_show_deactivated = optional_str_to_bool(self.request.GET.get("only_show_deactivated"))
+        status = self.request.GET.get("status")
         include_system_flags = str_to_bool(self.request.GET.get("include_system_flags"))  # True, False
         blocks_approval = str_to_bool(self.request.GET.get("blocks_approval"))
 
@@ -68,10 +68,8 @@ class FlagsListCreateView(ListCreateAPIView):
         if team and team != "None":
             flags = flags.filter(team=team)
 
-        if only_show_deactivated:
-            flags = flags.filter(status=FlagStatuses.DEACTIVATED)
-        else:
-            flags = flags.filter(status=FlagStatuses.ACTIVE)
+        if status:
+            flags = flags.filter(status=status)
 
         if include_system_flags:
             system_flags = Flag.objects.filter(id__in=SystemFlags.list)
