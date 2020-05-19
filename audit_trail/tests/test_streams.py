@@ -15,6 +15,7 @@ class AuditTrailStreamTestCase(DataTestClient):
     def setUp(self):
         super().setUp()
         self.url = reverse("audit_trail:streams", kwargs={"timestamp": 0})
+        self.user = self.exporter_user
 
     def test_no_case_record_in_stream_with_no_audit(self):
         response = self.client.get(self.url, **self.exporter_headers)
@@ -24,7 +25,6 @@ class AuditTrailStreamTestCase(DataTestClient):
 
     def test_status_audit_created_and_record(self):
         self.case = self.create_standard_application_case(self.organisation)
-        self.user = self.exporter_user
 
         response = self.client.get(self.url, **self.exporter_headers)
         stream = response.json()
@@ -75,6 +75,8 @@ class AuditTrailStreamTestCase(DataTestClient):
 
     @override_settings(STREAM_PAGE_SIZE=1)
     def test_duplicate_timestamp_appended(self):
+        self.case = self.create_standard_application_case(self.organisation)
+
         now = timezone.now()
         Audit.objects.create(
             created_at=now - timedelta(days=1),
