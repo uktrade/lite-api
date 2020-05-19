@@ -427,7 +427,12 @@ class ApplicationManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
-            payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
+            payload={
+                "status": {
+                    "new": CaseStatusEnum.get_text(case_status.status),
+                    "old": CaseStatusEnum.get_text(old_status.status),
+                }
+            },
         )
 
         # Case routing rules
