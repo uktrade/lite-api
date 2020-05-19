@@ -35,7 +35,7 @@ def _get_details_context(case):
         "compliant_limitations_eu": friendly_boolean(getattr(case, "is_compliant_limitations_eu", "")),
         "compliant_limitations_eu_reference": getattr(case, "compliant_limitations_eu_ref", ""),
         # Standard Application
-        "export_type": getattr(case, "export_type"),
+        "export_type": getattr(case, "export_type", ""),
         "reference_number_on_information_form": getattr(case, "reference_number_on_information_form", ""),
         "has_been_informed": friendly_boolean(getattr(case, "have_you_been_informed", "")),
         "contains_firearm_goods": friendly_boolean(getattr(case, "contains_firearm_goods", "")),
