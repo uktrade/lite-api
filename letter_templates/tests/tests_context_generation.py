@@ -207,6 +207,19 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["contact_job_title"], case.contact_job_title)
         self.assertEqual(context["contact_telephone"], case.contact_telephone)
 
+    def _assert_goods_query_details(self, context, case):
+        self.assertEqual(context["control_list_entry"], case.clc_control_list_entry)
+        self.assertEqual(context["clc_raised_reasons"], case.clc_raised_reasons)
+        self.assertEqual(context["pv_grading_raised_reasons"], case.pv_grading_raised_reasons)
+        self.assertEqual(context["good"]["description"], case.good.description)
+        self.assertEqual(
+            context["good"]["control_list_entries"], [clc.rating for clc in case.good.control_list_entries.all()]
+        )
+        self.assertEqual(context["good"]["is_controlled"], case.good.is_good_controlled)
+        self.assertEqual(context["good"]["part_number"], case.good.part_number)
+        self.assertEqual(context["clc_responded"], friendly_boolean(case.clc_responded))
+        self.assertEqual(context["pv_grading_responded"], friendly_boolean(case.pv_grading_responded))
+
     def test_generate_context_with_parties(self):
         # Standard application with all party types
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
@@ -452,3 +465,11 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_party(context["end_user"], case.end_user)
         self._assert_end_user_advisory_details(context["query_details"], case)
+
+    def test_generate_context_with_goods_query_details(self):
+        case = self.create_goods_query("abc", self.organisation, "clc reason", "pv reason")
+
+        context = get_document_context(case)
+
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_goods_query_details(context["query_details"], case)

@@ -85,6 +85,15 @@ def _get_application_details_context(case):
     }
 
 
+def _get_goods_query_good_context(good):
+    return {
+        "description": good.description,
+        "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
+        "is_controlled": good.is_good_controlled,
+        "part_number": good.part_number,
+    }
+
+
 def _get_query_details_context(case):
     return {
         # End User Advisory Query (end user found in main body)
@@ -95,6 +104,13 @@ def _get_query_details_context(case):
         "contact_email": getattr(case, "contact_email", ""),
         "contact_job_title": getattr(case, "contact_job_title", ""),
         "contact_telephone": getattr(case, "contact_telephone", ""),
+        # Goods Query
+        "control_list_entry": getattr(case, "clc_control_list_entry", ""),
+        "clc_raised_reasons": getattr(case, "clc_raised_reasons", ""),
+        "pv_grading_raised_reasons": getattr(case, "pv_grading_raised_reasons", ""),
+        "good": _get_goods_query_good_context(case.good) if getattr(case, "good", "") else None,
+        "clc_responded": friendly_boolean(getattr(case, "clc_responded", "")),
+        "pv_grading_responded": friendly_boolean(getattr(case, "pv_grading_responded", "")),
     }
 
 
