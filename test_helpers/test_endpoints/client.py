@@ -58,6 +58,7 @@ def _get_hawk_sender(url, method, content_type, content):
         method=method,
         content_type=content_type,
         content=content,
+        seen_nonce=lambda x, y, z: False,
     )
 
 
