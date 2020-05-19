@@ -215,7 +215,7 @@ class CaseManager(models.Manager):
         party_name=None,
         party_address=None,
         goods_related_description=None,
-        sort_by_sla_remaining=None
+        sort_by_sla_remaining=None,
         **kwargs,
     ):
         """
