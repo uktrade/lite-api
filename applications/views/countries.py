@@ -141,15 +141,19 @@ class ApplicationContractTypes(APIView):
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
         contract_types = [",".join(data.get("contract_types"))]
 
-        qs = CountryOnApplication.objects.filter(country__in=data.get("countries"), application=application)
-        qs.update(contract_types=contract_types, other_contract_type_text=data.get("other_contract_type_text"))
-
         flags = [
-            Flag.objects.get(name=ContractType.get_flag_name(contract_type))
+            Flag.objects.get(name=ContractType.get_flag_name(contract_type)).id
             for contract_type in data.get("contract_types")
         ]
+        qs = CountryOnApplication.objects.filter(country__in=data.get("countries"), application=application)
+        qs.update(
+            contract_types=contract_types, other_contract_type_text=data.get("other_contract_type_text"), flags=flags
+        )
+        print(
+            CountryOnApplication.objects.get(country=data.get("countries").first(), application=application).flags.all()
+        )
 
-        [c.flags.set(flags) for c in qs]
+        # [c.flags.set(flags) for c in qs]
 
         return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
 
