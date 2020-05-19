@@ -14,6 +14,9 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         filtered_qs = queryset
         filter_data = self.request.GET
 
+        if filter_data.get("name"):
+            filtered_qs = filtered_qs.filter(name__icontains=filter_data.get("name"))
+
         if filter_data.get("case_type"):
             filtered_qs = filtered_qs.filter(case_type_id=filter_data.get("case_type"))
 

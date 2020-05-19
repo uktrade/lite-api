@@ -11,10 +11,6 @@ from static.control_list_entries.serializers import ControlListEntrySerializerWi
 
 @permission_classes((permissions.AllowAny,))
 class ControlListEntriesList(APIView):
-    """
-    List all Control Ratings
-    """
-
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request):
@@ -27,7 +23,7 @@ class ControlListEntriesList(APIView):
             return JsonResponse(
                 data={
                     "control_list_entries": list(
-                        queryset.filter(is_decontrolled=False, rating__isnull=False).values("rating", "text")
+                        queryset.filter(rating__isnull=False).values("rating", "text")
                     )
                 }
             )
@@ -37,10 +33,6 @@ class ControlListEntriesList(APIView):
 
 
 class ControlListEntryDetail(APIView):
-    """
-    Details of a specific control list entry
-    """
-
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, rating):

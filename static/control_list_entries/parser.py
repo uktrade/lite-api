@@ -1,5 +1,3 @@
-import uuid
-
 from conf import settings
 from static.control_list_entries.models import ControlListEntry
 

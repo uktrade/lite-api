@@ -1,6 +1,6 @@
 class OpenGeneralLicenceStatuses:
-    ACTIVE = "Active"
-    DEACTIVATED = "Deactivated"
+    ACTIVE = "active"
+    DEACTIVATED = "deactivated"
 
     choices = [
         (ACTIVE, "Active"),

@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
                 (
                     "status",
                     models.CharField(
-                        choices=[("Active", "Active"), ("Deactivated", "Deactivated")], default="Active", max_length=20
+                        choices=[("active", "Active"), ("deactivated", "Deactivated")], default="Active", max_length=20
                     ),
                 ),
                 (

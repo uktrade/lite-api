@@ -2,7 +2,7 @@ from django.db import models
 
 from cases.models import CaseType
 from common.models import TimestampableModel
-from open_general_licences.enum import OpenGeneralLicenceStatuses
+from open_general_licences.enums import OpenGeneralLicenceStatuses
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 

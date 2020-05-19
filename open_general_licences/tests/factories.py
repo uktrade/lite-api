@@ -1,7 +1,7 @@
 import factory
 
 from open_general_licences import models
-from open_general_licences.enum import OpenGeneralLicenceStatuses
+from open_general_licences.enums import OpenGeneralLicenceStatuses
 from static.control_list_entries.helpers import get_control_list_entry
 
 
