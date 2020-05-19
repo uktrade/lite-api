@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 from cases.models import CaseType
@@ -8,6 +10,7 @@ from static.countries.models import Country
 
 
 class OpenGeneralLicence(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()  # TODO: confirm length / are unique?
     description = models.TextField()
     url = models.URLField(default=None, blank=False, null=False)  # TODO: confirm should urls be unique
