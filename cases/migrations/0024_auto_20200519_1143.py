@@ -6,13 +6,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0023_auto_20200515_1248'),
+        ("cases", "0023_auto_20200515_1248"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='casetype',
-            name='reference',
-            field=models.CharField(choices=[('oiel', 'Open Individual Export Licence'), ('ogel', 'Open General Export Licence'), ('oicl', 'Open Individual Trade Control Licence'), ('siel', 'Standard Individual Export Licence'), ('sicl', 'Standard Individual Trade Control Licence'), ('sitl', 'Standard Individual Transhipment Licence'), ('f680', 'MOD F680 Clearance'), ('exhc', 'MOD Exhibition Clearance'), ('gift', 'MOD Gifting Clearance'), ('cre', 'HMRC Query'), ('gqy', 'Goods Query'), ('eua', 'End User Advisory Query'), ('ogtcl', 'Open General Trade Control Licence'), ('ogtl', 'Open General Transhipment Licence')], max_length=5, unique=True),
+            model_name="casetype",
+            name="reference",
+            field=models.CharField(
+                choices=[
+                    ("oiel", "Open Individual Export Licence"),
+                    ("ogel", "Open General Export Licence"),
+                    ("oicl", "Open Individual Trade Control Licence"),
+                    ("siel", "Standard Individual Export Licence"),
+                    ("sicl", "Standard Individual Trade Control Licence"),
+                    ("sitl", "Standard Individual Transhipment Licence"),
+                    ("f680", "MOD F680 Clearance"),
+                    ("exhc", "MOD Exhibition Clearance"),
+                    ("gift", "MOD Gifting Clearance"),
+                    ("cre", "HMRC Query"),
+                    ("gqy", "Goods Query"),
+                    ("eua", "End User Advisory Query"),
+                    ("ogtcl", "Open General Trade Control Licence"),
+                    ("ogtl", "Open General Transhipment Licence"),
+                ],
+                max_length=5,
+                unique=True,
+            ),
         ),
     ]

@@ -16,7 +16,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     countries = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.all(), many=True, required=True, allow_null=False, allow_empty=False
     )
-    control_list_entries = ControlListEntryField(many=True, required=False, allow_empty=True)
+    control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=True)
 
     class Meta:
         model = OpenGeneralLicence
