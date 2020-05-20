@@ -62,7 +62,7 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(getattr(self.draft, "temp_export_details"), "reasons why this export is a temporary one")
         self.assertNotEqual(self.draft.updated_at, updated_at)
         # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand(
         [
@@ -146,7 +146,7 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(getattr(self.draft, "is_temp_direct_control"), True)
         # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand(
         [
@@ -181,9 +181,9 @@ class EditTemporaryExportDetailsStandardApplication(DataTestClient):
                 getattr(self.draft, "temp_direct_control_details"),
                 "Ukraine govt will be in control whilst product is overseas",
             )
-            self.assertEqual(Audit.objects.all().count(), 3)
+            self.assertEqual(Audit.objects.count(), 3)
         else:
-            self.assertEqual(Audit.objects.all().count(), 2)
+            self.assertEqual(Audit.objects.count(), 2)
 
     def test_edit_submitted_standard_application_empty_temp_direct_control_details_failure(self):
         self.draft.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
@@ -288,7 +288,7 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.assertEqual(getattr(self.draft, "temp_export_details"), "reasons why this export is a temporary one")
         self.assertNotEqual(self.draft.updated_at, updated_at)
         # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand(
         [
@@ -372,7 +372,7 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(getattr(self.draft, "is_temp_direct_control"), True)
         # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand(
         [
@@ -407,9 +407,9 @@ class EditTemporaryExportDetailsOpenApplication(DataTestClient):
                 getattr(self.draft, "temp_direct_control_details"),
                 "Ukraine govt will be in control whilst product is overseas",
             )
-            self.assertEqual(Audit.objects.all().count(), 3)
+            self.assertEqual(Audit.objects.count(), 3)
         else:
-            self.assertEqual(Audit.objects.all().count(), 2)
+            self.assertEqual(Audit.objects.count(), 2)
 
     def test_edit_submitted_open_application_empty_temp_direct_control_details_failure(self):
         self.draft.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
