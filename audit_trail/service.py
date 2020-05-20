@@ -9,6 +9,7 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from audit_trail.schema import validate_kwargs
 from cases.models import Case
+from conf.helpers import make_date
 from teams.models import Team
 from users.enums import UserType
 from users.enums import SystemUser
@@ -69,8 +70,9 @@ def get_user_obj_trail_qs(user, obj):
     return audit_trail_qs
 
 
-def filter_case_activity(
-    case_id,
+def filter_object_activity(
+    object_id,
+    object_content_type,
     user_id=None,
     team: Optional[Team] = None,
     user_type: Optional[UserType] = None,
@@ -82,10 +84,9 @@ def filter_case_activity(
     """
     Filter activity timeline for a case.
     """
-    case_content_type = ContentType.objects.get_for_model(Case)
     audit_qs = Audit.objects.filter(
-        Q(action_object_object_id=case_id, action_object_content_type=case_content_type)
-        | Q(target_object_id=case_id, target_content_type=case_content_type)
+        Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
+        | Q(target_object_id=object_id, target_content_type=object_content_type)
     )
 
     if user_id:
@@ -114,12 +115,11 @@ def filter_case_activity(
     return audit_qs
 
 
-def get_case_activity_filters(case_id):
-    case_content_type = ContentType.objects.get_for_model(Case)
+def get_objects_activity_filters(object_id, object_content_type):
 
     audit_qs = Audit.objects.filter(
-        Q(action_object_object_id=case_id, action_object_content_type=case_content_type)
-        | Q(target_object_id=case_id, target_content_type=case_content_type)
+        Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
+        | Q(target_object_id=object_id, target_content_type=object_content_type)
     )
     activity_types = audit_qs.order_by("verb").values_list("verb", flat=True).distinct()
     user_ids = audit_qs.order_by("actor_object_id").values_list("actor_object_id", flat=True).distinct()
@@ -137,3 +137,15 @@ def get_case_activity_filters(case_id):
     }
 
     return filters
+
+
+def get_filters(data):
+    return {
+        "user_id": data.get("user_id"),
+        "team": data.get("team_id"),
+        "user_type": UserType(data["user_type"]) if data.get("user_type") else None,
+        "audit_type": AuditType(data["activity_type"]) if data.get("activity_type") else None,
+        "date_from": make_date("from", data),
+        "date_to": make_date("to", data),
+        "note_type": data.get("note_type"),
+    }
