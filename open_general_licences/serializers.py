@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
+from cases.enums import CaseTypeEnum
 from cases.models import CaseType
-from conf.serializers import ControlListEntryField, KeyValueChoiceField
+from cases.serializers import CaseTypeSerializer
+from conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.models import OpenGeneralLicence
 from static.countries.models import Country
@@ -17,12 +19,13 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     url = serializers.URLField(
         required=True, allow_blank=False, allow_null=False, error_messages={"blank": "Enter url"}
     )
-    case_type = serializers.PrimaryKeyRelatedField(
-        queryset=CaseType.objects.all(),
+    case_type = PrimaryKeyRelatedSerializerField(
+        queryset=CaseType.objects.filter(id__in=CaseTypeEnum.ogl_id_list).all(),
         required=True,
         allow_null=False,
         allow_empty=False,
         error_messages={"required": "Select type of OGL"},
+        serializer=CaseTypeSerializer,
     )
     countries = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.all(),

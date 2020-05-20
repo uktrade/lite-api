@@ -202,7 +202,7 @@ class CaseTypeEnum:
 
     case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA, OGTCL, OGTL]
 
-    ogl_list = [OGEL, OGTCL, OGTCL]
+    ogl_id_list = [OGEL.id, OGTCL.id, OGTL.id]
 
     @classmethod
     def case_types_to_representation(cls):
