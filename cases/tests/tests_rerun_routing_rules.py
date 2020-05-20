@@ -47,9 +47,18 @@ class RerunRoutingRulesTests(DataTestClient):
         self.assertEqual(self.case.queues.count(), 0)
 
         # Assert case status changed to all applicable statuses in correct order (ignoring initial submission status)
-        actual_status_changes = Audit.objects.filter(
-            target_object_id=self.case.id, verb=AuditType.UPDATED_STATUS
-        ).order_by("created_at")[1::]
+        exclude_payload = {
+            "status": {
+                "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
+                "old": CaseStatusEnum.get_text(CaseStatusEnum.DRAFT),
+            }
+        }
+
+        actual_status_changes = (
+            Audit.objects.filter(target_object_id=self.case.id, verb=AuditType.UPDATED_STATUS)
+            .exclude(payload=exclude_payload)
+            .order_by("created_at")
+        )
 
         applicable_status_changes = CaseStatus.objects.filter(
             workflow_sequence__isnull=False,
