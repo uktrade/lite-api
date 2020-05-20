@@ -12,6 +12,9 @@ from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 
 
+CONTENT_PLACEHOLDER = "$USER_CONTENT$"
+
+
 def get_letter_template(pk):
     try:
         return LetterTemplate.objects.get(pk=pk)
@@ -62,13 +65,17 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
         django_engine = template_engine_factory(allow_missing_variables)
         template = django_engine.get_template(f"{layout}.html")
 
-        context = {}
-        if case:
-            context = get_document_context(case)
         if text:
-            context["content"] = text
+            # Substitute content placeholder for user text
+            template = template.source
+            template = template.replace(CONTENT_PLACEHOLDER, text)
+            template = django_engine.from_string(template)
 
-        template = template.render(Context(context))
+        if case:
+            # Populate context data
+            context = get_document_context(case)
+            template = template.render(Context(context))
+
         return load_css(layout) + template
     except (FileNotFoundError, TemplateDoesNotExist):
         return {"error": strings.LetterTemplates.PREVIEW_ERROR}
