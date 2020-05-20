@@ -1,17 +1,12 @@
-import datetime
-
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
-from audit_trail.enums import AuditType
 from audit_trail.serializers import AuditSerializer
 from cases.models import Case
 from conf.authentication import GovAuthentication
-from conf.helpers import make_date
-from users.enums import UserType
 from users.models import GovUser, GovNotification
 
 
