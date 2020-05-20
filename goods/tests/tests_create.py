@@ -64,7 +64,7 @@ class GoodsCreateGoodTests(DataTestClient):
         super().setUp()
         self.request_data = deepcopy(REQUEST_DATA)
 
-        ControlListEntry.create("ML1b", "Info here", None, False)
+        ControlListEntry.create("ML1b", "Info here", None)
 
     def test_when_creating_a_good_with_not_controlled_and_not_pv_graded_then_created_response_is_returned(self):
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
@@ -140,7 +140,7 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         super().setUp()
         self.request_data = deepcopy(REQUEST_DATA)
 
-        ControlListEntry.create("ML1b", "Info here", None, False)
+        ControlListEntry.create("ML1b", "Info here", None)
 
     def test_when_creating_a_good_with_all_fields_then_created_response_is_returned(self):
         self.request_data["is_good_controlled"] = GoodControlled.YES
