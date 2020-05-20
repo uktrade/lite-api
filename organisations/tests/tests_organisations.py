@@ -373,7 +373,6 @@ class EditOrganisationTests(DataTestClient):
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
-        # self.assertEqual(Audit.objects.count(), 4)
 
         audit_qs = Audit.objects.all()
         self.assertEqual(audit_qs.count(), 4)
