@@ -157,11 +157,11 @@ class ApplicationContractTypes(APIView):
         time_2 = datetime.now()
         print("Time to serialize: ", time_2 - time_1)
 
-        countries = data.get("countries")
-        serialized_contract_types = serialized_data.get("contract_types")
-
         if errors:
             return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        countries = data.get("countries")
+        serialized_contract_types = serialized_data.get("contract_types")
 
         contract_types = [",".join(serialized_contract_types)]
 
