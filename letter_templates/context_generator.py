@@ -1,14 +1,21 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
 
-from applications.enums import GoodsTypeCategory
-from applications.models import ApplicationDocument
+from applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
+from applications.models import (
+    ApplicationDocument,
+    StandardApplication,
+    OpenApplication,
+    ExhibitionClearanceApplication,
+    F680ClearanceApplication, HmrcQuery)
 from audit_trail.models import Audit
-from cases.enums import AdviceLevel, AdviceType
+from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
+from queries.goods_query.models import GoodsQuery
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.units.enums import Units
 
@@ -24,94 +31,173 @@ def _get_address(address):
     }
 
 
-def _get_application_details_context(case):
+def _get_base_application_details_context(application):
     return {
-        "end_use_details": getattr(case, "intended_end_use", ""),
-        "military_end_use_controls": friendly_boolean(getattr(case, "is_military_end_use_controls", "")),
-        "military_end_use_controls_reference": getattr(case, "military_end_use_controls_ref", ""),
-        "informed_wmd": friendly_boolean(getattr(case, "is_informed_wmd", "")),
-        "informed_wmd_reference": getattr(case, "informed_wmd_ref", ""),
-        "suspected_wmd": friendly_boolean(getattr(case, "is_suspected_wmd", "")),
-        "suspected_wmd_reference": getattr(case, "suspected_wmd_ref", ""),
-        "eu_military": friendly_boolean(getattr(case, "is_eu_military", "")),
-        "compliant_limitations_eu": friendly_boolean(getattr(case, "is_compliant_limitations_eu", "")),
-        "compliant_limitations_eu_reference": getattr(case, "compliant_limitations_eu_ref", ""),
-        # Standard/ Open Application
-        "export_type": getattr(case, "export_type", ""),
-        "reference_number_on_information_form": getattr(case, "reference_number_on_information_form", ""),
-        "has_been_informed": friendly_boolean(getattr(case, "have_you_been_informed", "")),
-        "contains_firearm_goods": friendly_boolean(getattr(case, "contains_firearm_goods", "")),
-        "shipped_waybill_or_lading": friendly_boolean(getattr(case, "is_shipped_waybill_or_lading", "")),
-        "non_waybill_or_lading_route_details": getattr(case, "non_waybill_or_lading_route_details", ""),
-        "proposed_return_date": case.proposed_return_date.strftime(DATE_FORMAT)
-        if getattr(case, "proposed_return_date", "")
-        else None,
-        "trade_control_activity": getattr(case, "trade_control_activity", ""),
-        "trade_control_activity_other": getattr(case, "trade_control_activity_other", ""),
-        "trade_control_product_categories": getattr(case, "trade_control_product_categories", ""),
-        "goodstype_category": GoodsTypeCategory.get_text(case.goodstype_category)
-        if getattr(case, "goodstype_category", "")
-        else None,
-        # HMRC Query
-        "query_reason": getattr(case, "reasoning", ""),
-        "have_goods_departed": friendly_boolean(getattr(case, "have_goods_departed", "")),
-        # Exhibition Clearance
-        "exhibition_title": getattr(case, "title", ""),
-        "first_exhibition_date": case.first_exhibition_date.strftime(DATE_FORMAT)
-        if getattr(case, "first_exhibition_date", "")
-        else None,
-        "required_by_date": case.required_by_date.strftime(DATE_FORMAT)
-        if getattr(case, "required_by_date", "")
-        else None,
-        "reason_for_clearance": getattr(case, "reason_for_clearance", ""),
-        # F680 Clearance
-        "types": [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in case.types.all()]
-        if getattr(case, "types", "")
-        else None,
-        "expedited": friendly_boolean(getattr(case, "expedited", "")),
-        "expedited_date": case.expedited_date.strftime(DATE_FORMAT) if getattr(case, "expedited_date", "") else None,
-        "foreign_technology": friendly_boolean(getattr(case, "foreign_technology", "")),
-        "foreign_technology_description": getattr(case, "foreign_technology_description", ""),
-        "locally_manufactured": friendly_boolean(getattr(case, "locally_manufactured", "")),
-        "locally_manufactured_description": getattr(case, "locally_manufactured_description", ""),
-        "mtcr_type": case.mtcr_type.to_representation() if getattr(case, "mtcr_type", "") else None,
-        "electronic_warfare_requirement": friendly_boolean(getattr(case, "electronic_warfare_requirement", "")),
-        "uk_service_equipment": friendly_boolean(getattr(case, "uk_service_equipment", "")),
-        "uk_service_equipment_description": getattr(case, "uk_service_equipment_description", ""),
-        "uk_service_equipment_type": case.uk_service_equipment_type.to_representation()
-        if getattr(case, "uk_service_equipment_type", "")
-        else None,
-        "prospect_value": getattr(case, "prospect_value", ""),
+        "end_use_details": getattr(application, "intended_end_use", ""),
+        "military_end_use_controls": friendly_boolean(getattr(application, "is_military_end_use_controls", "")),
+        "military_end_use_controls_reference": getattr(application, "military_end_use_controls_ref", ""),
+        "informed_wmd": friendly_boolean(getattr(application, "is_informed_wmd", "")),
+        "informed_wmd_reference": getattr(application, "informed_wmd_ref", ""),
+        "suspected_wmd": friendly_boolean(getattr(application, "is_suspected_wmd", "")),
+        "suspected_wmd_reference": getattr(application, "suspected_wmd_ref", ""),
+        "eu_military": friendly_boolean(getattr(application, "is_eu_military", "")),
+        "compliant_limitations_eu": friendly_boolean(getattr(application, "is_compliant_limitations_eu", "")),
+        "compliant_limitations_eu_reference": getattr(application, "compliant_limitations_eu_ref", ""),
     }
 
 
-def _get_goods_query_good_context(good):
+def _get_standard_application_context(case):
+    context = _get_base_application_details_context(case.baseapplication)
+    standard_application = StandardApplication.objects.get(id=case.pk)
+    context.update(
+        {
+            "export_type": standard_application.export_type,
+            "reference_number_on_information_form": standard_application.reference_number_on_information_form,
+            "has_been_informed": friendly_boolean(standard_application.have_you_been_informed),
+            "contains_firearm_goods": friendly_boolean(standard_application.contains_firearm_goods),
+            "shipped_waybill_or_lading": friendly_boolean(standard_application.is_shipped_waybill_or_lading),
+            "non_waybill_or_lading_route_details": standard_application.non_waybill_or_lading_route_details,
+            "proposed_return_date": standard_application.proposed_return_date.strftime(DATE_FORMAT)
+            if standard_application.proposed_return_date
+            else None,
+            "trade_control_activity": standard_application.trade_control_activity,
+            "trade_control_activity_other": standard_application.trade_control_activity_other,
+            "trade_control_product_categories": standard_application.trade_control_product_categories,
+        }
+    )
+    return context
+
+
+def _get_open_application_context(case):
+    context = _get_base_application_details_context(case.baseapplication)
+    open_application = OpenApplication.objects.get(id=case.pk)
+    context.update(
+        {
+            "export_type": open_application.export_type,
+            "contains_firearm_goods": friendly_boolean(open_application.contains_firearm_goods),
+            "shipped_waybill_or_lading": friendly_boolean(open_application.is_shipped_waybill_or_lading),
+            "non_waybill_or_lading_route_details": open_application.non_waybill_or_lading_route_details,
+            "proposed_return_date": open_application.proposed_return_date.strftime(DATE_FORMAT)
+            if open_application.proposed_return_date
+            else None,
+            "trade_control_activity": open_application.trade_control_activity,
+            "trade_control_activity_other": open_application.trade_control_activity_other,
+            "trade_control_product_categories": open_application.trade_control_product_categories,
+            "goodstype_category": GoodsTypeCategory.get_text(open_application.goodstype_category)
+            if open_application.goodstype_category
+            else None,
+        }
+    )
+    return context
+
+
+def _get_hmrc_query_context(case):
+    context = _get_base_application_details_context(case.baseapplication)
+    hmrc_query = HmrcQuery.objects.get(id=case.pk)
+    context.update(
+        {
+            "query_reason": hmrc_query.reasoning,
+            "have_goods_departed": friendly_boolean(hmrc_query.have_goods_departed),
+        }
+    )
+    return context
+
+
+def _get_exhibition_clearance_context(case):
+    context = _get_base_application_details_context(case.baseapplication)
+    exhibition = ExhibitionClearanceApplication.objects.get(id=case.pk)
+    context.update(
+        {
+            "exhibition_title": exhibition.title,
+            "first_exhibition_date": exhibition.first_exhibition_date.strftime(DATE_FORMAT)
+            if exhibition.first_exhibition_date
+            else None,
+            "required_by_date": exhibition.required_by_date.strftime(DATE_FORMAT)
+            if exhibition.required_by_date
+            else None,
+            "reason_for_clearance": exhibition.reason_for_clearance,
+        }
+    )
+    return context
+
+
+def _get_f680_clearance_context(case):
+    context = _get_base_application_details_context(case.baseapplication)
+    f680 = F680ClearanceApplication.objects.get(id=case.pk)
+    context.update(
+        {
+            "types": [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in f680.types.all()],
+            "expedited": friendly_boolean(f680.expedited),
+            "expedited_date": f680.expedited_date.strftime(DATE_FORMAT) if f680.expedited_date else None,
+            "foreign_technology": friendly_boolean(f680.foreign_technology),
+            "foreign_technology_description": f680.foreign_technology_description,
+            "locally_manufactured": friendly_boolean(f680.locally_manufactured),
+            "locally_manufactured_description": f680.locally_manufactured_description,
+            "mtcr_type": MTCRAnswers.dict_format.get(f680.mtcr_type) if f680.mtcr_type else None,
+            "electronic_warfare_requirement": friendly_boolean(f680.electronic_warfare_requirement),
+            "uk_service_equipment": friendly_boolean(f680.uk_service_equipment),
+            "uk_service_equipment_description": f680.uk_service_equipment_description,
+            "uk_service_equipment_type": ServiceEquipmentType.dict_format.get(f680.uk_service_equipment_type)
+            if f680.uk_service_equipment_type
+            else None,
+            "prospect_value": f680.prospect_value,
+        }
+    )
+    return context
+
+
+def _get_end_user_advisory_query_context(case):
+    query = EndUserAdvisoryQuery.objects.get(id=case.pk)
     return {
-        "description": good.description,
-        "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
-        "is_controlled": good.is_good_controlled,
-        "part_number": good.part_number,
+        "note": query.note,
+        "query_reason": query.reasoning,
+        "nature_of_business": query.nature_of_business,
+        "contact_name": query.contact_name,
+        "contact_email": query.contact_email,
+        "contact_job_title": query.contact_job_title,
+        "contact_telephone": query.contact_telephone,
+        "end_user": _get_party_context(query.end_user)
     }
 
 
-def _get_query_details_context(case):
+def _get_goods_query_context(case):
+    def _get_goods_query_good_context(good):
+        return {
+            "description": good.description,
+            "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
+            "is_controlled": good.is_good_controlled,
+            "part_number": good.part_number,
+        }
+
+    query = GoodsQuery.objects.get(id=case.pk)
     return {
-        # End User Advisory Query (end user found in main body)
-        "note": getattr(case, "note", ""),
-        "query_reason": getattr(case, "reasoning", ""),
-        "nature_of_business": getattr(case, "nature_of_business", ""),
-        "contact_name": getattr(case, "contact_name", ""),
-        "contact_email": getattr(case, "contact_email", ""),
-        "contact_job_title": getattr(case, "contact_job_title", ""),
-        "contact_telephone": getattr(case, "contact_telephone", ""),
-        # Goods Query
-        "control_list_entry": getattr(case, "clc_control_list_entry", ""),
-        "clc_raised_reasons": getattr(case, "clc_raised_reasons", ""),
-        "pv_grading_raised_reasons": getattr(case, "pv_grading_raised_reasons", ""),
-        "good": _get_goods_query_good_context(case.good) if getattr(case, "good", "") else None,
-        "clc_responded": friendly_boolean(getattr(case, "clc_responded", "")),
-        "pv_grading_responded": friendly_boolean(getattr(case, "pv_grading_responded", "")),
+        "control_list_entry": query.clc_control_list_entry,
+        "clc_raised_reasons": query.clc_raised_reasons,
+        "pv_grading_raised_reasons": query.pv_grading_raised_reasons,
+        "good": _get_goods_query_good_context(query.good) if query.good else None,
+        "clc_responded": friendly_boolean(query.clc_responded),
+        "pv_grading_responded": friendly_boolean(query.pv_grading_responded),
     }
+
+
+def _get_details_context(case):
+    case_sub_type = case.case_type.sub_type
+    if case_sub_type == CaseTypeSubTypeEnum.STANDARD:
+        return _get_standard_application_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.OPEN:
+        return _get_open_application_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.HMRC:
+        return _get_hmrc_query_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.EXHIBITION:
+        return _get_exhibition_clearance_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.F680:
+        return _get_f680_clearance_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.EUA:
+        return _get_end_user_advisory_query_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
+        return _get_goods_query_context(case)
+    else:
+        return None
 
 
 def _get_applicant_context(applicant):
@@ -274,33 +360,31 @@ def get_document_context(case):
     sites = Site.objects.filter(sites_on_application__application_id=case.pk)
     external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
-
-    # Handle end user for EUA queries & applications
-    if getattr(case, "end_user", ""):
-        end_user = case.end_user
-        if getattr(end_user, "party", ""):
-            end_user = end_user.party
-    else:
-        end_user = None
+    base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
 
     return {
         "case_reference": case.reference_code,
         "current_date": date,
         "current_time": time,
-        "application_details": _get_application_details_context(case),
-        "query_details": _get_query_details_context(case),
+        "details": _get_details_context(case),
         "applicant": _get_applicant_context(applicant_audit.actor) if applicant_audit else None,
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
-        "end_user": _get_party_context(end_user) if end_user else None,
-        "consignee": _get_party_context(case.consignee.party) if getattr(case, "consignee", "") else None,
+        "end_user": _get_party_context(base_application.end_user.party)
+        if base_application and getattr(base_application, "end_user", "")
+        else None,
+        "consignee": _get_party_context(base_application.consignee.party)
+        if base_application and getattr(base_application, "consignee", "")
+        else None,
         "ultimate_end_users": [
-            _get_party_context(ultimate_end_user.party) for ultimate_end_user in case.ultimate_end_users
+            _get_party_context(ultimate_end_user.party) for ultimate_end_user in base_application.ultimate_end_users
         ]
-        if getattr(case, "ultimate_end_users", "")
+        if getattr(base_application, "ultimate_end_users", "")
         else [],
-        "third_parties": _get_third_parties_context(case.third_parties) if getattr(case, "third_parties", "") else [],
-        "goods": _get_goods_context(case.goods, final_advice) if getattr(case, "goods", "") else None,
+        "third_parties": _get_third_parties_context(base_application.third_parties)
+        if getattr(base_application, "third_parties", "")
+        else [],
+        "goods": _get_goods_context(base_application.goods, final_advice) if getattr(base_application, "goods", "") else None,
         "goods_type": _get_goods_type_context(case.goods_type) if getattr(case, "goods_type", "") else None,
         "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
         "notes": [_get_case_note_context(note) for note in notes],

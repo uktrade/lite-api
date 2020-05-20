@@ -159,7 +159,6 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def _assert_open_application_details(self, context, case):
         self.assertEqual(context["export_type"], case.export_type)
-        self.assertEqual(context["reference_number_on_information_form"], case.reference_number_on_information_form)
         self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods))
         self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading))
         self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details)
@@ -189,13 +188,13 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["foreign_technology_description"], case.foreign_technology_description)
         self.assertEqual(context["locally_manufactured"], friendly_boolean(case.locally_manufactured))
         self.assertEqual(context["locally_manufactured_description"], case.locally_manufactured_description)
-        self.assertEqual(context["mtcr_type"], case.mtcr_type.to_representation())
+        self.assertEqual(context["mtcr_type"], MTCRAnswers.dict_format[case.mtcr_type])
         self.assertEqual(
             context["electronic_warfare_requirement"], friendly_boolean(case.electronic_warfare_requirement)
         )
         self.assertEqual(context["uk_service_equipment"], friendly_boolean(case.uk_service_equipment))
         self.assertEqual(context["uk_service_equipment_description"], case.uk_service_equipment_description)
-        self.assertEqual(context["uk_service_equipment_type"], case.uk_service_equipment_type.to_representation())
+        self.assertEqual(context["uk_service_equipment_type"], ServiceEquipmentType.dict_format[case.uk_service_equipment_type])
         self.assertEqual(context["prospect_value"], case.prospect_value)
 
     def _assert_end_user_advisory_details(self, context, case):
@@ -206,6 +205,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["contact_email"], case.contact_email)
         self.assertEqual(context["contact_job_title"], case.contact_job_title)
         self.assertEqual(context["contact_telephone"], case.contact_telephone)
+        self._assert_party(context["end_user"], case.end_user)
 
     def _assert_goods_query_details(self, context, case):
         self.assertEqual(context["control_list_entry"], case.clc_control_list_entry)
@@ -364,7 +364,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["application_details"], case)
+        self._assert_base_application_details(context["details"], case)
 
     def test_generate_context_with_standard_application_details(self):
         case = self.create_standard_application_case(self.organisation)
@@ -383,8 +383,8 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["application_details"], case)
-        self._assert_standard_application_details(context["application_details"], case)
+        self._assert_base_application_details(context["details"], case)
+        self._assert_standard_application_details(context["details"], case)
 
     def test_generate_context_with_open_application_details(self):
         case = self.create_open_application_case(self.organisation)
@@ -404,8 +404,8 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["application_details"], case)
-        self._assert_open_application_details(context["application_details"], case)
+        self._assert_base_application_details(context["details"], case)
+        self._assert_open_application_details(context["details"], case)
 
     def test_generate_context_with_hmrc_query_details(self):
         case = self.create_hmrc_query(self.organisation)
@@ -413,8 +413,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["application_details"], case)
-        self._assert_hmrc_query_details(context["application_details"], case)
+        self._assert_hmrc_query_details(context["details"], case)
 
     def test_generate_context_with_exhibition_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
@@ -424,8 +423,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["application_details"], case)
-        self._assert_exhibition_clearance_details(context["application_details"], case)
+        self._assert_exhibition_clearance_details(context["details"], case)
 
     def test_generate_context_with_f680_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
@@ -446,8 +444,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["application_details"], case)
-        self._assert_f680_clearance_details(context["application_details"], case)
+        self._assert_f680_clearance_details(context["details"], case)
 
     def test_generate_context_with_gifting_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.GIFTING)
@@ -455,7 +452,6 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_base_application_details(context["application_details"], case)
 
     def test_generate_context_with_end_user_advisory_query_details(self):
         case = self.create_end_user_advisory(note="abc", reasoning="def", organisation=self.organisation)
@@ -463,8 +459,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_party(context["end_user"], case.end_user)
-        self._assert_end_user_advisory_details(context["query_details"], case)
+        self._assert_end_user_advisory_details(context["details"], case)
 
     def test_generate_context_with_goods_query_details(self):
         case = self.create_goods_query("abc", self.organisation, "clc reason", "pv reason")
@@ -472,4 +467,4 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_goods_query_details(context["query_details"], case)
+        self._assert_goods_query_details(context["details"], case)

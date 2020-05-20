@@ -28,6 +28,12 @@ def template_engine_factory(allow_missing_variables):
 
     return Engine(
         string_if_invalid=string_if_invalid,
+        builtins=[
+            "django.template.defaulttags",
+            "django.template.defaultfilters",
+            "django.template.loader_tags",
+            "letter_templates.custom_tags",
+        ],
         dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)],
         libraries={"static": "django.templatetags.static"},
     )
@@ -56,13 +62,13 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
         django_engine = template_engine_factory(allow_missing_variables)
         template = django_engine.get_template(f"{layout}.html")
 
-        context = {"content": text}
-        template = template.render(Context(context))
+        context = {}
         if case:
             context = get_document_context(case)
-            template = django_engine.from_string(template)
-            template = template.render(Context(context))
+        if text:
+            context["content"] = text
 
+        template = template.render(Context(context))
         return load_css(layout) + template
     except (FileNotFoundError, TemplateDoesNotExist):
         return {"error": strings.LetterTemplates.PREVIEW_ERROR}

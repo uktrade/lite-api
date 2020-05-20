@@ -5,7 +5,7 @@ from django.templatetags.tz import do_timezone
 from django.utils import timezone
 
 
-DATE_FORMAT = "%D %B %Y"
+DATE_FORMAT = "%d %B %Y"
 TIME_FORMAT = "%I:%M %p"
 
 
