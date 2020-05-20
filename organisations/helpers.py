@@ -3,12 +3,12 @@ from audit_trail.enums import AuditType
 from organisations.enums import OrganisationType, OrganisationStatus
 
 
-def add_edited_audit_entry(user, organisation, organisation_field, previous_value, new_value):
+def add_edited_audit_entry(user, organisation, key, old_value, new_value):
     audit_trail_service.create(
         actor=user,
         verb=AuditType.UPDATED_ORGANISATION,
         target=organisation,
-        payload={"organisation_field": organisation_field, "previous_value": previous_value, "new_value": new_value,},
+        payload={"key": key, "old": old_value, "new": new_value, },
     )
 
 

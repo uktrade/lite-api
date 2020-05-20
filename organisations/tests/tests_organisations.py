@@ -379,27 +379,27 @@ class EditOrganisationTests(DataTestClient):
         for audit in audit_qs:
             verb = AuditType.UPDATED_ORGANISATION
             self.assertEqual(AuditType(audit.verb), verb)
-            if audit.payload["organisation_field"] == "registration number":
+            if audit.payload["key"] == "registration number":
                 org_field = "registration number"
                 previous_value = previous_registration_number
                 new_value = organisation.registration_number
-            elif audit.payload["organisation_field"] == "VAT number":
+            elif audit.payload["key"] == "VAT number":
                 org_field = "VAT number"
                 previous_value = previous_vat_number
                 new_value = organisation.vat_number
-            elif audit.payload["organisation_field"] == "SIC number":
+            elif audit.payload["key"] == "SIC number":
                 org_field = "SIC number"
                 previous_value = previous_sic_number
                 new_value = organisation.sic_number
-            elif audit.payload["organisation_field"] == "EORI number":
+            elif audit.payload["key"] == "EORI number":
                 org_field = "EORI number"
                 previous_value = previous_eori_number
                 new_value = organisation.eori_number
 
             payload = {
-                "organisation_field": org_field,
-                "previous_value": previous_value,
-                "new_value": new_value,
+                "key": org_field,
+                "old": previous_value,
+                "new": new_value,
             }
             self.assertEqual(audit.payload, payload)
 
