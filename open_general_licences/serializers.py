@@ -9,17 +9,34 @@ from static.countries.serializers import CountrySerializer
 
 
 class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    description = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    url = serializers.URLField(required=True, allow_blank=False, allow_null=False, )
+    name = serializers.CharField(
+        required=True, allow_blank=False, allow_null=False, max_length=250, error_messages={"blank": "Enter a name"}
+    )
+    description = serializers.CharField(
+        required=True, allow_blank=False, allow_null=False, error_messages={"blank": "Enter description"}
+    )
+    url = serializers.URLField(
+        required=True, allow_blank=False, allow_null=False, error_messages={"blank": "Enter url"}
+    )
     case_type = serializers.PrimaryKeyRelatedField(
-        queryset=CaseType.objects.all(), required=True, allow_null=False, allow_empty=False
+        queryset=CaseType.objects.all(),
+        required=True,
+        allow_null=False,
+        allow_empty=False,
+        error_messages={"required": "Select type of OGL"},
     )
     countries = PrimaryKeyRelatedSerializerField(
-        queryset=Country.objects.all(), many=True, required=True, allow_null=False, allow_empty=False, serializer=CountrySerializer
+        queryset=Country.objects.all(),
+        many=True,
+        required=True,
+        allow_null=False,
+        allow_empty=False,
+        error_messages={"required": "Select countries"},
+        serializer=CountrySerializer
     )
-    control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=True)
-    status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices)
+    control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=False)
+    registration_required = serializers.BooleanField(required=True, allow_null=False)
+    status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices, required=False)
 
     class Meta:
         model = OpenGeneralLicence

@@ -1,5 +1,7 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 
+from audit_trail.enums import AuditType
+from audit_trail import service as audit_trail_service
 from conf.authentication import GovAuthentication
 from open_general_licences.models import OpenGeneralLicence
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
@@ -30,6 +32,13 @@ class OpenGeneralLicenceList(ListCreateAPIView):
             filtered_qs = filtered_qs.filter(status=filter_data.get("status"))
 
         return filtered_qs
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+
+        audit_trail_service.create(
+            actor=self.request.user, verb=AuditType.CREATED, action_object=instance,
+        )
 
 
 class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):

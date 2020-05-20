@@ -11,6 +11,7 @@ def format_payload(audit_type, payload):
 
 audit_type_format = {
     AuditType.CREATED: "created",
+    AuditType.OGL_CREATED: "OGL has been created",
     AuditType.ADD_FLAGS: "added flags: {added_flags}",
     AuditType.REMOVE_FLAGS: "removed flags: {removed_flags}",
     AuditType.GOOD_REVIEWED: 'good was reviewed: {good_name} control code changed from "{old_control_list_entry}" to "{new_control_list_entry}"',
