@@ -37,7 +37,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         instance = serializer.save()
 
         audit_trail_service.create(
-            actor=self.request.user, verb=AuditType.CREATED, action_object=instance,
+            actor=self.request.user, verb=AuditType.OGL_CREATED, action_object=instance,
         )
 
 
@@ -45,3 +45,26 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
     queryset = OpenGeneralLicence.objects.all()
+
+    def perform_update(self, serializer):
+        original_instance = self.get_object()
+        updated_instance = serializer.save()
+
+        fields = [
+            "name",
+            "description",
+            "url",
+            "case_type",
+            "countries",
+            "control_list_entries",
+            "registration_required",
+            "status",
+        ]
+        for field in fields:
+            if original_instance.get(field) != updated_instance.get(field):
+                audit_trail_service.create(
+                    actor=self.request.user,
+                    verb=AuditType.OGL_FIELD_EDITED,
+                    action_object=updated_instance,
+                    payload={"field": field},
+                )
