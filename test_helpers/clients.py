@@ -590,6 +590,23 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_good_country_decision(case, goods_type, country, decision):
         GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
 
+    @staticmethod
+    def add_additional_information(application):
+        additional_information = {
+            "expedited": False,
+            "mtcr_type": "mtcr_category_2",
+            "foreign_technology": False,
+            "locally_manufactured": False,
+            "uk_service_equipment": False,
+            "uk_service_equipment_type": "mod_funded",
+            "electronic_warfare_requirement": False,
+            "prospect_value": 100.0,
+        }
+        for key, item in additional_information.items():
+            setattr(application, key, item)
+
+        application.save()
+
     def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
         if not org_type:
             org_type = OrganisationType.COMMERCIAL
@@ -609,23 +626,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if consignee:
             self.create_document_for_party(application.consignee.party, safe=safe_document)
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
-
-    @staticmethod
-    def add_additional_information(application):
-        additional_information = {
-            "expedited": False,
-            "mtcr_type": "mtcr_category_2",
-            "foreign_technology": False,
-            "locally_manufactured": False,
-            "uk_service_equipment": False,
-            "uk_service_equipment_type": "mod_funded",
-            "electronic_warfare_requirement": False,
-            "prospect_value": 100.0,
-        }
-        for key, item in additional_information.items():
-            setattr(application, key, item)
-
-        application.save()
 
     def create_draft_standard_application(
         self,
