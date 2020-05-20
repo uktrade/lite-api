@@ -8,7 +8,6 @@ from rest_framework.exceptions import PermissionDenied
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from audit_trail.schema import validate_kwargs
-from cases.models import Case
 from conf.helpers import make_date
 from teams.models import Team
 from users.enums import UserType
