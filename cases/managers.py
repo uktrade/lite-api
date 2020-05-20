@@ -95,12 +95,12 @@ class CaseQuerySet(models.QuerySet):
 
     def with_exporter_site_address(self, exporter_site_address):
         return self.filter(
-            Q(baseapplication__application_sites__site__address__address_line_1__icontains=exporter_site_address) |
-            Q(baseapplication__application_sites__site__address__address_line_2__icontains=exporter_site_address) |
-            Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address) |
-            Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address) |
-            Q(baseapplication__application_sites__site__address__postcode__icontains=exporter_site_address) |
-            Q(baseapplication__application_sites__site__address__address__icontains=exporter_site_address)
+            Q(baseapplication__application_sites__site__address__address_line_1__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__address_line_2__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__postcode__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__address__icontains=exporter_site_address)
         )
 
     def with_control_list_entry(self, control_list_entry):
@@ -108,17 +108,17 @@ class CaseQuerySet(models.QuerySet):
 
     def with_flags(self, flags):
         return self.filter(
-            Q(flags__id__in=flags) |
-            Q(organisation__flags__id__in=flags) |
-            Q(baseapplication__openapplication__application_countries__country__flags__id__in=flags) |
-            Q(baseapplication__goods__good__flags__id__in=flags) |
-            Q(baseapplication__goods_type__flags__id__in=flags)
+            Q(flags__id__in=flags)
+            | Q(organisation__flags__id__in=flags)
+            | Q(baseapplication__openapplication__application_countries__country__flags__id__in=flags)
+            | Q(baseapplication__goods__good__flags__id__in=flags)
+            | Q(baseapplication__goods_type__flags__id__in=flags)
         )
 
     def with_country(self, country_id):
         return self.filter(
-            Q(baseapplication__parties__party__country_id=country_id) |
-            Q(baseapplication__openapplication__application_countries__country_id=country_id)
+            Q(baseapplication__parties__party__country_id=country_id)
+            | Q(baseapplication__openapplication__application_countries__country_id=country_id)
         )
 
     def with_advice(self, advice_type, level):

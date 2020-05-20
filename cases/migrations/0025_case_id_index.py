@@ -7,13 +7,15 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0024_enforcementcheckid'),
+        ("cases", "0024_enforcementcheckid"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='case',
-            name='id',
-            field=models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+            model_name="case",
+            name="id",
+            field=models.UUIDField(
+                db_index=True, default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+            ),
         ),
     ]

@@ -8,7 +8,8 @@ from applications.models import (
     GoodOnApplication,
     CountryOnApplication,
     PartyOnApplication,
-    OpenApplication)
+    OpenApplication,
+)
 from cases.enums import AdviceLevel, AdviceType
 from cases.enums import CaseTypeEnum
 from cases.models import Advice

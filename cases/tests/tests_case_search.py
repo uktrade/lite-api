@@ -13,7 +13,7 @@ from cases.tests.factories import (
     PartyOnApplicationFactory,
     PartyFactory,
     CountryOnApplicationFactory,
-    CountryFactory
+    CountryFactory,
 )
 from flags.tests.factories import FlagFactory
 from goods.enums import GoodControlled
@@ -125,9 +125,8 @@ class FilterAndSortTests(DataTestClient):
         application_3.flags.add(flag_2)
         application_4 = StandardApplicationFactory()
         GoodOnApplicationFactory(
-            good=GoodFactory(organisation=application_4.organisation, flags=[flag_3]),
-            application=application_4,
-         )
+            good=GoodFactory(organisation=application_4.organisation, flags=[flag_3]), application=application_4,
+        )
 
         qs_1 = Case.objects.search(flags=[flag_1.id])
         qs_2 = Case.objects.search(flags=[flag_2.id])
@@ -138,7 +137,6 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_3.count(), 1)
         self.assertEqual(qs_3.first().pk, application_4.pk)
 
-
     def test_filter_by_country(self):
         """
         What qualifies as a country on a case?
@@ -147,8 +145,7 @@ class FilterAndSortTests(DataTestClient):
         country_2 = CountryFactory(id="SP")
         country_on_application = CountryOnApplicationFactory(country=country_1)
         country_on_application = CountryOnApplicationFactory(
-            application=country_on_application.application,
-            country=country_1
+            application=country_on_application.application, country=country_1
         )
         party_on_application = PartyOnApplicationFactory(party=PartyFactory(country=country_2))
 

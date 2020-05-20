@@ -32,7 +32,7 @@ class CasesSearchView(generics.ListAPIView):
         # and if the flag to include hidden is added
         include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
         filters = {
-            key.replace('[]', ''): value if "[]" not in key else request.GET.getlist(key)
+            key.replace("[]", ""): value if "[]" not in key else request.GET.getlist(key)
             for key, value in request.GET.items()
             if key not in ["hidden", "queue_id"]
         }
