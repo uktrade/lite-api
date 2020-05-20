@@ -15,7 +15,3 @@ class FlagsResponseTests(EndPointTests):
 
     def test_flagging_rules_detail(self):
         self.call_endpoint(self.get_gov_headers(), self.url + "rules/" + self.get_flagging_rules_id())
-
-    # TODO remove once done optimising
-    def test_blah(self):
-        self.call_endpoint(self.get_gov_headers(), "/cases/a3b47b4f-d6ad-4ee0-b922-0c3ce9ec70cd/")
