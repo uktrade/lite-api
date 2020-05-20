@@ -115,12 +115,11 @@ def filter_object_activity(
     return audit_qs
 
 
-def get_objects_activity_filters(case_id):
-    case_content_type = ContentType.objects.get_for_model(Case)
+def get_objects_activity_filters(object_id, object_content_type):
 
     audit_qs = Audit.objects.filter(
-        Q(action_object_object_id=case_id, action_object_content_type=case_content_type)
-        | Q(target_object_id=case_id, target_content_type=case_content_type)
+        Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
+        | Q(target_object_id=object_id, target_content_type=object_content_type)
     )
     activity_types = audit_qs.order_by("verb").values_list("verb", flat=True).distinct()
     user_ids = audit_qs.order_by("actor_object_id").values_list("actor_object_id", flat=True).distinct()

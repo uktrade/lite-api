@@ -114,6 +114,6 @@ class OpenGeneralLicenceActivityView(APIView):
             # Delete notifications related to audits
             GovNotification.objects.filter(user=request.user, object_id__in=[obj["id"] for obj in data]).delete()
 
-        filters = audit_trail_service.get_objects_activity_filters(pk)
+        filters = audit_trail_service.get_objects_activity_filters(pk, content_type)
 
         return JsonResponse(data={"activity": data, "filters": filters}, status=status.HTTP_200_OK)

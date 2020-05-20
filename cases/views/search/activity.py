@@ -33,6 +33,7 @@ class CaseActivityFiltersView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        filters = audit_trail_service.get_objects_activity_filters(pk)
+        content_type = ContentType.objects.get_for_model(Case)
+        filters = audit_trail_service.get_objects_activity_filters(pk, content_type)
 
         return JsonResponse(data={"filters": filters}, status=status.HTTP_200_OK)
