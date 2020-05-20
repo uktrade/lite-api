@@ -20,3 +20,4 @@ class ControlListEntryViewSerializer(serializers.Serializer):
 class ControlListEntrySerializerWithLinks(ControlListEntrySerializer):
     parent = ControlListEntrySerializer(read_only=True)
     children = ControlListEntrySerializer(many=True, read_only=True)
+    category = serializers.CharField()
