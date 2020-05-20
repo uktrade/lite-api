@@ -53,7 +53,7 @@ def date_to_drf_date(date):
 
 def friendly_boolean(boolean):
     """
-    Returns 'Yes' if a boolean is equal to True, else 'No'
+    Returns 'Yes' if boolean is True, 'No' if boolean is False and None otherwise
     """
     if boolean is None or boolean == "":
         return None
