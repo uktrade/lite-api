@@ -11,6 +11,7 @@ class OpenGeneralLicenceFactory(factory.django.DjangoModelFactory):
     url = factory.Faker("url")
     case_type = NotImplementedError()
     status = OpenGeneralLicenceStatus.ACTIVE
+    registration_required = True
 
     class Meta:
         model = models.OpenGeneralLicence
