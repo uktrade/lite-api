@@ -25,6 +25,4 @@ def context_data_to_list(data):
     else:
         return data
 
-    if not text:
-        return "No data for this section"
-    return text
+    return text or "No data for this section"
