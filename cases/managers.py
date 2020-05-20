@@ -140,6 +140,14 @@ class CaseQuerySet(models.QuerySet):
             qs = qs.filter(submitted_at__date__lte=submitted_to)
         return qs
 
+    def with_finalised_range(self, finalised_from, finalised_to):
+        qs = self.filter()
+        if finalised_from:
+            qs = qs.filter(advice__level=AdviceLevel.FINAL, advice__created_at__date__gte=finalised_from)
+        if finalised_to:
+            qs = qs.filter(advice__level=AdviceLevel.FINAL, advice__created_at__date__lte=finalised_to)
+        return qs
+
     def with_party_name(self, party_name):
         return self.filter(baseapplication__parties__party__name__icontains=party_name)
 
@@ -215,6 +223,8 @@ class CaseManager(models.Manager):
         max_sla_days_remaining=None,
         submitted_from=None,
         submitted_to=None,
+        finalised_from=None,
+        finalised_to=None,
         party_name=None,
         party_address=None,
         goods_related_description=None,
@@ -312,6 +322,9 @@ class CaseManager(models.Manager):
 
         if submitted_from or submitted_to:
             case_qs = case_qs.with_submitted_range(submitted_from=submitted_from, submitted_to=submitted_to)
+
+        if finalised_from or finalised_to:
+            case_qs = case_qs.with_finalised_range(finalised_from=finalised_from, finalised_to=finalised_to)
 
         if party_name:
             case_qs = case_qs.with_party_name(party_name)

@@ -181,6 +181,41 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_2.count(), 1)
         self.assertEqual(qs_2.first().pk, application.pk)
 
+    def test_filter_by_finalised_date_range(self):
+        day_1 = timezone.datetime(day=10, month=10, year=2020)
+        day_2 = timezone.datetime(day=11, month=10, year=2020)
+        day_3 = timezone.datetime(day=12, month=10, year=2020)
+        day_4 = timezone.datetime(day=13, month=10, year=2020)
+        day_5 = timezone.datetime(day=14, month=10, year=2020)
+
+        application_1 = StandardApplicationFactory()
+        good = GoodFactory(organisation=application_1.organisation)
+        FinalAdviceFactory(
+            user=self.gov_user, team=self.team, case=application_1, good=good, type=AdviceType.APPROVE, created_at=day_2
+        )
+
+        application_2 = StandardApplicationFactory()
+        good = GoodFactory(organisation=application_2.organisation)
+        FinalAdviceFactory(
+            user=self.gov_user, team=self.team, case=application_2, good=good, type=AdviceType.APPROVE, created_at=day_4
+        )
+
+        qs_1 = Case.objects.search(finalised_from=day_1, finalised_to=day_3)
+        qs_2 = Case.objects.search(finalised_from=day_3, finalised_to=day_5)
+        qs_3 = Case.objects.search(finalised_from=day_1)
+        qs_4 = Case.objects.search(finalised_to=day_5)
+        qs_5 = Case.objects.search(finalised_to=day_1)
+        qs_6 = Case.objects.search(finalised_from=day_5)
+
+        self.assertEqual(qs_1.count(), 1)
+        self.assertEqual(qs_2.count(), 1)
+        self.assertEqual(qs_3.count(), 2)
+        self.assertEqual(qs_4.count(), 2)
+        self.assertEqual(qs_5.count(), 0)
+        self.assertEqual(qs_6.count(), 0)
+        self.assertEqual(qs_1.first().pk, application_1.pk)
+        self.assertEqual(qs_2.first().pk, application_2.pk)
+
     def test_filter_sla_days_range(self):
         application_1 = StandardApplicationFactory(sla_remaining_days=1)
         application_2 = StandardApplicationFactory(sla_remaining_days=3)
