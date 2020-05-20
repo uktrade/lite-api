@@ -16,13 +16,13 @@ class CasesAuditTrail(DataTestClient):
     def test_audit_not_cascade_deleted(self):
         audit_qs = Audit.objects.all()
 
-        self.assertEqual(audit_qs.count(), 0)
+        self.assertEqual(audit_qs.count(), 1)
 
         service.create(actor=self.exporter_user, verb=AuditType.ADD_FLAGS, target=self.case)
 
-        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.count(), 2)
         self.case.delete()
-        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.count(), 2)
 
     def test_retrieve_audit_trail(self):
         service.create(actor=self.exporter_user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case)

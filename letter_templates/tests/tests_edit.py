@@ -82,4 +82,4 @@ class LetterTemplateEditTests(DataTestClient):
             response.json()["errors"]["case_types"],
             [strings.LetterTemplates.DECISIONS_NON_APPLICATION_CASE_TYPES_ERROR + ", ".join(case_type_references)],
         )
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
