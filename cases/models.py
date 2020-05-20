@@ -402,3 +402,13 @@ class GoodCountryDecision(TimestampableModel):
         GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
 
         super(GoodCountryDecision, self).save(*args, **kwargs)
+
+
+class EnforcementCheckID(models.Model):
+    """
+    Enforcement XML doesn't support 64 bit ints (UUID's).
+    So this mapping table maps entity uuid's to enforcement ids (32 bit)
+    """
+
+    id = models.AutoField(primary_key=True)
+    entity_id = models.UUIDField(unique=True)

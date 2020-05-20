@@ -1,9 +1,11 @@
 from django.urls import reverse
 from rest_framework import status
+from uuid import UUID
 
 from applications.models import SiteOnApplication, ExternalLocationOnApplication
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
+from flags.enums import SystemFlags
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from parties.models import PartyDocument
@@ -27,6 +29,7 @@ class HmrcQueryTests(DataTestClient):
         self.assertIsNotNone(case.submitted_at)
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
         self.assertEqual(case.case_type.sub_type, CaseTypeSubTypeEnum.HMRC)
+        self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in case.flags.values_list("id", flat=True))
 
     def test_submit_hmrc_query_with_goods_departed_success(self):
         SiteOnApplication.objects.get(application=self.hmrc_query).delete()

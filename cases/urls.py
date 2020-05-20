@@ -3,11 +3,15 @@ from django.urls import path, include
 from cases.views import views, case_notes
 from cases.views.search import views as search_views
 from cases.views.search.activity import CaseActivityView, CaseActivityFiltersView
+from cases.enforcement_check import views as enforcement_check
 
 app_name = "cases"
 
 urlpatterns = [
     path("", search_views.CasesSearchView.as_view(), name="search"),
+    path(
+        "enforcement-check/<uuid:queue_pk>/", enforcement_check.EnforcementCheckView.as_view(), name="enforcement_check"
+    ),
     path("destinations/<str:pk>/", views.Destination.as_view(), name="destination"),
     path("<uuid:pk>/", views.CaseDetail.as_view(), name="case"),
     path("<uuid:pk>/queues/", views.SetQueues.as_view(), name="queues"),
