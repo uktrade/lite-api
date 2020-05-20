@@ -49,41 +49,43 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
     queryset = OpenGeneralLicence.objects.all()
 
     def perform_update(self, serializer):
-        fields = [
-            "name",
-            "description",
-            "url",
-            "case_type",
-            "registration_required",
-            "status",
-        ]
-        m2m_fields = [
-            "countries",
-            "control_list_entries",
-        ]
-        # data setup for audit checks
-        original_instance = self.get_object()
-        original_m2m_sets = {}
-        for field in m2m_fields:
-            original_m2m_sets[field] = set(getattr(original_instance, field).all())
+        # Don't update the data during validate_only requests
+        if not self.request.data.get("validate_only", False):
+            fields = [
+                "name",
+                "description",
+                "url",
+                "case_type",
+                "registration_required",
+                "status",
+            ]
+            m2m_fields = [
+                "countries",
+                "control_list_entries",
+            ]
+            # data setup for audit checks
+            original_instance = self.get_object()
+            original_m2m_sets = {}
+            for field in m2m_fields:
+                original_m2m_sets[field] = set(getattr(original_instance, field).all())
 
-        # save model
-        updated_instance = serializer.save()
+            # save model
+            updated_instance = serializer.save()
 
-        for field in fields:
-            if getattr(original_instance, field) != getattr(updated_instance, field):
-                audit_trail_service.create(
-                    actor=self.request.user,
-                    verb=AuditType.OGL_FIELD_EDITED,
-                    action_object=updated_instance,
-                    payload={"field": field},
-                )
+            for field in fields:
+                if getattr(original_instance, field) != getattr(updated_instance, field):
+                    audit_trail_service.create(
+                        actor=self.request.user,
+                        verb=AuditType.OGL_FIELD_EDITED,
+                        action_object=updated_instance,
+                        payload={"field": field},
+                    )
 
-        for field in m2m_fields:
-            if original_m2m_sets[field] != set(getattr(updated_instance, field).all()):
-                audit_trail_service.create(
-                    actor=self.request.user,
-                    verb=AuditType.OGL_FIELD_EDITED,
-                    action_object=updated_instance,
-                    payload={"field": field},
-                )
+            for field in m2m_fields:
+                if original_m2m_sets[field] != set(getattr(updated_instance, field).all()):
+                    audit_trail_service.create(
+                        actor=self.request.user,
+                        verb=AuditType.OGL_FIELD_EDITED,
+                        action_object=updated_instance,
+                        payload={"field": field},
+                    )
