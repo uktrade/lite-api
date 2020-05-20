@@ -4,6 +4,7 @@ from rest_framework import status
 
 from applications.enums import LicenceDuration
 from applications.libraries.licence import get_default_duration
+from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from conf.constants import GovPermissions
@@ -170,7 +171,7 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"], str(self.standard_application.id))
         self.assertEqual(self.standard_application.status, self.finalised_status)
-        self.assertEqual(Audit.objects.count(), 1)
+        self.assertEqual(Audit.objects.count(), 2)
 
 
 class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
