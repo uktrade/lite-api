@@ -280,7 +280,7 @@ class UpdatedCasesQueueTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)  # Count is 1 as another case is created in setup
+        self.assertEqual(len(response_data), 2)  # Count is 2 as another case is created in setup
         self.assertEqual(response_data[0]["id"], str(self.case.id))
 
     def test_get_cases_on_updated_cases_queue_when_user_is_not_assigned_to_a_case_returns_no_cases(self):

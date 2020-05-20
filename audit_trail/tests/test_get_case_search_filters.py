@@ -1,6 +1,8 @@
 from audit_trail.service import get_case_activity_filters
 
 from audit_trail.tests.factories import AuditFactory
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.models import CaseStatus
 from teams.tests.factories import TeamFactory
 from test_helpers.clients import DataTestClient
 from users.enums import UserType
@@ -10,12 +12,14 @@ from users.tests.factories import GovUserFactory, ExporterUserFactory
 class CasesAuditTrailSearchTestCase(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.case = self.create_standard_application_case(self.organisation)
+        self.case = self.create_draft_standard_application(self.organisation)
+        self.case.status = CaseStatus.objects.get(status=CaseStatusEnum.SUBMITTED)
+        self.case.save()
         self.team = TeamFactory()
         self.gov_user = GovUserFactory(team=self.team)
         self.exporter_user = ExporterUserFactory()
 
-    def test_filter_by_gov_user(self):
+    def test_get_case_activity_filters(self):
         audit = AuditFactory(actor=self.gov_user, target=self.case.get_case())
 
         case_filters = get_case_activity_filters(self.case.id)
