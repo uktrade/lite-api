@@ -4,20 +4,17 @@ from django.utils import timezone
 
 from cases.enums import AdviceType
 from cases.models import Case
-from cases.tests.factories import (
-    SiteOnApplicationFactory,
-    StandardApplicationFactory,
-    GoodOnApplicationFactory,
-    TeamAdviceFactory,
-    FinalAdviceFactory,
-    PartyOnApplicationFactory,
-    PartyFactory,
-    CountryOnApplicationFactory,
-    CountryFactory,
+from cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
+from static.countries.factories import CountryFactory
+from applications.tests.factories import (
+    PartyOnApplicationFactory, CountryOnApplicationFactory, SiteOnApplicationFactory, GoodOnApplicationFactory, StandardApplicationFactory
 )
+from parties.tests.factories import PartyFactory
 from flags.tests.factories import FlagFactory
 from goods.enums import GoodControlled
 from goods.tests.factories import GoodFactory
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -189,12 +186,16 @@ class FilterAndSortTests(DataTestClient):
         day_5 = timezone.datetime(day=14, month=10, year=2020)
 
         application_1 = StandardApplicationFactory()
+        application_1.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        application_1.save()
         good = GoodFactory(organisation=application_1.organisation)
         FinalAdviceFactory(
             user=self.gov_user, team=self.team, case=application_1, good=good, type=AdviceType.APPROVE, created_at=day_2
         )
 
         application_2 = StandardApplicationFactory()
+        application_2.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        application_2.save()
         good = GoodFactory(organisation=application_2.organisation)
         FinalAdviceFactory(
             user=self.gov_user, team=self.team, case=application_2, good=good, type=AdviceType.APPROVE, created_at=day_4

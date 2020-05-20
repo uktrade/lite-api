@@ -19,13 +19,13 @@ class LoggingMiddleware:
         response = self.get_response(request)
         logging.info(
             {
-                "user": request.user.id if request.user else None,
-                "message": "liteolog api",
-                "corrID": request.correlation,
-                "type": "http response",
-                "method": request.method,
-                "url": request.path,
-                "elapsed_time": time.time() - start,
+                # "user": request.user.id if request.user else None,
+                # "message": "liteolog api",
+                # "corrID": request.correlation,
+                # "type": "http response",
+                # "method": request.method,
+                # "url": request.path,
+                # "elapsed_time": time.time() - start,
             }
         )
 
@@ -61,14 +61,14 @@ class DBLoggingMiddleware:
         elapsed_time = time.time() - start
         logging.info(
             {
-                "message": "liteolog db",
-                "corrID": request.correlation,
-                "type": "db details",
-                "elapsed_time": elapsed_time,
-                "initial query count": len(initial_queries),
-                "final query count": len(final_queries),
-                "query set": final_queries,
-                "method": "DB-QUERY-SET",
+                # "message": "liteolog db",
+                # "corrID": request.correlation,
+                # "type": "db details",
+                # "elapsed_time": elapsed_time,
+                # "initial query count": len(initial_queries),
+                # "final query count": len(final_queries),
+                # "query set": final_queries,
+                # "method": "DB-QUERY-SET",
             }
         )
 
