@@ -36,7 +36,8 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         return filtered_qs
 
     def perform_create(self, serializer):
-        instance = serializer.save()
+        if not self.request.data.get("validate_only", False):
+            instance = serializer.save()
 
         audit_trail_service.create(
             actor=self.request.user, verb=AuditType.OGL_CREATED, action_object=instance,
