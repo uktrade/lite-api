@@ -52,12 +52,17 @@ def _build_absolute_uri(appended_address):
 
 
 def _get_hawk_sender(url, method, content_type, content):
+    """
+    Returns a sender that, for test purposes, is hardcoded to always say that nonces have not been seen before and are
+    fine (i.e. with an anonymous seen_nonce function that always returns False)
+    """
     return Sender(
         credentials={"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": "sha256"},
         url=url,
         method=method,
         content_type=content_type,
         content=content,
+        seen_nonce=lambda x, y, z: False,
     )
 
 
