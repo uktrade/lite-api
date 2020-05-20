@@ -81,6 +81,7 @@ class AuditType(LiteEnum):
     UPDATED_EXHIBITION_DETAILS_REASON_FOR_CLEARANCE = autostr()
     UPDATED_ROUTE_OF_GOODS = autostr()
     RERUN_ROUTING_RULES = autostr()
+    ENFORCEMENT_CHECK = autostr()
 
     def human_readable(self):
         value = self.value.replace("_", " ")

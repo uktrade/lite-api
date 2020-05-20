@@ -4,6 +4,7 @@ from flags.enums import SystemFlags
 from lite_content.lite_api import strings
 from django.urls import reverse
 from rest_framework import status
+from uuid import UUID
 
 from applications.models import SiteOnApplication, CountryOnApplication
 from cases.models import Case, CaseType
@@ -85,6 +86,7 @@ class OpenApplicationTests(DataTestClient):
         self.assertIsNotNone(case.submitted_at)
         self.assertNotEqual(case.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
+        self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in case.flags.values_list("id", flat=True))
 
     def test_standard_application_declaration_submit_tcs_false_failure(self):
         data = {
