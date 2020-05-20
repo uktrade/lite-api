@@ -17,10 +17,6 @@ class GovUserNotificationTests(DataTestClient):
         self.audit_content_type = ContentType.objects.get_for_model(Audit)
 
     def test_edit_application_creates_new_audit_notification_success(self):
-        prev_case_audit_notification_count = GovNotification.objects.filter(
-            user=self.gov_user, content_type=self.audit_content_type, case=self.case
-        ).count()
-
         url = reverse("applications:application", kwargs={"pk": self.case.id})
         data = {"name": "new app name!"}
 
@@ -31,7 +27,9 @@ class GovUserNotificationTests(DataTestClient):
         ).count()
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(case_audit_notification_count, prev_case_audit_notification_count + 1)
+        # There can only be one notification per gov user's case
+        # (the notification for updating the name overwrites any prior notification)
+        self.assertEqual(case_audit_notification_count, 1)
 
     def test_edit_application_updates_previous_audit_notification_success(self):
         audit = Audit.objects.create(
@@ -98,5 +96,5 @@ class GovUserNotificationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         case_activity = response.json()["activity"]
-        self.assertEqual(len(case_activity), 1)
+        self.assertEqual(len(case_activity), 2)
         self.assertEqual(case_audit_notification_count, 0)

@@ -1,4 +1,6 @@
 from applications.enums import ApplicationExportType
+from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from flags.enums import SystemFlags
 from lite_content.lite_api import strings
@@ -67,7 +69,7 @@ class OpenApplicationTests(DataTestClient):
             response, text=strings.Applications.Generic.NO_END_USE_DETAILS, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_standard_application_declaration_submit_success(self):
+    def test_submit_open_application_declaration_submit_success(self):
         data = {
             "submit_declaration": True,
             "agreed_to_declaration": True,
@@ -88,7 +90,20 @@ class OpenApplicationTests(DataTestClient):
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in case.flags.values_list("id", flat=True))
 
-    def test_standard_application_declaration_submit_tcs_false_failure(self):
+        case_status_audits = Audit.objects.filter(target_object_id=case.id, verb=AuditType.UPDATED_STATUS).values_list(
+            "payload", flat=True
+        )
+        self.assertIn(
+            {
+                "status": {
+                    "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
+                    "old": CaseStatusEnum.get_text(CaseStatusEnum.DRAFT),
+                }
+            },
+            case_status_audits,
+        )
+
+    def test_submit_open_application_declaration_submit_tcs_false_failure(self):
         data = {
             "submit_declaration": True,
             "agreed_to_declaration": False,
