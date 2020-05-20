@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
@@ -12,7 +13,12 @@ from static.countries.serializers import CountrySerializer
 
 class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
-        required=True, allow_blank=False, allow_null=False, max_length=250, error_messages={"blank": "Enter a name"}
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        max_length=250,
+        error_messages={"blank": "Enter a name"},
+        validators=[UniqueValidator(queryset=OpenGeneralLicence.objects.all(), message="Enter a unique name")],
     )
     description = serializers.CharField(
         required=True, allow_blank=False, allow_null=False, error_messages={"blank": "Enter description"}
