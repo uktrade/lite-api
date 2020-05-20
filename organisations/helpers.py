@@ -8,7 +8,7 @@ def add_edited_audit_entry(user, organisation, key, old_value, new_value):
         actor=user,
         verb=AuditType.UPDATED_ORGANISATION,
         target=organisation,
-        payload={"key": key, "old": old_value, "new": new_value, },
+        payload={"key": key, "old": old_value, "new": new_value,},
     )
 
 
