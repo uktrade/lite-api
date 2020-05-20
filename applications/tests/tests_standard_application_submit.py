@@ -206,6 +206,19 @@ class StandardApplicationTests(DataTestClient):
         self.assertNotEqual(standard_application.submitted_at, previous_submitted_at)
         self.assertEqual(standard_application.agreed_to_foi, True)
 
+        case_status_audits = Audit.objects.filter(
+            target_object_id=standard_application.id, verb=AuditType.UPDATED_STATUS
+        ).values_list("payload", flat=True)
+        self.assertIn(
+            {
+                "status": {
+                    "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
+                    "old": CaseStatusEnum.get_text(CaseStatusEnum.APPLICANT_EDITING),
+                }
+            },
+            case_status_audits,
+        )
+
     def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self):
         standard_application = self.create_draft_standard_application(self.organisation)
         standard_application.status = get_case_status_by_status(CaseStatusEnum.INITIAL_CHECKS)
