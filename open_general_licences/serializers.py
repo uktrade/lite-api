@@ -9,7 +9,7 @@ from static.countries.models import Country
 
 class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
-        required=True, allow_blank=False, allow_null=False, error_messages={"blank": "Enter a name"}
+        required=True, allow_blank=False, allow_null=False, max_length=250, error_messages={"blank": "Enter a name"}
     )
     description = serializers.CharField(
         required=True, allow_blank=False, allow_null=False, error_messages={"blank": "Enter description"}
