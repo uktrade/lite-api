@@ -917,7 +917,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             letter_paragraph = self.create_picklist_item(
                 "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
             )
-        letter_layout = LetterLayout.objects.first()
+        letter_layout = LetterLayout.objects.get(id=uuid.UUID(int=1))
 
         letter_template = LetterTemplate.objects.create(
             name=name, layout=letter_layout, visible_to_exporter=visible_to_exporter
