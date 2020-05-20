@@ -134,6 +134,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["description"], document.description)
 
     def _assert_base_application_details(self, context, case):
+        self.assertEqual(context["user_reference"], case.name)
         self.assertEqual(context["end_use_details"], case.intended_end_use)
         self.assertEqual(context["military_end_use_controls"], friendly_boolean(case.is_military_end_use_controls))
         self.assertEqual(context["military_end_use_controls_reference"], case.military_end_use_controls_ref)

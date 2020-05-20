@@ -84,6 +84,7 @@ def _get_address(address):
 
 def _get_base_application_details_context(application):
     return {
+        "user_reference": application.name,
         "end_use_details": getattr(application, "intended_end_use", ""),
         "military_end_use_controls": friendly_boolean(getattr(application, "is_military_end_use_controls", "")),
         "military_end_use_controls_reference": getattr(application, "military_end_use_controls_ref", ""),
