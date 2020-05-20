@@ -35,7 +35,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         allow_null=False,
         allow_empty=False,
         error_messages={"required": "Select countries"},
-        serializer=CountrySerializer
+        serializer=CountrySerializer,
     )
     control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=False)
     registration_required = serializers.BooleanField(required=True, allow_null=False)

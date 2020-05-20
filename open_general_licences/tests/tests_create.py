@@ -27,7 +27,11 @@ def _assert_response_data(self, response_data, request_data):
     self.assertEquals(response_data["description"], request_data["description"])
     self.assertEquals(response_data["url"], request_data["url"])
     self.assertEquals(response_data["case_type"]["id"], str(request_data["case_type"]))
-    self.assertEquals(response_data["countries"], request_data["countries"])
+
+    self.assertTrue(len(response_data["countries"]) > 0)
+    for country in response_data["countries"]:
+        self.assertTrue(country["id"] in request_data["countries"])
+
     self.assertTrue(len(response_data["control_list_entries"]) > 0)
     for control_list_entry in response_data["control_list_entries"]:
         self.assertTrue(control_list_entry["rating"] in request_data["control_list_entries"])
