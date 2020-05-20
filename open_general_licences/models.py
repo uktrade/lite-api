@@ -19,6 +19,7 @@ class OpenGeneralLicence(TimestampableModel):
     )
     countries = models.ManyToManyField(Country, related_name="OpenGeneralLicence", default=[])
     control_list_entries = models.ManyToManyField(ControlListEntry, related_name="OpenGeneralLicence")
+    registration_required = models.BooleanField()
     status = models.CharField(
         choices=OpenGeneralLicenceStatus.choices,
         null=False,

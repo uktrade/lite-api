@@ -21,11 +21,7 @@ class ControlListEntriesList(APIView):
 
         if request.GET.get("flatten"):
             return JsonResponse(
-                data={
-                    "control_list_entries": list(
-                        queryset.filter(rating__isnull=False).values("rating", "text")
-                    )
-                }
+                data={"control_list_entries": list(queryset.filter(rating__isnull=False).values("rating", "text"))}
             )
 
         serializer = ControlListEntrySerializerWithLinks(queryset.filter(parent=None), many=True)

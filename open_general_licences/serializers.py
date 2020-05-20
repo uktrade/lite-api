@@ -10,15 +10,16 @@ from static.countries.models import Country
 class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     description = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    url = serializers.URLField(required=True, allow_blank=False, allow_null=False, )
+    url = serializers.URLField(required=True, allow_blank=False, allow_null=False)
     case_type = serializers.PrimaryKeyRelatedField(
         queryset=CaseType.objects.all(), required=True, allow_null=False, allow_empty=False
     )
     countries = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.all(), many=True, required=True, allow_null=False, allow_empty=False
     )
-    control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=True)
-    status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices)
+    control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=False)
+    registration_required = serializers.BooleanField(required=True, allow_null=False)
+    status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices, required=False)
 
     class Meta:
         model = OpenGeneralLicence

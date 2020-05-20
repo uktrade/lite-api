@@ -16,7 +16,6 @@ class CLCListTests(DataTestClient):
         self.assertIsNotNone(item.get("text"))
         if full_detail:
             self.assertIsNotNone(item.get("id"))
-            self.assertIsNotNone(item.get("is_decontrolled"))
             children = item.get("children")
             if children:
                 for child in children:
@@ -42,11 +41,9 @@ class CLCListTests(DataTestClient):
 class CLCTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.parent_rating = ControlListEntry.objects.create(
-            rating="Xyz123", text="Parent rating", parent=None, is_decontrolled=False
-        )
+        self.parent_rating = ControlListEntry.objects.create(rating="Xyz123", text="Parent rating", parent=None,)
         self.child_rating = ControlListEntry.objects.create(
-            rating="Xyz123b", text="Child 1", parent=self.parent_rating, is_decontrolled=False
+            rating="Xyz123b", text="Child 1", parent=self.parent_rating,
         )
         self.url = "static:control_list_entries:control_list_entry"
 
@@ -54,7 +51,6 @@ class CLCTests(DataTestClient):
         self.assertEqual(response_data["id"], str(object.id))
         self.assertEqual(response_data["rating"], object.rating)
         self.assertEqual(response_data["text"], object.text)
-        self.assertEqual(response_data["is_decontrolled"], object.is_decontrolled)
 
     def test_get_clc_with_parent(self):
         url = reverse(self.url, kwargs={"rating": self.child_rating.rating},)
@@ -66,9 +62,7 @@ class CLCTests(DataTestClient):
         self._validate_clc(response_data["parent"], self.parent_rating)
 
     def test_get_clc_with_children(self):
-        child_2 = ControlListEntry.objects.create(
-            rating="ML1d1", text="Child 2-1", parent=self.parent_rating, is_decontrolled=False
-        )
+        child_2 = ControlListEntry.objects.create(rating="ML1d1", text="Child 2-1", parent=self.parent_rating)
 
         url = reverse(self.url, kwargs={"rating": self.parent_rating.rating},)
         response = self.client.get(url, **self.exporter_headers)
@@ -81,7 +75,6 @@ class CLCTests(DataTestClient):
             self.assertTrue(str(child.id) in [item["id"] for item in response_data["children"]])
             self.assertTrue(child.rating in [item["rating"] for item in response_data["children"]])
             self.assertTrue(child.text in [item["text"] for item in response_data["children"]])
-            self.assertTrue(child.is_decontrolled in [item["is_decontrolled"] for item in response_data["children"]])
 
 
 class ControlListEntriesResponseTests(EndPointTests):
