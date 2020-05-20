@@ -85,7 +85,7 @@ class CaseQuerySet(models.QuerySet):
         return self.filter(baseapplication__name__icontains=exporter_application_reference)
 
     def with_organisation(self, organisation_name):
-        return self.filter(organisation__name=organisation_name)
+        return self.filter(organisation__name__icontains=organisation_name)
 
     def with_exporter_site_name(self, exporter_site_name):
         return self.filter(baseapplication__application_sites__site__name=exporter_site_name)
@@ -141,7 +141,7 @@ class CaseQuerySet(models.QuerySet):
         return qs
 
     def with_finalised_range(self, finalised_from, finalised_to):
-        qs = self.filter()
+        qs = self.filter(status__status=CaseStatusEnum.FINALISED)
         if finalised_from:
             qs = qs.filter(advice__level=AdviceLevel.FINAL, advice__created_at__date__gte=finalised_from)
         if finalised_to:
