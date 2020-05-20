@@ -71,11 +71,10 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
             template = template.replace(CONTENT_PLACEHOLDER, text)
             template = django_engine.from_string(template)
 
+        context = {}
         if case:
-            # Populate context data
             context = get_document_context(case)
-            template = template.render(Context(context))
 
-        return load_css(layout) + template
+        return load_css(layout) + template.render(Context(context))
     except (FileNotFoundError, TemplateDoesNotExist):
         return {"error": strings.LetterTemplates.PREVIEW_ERROR}
