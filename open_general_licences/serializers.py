@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
 from cases.models import CaseType
-from conf.serializers import ControlListEntryField, KeyValueChoiceField
+from conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.models import OpenGeneralLicence
 from static.countries.models import Country
+from static.countries.serializers import CountrySerializer
 
 
 class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
@@ -14,8 +15,8 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     case_type = serializers.PrimaryKeyRelatedField(
         queryset=CaseType.objects.all(), required=True, allow_null=False, allow_empty=False
     )
-    countries = serializers.PrimaryKeyRelatedField(
-        queryset=Country.objects.all(), many=True, required=True, allow_null=False, allow_empty=False
+    countries = PrimaryKeyRelatedSerializerField(
+        queryset=Country.objects.all(), many=True, required=True, allow_null=False, allow_empty=False, serializer=CountrySerializer
     )
     control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=True)
     status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices)
