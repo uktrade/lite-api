@@ -100,11 +100,14 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
 
 
 class OpenGeneralLicenceActivityView(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def get(self, request, pk):
-        audit_trail_qs = Audit.objects.filter(
-            action_object_content_type=ContentType.objects.get_for_model(OpenGeneralLicenceSerializer),
-            action_object_object_id=pk,
-        ).all()
+        filter_data = audit_trail_service.get_filters(request.GET)
+        content_type = ContentType.objects.get_for_model(OpenGeneralLicence)
+        audit_trail_qs = audit_trail_service.filter_object_activity(
+            object_id=pk, object_content_type=content_type, **filter_data
+        )
 
         data = AuditSerializer(audit_trail_qs, many=True).data
 
@@ -112,4 +115,6 @@ class OpenGeneralLicenceActivityView(APIView):
             # Delete notifications related to audits
             GovNotification.objects.filter(user=request.user, object_id__in=[obj["id"] for obj in data]).delete()
 
-        return JsonResponse(data={"activity": data}, status=status.HTTP_200_OK)
+        filters = audit_trail_service.get_objects_activity_filters(pk)
+
+        return JsonResponse(data={"activity": data, "filters": filters}, status=status.HTTP_200_OK)

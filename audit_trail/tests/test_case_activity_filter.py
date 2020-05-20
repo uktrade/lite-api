@@ -10,7 +10,7 @@ from test_helpers.clients import DataTestClient
 from users.enums import UserType
 from users.models import GovUser
 from users.tests.factories import GovUserFactory, ExporterUserFactory
-from audit_trail.service import filter_case_activity
+from audit_trail.service import filter_object_activity
 
 
 class CasesAuditTrailSearchTestCase(DataTestClient):
@@ -24,21 +24,21 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
     def test_filter_by_gov_user(self):
         AuditFactory(actor=self.gov_user, target=self.case.get_case())
 
-        res = filter_case_activity(case_id=self.case.id, user_id=self.gov_user.id)
+        res = filter_object_activity(object_id=self.case.id, user_id=self.gov_user.id)
         self.assertEqual(res.count(), 1)
         self.assertEqual(res.first().actor_object_id, str(self.gov_user.id))
 
     def test_filter_by_exporter_user(self):
         AuditFactory(actor=self.exporter_user, target=self.case.get_case())
 
-        res = filter_case_activity(case_id=self.case.id, user_id=self.exporter_user.id)
+        res = filter_object_activity(object_id=self.case.id, user_id=self.exporter_user.id)
         self.assertEqual(res.count(), 1)
         self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
 
     def test_filter_by_team(self):
         AuditFactory(actor=self.gov_user, target=self.case.get_case())
 
-        res = filter_case_activity(case_id=self.case.id, team=self.team)
+        res = filter_object_activity(object_id=self.case.id, team=self.team)
 
         self.assertEqual(res.count(), 1)
         self.assertEqual(res.first().actor_object_id, str(self.gov_user.id))
@@ -51,7 +51,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         self.assertNotEqual(fake_team.id, self.team.id)
         self.assertNotEqual(fake_user.id, self.gov_user.id)
 
-        res = filter_case_activity(case_id=self.case.id, team=self.team)
+        res = filter_object_activity(object_id=self.case.id, team=self.team)
 
         self.assertEqual(res.count(), 1)
         self.assertEqual(res.first().actor_object_id, str(self.gov_user.id))
@@ -62,7 +62,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         AuditFactory(actor=self.exporter_user, verb=audit_type, target=self.case.get_case())
         AuditFactory(actor=self.gov_user, verb=fake_audit_type, target=self.case.get_case())
 
-        res = filter_case_activity(case_id=self.case.id, audit_type=audit_type)
+        res = filter_object_activity(object_id=self.case.id, audit_type=audit_type)
 
         self.assertEqual(res.count(), 1)
         self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
@@ -73,13 +73,13 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         AuditFactory(actor=self.exporter_user, target=self.case.get_case())
 
         # check gov filter
-        res = filter_case_activity(case_id=self.case.id, user_type=UserType.INTERNAL)
+        res = filter_object_activity(object_id=self.case.id, user_type=UserType.INTERNAL)
 
         self.assertEqual(res.count(), 1)
         self.assertEqual(res.first().actor_object_id, str(self.gov_user.id))
 
         # check exporter filter
-        res = filter_case_activity(case_id=self.case.id, user_type=UserType.EXPORTER)
+        res = filter_object_activity(object_id=self.case.id, user_type=UserType.EXPORTER)
 
         self.assertEqual(res.count(), 1)
         self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
@@ -93,37 +93,37 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         AuditFactory(created_at=middle_date, actor=self.gov_user, target=self.case.get_case())
         AuditFactory(created_at=end_date, actor=self.gov_user, target=self.case.get_case())
 
-        res = filter_case_activity(case_id=self.case.id, date_from=start_date.date())
+        res = filter_object_activity(object_id=self.case.id, date_from=start_date.date())
 
         self.assertEqual(res.count(), 3)
 
-        res = filter_case_activity(case_id=self.case.id, date_from=middle_date.date())
+        res = filter_object_activity(object_id=self.case.id, date_from=middle_date.date())
 
         self.assertEqual(res.count(), 2)
 
-        res = filter_case_activity(case_id=self.case.id, date_from=end_date.date())
+        res = filter_object_activity(object_id=self.case.id, date_from=end_date.date())
 
         self.assertEqual(res.count(), 1)
 
-        res = filter_case_activity(case_id=self.case.id, date_from=start_date.date(), date_to=middle_date.date())
+        res = filter_object_activity(object_id=self.case.id, date_from=start_date.date(), date_to=middle_date.date())
 
         self.assertEqual(res.count(), 2)
 
-        res = filter_case_activity(case_id=self.case.id, date_from=middle_date.date(), date_to=end_date.date())
+        res = filter_object_activity(object_id=self.case.id, date_from=middle_date.date(), date_to=end_date.date())
 
         self.assertEqual(res.count(), 2)
 
-        res = filter_case_activity(case_id=self.case.id, date_from=end_date.date(), date_to=end_date.date())
+        res = filter_object_activity(object_id=self.case.id, date_from=end_date.date(), date_to=end_date.date())
 
         self.assertEqual(res.count(), 1)
 
         after_end_date = end_date + timedelta(days=1)
         before_start_date = start_date - timedelta(days=1)
 
-        res = filter_case_activity(case_id=self.case.id, date_from=after_end_date.date())
+        res = filter_object_activity(object_id=self.case.id, date_from=after_end_date.date())
 
         self.assertEqual(res.count(), 0)
 
-        res = filter_case_activity(case_id=self.case.id, date_to=before_start_date.date())
+        res = filter_object_activity(object_id=self.case.id, date_to=before_start_date.date())
 
         self.assertEqual(res.count(), 0)

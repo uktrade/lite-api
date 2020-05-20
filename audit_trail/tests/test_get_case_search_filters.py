@@ -1,4 +1,4 @@
-from audit_trail.service import get_case_activity_filters
+from audit_trail.service import get_objects_activity_filters
 
 from audit_trail.tests.factories import AuditFactory
 from teams.tests.factories import TeamFactory
@@ -18,7 +18,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
     def test_filter_by_gov_user(self):
         audit = AuditFactory(actor=self.gov_user, target=self.case.get_case())
 
-        case_filters = get_case_activity_filters(self.case.id)
+        case_filters = get_objects_activity_filters(self.case.id)
 
         actions = [{"key": audit.verb.value, "value": audit.verb.human_readable()}]
         teams = [{"value": self.team.name, "key": str(self.team.id)}]
@@ -36,6 +36,6 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         # Create new audit with exporter
         AuditFactory(actor=self.exporter_user, target=self.case.get_case())
 
-        case_filters = get_case_activity_filters(self.case.id)
+        case_filters = get_objects_activity_filters(self.case.id)
 
         self.assertEqual(case_filters["users"].sort(key=lambda x: x["key"]), users.sort(key=lambda x: x["key"]))
