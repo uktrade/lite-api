@@ -126,6 +126,8 @@ class ApplicationCountries(APIView):
 
 
 class ApplicationContractTypes(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
     @authorised_users(ExporterUser)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     def put(self, request, application):
@@ -166,6 +168,8 @@ class ApplicationContractTypes(APIView):
 
 
 class LightCountries(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
     @authorised_users(ExporterUser)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     def get(self, request, application):
