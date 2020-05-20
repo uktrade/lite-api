@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('open_general_licences', '0001_initial'),
+        ("open_general_licences", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='opengenerallicence',
-            name='registration_required',
+            model_name="opengenerallicence",
+            name="registration_required",
             field=models.BooleanField(default=True),
             preserve_default=False,
         ),

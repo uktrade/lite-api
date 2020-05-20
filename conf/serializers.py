@@ -144,7 +144,7 @@ class ControlListEntryField(PrimaryKeyRelatedSerializerField):
             queryset=ControlListEntry.objects.all(),
             many=kwargs.get("many"),
             serializer=ControlListEntryViewSerializer,
-            error_messages={"null": "bad rating"},
+            error_messages={"null": "bad rating", "required": "Select a control list entry"},
             **kwargs,
         )
 

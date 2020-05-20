@@ -17,6 +17,7 @@ REQUEST_DATA = {
     "case_type": CaseTypeEnum.OGEL.id,
     "countries": ["CA"],
     "control_list_entries": ["ML1a"],
+    "registration_required": True,
 }
 
 
