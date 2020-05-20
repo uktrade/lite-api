@@ -177,35 +177,3 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES, response.json()["errors"]["contract_types"])
-
-    @tag("2146", "big-data")
-    def test_big_data(self):
-        application = self.create_draft_open_application(self.organisation)
-        country_ids = [c.id for c in Country.objects.all()]
-
-        data = {"countries": country_ids}
-        url = reverse("applications:countries", kwargs={"pk": application.id})
-
-        self.client.post(url, data, **self.exporter_headers)
-
-        self.client.get(url, **self.exporter_headers)
-
-        print("\nBefore putting contract types")
-        url = reverse("applications:country_contract_types", kwargs={"pk": application.id})
-        self.client.get(url, **self.exporter_headers)
-
-        contract_types = [ct[0] for ct in ContractType.choices]
-
-        data = {
-            "countries": country_ids,
-            "contract_types": contract_types,
-            "other_contract_type_text": "This is text",
-        }
-
-        url = reverse("applications:contract_types", kwargs={"pk": application.id})
-        self.client.put(url, data, **self.exporter_headers)
-
-        print("\nAfter putting contract types")
-        url = reverse("applications:country_contract_types", kwargs={"pk": application.id})
-        self.client.get(url, **self.exporter_headers)
-        print("\n")
