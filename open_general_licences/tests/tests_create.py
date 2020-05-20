@@ -4,6 +4,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from open_general_licences.models import OpenGeneralLicence
 from test_helpers.clients import DataTestClient
@@ -43,6 +44,7 @@ class TestCreateOGL(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json(), self.request_data)
         self.assertEquals(OpenGeneralLicence.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.all().count(), 1)
 
     @parameterized.expand([(CaseTypeEnum.OGEL.id,), (CaseTypeEnum.OGTL.id,), (CaseTypeEnum.OGTCL.id,)])
     def test_creating_with_with_each_type_of_case_type(self, case_type_id):
@@ -52,6 +54,7 @@ class TestCreateOGL(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         _assert_response_data(self, response.json(), self.request_data)
         self.assertEquals(OpenGeneralLicence.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.all().count(), 1)
 
     @parameterized.expand(REQUEST_DATA.keys())
     def test_fail_creating_without_field(self, key):
@@ -59,6 +62,7 @@ class TestCreateOGL(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Audit.objects.all().count(), 0)
 
     @parameterized.expand(REQUEST_DATA.keys())
     def test_fail_creating_with_none_fields(self, key):
@@ -66,6 +70,7 @@ class TestCreateOGL(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Audit.objects.all().count(), 0)
 
     @parameterized.expand(REQUEST_DATA.keys())
     def test_fail_creating_with_blank_fields(self, key):
@@ -77,3 +82,4 @@ class TestCreateOGL(DataTestClient):
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Audit.objects.all().count(), 0)
