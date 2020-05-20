@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 
 from audit_trail.enums import AuditType
@@ -47,21 +49,38 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
     queryset = OpenGeneralLicence.objects.all()
 
     def perform_update(self, serializer):
-        original_instance = self.get_object()
-        updated_instance = serializer.save()
-
         fields = [
             "name",
             "description",
             "url",
             "case_type",
-            "countries",
-            "control_list_entries",
             "registration_required",
             "status",
         ]
+        m2m_fields = [
+            "countries",
+            "control_list_entries",
+        ]
+        # data setup for audit checks
+        original_instance = self.get_object()
+        original_m2m_sets = {}
+        for field in m2m_fields:
+            original_m2m_sets[field] = set(getattr(original_instance, field).all())
+
+        # save model
+        updated_instance = serializer.save()
+
         for field in fields:
-            if original_instance.get(field) != updated_instance.get(field):
+            if getattr(original_instance, field) != getattr(updated_instance, field):
+                audit_trail_service.create(
+                    actor=self.request.user,
+                    verb=AuditType.OGL_FIELD_EDITED,
+                    action_object=updated_instance,
+                    payload={"field": field},
+                )
+
+        for field in m2m_fields:
+            if original_m2m_sets[field] != set(getattr(updated_instance, field).all()):
                 audit_trail_service.create(
                     actor=self.request.user,
                     verb=AuditType.OGL_FIELD_EDITED,

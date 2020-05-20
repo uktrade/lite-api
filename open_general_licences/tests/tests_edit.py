@@ -2,6 +2,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from open_general_licences.enums import OpenGeneralLicenceStatus
@@ -34,3 +35,4 @@ class TestEditOGL(DataTestClient):
         response = self.client.patch(self.url, request_data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Audit.objects.all().count(), 1)
