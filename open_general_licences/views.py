@@ -39,9 +39,9 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         if not self.request.data.get("validate_only", False):
             instance = serializer.save()
 
-        audit_trail_service.create(
-            actor=self.request.user, verb=AuditType.OGL_CREATED, action_object=instance,
-        )
+            audit_trail_service.create(
+                actor=self.request.user, verb=AuditType.OGL_CREATED, action_object=instance,
+            )
 
 
 class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
