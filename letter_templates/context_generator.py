@@ -22,6 +22,55 @@ from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.units.enums import Units
 
 
+def get_document_context(case):
+    """
+    Generate universal context dictionary to provide data for all document types.
+    """
+    date, time = get_date_and_time()
+    licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
+    applicant_audit = Audit.objects.filter(target_object_id=case.id).first()
+    final_advice = Advice.objects.filter(level=AdviceLevel.FINAL, case_id=case.pk)
+    ecju_queries = EcjuQuery.objects.filter(case=case)
+    notes = CaseNote.objects.filter(case=case)
+    sites = Site.objects.filter(sites_on_application__application_id=case.pk)
+    external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
+    documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
+    base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
+
+    return {
+        "case_reference": case.reference_code,
+        "current_date": date,
+        "current_time": time,
+        "details": _get_details_context(case),
+        "applicant": _get_applicant_context(applicant_audit.actor) if applicant_audit else None,
+        "organisation": _get_organisation_context(case.organisation),
+        "licence": _get_licence_context(licence) if licence else None,
+        "end_user": _get_party_context(base_application.end_user.party)
+        if base_application and getattr(base_application, "end_user", "")
+        else None,
+        "consignee": _get_party_context(base_application.consignee.party)
+        if base_application and getattr(base_application, "consignee", "")
+        else None,
+        "ultimate_end_users": [
+            _get_party_context(ultimate_end_user.party) for ultimate_end_user in base_application.ultimate_end_users
+        ]
+        if getattr(base_application, "ultimate_end_users", "")
+        else [],
+        "third_parties": _get_third_parties_context(base_application.third_parties)
+        if getattr(base_application, "third_parties", "")
+        else [],
+        "goods": _get_goods_context(base_application.goods, final_advice)
+        if getattr(base_application, "goods", "")
+        else None,
+        "goods_type": _get_goods_type_context(case.goods_type) if getattr(case, "goods_type", "") else None,
+        "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
+        "notes": [_get_case_note_context(note) for note in notes],
+        "sites": [_get_site_context(site) for site in sites],
+        "external_locations": [_get_external_location_context(location) for location in external_locations],
+        "documents": [_get_document_context(document) for document in documents],
+    }
+
+
 def _get_address(address):
     return {
         "address_line_1": address.address_line_1 or address.address,
@@ -347,49 +396,3 @@ def _get_external_location_context(location):
 
 def _get_document_context(document):
     return {"id": str(document.id), "name": document.name, "description": document.description}
-
-
-def get_document_context(case):
-    date, time = get_date_and_time()
-    licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
-    applicant_audit = Audit.objects.filter(target_object_id=case.id).first()
-    final_advice = Advice.objects.filter(level=AdviceLevel.FINAL, case_id=case.pk)
-    ecju_queries = EcjuQuery.objects.filter(case=case)
-    notes = CaseNote.objects.filter(case=case)
-    sites = Site.objects.filter(sites_on_application__application_id=case.pk)
-    external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
-    documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
-    base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
-
-    return {
-        "case_reference": case.reference_code,
-        "current_date": date,
-        "current_time": time,
-        "details": _get_details_context(case),
-        "applicant": _get_applicant_context(applicant_audit.actor) if applicant_audit else None,
-        "organisation": _get_organisation_context(case.organisation),
-        "licence": _get_licence_context(licence) if licence else None,
-        "end_user": _get_party_context(base_application.end_user.party)
-        if base_application and getattr(base_application, "end_user", "")
-        else None,
-        "consignee": _get_party_context(base_application.consignee.party)
-        if base_application and getattr(base_application, "consignee", "")
-        else None,
-        "ultimate_end_users": [
-            _get_party_context(ultimate_end_user.party) for ultimate_end_user in base_application.ultimate_end_users
-        ]
-        if getattr(base_application, "ultimate_end_users", "")
-        else [],
-        "third_parties": _get_third_parties_context(base_application.third_parties)
-        if getattr(base_application, "third_parties", "")
-        else [],
-        "goods": _get_goods_context(base_application.goods, final_advice)
-        if getattr(base_application, "goods", "")
-        else None,
-        "goods_type": _get_goods_type_context(case.goods_type) if getattr(case, "goods_type", "") else None,
-        "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
-        "notes": [_get_case_note_context(note) for note in notes],
-        "sites": [_get_site_context(site) for site in sites],
-        "external_locations": [_get_external_location_context(location) for location in external_locations],
-        "documents": [_get_document_context(document) for document in documents],
-    }
