@@ -25,6 +25,8 @@ class AuditSerializer(serializers.ModelSerializer):
     def get_user(self, instance):
 
         if AuditType(instance.verb) == AuditType.REGISTER_ORGANISATION:
+            # When an anonymous user is registering for an org,
+            # we pass their email in the payload to use it as the actor later
             payload = deepcopy(instance.payload)
             return {
                 "first_name": payload["email"],

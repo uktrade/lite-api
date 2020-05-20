@@ -125,7 +125,8 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
             if str_to_bool(request.data.get("validate_only", False)):
                 return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
 
-            audit_edited_organisation_fields(request.user, organisation, request.data)
+            is_non_uk = False if organisation.primary_site.address.address_line_1 else True
+            audit_edited_organisation_fields(request.user, organisation, request.data, is_non_uk=is_non_uk)
 
             serializer.save()
 

@@ -3,64 +3,43 @@ from audit_trail.enums import AuditType
 from organisations.enums import OrganisationType, OrganisationStatus
 
 
-def audit_edited_organisation_fields(user, organisation, new_org):
-    if organisation.name != new_org.get("name"):
-        audit_trail_service.create(
-            actor=user,
-            verb=AuditType.UPDATED_ORGANISATION,
-            target=organisation,
-            payload={
-                "organisation_field": "name",
-                "previous_value": organisation.name,
-                "new_value": new_org.get("name"),
-            },
-        )
-    if organisation.eori_number != new_org.get("eori_number"):
-        audit_trail_service.create(
-            actor=user,
-            verb=AuditType.UPDATED_ORGANISATION,
-            target=organisation,
-            payload={
-                "organisation_field": "EORI number",
-                "previous_value": organisation.eori_number,
-                "new_value": new_org.get("eori_number"),
-            },
-        )
-    if organisation.sic_number != new_org.get("sic_number") and organisation.type != OrganisationType.HMRC:
-        audit_trail_service.create(
-            actor=user,
-            verb=AuditType.UPDATED_ORGANISATION,
-            target=organisation,
-            payload={
-                "organisation_field": "SIC number",
-                "previous_value": organisation.sic_number,
-                "new_value": new_org.get("sic_number"),
-            },
-        )
-    if organisation.vat_number != new_org.get("vat_number"):
-        audit_trail_service.create(
-            actor=user,
-            verb=AuditType.UPDATED_ORGANISATION,
-            target=organisation,
-            payload={
-                "organisation_field": "VAT number",
-                "previous_value": organisation.vat_number,
-                "new_value": new_org.get("vat_number"),
-            },
-        )
+def add_edited_audit_entry(user, organisation, organisation_field, previous_value, new_value):
+    audit_trail_service.create(
+        actor=user,
+        verb=AuditType.UPDATED_ORGANISATION,
+        target=organisation,
+        payload={"organisation_field": organisation_field, "previous_value": previous_value, "new_value": new_value,},
+    )
+
+
+def audit_edited_organisation_fields(user, organisation, new_org, is_non_uk=None):
+    if new_org.get("name") and organisation.name != new_org.get("name"):
+        add_edited_audit_entry(user, organisation, "name", organisation.name, new_org.get("name"))
+
+    if (is_non_uk or new_org.get("eori_number")) and organisation.eori_number != new_org.get("eori_number"):
+        add_edited_audit_entry(user, organisation, "EORI number", organisation.eori_number, new_org.get("eori_number"))
+
     if (
-        organisation.registration_number != new_org.get("registration_number")
+        (is_non_uk or new_org.get("sic_number"))
+        and organisation.sic_number != new_org.get("sic_number")
         and organisation.type != OrganisationType.HMRC
     ):
-        audit_trail_service.create(
-            actor=user,
-            verb=AuditType.UPDATED_ORGANISATION,
-            target=organisation,
-            payload={
-                "organisation_field": "registration number",
-                "previous_value": organisation.registration_number,
-                "new_value": new_org.get("registration_number"),
-            },
+        add_edited_audit_entry(user, organisation, "SIC number", organisation.sic_number, new_org.get("sic_number"))
+
+    if (is_non_uk or new_org.get("vat_number")) and organisation.vat_number != new_org.get("vat_number"):
+        add_edited_audit_entry(user, organisation, "VAT number", organisation.vat_number, new_org.get("vat_number"))
+
+    if (
+        (is_non_uk or new_org.get("registration_number"))
+        and organisation.registration_number != new_org.get("registration_number")
+        and organisation.type != OrganisationType.HMRC
+    ):
+        add_edited_audit_entry(
+            user,
+            organisation,
+            "registration number",
+            organisation.registration_number,
+            new_org.get("registration_number"),
         )
 
 
@@ -72,7 +51,7 @@ def audit_reviewed_organisation(user, organisation, decision):
             target=organisation,
             payload={"organisation_name": organisation.name,},
         )
-    elif decision == OrganisationStatus.REJECTED:
+    else:
         audit_trail_service.create(
             actor=user,
             verb=AuditType.REJECTED_ORGANISATION,
