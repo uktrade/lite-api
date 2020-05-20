@@ -6,7 +6,9 @@ from applications.models import (
     StandardApplication,
     OpenApplication,
     ExhibitionClearanceApplication,
-    F680ClearanceApplication, HmrcQuery)
+    F680ClearanceApplication,
+    HmrcQuery,
+)
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
@@ -95,10 +97,7 @@ def _get_hmrc_query_context(case):
     context = _get_base_application_details_context(case.baseapplication)
     hmrc_query = HmrcQuery.objects.get(id=case.pk)
     context.update(
-        {
-            "query_reason": hmrc_query.reasoning,
-            "have_goods_departed": friendly_boolean(hmrc_query.have_goods_departed),
-        }
+        {"query_reason": hmrc_query.reasoning, "have_goods_departed": friendly_boolean(hmrc_query.have_goods_departed),}
     )
     return context
 
@@ -156,7 +155,7 @@ def _get_end_user_advisory_query_context(case):
         "contact_email": query.contact_email,
         "contact_job_title": query.contact_job_title,
         "contact_telephone": query.contact_telephone,
-        "end_user": _get_party_context(query.end_user)
+        "end_user": _get_party_context(query.end_user),
     }
 
 
@@ -384,7 +383,9 @@ def get_document_context(case):
         "third_parties": _get_third_parties_context(base_application.third_parties)
         if getattr(base_application, "third_parties", "")
         else [],
-        "goods": _get_goods_context(base_application.goods, final_advice) if getattr(base_application, "goods", "") else None,
+        "goods": _get_goods_context(base_application.goods, final_advice)
+        if getattr(base_application, "goods", "")
+        else None,
         "goods_type": _get_goods_type_context(case.goods_type) if getattr(case, "goods_type", "") else None,
         "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
         "notes": [_get_case_note_context(note) for note in notes],

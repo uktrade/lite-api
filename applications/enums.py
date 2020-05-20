@@ -99,12 +99,7 @@ class MTCRAnswers:
         (UNKNOWN, "Unknown"),
     )
 
-    dict_format = {
-        CATEGORY_1: "MTCR Category 1",
-        CATEGORY_2: "MTCR Category 2",
-        NO: "No",
-        UNKNOWN: "Unknown",
-    }
+    dict_format = {key: value for key, value in choices}
 
 
 class ServiceEquipmentType:
@@ -118,8 +113,4 @@ class ServiceEquipmentType:
         (PRIVATE_VENTURE, "Private venture"),
     )
 
-    dict_format = {
-        MOD_FUNDED: "MOD funded",
-        PART_MOD_PART_PRIVATE_VENTURE: "Part MOD part private venture",
-        PRIVATE_VENTURE: "Private venture",
-    }
+    dict_format = {key: value for key, value in choices}

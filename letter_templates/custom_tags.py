@@ -19,9 +19,7 @@ def context_data_to_list(data):
                 text += f"<li><b>{key}:</b>\n<ul>{context_data_to_list(value)}\n</ul>\n</li>"
             elif isinstance(value, list):
                 for i in range(len(value)):
-                    text += (
-                        f"<li><b>{key}:</b>\n<ul><li>[item {i}]</li>{context_data_to_list(value[i])}\n</ul>\n</li>"
-                    )
+                    text += f"<li><b>{key}:</b>\n<ul><li>[item {i}]</li>{context_data_to_list(value[i])}\n</ul>\n</li>"
             elif value:
                 text += f"<li><b>{key}:</b> {value}</li>"
     else:

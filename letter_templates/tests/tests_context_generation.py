@@ -194,7 +194,9 @@ class DocumentContextGenerationTests(DataTestClient):
         )
         self.assertEqual(context["uk_service_equipment"], friendly_boolean(case.uk_service_equipment))
         self.assertEqual(context["uk_service_equipment_description"], case.uk_service_equipment_description)
-        self.assertEqual(context["uk_service_equipment_type"], ServiceEquipmentType.dict_format[case.uk_service_equipment_type])
+        self.assertEqual(
+            context["uk_service_equipment_type"], ServiceEquipmentType.dict_format[case.uk_service_equipment_type]
+        )
         self.assertEqual(context["prospect_value"], case.prospect_value)
 
     def _assert_end_user_advisory_details(self, context, case):
