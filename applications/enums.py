@@ -99,7 +99,7 @@ class MTCRAnswers:
         (UNKNOWN, "Unknown"),
     )
 
-    dict_format = {key: value for key, value in choices}
+    choices_as_dict = {key: value for key, value in choices}
 
 
 class ServiceEquipmentType:
@@ -113,4 +113,4 @@ class ServiceEquipmentType:
         (PRIVATE_VENTURE, "Private venture"),
     )
 
-    dict_format = {key: value for key, value in choices}
+    choices_as_dict = {key: value for key, value in choices}

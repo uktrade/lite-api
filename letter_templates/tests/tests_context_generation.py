@@ -73,7 +73,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["is_controlled"], good_on_application.good.is_good_controlled)
         self.assertEqual(context["part_number"], good_on_application.good.part_number)
         self.assertTrue(str(good_on_application.quantity) in context["applied_for_quantity"])
-        self.assertTrue(Units.dict_format[good_on_application.unit] in context["applied_for_quantity"])
+        self.assertTrue(Units.choices_as_dict[good_on_application.unit] in context["applied_for_quantity"])
         self.assertEqual(context["applied_for_value"], f"£{good_on_application.value}")
 
     def _assert_good_with_advice(self, context, advice, good_on_application):
@@ -83,7 +83,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(goods[0]["reason"], advice.text)
         self.assertEqual(goods[0]["note"], advice.note)
         self.assertTrue(str(good_on_application.licenced_quantity) in goods[0]["quantity"])
-        self.assertTrue(Units.dict_format[good_on_application.unit] in goods[0]["quantity"])
+        self.assertTrue(Units.choices_as_dict[good_on_application.unit] in goods[0]["quantity"])
         self.assertEqual(goods[0]["value"], f"£{good_on_application.licenced_value}")
 
     def _assert_goods_type(self, context, country, goods_type):
@@ -188,14 +188,14 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["foreign_technology_description"], case.foreign_technology_description)
         self.assertEqual(context["locally_manufactured"], friendly_boolean(case.locally_manufactured))
         self.assertEqual(context["locally_manufactured_description"], case.locally_manufactured_description)
-        self.assertEqual(context["mtcr_type"], MTCRAnswers.dict_format[case.mtcr_type])
+        self.assertEqual(context["mtcr_type"], MTCRAnswers.choices_as_dict[case.mtcr_type])
         self.assertEqual(
             context["electronic_warfare_requirement"], friendly_boolean(case.electronic_warfare_requirement)
         )
         self.assertEqual(context["uk_service_equipment"], friendly_boolean(case.uk_service_equipment))
         self.assertEqual(context["uk_service_equipment_description"], case.uk_service_equipment_description)
         self.assertEqual(
-            context["uk_service_equipment_type"], ServiceEquipmentType.dict_format[case.uk_service_equipment_type]
+            context["uk_service_equipment_type"], ServiceEquipmentType.choices_as_dict[case.uk_service_equipment_type]
         )
         self.assertEqual(context["prospect_value"], case.prospect_value)
 

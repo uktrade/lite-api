@@ -181,11 +181,11 @@ def _get_f680_clearance_context(case):
             "foreign_technology_description": f680.foreign_technology_description,
             "locally_manufactured": friendly_boolean(f680.locally_manufactured),
             "locally_manufactured_description": f680.locally_manufactured_description,
-            "mtcr_type": MTCRAnswers.dict_format.get(f680.mtcr_type) if f680.mtcr_type else None,
+            "mtcr_type": MTCRAnswers.choices_as_dict.get(f680.mtcr_type) if f680.mtcr_type else None,
             "electronic_warfare_requirement": friendly_boolean(f680.electronic_warfare_requirement),
             "uk_service_equipment": friendly_boolean(f680.uk_service_equipment),
             "uk_service_equipment_description": f680.uk_service_equipment_description,
-            "uk_service_equipment_type": ServiceEquipmentType.dict_format.get(f680.uk_service_equipment_type)
+            "uk_service_equipment_type": ServiceEquipmentType.choices_as_dict.get(f680.uk_service_equipment_type)
             if f680.uk_service_equipment_type
             else None,
             "prospect_value": f680.prospect_value,
@@ -295,7 +295,7 @@ def _get_third_parties_context(third_parties):
 
 
 def _format_quantity(quantity, unit):
-    return " ".join([intcomma(quantity), pluralise_unit(Units.dict_format[unit], quantity),])
+    return " ".join([intcomma(quantity), pluralise_unit(Units.choices_as_dict[unit], quantity),])
 
 
 def _get_good_context(good_on_application, advice=None):
