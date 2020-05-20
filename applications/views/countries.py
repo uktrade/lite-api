@@ -126,6 +126,7 @@ class ApplicationCountries(APIView):
 
 
 class ApplicationContractTypes(APIView):
+    @authorised_users(ExporterUser)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     def put(self, request, application):
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS:
@@ -165,6 +166,7 @@ class ApplicationContractTypes(APIView):
 
 
 class LightCountries(APIView):
+    @authorised_users(ExporterUser)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     def get(self, request, application):
         countries = [
