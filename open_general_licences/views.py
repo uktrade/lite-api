@@ -1,12 +1,17 @@
-from copy import deepcopy
-
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
+from django.contrib.contenttypes.models import ContentType
+from django.http import JsonResponse
+from rest_framework import status
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView, ListAPIView
+from rest_framework.views import APIView
 
 from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
+from audit_trail.models import Audit
+from audit_trail.serializers import AuditSerializer
 from conf.authentication import GovAuthentication
 from open_general_licences.models import OpenGeneralLicence
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
+from users.models import GovUser, GovNotification
 
 
 class OpenGeneralLicenceList(ListCreateAPIView):
@@ -92,3 +97,19 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
                         action_object=updated_instance,
                         payload={"field": field},
                     )
+
+
+class OpenGeneralLicenceActivityView(APIView):
+    def get(self, request, pk):
+        audit_trail_qs = Audit.objects.filter(
+            action_object_content_type=ContentType.objects.get_for_model(OpenGeneralLicenceSerializer),
+            action_object_object_id=pk,
+        ).all()
+
+        data = AuditSerializer(audit_trail_qs, many=True).data
+
+        if isinstance(request.user, GovUser):
+            # Delete notifications related to audits
+            GovNotification.objects.filter(user=request.user, object_id__in=[obj["id"] for obj in data]).delete()
+
+        return JsonResponse(data={"activity": data}, status=status.HTTP_200_OK)

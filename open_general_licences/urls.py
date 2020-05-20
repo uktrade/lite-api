@@ -7,5 +7,5 @@ app_name = "open_general_licences"
 urlpatterns = [
     path("", views.OpenGeneralLicenceList.as_view(), name="list"),
     path("<uuid:pk>/", views.OpenGeneralLicenceDetail.as_view(), name="detail"),
-    # TODO: status change url
+    path("<uuid:pk>/", views.OpenGeneralLicenceActivityView.as_view(), name="activity"),
 ]
