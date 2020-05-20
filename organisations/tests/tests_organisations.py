@@ -500,7 +500,7 @@ class EditOrganisationTests(DataTestClient):
         case_two.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Audit.objects.count(), 0)
+        self.assertEqual(Audit.objects.count(), 2)
 
         # Check no case status were updated as the org's name was not changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.FINALISED)
@@ -527,7 +527,7 @@ class EditOrganisationTests(DataTestClient):
         case_two.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Audit.objects.count(), 1)
+        self.assertEqual(Audit.objects.count(), 3)
 
         # Check only the finalised case's status was changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES)
