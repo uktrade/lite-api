@@ -72,3 +72,8 @@ class CasesResponseTests(EndPointTests):
         self.call_endpoint(
             self.get_gov_headers(), self.url + self.get_case_id() + "/ecju-queries/" + self.get_case_ecju_query_id(),
         )
+
+    def test_export_enforcement_xml(self):
+        self.call_endpoint(
+            self.get_gov_user(), self.url + "enforcement-check/" + self.get_queue_id(),
+        )

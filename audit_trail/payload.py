@@ -97,4 +97,6 @@ audit_type_format = {
     AuditType.APPROVED_ORGANISATION: strings.Audit.APPROVED_ORGANISATION,
     AuditType.REMOVED_FLAG_ON_ORGANISATION: strings.Audit.REMOVED_FLAG_ON_ORGANISATION,
     AuditType.ADDED_FLAG_ON_ORGANISATION: strings.Audit.ADDED_FLAG_ON_ORGANISATION,
+    AuditType.ENFORCEMENT_CHECK: "exported the case for enforcement check",
+
 }

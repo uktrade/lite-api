@@ -88,6 +88,7 @@ class AuditType(LiteEnum):
     REMOVED_FLAG_ON_ORGANISATION = autostr()
     ADDED_FLAG_ON_ORGANISATION = autostr()
     RERUN_ROUTING_RULES = autostr()
+    ENFORCEMENT_CHECK = autostr()
 
     def human_readable(self):
         value = self.value.replace("_", " ")
