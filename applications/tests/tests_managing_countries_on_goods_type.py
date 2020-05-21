@@ -147,6 +147,6 @@ class GoodTypeCountriesManagementTests(DataTestClient):
 
         response_data = self.client.get(reverse("cases:activity", kwargs={"pk": case.id}), **self.gov_headers).json()
 
-        self.assertEqual(len(response_data["activity"]), 2)
+        self.assertEqual(len(response_data["activity"]), 3)
         self.assertIn(f"added the destinations United States to '{self.goods_type_1.description}'", str(response_data))
         self.assertIn(f"removed the destinations Spain from '{self.goods_type_1.description}'", str(response_data))

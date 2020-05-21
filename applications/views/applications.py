@@ -324,13 +324,13 @@ class ApplicationSubmission(APIView):
         # HMRC are completed when submit is clicked on the summary page (page after task list)
         # Applications are completed when submit is clicked on the declaration page (page after summary page)
 
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS,] or (
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS] or (
             CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
         ):
             set_application_sla(application)
             create_submitted_audit(request, application, old_status)
 
-        if application.case_type.sub_type in [
+        elif application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
             CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.F680,
@@ -436,7 +436,12 @@ class ApplicationManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
-            payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
+            payload={
+                "status": {
+                    "new": CaseStatusEnum.get_text(case_status.status),
+                    "old": CaseStatusEnum.get_text(old_status.status),
+                }
+            },
         )
 
         # Case routing rules
