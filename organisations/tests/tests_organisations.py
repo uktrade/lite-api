@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from addresses.tests.factories import ForeignAddressFactory
+from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from conf.authentication import EXPORTER_USER_TOKEN_HEADER
 from conf.constants import Roles, GovPermissions
 from conf.helpers import date_to_drf_date
@@ -136,6 +138,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
         self.assertEqualIgnoreType(site.address.country.id, "GB")
+        self.assertEqual(Audit.objects.count(), 1)
 
     @parameterized.expand(
         [
@@ -184,6 +187,7 @@ class CreateOrganisationTests(DataTestClient):
         )
 
         self.assertEqual(site.name, data["site"]["name"])
+        self.assertEqual(Audit.objects.count(), 1)
 
         if "address_line_1" in address:
             self.assertEqual(site.address.address_line_1, data["site"]["address"]["address_line_1"])
@@ -220,6 +224,7 @@ class CreateOrganisationTests(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand(
         [
@@ -253,6 +258,7 @@ class CreateOrganisationTests(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand([["GB1234567"], [""]])
     def test_create_organisation_as_a_private_individual(self, vat_number):
@@ -293,6 +299,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
         self.assertEqualIgnoreType(site.address.country.id, "GB")
+        self.assertEqual(Audit.objects.count(), 1)
 
     def test_create_hmrc_organisation(self):
         data = {
@@ -330,6 +337,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
         self.assertEqualIgnoreType(site.address.country.id, "GB")
+        self.assertEqual(Audit.objects.count(), 1)
 
 
 class EditOrganisationTests(DataTestClient):
@@ -344,6 +352,11 @@ class EditOrganisationTests(DataTestClient):
         Internal users can change an organisation's information
         """
         organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
+        previous_eori_number = organisation.eori_number
+        previous_sic_number = organisation.sic_number
+        previous_vat_number = organisation.vat_number
+        previous_registration_number = organisation.registration_number
+
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {
             "eori_number": self.faker.eori_number(),
@@ -360,6 +373,35 @@ class EditOrganisationTests(DataTestClient):
         self.assertEqual(organisation.sic_number, data["sic_number"])
         self.assertEqual(organisation.vat_number, data["vat_number"])
         self.assertEqual(organisation.registration_number, data["registration_number"])
+
+        audit_qs = Audit.objects.all()
+        self.assertEqual(audit_qs.count(), 4)
+        for audit in audit_qs:
+            verb = AuditType.UPDATED_ORGANISATION
+            self.assertEqual(AuditType(audit.verb), verb)
+            if audit.payload["key"] == "registration number":
+                org_field = "registration number"
+                previous_value = previous_registration_number
+                new_value = organisation.registration_number
+            elif audit.payload["key"] == "VAT number":
+                org_field = "VAT number"
+                previous_value = previous_vat_number
+                new_value = organisation.vat_number
+            elif audit.payload["key"] == "SIC number":
+                org_field = "SIC number"
+                previous_value = previous_sic_number
+                new_value = organisation.sic_number
+            elif audit.payload["key"] == "EORI number":
+                org_field = "EORI number"
+                previous_value = previous_eori_number
+                new_value = organisation.eori_number
+
+            payload = {
+                "key": org_field,
+                "old": previous_value,
+                "new": new_value,
+            }
+            self.assertEqual(audit.payload, payload)
 
     def test_set_org_details_to_none_uk_address_failure(self):
         """
@@ -382,6 +424,7 @@ class EditOrganisationTests(DataTestClient):
         self.assertIsNotNone(organisation.sic_number)
         self.assertIsNotNone(organisation.vat_number)
         self.assertIsNotNone(organisation.registration_number)
+        self.assertEqual(Audit.objects.count(), 0)
 
     def test_set_org_details_to_none_foreign_address_success(self):
         """
@@ -407,6 +450,7 @@ class EditOrganisationTests(DataTestClient):
         self.assertIsNone(organisation.sic_number)
         self.assertIsNone(organisation.vat_number)
         self.assertIsNone(organisation.registration_number)
+        self.assertEqual(Audit.objects.count(), 4)
 
     def test_cannot_edit_organisation_without_permission(self):
         organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
@@ -419,6 +463,7 @@ class EditOrganisationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"], Organisations.NO_PERM_TO_EDIT)
         self.assertNotEqual(organisation.name, data["name"])
+        self.assertEqual(Audit.objects.count(), 0)
 
     def test_can_edit_name_with_manage_and_reopen_permissions(self):
         organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
@@ -433,6 +478,7 @@ class EditOrganisationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["organisation"]["name"], data["name"])
         self.assertEqual(organisation.name, data["name"])
+        self.assertEqual(Audit.objects.count(), 1)
 
     def test_no_name_change_to_org_does_not_reopen_finalised_cases(self):
         organisation = OrganisationFactory(type=OrganisationType.COMMERCIAL)
@@ -454,6 +500,7 @@ class EditOrganisationTests(DataTestClient):
         case_two.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Audit.objects.count(), 2)
 
         # Check no case status were updated as the org's name was not changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.FINALISED)
@@ -480,6 +527,7 @@ class EditOrganisationTests(DataTestClient):
         case_two.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Audit.objects.count(), 3)
 
         # Check only the finalised case's status was changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES)
@@ -500,6 +548,7 @@ class EditOrganisationStatusTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["status"]["key"], OrganisationStatus.ACTIVE)
+        self.assertEqual(Audit.objects.count(), 1)
 
     def test_set_organisation_status__without_permission_failure(self):
         data = {"status": OrganisationStatus.ACTIVE}
@@ -507,3 +556,4 @@ class EditOrganisationStatusTests(DataTestClient):
         response = self.client.put(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Audit.objects.count(), 0)
