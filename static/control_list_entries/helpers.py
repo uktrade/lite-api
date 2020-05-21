@@ -23,20 +23,20 @@ def convert_control_list_entries_to_tree(queryset):
 
     # Helper function to get all the id's associated with a parent
     def get_list_of_control_code_and_children_ids(control_code):
-        id_list = []
-        id_list.append(control_code["id"])
+        id_list = set()
+        id_list.add(control_code["id"])
         if "children" in control_code:
             for c in control_code["children"]:
-                id_list.extend(get_list_of_control_code_and_children_ids(c))
+                id_list.update(get_list_of_control_code_and_children_ids(c))
         return id_list
 
     # Trim the results to have a id only once
     ids = set(data_dict.keys())
-    deduplicated_ids = []
+    list_of_ultimate_parent_control_codes = []
     for control_code in data_dict.values():
-        full_control_code_id_list = set(get_list_of_control_code_and_children_ids(control_code))
+        full_control_code_id_list = get_list_of_control_code_and_children_ids(control_code)
         if ids.intersection(full_control_code_id_list):
             ids = ids.difference(full_control_code_id_list)
-            deduplicated_ids.append(control_code)
+            list_of_ultimate_parent_control_codes.append(control_code)
 
-    return deduplicated_ids
+    return list_of_ultimate_parent_control_codes

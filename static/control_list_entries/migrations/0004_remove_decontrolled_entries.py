@@ -10,6 +10,8 @@ def forward_migration(apps, schema_editor):
 
 
 def reverse_migration(apps, schema_editor):
+    # To fully reverse migrate the code above you would need to allow decontrolled to be seedable again,
+    # and rerun seeding.
     pass
 
 
