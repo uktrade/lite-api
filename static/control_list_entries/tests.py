@@ -93,29 +93,40 @@ class ControlListEntryHelpersTest(DataTestClient):
 
         return json
 
-    def setUp(self):
-        super().setUp()
-        # create 5 control lists in the form of a tree, and determine they come back in correct format from helper
-        base = ControlListEntriesFactory(rating="abc1")
-        base_child_1 = ControlListEntriesFactory(rating="abc1a", parent=base)
-        base_child_2 = ControlListEntriesFactory(rating="abc1b", parent=base)
+    def generate_group_of_ratings(self, rating_prefix, category="test-list"):
+        # create 5 control lists in the form of a tree
+        base = ControlListEntriesFactory(rating=f"{rating_prefix}1")
+        base_child_1 = ControlListEntriesFactory(rating=f"{rating_prefix}1a", parent=base)
+        base_child_2 = ControlListEntriesFactory(rating=f"{rating_prefix}1b", parent=base)
         child_1_child = self.convert_control_list_entry_to_expected_format(
-            ControlListEntriesFactory(rating="abc1a1", parent=base_child_1)
+            ControlListEntriesFactory(rating=f"{rating_prefix}1a1", parent=base_child_1)
         )
         child_2_child = self.convert_control_list_entry_to_expected_format(
-            ControlListEntriesFactory(rating="abc1b1", parent=base_child_2)
+            ControlListEntriesFactory(rating=f"{rating_prefix}1b1", parent=base_child_2)
         )
 
         base_child_1 = self.convert_control_list_entry_to_expected_format(base_child_1, [child_1_child])
         base_child_2 = self.convert_control_list_entry_to_expected_format(base_child_2, [child_2_child])
 
-        self.expected_layout = [self.convert_control_list_entry_to_expected_format(base, [base_child_1, base_child_2])]
+        return self.convert_control_list_entry_to_expected_format(base, [base_child_1, base_child_2])
 
     def test_convert_control_list_entries_to_tree(self):
+        expected_result = [self.generate_group_of_ratings(rating_prefix="abc", category="test-list")]
         qs = ControlListEntry.objects.filter(category="test-list")
         result = convert_control_list_entries_to_tree(qs)
 
-        self.assertEqual(result, self.expected_layout)
+        self.assertEqual(result, expected_result)
+
+    def test_multiple_groups(self):
+        expected_result = [
+            self.generate_group_of_ratings(rating_prefix="abc", category="test-list"),
+            self.generate_group_of_ratings(rating_prefix="xyz", category="another-list"),
+        ]
+
+        qs = ControlListEntry.objects.filter(category__in=["test-list", "another-list"])
+        result = convert_control_list_entries_to_tree(qs)
+
+        self.assertEqual(result, expected_result)
 
 
 class ControlListEntriesResponseTests(EndPointTests):
