@@ -117,7 +117,10 @@ class ActionBase:
 
     @staticmethod
     def organisation_get_create_goods(organisation, goods_count):
-        return AppCommand.ensure_verified_goods_exist(organisation=organisation, number_of_goods=goods_count)
+        goods, goods_added = AppCommand.ensure_verified_goods_exist(
+            organisation=organisation, number_of_goods=goods_count
+        )
+        return goods, goods_added
 
     @staticmethod
     def organisation_get_create_sites(organisation, site_count) -> (list, int):
@@ -279,7 +282,7 @@ class ActionGoods(ActionBase):
     def action(self, options):
         print("Add goods to organisations")
         goods_min = self.get_arg(options, "min", 1)
-        goods_max = self.get_arg(options, "max", max(1, goods_min))
+        goods_max = max(self.get_arg(options, "max", 1), goods_min)
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
         organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)

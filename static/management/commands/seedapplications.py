@@ -31,8 +31,10 @@ def add_goods_to_application(goods_ids, draft):
     return [add_good(good, draft) for good in goods_ids]
 
 
-def choose_some_goods(goods_ids):
-    return random.sample(goods_ids, random.randint(1, len(goods_ids)))
+def choose_some_goods(goods_ids, min_goods=1, max_goods=None):
+    if not max_goods:
+        max_goods = len(goods_ids)
+    return random.sample(goods_ids, random.randint(1, max_goods))
 
 
 class Command(SeedCommand):
@@ -73,7 +75,7 @@ class Command(SeedCommand):
             for _ in range(number_of_applications)
         ]
 
-        [add_goods_to_application(choose_some_goods(goods), draft) for draft in drafts]
+        [add_goods_to_application(choose_some_goods(goods, number_of_goods), draft) for draft in drafts]
         submitted_applications = [tc.submit_application(draft) for draft in drafts]
 
         [cls._print_to_console(organisation, application) for application in submitted_applications]
@@ -81,9 +83,15 @@ class Command(SeedCommand):
 
     @classmethod
     def ensure_verified_goods_exist(cls, number_of_goods, organisation, tc=DataTestClient()):
-        required_goods_names = [f"{organisation.name} - Product {i + 1}" for i in range(number_of_goods)]
         existing_goods = [good for good in Good.objects.filter(organisation_id=organisation.pk)]
-        names_of_goods_to_add = set(required_goods_names) - set([good.description for good in existing_goods])
+        count_existing = len(existing_goods)
+        expected_names = set([f"{organisation.name} - Product {i + 1}" for i in range(max(count_existing, number_of_goods))])
+        existing_names = set([good.description for good in existing_goods])
+        missing_names = expected_names - existing_names
+        matched_names = existing_names - missing_names
+        count_matched = len(matched_names)
+        count_names_required = max(0, number_of_goods-count_matched)
+
         goods_added = [
             verify_good(
                 tc.create_good(
@@ -94,12 +102,12 @@ class Command(SeedCommand):
                     is_pv_graded=random.choice([GoodPvGraded.YES, GoodPvGraded.NO, GoodPvGraded.GRADING_REQUIRED]),
                 )
             )
-            for name in names_of_goods_to_add
+            for name in list(missing_names)[:count_names_required]
         ]
 
-        # find goods that match the required names
+        # select goods that match the expected good naming
         goods = [
-            good for good in goods_added + existing_goods for name in required_goods_names if good.description == name
+            good for good in goods_added + existing_goods for name in expected_names if good.description == name
         ]
 
         return goods, goods_added
