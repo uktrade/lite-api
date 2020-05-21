@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -23,8 +24,9 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(coa.contract_types, ["navy"])
 
+    @tag("2146")
     def test_set_multiple_contract_types_on_country_on_application_success(self):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
         CountryOnApplication(country_id="FR", application=application).save()
 
         data = {"countries": ["GB", "FR"], "contract_types": ["navy", "army"], "other_contract_type_text": ""}
@@ -40,7 +42,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertTrue(set(coa_fr.contract_types).issubset({"navy", "army"}))
 
     def test_set_other_contract_type_without_text_on_country_on_application_failure(self):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
 
         data = {"countries": ["GB"], "contract_types": ["other_contract_type"], "other_contract_type_text": ""}
 
@@ -50,7 +52,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_set_other_contract_type_on_country_on_application_success(self):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
 
         contract_types = ["navy", "other_contract_type"]
         other_text = "This is some text"
@@ -71,7 +73,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(coa.other_contract_type_text, other_text)
 
     def test_set_other_contract_text_without_other_on_country_on_application_success_other_text_not_stored(self):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
 
         contract_types = ["navy", "army"]
         other_text = "This is some text"
@@ -92,7 +94,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(coa.other_contract_type_text, None)
 
     def test_no_contract_types_failure(self):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
 
         data = {
             "countries": ["GB"],
@@ -106,7 +108,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_no_contract_types_field_failure(self):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
 
         data = {
             "countries": ["GB"],
@@ -119,7 +121,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_removing_other_clears_text(self):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
 
         data = {
             "countries": ["GB"],
@@ -137,7 +139,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(coa.other_contract_type_text, None)
 
     def test_flags_are_returned_correctly(self):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
         falg = FlagFactory(team=self.team)
         flag = FlagFactory(team=self.team)
         Country.objects.get(id="GB").flags.set([falg.id, flag.id])
@@ -156,6 +158,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertIn("Navy", str(ordered_flags))
         self.assertIn("Army", str(ordered_flags))
 
+    @tag("2146")
     def test_submit_without_sectors_on_each_country_failure(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         application = self.create_draft_open_application(self.organisation)
@@ -164,3 +167,12 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES, response.json()["errors"]["contract_types"])
+
+    @tag("only")
+    def test_gimme(self):
+        application = self.create_draft_open_application(self.organisation)
+
+        r = self.client.get(
+            reverse("applications:country_contract_types", kwargs={"pk": application.id}), **self.exporter_headers
+        )
+        print(r.json())
