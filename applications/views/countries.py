@@ -12,7 +12,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
-from conf.decorators import allowed_application_types, authorised_users
+from conf.decorators import allowed_application_types, authorised_users, application_in_major_editable_state
 from conf.exceptions import BadRequestError
 from flags.models import Flag
 from static.countries.helpers import get_country
@@ -129,6 +129,7 @@ class ApplicationContractTypes(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @authorised_users(ExporterUser)
+    @application_in_major_editable_state()
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     def put(self, request, application):
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS:
