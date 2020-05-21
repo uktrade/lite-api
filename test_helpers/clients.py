@@ -10,6 +10,7 @@ from django.db import connection
 from django.test import tag
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
+from audit_trail import service as audit_trail_service
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
 from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
@@ -27,6 +28,7 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
+from audit_trail.enums import AuditType
 from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
 from licences.models import Licence
@@ -75,6 +77,7 @@ from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
 from faker import Faker
 
+from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 from workflow.routing_rules.models import RoutingRule
 
@@ -299,7 +302,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return team
 
     @staticmethod
-    def submit_application(application: BaseApplication):
+    def submit_application(application: BaseApplication, user: ExporterUser = None):
+        if not user:
+            user = UserOrganisationRelationship.objects.filter(organisation_id=application.organisation_id).first().user
+
         application.submitted_at = datetime.now(timezone.utc)
         application.sla_remaining_days = get_application_target_sla(application.case_type.sub_type)
         application.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
@@ -309,6 +315,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             set_case_flags_on_submitted_standard_or_open_application(application)
 
         add_goods_flags_to_submitted_application(application)
+        apply_flagging_rules_to_case(application)
+
+        audit_trail_service.create(
+            actor=user,
+            verb=AuditType.UPDATED_STATUS,
+            target=application.get_case(),
+            payload={
+                "status": {
+                    "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
+                    "old": CaseStatusEnum.get_text(CaseStatusEnum.DRAFT),
+                }
+            },
+        )
 
         return application
 
@@ -571,6 +590,23 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
     def create_good_country_decision(case, goods_type, country, decision):
         GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
 
+    @staticmethod
+    def add_additional_information(application):
+        additional_information = {
+            "expedited": False,
+            "mtcr_type": "mtcr_category_2",
+            "foreign_technology": False,
+            "locally_manufactured": False,
+            "uk_service_equipment": False,
+            "uk_service_equipment_type": "mod_funded",
+            "electronic_warfare_requirement": False,
+            "prospect_value": 100.0,
+        }
+        for key, item in additional_information.items():
+            setattr(application, key, item)
+
+        application.save()
+
     def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
         if not org_type:
             org_type = OrganisationType.COMMERCIAL
@@ -590,23 +626,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if consignee:
             self.create_document_for_party(application.consignee.party, safe=safe_document)
         self.create_document_for_party(application.third_parties.first().party, safe=safe_document)
-
-    @staticmethod
-    def add_additional_information(application):
-        additional_information = {
-            "expedited": False,
-            "mtcr_type": "mtcr_category_2",
-            "foreign_technology": False,
-            "locally_manufactured": False,
-            "uk_service_equipment": False,
-            "uk_service_equipment_type": "mod_funded",
-            "electronic_warfare_requirement": False,
-            "prospect_value": 100.0,
-        }
-        for key, item in additional_information.items():
-            setattr(application, key, item)
-
-        application.save()
 
     def create_draft_standard_application(
         self,
@@ -635,6 +654,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             intended_end_use="this is our intended end use",
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
+            status_id="00000000-0000-0000-0000-000000000000",
         )
 
         application.save()
@@ -788,6 +808,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             intended_end_use="intended end use is none of your business",
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
+            status_id="00000000-0000-0000-0000-000000000000",
         )
 
         application.save()
@@ -810,7 +831,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         draft = self.create_draft_open_application(organisation, reference_name)
 
-        return self.submit_application(draft)
+        return self.submit_application(draft, self.exporter_user)
 
     def create_hmrc_query(
         self, organisation: Organisation, reference_name="HMRC Query", safe_document=True, have_goods_departed=False,
@@ -858,7 +879,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         draft = self.create_draft_standard_application(organisation, reference_name, parties=parties, site=site)
 
-        return self.submit_application(draft)
+        return self.submit_application(draft, self.exporter_user)
 
     def create_end_user_advisory(self, note: str, reasoning: str, organisation: Organisation):
         end_user = self.create_party("name", self.organisation, PartyType.END_USER)

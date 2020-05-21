@@ -8,7 +8,7 @@ class CaseStatusEnum:
     CLC = "clc_review"
     CLOSED = "closed"
     DEREGISTERED = "deregistered"
-    DRAFT = "draft"  # System status only
+    DRAFT = "draft"  # System only status
     FINALISED = "finalised"
     INITIAL_CHECKS = "initial_checks"
     PV = "pv_review"
@@ -115,13 +115,15 @@ class CaseStatusEnum:
 
     @classmethod
     def get_text(cls, status):
-        for k, v in cls.choices:
+        # All available statuses and DRAFT (System only status)
+        for k, v in [*cls.choices, (cls.DRAFT, "Draft")]:
             if status == k:
                 return v
 
     @classmethod
     def get_value(cls, status):
-        for k, v in cls.choices:
+        # All available statuses and DRAFT (System only status)
+        for k, v in [*cls.choices, (cls.DRAFT, "Draft")]:
             if status == v:
                 return k
 

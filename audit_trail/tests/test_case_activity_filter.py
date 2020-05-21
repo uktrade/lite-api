@@ -73,7 +73,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
             object_id=self.case.id, object_content_type=self.content_type, audit_type=audit_type
         )
 
-        self.assertEqual(res.count(), 1)
+        self.assertEqual(res.count(), 2)
         self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
         self.assertEqual(res.first().verb, audit_type)
 
@@ -94,7 +94,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
             object_id=self.case.id, object_content_type=self.content_type, user_type=UserType.EXPORTER
         )
 
-        self.assertEqual(res.count(), 1)
+        self.assertEqual(res.count(), 2)
         self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
 
     def test_filter_by_dates(self):
@@ -110,7 +110,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
             object_id=self.case.id, object_content_type=self.content_type, date_from=start_date.date()
         )
 
-        self.assertEqual(res.count(), 3)
+        self.assertEqual(res.count(), 4)
 
         res = filter_object_activity(
             object_id=self.case.id, object_content_type=self.content_type, date_from=middle_date.date()
@@ -131,7 +131,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
             date_to=middle_date.date(),
         )
 
-        self.assertEqual(res.count(), 2)
+        self.assertEqual(res.count(), 3)
 
         res = filter_object_activity(
             object_id=self.case.id,
