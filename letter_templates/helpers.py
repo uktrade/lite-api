@@ -61,6 +61,10 @@ def load_css(filename):
     return f"<style>\n{css}</style>\n"
 
 
+def format_user_text(user_text):
+    return markdown_to_html(escape(user_text))
+
+
 def generate_preview(layout: str, text: str, case=None, allow_missing_variables=True):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
@@ -68,7 +72,7 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
 
         if text:
             # Substitute content placeholder for user text
-            text = escape(text)
+            text = format_user_text(text)
             template = template.source
             template = template.replace(CONTENT_PLACEHOLDER, text)
             template = django_engine.from_string(template)

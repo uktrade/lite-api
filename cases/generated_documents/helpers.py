@@ -33,7 +33,7 @@ def get_generated_document_data(request_params, pk):
         template = LetterTemplate.objects.get(pk=template_id, case_types=case.case_type)
     except LetterTemplate.DoesNotExist:
         raise NotFoundError({"letter_template": strings.Cases.LETTER_TEMPLATE_NOT_FOUND})
-    document_html = generate_preview(layout=template.layout.filename, text=markdown_to_html(text), case=case)
+    document_html = generate_preview(layout=template.layout.filename, text=text, case=case)
 
     if "error" in document_html:
         raise AttributeError(document_html["error"])
