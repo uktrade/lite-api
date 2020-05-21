@@ -7,7 +7,11 @@ from cases.models import Case
 from cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
 from static.countries.factories import CountryFactory
 from applications.tests.factories import (
-    PartyOnApplicationFactory, CountryOnApplicationFactory, SiteOnApplicationFactory, GoodOnApplicationFactory, StandardApplicationFactory
+    PartyOnApplicationFactory,
+    CountryOnApplicationFactory,
+    SiteOnApplicationFactory,
+    GoodOnApplicationFactory,
+    StandardApplicationFactory,
 )
 from parties.tests.factories import PartyFactory
 from flags.tests.factories import FlagFactory

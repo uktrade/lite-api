@@ -1,8 +1,14 @@
 import factory
 
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
-from applications.models import PartyOnApplication, CountryOnApplication, OpenApplication, SiteOnApplication, \
-    GoodOnApplication, StandardApplication
+from applications.models import (
+    PartyOnApplication,
+    CountryOnApplication,
+    OpenApplication,
+    SiteOnApplication,
+    GoodOnApplication,
+    StandardApplication,
+)
 from cases.enums import CaseTypeEnum
 from static.countries.factories import CountryFactory
 from goods.tests.factories import GoodFactory
