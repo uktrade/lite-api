@@ -22,7 +22,8 @@ from flags.enums import FlagStatuses, SystemFlags
 from flags.helpers import get_object_of_level
 from flags.libraries.get_flag import get_flagging_rule
 from flags.models import Flag, FlaggingRule
-from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer, FlagReadOnlySerializer
+from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer, FlagReadOnlySerializer, \
+    FlaggingRuleListSerializer
 from goods.models import Good
 from lite_content.lite_api import strings
 from organisations.models import Organisation
@@ -276,11 +277,16 @@ class AssignFlags(APIView):
 
 class FlaggingRules(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = FlaggingRuleSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return FlaggingRuleListSerializer
+        else:
+            return FlaggingRuleSerializer
 
     def get_queryset(self):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_FLAGGING_RULES)
-        rules = FlaggingRule.objects.all()
+        rules = FlaggingRule.objects.all().prefetch_related("flag", "team")
 
         include_deactivated = self.request.query_params.get("include_deactivated", "")
         if not include_deactivated:

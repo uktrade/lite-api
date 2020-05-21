@@ -127,14 +127,10 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
     )
     status = serializers.ChoiceField(choices=FlagStatuses.choices, default=FlagStatuses.ACTIVE)
     flag = PrimaryKeyRelatedField(queryset=Flag.objects.all(), error_messages={"null": strings.FlaggingRules.NO_FLAG})
-    flag_name = serializers.SerializerMethodField()
     matching_value = serializers.CharField(
         max_length=100, error_messages={"blank": strings.FlaggingRules.NO_MATCHING_VALUE}
     )
     is_for_verified_goods_only = serializers.BooleanField(required=False)
-
-    def get_flag_name(self, instance):
-        return instance.flag.name
 
     class Meta:
         model = FlaggingRule
@@ -143,7 +139,6 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
             "team",
             "level",
             "flag",
-            "flag_name",
             "status",
             "matching_value",
             "is_for_verified_goods_only",
@@ -172,3 +167,12 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
                 {"is_for_verified_goods_only": strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY}
             )
         return super().validate(data)
+
+
+class FlaggingRuleListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    team = TeamReadOnlySerializer()
+    level = serializers.ChoiceField(choices=FlagLevels.choices)
+    status = serializers.ChoiceField(choices=FlagStatuses.choices)
+    flag_name = serializers.CharField(source="flag.name")
+    matching_value = serializers.CharField()
