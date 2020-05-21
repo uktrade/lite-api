@@ -343,7 +343,16 @@ def _get_goods_context(goods, final_advice):
 
 
 def _get_goods_type_context(goods_types, case_pk):
-    goods_type_context = {}
+    goods_type_context = {
+        "all": [
+            {
+                "description": good.description,
+                "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
+            }
+            for good in goods_types
+        ]
+    }
+
     countries = set(goods_types.values_list("countries", "countries__name"))
     default_countries = set(
         Country.include_special_countries.filter(countries_on_application__application_id=case_pk).values_list(
@@ -354,7 +363,7 @@ def _get_goods_type_context(goods_types, case_pk):
     for country_id, country_name in countries:
         if country_id:
             goods = goods_types.filter(countries=country_id)
-            goods_type_context[country_name] = [
+            goods_type_context["countries"][country_name] = [
                 {
                     "description": good.description,
                     "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
@@ -364,7 +373,7 @@ def _get_goods_type_context(goods_types, case_pk):
 
     for country_id, country_name in default_countries:
         # Default countries apply to all goods types
-        goods_type_context[country_name] = [
+        goods_type_context["countries"][country_name] = [
             {
                 "description": good.description,
                 "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
