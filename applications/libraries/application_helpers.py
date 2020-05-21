@@ -61,5 +61,10 @@ def create_submitted_audit(request, application, old_status):
         actor=request.user,
         verb=AuditType.UPDATED_STATUS,
         target=application.get_case(),
-        payload={"status": {"new": application.status.status, "old": old_status}},
+        payload={
+            "status": {
+                "new": CaseStatusEnum.get_text(CaseStatusEnum.SUBMITTED),
+                "old": CaseStatusEnum.get_text(old_status),
+            }
+        },
     )

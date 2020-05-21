@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ErrorDetail
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
+from uuid import UUID
 
 from applications import constants
 from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
@@ -66,7 +67,7 @@ from conf.decorators import (
 )
 from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
-from flags.enums import FlagStatuses
+from flags.enums import FlagStatuses, SystemFlags
 from goodstype.models import GoodsType
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
@@ -323,13 +324,13 @@ class ApplicationSubmission(APIView):
         # HMRC are completed when submit is clicked on the summary page (page after task list)
         # Applications are completed when submit is clicked on the declaration page (page after summary page)
 
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS,] or (
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS] or (
             CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
         ):
             set_application_sla(application)
             create_submitted_audit(request, application, old_status)
 
-        if application.case_type.sub_type in [
+        elif application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
             CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.F680,
@@ -352,6 +353,14 @@ class ApplicationSubmission(APIView):
                 apply_flagging_rules_to_case(application)
                 create_submitted_audit(request, application, old_status)
                 run_routing_rules(application)
+
+        if application.case_type.sub_type in [
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
+            CaseTypeSubTypeEnum.HMRC,
+        ]:
+            if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
+                application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -427,7 +436,12 @@ class ApplicationManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
-            payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
+            payload={
+                "status": {
+                    "new": CaseStatusEnum.get_text(case_status.status),
+                    "old": CaseStatusEnum.get_text(old_status.status),
+                }
+            },
         )
 
         # Case routing rules

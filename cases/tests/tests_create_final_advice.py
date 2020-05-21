@@ -320,7 +320,7 @@ class CreateCaseAdviceTests(DataTestClient):
 
         response = self.client.get(reverse("cases:activity", kwargs={"pk": self.standard_case.id}), **self.gov_headers)
 
-        self.assertEqual(len(response.json()["activity"]), 2)
+        self.assertEqual(len(response.json()["activity"]), 3)
 
     def test_creating_final_advice_does_not_overwrite_user_level_advice_or_team_level_advice(self,):
         """
