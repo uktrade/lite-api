@@ -12,7 +12,7 @@ from test_helpers.clients import DataTestClient
 
 class ContractTypeOnCountryTests(DataTestClient):
     def test_set_contract_type_on_country_on_application_success(self):
-        application = self.create_open_application_case(self.organisation)
+        application = self.create_draft_open_application(self.organisation)
 
         data = {"countries": ["GB"], "contract_types": ["navy"], "other_contract_type_text": None}
 
