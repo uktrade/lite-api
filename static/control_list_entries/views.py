@@ -22,7 +22,7 @@ class ControlListEntriesList(APIView):
             return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree(queryset.values())})
 
         return JsonResponse(
-            data={"control_list_entries": queryset.values("rating", "text")}
+            data={"control_list_entries": list(queryset.values("rating", "text"))}
         )
 
 
