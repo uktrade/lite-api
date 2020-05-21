@@ -12,7 +12,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
-from letter_templates.serializers import LetterTemplateSerializer
+from letter_templates.serializers import LetterTemplateSerializer, LetterTemplateListSerializer
 from picklists.enums import PicklistType
 from picklists.models import PicklistItem
 from cases.enums import AdviceType
@@ -26,8 +26,8 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
 
     authentication_classes = (GovAuthentication,)
-    queryset = LetterTemplate.objects.all()
-    serializer_class = LetterTemplateSerializer
+    queryset = LetterTemplate.objects.all().prefetch_related("layout", "case_types")
+    serializer_class = LetterTemplateListSerializer
 
     def get_queryset(self):
         case = self.request.GET.get("case")
