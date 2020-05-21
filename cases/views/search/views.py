@@ -31,13 +31,9 @@ class CasesSearchView(generics.ListAPIView):
         # we include hidden cases in non work queues (all cases, all open cases)
         # and if the flag to include hidden is added
         include_hidden = not is_work_queue or str_to_bool(request.GET.get("hidden"))
-        list_keys = ["flags"]
-        filters = {
-            key: request.GET.getlist(key) if key in list_keys else value
-            for key, value in request.GET.items()
-            if key not in ["hidden", "queue_id"]
-        }
+        filters = {key: value for key, value in request.GET.items() if key not in ["hidden", "queue_id", "flags"]}
 
+        filters["flags"] = request.GET.getlist("flags", [])
         filters["submitted_from"] = make_date_from_params("submitted_from", filters)
         filters["submitted_to"] = make_date_from_params("submitted_to", filters)
         filters["finalised_from"] = make_date_from_params("finalised_from", filters)
