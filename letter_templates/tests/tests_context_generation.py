@@ -86,12 +86,19 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertTrue(Units.choices_as_dict[good_on_application.unit] in goods[0]["quantity"])
         self.assertEqual(goods[0]["value"], f"£{good_on_application.licenced_value}")
 
-    def _assert_goods_type(self, context, country, goods_type):
-        goods_types = context[country.name]
-        self.assertEqual(len(goods_types), 1)
-        self.assertEqual(goods_types[0]["description"], goods_type.description)
-        self.assertEqual(
-            goods_types[0]["control_list_entries"], [clc.rating for clc in goods_type.control_list_entries.all()],
+    def _assert_goods_type(self, context, goods_type):
+        self.assertTrue(goods_type.description in [item["description"] for item in context["all"]])
+        self.assertTrue(
+            goods_type.description
+            in [item["description"] for item in context["countries"][goods_type.countries.first().name]]
+        )
+        self.assertTrue(
+            [clc.rating for clc in goods_type.control_list_entries.all()]
+            in [item["control_list_entries"] for item in context["all"]]
+        )
+        self.assertTrue(
+            [clc.rating for clc in goods_type.control_list_entries.all()]
+            in [item["control_list_entries"] for item in context["countries"][goods_type.countries.first().name]]
         )
 
     def _assert_ecju_query(self, context, ecju_query):
@@ -290,8 +297,8 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_goods_type(context["goods_type"], Country.objects.first(), case.goods_type.first())
-        self._assert_goods_type(context["goods_type"], Country.objects.last(), case.goods_type.last())
+        self._assert_goods_type(context["goods_type"], case.goods_type.first())
+        self._assert_goods_type(context["goods_type"], case.goods_type.last())
 
     def test_generate_context_with_licence(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)

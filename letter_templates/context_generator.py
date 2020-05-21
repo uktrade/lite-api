@@ -350,7 +350,8 @@ def _get_goods_type_context(goods_types, case_pk):
                 "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
             }
             for good in goods_types
-        ]
+        ],
+        "countries": {},
     }
 
     countries = set(goods_types.values_list("countries", "countries__name"))
