@@ -1,6 +1,7 @@
 import os
 
 from django.template import Context, Engine, TemplateDoesNotExist
+from django.utils.html import escape
 from markdown import markdown
 
 from conf import settings
@@ -67,6 +68,7 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
 
         if text:
             # Substitute content placeholder for user text
+            text = escape(text)
             template = template.source
             template = template.replace(CONTENT_PLACEHOLDER, text)
             template = django_engine.from_string(template)
