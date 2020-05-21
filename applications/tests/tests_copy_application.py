@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from django.test import tag
 from rest_framework import status
 from rest_framework.reverse import reverse_lazy
 
@@ -233,6 +234,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
         self._validate_open_application()
 
+    @tag("copy-flags")
     def test_copy_submitted_open_temporary_application_successful(self):
         """
         Ensure we can copy an open temporary application that is submitted (ongoing or otherwise)
