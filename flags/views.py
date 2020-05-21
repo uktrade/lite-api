@@ -25,6 +25,7 @@ from flags.models import Flag, FlaggingRule
 from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer, FlagReadOnlySerializer
 from goods.models import Good
 from lite_content.lite_api import strings
+from organisations.models import Organisation
 from parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
@@ -150,6 +151,8 @@ class AssignFlags(APIView):
 
         if isinstance(obj, Case):
             self._set_case_activity(added_flags, removed_flags, obj, user, note)
+        elif isinstance(obj, Organisation):
+            self._set_organisation_activity(added_flags, removed_flags, obj, user)
 
         if isinstance(obj, Good):
             cases = []
@@ -195,6 +198,24 @@ class AssignFlags(APIView):
                 verb=AuditType.REMOVE_FLAGS,
                 target=case,
                 payload={"removed_flags": removed_flags, "additional_text": note},
+            )
+
+    def _set_organisation_activity(self, added_flags, removed_flags, organisation, user, **kwargs):
+        # Add an activity item for the organisation
+        if added_flags:
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
+                target=organisation,
+                payload={"flag_name": added_flags},
+            )
+
+        if removed_flags:
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.REMOVED_FLAG_ON_ORGANISATION,
+                target=organisation,
+                payload={"flag_name": removed_flags},
             )
 
     def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):

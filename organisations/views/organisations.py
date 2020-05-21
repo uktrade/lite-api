@@ -4,8 +4,8 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework.views import APIView
-
 from applications.models import BaseApplication
+from audit_trail.enums import AuditType
 from conf.authentication import (
     SharedAuthentication,
     OrganisationAuthentication,
@@ -16,6 +16,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import check_user_has_permission, assert_user_has_permission
 from lite_content.lite_api.strings import Organisations
 from organisations.enums import OrganisationStatus, OrganisationType
+from organisations.helpers import audit_edited_organisation_fields, audit_reviewed_organisation
 from organisations.libraries.get_organisation import get_organisation_by_pk, get_request_user_organisation
 from organisations.models import Organisation
 from organisations.serializers import (
@@ -24,6 +25,7 @@ from organisations.serializers import (
     OrganisationListSerializer,
     OrganisationStatusUpdateSerializer,
 )
+from audit_trail import service as audit_trail_service
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
@@ -78,6 +80,22 @@ class OrganisationsList(generics.ListCreateAPIView):
         if serializer.is_valid(raise_exception=True):
             if not validate_only:
                 serializer.save()
+
+            # Audit the creation of the organisation
+            if not request.user.is_anonymous:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.CREATED_ORGANISATION,
+                    target=get_organisation_by_pk(serializer.data.get("id")),
+                    payload={"organisation_name": serializer.data.get("name")},
+                )
+            else:
+                audit_trail_service.create_system_user_audit(
+                    verb=AuditType.REGISTER_ORGANISATION,
+                    target=get_organisation_by_pk(serializer.data.get("id")),
+                    payload={"email": request.data["user"]["email"], "organisation_name": serializer.data.get("name")},
+                )
+
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -106,6 +124,9 @@ class OrganisationsDetail(generics.RetrieveUpdateAPIView):
         if serializer.is_valid(raise_exception=True):
             if str_to_bool(request.data.get("validate_only", False)):
                 return JsonResponse(data={"organisation": serializer.data}, status=status.HTTP_200_OK)
+
+            is_non_uk = False if organisation.primary_site.address.address_line_1 else True
+            audit_edited_organisation_fields(request.user, organisation, request.data, is_non_uk=is_non_uk)
 
             serializer.save()
 
@@ -190,3 +211,15 @@ class OrganisationStatusView(generics.UpdateAPIView):
     def get_object(self):
         assert_user_has_permission(self.request.user, GovPermissions.MANAGE_ORGANISATIONS)
         return get_organisation_by_pk(self.kwargs["pk"])
+
+    def update(self, request, *args, **kwargs):
+        organisation = self.get_object()
+        serializer = self.get_serializer(organisation, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            audit_reviewed_organisation(request.user, organisation, serializer.data["status"]["key"])
+
+            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
+
+        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
