@@ -52,7 +52,8 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         data = request.data
         data["case_types"] = CaseTypeEnum.references_to_ids(data.get("case_types"))
         data["decisions"] = [AdviceType.ids[decision] for decision in data.get("decisions", [])]
-        serializer = self.serializer_class(data=data)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=data)
 
         if serializer.is_valid():
             serializer.save()
