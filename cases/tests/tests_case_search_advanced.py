@@ -5,6 +5,7 @@ from django.utils import timezone
 from cases.enums import AdviceType
 from cases.models import Case
 from cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
+from goodstype.tests.factories import GoodsTypeFactory
 from static.countries.factories import CountryFactory
 from applications.tests.factories import (
     PartyOnApplicationFactory,
@@ -357,13 +358,19 @@ class FilterAndSortTests(DataTestClient):
         )
         GoodOnApplicationFactory(application=application_2, good=good_2)
 
+        application_3 = StandardApplicationFactory()
+        goods_type = GoodsTypeFactory(application=application_3)
+
         qs_1 = Case.objects.search(goods_related_description=good_1.description)
         qs_2 = Case.objects.search(goods_related_description=good_1.comment)
         qs_3 = Case.objects.search(goods_related_description=good_1.report_summary)
+        qs_4 = Case.objects.search(goods_related_description=goods_type.description)
 
         self.assertEqual(qs_1.count(), 1)
         self.assertEqual(qs_2.count(), 1)
         self.assertEqual(qs_3.count(), 1)
+        self.assertEqual(qs_4.count(), 1)
         self.assertEqual(qs_1.first().pk, application_1.pk)
         self.assertEqual(qs_2.first().pk, application_1.pk)
         self.assertEqual(qs_3.first().pk, application_1.pk)
+        self.assertEqual(qs_4.first().pk, application_3.pk)
