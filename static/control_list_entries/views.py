@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from conf.authentication import SharedAuthentication
 from static.control_list_entries.helpers import get_control_list_entry, convert_control_list_entries_to_tree
 from static.control_list_entries.models import ControlListEntry
-from static.control_list_entries.serializers import ControlListEntrySerializer, ControlListEntrySerializerWithLinks
+from static.control_list_entries.serializers import ControlListEntrySerializerWithLinks
 
 
 @permission_classes((permissions.AllowAny,))
