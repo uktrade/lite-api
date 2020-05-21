@@ -1,6 +1,12 @@
 from django import template
+from django.utils.safestring import mark_safe
 
 register = template.Library()
+
+
+@register.filter()
+def linebreaksbr(value):
+    return mark_safe(value.replace('\n', '<br>'))
 
 
 @register.filter()
@@ -11,8 +17,8 @@ def context_data_to_list(data):
     text = ""
 
     if isinstance(data, list):
-        for item in data:
-            text += context_data_to_list(item)
+        for i in range(len(data)):
+            text += f"<li>[item {i}]</li>{context_data_to_list(data[i])}"
     elif isinstance(data, dict):
         for key, value in data.items():
             if isinstance(value, dict):
@@ -21,7 +27,7 @@ def context_data_to_list(data):
                 for i in range(len(value)):
                     text += f"<li><b>{key}:</b>\n<ul><li>[item {i}]</li>{context_data_to_list(value[i])}\n</ul>\n</li>"
             elif value:
-                text += f"<li><b>{key}:</b> {value}</li>"
+                text += f"<li><b>{key}:</b> {linebreaksbr(value)}</li>"
     else:
         return data
 
