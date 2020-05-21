@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from conf.authentication import SharedAuthentication
 from static.control_list_entries.helpers import get_control_list_entry, convert_control_list_entries_to_tree
 from static.control_list_entries.models import ControlListEntry
+from static.control_list_entries.serializers import ControlListEntrySerializer
 
 
 @permission_classes((permissions.AllowAny,))
@@ -32,5 +33,5 @@ class ControlListEntryDetail(APIView):
         Returns details of a specific control ratings
         """
         control_list_entry = get_control_list_entry(rating)
-        serializer = ControlListEntrySerializerWithLinks(control_list_entry)
+        serializer = ControlListEntrySerializer(control_list_entry)
         return JsonResponse(data={"control_list_entry": serializer.data})
