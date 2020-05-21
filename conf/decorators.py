@@ -191,6 +191,8 @@ def allowed_party_type_for_open_application_goodstype_category():
                     and party_type == PartyType.THIRD_PARTY
                 ):
                     pass
+                elif party_type == PartyType.END_USER:
+                    pass
                 else:
                     return JsonResponse(
                         data={"errors": ["This type of party can not be added to this type of open application"]},

@@ -71,8 +71,9 @@ def check_party_error(party, object_not_found_error, is_mandatory, is_document_m
             return document_error
 
 
-def _validate_end_user(draft, errors, is_mandatory):
-    """ Checks there is an end user (with a document if is_document_mandatory) """
+def _validate_end_user(draft, errors, is_mandatory, open_application=False):
+    """ Validates end user. If a document is mandatory, this is also validated. """
+
     # Document is only mandatory if application is standard permanent or HMRC query
     is_document_mandatory = (
         draft.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
@@ -350,6 +351,14 @@ def _validate_open_licence(draft, errors):
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
     errors = _validate_temporary_export_details(draft, errors)
     errors = _validate_route_of_goods(draft, errors)
+
+    errors = _validate_end_user(draft, errors, is_mandatory=False, open_application=True)
+    # TODO: add logic to prevent application being submitted without end user if nuclear and remove above line
+    # if draft.contract_type == NUCLEAR:
+    #     errors = _validate_end_user(draft, errors, is_mandatory=True, open_application=True)
+    # else:
+    #     errors = _validate_end_user(draft, errors, is_mandatory=False, open_application=True)
+
     if draft.goodstype_category == GoodsTypeCategory.MILITARY:
         errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True, open_application=True)
 
