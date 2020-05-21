@@ -20,8 +20,11 @@ def context_data_to_list(data):
                 text += f"<li><b>{key}:</b>\n<ul>{context_data_to_list(value)}\n</ul>\n</li>"
             elif isinstance(value, list):
                 text += f"<li><b>{key}:</b>\n<ul>"
-                for i in range(len(value)):
-                    text += f"<li>[item {i}]</li>{context_data_to_list(value[i])}\n"
+                if len(value) > 0:
+                    for i in range(len(value)):
+                        text += f"<li>[item {i}]</li>{context_data_to_list(value[i])}\n"
+                else:
+                    text += "No data for this section"
                 text += f"</ul>\n</li>"
             elif value:
                 text += f"<li><b>{key}:</b> {linebreaksbr(value)}</li>"
