@@ -1,365 +1,494 @@
-from difflib import SequenceMatcher
+import datetime
 
-from django.utils import timezone
+from django.urls import reverse
+from rest_framework import status
 
-from cases.enums import AdviceType
-from cases.models import Case
-from cases.tests.factories import TeamAdviceFactory, FinalAdviceFactory
-from static.countries.factories import CountryFactory
-from applications.tests.factories import (
-    PartyOnApplicationFactory, CountryOnApplicationFactory, SiteOnApplicationFactory, GoodOnApplicationFactory, StandardApplicationFactory
+from audit_trail.models import Audit
+from audit_trail.enums import AuditType
+from cases.enums import CaseTypeEnum
+from cases.models import Case, CaseAssignment
+from queues.constants import (
+    UPDATED_CASES_QUEUE_ID,
+    MY_ASSIGNED_CASES_QUEUE_ID,
+    MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
+    SYSTEM_QUEUES,
 )
-from parties.tests.factories import PartyFactory
-from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled
-from goods.tests.factories import GoodFactory
+from queues.tests.factories import QueueFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from users.enums import UserStatuses
+from users.libraries.user_to_token import user_to_token
+from users.models import GovUser
 
 
 class FilterAndSortTests(DataTestClient):
     def setUp(self):
         super().setUp()
+        self.url = reverse("cases:search")
+        statuses = [CaseStatusEnum.SUBMITTED, CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN]
 
-    def test_filter_by_exporter_site_name(self):
-        site_on_application_1 = SiteOnApplicationFactory()
-        site_on_application_2 = SiteOnApplicationFactory()
-        site_on_application_3 = SiteOnApplicationFactory(application=site_on_application_2.application)
+        self.application_cases = []
+        for app_status in statuses:
+            case = self.create_standard_application_case(self.organisation, "Example Application")
+            case.status = get_case_status_by_status(app_status)
+            case.save()
+            self.queue.cases.add(case)
+            self.queue.save()
+            self.application_cases.append(case)
 
-        qs_1 = Case.objects.search(exporter_site_name=site_on_application_1.site.name)
-        qs_2 = Case.objects.search(exporter_site_name=site_on_application_2.site.name)
-        qs_3 = Case.objects.search(exporter_site_name=site_on_application_3.site.name)
+        self.clc_cases = []
+        for clc_status in statuses:
+            clc_query = self.create_clc_query("Example CLC Query", self.organisation)
+            clc_query.status = get_case_status_by_status(clc_status)
+            clc_query.save()
+            self.queue.cases.add(clc_query)
+            self.queue.save()
+            self.clc_cases.append(clc_query)
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(site_on_application_2.application.pk, site_on_application_3.application.pk)
-        self.assertNotEqual(site_on_application_1.application.pk, site_on_application_2.application.pk)
-        self.assertNotEqual(site_on_application_1.site.name, site_on_application_2.site.name)
+    def test_get_cases_returns_only_system_and_users_team_queues(self):
+        system_and_team_queue_ids = sorted([*SYSTEM_QUEUES.keys(), str(self.queue.id)])
 
-    def test_filter_with_organisation_name(self):
-        application_1 = StandardApplicationFactory()
-        application_2 = StandardApplicationFactory()
+        response = self.client.get(self.url, **self.gov_headers)
 
-        qs_1 = Case.objects.search(organisation_name=application_1.organisation.name)
-        qs_2 = Case.objects.search(organisation_name=application_2.organisation.name)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        queue_ids = sorted([queue["id"] for queue in response.json()["results"]["queues"]])
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_1.first().pk, application_1.pk)
-        self.assertEqual(qs_2.first().pk, application_2.pk)
+        self.assertEqual(queue_ids, system_and_team_queue_ids)
 
-    def test_filter_with_exporter_application_reference(self):
-        name_1 = "Ref 1"
-        name_2 = "Ref 2"
-        application_1 = StandardApplicationFactory(name=name_1)
-        application_2 = StandardApplicationFactory(name=name_2)
-
-        qs_1 = Case.objects.search(exporter_application_reference=name_1)
-        qs_2 = Case.objects.search(exporter_application_reference=name_2)
-        qs_3 = Case.objects.search(exporter_application_reference="Ref")
-
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 2)
-
-        self.assertEqual(qs_1.first().pk, application_1.pk)
-        self.assertEqual(qs_2.first().pk, application_2.pk)
-
-    def test_filter_with_case_reference_code(self):
-        application_1 = StandardApplicationFactory()
-        application_2 = StandardApplicationFactory()
-
-        qs_1 = Case.objects.search(case_reference=application_1.reference_code)
-        qs_2 = Case.objects.search(case_reference=application_1.reference_code[4:])
-        qs_3 = Case.objects.search(case_reference=application_2.reference_code)
-        qs_4 = Case.objects.search(case_reference=application_2.reference_code[4:])
-
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 1)
-
-        self.assertEqual(qs_1.first().pk, application_1.pk)
-        self.assertEqual(qs_2.first().pk, application_1.pk)
-        self.assertEqual(qs_3.first().pk, application_2.pk)
-        self.assertEqual(qs_4.first().pk, application_2.pk)
-
-        # Search on common substring of both application references
-        match = SequenceMatcher(None, application_1.reference_code, application_2.reference_code).find_longest_match(
-            0, len(application_1.reference_code), 0, len(application_2.reference_code)
-        )
-
-        qs_5 = Case.objects.search(case_reference=application_1.reference_code[match.a : match.a + match.size])
-
-        self.assertEqual(qs_5.count(), 2)
-
-    def test_filter_by_good_control_list_entry(self):
-        application = StandardApplicationFactory()
-        good = GoodFactory(
-            organisation=application.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"]
-        )
-        GoodOnApplicationFactory(application=application, good=good)
-
-        qs_1 = Case.objects.search(control_list_entry="")
-        qs_2 = Case.objects.search(control_list_entry="ML1b")
-        qs_3 = Case.objects.search(control_list_entry="ML1a")
-
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 0)
-        self.assertEqual(qs_3.count(), 1)
-
-    def test_filter_by_flags(self):
-        flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)
-        flag_2 = FlagFactory(name="Name_2", level="Destination", team=self.gov_user.team, priority=10)
-        flag_3 = FlagFactory(name="Name_3", level="good", team=self.gov_user.team, priority=1)
-        application_1 = StandardApplicationFactory()
-        application_1.flags.add(flag_1)
-        application_2 = StandardApplicationFactory()
-        application_2.flags.add(flag_2)
-        application_3 = StandardApplicationFactory()
-        application_3.flags.add(flag_2)
-        application_4 = StandardApplicationFactory()
-        GoodOnApplicationFactory(
-            good=GoodFactory(organisation=application_4.organisation, flags=[flag_3]), application=application_4,
-        )
-
-        qs_1 = Case.objects.search(flags=[flag_1.id])
-        qs_2 = Case.objects.search(flags=[flag_2.id])
-        qs_3 = Case.objects.search(flags=[flag_3.id])
-
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 2)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_3.first().pk, application_4.pk)
-
-    def test_filter_by_country(self):
+    def test_get_cases_no_filter_returns_all_cases(self):
         """
-        What qualifies as a country on a case?
+        Given multiple Cases exist with different statuses and case-types
+        When a user requests to view all Cases with no filter
+        Then all Cases are returned
         """
-        country_1 = CountryFactory(id="GB")
-        country_2 = CountryFactory(id="SP")
-        country_on_application = CountryOnApplicationFactory(country=country_1)
-        country_on_application = CountryOnApplicationFactory(
-            application=country_on_application.application, country=country_1
-        )
-        party_on_application = PartyOnApplicationFactory(party=PartyFactory(country=country_2))
+        all_cases = self.application_cases + self.clc_cases
 
-        qs_1 = Case.objects.search(country=country_1)
-        qs_2 = Case.objects.search(country=country_2)
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_1.first().pk, country_on_application.application.pk)
-        self.assertEqual(qs_2.first().pk, party_on_application.application.pk)
-
-    def test_filter_by_team_advice(self):
-        application = StandardApplicationFactory()
-        good = GoodFactory(organisation=application.organisation)
-        TeamAdviceFactory(user=self.gov_user, team=self.team, case=application, good=good, type=AdviceType.APPROVE)
-
-        qs_1 = Case.objects.search(team_advice_type=AdviceType.CONFLICTING)
-        qs_2 = Case.objects.search(team_advice_type=AdviceType.APPROVE)
-
-        self.assertEqual(qs_1.count(), 0)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_2.first().pk, application.pk)
-
-    def test_filter_by_final_advice(self):
-        application = StandardApplicationFactory()
-        good = GoodFactory(organisation=application.organisation)
-        FinalAdviceFactory(user=self.gov_user, team=self.team, case=application, good=good, type=AdviceType.APPROVE)
-
-        qs_1 = Case.objects.search(final_advice_type=AdviceType.CONFLICTING)
-        qs_2 = Case.objects.search(final_advice_type=AdviceType.APPROVE)
-
-        self.assertEqual(qs_1.count(), 0)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_2.first().pk, application.pk)
-
-    def test_filter_by_finalised_date_range(self):
-        day_1 = timezone.datetime(day=10, month=10, year=2020)
-        day_2 = timezone.datetime(day=11, month=10, year=2020)
-        day_3 = timezone.datetime(day=12, month=10, year=2020)
-        day_4 = timezone.datetime(day=13, month=10, year=2020)
-        day_5 = timezone.datetime(day=14, month=10, year=2020)
-
-        application_1 = StandardApplicationFactory()
-        application_1.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        application_1.save()
-        good = GoodFactory(organisation=application_1.organisation)
-        FinalAdviceFactory(
-            user=self.gov_user, team=self.team, case=application_1, good=good, type=AdviceType.APPROVE, created_at=day_2
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(all_cases), len(response_data["cases"]))
+        self.assertEqual(
+            [
+                {"id": str(user.id), "full_name": f"{user.first_name} {user.last_name}"}
+                for user in GovUser.objects.filter(status=UserStatuses.ACTIVE)
+            ],
+            response_data["filters"]["gov_users"],
         )
 
-        application_2 = StandardApplicationFactory()
-        application_2.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        application_2.save()
-        good = GoodFactory(organisation=application_2.organisation)
-        FinalAdviceFactory(
-            user=self.gov_user, team=self.team, case=application_2, good=good, type=AdviceType.APPROVE, created_at=day_4
+    def test_get_app_type_cases(self):
+        """
+        Given multiple Cases exist with different statuses and case-types
+        When a user requests to view all Cases of type 'Licence application'
+        Then only Cases of that type are returned
+        """
+        url = f"{self.url}?case_type={CaseTypeEnum.SIEL.reference}"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(self.application_cases), len(response_data["cases"]))
+        # Assert Case Type
+        for case in response_data["cases"]:
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.SIEL.reference)
+
+    def test_get_clc_type_cases(self):
+        """
+        Given multiple Cases exist with different statuses and case-types
+        When a user requests to view all Cases of type 'CLC query'
+        Then only Cases of that type are returned
+        """
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(self.clc_cases), len(response_data["cases"]))
+
+        # Assert Case Type
+        for case in response_data["cases"]:
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
+
+    def test_get_submitted_status_cases(self):
+        """
+        Given multiple Cases exist with different statuses and case-types
+        When a user requests to view all Cases of type 'CLC query'
+        Then only Cases of that type are returned
+        """
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(self.clc_cases), len(response_data["cases"]))
+        # Assert Case Type
+        for case in response_data["cases"]:
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
+
+    def test_get_all_cases_queue_submitted_status_and_clc_type_cases(self):
+        """
+        Given multiple cases exist with different statuses and case-types
+        When a user requests to view All Cases of type 'CLC query'
+        Then only cases of that type are returned
+        """
+        case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        clc_submitted_cases = list(filter(lambda c: c.query.status == case_status, self.clc_cases))
+        url = f'{reverse("cases:search")}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
+        # Assert Case Type
+        for case in response_data["cases"]:
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
+
+    def test_get_cases_filter_by_case_officer(self):
+        """
+        Given multiple cases exist with case officers attached and not attached
+        When a user requests to view All Cases when the case officer is set to themselves
+        Then only cases of that type are returned
+        """
+        self.application_cases[0].case_officer = self.gov_user
+        self.application_cases[0].save()
+        url = f'{reverse("cases:search")}?case_officer={self.gov_user.id}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
+
+    def test_get_cases_filter_by_case_officer_not_assigned(self):
+        """
+        Given multiple cases exist with case officers attached and not attached
+        When a user requests to view All Cases with no assigned case officer
+        Then only cases without an assigned case officer are returned
+        """
+        all_cases = self.application_cases + self.clc_cases
+        self.application_cases[0].case_officer = self.gov_user
+        self.application_cases[0].save()
+        url = f'{reverse("cases:search")}?case_officer=not_assigned'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(all_cases) - 1)
+        assigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertNotIn(assigned_case, cases_returned)
+
+    def test_get_cases_filter_by_assigned_user(self):
+        """
+        Given multiple cases exist with users assigned and not assigned
+        When a user requests to view All Cases when the assigned user is set to themselves
+        Then only cases with that assigned user are returned
+        """
+        case_assignment = CaseAssignment.objects.create(
+            queue=self.queue, case=self.application_cases[0], user=self.gov_user
+        )
+        url = f'{reverse("cases:search")}?assigned_user={self.gov_user.id}'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.application_cases[0].id))
+
+    def test_get_cases_filter_by_assigned_user_not_assigned(self):
+        """
+        Given multiple cases exist with users assigned and not assigned
+        When a user requests to view All Cases which have no assigned users
+        Then only cases with no assigned users are returned
+        """
+        all_cases = self.application_cases + self.clc_cases
+        case_assignment = CaseAssignment.objects.create(
+            queue=self.queue, case=self.application_cases[0], user=self.gov_user
+        )
+        url = f'{reverse("cases:search")}?assigned_user=not_assigned'
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response_data), len(all_cases) - 1)
+        assigned_case = str(self.application_cases[0].id)
+        cases_returned = [x["id"] for x in response_data]
+        self.assertNotIn(assigned_case, cases_returned)
+
+    def test_get_submitted_status_and_clc_type_cases(self):
+        """
+        Given multiple Cases exist with different statuses and case-types
+        When a user requests to view Cases of type 'CLC query'
+        Then only Cases of that type are returned
+        """
+        case_status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        clc_submitted_cases = list(filter(lambda case: case.status == case_status, self.clc_cases))
+        url = f"{self.url}?case_type={CaseTypeEnum.GOODS.reference}&status={case_status.status}"
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(clc_submitted_cases), len(response_data["cases"]))
+        # Assert Case Type
+        for case in response_data["cases"]:
+            case_type_reference = Case.objects.filter(pk=case["id"]).values_list("case_type__reference", flat=True)[0]
+            self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
+
+
+class UpdatedCasesQueueTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.case = self.create_standard_application_case(self.organisation).get_case()
+        self.old_status = self.case.status.status
+        self.case.queues.set([self.queue])
+        self.case_assignment = CaseAssignment.objects.create(case=self.case, queue=self.queue, user=self.gov_user)
+        self.case.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
+        self.case.save()
+
+        self.audit = Audit.objects.create(
+            actor=self.exporter_user,
+            verb=AuditType.UPDATED_STATUS,
+            target=self.case,
+            payload={"status": {"new": CaseStatusEnum.APPLICANT_EDITING, "old": self.old_status}},
+        )
+        self.gov_user.send_notification(content_object=self.audit, case=self.case)
+
+        self.url = f'{reverse("cases:search")}?queue_id={UPDATED_CASES_QUEUE_ID}'
+
+    def test_get_cases_on_updated_cases_queue_when_user_is_assigned_to_a_case_returns_expected_cases(self):
+        # Create another case that does not have an update
+        case = self.create_standard_application_case(self.organisation).get_case()
+        case.queues.set([self.queue])
+        case_assignment = CaseAssignment.objects.create(case=case, queue=self.queue, user=self.gov_user)
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 2)  # Count is 2 as another case is created in setup
+        self.assertEqual(response_data[0]["id"], str(self.case.id))
+
+    def test_get_cases_on_updated_cases_queue_when_user_is_not_assigned_to_a_case_returns_no_cases(self):
+        other_user = GovUser.objects.create(
+            email="test2@mail.com", first_name="John", last_name="Smith", team=self.team
+        )
+        gov_headers = {"HTTP_GOV_USER_TOKEN": user_to_token(other_user)}
+
+        response = self.client.get(self.url, **gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 0)
+
+    def test_get_cases_on_updated_cases_queue_when_user_is_assigned_as_case_officer_returns_expected_cases(self):
+        CaseAssignment.objects.filter(case=self.case, queue=self.queue).delete()
+        self.case.case_officer = self.gov_user
+        self.case.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.case.id))
+
+    def test_get_cases_on_updated_cases_queue_when_user_is_assigned_to_case_and_as_case_officer_returns_expected_cases(
+        self,
+    ):
+        self.case.case_officer = self.gov_user
+        self.case.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.case.id))
+
+
+class UserAssignedCasesQueueTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.user_assigned_case = self.create_standard_application_case(self.organisation).get_case()
+        self.user_assigned_case.queues.set([self.queue])
+        self.case_assignment = CaseAssignment.objects.create(
+            case=self.user_assigned_case, queue=self.queue, user=self.gov_user
         )
 
-        qs_1 = Case.objects.search(finalised_from=day_1, finalised_to=day_3)
-        qs_2 = Case.objects.search(finalised_from=day_3, finalised_to=day_5)
-        qs_3 = Case.objects.search(finalised_from=day_1)
-        qs_4 = Case.objects.search(finalised_to=day_5)
-        qs_5 = Case.objects.search(finalised_to=day_1)
-        qs_6 = Case.objects.search(finalised_from=day_5)
+        self.url = f'{reverse("cases:search")}?queue_id={MY_ASSIGNED_CASES_QUEUE_ID}'
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 2)
-        self.assertEqual(qs_4.count(), 2)
-        self.assertEqual(qs_5.count(), 0)
-        self.assertEqual(qs_6.count(), 0)
-        self.assertEqual(qs_1.first().pk, application_1.pk)
-        self.assertEqual(qs_2.first().pk, application_2.pk)
+    def test_get_cases_on_user_assigned_to_case_queue_returns_expected_cases(self):
+        response = self.client.get(self.url, **self.gov_headers)
 
-    def test_filter_sla_days_range(self):
-        application_1 = StandardApplicationFactory(sla_remaining_days=1)
-        application_2 = StandardApplicationFactory(sla_remaining_days=3)
-        application_3 = StandardApplicationFactory(sla_remaining_days=5)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.user_assigned_case.id))
 
-        qs_1 = Case.objects.search(min_sla_days_remaining=0, max_sla_days_remaining=2)
-        qs_2 = Case.objects.search(min_sla_days_remaining=2, max_sla_days_remaining=4)
-        qs_3 = Case.objects.search(min_sla_days_remaining=4, max_sla_days_remaining=6)
-        qs_4 = Case.objects.search(min_sla_days_remaining=0, max_sla_days_remaining=6)
-        qs_5 = Case.objects.search(max_sla_days_remaining=2)
-        qs_6 = Case.objects.search(min_sla_days_remaining=4)
+    def test_get_cases_on_user_assigned_to_case_queue_doesnt_return_closed_cases(self):
+        user_assigned_case = self.create_standard_application_case(self.organisation).get_case()
+        user_assigned_case.queues.set([self.queue])
+        CaseAssignment.objects.create(case=user_assigned_case, queue=self.queue, user=self.gov_user)
+        user_assigned_case.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
+        user_assigned_case.save()
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 3)
-        self.assertEqual(qs_5.count(), 1)
-        self.assertEqual(qs_6.count(), 1)
-        self.assertEqual(qs_1.first().pk, application_1.pk)
-        self.assertEqual(qs_2.first().pk, application_2.pk)
-        self.assertEqual(qs_3.first().pk, application_3.pk)
-        self.assertEqual(qs_5.first().pk, application_1.pk)
-        self.assertEqual(qs_6.first().pk, application_3.pk)
+        response = self.client.get(self.url, **self.gov_headers)
 
-    def test_filter_submitted_at_range(self):
-        day_1 = timezone.datetime(day=10, month=10, year=2020)
-        day_2 = timezone.datetime(day=11, month=10, year=2020)
-        day_3 = timezone.datetime(day=12, month=10, year=2020)
-        day_4 = timezone.datetime(day=13, month=10, year=2020)
-        day_5 = timezone.datetime(day=14, month=10, year=2020)
-        day_6 = timezone.datetime(day=15, month=10, year=2020)
-        day_7 = timezone.datetime(day=16, month=10, year=2020)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 1)
+        self.assertNotEqual(response_data[0]["id"], str(user_assigned_case.id))
 
-        application_1 = StandardApplicationFactory(submitted_at=day_2)
-        application_2 = StandardApplicationFactory(submitted_at=day_4)
-        application_3 = StandardApplicationFactory(submitted_at=day_6)
 
-        qs_1 = Case.objects.search(submitted_from=day_1.date(), submitted_to=day_3.date())
-        qs_2 = Case.objects.search(submitted_from=day_3.date(), submitted_to=day_5.date())
-        qs_3 = Case.objects.search(submitted_from=day_5.date(), submitted_to=day_7.date())
-        qs_4 = Case.objects.search(submitted_from=day_2.date(), submitted_to=day_6.date())
-        qs_5 = Case.objects.search(submitted_from=day_1.date())
-        qs_6 = Case.objects.search(submitted_to=day_7.date())
+class UserAssignedAsCaseOfficerQueueTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 3)
-        self.assertEqual(qs_5.count(), 3)
-        self.assertEqual(qs_6.count(), 3)
-        self.assertEqual(qs_1.first().pk, application_1.pk)
-        self.assertEqual(qs_2.first().pk, application_2.pk)
-        self.assertEqual(qs_3.first().pk, application_3.pk)
+        self.case_officer_case = self.create_standard_application_case(self.organisation).get_case()
+        self.case_officer_case.queues.set([self.queue])
+        self.case_officer_case.case_officer = self.gov_user
+        self.case_officer_case.save()
 
-    def test_filter_finalised_at_range(self):
-        day_1 = timezone.datetime(day=10, month=10, year=2020)
-        day_2 = timezone.datetime(day=11, month=10, year=2020)
-        day_3 = timezone.datetime(day=12, month=10, year=2020)
-        day_4 = timezone.datetime(day=13, month=10, year=2020)
-        day_5 = timezone.datetime(day=14, month=10, year=2020)
-        day_6 = timezone.datetime(day=15, month=10, year=2020)
-        day_7 = timezone.datetime(day=16, month=10, year=2020)
+        self.url = f'{reverse("cases:search")}?queue_id={MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID}'
 
-        application_1 = StandardApplicationFactory(submitted_at=day_2)
-        application_2 = StandardApplicationFactory(submitted_at=day_4)
-        application_3 = StandardApplicationFactory(submitted_at=day_6)
+    def test_get_cases_on_user_assigned_as_case_officer_queue_returns_expected_cases(self):
+        response = self.client.get(self.url, **self.gov_headers)
 
-        qs_1 = Case.objects.search(submitted_from=day_1.date(), submitted_to=day_3.date())
-        qs_2 = Case.objects.search(submitted_from=day_3.date(), submitted_to=day_5.date())
-        qs_3 = Case.objects.search(submitted_from=day_5.date(), submitted_to=day_7.date())
-        qs_4 = Case.objects.search(submitted_from=day_2.date(), submitted_to=day_6.date())
-        qs_5 = Case.objects.search(submitted_from=day_1.date())
-        qs_6 = Case.objects.search(submitted_to=day_7.date())
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.case_officer_case.id))
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 3)
-        self.assertEqual(qs_5.count(), 3)
-        self.assertEqual(qs_6.count(), 3)
-        self.assertEqual(qs_1.first().pk, application_1.pk)
-        self.assertEqual(qs_2.first().pk, application_2.pk)
-        self.assertEqual(qs_3.first().pk, application_3.pk)
+    def test_get_cases_on_user_assigned_as_case_officer_queue_doesnt_return_closed_cases(self):
+        case_officer_case = self.create_standard_application_case(self.organisation).get_case()
+        case_officer_case.queues.set([self.queue])
+        case_officer_case.case_officer = self.gov_user
+        case_officer_case.status = get_case_status_by_status(CaseStatusEnum.WITHDRAWN)
+        case_officer_case.save()
 
-    def test_filter_by_party_name(self):
-        poa_1 = PartyOnApplicationFactory(party=PartyFactory(name="Steven Smith"))
-        poa_2 = PartyOnApplicationFactory(party=PartyFactory(name="Steven Jones"))
-        poa_3 = PartyOnApplicationFactory(party=PartyFactory(name="Jenny"))
+        response = self.client.get(self.url, **self.gov_headers)
 
-        qs_1 = Case.objects.search(party_name=poa_1.party.name)
-        qs_2 = Case.objects.search(party_name=poa_2.party.name)
-        qs_3 = Case.objects.search(party_name=poa_3.party.name)
-        qs_4 = Case.objects.search(party_name="Steven")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()["results"]["cases"]
+        self.assertEqual(len(response_data), 1)
+        self.assertNotEqual(response_data[0]["id"], str(case_officer_case.id))
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 2)
-        self.assertEqual(qs_1.first().pk, poa_1.application.pk)
-        self.assertEqual(qs_2.first().pk, poa_2.application.pk)
-        self.assertEqual(qs_3.first().pk, poa_3.application.pk)
 
-    def test_filter_by_party_address(self):
-        poa_1 = PartyOnApplicationFactory()
-        poa_2 = PartyOnApplicationFactory()
-        poa_3 = PartyOnApplicationFactory()
+class CaseOrderingOnQueueTests(DataTestClient):
+    def test_all_cases_queue_returns_cases_in_expected_order(self):
+        """Test All cases queue returns cases in expected order (newest first)."""
+        url = reverse("cases:search")
+        clc_query = self.create_clc_query("Example CLC Query", self.organisation)
+        standard_app = self.create_standard_application_case(self.organisation, "Example Application")
+        clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
 
-        qs_1 = Case.objects.search(party_address=poa_1.party.address)
-        qs_2 = Case.objects.search(party_address=poa_2.party.address)
-        qs_3 = Case.objects.search(party_address=poa_3.party.address)
-        qs_4 = Case.objects.search(party_address=poa_2.party.address[0 : int(len(poa_2.party.address) / 2)])
+        QueueFactory(team=self.gov_user.team, cases=[clc_query, standard_app, clc_query_2])
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_4.count(), 1)
-        self.assertEqual(qs_1.first().pk, poa_1.application.pk)
-        self.assertEqual(qs_2.first().pk, poa_2.application.pk)
-        self.assertEqual(qs_3.first().pk, poa_3.application.pk)
-        self.assertEqual(qs_4.first().pk, poa_2.application.pk)
+        response = self.client.get(url, **self.gov_headers)
 
-    def test_filter_by_goods_related_description(self):
-        application_1 = StandardApplicationFactory()
-        good_1 = GoodFactory(
-            organisation=application_1.organisation,
-            description="Desc 1",
-            comment="Comment 1",
-            report_summary="Report Summary 1",
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
+        expected_case_order_ids = [str(clc_query_2.id), str(standard_app.id), str(clc_query.id)]
+        self.assertEqual(actual_case_order_ids, expected_case_order_ids)
+
+    def test_work_queue_returns_cases_in_expected_order(self):
+        """Test that a work queue returns cases in expected order (hmrc queries with goods not departed first)."""
+        clc_query_1 = self.create_clc_query("Example CLC Query", self.organisation)
+        standard_app = self.create_standard_application_case(self.organisation, "Example Application")
+        hmrc_query_1 = self.submit_application(self.create_hmrc_query(self.organisation))
+        clc_query_2 = self.create_clc_query("Example CLC Query 2", self.organisation)
+        hmrc_query_2 = self.submit_application(self.create_hmrc_query(self.organisation, have_goods_departed=True))
+
+        queue = QueueFactory(
+            team=self.gov_user.team, cases=[clc_query_1, standard_app, hmrc_query_1, clc_query_2, hmrc_query_2]
         )
-        GoodOnApplicationFactory(application=application_1, good=good_1)
-        application_2 = StandardApplicationFactory()
-        good_2 = GoodFactory(
-            organisation=application_2.organisation, description="afdaf", comment="asdfsadf", report_summary="asdfdsf"
-        )
-        GoodOnApplicationFactory(application=application_2, good=good_2)
 
-        qs_1 = Case.objects.search(goods_related_description=good_1.description)
-        qs_2 = Case.objects.search(goods_related_description=good_1.comment)
-        qs_3 = Case.objects.search(goods_related_description=good_1.report_summary)
+        url = reverse("cases:search") + "?queue_id=" + str(queue.id)
+        response = self.client.get(url, **self.gov_headers)
 
-        self.assertEqual(qs_1.count(), 1)
-        self.assertEqual(qs_2.count(), 1)
-        self.assertEqual(qs_3.count(), 1)
-        self.assertEqual(qs_1.first().pk, application_1.pk)
-        self.assertEqual(qs_2.first().pk, application_1.pk)
-        self.assertEqual(qs_3.first().pk, application_1.pk)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        actual_case_order_ids = [case["id"] for case in response.json()["results"]["cases"]]
+        expected_case_order_ids = [
+            str(hmrc_query_1.id),
+            str(clc_query_1.id),
+            str(standard_app.id),
+            str(clc_query_2.id),
+            str(hmrc_query_2.id),
+        ]
+        self.assertEqual(actual_case_order_ids, expected_case_order_ids)
+
+
+class OpenEcjuQueriesForTeamOnWorkQueueTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+
+        self.other_team = self.create_team("other team")
+        self.other_team_gov_user = self.create_gov_user("new_user@digital.trade.gov.uk", self.other_team)
+        self.queue = self.create_queue("my new queue", self.team)
+        self.case = self.create_standard_application_case(self.organisation)
+        self.case.queues.set([self.queue])
+        self.url = reverse("cases:search") + "?queue_id=" + str(self.queue.id)
+
+    def test_get_case_from_queue(self):
+        response = self.client.get(self.url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response_data["count"], 1)
+        self.assertEqual(response_data["results"]["queue"]["id"], str(self.queue.id))
+        self.assertEqual(response_data["results"]["cases"][0]["id"], str(self.case.id))
+
+    def test_do_not_get_case_with_open_team_ecju(self):
+        self.create_ecju_query(self.case, gov_user=self.gov_user)
+        response = self.client.get(self.url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response_data["count"], 0)
+
+    def test_get_case_with_only_closed_team_ecju(self):
+        ecju_query = self.create_ecju_query(self.case, gov_user=self.gov_user)
+        ecju_query.response = "response"
+        ecju_query.responded_at = datetime.datetime.now()
+        ecju_query.responded_by_user = self.exporter_user
+        ecju_query.save()
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response_data["count"], 1)
+
+    def test_get_case_with_other_team_open_ecju(self):
+        self.create_ecju_query(self.case, gov_user=self.other_team_gov_user)
+        response = self.client.get(self.url, **self.gov_headers)
+
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response_data["count"], 1)
