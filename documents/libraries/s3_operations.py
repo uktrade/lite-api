@@ -14,7 +14,7 @@ _client = boto3.client(
     aws_access_key_id=env("AWS_ACCESS_KEY_ID"),
     aws_secret_access_key=env("AWS_SECRET_ACCESS_KEY"),
     region_name=env("AWS_REGION"),
-    config=Config(connection_timeout=REQUEST_TIMEOUT, read_timeout=REQUEST_TIMEOUT),
+    config=Config(connect_timeout=REQUEST_TIMEOUT, read_timeout=REQUEST_TIMEOUT),
 )
 
 _bucket_name = env("AWS_STORAGE_BUCKET_NAME")

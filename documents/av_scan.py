@@ -2,7 +2,6 @@ import logging
 from contextlib import closing
 
 import requests
-from botocore.exceptions import ReadTimeoutError, BotoCoreError
 from django.conf import settings
 from django.utils.timezone import now
 from django_pglocks import advisory_lock
