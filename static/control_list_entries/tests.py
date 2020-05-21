@@ -43,14 +43,11 @@ class CLCListTests(DataTestClient):
 class CLCTests(DataTestClient):
     def setUp(self):
         super().setUp()
-        self.parent_rating = ControlListEntry.objects.create(rating="Xyz123", text="Parent rating", parent=None,)
-        self.child_rating = ControlListEntry.objects.create(
-            rating="Xyz123b", text="Child 1", parent=self.parent_rating,
-        )
+        self.parent_rating = ControlListEntriesFactory(rating="Xyz123", text="Parent rating")
+        self.child_rating = ControlListEntriesFactory(rating="Xyz123b", text="Child 1", parent=self.parent_rating,)
         self.url = "static:control_list_entries:control_list_entry"
 
     def _validate_clc(self, response_data, object):
-        self.assertEqual(response_data["id"], str(object.id))
         self.assertEqual(response_data["rating"], object.rating)
         self.assertEqual(response_data["text"], object.text)
 
@@ -64,7 +61,7 @@ class CLCTests(DataTestClient):
         self._validate_clc(response_data["parent"], self.parent_rating)
 
     def test_get_clc_with_children(self):
-        child_2 = ControlListEntry.objects.create(rating="ML1d1", text="Child 2-1", parent=self.parent_rating)
+        child_2 = ControlListEntriesFactory(rating="ML1d1", text="Child 2-1", parent=self.parent_rating)
 
         url = reverse(self.url, kwargs={"rating": self.parent_rating.rating},)
         response = self.client.get(url, **self.exporter_headers)
@@ -74,7 +71,6 @@ class CLCTests(DataTestClient):
         self._validate_clc(response_data, self.parent_rating)
         self.assertEqual(len(response_data["children"]), 2)
         for child in [self.child_rating, child_2]:
-            self.assertTrue(str(child.id) in [item["id"] for item in response_data["children"]])
             self.assertTrue(child.rating in [item["rating"] for item in response_data["children"]])
             self.assertTrue(child.text in [item["text"] for item in response_data["children"]])
 
