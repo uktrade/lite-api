@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -11,7 +10,6 @@ from test_helpers.clients import DataTestClient
 
 
 class ContractTypeOnCountryTests(DataTestClient):
-    @tag("2146")
     def test_set_contract_type_on_country_on_application_success(self):
         application = self.create_open_application_case(self.organisation)
 
@@ -25,7 +23,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(coa.contract_types, ["navy"])
 
-    @tag("2146", "multiple")
     def test_set_multiple_contract_types_on_country_on_application_success(self):
         application = self.create_open_application_case(self.organisation)
         CountryOnApplication(country_id="FR", application=application).save()
@@ -42,7 +39,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertTrue(set(coa_gb.contract_types).issubset({"navy", "army"}))
         self.assertTrue(set(coa_fr.contract_types).issubset({"navy", "army"}))
 
-    @tag("2146", "errors")
     def test_set_other_contract_type_without_text_on_country_on_application_failure(self):
         application = self.create_open_application_case(self.organisation)
 
@@ -53,7 +49,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @tag("2146")
     def test_set_other_contract_type_on_country_on_application_success(self):
         application = self.create_open_application_case(self.organisation)
 
@@ -75,7 +70,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertTrue(set(coa.contract_types).issubset(set(contract_types)))
         self.assertEqual(coa.other_contract_type_text, other_text)
 
-    @tag("2146")
     def test_set_other_contract_text_without_other_on_country_on_application_success_other_text_not_stored(self):
         application = self.create_open_application_case(self.organisation)
 
@@ -97,7 +91,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertTrue(set(coa.contract_types).issubset(set(contract_types)))
         self.assertEqual(coa.other_contract_type_text, None)
 
-    @tag("2146", "no-contract")
     def test_no_contract_types_failure(self):
         application = self.create_open_application_case(self.organisation)
 
@@ -112,7 +105,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @tag("2146", "no-field", "errors")
     def test_no_contract_types_field_failure(self):
         application = self.create_open_application_case(self.organisation)
 
@@ -126,7 +118,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, data, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @tag("2146", "clear")
     def test_removing_other_clears_text(self):
         application = self.create_open_application_case(self.organisation)
 
@@ -145,7 +136,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         coa.refresh_from_db()
         self.assertEqual(coa.other_contract_type_text, None)
 
-    @tag("2146", "flags")
     def test_flags_are_returned_correctly(self):
         application = self.create_open_application_case(self.organisation)
         falg = FlagFactory(team=self.team)
@@ -166,7 +156,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertIn("Navy", str(ordered_flags))
         self.assertIn("Army", str(ordered_flags))
 
-    @tag("2146", "submit")
     def test_submit_without_sectors_on_each_country_failure(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         application = self.create_draft_open_application(self.organisation)
