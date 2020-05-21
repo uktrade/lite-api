@@ -43,7 +43,7 @@ class ViewCaseAdviceTests(DataTestClient):
                     "id": str(self.gov_user.id),
                     "status": "Active",
                     "team": {"id": str(self.gov_user.team_id), "name": self.gov_user.team.name},
-                    "role_name": self.gov_user.role.name
+                    "role_name": self.gov_user.role.name,
                 },
                 "footnote": None,
                 "footnote_required": None,
