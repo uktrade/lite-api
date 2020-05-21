@@ -38,6 +38,13 @@ def get_document_context(case):
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
 
+    if getattr(base_application, "goods", "") and base_application.goods.exists():
+        goods = _get_goods_context(base_application.goods.all(), final_advice)
+    elif getattr(base_application, "goods_type", "") and base_application.goods_type.exists():
+        goods = _get_goods_type_context(base_application.goods_type.all(), case.pk)
+    else:
+        goods = None
+
     return {
         "case_reference": case.reference_code,
         "current_date": date,
@@ -60,12 +67,7 @@ def get_document_context(case):
         "third_parties": _get_third_parties_context(base_application.third_parties)
         if getattr(base_application, "third_parties", "")
         else [],
-        "goods": _get_goods_context(base_application.goods, final_advice)
-        if getattr(base_application, "goods", "")
-        else None,
-        "goods_type": _get_goods_type_context(base_application.goods_type.all(), case.pk)
-        if getattr(base_application, "goods_type", "")
-        else None,
+        "goods": goods,
         "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
         "notes": [_get_case_note_context(note) for note in notes],
         "sites": [_get_site_context(site) for site in sites],
@@ -328,7 +330,7 @@ def _get_good_context(good_on_application, advice=None):
 
 def _get_goods_context(goods, final_advice):
     final_advice = final_advice.filter(good_id__isnull=False)
-    goods = goods.all().order_by("good__description")
+    goods = goods.order_by("good__description")
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
     goods_context["all"] = [_get_good_context(good_on_application) for good_on_application in goods]
     goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods}

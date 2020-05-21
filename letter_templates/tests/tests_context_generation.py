@@ -297,8 +297,8 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_goods_type(context["goods_type"], case.goods_type.first())
-        self._assert_goods_type(context["goods_type"], case.goods_type.last())
+        self._assert_goods_type(context["goods"], case.goods_type.first())
+        self._assert_goods_type(context["goods"], case.goods_type.last())
 
     def test_generate_context_with_licence(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
