@@ -5,7 +5,7 @@ from weasyprint.fonts import FontConfiguration
 
 from cases.libraries.get_case import get_case
 from conf.exceptions import NotFoundError
-from letter_templates.helpers import get_css_location, generate_preview, markdown_to_html
+from letter_templates.helpers import get_css_location, generate_preview
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 
