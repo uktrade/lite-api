@@ -1,4 +1,3 @@
-from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -24,7 +23,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(coa.contract_types, ["navy"])
 
-    @tag("2146")
     def test_set_multiple_contract_types_on_country_on_application_success(self):
         application = self.create_draft_open_application(self.organisation)
         CountryOnApplication(country_id="FR", application=application).save()
@@ -158,7 +156,6 @@ class ContractTypeOnCountryTests(DataTestClient):
         self.assertIn("Navy", str(ordered_flags))
         self.assertIn("Army", str(ordered_flags))
 
-    @tag("2146")
     def test_submit_without_sectors_on_each_country_failure(self):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         application = self.create_draft_open_application(self.organisation)
@@ -167,12 +164,3 @@ class ContractTypeOnCountryTests(DataTestClient):
         response = self.client.put(url, **self.exporter_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES, response.json()["errors"]["contract_types"])
-
-    @tag("only")
-    def test_gimme(self):
-        application = self.create_draft_open_application(self.organisation)
-
-        r = self.client.get(
-            reverse("applications:country_contract_types", kwargs={"pk": application.id}), **self.exporter_headers
-        )
-        print(r.json())
