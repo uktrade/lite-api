@@ -200,9 +200,9 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.OPEN
 
-    case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA, OGTCL, OGTL]
+    CASE_TYPE_LIST = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA, OGTCL, OGTL]
 
-    ogl_id_list = [OGEL.id, OGTCL.id, OGTL.id]
+    OGL_ID_LIST = [OGEL.id, OGTCL.id, OGTL.id]
 
     @classmethod
     def case_types_to_representation(cls):
@@ -213,7 +213,7 @@ class CaseTypeEnum:
         if not case_type_reference:
             raise ValidationError({"case_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]})
 
-        for case_type in cls.case_type_list:
+        for case_type in cls.CASE_TYPE_LIST:
             if case_type.reference == case_type_reference:
                 return case_type
 
@@ -221,7 +221,7 @@ class CaseTypeEnum:
     def reference_to_id(cls, case_type_reference):
         if not case_type_reference:
             return None
-        for case_type in cls.case_type_list:
+        for case_type in cls.CASE_TYPE_LIST:
             if case_type.reference == case_type_reference:
                 return str(case_type.id)
 
