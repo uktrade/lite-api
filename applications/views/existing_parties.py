@@ -25,7 +25,7 @@ class ExistingParties(generics.ListCreateAPIView):
 
     def get_queryset(self):
         # Assemble the supplied filters, ready to be used in querysets below
-        params = {f"{key}__contains": value[0] for key, value in dict(self.request.GET).items()}
+        params = {f"{key}__contains": value[0] for key, value in dict(self.request.GET).items() if key != "page"}
         # Rename country to country__name for filter
         if "country__contains" in params:
             params["country__name__contains"] = params.pop("country__contains")

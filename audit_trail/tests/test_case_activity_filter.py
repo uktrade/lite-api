@@ -64,7 +64,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
 
         res = filter_case_activity(case_id=self.case.id, audit_type=audit_type)
 
-        self.assertEqual(res.count(), 1)
+        self.assertEqual(res.count(), 2)
         self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
         self.assertEqual(res.first().verb, audit_type)
 
@@ -81,7 +81,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
         # check exporter filter
         res = filter_case_activity(case_id=self.case.id, user_type=UserType.EXPORTER)
 
-        self.assertEqual(res.count(), 1)
+        self.assertEqual(res.count(), 2)
         self.assertEqual(res.first().actor_object_id, str(self.exporter_user.id))
 
     def test_filter_by_dates(self):
@@ -95,7 +95,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
 
         res = filter_case_activity(case_id=self.case.id, date_from=start_date.date())
 
-        self.assertEqual(res.count(), 3)
+        self.assertEqual(res.count(), 4)
 
         res = filter_case_activity(case_id=self.case.id, date_from=middle_date.date())
 
@@ -107,7 +107,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
 
         res = filter_case_activity(case_id=self.case.id, date_from=start_date.date(), date_to=middle_date.date())
 
-        self.assertEqual(res.count(), 2)
+        self.assertEqual(res.count(), 3)
 
         res = filter_case_activity(case_id=self.case.id, date_from=middle_date.date(), date_to=end_date.date())
 

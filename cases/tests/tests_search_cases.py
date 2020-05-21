@@ -11,6 +11,7 @@ from queues.constants import (
     UPDATED_CASES_QUEUE_ID,
     MY_ASSIGNED_CASES_QUEUE_ID,
     MY_ASSIGNED_AS_CASE_OFFICER_CASES_QUEUE_ID,
+    SYSTEM_QUEUES,
 )
 from queues.tests.factories import QueueFactory
 from static.statuses.enums import CaseStatusEnum
@@ -25,9 +26,9 @@ class FilterAndSortTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.url = reverse("cases:search")
+        statuses = [CaseStatusEnum.SUBMITTED, CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN]
 
         self.application_cases = []
-        statuses = [CaseStatusEnum.SUBMITTED, CaseStatusEnum.CLOSED, CaseStatusEnum.WITHDRAWN]
         for app_status in statuses:
             case = self.create_standard_application_case(self.organisation, "Example Application")
             case.status = get_case_status_by_status(app_status)
@@ -36,7 +37,6 @@ class FilterAndSortTests(DataTestClient):
             self.queue.save()
             self.application_cases.append(case)
 
-        # CLC applicable case statuses
         self.clc_cases = []
         for clc_status in statuses:
             clc_query = self.create_clc_query("Example CLC Query", self.organisation)
@@ -46,7 +46,17 @@ class FilterAndSortTests(DataTestClient):
             self.queue.save()
             self.clc_cases.append(clc_query)
 
-    def test_get_cases_no_filter(self):
+    def test_get_cases_returns_only_system_and_users_team_queues(self):
+        system_and_team_queue_ids = sorted([*SYSTEM_QUEUES.keys(), str(self.queue.id)])
+
+        response = self.client.get(self.url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        queue_ids = sorted([queue["id"] for queue in response.json()["results"]["queues"]])
+
+        self.assertEqual(queue_ids, system_and_team_queue_ids)
+
+    def test_get_cases_no_filter_returns_all_cases(self):
         """
         Given multiple Cases exist with different statuses and case-types
         When a user requests to view all Cases with no filter
@@ -239,7 +249,7 @@ class FilterAndSortTests(DataTestClient):
             self.assertEqual(case_type_reference, CaseTypeEnum.GOODS.reference)
 
 
-class FilterQueueUpdatedCasesTests(DataTestClient):
+class UpdatedCasesQueueTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
@@ -270,7 +280,7 @@ class FilterQueueUpdatedCasesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()["results"]["cases"]
-        self.assertEqual(len(response_data), 1)  # Count is 1 as another case is created in setup
+        self.assertEqual(len(response_data), 2)  # Count is 2 as another case is created in setup
         self.assertEqual(response_data[0]["id"], str(self.case.id))
 
     def test_get_cases_on_updated_cases_queue_when_user_is_not_assigned_to_a_case_returns_no_cases(self):
@@ -311,7 +321,7 @@ class FilterQueueUpdatedCasesTests(DataTestClient):
         self.assertEqual(response_data[0]["id"], str(self.case.id))
 
 
-class FilterUserAssignedCasesQueueTests(DataTestClient):
+class UserAssignedCasesQueueTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
@@ -346,7 +356,7 @@ class FilterUserAssignedCasesQueueTests(DataTestClient):
         self.assertNotEqual(response_data[0]["id"], str(user_assigned_case.id))
 
 
-class FilterQueueUserAssignedAsCaseOfficerTests(DataTestClient):
+class UserAssignedAsCaseOfficerQueueTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
@@ -380,7 +390,7 @@ class FilterQueueUserAssignedAsCaseOfficerTests(DataTestClient):
         self.assertNotEqual(response_data[0]["id"], str(case_officer_case.id))
 
 
-class TestQueueOrdering(DataTestClient):
+class CaseOrderingOnQueueTests(DataTestClient):
     def test_all_cases_queue_returns_cases_in_expected_order(self):
         """Test All cases queue returns cases in expected order (newest first)."""
         url = reverse("cases:search")
@@ -426,7 +436,7 @@ class TestQueueOrdering(DataTestClient):
         self.assertEqual(actual_case_order_ids, expected_case_order_ids)
 
 
-class TestTeamOpenEcjuQueryOnWorkCase(DataTestClient):
+class OpenEcjuQueriesForTeamOnWorkQueueTests(DataTestClient):
     def setUp(self):
         super().setUp()
 

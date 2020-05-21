@@ -2,6 +2,7 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api import strings
@@ -44,7 +45,7 @@ class EditStandardApplicationTests(DataTestClient):
 
         self.assertNotEqual(application.updated_at, updated_at)
         # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand(
         [
@@ -179,7 +180,7 @@ class EditStandardApplicationTests(DataTestClient):
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, value)
-        self.assertEqual(Audit.objects.all().count(), 2)
+        self.assertEqual(Audit.objects.count(), 3)
 
     @parameterized.expand(
         [
@@ -224,7 +225,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.is_compliant_limitations_eu, data["is_compliant_limitations_eu"])
         self.assertEqual(application.compliant_limitations_eu_ref, data["compliant_limitations_eu_ref"])
-        self.assertEqual(Audit.objects.all().count(), 2)
+        self.assertEqual(Audit.objects.count(), 3)
 
     def test_edit_standard_application_end_use_details_is_compliant_limitations_eu_is_empty(self):
         application = self.create_draft_standard_application(self.organisation)
@@ -261,7 +262,7 @@ class EditStandardApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.intended_end_use, data["intended_end_use"])
-        self.assertEqual(Audit.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.count(), 1)
 
     def test_edit_standard_application_end_use_details_intended_end_use_is_empty(self):
         application = self.create_draft_standard_application(self.organisation)
@@ -317,7 +318,7 @@ class EditOpenApplicationTests(DataTestClient):
 
         self.assertNotEqual(self.application.updated_at, updated_at)
         # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand(
         [
@@ -444,7 +445,7 @@ class EditOpenApplicationTests(DataTestClient):
 
         attribute = getattr(application, key)
         self.assertEqual(attribute, value)
-        self.assertEqual(Audit.objects.all().count(), 2)
+        self.assertEqual(Audit.objects.count(), 3)
 
     @parameterized.expand(
         [
@@ -488,7 +489,7 @@ class EditOpenApplicationTests(DataTestClient):
         application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.intended_end_use, data["intended_end_use"])
-        self.assertEqual(Audit.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.count(), 2)
 
     def test_edit_open_application_end_use_details_intended_end_use_is_empty(self):
         application = self.create_draft_open_application(self.organisation)
@@ -530,7 +531,7 @@ class EditF680ApplicationTests(DataTestClient):
         self.application.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.application.intended_end_use, data["intended_end_use"])
-        self.assertEqual(Audit.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.count(), 1)
 
     def test_edit_f680_application_end_use_details_intended_end_use_is_empty_failure(self):
         self.submit_application(self.application)

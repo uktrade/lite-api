@@ -36,7 +36,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(application.name, self.data["name"])
         self.assertGreater(application.updated_at, updated_at)
         # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
@@ -55,7 +55,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(application.name, self.data["name"])
         self.assertNotEqual(application.updated_at, updated_at)
-        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.count(), 2)
         self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
 
     @parameterized.expand(get_case_statuses(read_only=True))
@@ -96,7 +96,7 @@ class EditStandardApplicationTests(DataTestClient):
         self.assertNotEqual(application.updated_at, updated_at)
 
         # Check add audit
-        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.count(), 2)
         self.assertEqual(AuditType(audit_qs.first().verb), AuditType.UPDATE_APPLICATION_LETTER_REFERENCE)
         self.assertEqual(audit_qs.first().payload, {"old_ref_number": "no reference", "new_ref_number": new_ref})
 
@@ -106,7 +106,7 @@ class EditStandardApplicationTests(DataTestClient):
 
         # Check update audit
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(audit_qs.count(), 2)
+        self.assertEqual(audit_qs.count(), 3)
         self.assertEqual(AuditType(audit_qs.first().verb), AuditType.UPDATE_APPLICATION_LETTER_REFERENCE)
         self.assertEqual(audit_qs.first().payload, {"old_ref_number": new_ref, "new_ref_number": update_ref})
 
@@ -116,7 +116,7 @@ class EditStandardApplicationTests(DataTestClient):
 
         # Check update
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(audit_qs.count(), 3)
+        self.assertEqual(audit_qs.count(), 4)
         self.assertEqual(AuditType(audit_qs.first().verb), AuditType.UPDATE_APPLICATION_LETTER_REFERENCE)
         self.assertEqual(audit_qs.first().payload, {"old_ref_number": update_ref, "new_ref_number": "no reference"})
 
@@ -126,7 +126,7 @@ class EditStandardApplicationTests(DataTestClient):
 
         # Check update
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(audit_qs.count(), 4)
+        self.assertEqual(audit_qs.count(), 5)
         self.assertEqual(AuditType(audit_qs.first().verb), AuditType.REMOVED_APPLICATION_LETTER_REFERENCE)
         self.assertEqual(audit_qs.first().payload, {"old_ref_number": "no reference"})
 
@@ -151,7 +151,7 @@ class EditMODClearanceApplicationsTests(DataTestClient):
         self.assertEqual(self.application.name, self.data["name"])
         self.assertNotEqual(self.application.updated_at, updated_at)
         # Unsubmitted (draft) applications should not create audit entries when edited
-        self.assertEqual(Audit.objects.all().count(), 0)
+        self.assertEqual(Audit.objects.count(), 0)
 
     @parameterized.expand(get_case_statuses(read_only=False))
     def test_edit_application_name_in_editable_status_success(self, editable_status):
@@ -169,7 +169,7 @@ class EditMODClearanceApplicationsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.application.name, self.data["name"])
         self.assertNotEqual(self.application.updated_at, updated_at)
-        self.assertEqual(audit_qs.count(), 1)
+        self.assertEqual(audit_qs.count(), 2)
         self.assertEqual(audit_object.payload, {"new_name": self.data["name"], "old_name": old_name})
 
     @parameterized.expand(get_case_statuses(read_only=True))
@@ -271,7 +271,7 @@ class EditF680ApplicationsTests(DataTestClient):
         )
 
         # Check add audit
-        self.assertEqual(Audit.objects.all().count(), 1)
+        self.assertEqual(Audit.objects.all().count(), 2)
         audit = Audit.objects.all().first()
         self.assertEqual(AuditType(audit.verb), AuditType.UPDATE_APPLICATION_F680_CLEARANCE_TYPES)
         self.assertEqual(
@@ -397,7 +397,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
     def test_edit_exhibition_required_by_date_draft_success(self):
         data = {
             "title": self.application.title,
-            "required_by_date": "2020-05-15",
+            "required_by_date": "2022-05-15",
             "first_exhibition_date": self.application.first_exhibition_date,
         }
 
