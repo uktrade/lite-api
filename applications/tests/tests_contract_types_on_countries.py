@@ -1,9 +1,7 @@
-from django.db.models import Min, Case, When, BinaryField
 from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
-from applications.enums import ContractType
 from applications.models import CountryOnApplication
 from cases.libraries.get_flags import get_ordered_flags
 from flags.tests.factories import FlagFactory
@@ -13,7 +11,7 @@ from test_helpers.clients import DataTestClient
 
 
 class ContractTypeOnCountryTests(DataTestClient):
-    @tag("2146", "only")
+    @tag("2146")
     def test_set_contract_type_on_country_on_application_success(self):
         application = self.create_open_application_case(self.organisation)
 
