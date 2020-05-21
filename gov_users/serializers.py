@@ -74,11 +74,13 @@ class RoleListStatusesSerializer(RoleListSerializer):
 
 
 class GovUserListSerializer(serializers.Serializer):
-    id = serializers.UUIDField(read_only=True)
-    email = serializers.CharField(read_only=True)
-    first_name = serializers.CharField(read_only=True)
-    last_name = serializers.CharField(read_only=True)
-    status = serializers.CharField(read_only=True)
+    id = serializers.UUIDField()
+    email = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    status = serializers.ChoiceField(choices=GovUserStatuses.choices)
+    team = TeamReadOnlySerializer()
+    role_name = serializers.CharField(source="role.name")
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):
@@ -106,16 +108,6 @@ class GovUserViewSerializer(serializers.ModelSerializer):
             return {"id": queue_id, "name": SYSTEM_QUEUES[queue_id]}
         else:
             return TinyQueueSerializer(Queue.objects.get(pk=queue_id)).data
-
-
-class GovUserListSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    email = serializers.CharField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    status = serializers.ChoiceField(choices=GovUserStatuses.choices)
-    team = TeamReadOnlySerializer()
-    role_name = serializers.CharField(source="role.name")
 
 
 class GovUserCreateSerializer(GovUserViewSerializer):
