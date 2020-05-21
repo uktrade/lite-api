@@ -27,7 +27,12 @@ class LetterTemplatesList(generics.ListCreateAPIView):
 
     authentication_classes = (GovAuthentication,)
     queryset = LetterTemplate.objects.all().prefetch_related("layout", "case_types")
-    serializer_class = LetterTemplateListSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return LetterTemplateListSerializer
+        else:
+            return LetterTemplateSerializer
 
     def get_queryset(self):
         case = self.request.GET.get("case")
