@@ -2,16 +2,19 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from audit_trail.enums import AuditType
+from applications.serializers.advice import CaseAdviceSerializer
 from audit_trail import service as audit_trail_service
+from audit_trail.enums import AuditType
+from cases.enums import AdviceLevel, AdviceType
 from cases.libraries.get_case import get_case
-from cases.models import FinalAdvice, TeamAdvice, Advice
+from cases.models import Advice
 from conf import constants
+from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
-from static.statuses.enums import CaseStatusEnum
 from lite_content.lite_api import strings
+from static.statuses.enums import CaseStatusEnum
 
 
 def check_if_user_cannot_manage_team_advice(case, user):
@@ -28,25 +31,24 @@ def check_if_user_cannot_manage_team_advice(case, user):
 
 
 def check_if_final_advice_exists(case):
-    if FinalAdvice.objects.filter(case=case):
+    if Advice.objects.get_final_advice(case=case):
         return JsonResponse({"errors": "Final advice already exists for this case"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def check_if_team_advice_exists(case, user):
-    if TeamAdvice.objects.filter(case=case, team=user.team):
+    if Advice.objects.get_team_advice(case=case, team=user.team):
         return JsonResponse(
             {"errors": "Team advice from your team already exists for this case"}, status=status.HTTP_400_BAD_REQUEST
         )
 
 
 def check_refusal_errors(advice):
-    if advice["type"].lower() == "refuse" and not advice["text"]:
+    if advice.get("type") and advice["type"].lower() == AdviceType.REFUSE and not advice["text"]:
         return {"text": [ErrorDetail(string=strings.Cases.ADVICE_REFUSAL_ERROR, code="blank")]}
     return None
 
 
-def post_advice(request, case, serializer_object, team=False):
-
+def post_advice(request, case, level, team=False):
     if CaseStatusEnum.is_terminal(case.status.status):
         return JsonResponse(
             data={"errors": [strings.Applications.Generic.TERMINAL_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
@@ -58,6 +60,7 @@ def post_advice(request, case, serializer_object, team=False):
     # Update the case and user in each piece of advice
     refusal_error = False
     for advice in data:
+        advice["level"] = level
         advice["case"] = str(case.id)
         advice["user"] = str(request.user.id)
         if team:
@@ -65,7 +68,10 @@ def post_advice(request, case, serializer_object, team=False):
         if not refusal_error:
             refusal_error = check_refusal_errors(advice)
 
-    serializer = serializer_object(data=data, many=True)
+    # we only need to know if the user has the permission if not final advice
+    footnote_permission = request.user.has_permission(GovPermissions.MAINTAIN_FOOTNOTES) and level != AdviceLevel.FINAL
+
+    serializer = CaseAdviceSerializer(data=data, many=True, context={"footnote_permission": footnote_permission})
 
     if serializer.is_valid() and not refusal_error:
         serializer.save()
@@ -76,18 +82,18 @@ def post_advice(request, case, serializer_object, team=False):
             )
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
-    errors = [{}]
+    errors = {}
     if serializer.errors:
-        errors[0].update(serializer.errors[0])
+        errors.update(serializer.errors[0])
 
     if refusal_error:
-        errors[0].update(refusal_error)
+        errors.update(refusal_error)
     return JsonResponse({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def case_advice_contains_refusal(case_id):
     case = get_case(case_id)
-    team_advice = TeamAdvice.objects.filter(case=case)
+    team_advice = Advice.objects.filter(case=case)
     flag = Flag.objects.get(id=SystemFlags.REFUSAL_FLAG_ID)
 
     refuse_advice_found = False

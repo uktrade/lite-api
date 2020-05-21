@@ -8,7 +8,7 @@ class CaseStatusEnum:
     CLC = "clc_review"
     CLOSED = "closed"
     DEREGISTERED = "deregistered"
-    DRAFT = "draft"  # System status only
+    DRAFT = "draft"  # System only status
     FINALISED = "finalised"
     INITIAL_CHECKS = "initial_checks"
     PV = "pv_review"
@@ -17,6 +17,7 @@ class CaseStatusEnum:
     REOPENED_DUE_TO_ORG_CHANGES = "reopened_due_to_org_changes"
     RESUBMITTED = "resubmitted"
     REVOKED = "revoked"
+    OGD_ADVICE = "ogd_advice"
     SUBMITTED = "submitted"
     SURRENDERED = "surrendered"
     SUSPENDED = "suspended"
@@ -45,6 +46,7 @@ class CaseStatusEnum:
         SURRENDERED,
         SUSPENDED,
         WITHDRAWN,
+        OGD_ADVICE,
     ]
 
     _major_editable_statuses = [APPLICANT_EDITING, DRAFT]
@@ -81,6 +83,7 @@ class CaseStatusEnum:
         (UNDER_FINAL_REVIEW, "Under final review"),
         (UNDER_REVIEW, "Under review"),
         (WITHDRAWN, "Withdrawn"),
+        (OGD_ADVICE, "OGD Advice"),
     ]
 
     priority = {
@@ -89,37 +92,40 @@ class CaseStatusEnum:
         RESUBMITTED: 3,
         INITIAL_CHECKS: 4,
         UNDER_REVIEW: 5,
-        UNDER_FINAL_REVIEW: 6,
-        FINALISED: 7,
-        CLC: 8,
-        PV: 9,
-        WITHDRAWN: 10,
-        CLOSED: 11,
-        REGISTERED: 12,
-        UNDER_APPEAL: 13,
-        APPEAL_REVIEW: 14,
-        APPEAL_FINAL_REVIEW: 15,
-        REOPENED_FOR_CHANGES: 16,
-        REOPENED_DUE_TO_ORG_CHANGES: 17,
-        CHANGE_INTIAL_REVIEW: 18,
-        CHANGE_UNDER_REVIEW: 19,
-        CHANGE_UNDER_FINAL_REVIEW: 20,
-        UNDER_ECJU_REVIEW: 21,
-        REVOKED: 22,
-        SUSPENDED: 23,
-        SURRENDERED: 24,
-        DEREGISTERED: 25,
+        OGD_ADVICE: 6,
+        UNDER_FINAL_REVIEW: 7,
+        FINALISED: 8,
+        CLC: 9,
+        PV: 10,
+        WITHDRAWN: 11,
+        CLOSED: 12,
+        REGISTERED: 13,
+        UNDER_APPEAL: 14,
+        APPEAL_REVIEW: 15,
+        APPEAL_FINAL_REVIEW: 16,
+        REOPENED_FOR_CHANGES: 17,
+        REOPENED_DUE_TO_ORG_CHANGES: 18,
+        CHANGE_INTIAL_REVIEW: 19,
+        CHANGE_UNDER_REVIEW: 20,
+        CHANGE_UNDER_FINAL_REVIEW: 21,
+        UNDER_ECJU_REVIEW: 22,
+        REVOKED: 23,
+        SUSPENDED: 24,
+        SURRENDERED: 25,
+        DEREGISTERED: 26,
     }
 
     @classmethod
     def get_text(cls, status):
-        for k, v in cls.choices:
+        # All available statuses and DRAFT (System only status)
+        for k, v in [*cls.choices, (cls.DRAFT, "Draft")]:
             if status == k:
                 return v
 
     @classmethod
     def get_value(cls, status):
-        for k, v in cls.choices:
+        # All available statuses and DRAFT (System only status)
+        for k, v in [*cls.choices, (cls.DRAFT, "Draft")]:
             if status == v:
                 return k
 

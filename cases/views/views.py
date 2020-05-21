@@ -3,18 +3,17 @@ from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
-
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from licences.models import Licence
-from licences.serializers.create_licence import LicenceCreateSerializer
+from applications.models import CountryOnApplication
+from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum, AdviceType
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.generated_documents.serializers import FinalAdviceDocumentGovSerializer
-from cases.helpers import create_grouped_advice
+from cases.generated_documents.serializers import AdviceDocumentGovSerializer
+from cases.libraries.advice import group_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
@@ -26,39 +25,37 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, TeamAdvice, FinalAdvice, GoodCountryDecision, CaseAssignment
+from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
     EcjuQueryCreateSerializer,
     CaseDetailSerializer,
-    CaseAdviceSerializer,
     EcjuQueryGovSerializer,
     EcjuQueryExporterSerializer,
-    CaseTeamAdviceSerializer,
-    CaseFinalAdviceSerializer,
+    CaseAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
 )
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
-from conf.exceptions import NotFoundError
+from conf.exceptions import NotFoundError, BadRequestError
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
 from goodstype.helpers import get_goods_type
-from gov_users.serializers import GovUserSimpleSerializer
+from licences.models import Licence
+from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api.strings import Documents, Cases
 from organisations.libraries.get_organisation import get_request_user_organisation_id
-from queues.serializers import TinyQueueSerializer
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
+from queues.serializers import TinyQueueSerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
-from static.countries.serializers import CountryWithFlagsSerializer
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -193,29 +190,17 @@ class ExporterCaseDocumentDownload(APIView):
             raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
 
 
-class CaseAdvice(APIView):
+class UserAdvice(APIView):
     authentication_classes = (GovAuthentication,)
 
     case = None
     advice = None
-    serializer_object = None
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
-        # We exclude any team of final level advice objects
-        self.advice = (
-            Advice.objects.filter(case=self.case).exclude(teamadvice__isnull=False).exclude(finaladvice__isnull=False)
-        )
-        self.serializer_object = CaseAdviceSerializer
+        self.advice = Advice.objects.get_user_advice(self.case)
 
-        return super(CaseAdvice, self).dispatch(request, *args, **kwargs)
-
-    def get(self, request, pk):
-        """
-        Returns all advice for a case
-        """
-        serializer = self.serializer_object(self.advice, many=True)
-        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
+        return super(UserAdvice, self).dispatch(request, *args, **kwargs)
 
     @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
@@ -229,58 +214,49 @@ class CaseAdvice(APIView):
         elif team_advice_exists:
             return team_advice_exists
         else:
-            return post_advice(request, self.case, self.serializer_object, team=False)
+            return post_advice(request, self.case, AdviceLevel.USER)
 
 
-class ViewTeamAdvice(APIView):
-    def get(self, request, pk, team_pk):
-        team_advice = TeamAdvice.objects.filter(case__pk=pk, team__pk=team_pk)
-
-        serializer = CaseTeamAdviceSerializer(team_advice, many=True)
-        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
-
-
-class CaseTeamAdvice(APIView):
+class TeamAdviceView(APIView):
     authentication_classes = (GovAuthentication,)
 
     case = None
     advice = None
     team_advice = None
-    serializer_object = None
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
         self.advice = Advice.objects.filter(case=self.case)
-        self.team_advice = TeamAdvice.objects.filter(case=self.case).order_by("created_at")
-        self.serializer_object = CaseTeamAdviceSerializer
+        self.team_advice = Advice.objects.get_team_advice(self.case)
 
-        return super(CaseTeamAdvice, self).dispatch(request, *args, **kwargs)
+        return super(TeamAdviceView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
-        Concatenates all advice for a case and returns it or just returns if team advice already exists
+        Concatenates all advice for a case
         """
-
         if self.team_advice.filter(team=request.user.team).count() == 0:
             user_cannot_manage_team_advice = check_if_user_cannot_manage_team_advice(pk, request.user)
             if user_cannot_manage_team_advice:
                 return user_cannot_manage_team_advice
 
-            team = self.request.user.team
-            advice = self.advice.filter(user__team=team)
-            create_grouped_advice(self.case, self.request.user, advice, TeamAdvice)
+            team = self.request.user.team_id
+            advice = self.advice.filter(user__team_id=team)
+            group_advice(self.case, advice, request.user, AdviceLevel.TEAM)
             case_advice_contains_refusal(pk)
 
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_TEAM_ADVICE, target=self.case,
             )
-            team_advice = TeamAdvice.objects.filter(case=self.case, team=team).order_by("created_at")
+
+            team_advice = Advice.objects.filter(case=self.case, team_id=team).order_by("-created_at")
         else:
             team_advice = self.team_advice
-        serializer = self.serializer_object(team_advice, many=True)
+
+        serializer = CaseAdviceSerializer(team_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseTeamAdviceSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -293,7 +269,7 @@ class CaseTeamAdvice(APIView):
         if final_advice_exists:
             return final_advice_exists
 
-        advice = post_advice(request, self.case, self.serializer_object, team=True)
+        advice = post_advice(request, self.case, AdviceLevel.TEAM, team=True)
         case_advice_contains_refusal(pk)
         return advice
 
@@ -320,12 +296,12 @@ class FinalAdviceDocuments(APIView):
         """
         # Get all advice
         advice_values = AdviceType.as_dict()
-        final_advice = FinalAdvice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
+        final_advice = Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
         # Add advice documents
         generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
-        generated_advice_documents = FinalAdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
+        generated_advice_documents = AdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
         for document in generated_advice_documents:
             advice_type = document["advice_type"]["key"]
             advice_documents[advice_type]["document"] = document
@@ -333,30 +309,19 @@ class FinalAdviceDocuments(APIView):
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
 
-class ViewFinalAdvice(APIView):
-    def get(self, request, pk):
-        case = get_case(pk)
-        final_advice = FinalAdvice.objects.filter(case=case)
-
-        serializer = CaseFinalAdviceSerializer(final_advice, many=True)
-        return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
-
-
-class CaseFinalAdvice(APIView):
+class FinalAdvice(APIView):
     authentication_classes = (GovAuthentication,)
 
     case = None
     team_advice = None
     final_advice = None
-    serializer_object = None
 
     def dispatch(self, request, *args, **kwargs):
         self.case = get_case(kwargs["pk"])
-        self.team_advice = TeamAdvice.objects.filter(case=self.case)
-        self.final_advice = FinalAdvice.objects.filter(case=self.case).order_by("created_at")
-        self.serializer_object = CaseFinalAdviceSerializer
+        self.team_advice = Advice.objects.get_team_advice(case=self.case)
+        self.final_advice = Advice.objects.get_final_advice(case=self.case).order_by("created_at")
 
-        return super(CaseFinalAdvice, self).dispatch(request, *args, **kwargs)
+        return super(FinalAdvice, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
@@ -364,26 +329,26 @@ class CaseFinalAdvice(APIView):
         """
         if len(self.final_advice) == 0:
             assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-            # We pass in the class of advice we are creating
-            create_grouped_advice(self.case, self.request.user, self.team_advice, FinalAdvice)
+
+            group_advice(self.case, self.team_advice, request.user, AdviceLevel.FINAL)
 
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.CREATED_FINAL_ADVICE, target=self.case,
             )
-            final_advice = FinalAdvice.objects.filter(case=self.case).order_by("created_at")
+            final_advice = Advice.objects.filter(case=self.case).order_by("-created_at")
         else:
             final_advice = self.final_advice
 
-        serializer = self.serializer_object(final_advice, many=True)
+        serializer = CaseAdviceSerializer(final_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseFinalAdviceSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case
         """
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        return post_advice(request, self.case, self.serializer_object, team=True)
+        return post_advice(request, self.case, AdviceLevel.FINAL, team=True)
 
     def delete(self, request, pk):
         """
@@ -494,10 +459,19 @@ class GoodsCountriesDecisions(APIView):
 
     def post(self, request, pk):
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        data = JSONParser().parse(request).get("good_countries")
+        data = request.data.get("good_countries")
+
+        if not data:
+            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
+
+        country_count = CountryOnApplication.objects.filter(application=get_case(data[0]["case"])).count()
+
+        if len(data) != country_count:
+            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
 
         serializer = GoodCountryDecisionSerializer(data=data, many=True)
-        if serializer.is_valid():
+
+        if serializer.is_valid(raise_exception=True):
             for item in data:
                 GoodCountryDecision(
                     good=get_goods_type(item["good"]),
@@ -508,10 +482,10 @@ class GoodsCountriesDecisions(APIView):
 
             return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
 
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class Destination(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def get(self, request, pk):
         destination = get_destination(pk)
 
@@ -525,15 +499,6 @@ class Destination(APIView):
 
 class CaseOfficer(APIView):
     authentication_classes = (GovAuthentication,)
-
-    def get(self, request, pk):
-        """
-        Gets the current case officer for a case
-        """
-        case_officer = get_case(pk).case_officer
-        data = {"case_officer": GovUserSimpleSerializer(case_officer).data if case_officer else None}
-
-        return JsonResponse(data=data, status=status.HTTP_200_OK)
 
     @transaction.atomic
     def put(self, request, pk):
@@ -549,13 +514,12 @@ class CaseOfficer(APIView):
             )
 
         data = {"case_officer": gov_user_pk}
-
         serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             user = get_user_by_pk(gov_user_pk)
-
             serializer.save()
+
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.ADD_CASE_OFFICER_TO_CASE,
@@ -563,9 +527,7 @@ class CaseOfficer(APIView):
                 payload={"case_officer": user.email if not user.first_name else f"{user.first_name} {user.last_name}"},
             )
 
-            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
     @transaction.atomic
     def delete(self, request, pk):
@@ -573,6 +535,7 @@ class CaseOfficer(APIView):
         Removes the case officer currently assigned to a case off of it.
         """
         case = get_case(pk)
+
         if not case.case_officer:
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
@@ -580,7 +543,7 @@ class CaseOfficer(APIView):
 
         serializer = CaseOfficerUpdateSerializer(instance=case, data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             user = case.case_officer
 
             serializer.save()
@@ -591,9 +554,7 @@ class CaseOfficer(APIView):
                 payload={"case_officer": user.email if not user.first_name else f"{user.first_name} {user.last_name}"},
             )
 
-            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class FinaliseView(RetrieveUpdateAPIView):
@@ -617,7 +578,7 @@ class FinaliseView(RetrieveUpdateAPIView):
             assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         # Check all decision types have documents
-        required_decisions = set(FinalAdvice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
+        required_decisions = set(Advice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
         generated_document_decisions = set(
             GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list(
                 "advice_type", flat=True

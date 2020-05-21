@@ -61,11 +61,11 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         response = self.client.post(self.url, data, **self.gov_headers)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
-        verified_good = Good.objects.get(pk=self.good_1.pk)
-        self.assertEqual(verified_good.control_list_entries.get().rating, "ML1a")
+        verified_good_1 = Good.objects.get(pk=self.good_1.pk)
+        verified_good_2 = Good.objects.get(pk=self.good_2.pk)
 
-        verified_good = Good.objects.get(pk=self.good_2.pk)
-        self.assertEqual(verified_good.control_list_entries.get().rating, "ML1a")
+        self.assertEqual(verified_good_1.control_list_entries.get().rating, "ML1a")
+        self.assertEqual(verified_good_2.control_list_entries.get().rating, "ML1a")
 
     def test_verify_single_good_NLR(self):
         """
@@ -121,7 +121,7 @@ class GoodsVerifiedTestsStandardApplication(DataTestClient):
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
 
         verified_good = Good.objects.get(pk=self.good_1.pk)
         self.assertEqual(verified_good.control_list_entries.count(), 0)

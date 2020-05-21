@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ErrorDetail
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
+from uuid import UUID
 
 from applications import constants
 from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
@@ -53,8 +54,8 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.libraries.get_flags import get_flags
-from cases.models import FinalAdvice
-from cases.serializers import SimpleFinalAdviceSerializer
+from cases.models import Advice
+from cases.serializers import SimpleAdviceSerializer
 from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
@@ -65,7 +66,7 @@ from conf.decorators import (
 )
 from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
-from flags.enums import FlagStatuses
+from flags.enums import FlagStatuses, SystemFlags
 from goodstype.models import GoodsType
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
@@ -329,13 +330,13 @@ class ApplicationSubmission(APIView):
         # HMRC are completed when submit is clicked on the summary page (page after task list)
         # Applications are completed when submit is clicked on the declaration page (page after summary page)
 
-        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS,] or (
+        if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS] or (
             CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
         ):
             set_application_sla(application)
             create_submitted_audit(request, application, old_status)
 
-        if application.case_type.sub_type in [
+        elif application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
             CaseTypeSubTypeEnum.OPEN,
             CaseTypeSubTypeEnum.F680,
@@ -358,6 +359,14 @@ class ApplicationSubmission(APIView):
                 apply_flagging_rules_to_case(application)
                 create_submitted_audit(request, application, old_status)
                 run_routing_rules(application)
+
+        if application.case_type.sub_type in [
+            CaseTypeSubTypeEnum.STANDARD,
+            CaseTypeSubTypeEnum.OPEN,
+            CaseTypeSubTypeEnum.HMRC,
+        ]:
+            if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
+                application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
@@ -433,7 +442,12 @@ class ApplicationManageStatus(APIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=application.get_case(),
-            payload={"status": {"new": CaseStatusEnum.get_text(case_status.status), "old": old_status.status}},
+            payload={
+                "status": {
+                    "new": CaseStatusEnum.get_text(case_status.status),
+                    "old": CaseStatusEnum.get_text(old_status.status),
+                }
+            },
         )
 
         # Case routing rules
@@ -456,7 +470,7 @@ class ApplicationFinaliseView(APIView):
     approved_goods_on_application = None
 
     def dispatch(self, request, *args, **kwargs):
-        self.approved_goods_advice = FinalAdvice.objects.filter(
+        self.approved_goods_advice = Advice.objects.filter(
             case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO], good_id__isnull=False,
         )
         self.approved_goods_on_application = GoodOnApplication.objects.filter(
@@ -475,7 +489,7 @@ class ApplicationFinaliseView(APIView):
         for good_advice in self.approved_goods_advice:
             for good in goods_on_application:
                 if str(good_advice.good.id) == good["good"]["id"]:
-                    good["advice"] = SimpleFinalAdviceSerializer(good_advice).data
+                    good["advice"] = SimpleAdviceSerializer(good_advice).data
 
         return JsonResponse({"goods": goods_on_application})
 
@@ -595,6 +609,8 @@ class ApplicationDurationView(APIView):
 
 
 class ApplicationCopy(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
     @transaction.atomic
     def post(self, request, pk):
         """

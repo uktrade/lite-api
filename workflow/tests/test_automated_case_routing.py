@@ -350,7 +350,7 @@ class CaseRoutingAutomationTests(DataTestClient):
         self.assertIn(self.queue, set(case.queues.all()))
         self.assertEqual(case.status, CaseStatus.objects.get(status="submitted"))
 
-    def test_rules_not_run_if_flags_match(self):
+    def test_rules_not_run_if_multiple_flags_match(self):
         flag_1 = FlagFactory(team=self.team)
         flag_2 = FlagFactory(team=self.team)
         flag_3 = FlagFactory(team=self.team)

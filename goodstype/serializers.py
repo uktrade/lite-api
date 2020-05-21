@@ -93,13 +93,15 @@ class GoodsTypeViewSerializer(serializers.Serializer):
     countries = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
+    comment = serializers.CharField()
+    report_summary = serializers.CharField()
 
     def __init__(self, instance=None, data=empty, default_countries=None, **kwargs):
         super().__init__(instance, data, **kwargs)
         self.default_countries = default_countries
 
     def get_flags(self, instance):
-        return list(instance.flags.filter().values("id", "name"))
+        return list(instance.flags.filter().values("id", "name", "colour", "label"))
 
     def get_countries(self, instance):
         countries = instance.countries

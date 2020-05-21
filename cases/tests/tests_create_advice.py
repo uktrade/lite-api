@@ -2,11 +2,11 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from audit_trail.models import Audit
 from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from cases.enums import AdviceType
 from cases.models import Advice
-from conf.helpers import convert_queryset_to_str
+from conf.constants import GovPermissions
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -18,7 +18,7 @@ class CreateCaseAdviceTests(DataTestClient):
         self.application = self.create_draft_standard_application(self.organisation)
         self.case = self.submit_application(self.application)
 
-        self.standard_case_url = reverse("cases:case_advice", kwargs={"pk": self.case.id})
+        self.standard_case_url = reverse("cases:user_advice", kwargs={"pk": self.case.id})
 
     @parameterized.expand(
         [
@@ -48,36 +48,9 @@ class CreateCaseAdviceTests(DataTestClient):
             data["denial_reasons"] = ["1a", "1b", "1c"]
 
         response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
-        response_data = response.json()["advice"][0]
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        self.assertEqual(response_data["text"], data["text"])
-        self.assertEqual(response_data["note"], data["note"])
-        self.assertEqual(response_data["type"]["key"], data["type"])
-        self.assertEqual(response_data["end_user"], data["end_user"])
-
-        advice_object = Advice.objects.get()
-
-        # Ensure that proviso details aren't added unless the type sent is PROVISO
-        if advice_type != AdviceType.PROVISO:
-            self.assertTrue("proviso" not in response_data)
-            self.assertEqual(advice_object.proviso, None)
-        else:
-            self.assertEqual(response_data["proviso"], data["proviso"])
-            self.assertEqual(advice_object.proviso, data["proviso"])
-
-        # Ensure that refusal details aren't added unless the type sent is REFUSE
-        if advice_type != AdviceType.REFUSE:
-            self.assertTrue("denial_reasons" not in response_data)
-            self.assertEqual(advice_object.denial_reasons.count(), 0)
-        else:
-            self.assertCountEqual(data["denial_reasons"], response_data["denial_reasons"])
-            self.assertCountEqual(
-                convert_queryset_to_str(advice_object.denial_reasons.values_list("id", flat=True)),
-                data["denial_reasons"],
-            )
-
+        self.assertIsNotNone(Advice.objects.get())
         self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
 
     def test_cannot_create_empty_advice(self):
@@ -125,3 +98,86 @@ class CreateCaseAdviceTests(DataTestClient):
         response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_cannot_add_footnote_without_permission(self):
+        self.gov_user.role.permissions.remove(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+            "footnote_required": "True",
+            "footnote": "footnote",
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        response_data = response.json()["advice"][0]
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["footnote"], None)
+        self.assertEqual(response_data["footnote_required"], None)
+
+    def test_cannot_create_advice_without_footnote_and_having_permission(self):
+        self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_can_create_advice_with_footnote_not_required(self):
+        self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+            "footnote_required": "False",
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        response_data = response.json()["advice"][0]
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["footnote"], None)
+        self.assertEqual(response_data["footnote_required"], False)
+
+    def test_cannot_create_advice_with_footnote_required_and_no_footnote(self):
+        self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+            "footnote_required": "True",
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_can_create_advice_with_footnote_not_required(self):
+        self.gov_user.role.permissions.add(GovPermissions.MAINTAIN_FOOTNOTES.name)
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "end_user": str(self.application.end_user.party.id),
+            "footnote_required": "True",
+            "footnote": "footnote",
+        }
+
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        response_data = response.json()["advice"][0]
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response_data["footnote"], "footnote")
+        self.assertEqual(response_data["footnote_required"], True)

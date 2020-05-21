@@ -1,5 +1,6 @@
 from audit_trail.enums import AuditType
 from cases.models import Case, CaseAssignment
+from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 from users.enums import SystemUser, UserStatuses
 from users.models import BaseUser
@@ -28,6 +29,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
         # look at each team one at a time
         for team in Team.objects.all():
             team_rule_tier = None
+
             # get each active routing rule for the given team, at the current status of the case,
             #   ordered by tier ascending
             for rule in (
@@ -39,6 +41,7 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                 #   sense, so only break once routing rules tier changes
                 if team_rule_tier and team_rule_tier != rule.tier:
                     break
+
                 for parameter_set in rule.parameter_sets():
                     # If the rule set is a subset of the case's set we wish to assign the user and queue to the case,
                     #   and set the team rule tier for the future.
@@ -62,7 +65,19 @@ def run_routing_rules(case: Case, keep_status: bool = False):
         if not rules_have_been_applied:
             next_status = get_next_status_in_workflow_sequence(case)
             if next_status and not next_status.is_terminal and not keep_status:
+                old_status = case.status
                 case.status = next_status
                 case.save()
+                audit_trail_service.create(
+                    actor=system_user,
+                    verb=AuditType.UPDATED_STATUS,
+                    target=case,
+                    payload={
+                        "status": {
+                            "new": CaseStatusEnum.get_text(next_status.status),
+                            "old": CaseStatusEnum.get_text(old_status.status),
+                        }
+                    },
+                )
             else:
                 rules_have_been_applied = True
