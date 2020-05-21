@@ -13,30 +13,30 @@ def convert_control_list_entries_to_tree(queryset):
     data = queryset.values()
 
     # Create Parent -> child links using dictionary
-    data_dict = {r["id"]: r for r in data}
-    for r in data:
-        if r["parent_id"] in data_dict:
-            parent = data_dict[r["parent_id"]]
+    data_dict = {control_code["id"]: control_code for control_code in data}
+    for control_code in data:
+        if control_code["parent_id"] in data_dict:
+            parent = data_dict[control_code["parent_id"]]
             if "children" not in parent:
                 parent["children"] = []
-            parent["children"].append(r)
+            parent["children"].append(control_code)
 
     # Helper function to get all the id's associated with a parent
-    def get_all_ids(r):
-        l = list()
-        l.append(r["id"])
-        if "children" in r:
-            for c in r["children"]:
-                l.extend(get_all_ids(c))
-        return l
+    def get_list_of_control_code_and_children_ids(control_code):
+        id_list = []
+        id_list.append(control_code["id"])
+        if "children" in control_code:
+            for c in control_code["children"]:
+                id_list.extend(get_list_of_control_code_and_children_ids(c))
+        return id_list
 
     # Trim the results to have a id only once
     ids = set(data_dict.keys())
-    result = []
-    for r in data_dict.values():
-        the_ids = set(get_all_ids(r))
-        if ids.intersection(the_ids):
-            ids = ids.difference(the_ids)
-            result.append(r)
+    deduplicated_ids = []
+    for control_code in data_dict.values():
+        full_control_code_id_list = set(get_list_of_control_code_and_children_ids(control_code))
+        if ids.intersection(full_control_code_id_list):
+            ids = ids.difference(full_control_code_id_list)
+            deduplicated_ids.append(control_code)
 
-    return result
+    return deduplicated_ids
