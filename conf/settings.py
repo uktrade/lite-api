@@ -171,13 +171,13 @@ LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts
 
 DATABASES = {"default": env.db()}
 
-# Documents
-S3_CLIENT = "boto3"
+REQUEST_TIMEOUT = 5
+
+# AWS
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_REGION = env("AWS_REGION")
-
 S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180
 STREAMING_CHUNK_SIZE = 8192
 
@@ -188,10 +188,11 @@ AV_SERVICE_PASSWORD = env("AV_SERVICE_PASSWORD")
 
 # Background tasks
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
-UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
-# Max number of seconds before re-running task if not complete
-MAX_RUN_TIME = 180
 BACKGROUND_TASK_RUN_ASYNC = True
+MAX_RUN_TIME = 180  # Time a given task is locked by a thread. After which, another thread can execute it simultaneously
+MAX_ATTEMPTS = 3  # How many times a task will be attempted should an unhandled exception occur
+
+UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True

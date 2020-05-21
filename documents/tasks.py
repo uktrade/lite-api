@@ -1,3 +1,5 @@
+import logging
+
 from background_task import background
 
 
@@ -9,5 +11,11 @@ def prepare_document(document_id):
     """
     from documents.models import Document
 
-    doc = Document.objects.get(id=document_id)
-    doc.prepare_document()
+    logging.warning(f"Preparing document {document_id}")
+
+    try:
+        doc = Document.objects.get(id=document_id)
+        doc.prepare_document()
+    except Exception as exc:  # noqa
+        logging.warning(f"Failed to prepare document {document_id}")
+        raise exc

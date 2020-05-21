@@ -18,15 +18,15 @@ class Document(TimestampableModel):
     def __str__(self):
         return self.name
 
-    def delete_s3(self, **kwargs):
+    def delete_s3(self):
         """ Removes file from s3 bucket (eg when the file is virus infected) """
-        logging.info("Removing file from S3: " + self.s3_key)
+        logging.info(f"Removing file {self.s3_key} from S3")
         s3_operations.delete_file(self.s3_key)
 
     def scan_for_viruses(self):
         from documents.av_scan import virus_scan_document
 
-        virus_scan_document(self.id)
+        virus_scan_document(self)
         self.refresh_from_db()
         return self
 

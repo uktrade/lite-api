@@ -2,11 +2,13 @@ import logging
 from contextlib import closing
 
 import requests
+from botocore.exceptions import ReadTimeoutError, BotoCoreError
 from django.conf import settings
 from django.utils.timezone import now
 from django_pglocks import advisory_lock
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
+from conf.settings import REQUEST_TIMEOUT
 from documents.libraries import s3_operations
 from documents.models import Document
 
@@ -36,59 +38,83 @@ class S3StreamingBodyWrapper:
         return self._remaining_bytes
 
 
-def virus_scan_document(document_pk: str):
+def virus_scan_document(document: Document):
     """
     Virus scans an uploaded document.
     This is intended to be run in the thread pool executor. The file is streamed from S3 to the
     anti-virus service.
     Any errors are logged and sent to Sentry.
     """
-    with advisory_lock(f"av-scan-{document_pk}"):
-        _process_document(document_pk)
+    logging.info(f"Scanning document {document.id} for viruses")
+    with advisory_lock(f"av-scan-{document.id}"):
+        _process_document(document)
 
 
-def _process_document(document_pk: str):
+def _process_document(document: Document):
     """Virus scans an uploaded document."""
     if not settings.AV_SERVICE_URL:
-        raise VirusScanException(f"Cannot scan document with ID {document_pk}; AV service URL not" f"configured")
+        raise VirusScanException(f"Cannot scan document {document.id}: AV service URL not configured")
 
-    doc = Document.objects.get(pk=document_pk)
-    if doc.virus_scanned_at is not None:
-        warn_msg = f"Skipping scan of doc:{document_pk}, already performed on {doc.virus_scanned_at}"
-        logging.warning(warn_msg)
+    if document.virus_scanned_at is not None:
+        logging.info(f"Skipping scan of document {document.id}: already performed on {document.virus_scanned_at}")
         return
 
-    is_file_clean = _scan_s3_object(doc.name, doc.s3_key)
+    is_file_clean = _scan_s3_object(document.id, document.name, document.s3_key)
+
     if is_file_clean is not None:
-        doc.virus_scanned_at = now()
-        doc.safe = is_file_clean
-        doc.save()
+        document.virus_scanned_at = now()
+        document.safe = is_file_clean
+        document.save()
+        logging.info(f"Scan of document {document.id} successfully completed: safe={is_file_clean}")
 
 
-def _scan_s3_object(original_filename, key):
+def _scan_s3_object(document_id, original_filename, key):
     """Virus scans a file stored in S3."""
-    response = s3_operations.get_object(key)
+    response = s3_operations.get_object(key)  # Get the file from S3
+
+    if not response:
+        raise VirusScanException(f"Failed to retrieve document {document_id} from S3")
+
     with closing(response["Body"]):
-        return _scan_raw_file(original_filename, S3StreamingBodyWrapper(response), response["ContentType"])
+        return _scan_raw_file(document_id, original_filename, S3StreamingBodyWrapper(response), response["ContentType"])
 
 
-def _scan_raw_file(filename, file_object, content_type):
+def _scan_raw_file(document_id, filename, file_object, content_type):
     """Virus scans a file-like object."""
-    multipart_fields = {"file": (filename, file_object, content_type,)}
+    multipart_fields = {"file": (filename, file_object, content_type)}
     encoder = MultipartEncoder(fields=multipart_fields)
 
-    response = requests.post(
-        # Assumes HTTP Basic auth in URL
-        # see: https://github.com/uktrade/dit-clamav-rest
-        settings.AV_SERVICE_URL,
-        data=encoder,
-        auth=(settings.AV_SERVICE_USERNAME, settings.AV_SERVICE_PASSWORD),
-        headers={"Content-Type": encoder.content_type},
-    )
-    response.raise_for_status()
-    report = response.json()
+    try:
+        response = requests.post(
+            # Assumes HTTP Basic auth in URL
+            # see: https://github.com/uktrade/dit-clamav-rest
+            settings.AV_SERVICE_URL,
+            data=encoder,
+            auth=(settings.AV_SERVICE_USERNAME, settings.AV_SERVICE_PASSWORD),
+            headers={"Content-Type": encoder.content_type},
+            timeout=REQUEST_TIMEOUT,
+        )
+    except requests.exceptions.Timeout:
+        raise VirusScanException(f"Timeout exceeded when scanning document {document_id}")
+    except requests.exceptions.RequestException as exc:
+        raise VirusScanException(f"An unexpected error occurred when scanning document {document_id}: {exc}")
+
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError:
+        raise VirusScanException(
+            f"Received an unexpected response when scanning document {document_id}: {response.status_code}"
+        )
+
+    try:
+        report = response.json()
+    except ValueError:
+        raise VirusScanException(
+            f"Received incorrect JSON from response when scanning document {document_id}: {response.text}"
+        )
+
     if "malware" not in report:
-        raise VirusScanException(f"File identified as malware: {response.text}")
+        raise VirusScanException(f"Document {document_id} identified as malware: {response.text}")
 
     return not report.get("malware")
 
