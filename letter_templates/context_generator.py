@@ -299,7 +299,8 @@ def _get_third_parties_context(third_parties):
 
 
 def _format_quantity(quantity, unit):
-    return " ".join([intcomma(quantity), pluralise_unit(Units.choices_as_dict[unit], quantity),])
+    if quantity and unit:
+        return " ".join([intcomma(quantity), pluralise_unit(Units.choices_as_dict[unit], quantity),])
 
 
 def _get_good_context(good_on_application, advice=None):
@@ -308,7 +309,9 @@ def _get_good_context(good_on_application, advice=None):
         "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         "is_controlled": good_on_application.good.is_good_controlled,
         "part_number": good_on_application.good.part_number,
-        "applied_for_quantity": _format_quantity(good_on_application.quantity, good_on_application.unit),
+        "applied_for_quantity": _format_quantity(good_on_application.quantity, good_on_application.unit)
+        if good_on_application.quantity
+        else None,
         "applied_for_value": f"£{good_on_application.value}",
     }
     if advice:
