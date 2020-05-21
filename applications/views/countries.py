@@ -181,4 +181,6 @@ class LightCountries(APIView):
                 .values("contract_types", "other_contract_type_text", "country_id", "country__name")
             )
         ]
-        return JsonResponse(data={"countries": countries, "status": str(application.status)}, status=status.HTTP_200_OK)
+        return JsonResponse(
+            data={"countries": countries, "status": application.status.status}, status=status.HTTP_200_OK
+        )
