@@ -1,6 +1,7 @@
 from difflib import SequenceMatcher
 
 from django.utils import timezone
+from rest_framework.reverse import reverse
 
 from cases.enums import AdviceType
 from cases.models import Case
@@ -382,3 +383,31 @@ class FilterAndSortTests(DataTestClient):
         self.assertEqual(qs_2.first().pk, application_1.pk)
         self.assertEqual(qs_3.first().pk, application_1.pk)
         self.assertEqual(qs_4.first().pk, application_3.pk)
+
+    def test_view_flag_filter(self):
+        flag_1 = FlagFactory(name="Name_1", level="Destination", team=self.gov_user.team, priority=9)
+        flag_2 = FlagFactory(name="Name_2", level="Destination", team=self.gov_user.team, priority=10)
+
+        application_1 = StandardApplicationFactory(submitted_at=timezone.now())
+        application_1.flags.add(flag_1)
+        application_2 = StandardApplicationFactory(submitted_at=timezone.now())
+        application_2.flags.add(flag_2)
+
+        url = reverse("cases:search")
+        url_1 = f"{url}?flags={flag_1.id}"
+        url_2 = f"{url}?flags={flag_2.id}"
+        url_3 = f"{url}?flags={flag_1.id}&flags={flag_2.id}"
+
+        response_1 = self.client.get(url_1, **self.gov_headers)
+        response_2 = self.client.get(url_2, **self.gov_headers)
+        response_3 = self.client.get(url_3, **self.gov_headers)
+
+        data_1 = response_1.json()
+        data_2 = response_2.json()
+        data_3 = response_3.json()
+
+        self.assertEqual(data_1["count"], 1)
+        self.assertEqual(data_2["count"], 1)
+        self.assertEqual(data_3["count"], 2)
+        self.assertEqual(data_1["results"]["cases"][0]["id"], str(application_1.id))
+        self.assertEqual(data_2["results"]["cases"][0]["id"], str(application_2.id))
