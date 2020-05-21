@@ -18,26 +18,31 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         allow_blank=False,
         allow_null=False,
         max_length=250,
-        error_messages={"blank": OpenGeneralLicences.BLANK_NAME},
+        error_messages={"blank": OpenGeneralLicences.serializerErrors.BLANK_NAME},
         validators=[
-            UniqueValidator(queryset=OpenGeneralLicence.objects.all(), message=OpenGeneralLicences.NON_UNIQUE_NAME)
+            UniqueValidator(
+                queryset=OpenGeneralLicence.objects.all(), message=OpenGeneralLicences.serializerErrors.NON_UNIQUE_NAME
+            )
         ],
     )
     description = serializers.CharField(
         required=True,
         allow_blank=False,
         allow_null=False,
-        error_messages={"blank": OpenGeneralLicences.BLANK_DESCRIPTION},
+        error_messages={"blank": OpenGeneralLicences.serializerErrors.BLANK_DESCRIPTION},
     )
     url = serializers.URLField(
-        required=True, allow_blank=False, allow_null=False, error_messages={"blank": OpenGeneralLicences.BLANK_URL}
+        required=True,
+        allow_blank=False,
+        allow_null=False,
+        error_messages={"blank": OpenGeneralLicences.serializerErrors.BLANK_URL},
     )
     case_type = PrimaryKeyRelatedSerializerField(
         queryset=CaseType.objects.filter(id__in=CaseTypeEnum.ogl_id_list).all(),
         required=True,
         allow_null=False,
         allow_empty=False,
-        error_messages={"required": OpenGeneralLicences.REQUIRED_CASE_TYPE},
+        error_messages={"required": OpenGeneralLicences.serializerErrors.REQUIRED_CASE_TYPE},
         serializer=CaseTypeSerializer,
     )
     countries = PrimaryKeyRelatedSerializerField(
@@ -46,12 +51,14 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         required=True,
         allow_null=False,
         allow_empty=False,
-        error_messages={"required": OpenGeneralLicences.REQUIRED_COUNTRIES},
+        error_messages={"required": OpenGeneralLicences.serializerErrors.REQUIRED_COUNTRIES},
         serializer=CountrySerializer,
     )
     control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=False)
     registration_required = serializers.BooleanField(
-        required=True, allow_null=False, error_messages={"required": OpenGeneralLicences.REQUIRED_REGISTRATION_REQUIRED}
+        required=True,
+        allow_null=False,
+        error_messages={"required": OpenGeneralLicences.serializerErrors.REQUIRED_REGISTRATION_REQUIRED},
     )
     status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices, required=False)
 
@@ -61,6 +68,6 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
 
     def validate_url(self, url):
         if "gov.uk" not in url.lower():
-            raise serializers.ValidationError(OpenGeneralLicences.NON_GOV_URL)
+            raise serializers.ValidationError(OpenGeneralLicences.serializerErrors.NON_GOV_URL)
 
         return url

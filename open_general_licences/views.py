@@ -11,6 +11,7 @@ from conf.authentication import GovAuthentication
 from open_general_licences.models import OpenGeneralLicence
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
 from users.models import GovUser, GovNotification
+from lite_content.lite_api.strings import OpenGeneralLicences
 
 
 class OpenGeneralLicenceList(ListCreateAPIView):
@@ -58,16 +59,16 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
         # Don't update the data during validate_only requests
         if not self.request.data.get("validate_only", False):
             fields = [
-                ("name", "Name"),
-                ("description", "Description"),
-                ("url", "URL"),
-                ("case_type", "Case Type"),
-                ("registration_required", "Registration required"),
-                ("status", "Status"),
+                ("name", OpenGeneralLicences.ActivityFieldDisplay.NAME),
+                ("description", OpenGeneralLicences.ActivityFieldDisplay.DESCRIPTION),
+                ("url", OpenGeneralLicences.ActivityFieldDisplay.URL),
+                ("case_type", OpenGeneralLicences.ActivityFieldDisplay.CASE_TYPE),
+                ("registration_required", OpenGeneralLicences.ActivityFieldDisplay.REGISTRATION_REQUIRED),
+                ("status", OpenGeneralLicences.ActivityFieldDisplay.STATUS),
             ]
             m2m_fields = [
-                ("countries", "Countries"),
-                ("control_list_entries", "Control list entries"),
+                ("countries", OpenGeneralLicences.ActivityFieldDisplay.COUNTRIES),
+                ("control_list_entries", OpenGeneralLicences.ActivityFieldDisplay.CONTROL_LIST_ENTRIES),
             ]
             # data setup for audit checks
             original_instance = self.get_object()
