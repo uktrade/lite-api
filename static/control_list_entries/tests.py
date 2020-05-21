@@ -17,7 +17,6 @@ class CLCListTests(DataTestClient):
         self.assertIsNotNone(item.get("rating"))
         self.assertIsNotNone(item.get("text"))
         if full_detail:
-            self.assertIsNotNone(item.get("id"))
             children = item.get("children")
             if children:
                 for child in children:
