@@ -12,11 +12,16 @@ from documents.libraries import s3_operations
 from documents.models import Document
 
 
+class VirusScanException(Exception):
+    """Exceptions raised when scanning documents for viruses."""
+
+
 class S3StreamingBodyWrapper:
-    """S3 Object wrapper that plays nice with streamed multipart/form-data."""
+    """S3 Object wrapper that plays nice with streamed multipart/form-data"""
 
     def __init__(self, s3_obj):
         """Init wrapper, and grab interesting bits from s3 object."""
+
         self._obj = s3_obj
         self._body = s3_obj["Body"]
         self._remaining_bytes = s3_obj["ContentLength"]
@@ -31,55 +36,50 @@ class S3StreamingBodyWrapper:
     def __len__(self):
         """
         Return remaining bytes, that have not been read yet.
-        requests-toolbelt expects this to return the number of unread bytes (rather than
-        the total length of the stream).
+        requests-toolbelt expects this to return the number of unread bytes (instead of the total length of the stream).
         """
+
         return self._remaining_bytes
 
 
-def virus_scan_document(document: Document):
+def scan_document_for_viruses(document: Document):
     """
     Virus scans an uploaded document.
-    This is intended to be run in the thread pool executor. The file is streamed from S3 to the
-    anti-virus service.
+    This is intended to be run in the thread pool executor. The file is streamed from S3 to the anti-virus service.
     Any errors are logged and sent to Sentry.
     """
-    logging.info(f"Scanning document {document.id} for viruses")
+
     with advisory_lock(f"av-scan-{document.id}"):
-        _process_document(document)
+        if not settings.AV_SERVICE_URL:
+            raise VirusScanException(f"Cannot scan document {document.id}: AV service URL not configured")
+
+        if document.virus_scanned_at is not None:
+            logging.info(f"Skipping scan of document {document.id}: already performed on {document.virus_scanned_at}")
+            return
+
+        # Get the document's file from S3
+        file = s3_operations.get_object(document.s3_key)
+        if not file:
+            raise VirusScanException(f"Failed to retrieve document {document.id} from S3")
+
+        # Scan the document for viruses
+        with closing(file["Body"]):
+            is_file_clean = _scan_document(
+                document.id, document.name, S3StreamingBodyWrapper(file), file["ContentType"]
+            )
+
+        if is_file_clean is not None:
+            document.virus_scanned_at = now()
+            document.safe = is_file_clean
+            document.save()
+            logging.info(f"Scan of document {document.id} successfully completed: safe={is_file_clean}")
 
 
-def _process_document(document: Document):
-    """Virus scans an uploaded document."""
-    if not settings.AV_SERVICE_URL:
-        raise VirusScanException(f"Cannot scan document {document.id}: AV service URL not configured")
+def _scan_document(document_id, filename, file_object, content_type):
+    """Scans a document on S3 for viruses; returns True or False if a virus is detected"""
 
-    if document.virus_scanned_at is not None:
-        logging.info(f"Skipping scan of document {document.id}: already performed on {document.virus_scanned_at}")
-        return
+    logging.info(f"Scanning document {document_id} for viruses")
 
-    is_file_clean = _scan_s3_object(document.id, document.name, document.s3_key)
-
-    if is_file_clean is not None:
-        document.virus_scanned_at = now()
-        document.safe = is_file_clean
-        document.save()
-        logging.info(f"Scan of document {document.id} successfully completed: safe={is_file_clean}")
-
-
-def _scan_s3_object(document_id, original_filename, key):
-    """Virus scans a file stored in S3."""
-    response = s3_operations.get_object(key)  # Get the file from S3
-
-    if not response:
-        raise VirusScanException(f"Failed to retrieve document {document_id} from S3")
-
-    with closing(response["Body"]):
-        return _scan_raw_file(document_id, original_filename, S3StreamingBodyWrapper(response), response["ContentType"])
-
-
-def _scan_raw_file(document_id, filename, file_object, content_type):
-    """Virus scans a file-like object."""
     multipart_fields = {"file": (filename, file_object, content_type)}
     encoder = MultipartEncoder(fields=multipart_fields)
 
@@ -116,7 +116,3 @@ def _scan_raw_file(document_id, filename, file_object, content_type):
         raise VirusScanException(f"Document {document_id} identified as malware: {response.text}")
 
     return not report.get("malware")
-
-
-class VirusScanException(Exception):
-    """Exceptions raised when scanning documents for viruses."""

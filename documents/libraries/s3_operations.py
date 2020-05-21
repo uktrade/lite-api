@@ -23,6 +23,7 @@ _bucket_name = env("AWS_STORAGE_BUCKET_NAME")
 # S3 operations
 def get_object(s3_key):
     try:
+        logging.info(f"Retrieving file {s3_key}")
         return _client.get_object(Bucket=_bucket_name, Key=s3_key)
     except ReadTimeoutError:
         logging.warning(f"Timeout exceeded when retrieving file {s3_key}")
@@ -41,6 +42,7 @@ def upload_bytes_file(raw_file, s3_key):
 # Delete
 def delete_file(s3_key):
     try:
+        logging.info(f"Deleting file {s3_key}")
         _client.delete_object(Bucket=_bucket_name, Key=s3_key)
     except ReadTimeoutError:
         logging.warning(f"Timeout exceeded when retrieving file {s3_key}")

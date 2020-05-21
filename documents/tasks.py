@@ -2,6 +2,8 @@ import logging
 
 from background_task import background
 
+from documents.av_scan import VirusScanException
+
 
 @background(schedule=0, queue="document_av_scan_queue")
 def prepare_document(document_id):
@@ -16,6 +18,7 @@ def prepare_document(document_id):
     try:
         doc = Document.objects.get(id=document_id)
         doc.prepare_document()
-    except Exception as exc:  # noqa
-        logging.warning(f"Failed to prepare document {document_id}")
+    except VirusScanException as exc:
         raise exc
+    except Exception as exc:
+        raise Exception(f"An unexpected error occurred when preparing document {document_id}: {exc}")

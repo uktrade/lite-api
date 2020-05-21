@@ -1,4 +1,3 @@
-import logging
 import uuid
 
 from django.db import models
@@ -20,13 +19,12 @@ class Document(TimestampableModel):
 
     def delete_s3(self):
         """ Removes file from s3 bucket (eg when the file is virus infected) """
-        logging.info(f"Removing file {self.s3_key} from S3")
         s3_operations.delete_file(self.s3_key)
 
     def scan_for_viruses(self):
-        from documents.av_scan import virus_scan_document
+        from documents.av_scan import scan_document_for_viruses
 
-        virus_scan_document(self)
+        scan_document_for_viruses(self)
         self.refresh_from_db()
         return self
 
