@@ -25,7 +25,6 @@ class OpenApplicationFactory(factory.django.DjangoModelFactory):
     activity = "Trade"
     usage = "Trade"
     organisation = factory.SubFactory(OrganisationFactory)
-    status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
     is_military_end_use_controls = False
     is_informed_wmd = False
     is_suspected_wmd = False
@@ -38,6 +37,13 @@ class OpenApplicationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = OpenApplication
 
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        obj.save()
+        return obj
+
 
 class StandardApplicationFactory(factory.django.DjangoModelFactory):
     name = "Application Test Name"
@@ -48,7 +54,6 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
     activity = "Trade"
     usage = "Trade"
     organisation = factory.SubFactory(OrganisationFactory)
-    status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
     is_military_end_use_controls = False
     is_informed_wmd = False
     is_suspected_wmd = False
@@ -60,6 +65,13 @@ class StandardApplicationFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = StandardApplication
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        obj = model_class(*args, **kwargs)
+        obj.status = get_case_status_by_status(CaseStatusEnum.SUBMITTED)
+        obj.save()
+        return obj
 
 
 class PartyOnApplicationFactory(factory.django.DjangoModelFactory):

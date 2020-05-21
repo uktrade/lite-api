@@ -13,7 +13,8 @@ from applications.tests.factories import (
     SiteOnApplicationFactory,
     GoodOnApplicationFactory,
     StandardApplicationFactory,
-    OpenApplicationFactory)
+    OpenApplicationFactory
+)
 from parties.tests.factories import PartyFactory
 from flags.tests.factories import FlagFactory
 from goods.enums import GoodControlled
