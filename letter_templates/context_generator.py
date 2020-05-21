@@ -18,6 +18,7 @@ from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
+from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.units.enums import Units
 
@@ -62,7 +63,9 @@ def get_document_context(case):
         "goods": _get_goods_context(base_application.goods, final_advice)
         if getattr(base_application, "goods", "")
         else None,
-        "goods_type": _get_goods_type_context(case.goods_type) if getattr(case, "goods_type", "") else None,
+        "goods_type": _get_goods_type_context(base_application.goods_type.all(), case.pk)
+        if getattr(base_application, "goods_type", "")
+        else None,
         "ecju_queries": [_get_ecju_query_context(query) for query in ecju_queries],
         "notes": [_get_case_note_context(note) for note in notes],
         "sites": [_get_site_context(site) for site in sites],
@@ -336,18 +339,34 @@ def _get_goods_context(goods, final_advice):
     return goods_context
 
 
-def _get_goods_type_context(goods_type):
+def _get_goods_type_context(goods_types, case_pk):
     goods_type_context = {}
-    countries = set(goods_type.values_list("countries", "countries__name"))
+    countries = set(goods_types.values_list("countries", "countries__name"))
+    default_countries = set(
+        Country.include_special_countries.filter(countries_on_application__application_id=case_pk).values_list(
+            "id", "name"
+        )
+    )
 
     for country_id, country_name in countries:
-        goods = goods_type.filter(countries=country_id)
+        if country_id:
+            goods = goods_types.filter(countries=country_id)
+            goods_type_context[country_name] = [
+                {
+                    "description": good.description,
+                    "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
+                }
+                for good in goods
+            ]
+
+    for country_id, country_name in default_countries:
+        # Default countries apply to all goods types
         goods_type_context[country_name] = [
             {
                 "description": good.description,
                 "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
             }
-            for good in goods
+            for good in goods_types
         ]
 
     return goods_type_context
