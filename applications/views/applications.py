@@ -12,6 +12,7 @@ from uuid import UUID
 
 from applications import constants
 from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
+from applications.enums import ContractType
 from applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
@@ -68,6 +69,7 @@ from conf.decorators import (
 from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses, SystemFlags
+from flags.models import Flag
 from goodstype.models import GoodsType
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
@@ -771,6 +773,15 @@ class ApplicationCopy(APIView):
                 if getattr(result, "created_at", False):
                     result.created_at = now()
                 result.save()
+
+                if relation == CountryOnApplication:
+                    if result.contract_types:
+                        result.flags.set(
+                            [
+                                Flag.objects.get(name=ContractType.get_flag_name(contract_type))
+                                for contract_type in result.contract_types
+                            ]
+                        )
 
     def duplicate_goodstypes_for_new_application(self):
         """
