@@ -7,6 +7,7 @@ from django.db.models import Q, Case, When, BinaryField
 
 from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
+from common.enums import SortOrder
 from queues.constants import (
     ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
@@ -231,7 +232,7 @@ class CaseManager(models.Manager):
         party_name=None,
         party_address=None,
         goods_related_description=None,
-        sort_by_sla_remaining=None,
+        sla_days_elapsed_sort_order=None,
         sla_days_elapsed=None,
         **kwargs,
     ):
@@ -354,8 +355,11 @@ class CaseManager(models.Manager):
         if isinstance(sort, str):
             case_qs = case_qs.order_by_status(order="-" if sort.startswith("-") else "")
 
-        if sort_by_sla_remaining:
-            case_qs = case_qs.order_by("sla_remaining_days")
+        if sla_days_elapsed_sort_order:
+            if sla_days_elapsed_sort_order == SortOrder.ASCENDING:
+                case_qs = case_qs.order_by("-sla_remaining_days")
+            else:
+                case_qs = case_qs.order_by("sla_remaining_days")
 
         return case_qs.distinct()
 
