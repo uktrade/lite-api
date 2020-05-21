@@ -1,16 +1,17 @@
+from uuid import UUID
+
+from django.urls import reverse
+from rest_framework import status
+
 from applications.enums import ApplicationExportType
+from applications.models import SiteOnApplication, CountryOnApplication
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
-from flags.enums import SystemFlags
-from lite_content.lite_api import strings
-from django.urls import reverse
-from rest_framework import status
-from uuid import UUID
-
-from applications.models import SiteOnApplication, CountryOnApplication
 from cases.models import Case, CaseType
+from flags.enums import SystemFlags
 from goodstype.models import GoodsType
+from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from test_helpers.clients import DataTestClient
@@ -20,6 +21,9 @@ class OpenApplicationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.draft = self.create_draft_open_application(self.organisation)
+        coa = CountryOnApplication.objects.get(application=self.draft)
+        coa.contract_types = "[navy]"
+        coa.save()
         self.url = reverse("applications:application_submit", kwargs={"pk": self.draft.id})
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
