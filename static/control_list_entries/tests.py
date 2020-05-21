@@ -1,6 +1,8 @@
 from django.urls import reverse
 from rest_framework import status
 
+from static.control_list_entries.factories import ControlListEntriesFactory
+from static.control_list_entries.helpers import convert_control_list_entries_to_tree
 from static.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
@@ -75,6 +77,45 @@ class CLCTests(DataTestClient):
             self.assertTrue(str(child.id) in [item["id"] for item in response_data["children"]])
             self.assertTrue(child.rating in [item["rating"] for item in response_data["children"]])
             self.assertTrue(child.text in [item["text"] for item in response_data["children"]])
+
+
+class ControlListEntryHelpersTest(DataTestClient):
+    def convert_control_list_entry_to_expected_format(self, control_list, children=None):
+        json = {
+            "id": control_list.id,
+            "rating": control_list.rating,
+            "text": control_list.text,
+            "parent_id": control_list.parent_id,
+            "category": control_list.category,
+        }
+        if children:
+            json["children"] = children
+
+        return json
+
+    def setUp(self):
+        super().setUp()
+        # create 5 control lists in the form of a tree, and determine they come back in correct format from helper
+        base = ControlListEntriesFactory(rating="abc1")
+        base_child_1 = ControlListEntriesFactory(rating="abc1a", parent=base)
+        base_child_2 = ControlListEntriesFactory(rating="abc1b", parent=base)
+        child_1_child = self.convert_control_list_entry_to_expected_format(
+            ControlListEntriesFactory(rating="abc1a1", parent=base_child_1)
+        )
+        child_2_child = self.convert_control_list_entry_to_expected_format(
+            ControlListEntriesFactory(rating="abc1b1", parent=base_child_2)
+        )
+
+        base_child_1 = self.convert_control_list_entry_to_expected_format(base_child_1, [child_1_child])
+        base_child_2 = self.convert_control_list_entry_to_expected_format(base_child_2, [child_2_child])
+
+        self.expected_layout = [self.convert_control_list_entry_to_expected_format(base, [base_child_1, base_child_2])]
+
+    def test_convert_control_list_entries_to_tree(self):
+        qs = ControlListEntry.objects.filter(category="test-list")
+        result = convert_control_list_entries_to_tree(qs)
+
+        self.assertEqual(result, self.expected_layout)
 
 
 class ControlListEntriesResponseTests(EndPointTests):
