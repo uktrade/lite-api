@@ -45,4 +45,3 @@ class LiteEnum(str, Enum, metaclass=StrValueEnumMeta):
 class SortOrder(LiteEnum):
     ASCENDING = autostr()
     DESCENDING = autostr()
-

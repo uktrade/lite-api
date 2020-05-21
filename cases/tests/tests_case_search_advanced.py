@@ -13,7 +13,7 @@ from applications.tests.factories import (
     SiteOnApplicationFactory,
     GoodOnApplicationFactory,
     StandardApplicationFactory,
-    OpenApplicationFactory
+    OpenApplicationFactory,
 )
 from parties.tests.factories import PartyFactory
 from flags.tests.factories import FlagFactory
@@ -104,7 +104,9 @@ class FilterAndSortTests(DataTestClient):
     def test_filter_by_good_control_list_entry(self):
         application_1 = StandardApplicationFactory()
         good = GoodFactory(
-            organisation=application_1.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a"]
+            organisation=application_1.organisation,
+            is_good_controlled=GoodControlled.YES,
+            control_list_entries=["ML1a"],
         )
         GoodOnApplicationFactory(application=application_1, good=good)
 
