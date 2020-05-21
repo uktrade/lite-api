@@ -21,9 +21,7 @@ class ControlListEntriesList(APIView):
         if request.GET.get("group", False):
             return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree(queryset.values())})
 
-        return JsonResponse(
-            data={"control_list_entries": list(queryset.values("rating", "text"))}
-        )
+        return JsonResponse(data={"control_list_entries": list(queryset.values("rating", "text"))})
 
 
 class ControlListEntryDetail(APIView):

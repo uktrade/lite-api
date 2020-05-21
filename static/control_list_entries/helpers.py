@@ -13,20 +13,20 @@ def convert_control_list_entries_to_tree(queryset):
     data = queryset.values()
 
     # Create Parent -> child links using dictionary
-    data_dict = {r['id']: r for r in data}
+    data_dict = {r["id"]: r for r in data}
     for r in data:
-        if r['parent_id'] in data_dict:
-            parent = data_dict[r['parent_id']]
-            if 'children' not in parent:
-                parent['children'] = []
-            parent['children'].append(r)
+        if r["parent_id"] in data_dict:
+            parent = data_dict[r["parent_id"]]
+            if "children" not in parent:
+                parent["children"] = []
+            parent["children"].append(r)
 
     # Helper function to get all the id's associated with a parent
     def get_all_ids(r):
         l = list()
-        l.append(r['id'])
-        if 'children' in r:
-            for c in r['children']:
+        l.append(r["id"])
+        if "children" in r:
+            for c in r["children"]:
                 l.extend(get_all_ids(c))
         return l
 
