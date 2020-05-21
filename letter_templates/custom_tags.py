@@ -1,12 +1,7 @@
 from django import template
-from django.utils.safestring import mark_safe
+from django.template.defaultfilters import linebreaksbr
 
 register = template.Library()
-
-
-@register.filter()
-def linebreaksbr(value):
-    return mark_safe(value.replace('\n', '<br>'))
 
 
 @register.filter()
