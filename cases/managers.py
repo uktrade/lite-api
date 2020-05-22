@@ -311,7 +311,6 @@ class CaseManager(models.Manager):
             case_qs = case_qs.with_control_list_entry(control_list_entry)
 
         if flags:
-            print("FLAGS")
             case_qs = case_qs.with_flags(flags)
 
         if country:
