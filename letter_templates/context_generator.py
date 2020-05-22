@@ -319,6 +319,7 @@ def _get_good_context(good_on_application, advice=None):
         if good_on_application.quantity
         else None,
         "applied_for_value": f"£{good_on_application.value}",
+        "is_incorporated": friendly_boolean(good_on_application.is_good_incorporated),
     }
     if advice:
         good_context["reason"] = advice.text

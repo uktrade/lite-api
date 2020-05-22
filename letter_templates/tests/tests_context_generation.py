@@ -78,6 +78,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertTrue(str(good_on_application.quantity) in context["applied_for_quantity"])
         self.assertTrue(Units.choices_as_dict[good_on_application.unit] in context["applied_for_quantity"])
         self.assertEqual(context["applied_for_value"], f"£{good_on_application.value}")
+        self.assertEqual(context["is_incorporated"], friendly_boolean(good_on_application.is_good_incorporated))
 
     def _assert_good_with_advice(self, context, advice, good_on_application):
         goods = context[advice.type if advice.type != AdviceType.PROVISO else AdviceType.APPROVE]
