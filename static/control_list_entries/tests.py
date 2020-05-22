@@ -108,7 +108,7 @@ class ControlListEntryHelpersTest(DataTestClient):
     def test_convert_control_list_entries_to_tree(self):
         expected_result = [self.generate_group_of_ratings(rating_prefix="abc", category="test-list")]
         qs = ControlListEntry.objects.filter(category="test-list")
-        result = convert_control_list_entries_to_tree(qs)
+        result = convert_control_list_entries_to_tree(qs.values())
 
         self.assertEqual(result, expected_result)
 
@@ -119,7 +119,7 @@ class ControlListEntryHelpersTest(DataTestClient):
         ]
 
         qs = ControlListEntry.objects.filter(category__in=["test-list", "another-list"])
-        result = convert_control_list_entries_to_tree(qs)
+        result = convert_control_list_entries_to_tree(qs.values())
 
         self.assertEqual(result, expected_result)
 
