@@ -143,6 +143,7 @@ def _get_open_application_context(case):
             "goodstype_category": GoodsTypeCategory.get_text(open_application.goodstype_category)
             if open_application.goodstype_category
             else None,
+            "temporary_export_details": open_application.temp_export_details,
         }
     )
     return context
@@ -180,7 +181,7 @@ def _get_f680_clearance_context(case):
     f680 = F680ClearanceApplication.objects.get(id=case.pk)
     context.update(
         {
-            "types": [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in f680.types.all()],
+            "clearance_types": [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in f680.types.all()],
             "expedited": friendly_boolean(f680.expedited),
             "expedited_date": f680.expedited_date.strftime(DATE_FORMAT) if f680.expedited_date else None,
             "foreign_technology": friendly_boolean(f680.foreign_technology),

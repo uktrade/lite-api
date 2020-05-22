@@ -175,6 +175,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other)
         self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
         self.assertEqual(context["goodstype_category"], GoodsTypeCategory.get_text(case.goodstype_category))
+        self.assertEqual(context["temporary_export_details"], case.temp_export_details)
 
     def _assert_hmrc_query_details(self, context, case):
         self.assertEqual(context["query_reason"], case.reasoning)
@@ -188,7 +189,8 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def _assert_f680_clearance_details(self, context, case):
         self.assertEqual(
-            context["types"], [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in case.types.all()]
+            context["clearance_types"],
+            [F680ClearanceTypeEnum.get_text(f680_type.name) for f680_type in case.types.all()],
         )
         self.assertEqual(context["expedited"], friendly_boolean(case.expedited))
         self.assertEqual(context["expedited_date"], case.expedited_date.strftime(DATE_FORMAT))
