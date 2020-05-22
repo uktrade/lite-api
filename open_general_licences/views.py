@@ -7,7 +7,9 @@ from rest_framework.views import APIView
 from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
 from audit_trail.serializers import AuditSerializer
+from conf import constants
 from conf.authentication import GovAuthentication
+from conf.permissions import assert_user_has_permission
 from open_general_licences.models import OpenGeneralLicence
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
 from users.models import GovUser, GovNotification
@@ -22,6 +24,10 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         .select_related("case_type")
         .prefetch_related("countries", "control_list_entries")
     )
+
+    def initial(self, request, *args, **kwargs):
+        assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
+        super(OpenGeneralLicenceList, self).initial(request, *args, **kwargs)
 
     def filter_queryset(self, queryset):
         filtered_qs = queryset
@@ -58,6 +64,10 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
     queryset = OpenGeneralLicence.objects.all()
+
+    def initial(self, request, *args, **kwargs):
+        assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
+        super(OpenGeneralLicenceDetail, self).initial(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         # Don't update the data during validate_only requests
@@ -110,6 +120,7 @@ class OpenGeneralLicenceActivityView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
+        assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
         filter_data = audit_trail_service.get_filters(request.GET)
         content_type = ContentType.objects.get_for_model(OpenGeneralLicence)
         audit_trail_qs = audit_trail_service.filter_object_activity(
