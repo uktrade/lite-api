@@ -8,7 +8,7 @@ from rest_framework.exceptions import PermissionDenied
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from audit_trail.schema import validate_kwargs
-from conf.helpers import make_date
+from cases.libraries.dates import make_date_from_params
 from teams.models import Team
 from users.enums import UserType
 from users.enums import SystemUser
@@ -146,7 +146,7 @@ def get_filters(data):
         "team": data.get("team_id"),
         "user_type": UserType(data["user_type"]) if data.get("user_type") else None,
         "audit_type": AuditType(data["activity_type"]) if data.get("activity_type") else None,
-        "date_from": make_date("from", data),
-        "date_to": make_date("to", data),
+        "date_from": make_date_from_params("from", data),
+        "date_to": make_date_from_params("to", data),
         "note_type": data.get("note_type"),
     }

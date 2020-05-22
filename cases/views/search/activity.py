@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from audit_trail import service as audit_trail_service
 from audit_trail.serializers import AuditSerializer
 from cases.models import Case
+from cases.libraries.dates import make_date_from_params
 from conf.authentication import GovAuthentication
 from users.models import GovUser, GovNotification
 

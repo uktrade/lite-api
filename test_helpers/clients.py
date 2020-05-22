@@ -179,7 +179,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 ]
             ]
         )
-
         if settings.TIME_TESTS:
             self.tick = datetime.now()
 

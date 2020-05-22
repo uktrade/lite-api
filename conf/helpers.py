@@ -44,18 +44,3 @@ def date_to_drf_date(date):
     suitable for comparison to rest framework datetimes
     """
     return date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-
-
-def make_date(prefix, data):
-    """
-    Makes date from Lite forms DateInput data.
-    """
-    try:
-        return datetime.date(
-            day=int(data.get(f"{prefix}_day")),
-            month=int(data.get(f"{prefix}_month")),
-            year=int(data.get(f"{prefix}_year")),
-        )
-    except (TypeError, ValueError):
-        # Handle gracefully if no date or incorrect date data passed
-        pass
