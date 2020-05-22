@@ -280,6 +280,7 @@ class StandardApplicationTests(DataTestClient):
         self.assertNotEqual(case.status.status, CaseStatusEnum.DRAFT)
         self.assertFalse(case.status.is_terminal)
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
+        self.assertEqual(case.submitted_by, self.exporter_user)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in case.flags.values_list("id", flat=True))
 
         for good_on_application in GoodOnApplication.objects.filter(application=case):
