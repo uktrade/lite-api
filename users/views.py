@@ -1,12 +1,10 @@
 from uuid import UUID
 
-from django.db.models import Count, CharField, Value, QuerySet
 from django.http.response import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, ListAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum
@@ -183,50 +181,25 @@ class UserMeDetail(APIView):
 
 class NotificationViewSet(APIView):
     authentication_classes = (ExporterAuthentication,)
-    permission_classes = (IsAuthenticated,)
     queryset = ExporterNotification.objects.all()
 
     def get(self, request):
         """
         Count the number of application, eua_query and goods_query exporter user notifications
         """
-        notification_queryset = self.queryset.filter(
-            user=request.user, organisation_id=get_request_user_organisation_id(request)
+        notifications = (
+            self.queryset.filter(user=request.user, organisation_id=get_request_user_organisation_id(request))
+            .prefetch_related("case__case_type")
+            .values("case__case_type__sub_type", "case__case_type__type")
         )
-        application_queryset = self._build_queryset(
-            queryset=notification_queryset,
-            filter=dict(case__case_type__type=CaseTypeTypeEnum.APPLICATION),
-            type=CaseTypeTypeEnum.APPLICATION,
-        )
-        eua_query_queryset = self._build_queryset(
-            queryset=notification_queryset,
-            filter=dict(case__case_type__sub_type=CaseTypeSubTypeEnum.EUA),
-            type=CaseTypeSubTypeEnum.EUA,
-        )
-        goods_query_queryset = self._build_queryset(
-            queryset=notification_queryset,
-            filter=dict(case__case_type__sub_type=CaseTypeSubTypeEnum.GOODS),
-            type=CaseTypeSubTypeEnum.GOODS,
-        )
-        notification_queryset = application_queryset.union(eua_query_queryset).union(goods_query_queryset)
-
-        data = {"notifications": {row["type"]: row["count"] for row in notification_queryset}}
-        return JsonResponse(data=data, status=status.HTTP_200_OK)
-
-    @staticmethod
-    def _build_queryset(queryset: QuerySet, filter: dict, type: str) -> QuerySet:
-        """
-        :param queryset: An ExporterNotification QuerySet
-        :param filter: Additional filter containing 1 key-value pair
-        :param type: An annotated static field in the queryset
-        :return: An ExporterNotification QuerySet containing only the type and count of rows found matching the filter
-        """
-        return (
-            queryset.filter(**filter)
-            .values(list(filter)[0])
-            .annotate(type=Value(type, CharField()), count=Count("case"))
-            .values("type", "count")
-        )
+        case_types = [notification["case__case_type__type"] for notification in notifications]
+        case_sub_types = [notification["case__case_type__sub_type"] for notification in notifications]
+        notifications = {
+            CaseTypeTypeEnum.APPLICATION: case_types.count(CaseTypeTypeEnum.APPLICATION),
+            CaseTypeSubTypeEnum.EUA: case_sub_types.count(CaseTypeSubTypeEnum.EUA),
+            CaseTypeSubTypeEnum.GOODS: case_sub_types.count(CaseTypeSubTypeEnum.GOODS),
+        }
+        return JsonResponse(data={"notifications": notifications}, status=status.HTTP_200_OK)
 
 
 class AssignSites(UpdateAPIView):
