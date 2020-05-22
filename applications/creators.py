@@ -1,7 +1,7 @@
 from django.utils import timezone
 
 from applications import constants
-from applications.enums import ApplicationExportType, GoodsTypeCategory
+from applications.enums import ApplicationExportType, GoodsTypeCategory, ContractType
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
@@ -358,12 +358,15 @@ def _validate_open_licence(draft, errors):
     errors = _validate_temporary_export_details(draft, errors)
     errors = _validate_route_of_goods(draft, errors)
 
-    errors = _validate_end_user(draft, errors, is_mandatory=False, open_application=True)
-    # TODO: add logic to prevent application being submitted without end user if nuclear and remove above line
-    # if draft.contract_type == NUCLEAR:
-    #     errors = _validate_end_user(draft, errors, is_mandatory=True, open_application=True)
-    # else:
-    #     errors = _validate_end_user(draft, errors, is_mandatory=False, open_application=True)
+    # Check if end user is mandatory based on contract type 'nuclear related' being selected for any country
+    contract_types = CountryOnApplication.objects.filter(application_id=draft.id).values_list('contract_types', flat=True)
+    unique_contract_types = []
+    for contract_type in contract_types:
+        if contract_type:
+            unique_contract_types.extend(contract_type.split(","))
+
+    end_user_mandatory = ContractType.NUCLEAR_RELATED in set(unique_contract_types)
+    errors = _validate_end_user(draft, errors, is_mandatory=end_user_mandatory, open_application=True)
 
     if draft.goodstype_category == GoodsTypeCategory.MILITARY:
         errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True, open_application=True)
