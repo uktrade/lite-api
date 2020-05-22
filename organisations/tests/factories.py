@@ -39,3 +39,12 @@ class SiteFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = models.Site
+
+    @factory.post_generation
+    def users(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for user_organisation_relationship in extracted:
+                self.users.add(user_organisation_relationship)

@@ -2,7 +2,7 @@ from django.db.models import Min, Case, When, BinaryField
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
-from applications.enums import ApplicationExportType, GoodsTypeCategory
+from applications.enums import ApplicationExportType, GoodsTypeCategory, ContractType
 from applications.libraries.goodstype_category_helpers import (
     set_goods_and_countries_for_open_media_application,
     set_goods_and_countries_for_open_crypto_application,
@@ -10,7 +10,8 @@ from applications.libraries.goodstype_category_helpers import (
     set_destinations_for_uk_continental_shelf_application,
 )
 from applications.mixins.serializers import PartiesSerializerMixin
-from applications.models import OpenApplication
+from applications.models import OpenApplication, CountryOnApplication
+from applications.serializers.advice import CountryWithFlagsSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
     GenericApplicationUpdateSerializer,
@@ -24,7 +25,7 @@ from licences.models import Licence
 from licences.serializers.view_licence import CaseLicenceViewSerializer
 from lite_content.lite_api import strings
 from static.countries.models import Country
-from applications.serializers.advice import CountryWithFlagsSerializer
+from static.countries.serializers import CountrySerializer
 from static.trade_control.enums import TradeControlProductCategory, TradeControlActivity
 
 
@@ -83,19 +84,22 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
     def get_destinations(self, application):
         """ Get destinations for the open application, ordered based on flag priority and alphabetized by name."""
         if "user_type" in self.context and self.context["user_type"] == "exporter":
-            countries = Country.include_special_countries.filter(countries_on_application__application=application)
+            countries = CountryOnApplication.objects.filter(application=application)
         else:
             countries = (
-                Country.include_special_countries.prefetch_related("flags")
-                .filter(countries_on_application__application=application)
+                CountryOnApplication.objects.prefetch_related("country__flags", "flags", "country")
+                .filter(application=application)
                 .annotate(
-                    highest_flag_priority=Min("flags__priority"),
-                    contains_flags=Case(When(flags__isnull=True, then=0), default=1, output_field=BinaryField()),
+                    highest_flag_priority=Min("country__flags__priority"),
+                    contains_flags=Case(
+                        When(country__flags__isnull=True, then=0), default=1, output_field=BinaryField()
+                    ),
                 )
-                .order_by("-contains_flags", "highest_flag_priority", "name")
+                .order_by("-contains_flags", "highest_flag_priority", "country__name")
             )
 
-        serializer = CountryWithFlagsSerializer(countries, many=True, context={"active_flags_only": True})
+        serializer = CountryOnApplicationViewSerializer(countries, many=True, context={"active_flags_only": True})
+
         return {"type": "countries", "data": serializer.data}
 
     def get_licence(self, instance):
@@ -239,3 +243,44 @@ class OpenApplicationUpdateSerializer(GenericApplicationUpdateSerializer):
                 data, "non_waybill_or_lading_route_details", strings.Applications.Generic.RouteOfGoods.SHIPPING_DETAILS
             )
         return super().validate(data)
+
+
+class ContractTypeDataSerializer(serializers.Serializer):
+    contract_types = serializers.MultipleChoiceField(
+        choices=ContractType.choices,
+        allow_empty=False,
+        error_messages={"empty": strings.ContractTypes.NO_CONTRACT_TYPES},
+    )
+    other_contract_type_text = serializers.CharField(
+        max_length=150,
+        required=True,
+        allow_blank=False,
+        error_messages={"blank": strings.ContractTypes.OTHER_TEXT_BLANK},
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.get_initial().get("contract_types"):
+            self.initial_data["contract_types"] = []
+        if ContractType.OTHER_CONTRACT_TYPE not in self.get_initial().get("contract_types"):
+            self.fields.pop("other_contract_type_text")
+
+
+class CountryOnApplicationViewSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    country = serializers.SerializerMethodField(read_only=True)
+    flags = serializers.SerializerMethodField(read_only=True)
+    contract_types = serializers.SerializerMethodField(read_only=True)
+    other_contract_type_text = serializers.CharField(read_only=True, allow_null=True)
+
+    def get_country(self, instance):
+        if self.context.get("active_flags_only"):
+            return CountryWithFlagsSerializer(instance.country, context={"with_active_flags": True}).data
+        else:
+            return CountrySerializer(instance.country).data
+
+    def get_flags(self, instance):
+        return list(instance.flags.values("id", "name"))
+
+    def get_contract_types(self, instance):
+        return instance.contract_types
