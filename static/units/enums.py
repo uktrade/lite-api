@@ -24,3 +24,5 @@ class Units:
         (MTQ, "Cubic metre(s)"),
         (ITG, "Intangible"),
     ]
+
+    choices_as_dict = {key: value for key, value in choices}

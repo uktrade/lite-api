@@ -40,3 +40,8 @@ class LiteEnum(str, Enum, metaclass=StrValueEnumMeta):
     CustomEnum.KEY_2 == "key_2"
     CustomEnum.KEY_2.value == "key_2"
     """
+
+
+class SortOrder(LiteEnum):
+    ASCENDING = autostr()
+    DESCENDING = autostr()
