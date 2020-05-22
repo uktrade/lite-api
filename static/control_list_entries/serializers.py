@@ -7,6 +7,10 @@ class ControlListEntrySerializer(serializers.Serializer):
 
 
 class ControlListEntrySerializerWithLinks(ControlListEntrySerializer):
+    """
+    Serializes with links to parent and child objects.
+    """
+
     parent = ControlListEntrySerializer(read_only=True)
     children = ControlListEntrySerializer(many=True, read_only=True)
     category = serializers.CharField()

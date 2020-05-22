@@ -46,11 +46,11 @@ def create_system_user_audit(verb, action_object=None, target=None, payload=None
     )
 
 
-def get_user_obj_trail_qs(user, obj):
+def get_activity_for_user_and_model(user, object_type):
     """
-    Retrieve audit trail for a Django model object available for a particular user.
+    Returns activity data for all objects of the specified model, e.g. all Organisations.
     :param user: Union[GovUser, ExporterUser]
-    :param obj: models.Model
+    :param object_type: models.Model
     :return: QuerySet
     """
     if not isinstance(user, (ExporterUser, GovUser)):
@@ -61,10 +61,10 @@ def get_user_obj_trail_qs(user, obj):
     if isinstance(user, ExporterUser):
         # Show exporter-only audit trail.
         audit_trail_qs = audit_trail_qs.filter(actor_content_type=ContentType.objects.get_for_model(ExporterUser))
-    obj_content_type = ContentType.objects.get_for_model(obj)
+    obj_content_type = ContentType.objects.get_for_model(object_type)
 
-    obj_as_action_filter = Q(action_object_object_id=obj.id, action_object_content_type=obj_content_type)
-    obj_as_target_filter = Q(target_object_id=obj.id, target_content_type=obj_content_type)
+    obj_as_action_filter = Q(action_object_object_id=object_type.id, action_object_content_type=obj_content_type)
+    obj_as_target_filter = Q(target_object_id=object_type.id, target_content_type=obj_content_type)
 
     audit_trail_qs = audit_trail_qs.filter(obj_as_action_filter | obj_as_target_filter)
 
@@ -80,10 +80,9 @@ def filter_object_activity(
     audit_type: Optional[AuditType] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
-    note_type=None,
 ):
     """
-    Filter activity timeline for a case.
+    Returns filtered activity data for a specific object, identified by the object_id and object_content_type params
     """
     audit_qs = Audit.objects.filter(
         Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
@@ -148,5 +147,4 @@ def get_filters(data):
         "audit_type": AuditType(data["activity_type"]) if data.get("activity_type") else None,
         "date_from": make_date_from_params("from", data),
         "date_to": make_date_from_params("to", data),
-        "note_type": data.get("note_type"),
     }
