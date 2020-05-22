@@ -129,3 +129,55 @@ class ServiceEquipmentType(Enum):
             ServiceEquipmentType.PART_MOD_PART_PRIVATE_VENTURE: "Part MOD part private venture",
             ServiceEquipmentType.PRIVATE_VENTURE: "Private venture",
         }[self]
+
+
+class ContractType:
+    NUCLEAR_RELATED = "nuclear_related"
+    NAVY = "navy"
+    ARMY = "army"
+    AIR_FORCE = "air_force"
+    POLICE = "police"
+    MINISTRY_OF_INTERIOR = "ministry_of_interior"
+    OTHER_SECURITY_FORCES = "other_security_forces"
+    COMPANIES_NUCLEAR_RELATED = "companies_nuclear_related"
+    MARITIME_ANTI_PIRACY = "maritime_anti_piracy"
+    AIRCRAFT_MANUFACTURERS = "aircraft_manufacturers"
+    REGISTERED_FIREARMS_DEALERS = "registered_firearm_dealers"
+    OIL_AND_GAS_INDUSTRY = "oil_and_gas_industry"
+    PHARMACEUTICAL_OR_MEDICAL = "pharmaceutical_or_medical"
+    MEDIA = "media"
+    PRIVATE_MILITARY = "private_military"
+    EDUCATION = "education"
+    FOR_THE_EXPORTERS_OWN_USE = "for_the_exporters_own_use"
+    OTHER_CONTRACT_TYPE = "other_contract_type"
+
+    choices = [
+        (NUCLEAR_RELATED, "Nuclear-related (trigger list items)"),
+        (NAVY, "Navy"),
+        (ARMY, "Army"),
+        (AIR_FORCE, "Air force"),
+        (POLICE, "Police"),
+        (MINISTRY_OF_INTERIOR, "Ministry of Interior (or equivalent)"),
+        (OTHER_SECURITY_FORCES, "Other security forces"),
+        (COMPANIES_NUCLEAR_RELATED, "Companies requesting Nuclear Trigger List items"),
+        (MARITIME_ANTI_PIRACY, "Maritime anti piracy"),
+        (AIRCRAFT_MANUFACTURERS, "Aircraft manufacturers, maintainers or operators"),
+        (REGISTERED_FIREARMS_DEALERS, "Registered firearm dealers"),
+        (OIL_AND_GAS_INDUSTRY, "Oil and gas industry"),
+        (PHARMACEUTICAL_OR_MEDICAL, "Pharmaceutical or medical"),
+        (MEDIA, "Media"),
+        (PRIVATE_MILITARY, "Private military or security companies (including security transportation)"),
+        (EDUCATION, "Education (e.g. schools, colleges and universities)"),
+        (FOR_THE_EXPORTERS_OWN_USE, "For the exporters own use"),
+        (OTHER_CONTRACT_TYPE, "Other contract type"),
+    ]
+
+    @classmethod
+    def get_text(cls, choice):
+        for key, value in cls.choices:
+            if key == choice:
+                return value
+
+    @classmethod
+    def get_flag_name(cls, choice):
+        return cls.get_text(choice)[:25]

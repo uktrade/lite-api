@@ -66,6 +66,8 @@ urlpatterns = [
     ),
     # Sites, locations and countries
     path("<uuid:pk>/sites/", sites.ApplicationSites.as_view(), name="application_sites"),
+    path("<uuid:pk>/contract-types/", countries.ApplicationContractTypes.as_view(), name="contract_types"),
+    path("<uuid:pk>/countries-contract-types/", countries.LightCountries.as_view(), name="country_contract_types"),
     path(
         "<uuid:pk>/external_locations/",
         external_locations.ApplicationExternalLocations.as_view(),

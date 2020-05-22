@@ -7,7 +7,6 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.libraries.application_helpers import optional_str_to_bool
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -25,6 +24,7 @@ from flags.models import Flag, FlaggingRule
 from flags.serializers import FlagSerializer, FlagAssignmentSerializer, FlaggingRuleSerializer, FlagReadOnlySerializer
 from goods.models import Good
 from lite_content.lite_api import strings
+from organisations.models import Organisation
 from parties.models import Party
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
@@ -47,7 +47,7 @@ class FlagsListCreateView(ListCreateAPIView):
         level = self.request.GET.get("level")
         priority = self.request.GET.get("priority")
         team = self.request.GET.get("team")
-        only_show_deactivated = optional_str_to_bool(self.request.GET.get("only_show_deactivated"))
+        status = self.request.GET.get("status", FlagStatuses.ACTIVE)
         include_system_flags = str_to_bool(self.request.GET.get("include_system_flags"))  # True, False
         blocks_approval = str_to_bool(self.request.GET.get("blocks_approval"))
 
@@ -68,10 +68,8 @@ class FlagsListCreateView(ListCreateAPIView):
         if team and team != "None":
             flags = flags.filter(team=team)
 
-        if only_show_deactivated:
-            flags = flags.filter(status=FlagStatuses.DEACTIVATED)
-        else:
-            flags = flags.filter(status=FlagStatuses.ACTIVE)
+        if status:
+            flags = flags.filter(status=status)
 
         if include_system_flags:
             system_flags = Flag.objects.filter(id__in=SystemFlags.list)
@@ -150,6 +148,8 @@ class AssignFlags(APIView):
 
         if isinstance(obj, Case):
             self._set_case_activity(added_flags, removed_flags, obj, user, note)
+        elif isinstance(obj, Organisation):
+            self._set_organisation_activity(added_flags, removed_flags, obj, user)
 
         if isinstance(obj, Good):
             cases = []
@@ -195,6 +195,24 @@ class AssignFlags(APIView):
                 verb=AuditType.REMOVE_FLAGS,
                 target=case,
                 payload={"removed_flags": removed_flags, "additional_text": note},
+            )
+
+    def _set_organisation_activity(self, added_flags, removed_flags, organisation, user, **kwargs):
+        # Add an activity item for the organisation
+        if added_flags:
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
+                target=organisation,
+                payload={"flag_name": added_flags},
+            )
+
+        if removed_flags:
+            audit_trail_service.create(
+                actor=user,
+                verb=AuditType.REMOVED_FLAG_ON_ORGANISATION,
+                target=organisation,
+                payload={"flag_name": removed_flags},
             )
 
     def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
