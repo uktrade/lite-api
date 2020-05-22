@@ -17,7 +17,7 @@ class VirusScanException(Exception):
 
 
 class S3StreamingBodyWrapper:
-    """S3 Object wrapper that plays nice with streamed multipart/form-data"""
+    """S3 Object wrapper that plays nice with streamed multipart/form-data."""
 
     def __init__(self, s3_obj):
         """Init wrapper, and grab interesting bits from s3 object."""
@@ -36,7 +36,7 @@ class S3StreamingBodyWrapper:
     def __len__(self):
         """
         Return remaining bytes, that have not been read yet.
-        requests-toolbelt expects this to return the number of unread bytes (instead of the total length of the stream).
+        requests-toolbelt expects this to return the number of unread bytes (instead of the total length of the stream)
         """
 
         return self._remaining_bytes
@@ -44,8 +44,9 @@ class S3StreamingBodyWrapper:
 
 def scan_document_for_viruses(document: Document):
     """
-    Virus scans an uploaded document.
-    This is intended to be run in the thread pool executor. The file is streamed from S3 to the anti-virus service.
+    Scans a document for viruses.
+    This is intended to be run in the thread pool executor.
+    The document's file is streamed from S3 to the anti-virus service.
     Any errors are logged and sent to Sentry.
     """
 
@@ -62,11 +63,8 @@ def scan_document_for_viruses(document: Document):
         if not file:
             raise VirusScanException(f"Failed to retrieve document {document.id} from S3")
 
-        # Scan the document for viruses
-        with closing(file["Body"]):
-            is_file_clean = _scan_document(
-                document.id, document.name, S3StreamingBodyWrapper(file), file["ContentType"]
-            )
+        # Scan the document's file for viruses
+        is_file_clean = _scan_file(document, file)
 
         if is_file_clean is not None:
             document.virus_scanned_at = now()
@@ -75,44 +73,45 @@ def scan_document_for_viruses(document: Document):
             logging.info(f"Scan of document {document.id} successfully completed: safe={is_file_clean}")
 
 
-def _scan_document(document_id, filename, file_object, content_type):
-    """Scans a document on S3 for viruses; returns True or False if a virus is detected"""
+def _scan_file(document: Document, file):
+    """Scans a file on S3 for viruses; returns True or False if a virus is detected."""
 
-    logging.info(f"Scanning document {document_id} for viruses")
+    with closing(file["Body"]):
+        logging.info(f"Scanning document {document.id} for viruses")
 
-    multipart_fields = {"file": (filename, file_object, content_type)}
-    encoder = MultipartEncoder(fields=multipart_fields)
+        multipart_fields = {"file": (document.name, S3StreamingBodyWrapper(file), file["ContentType"])}
+        encoder = MultipartEncoder(fields=multipart_fields)
 
-    try:
-        response = requests.post(
-            # Assumes HTTP Basic auth in URL
-            # see: https://github.com/uktrade/dit-clamav-rest
-            settings.AV_SERVICE_URL,
-            data=encoder,
-            auth=(settings.AV_SERVICE_USERNAME, settings.AV_SERVICE_PASSWORD),
-            headers={"Content-Type": encoder.content_type},
-            timeout=REQUEST_TIMEOUT,
-        )
-    except requests.exceptions.Timeout:
-        raise VirusScanException(f"Timeout exceeded when scanning document {document_id}")
-    except requests.exceptions.RequestException as exc:
-        raise VirusScanException(f"An unexpected error occurred when scanning document {document_id}: {exc}")
+        try:
+            response = requests.post(
+                # Assumes HTTP Basic auth in URL
+                # see: https://github.com/uktrade/dit-clamav-rest
+                settings.AV_SERVICE_URL,
+                data=encoder,
+                auth=(settings.AV_SERVICE_USERNAME, settings.AV_SERVICE_PASSWORD),
+                headers={"Content-Type": encoder.content_type},
+                timeout=REQUEST_TIMEOUT,
+            )
+        except requests.exceptions.Timeout:
+            raise VirusScanException(f"Timeout exceeded when scanning document {document.id}")
+        except requests.exceptions.RequestException as exc:
+            raise VirusScanException(f"An unexpected error occurred when scanning document {document.id}: {exc}")
 
-    try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError:
-        raise VirusScanException(
-            f"Received an unexpected response when scanning document {document_id}: {response.status_code}"
-        )
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise VirusScanException(
+                f"Received an unexpected response when scanning document {document.id}: {response.status_code}"
+            )
 
-    try:
-        report = response.json()
-    except ValueError:
-        raise VirusScanException(
-            f"Received incorrect JSON from response when scanning document {document_id}: {response.text}"
-        )
+        try:
+            report = response.json()
+        except ValueError:
+            raise VirusScanException(
+                f"Received incorrect JSON from response when scanning document {document.id}: {response.text}"
+            )
 
-    if "malware" not in report:
-        raise VirusScanException(f"Document {document_id} identified as malware: {response.text}")
+        if "malware" not in report:
+            raise VirusScanException(f"Document {document.id} identified as malware: {response.text}")
 
-    return not report.get("malware")
+        return not report.get("malware")

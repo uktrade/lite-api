@@ -18,23 +18,19 @@ class Document(TimestampableModel):
         return self.name
 
     def delete_s3(self):
-        """ Removes file from s3 bucket (eg when the file is virus infected) """
+        """Removes document's file from S3."""
+
         s3_operations.delete_file(self.s3_key)
 
     def scan_for_viruses(self):
+        """Asynchronously scans document's file on S3 for viruses."""
+
         from documents.av_scan import scan_document_for_viruses
 
         scan_document_for_viruses(self)
         self.refresh_from_db()
-        return self
 
-    def prepare_document(self):
-        """
-        Prepares the document for usage. This is run async after the document
-        is already on S3.
-            - perform a virus check
-        """
-        self.scan_for_viruses()
         if self.safe is False:
             self.delete_s3()
+
         return self.safe
