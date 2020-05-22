@@ -110,8 +110,14 @@ def _validate_countries(draft, errors, is_mandatory):
     """ Checks there are countries for the draft """
 
     if is_mandatory:
-        if len(CountryOnApplication.objects.filter(application=draft)) == 0:
+        results = CountryOnApplication.objects.filter(application=draft)
+        if len(results) == 0:
             errors["countries"] = [strings.Applications.Open.NO_COUNTRIES_SET]
+        elif getattr(draft, "goodstype_category", None) not in GoodsTypeCategory.IMMUTABLE_GOODS:
+            for coa in results:
+                if not coa.contract_types:
+                    errors["contract_types"] = [strings.Applications.Open.INCOMPLETE_CONTRACT_TYPES]
+                    break
 
     return errors
 

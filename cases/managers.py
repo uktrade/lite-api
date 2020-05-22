@@ -5,8 +5,9 @@ from compat import get_model
 from django.db import models, transaction
 from django.db.models import Q, Case, When, BinaryField
 
-from cases.enums import AdviceLevel
+from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
+from common.enums import SortOrder
 from queues.constants import (
     ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
@@ -78,6 +79,95 @@ class CaseQuerySet(models.QuerySet):
 
         return self.order_by(f"{order}status__priority")
 
+    def with_case_reference_code(self, case_reference):
+        return self.filter(reference_code__icontains=case_reference)
+
+    def with_exporter_application_reference(self, exporter_application_reference):
+        return self.filter(baseapplication__name__icontains=exporter_application_reference)
+
+    def with_organisation(self, organisation_name):
+        return self.filter(organisation__name__icontains=organisation_name)
+
+    def with_exporter_site_name(self, exporter_site_name):
+        return self.filter(baseapplication__application_sites__site__name=exporter_site_name)
+
+    def with_sla_days_elapsed(self, sla_days_elapsed):
+        return self.filter(sla_days=sla_days_elapsed)
+
+    def with_exporter_site_address(self, exporter_site_address):
+        return self.filter(
+            Q(baseapplication__application_sites__site__address__address_line_1__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__address_line_2__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__region__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__postcode__icontains=exporter_site_address)
+            | Q(baseapplication__application_sites__site__address__address__icontains=exporter_site_address)
+        )
+
+    def with_control_list_entry(self, control_list_entry):
+        return self.filter(
+            Q(baseapplication__goods__good__control_list_entries__rating__in=[control_list_entry])
+            | Q(baseapplication__goods_type__control_list_entries__rating__in=[control_list_entry])
+        )
+
+    def with_flags(self, flags):
+        return self.filter(
+            Q(flags__id__in=flags)
+            | Q(organisation__flags__id__in=flags)
+            | Q(baseapplication__openapplication__application_countries__country__flags__id__in=flags)
+            | Q(baseapplication__goods__good__flags__id__in=flags)
+            | Q(baseapplication__goods_type__flags__id__in=flags)
+        )
+
+    def with_country(self, country_id):
+        return self.filter(
+            Q(baseapplication__parties__party__country_id=country_id)
+            | Q(baseapplication__openapplication__application_countries__country_id=country_id)
+        )
+
+    def with_advice(self, advice_type, level):
+        return self.filter(advice__type=advice_type, advice__level=level)
+
+    def with_sla_days_range(self, min_sla, max_sla):
+        qs = self.filter()
+        if min_sla:
+            qs = qs.filter(sla_remaining_days__gte=int(min_sla))
+        if max_sla:
+            qs = qs.filter(sla_remaining_days__lte=int(max_sla))
+        return qs
+
+    def with_submitted_range(self, submitted_from, submitted_to):
+        qs = self.filter()
+        if submitted_from:
+            qs = qs.filter(submitted_at__date__gte=submitted_from)
+        if submitted_to:
+            qs = qs.filter(submitted_at__date__lte=submitted_to)
+        return qs
+
+    def with_finalised_range(self, finalised_from, finalised_to):
+        qs = self.filter(status__status=CaseStatusEnum.FINALISED)
+        if finalised_from:
+            qs = qs.filter(advice__level=AdviceLevel.FINAL, advice__created_at__date__gte=finalised_from)
+        if finalised_to:
+            qs = qs.filter(advice__level=AdviceLevel.FINAL, advice__created_at__date__lte=finalised_to)
+        return qs
+
+    def with_party_name(self, party_name):
+        return self.filter(baseapplication__parties__party__name__icontains=party_name)
+
+    def with_party_address(self, party_address):
+        return self.filter(baseapplication__parties__party__address__icontains=party_address)
+
+    def with_goods_related_description(self, goods_related_description):
+        return self.filter(
+            Q(baseapplication__goods__good__description__icontains=goods_related_description)
+            | Q(baseapplication__goods__good__comment__icontains=goods_related_description)
+            | Q(baseapplication__goods__good__report_summary__icontains=goods_related_description)
+            | Q(baseapplication__goods_type__description__icontains=goods_related_description)
+            | Q(baseapplication__goods_type__comment__icontains=goods_related_description)
+            | Q(baseapplication__goods_type__report_summary__icontains=goods_related_description)
+        )
+
     def order_by_date(self, order="-"):
         """
         :param order: ('', '-')
@@ -115,7 +205,7 @@ class CaseManager(models.Manager):
     def get_queryset(self):
         return CaseQuerySet(self.model, using=self.db)
 
-    def search(
+    def search(  # noqa
         self,
         queue_id=None,
         is_work_queue=None,
@@ -126,6 +216,28 @@ class CaseManager(models.Manager):
         assigned_user=None,
         case_officer=None,
         include_hidden=None,
+        organisation_name=None,
+        case_reference=None,  # gov case number
+        exporter_application_reference=None,
+        exporter_site_name=None,
+        exporter_site_address=None,
+        control_list_entry=None,
+        flags=None,
+        country=None,
+        team_advice_type=None,
+        final_advice_type=None,
+        min_sla_days_remaining=None,
+        max_sla_days_remaining=None,
+        submitted_from=None,
+        submitted_to=None,
+        finalised_from=None,
+        finalised_to=None,
+        party_name=None,
+        party_address=None,
+        goods_related_description=None,
+        sla_days_elapsed_sort_order=None,
+        sla_days_elapsed=None,
+        **kwargs,
     ):
         """
         Search for a user's available cases given a set of search parameters.
@@ -149,24 +261,23 @@ class CaseManager(models.Manager):
             )
         )
 
-        team_id = user.team.id
-
-        if not include_hidden:
+        if not include_hidden and user:
             EcjuQuery = get_model("cases", "ecjuquery")
 
             case_qs = case_qs.exclude(
-                id__in=EcjuQuery.objects.filter(raised_by_user__team_id=team_id, responded_at__isnull=True)
+                id__in=EcjuQuery.objects.filter(raised_by_user__team_id=user.team.id, responded_at__isnull=True)
                 .values("case_id")
                 .distinct()
             )
 
-        if queue_id:
-            case_qs = case_qs.filter_based_on_queue(queue_id=queue_id, team_id=team_id, user=user)
+        if queue_id and user:
+            case_qs = case_qs.filter_based_on_queue(queue_id=queue_id, team_id=user.team.id, user=user)
 
         if status:
             case_qs = case_qs.has_status(status=status)
 
         if case_type:
+            case_type = CaseTypeEnum.reference_to_id(case_type)
             case_qs = case_qs.is_type(case_type=case_type)
 
         if assigned_user:
@@ -179,6 +290,57 @@ class CaseManager(models.Manager):
             if case_officer == self.NOT_ASSIGNED:
                 case_officer = None
             case_qs = case_qs.assigned_as_case_officer(user=case_officer)
+
+        if case_reference:
+            case_qs = case_qs.with_case_reference_code(case_reference)
+
+        if exporter_application_reference:
+            case_qs = case_qs.with_exporter_application_reference(exporter_application_reference)
+
+        if organisation_name:
+            case_qs = case_qs.with_organisation(organisation_name)
+
+        if exporter_site_name:
+            case_qs = case_qs.with_exporter_site_name(exporter_site_name)
+
+        if exporter_site_address:
+            case_qs = case_qs.with_exporter_site_address(exporter_site_address)
+
+        if control_list_entry:
+            case_qs = case_qs.with_control_list_entry(control_list_entry)
+
+        if flags:
+            case_qs = case_qs.with_flags(flags)
+
+        if country:
+            case_qs = case_qs.with_country(country)
+
+        if team_advice_type:
+            case_qs = case_qs.with_advice(team_advice_type, AdviceLevel.TEAM)
+
+        if final_advice_type:
+            case_qs = case_qs.with_advice(final_advice_type, AdviceLevel.FINAL)
+
+        if min_sla_days_remaining or max_sla_days_remaining:
+            case_qs = case_qs.with_sla_days_range(min_sla=min_sla_days_remaining, max_sla=max_sla_days_remaining)
+
+        if sla_days_elapsed:
+            case_qs = case_qs.with_sla_days_elapsed(sla_days_elapsed)
+
+        if submitted_from or submitted_to:
+            case_qs = case_qs.with_submitted_range(submitted_from=submitted_from, submitted_to=submitted_to)
+
+        if finalised_from or finalised_to:
+            case_qs = case_qs.with_finalised_range(finalised_from=finalised_from, finalised_to=finalised_to)
+
+        if party_name:
+            case_qs = case_qs.with_party_name(party_name)
+
+        if party_address:
+            case_qs = case_qs.with_party_address(party_address)
+
+        if goods_related_description:
+            case_qs = case_qs.with_goods_related_description(goods_related_description)
 
         if is_work_queue:
             case_qs = case_qs.annotate(
@@ -196,7 +358,13 @@ class CaseManager(models.Manager):
         if isinstance(sort, str):
             case_qs = case_qs.order_by_status(order="-" if sort.startswith("-") else "")
 
-        return case_qs
+        if sla_days_elapsed_sort_order:
+            if sla_days_elapsed_sort_order == SortOrder.ASCENDING:
+                case_qs = case_qs.order_by("-sla_remaining_days")
+            else:
+                case_qs = case_qs.order_by("sla_remaining_days")
+
+        return case_qs.distinct()
 
     def submitted(self):
         draft = get_case_status_by_status(CaseStatusEnum.DRAFT)

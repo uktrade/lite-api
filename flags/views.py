@@ -7,7 +7,6 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.libraries.application_helpers import optional_str_to_bool
 from applications.models import GoodOnApplication, CountryOnApplication, StandardApplication, HmrcQuery
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -54,7 +53,7 @@ class FlagsListCreateView(ListCreateAPIView):
         level = self.request.GET.get("level")
         priority = self.request.GET.get("priority")
         team = self.request.GET.get("team")
-        only_show_deactivated = optional_str_to_bool(self.request.GET.get("only_show_deactivated"))
+        status = self.request.GET.get("status", FlagStatuses.ACTIVE)
         include_system_flags = str_to_bool(self.request.GET.get("include_system_flags"))  # True, False
         blocks_approval = str_to_bool(self.request.GET.get("blocks_approval"))
 
@@ -75,10 +74,8 @@ class FlagsListCreateView(ListCreateAPIView):
         if team and team != "None":
             flags = flags.filter(team=team)
 
-        if only_show_deactivated:
-            flags = flags.filter(status=FlagStatuses.DEACTIVATED)
-        else:
-            flags = flags.filter(status=FlagStatuses.ACTIVE)
+        if status:
+            flags = flags.filter(status=status)
 
         if include_system_flags:
             system_flags = Flag.objects.filter(id__in=SystemFlags.list)
