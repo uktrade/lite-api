@@ -6,7 +6,7 @@ from django.utils import timezone
 
 
 DATE_FORMAT = "%d %B %Y"
-TIME_FORMAT = "%I:%M %p"
+TIME_FORMAT = "%H:%M"
 
 
 def str_to_bool(v, invert_none=False):
