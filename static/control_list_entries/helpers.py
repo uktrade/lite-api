@@ -21,7 +21,22 @@ def convert_control_list_entries_to_tree(queryset):
                 parent["children"] = []
             parent["children"].append(control_code)
 
-    # Get a list of items which are are the ultimate parent in their tree.
-    ultimate_parents_of_tree_list = [data_dict[data["id"]] for data in data_dict.values() if not data["parent_id"]]
+    # Helper function to get all the id's associated with a parent
+    def get_list_of_control_code_and_children_ids(control_code):
+        id_list = set()
+        id_list.add(control_code["id"])
+        if "children" in control_code:
+            for c in control_code["children"]:
+                id_list.update(get_list_of_control_code_and_children_ids(c))
+        return id_list
 
-    return ultimate_parents_of_tree_list
+    # Trim the results to have a id only once
+    ids = set(data_dict.keys())
+    list_of_ultimate_parent_control_codes = []
+    for control_code in data_dict.values():
+        full_control_code_id_list = get_list_of_control_code_and_children_ids(control_code)
+        if ids.intersection(full_control_code_id_list):
+            ids = ids.difference(full_control_code_id_list)
+            list_of_ultimate_parent_control_codes.append(control_code)
+
+    return list_of_ultimate_parent_control_codes
