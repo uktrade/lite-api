@@ -10,6 +10,7 @@ def get_control_list_entry(rating):
 
 
 def convert_control_list_entries_to_tree(queryset=None):
+    # custom queryset exists for testing purposes since it contains a number of random control codes otherwise
     data = queryset if queryset else ControlListEntry.objects.all().values()
 
     # Link children inside their parent object

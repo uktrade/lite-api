@@ -44,7 +44,7 @@ class TestCreateOGL(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
 
-    def test_creating_with_default_request_data(self):
+    def test_creating_success(self):
         response = self.client.post(URL, self.request_data, **self.gov_headers)
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
@@ -63,6 +63,8 @@ class TestCreateOGL(DataTestClient):
         self.assertEqual(Audit.objects.all().count(), 1)
 
     @parameterized.expand(REQUEST_DATA.keys())
+    # Since all fields are required in creation,
+    # we get the list of fields though the key, and test it fails with each one
     def test_fail_creating_without_field(self, key):
         self.request_data.pop(key)
         response = self.client.post(URL, self.request_data, **self.gov_headers)
@@ -71,6 +73,8 @@ class TestCreateOGL(DataTestClient):
         self.assertEqual(Audit.objects.all().count(), 0)
 
     @parameterized.expand(REQUEST_DATA.keys())
+    # Since all fields are required in creation,
+    # we get the list of fields though the key, and test it fails with each one
     def test_fail_creating_with_none_fields(self, key):
         self.request_data[key] = None
         response = self.client.post(URL, self.request_data, **self.gov_headers)
@@ -79,6 +83,8 @@ class TestCreateOGL(DataTestClient):
         self.assertEqual(Audit.objects.all().count(), 0)
 
     @parameterized.expand(REQUEST_DATA.keys())
+    # Since all fields are required in creation,
+    # we get the list of fields though the key, and test it fails with each one
     def test_fail_creating_with_blank_fields(self, key):
         if isinstance(self.request_data[key], list):
             self.request_data[key] = []
