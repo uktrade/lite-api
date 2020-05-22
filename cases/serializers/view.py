@@ -5,60 +5,22 @@ from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from applications.serializers.advice import CaseAdviceSerializer
 from audit_trail.models import Audit
-from cases.enums import (
-    CaseTypeTypeEnum,
-    AdviceType,
-    CaseDocumentState,
-    CaseTypeSubTypeEnum,
-    CaseTypeReferenceEnum,
-    ECJUQueryType,
-)
-from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
+from cases.enums import CaseTypeTypeEnum, CaseDocumentState, AdviceType, ECJUQueryType
 from cases.libraries.get_flags import get_ordered_flags
-from cases.models import (
-    Case,
-    CaseNote,
-    CaseAssignment,
-    CaseDocument,
-    EcjuQuery,
-    Advice,
-    GoodCountryDecision,
-    CaseType,
-)
-from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
-from documents.libraries.process_document import process_document
+from cases.models import CaseType, Case, Advice, CaseNote, CaseDocument, CaseAssignment, EcjuQuery, GoodCountryDecision
+from cases.serializers.list import CaseTypeSerializer
+from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
 from goodstype.models import GoodsType
-from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
+from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer, CaseOfficerReadOnlySerializer
 from lite_content.lite_api import strings
-from organisations.models import Organisation
-from organisations.serializers import OrganisationCaseSerializer
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from queues.serializers import CasesQueueViewSerializer
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from teams.serializers import TeamSerializer
-from users.enums import UserStatuses
-from users.models import BaseUser, GovUser, ExporterUser, GovNotification
-from users.serializers import (
-    BaseUserViewSerializer,
-    ExporterUserViewSerializer,
-)
-
-
-class CaseTypeSerializer(serializers.ModelSerializer):
-    reference = KeyValueChoiceField(choices=CaseTypeReferenceEnum.choices)
-    type = KeyValueChoiceField(choices=CaseTypeTypeEnum.choices)
-    sub_type = KeyValueChoiceField(choices=CaseTypeSubTypeEnum.choices)
-
-    class Meta:
-        model = CaseType
-        fields = (
-            "id",
-            "reference",
-            "type",
-            "sub_type",
-        )
+from users.models import GovNotification, BaseUser, GovUser, ExporterUser
+from users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -100,85 +62,7 @@ class CaseSerializer(serializers.ModelSerializer):
         return repr_dict
 
 
-class CaseAssignmentSerializer(serializers.ModelSerializer):
-    user = GovUserSimpleSerializer()
-
-    class Meta:
-        model = CaseAssignment
-        fields = (
-            "case",
-            "user",
-        )
-
-
-class QueueCaseAssignmentUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GovUser
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-        )
-
-
-class QueueCaseAssignmentSerializer(serializers.ModelSerializer):
-    user = QueueCaseAssignmentUserSerializer()
-    queue = CasesQueueViewSerializer()
-
-    class Meta:
-        model = CaseAssignment
-        fields = (
-            "user",
-            "queue",
-        )
-
-
-class CaseListSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    reference_code = serializers.CharField()
-    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
-    status = serializers.SerializerMethodField()
-    flags = serializers.SerializerMethodField()
-    submitted_at = serializers.SerializerMethodField()
-    sla_days = serializers.IntegerField()
-    sla_remaining_days = serializers.IntegerField()
-    has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
-    organisation = PrimaryKeyRelatedSerializerField(
-        queryset=Organisation.objects.all(), serializer=OrganisationCaseSerializer
-    )
-
-    def __init__(self, *args, **kwargs):
-        self.team = kwargs.pop("team", None)
-        self.include_hidden = kwargs.pop("include_hidden", None)
-        super().__init__(*args, **kwargs)
-
-    def get_flags(self, instance):
-        """
-        Gets flags for a case and returns in sorted order by team.
-        """
-        return get_ordered_flags(instance, self.team)
-
-    def get_submitted_at(self, instance):
-        # Return the DateTime value manually as otherwise
-        # it'll return a string representation which isn't suitable for filtering
-        return instance.submitted_at
-
-    def get_status(self, instance):
-        return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
-
-
-class CaseCopyOfSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Case
-        fields = (
-            "id",
-            "reference_code",
-        )
-
-
-class CaseDetailSerializer(CaseSerializer):
+class CaseDetailSerializerOld(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
@@ -282,6 +166,29 @@ class CaseDetailSerializer(CaseSerializer):
             return CaseCopyOfSerializer(instance.copy_of).data
 
 
+class CaseDetailSerializer(serializers.Serializer):
+    # Key properties
+    id = serializers.UUIDField()
+    all_flags = serializers.SerializerMethodField()
+    case_officer = CaseOfficerReadOnlySerializer()
+    assigned_users = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        self.team = kwargs.pop("team", None)
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+    def get_all_flags(self, instance):
+        """
+        Gets flags for a case and returns in sorted order by team.
+        """
+        return get_ordered_flags(instance, self.team)
+
+    def get_assigned_users(self, instance):
+        # TODO Improve
+        return instance.get_users()
+
+
 class CaseNoteSerializer(serializers.ModelSerializer):
     """
     Serializes case notes
@@ -304,29 +211,6 @@ class CaseNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseNote
         fields = "__all__"
-
-
-class CaseDocumentCreateSerializer(serializers.ModelSerializer):
-    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    user = serializers.PrimaryKeyRelatedField(queryset=GovUser.objects.all())
-
-    class Meta:
-        model = CaseDocument
-        fields = (
-            "name",
-            "s3_key",
-            "user",
-            "size",
-            "case",
-            "description",
-            "visible_to_exporter",
-        )
-
-    def create(self, validated_data):
-        case_document = super(CaseDocumentCreateSerializer, self).create(validated_data)
-        case_document.save()
-        process_document(case_document)
-        return case_document
 
 
 class CaseDocumentViewSerializer(serializers.ModelSerializer):
@@ -353,6 +237,49 @@ class CaseDocumentViewSerializer(serializers.ModelSerializer):
             "safe",
             "description",
             "visible_to_exporter",
+        )
+
+
+class CaseAssignmentSerializer(serializers.ModelSerializer):
+    user = GovUserSimpleSerializer()
+
+    class Meta:
+        model = CaseAssignment
+        fields = (
+            "case",
+            "user",
+        )
+
+
+class QueueCaseAssignmentUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GovUser
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+        )
+
+
+class QueueCaseAssignmentSerializer(serializers.ModelSerializer):
+    user = QueueCaseAssignmentUserSerializer()
+    queue = CasesQueueViewSerializer()
+
+    class Meta:
+        model = CaseAssignment
+        fields = (
+            "user",
+            "queue",
+        )
+
+
+class CaseCopyOfSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = (
+            "id",
+            "reference_code",
         )
 
 
@@ -416,26 +343,6 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
         )
 
 
-class EcjuQueryCreateSerializer(serializers.ModelSerializer):
-    """
-    Create specific serializer, which does not take a response as gov users don't respond to their own queries!
-    """
-
-    question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
-    case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
-    query_type = KeyValueChoiceField(choices=ECJUQueryType.choices)
-
-    class Meta:
-        model = EcjuQuery
-        fields = (
-            "id",
-            "question",
-            "case",
-            "raised_by_user",
-            "query_type",
-        )
-
-
 class GoodCountryDecisionSerializer(serializers.ModelSerializer):
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     good = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all())
@@ -445,17 +352,3 @@ class GoodCountryDecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodCountryDecision
         fields = "__all__"
-
-
-class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for assigning and removing case officers from a case.
-    """
-
-    case_officer = serializers.PrimaryKeyRelatedField(
-        queryset=GovUser.objects.exclude(status=UserStatuses.DEACTIVATED).all(), allow_null=True
-    )
-
-    class Meta:
-        model = Case
-        fields = ("case_officer",)

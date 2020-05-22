@@ -173,6 +173,13 @@ class GovUserSimpleSerializer(serializers.ModelSerializer):
         return instance.team.name
 
 
+class CaseOfficerReadOnlySerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.CharField()
+
+
 class GovUserNotificationSerializer(serializers.ModelSerializer):
     audit_id = serializers.SerializerMethodField()
 

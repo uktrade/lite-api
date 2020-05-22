@@ -30,7 +30,7 @@ from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
     EcjuQueryCreateSerializer,
-    CaseDetailSerializer,
+    CaseDetailSerializerOld,
     EcjuQueryGovSerializer,
     EcjuQueryExporterSerializer,
     CaseAdviceSerializer,
@@ -73,7 +73,7 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, user=request.user, team=request.user.team)
+        serializer = CaseDetailSerializerOld(case, user=request.user, team=request.user.team)
 
         return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
 
