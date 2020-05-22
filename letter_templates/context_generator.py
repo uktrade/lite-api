@@ -30,7 +30,6 @@ def get_document_context(case):
     """
     date, time = get_date_and_time()
     licence = Licence.objects.filter(application_id=case.pk).order_by("-created_at").first()
-    applicant_audit = Audit.objects.filter(target_object_id=case.id).first()
     final_advice = Advice.objects.filter(level=AdviceLevel.FINAL, case_id=case.pk)
     ecju_queries = EcjuQuery.objects.filter(case=case)
     notes = CaseNote.objects.filter(case=case)
@@ -51,7 +50,7 @@ def get_document_context(case):
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
-        "applicant": _get_applicant_context(applicant_audit.actor) if applicant_audit else None,
+        "applicant": _get_applicant_context(case.submitted_by) if case.submitted_by else None,
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
         "end_user": _get_party_context(base_application.end_user.party)
