@@ -11,12 +11,14 @@ from applications.enums import (
     ServiceEquipmentType,
     MTCRAnswers,
     GoodsTypeCategory,
+    ContractType,
 )
 from applications.managers import BaseApplicationManager, HmrcQueryManager
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from common.models import TimestampableModel
 from documents.models import Document
+from flags.models import Flag
 from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
@@ -236,13 +238,13 @@ class F680ClearanceApplication(BaseApplication):
     locally_manufactured = models.NullBooleanField(blank=True, default=None)
     locally_manufactured_description = models.CharField(max_length=2200, null=True)
 
-    mtcr_type = models.CharField(choices=MTCRAnswers.choices(), null=True, max_length=50)
+    mtcr_type = models.CharField(choices=MTCRAnswers.choices, null=True, max_length=50)
 
     electronic_warfare_requirement = models.NullBooleanField(default=None)
 
     uk_service_equipment = models.NullBooleanField(default=None)
     uk_service_equipment_description = models.CharField(max_length=2200, null=True)
-    uk_service_equipment_type = models.CharField(choices=ServiceEquipmentType.choices(), null=True, max_length=50)
+    uk_service_equipment_type = models.CharField(choices=ServiceEquipmentType.choices, null=True, max_length=50)
 
     prospect_value = models.DecimalField(max_digits=15, decimal_places=2, null=True)
 
@@ -318,6 +320,9 @@ class CountryOnApplication(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(OpenApplication, related_name="application_countries", on_delete=models.CASCADE)
     country = models.ForeignKey(Country, related_name="countries_on_application", on_delete=models.CASCADE)
+    contract_types = SeparatedValuesField(max_length=350, choices=ContractType.choices, null=True, default=None)
+    other_contract_type_text = models.CharField(max_length=150, null=True, default=None)
+    flags = models.ManyToManyField(Flag, related_name="countries_on_applications")
 
 
 class PartyOnApplication(TimestampableModel):

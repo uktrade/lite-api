@@ -29,6 +29,7 @@ from applications.models import (
     F680ClearanceApplication,
 )
 from audit_trail.enums import AuditType
+from audit_trail import service as audit_trail_service
 from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
 from licences.models import Licence
@@ -179,7 +180,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 ]
             ]
         )
-
         if settings.TIME_TESTS:
             self.tick = datetime.now()
 
@@ -872,7 +872,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_standard_application_case(
-        self, organisation: Organisation, reference_name="Standard Application Case", parties=True, site=True
+        self, organisation: Organisation, reference_name="Standard Application Case", parties=True, site=True, user=None
     ):
         """
         Creates a complete standard application case
@@ -929,7 +929,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             letter_paragraph = self.create_picklist_item(
                 "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
             )
-        letter_layout = LetterLayout.objects.first()
+        letter_layout = LetterLayout.objects.get(id=uuid.UUID(int=1))
 
         letter_template = LetterTemplate.objects.create(
             name=name, layout=letter_layout, visible_to_exporter=visible_to_exporter
