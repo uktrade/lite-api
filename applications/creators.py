@@ -359,7 +359,9 @@ def _validate_open_licence(draft, errors):
     errors = _validate_route_of_goods(draft, errors)
 
     # Check if end user is mandatory based on contract type 'nuclear related' being selected for any country
-    contract_types = CountryOnApplication.objects.filter(application_id=draft.id).values_list('contract_types', flat=True)
+    contract_types = CountryOnApplication.objects.filter(application_id=draft.id).values_list(
+        "contract_types", flat=True
+    )
     unique_contract_types = []
     for contract_type in contract_types:
         if contract_type:
