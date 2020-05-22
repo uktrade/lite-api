@@ -11,6 +11,7 @@ from applications.models import ExternalLocationOnApplication
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
+from goods.enums import PvGrading
 from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
 from static.countries.models import Country
@@ -57,6 +58,8 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["country"]["name"], party.country.name)
         self.assertEqual(context["country"]["code"], party.country.id)
         self.assertEqual(context["website"], party.website)
+        if party.clearance_level:
+            self.assertEqual(context["clearance_level"], PvGrading.choices_as_dict[party.clearance_level])
 
     def _assert_third_party(self, context, third_party):
         self.assertEqual(len(context["all"]), 1)
@@ -208,6 +211,7 @@ class DocumentContextGenerationTests(DataTestClient):
             context["uk_service_equipment_type"], ServiceEquipmentType.choices_as_dict[case.uk_service_equipment_type]
         )
         self.assertEqual(context["prospect_value"], case.prospect_value)
+        self.assertEqual(context["clearance_level"], PvGrading.choices_as_dict[case.clearance_level])
 
     def _assert_end_user_advisory_details(self, context, case):
         self.assertEqual(context["note"], case.note)

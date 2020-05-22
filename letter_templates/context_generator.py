@@ -13,6 +13,7 @@ from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
+from goods.enums import PvGrading
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
@@ -196,6 +197,7 @@ def _get_f680_clearance_context(case):
             if f680.uk_service_equipment_type
             else None,
             "prospect_value": f680.prospect_value,
+            "clearance_level": PvGrading.choices_as_dict.get(f680.clearance_level),
         }
     )
     return context
@@ -284,6 +286,7 @@ def _get_party_context(party):
         "address": party.address,
         "country": {"name": party.country.name, "code": party.country.id,},
         "website": party.website,
+        "clearance_level": PvGrading.choices_as_dict.get(party.clearance_level),
     }
 
 
