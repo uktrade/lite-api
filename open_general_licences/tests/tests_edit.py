@@ -16,6 +16,8 @@ class TestEditOGL(DataTestClient):
         case_type = CaseType.objects.get(id=CaseTypeEnum.OGTCL.id)
         self.ogl = OpenGeneralLicenceFactory(case_type=case_type)
         self.url = reverse("open_general_licences:detail", kwargs={"pk": self.ogl.id})
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
 
     @parameterized.expand(
         [

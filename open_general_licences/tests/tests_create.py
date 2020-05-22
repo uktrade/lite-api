@@ -41,6 +41,8 @@ class TestCreateOGL(DataTestClient):
     def setUp(self):
         super().setUp()
         self.request_data = deepcopy(REQUEST_DATA)
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
 
     def test_creating_with_default_request_data(self):
         response = self.client.post(URL, self.request_data, **self.gov_headers)
@@ -87,3 +89,11 @@ class TestCreateOGL(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Audit.objects.all().count(), 0)
+
+    def test_fail_without_permission(self):
+        self.gov_user.role = self.default_role
+        self.gov_user.save()
+
+        response = self.client.post(URL, self.request_data, **self.gov_headers)
+
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
