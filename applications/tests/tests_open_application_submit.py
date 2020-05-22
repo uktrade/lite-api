@@ -172,5 +172,3 @@ class OpenApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)
-
-
