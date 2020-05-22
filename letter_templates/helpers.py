@@ -1,14 +1,19 @@
 import os
 
 from django.template import Context, Engine, TemplateDoesNotExist
+from django.utils.html import escape
 from markdown import markdown
 
 from conf import settings
 from conf.exceptions import NotFoundError
 from conf.settings import CSS_ROOT
+from letter_templates.context_generator import get_document_context
 from letter_templates.exceptions import InvalidVarException
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
+
+
+CONTENT_PLACEHOLDER = "$USER_CONTENT$"
 
 
 def get_letter_template(pk):
@@ -27,6 +32,12 @@ def template_engine_factory(allow_missing_variables):
 
     return Engine(
         string_if_invalid=string_if_invalid,
+        builtins=[
+            "django.template.defaulttags",
+            "django.template.defaultfilters",
+            "django.template.loader_tags",
+            "letter_templates.custom_tags",
+        ],
         dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)],
         libraries={"static": "django.templatetags.static"},
     )
@@ -37,7 +48,7 @@ def markdown_to_html(text: str):
 
 
 def get_paragraphs_as_html(paragraphs: list):
-    return "\n\n".join([markdown_to_html(paragraph.text) for paragraph in paragraphs])
+    return "\n\n".join([paragraph.text for paragraph in paragraphs])
 
 
 def get_css_location(filename):
@@ -50,18 +61,26 @@ def load_css(filename):
     return f"<style>\n{css}</style>\n"
 
 
+def format_user_text(user_text):
+    return markdown_to_html(escape(user_text))
+
+
 def generate_preview(layout: str, text: str, case=None, allow_missing_variables=True):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
         template = django_engine.get_template(f"{layout}.html")
 
-        context = {"content": text}
-        template = template.render(Context(context))
-        if case:
-            context = {"case": case}
+        if text:
+            # Substitute content placeholder for user text
+            text = format_user_text(text)
+            template = template.source
+            template = template.replace(CONTENT_PLACEHOLDER, text)
             template = django_engine.from_string(template)
-            template = template.render(Context(context))
 
-        return load_css(layout) + template
+        context = {}
+        if case:
+            context = get_document_context(case)
+
+        return load_css(layout) + template.render(Context(context))
     except (FileNotFoundError, TemplateDoesNotExist):
         return {"error": strings.LetterTemplates.PREVIEW_ERROR}
