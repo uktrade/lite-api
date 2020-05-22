@@ -61,6 +61,45 @@ class CaseTypeSerializer(serializers.ModelSerializer):
         )
 
 
+class CaseSerializer(serializers.ModelSerializer):
+    """
+    Serializes cases
+    """
+
+    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
+    application = serializers.SerializerMethodField()
+    query = QueryViewSerializer(read_only=True)
+
+    class Meta:
+        model = Case
+        fields = (
+            "id",
+            "case_type",
+            "application",
+            "query",
+        )
+
+    def get_application(self, instance):
+        # The case has a reference to a BaseApplication but
+        # we need the full details of the application it points to
+        if instance.type in [CaseTypeTypeEnum.APPLICATION]:
+            application = get_application(instance.id)
+            serializer = get_application_view_serializer(application)
+            return serializer(application).data
+
+    def to_representation(self, value):
+        """
+        Only show 'application' if it has an application inside,
+        and only show 'query' if it has a CLC query inside
+        """
+        repr_dict = super(CaseSerializer, self).to_representation(value)
+        if not repr_dict["application"]:
+            del repr_dict["application"]
+        if not repr_dict["query"]:
+            del repr_dict["query"]
+        return repr_dict
+
+
 class CaseAssignmentSerializer(serializers.ModelSerializer):
     user = GovUserSimpleSerializer()
 
@@ -139,15 +178,14 @@ class CaseCopyOfSerializer(serializers.ModelSerializer):
         )
 
 
-class CaseDetailSerializer(serializers.ModelSerializer):
-    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    application = serializers.SerializerMethodField()
-    query = QueryViewSerializer(read_only=True)
+class CaseDetailSerializer(CaseSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
+    query = QueryViewSerializer(read_only=True)
+    application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer(read_only=True)
     copy_of = serializers.SerializerMethodField()
@@ -242,18 +280,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
-
-    def to_representation(self, value):
-        """
-        Only show 'application' if it has an application inside,
-        and only show 'query' if it has a CLC query inside
-        """
-        repr_dict = super(CaseSerializer, self).to_representation(value)
-        if not repr_dict["application"]:
-            del repr_dict["application"]
-        if not repr_dict["query"]:
-            del repr_dict["query"]
-        return repr_dict
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
