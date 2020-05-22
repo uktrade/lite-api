@@ -45,14 +45,14 @@ class F680ClearanceViewSerializer(PartiesSerializerMixin, GenericApplicationView
     locally_manufactured = serializers.BooleanField(required=False)
     locally_manufactured_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
 
-    mtcr_type = KeyValueChoiceField(choices=MTCRAnswers.choices(), allow_blank=True, required=False)
+    mtcr_type = KeyValueChoiceField(choices=MTCRAnswers.choices, allow_blank=True, required=False)
 
     electronic_warfare_requirement = serializers.BooleanField(required=False)
 
     uk_service_equipment = serializers.BooleanField(required=False)
     uk_service_equipment_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
     uk_service_equipment_type = KeyValueChoiceField(
-        choices=ServiceEquipmentType.choices(), allow_blank=True, required=False
+        choices=ServiceEquipmentType.choices, allow_blank=True, required=False
     )
 
     prospect_value = serializers.DecimalField(required=False, allow_null=True, max_digits=15, decimal_places=2)
@@ -119,14 +119,14 @@ class F680ClearanceUpdateSerializer(GenericApplicationUpdateSerializer):
     locally_manufactured = serializers.BooleanField(required=False, allow_null=True)
     locally_manufactured_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
 
-    mtcr_type = KeyValueChoiceField(choices=MTCRAnswers.choices(), allow_blank=True, required=False)
+    mtcr_type = KeyValueChoiceField(choices=MTCRAnswers.choices, allow_blank=True, required=False)
 
     electronic_warfare_requirement = serializers.BooleanField(required=False, allow_null=True)
 
     uk_service_equipment = serializers.BooleanField(required=False, allow_null=True)
     uk_service_equipment_description = serializers.CharField(max_length=2000, allow_blank=True, required=False)
     uk_service_equipment_type = KeyValueChoiceField(
-        choices=ServiceEquipmentType.choices(), allow_blank=True, required=False
+        choices=ServiceEquipmentType.choices, allow_blank=True, required=False
     )
 
     prospect_value = serializers.DecimalField(
