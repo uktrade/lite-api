@@ -42,7 +42,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         required=True,
         allow_null=False,
         allow_empty=False,
-        error_messages={"required": OpenGeneralLicences.serializerErrors.REQUIRED_CASE_TYPE},
+        error_messages={"null": OpenGeneralLicences.serializerErrors.REQUIRED_CASE_TYPE},
         serializer=CaseTypeSerializer,
     )
     countries = PrimaryKeyRelatedSerializerField(
