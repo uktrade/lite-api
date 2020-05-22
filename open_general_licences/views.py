@@ -63,7 +63,11 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
-    queryset = OpenGeneralLicence.objects.all()
+    queryset = (
+        OpenGeneralLicence.objects.all()
+        .select_related("case_type")
+        .prefetch_related("countries", "control_list_entries")
+    )
 
     def initial(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
