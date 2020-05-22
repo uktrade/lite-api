@@ -5,7 +5,7 @@ from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
 from conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
-from lite_content.lite_api.strings import OpenGeneralLicences
+from lite_content.lite_api.strings import OpenGeneralLicences, ControlListEntry
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.models import OpenGeneralLicence
 from static.countries.models import Country
@@ -54,11 +54,11 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         error_messages={"required": OpenGeneralLicences.serializerErrors.REQUIRED_COUNTRIES},
         serializer=CountrySerializer,
     )
-    control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=False)
+    control_list_entries = ControlListEntryField(many=True, required=True, allow_empty=False,)
     registration_required = serializers.BooleanField(
         required=True,
         allow_null=False,
-        error_messages={"required": OpenGeneralLicences.serializerErrors.REQUIRED_REGISTRATION_REQUIRED},
+        error_messages={"invalid": OpenGeneralLicences.serializerErrors.REQUIRED_REGISTRATION_REQUIRED},
     )
     status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices, required=False)
 
