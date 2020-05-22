@@ -17,7 +17,11 @@ from lite_content.lite_api.strings import OpenGeneralLicences
 class OpenGeneralLicenceList(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
-    queryset = OpenGeneralLicence.objects.all()
+    queryset = (
+        OpenGeneralLicence.objects.all()
+        .select_related("case_type")
+        .prefetch_related("countries", "control_list_entries")
+    )
 
     def filter_queryset(self, queryset):
         filtered_qs = queryset
