@@ -80,6 +80,7 @@ class GoodsQueriesCreate(APIView):
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_starting_status(is_clc_required),
             submitted_at=django.utils.timezone.now(),
+            submitted_by=request.user
         )
 
         # attach flags based on what's required
