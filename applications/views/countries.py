@@ -175,6 +175,7 @@ class LightCountries(APIView):
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
     def get(self, request, pk):
+        application = get_application(pk)
         countries = [
             country
             for country in (
