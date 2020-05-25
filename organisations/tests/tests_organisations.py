@@ -1,3 +1,5 @@
+import re
+
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
@@ -532,6 +534,46 @@ class EditOrganisationTests(DataTestClient):
         # Check only the finalised case's status was changed
         self.assertEqual(case_one.status.status, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES)
         self.assertEqual(case_two.status.status, CaseStatusEnum.SUBMITTED)
+
+    def test_vat_number_is_valid(self):
+        valid_vats = [
+            "GB517182944",
+            "GB999999973",
+            "GB123456789",
+            "GBGD600",
+            "GBHA244",
+            "GB123456789123",
+            "GBHA324",
+            "GB124 555 777",
+            "GB 123 456 789",
+            "GB12 3456 789",
+            "GB1 23 45 67 89",
+            "GB12 345 67 89 012",
+            "GB-123-456-789",
+            "GB-12345-6789101",
+            "GBH A125",
+            "GB GD 123",
+            "GB GD123",
+        ]
+        for valid_vat in valid_vats:
+            stripped_vat = re.sub(r"[^A-Z0-9]", "", valid_vat)
+            self.assertTrue(bool(re.match(r"^(GB)?([0-9]{9}([0-9]{3})?|(GD|HA)[0-9]{3})$", stripped_vat)))
+
+    def test_vat_number_is_invalid(self):
+        invalid_vats = [
+            "GB1234567",
+            "GBGD6731890",
+            "GB12345678910111313",
+            "GBHA424GB123456789123",
+            "GB  1234567",
+            "GB GD1378",
+            "GBDG673",
+            "GBAH839",
+            "GB  HA 1324",
+        ]
+        for invalid_vat in invalid_vats:
+            stripped_vat = re.sub(r"[^A-Z0-9]", "", invalid_vat)
+            self.assertFalse(bool(re.match(r"^(GB)?([0-9]{9}([0-9]{3})?|(GD|HA)[0-9]{3})$", stripped_vat)))
 
 
 class EditOrganisationStatusTests(DataTestClient):
