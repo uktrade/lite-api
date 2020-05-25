@@ -98,7 +98,7 @@ class CreateOrganisationTests(DataTestClient):
             "type": OrganisationType.COMMERCIAL,
             "eori_number": "GB123456789000",
             "sic_number": "01110",
-            "vat_number": "GB1234567",
+            "vat_number": "GB123456789",
             "registration_number": "98765432",
             "site": {
                 "name": "Headquarters",
@@ -162,7 +162,7 @@ class CreateOrganisationTests(DataTestClient):
             "type": OrganisationType.COMMERCIAL,
             "eori_number": "GB123456789000",
             "sic_number": "01110",
-            "vat_number": "GB1234567",
+            "vat_number": "GB123456789",
             "registration_number": "98765432",
             "site": {"name": "Headquarters", "address": address},
             "user": {"email": "trinity@bsg.com"},
@@ -262,7 +262,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Audit.objects.count(), 0)
 
-    @parameterized.expand([["GB1234567"], [""]])
+    @parameterized.expand([["GB123456789"], [""]])
     def test_create_organisation_as_a_private_individual(self, vat_number):
         data = {
             "name": "John Smith",
