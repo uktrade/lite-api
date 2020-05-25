@@ -9,7 +9,7 @@ from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.constants import Roles
 from conf.permissions import assert_user_has_permission
-from gov_users.serializers import RoleSerializer, PermissionSerializer, RoleListSerializer
+from gov_users.serializers import RoleSerializer, PermissionSerializer
 from users.enums import UserType
 from users.libraries.get_role import get_role_by_pk
 from users.models import Role
@@ -31,7 +31,7 @@ class RolesViews(APIView):
         if request.user.role_id != Roles.INTERNAL_SUPER_USER_ROLE_ID:
             roles = roles.exclude(id=Roles.INTERNAL_SUPER_USER_ROLE_ID)
         roles = filter_roles_by_user_role(request.user, roles)
-        serializer = RoleListSerializer(roles, many=True)
+        serializer = RoleSerializer(roles, many=True)
         return JsonResponse(data={"roles": serializer.data})
 
     @swagger_auto_schema(request_body=RoleSerializer, responses={400: "JSON parse error"})
