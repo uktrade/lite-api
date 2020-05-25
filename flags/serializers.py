@@ -174,5 +174,6 @@ class FlaggingRuleListSerializer(serializers.Serializer):
     team = TeamReadOnlySerializer()
     level = serializers.ChoiceField(choices=FlagLevels.choices)
     status = serializers.ChoiceField(choices=FlagStatuses.choices)
+    flag = PrimaryKeyRelatedField(queryset=Flag.objects.all())
     flag_name = serializers.CharField(source="flag.name")
     matching_value = serializers.CharField()
