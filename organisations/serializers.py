@@ -109,8 +109,8 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         error_messages={"blank": Organisations.Create.BLANK_EORI, "max_length": Organisations.Create.LENGTH_EORI},
     )
     vat_number = serializers.CharField(
-        min_length=9,
-        max_length=9,
+        min_length=7,
+        max_length=17,
         required=False,
         allow_null=True,
         allow_blank=True,
