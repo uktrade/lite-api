@@ -50,7 +50,7 @@ def get_document_context(case):
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
-        "applicant": _get_applicant_context(case.submitted_by) if case.submitted_by else None,
+        "applicant": _get_applicant_context(case.submitted_by),
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
         "end_user": _get_party_context(base_application.end_user.party)
