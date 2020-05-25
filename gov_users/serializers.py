@@ -50,17 +50,10 @@ class RoleSerializer(serializers.ModelSerializer):
         )
 
 
-class RoleListSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=30, read_only=True)
+class RoleListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
     permissions = PrimaryKeyRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = Role
-        fields = (
-            "id",
-            "name",
-            "permissions",
-        )
 
 
 class RoleListStatusesSerializer(RoleListSerializer):
