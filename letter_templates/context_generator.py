@@ -9,7 +9,6 @@ from applications.models import (
     F680ClearanceApplication,
     HmrcQuery,
 )
-from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
