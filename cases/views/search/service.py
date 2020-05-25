@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from applications.models import HmrcQuery
 from audit_trail.models import Audit
-from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
+from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from cases.models import Case
 from common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
 from static.statuses.enums import CaseStatusEnum
@@ -34,6 +34,10 @@ def get_gov_users_list():
     )
 
 
+def get_advice_types_list():
+    return AdviceType.to_representation()
+
+
 def populate_is_recently_updated(cases: List[Dict]):
     """
     Given a dictionary of cases, annotate each one with the field "is_recently_updated"
@@ -42,7 +46,6 @@ def populate_is_recently_updated(cases: List[Dict]):
     ago and return True, else return False
     """
     now = timezone.now()
-
     recent_audits = (
         Audit.objects.filter(
             target_content_type=ContentType.objects.get_for_model(Case),

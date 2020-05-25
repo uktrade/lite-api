@@ -3,19 +3,20 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.enums import GoodsTypeCategory
+from applications.enums import GoodsTypeCategory, ContractType
 from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
 from applications.models import CountryOnApplication
+from applications.serializers.open_application import ContractTypeDataSerializer, CountryOnApplicationViewSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
-from conf.decorators import allowed_application_types, authorised_to_view_application
+from conf.decorators import allowed_application_types, authorised_to_view_application, application_in_major_editable_state
 from conf.exceptions import BadRequestError
+from flags.models import Flag
 from static.countries.helpers import get_country
-from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
@@ -31,9 +32,8 @@ class ApplicationCountries(APIView):
         """
         View countries belonging to an open licence application
         """
-        countries = Country.include_special_countries.filter(countries_on_application__application_id=pk)
-        countries_data = CountrySerializer(countries, many=True).data
-
+        countries = CountryOnApplication.objects.filter(application_id=pk)
+        countries_data = CountryOnApplicationViewSerializer(countries, many=True).data
         return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
@@ -99,8 +99,9 @@ class ApplicationCountries(APIView):
             removed_countries = previous_countries.filter(country__id__in=removed_country_ids)
 
             # Append new Countries to application (only in unsubmitted/applicant editing statuses)
-            for country in new_countries:
-                CountryOnApplication(country=country, application=application).save()
+            CountryOnApplication.objects.bulk_create(
+                [CountryOnApplication(country=country, application=application) for country in new_countries]
+            )
 
             countries_data = CountrySerializer(new_countries, many=True).data
 
@@ -123,5 +124,66 @@ class ApplicationCountries(APIView):
                 )
 
             removed_countries.delete()
-
             return JsonResponse(data={"countries": countries_data}, status=status.HTTP_201_CREATED)
+
+
+class ApplicationContractTypes(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @authorised_users(ExporterUser)
+    @application_in_major_editable_state()
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
+    def put(self, request, application):
+        if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS:
+            raise BadRequestError(detail="You cannot do this action for this type of open application")
+
+        data = request.data
+
+        serialized_data, errors = self.validate_data(data)
+
+        if errors:
+            return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        countries = data.get("countries")
+        serialized_contract_types = serialized_data.get("contract_types")
+
+        contract_types = [",".join(serialized_contract_types)]
+
+        qs = CountryOnApplication.objects.filter(country__in=countries, application=application)
+
+        qs.update(
+            contract_types=contract_types, other_contract_type_text=serialized_data.get("other_contract_type_text")
+        )
+
+        [
+            Flag.objects.get(name=ContractType.get_flag_name(contract_type)).countries_on_applications.set(qs)
+            for contract_type in serialized_contract_types
+        ]
+        return JsonResponse(data={"countries_set": "success"}, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def validate_data(data):
+        serializer = ContractTypeDataSerializer(data=data)
+        if serializer.is_valid():
+            return serializer.data, None
+        else:
+            return None, serializer.errors
+
+
+class LightCountries(APIView):
+    authentication_classes = (ExporterAuthentication,)
+
+    @authorised_users(ExporterUser)
+    @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
+    def get(self, request, application):
+        countries = [
+            country
+            for country in (
+                CountryOnApplication.objects.filter(application=application)
+                .prefetch_related("country_id", "country__name")
+                .values("contract_types", "other_contract_type_text", "country_id", "country__name")
+            )
+        ]
+        return JsonResponse(
+            data={"countries": countries, "status": application.status.status}, status=status.HTTP_200_OK
+        )
