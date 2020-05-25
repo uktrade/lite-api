@@ -48,7 +48,7 @@ class GoodsQueryManageStatusTests(DataTestClient):
         self.assertEqual(CaseAssignment.objects.filter(case=query).count(), 0)
 
     def test_case_routing_automation_status_change(self):
-        query = DataTestClient.create_goods_query("This is a widget", self.organisation, "reason", "reason")
+        query = self.create_goods_query("This is a widget", self.organisation, "reason", "reason")
         query.queues.set([self.queue])
 
         routing_queue = self.create_queue("new queue", self.team)
