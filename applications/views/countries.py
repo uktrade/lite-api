@@ -130,10 +130,10 @@ class ApplicationCountries(APIView):
 class ApplicationContractTypes(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
     @application_in_state(is_major_editable=True)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    def put(self, request, application):
+    def put(self, request, pk):
+        application = get_application(pk)
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
@@ -173,13 +173,12 @@ class ApplicationContractTypes(APIView):
 class LightCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    def get(self, request, application):
+    def get(self, request, pk):
         countries = [
             country
             for country in (
-                CountryOnApplication.objects.filter(application=application)
+                CountryOnApplication.objects.filter(application_id=pk)
                 .prefetch_related("country_id", "country__name")
                 .values("contract_types", "other_contract_type_text", "country_id", "country__name")
             )
