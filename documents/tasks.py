@@ -1,7 +1,8 @@
 import logging
 
 from background_task import background
-from django.db import transaction, connection
+from background_task.models import Task
+from django.db import transaction
 
 from conf import settings
 from documents.libraries.av_operations import VirusScanException
@@ -33,18 +34,8 @@ def scan_document_for_viruses_task(document_id):
         except Exception as exc:  # noqa
             logging.warning(f"An unexpected error occurred when scanning document '{document_id}': {exc}")
 
-        # Get the previous attempt number from the background task table
-        with connection.cursor() as cursor:
-            sql = (  # nosec
-                f"SELECT background_task.attempts FROM background_task "  # nosec
-                f"WHERE background_task.queue = '{TASK_QUEUE}' "  # nosec
-                f"AND background_task.task_params LIKE '%{document_id}%'"  # nosec
-            )  # nosec
-
-            cursor.execute(sql)
-            previous_attempt = cursor.fetchone()[0]
-
-        current_attempt = previous_attempt + 1
+        current_task = Task.objects.get(queue=TASK_QUEUE, task_params__contains=document_id)
+        current_attempt = current_task.attempts + 1
 
         if current_attempt >= settings.MAX_ATTEMPTS:
             logging.warning(f"MAX_ATTEMPTS {settings.MAX_ATTEMPTS} for document '{document_id}' has been reached")
