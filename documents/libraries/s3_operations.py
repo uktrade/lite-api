@@ -22,13 +22,16 @@ _bucket_name = env("AWS_STORAGE_BUCKET_NAME")
 
 # S3 operations
 def get_object(document_id, s3_key):
+    logging.info(f"Retrieving file '{s3_key}' on document '{document_id}'")
+
     try:
-        logging.info(f"Retrieving file {s3_key} on document {document_id}")
         return _client.get_object(Bucket=_bucket_name, Key=s3_key)
     except ReadTimeoutError:
-        logging.warning(f"Timeout exceeded when retrieving file {s3_key} on document {document_id}")
+        logging.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
     except BotoCoreError as exc:
-        logging.warning(f"An unexpected error occurred when retrieving file {s3_key} on document {document_id}: {exc}")
+        logging.warning(
+            f"An unexpected error occurred when retrieving file '{s3_key}' on document '{document_id}': {exc}"
+        )
 
 
 def generate_s3_key(document_name, file_extension):
@@ -41,13 +44,16 @@ def upload_bytes_file(raw_file, s3_key):
 
 # Delete
 def delete_file(document_id, s3_key):
+    logging.info(f"Deleting file '{s3_key}' on document '{document_id}'")
+
     try:
-        logging.info(f"Deleting file {s3_key} on document {document_id}")
         _client.delete_object(Bucket=_bucket_name, Key=s3_key)
     except ReadTimeoutError:
-        logging.warning(f"Timeout exceeded when retrieving file {s3_key} on document {document_id}")
+        logging.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
     except BotoCoreError as exc:
-        logging.warning(f"An unexpected error occurred when deleting file {s3_key} on document {document_id}: {exc}")
+        logging.warning(
+            f"An unexpected error occurred when deleting file '{s3_key}' on document '{document_id}': {exc}"
+        )
 
 
 # Download

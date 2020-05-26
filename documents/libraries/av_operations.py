@@ -38,14 +38,14 @@ class S3StreamingBodyWrapper:
         return self._remaining_bytes
 
 
-def scan_documents_file_for_viruses(document_id, filename, file):
+def scan_file_for_viruses(document_id, filename, file):
     """Scans a file for viruses; returns True or False if a virus is detected."""
 
     if not file:
-        raise VirusScanException(f"Document {document_id} has no file")
+        raise VirusScanException(f"Document '{document_id}' has no file")
 
     with closing(file["Body"]):
-        logging.info(f"Scanning document {document_id} for viruses")
+        logging.info(f"Scanning document '{document_id}' for viruses")
 
         multipart_fields = {"file": (filename, S3StreamingBodyWrapper(file), file["ContentType"])}
         encoder = MultipartEncoder(fields=multipart_fields)
@@ -61,16 +61,16 @@ def scan_documents_file_for_viruses(document_id, filename, file):
                 timeout=REQUEST_TIMEOUT,
             )
         except requests.exceptions.Timeout:
-            raise VirusScanException(f"Timeout exceeded when scanning document {document_id}")
+            raise VirusScanException(f"Timeout exceeded when scanning document '{document_id}'")
         except requests.exceptions.RequestException as exc:
-            raise VirusScanException(f"An unexpected error occurred when scanning document {document_id}: {exc}")
+            raise VirusScanException(f"An unexpected error occurred when scanning document '{document_id}': {exc}")
 
         response.raise_for_status()
         report = response.json()
 
         if "malware" not in report:
-            raise VirusScanException(f"Document {document_id} identified as malware: {response.text}")
+            raise VirusScanException(f"Document '{document_id}' identified as malware: {response.text}")
 
-        logging.info(f"Successfully scanned document {document_id}")
+        logging.info(f"Successfully scanned document '{document_id}'")
 
         return not report.get("malware")

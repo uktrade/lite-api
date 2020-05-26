@@ -14,27 +14,29 @@ def scan_document_for_viruses_task(document_id):
     """
     from documents.models import Document
 
-    logging.info(f"Fetching document {document_id}")
+    logging.info(f"Fetching document '{document_id}'")
 
     with transaction.atomic():
         doc = Document.objects.select_for_update(nowait=True).get(id=document_id)
 
         if doc.virus_scanned_at:
-            logging.info(f"Skipping scan of document {doc.id}; already performed on {doc.virus_scanned_at}")
+            logging.info(f"Skipping scan of document '{doc.id}'; already performed on {doc.virus_scanned_at}")
             return
+
+        error = None
 
         try:
             doc.scan_for_viruses()
         except VirusScanException as exc:
             error = str(exc)
         except Exception as exc:  # noqa
-            error = f"An unexpected error occurred when scanning document {document_id}: {exc}"
+            error = f"An unexpected error occurred when scanning document '{document_id}': {exc}"
 
         if error:
             logging.warning(error)
 
             if doc.virus_scan_attempts == settings.MAX_ATTEMPTS:
-                logging.warning(f"{settings.MAX_ATTEMPTS} for document {doc.id} has been reached")
+                logging.warning(f"{settings.MAX_ATTEMPTS} for document '{doc.id}' has been reached")
                 doc.delete_s3()
 
-            raise Exception(f"Failed to scan document {doc.id}")
+            raise Exception(f"Failed to scan document '{doc.id}'")
