@@ -14,7 +14,7 @@ from queues.serializers import TinyQueueSerializer
 from static.statuses.models import CaseStatus
 from static.statuses.serializers import CaseStatusSerializer
 from teams.models import Team
-from teams.serializers import TeamSerializer
+from teams.serializers import TeamSerializer, TeamReadOnlySerializer
 from users.enums import UserType
 from users.models import GovUser, GovNotification
 from users.models import Role, Permission
@@ -63,11 +63,13 @@ class RoleListStatusesSerializer(RoleListSerializer):
 
 
 class GovUserListSerializer(serializers.Serializer):
-    id = serializers.UUIDField(read_only=True)
-    email = serializers.CharField(read_only=True)
-    first_name = serializers.CharField(read_only=True)
-    last_name = serializers.CharField(read_only=True)
-    status = serializers.CharField(read_only=True)
+    id = serializers.UUIDField()
+    email = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    status = serializers.ChoiceField(choices=GovUserStatuses.choices)
+    team = TeamReadOnlySerializer()
+    role_name = serializers.CharField(source="role.name")
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):
