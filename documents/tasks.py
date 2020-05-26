@@ -31,7 +31,9 @@ def scan_document_for_viruses(document_id):
         except VirusScanException as exc:
             logging.warning(str(exc))
         except Exception as exc:  # noqa
-            logging.warning(f"An unexpected error occurred when scanning document '{document_id}': {exc}")
+            logging.warning(
+                f"An unexpected error occurred when scanning document '{document_id}' -> {type(exc).__name__}: {exc}"
+            )
 
         # Get the task's current attempt number (the attempt number is only updated if the task fails)
         current_task = Task.objects.get(queue=TASK_QUEUE, task_params__contains=document_id)

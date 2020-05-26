@@ -60,7 +60,10 @@ def scan_file_for_viruses(document_id, filename, file):
         except requests.exceptions.Timeout:
             raise VirusScanException(f"Timeout exceeded when AV scanning document '{document_id}'")
         except requests.exceptions.RequestException as exc:
-            raise VirusScanException(f"An unexpected error occurred when AV scanning document '{document_id}': {exc}")
+            raise VirusScanException(
+                f"An unexpected error occurred when AV scanning document '{document_id}' -> "
+                f"{type(exc).__name__}: {exc}"
+            )
 
         response.raise_for_status()
         report = response.json()
