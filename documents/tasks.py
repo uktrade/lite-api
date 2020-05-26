@@ -27,7 +27,7 @@ def scan_document_for_viruses_task(document_id):
             doc.scan_for_viruses()
         except VirusScanException as exc:
             error = str(exc)
-        except Exception as exc:
+        except Exception as exc:  # noqa
             error = f"An unexpected error occurred when scanning document {document_id}: {exc}"
 
         if error:
