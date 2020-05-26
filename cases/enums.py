@@ -18,6 +18,8 @@ class CaseTypeReferenceEnum:
     CRE = "cre"
     GQY = "gqy"
     EUA = "eua"
+    OGTCL = "ogtcl"
+    OGTL = "ogtl"
 
     choices = [
         (OIEL, "Open Individual Export Licence"),
@@ -32,6 +34,8 @@ class CaseTypeReferenceEnum:
         (CRE, "HMRC Query"),
         (GQY, "Goods Query"),
         (EUA, "End User Advisory Query"),
+        (OGTCL, "Open General Trade Control Licence"),
+        (OGTL, "Open General Transhipment Licence"),
     ]
 
     @classmethod
@@ -184,7 +188,21 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.QUERY
         sub_type = CaseTypeSubTypeEnum.EUA
 
-    case_type_list = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA]
+    class OGTCL:
+        id = UUID("00000000-0000-0000-0000-000000000013")
+        reference = CaseTypeReferenceEnum.OGTCL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.OPEN
+
+    class OGTL:
+        id = UUID("00000000-0000-0000-0000-000000000014")
+        reference = CaseTypeReferenceEnum.OGTL
+        type = CaseTypeTypeEnum.APPLICATION
+        sub_type = CaseTypeSubTypeEnum.OPEN
+
+    CASE_TYPE_LIST = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA, OGTCL, OGTL]
+
+    OGL_ID_LIST = [OGEL.id, OGTCL.id, OGTL.id]
 
     @classmethod
     def case_types_to_representation(cls):
@@ -195,7 +213,7 @@ class CaseTypeEnum:
         if not case_type_reference:
             raise ValidationError({"case_type": [strings.Applications.Generic.SELECT_A_LICENCE_TYPE]})
 
-        for case_type in cls.case_type_list:
+        for case_type in cls.CASE_TYPE_LIST:
             if case_type.reference == case_type_reference:
                 return case_type
 
@@ -203,7 +221,7 @@ class CaseTypeEnum:
     def reference_to_id(cls, case_type_reference):
         if not case_type_reference:
             return None
-        for case_type in cls.case_type_list:
+        for case_type in cls.CASE_TYPE_LIST:
             if case_type.reference == case_type_reference:
                 return str(case_type.id)
 

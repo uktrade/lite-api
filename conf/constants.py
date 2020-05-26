@@ -21,6 +21,7 @@ class GovPermissions(Enum):
     MANAGE_PICKLISTS = "Manage picklists"
     ENFORCEMENT_CHECK = "Enforcement check permission"
     MAINTAIN_FOOTNOTES = "Create footnotes"
+    MAINTAIN_OGL = "Maintain open general licences"
 
 
 class ExporterPermissions(Enum):

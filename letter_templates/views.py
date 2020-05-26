@@ -89,7 +89,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             data["text"] = "\n\n".join([paragraph.text for paragraph in paragraphs])
 
         if str_to_bool(request.GET.get("activity")):
-            audit_qs = audit_trail_service.get_user_obj_trail_qs(request.user, template_object)
+            audit_qs = audit_trail_service.get_activity_for_user_and_model(request.user, template_object)
             data["activity"] = AuditSerializer(audit_qs, many=True).data
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)

@@ -14,7 +14,7 @@ from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from picklists.models import PicklistItem
-from static.control_list_entries.serializers import ControlListEntryViewSerializer
+from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.countries.serializers import CountrySerializer
 
 
@@ -89,7 +89,7 @@ class GoodsTypeViewSerializer(serializers.Serializer):
     description = serializers.CharField(read_only=True)
     is_good_controlled = serializers.ChoiceField(choices=GoodControlled.choices)
     is_good_incorporated = serializers.BooleanField(read_only=True)
-    control_list_entries = ControlListEntryViewSerializer(many=True, read_only=True)
+    control_list_entries = ControlListEntrySerializer(many=True, read_only=True)
     countries = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
