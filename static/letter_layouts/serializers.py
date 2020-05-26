@@ -11,3 +11,8 @@ class LetterLayoutSerializer(serializers.ModelSerializer):
             "filename",
             "name",
         )
+
+
+class LetterLayoutReadOnlySerializer(serializers.Serializer):
+    filename = serializers.CharField()
+    name = serializers.CharField()
