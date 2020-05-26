@@ -192,8 +192,8 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("documents.tasks.prepare_document.now")
-    def test_get_end_user_document_successful(self, prepare_document_function):
+    @mock.patch("documents.tasks.scan_document_for_viruses_task.now")
+    def test_get_end_user_document_successful(self, scan_document_for_viruses_task_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -225,8 +225,8 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("documents.tasks.prepare_document.now")
-    def test_post_document_when_no_end_user_exists_failure(self, prepare_document_function):
+    @mock.patch("documents.tasks.scan_document_for_viruses_task.now")
+    def test_post_document_when_no_end_user_exists_failure(self, scan_document_for_viruses_task_function):
         """
         Given a standard draft has been created
         And the draft does not contain an end user
@@ -275,8 +275,8 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
         self.assertEqual(None, response.json()["document"])
 
-    @mock.patch("documents.tasks.prepare_document.now")
-    def test_post_end_user_document_success(self, prepare_document_function):
+    @mock.patch("documents.tasks.scan_document_for_viruses_task.now")
+    def test_post_end_user_document_success(self, scan_document_for_viruses_task_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -294,8 +294,10 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch("documents.tasks.prepare_document.now")
-    def test_post_end_user_document_when_a_document_already_exists_failure(self, prepare_document_function):
+    @mock.patch("documents.tasks.scan_document_for_viruses_task.now")
+    def test_post_end_user_document_when_a_document_already_exists_failure(
+        self, scan_document_for_viruses_task_function
+    ):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -311,9 +313,9 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(PartyDocument.objects.filter(party=end_user).count(), 1)
 
-    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.tasks.scan_document_for_viruses_task.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_end_user_document_success(self, delete_s3_function, prepare_document_function):
+    def test_delete_end_user_document_success(self, delete_s3_function, scan_document_for_viruses_task_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -326,9 +328,9 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.tasks.scan_document_for_viruses_task.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_end_user_success(self, delete_s3_function, prepare_document_function):
+    def test_delete_end_user_success(self, delete_s3_function, scan_document_for_viruses_task_function):
         """
         Given a standard draft has been created
         And the draft contains an end user

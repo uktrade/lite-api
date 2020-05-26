@@ -25,9 +25,9 @@ class Document(TimestampableModel):
     def scan_for_viruses(self):
         """Asynchronously scans document's file on S3 for viruses."""
 
-        from documents.av_scan import scan_document_for_viruses
+        from documents.av_scan import scan_document_for_viruses_task_for_viruses
 
-        scan_document_for_viruses(self)
+        scan_document_for_viruses_task_for_viruses(self)
         self.refresh_from_db()
 
         if self.safe is False:

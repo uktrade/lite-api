@@ -42,7 +42,7 @@ class S3StreamingBodyWrapper:
         return self._remaining_bytes
 
 
-def scan_document_for_viruses(document: Document):
+def scan_document_for_viruses_task_for_viruses(document: Document):
     """
     Scans a document for viruses.
     This is intended to be run in the thread pool executor.
