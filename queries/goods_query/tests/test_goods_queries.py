@@ -48,7 +48,7 @@ class GoodsQueryManageStatusTests(DataTestClient):
         self.assertEqual(CaseAssignment.objects.filter(case=query).count(), 0)
 
     def test_case_routing_automation_status_change(self):
-        query = DataTestClient.create_goods_query("This is a widget", self.organisation, "reason", "reason")
+        query = self.create_goods_query("This is a widget", self.organisation, "reason", "reason")
         query.queues.set([self.queue])
 
         routing_queue = self.create_queue("new queue", self.team)
@@ -112,6 +112,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         self.assertEqual(
             [str(id) for id in goods_query.flags.values_list("id", flat=True)], [SystemFlags.GOOD_CLC_QUERY_ID],
         )
+        self.assertEqual(goods_query.submitted_by, self.exporter_user)
 
     def test_cannot_create_control_list_classification_query_on_good_when_good_already_exists(self):
         self.client.post(self.url, self.data, **self.exporter_headers)
