@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("cases", "0025_case_id_index"),
+        ("cases", "0026_case_submitted_by"),
     ]
 
     operations = [
