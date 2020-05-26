@@ -33,6 +33,7 @@ def scan_document_for_viruses(document_id):
         except Exception as exc:  # noqa
             logging.warning(f"An unexpected error occurred when scanning document '{document_id}': {exc}")
 
+        # Get the task's current attempt number (the attempt number is only updated if the task fails)
         current_task = Task.objects.get(queue=TASK_QUEUE, task_params__contains=document_id)
         current_attempt = current_task.attempts + 1
 
@@ -40,4 +41,5 @@ def scan_document_for_viruses(document_id):
             logging.warning(f"MAX_ATTEMPTS {settings.MAX_ATTEMPTS} for document '{document_id}' has been reached")
             doc.delete_s3()
 
+    # Raise an exception (this will cause the task to be marked as 'Failed' and the attempt number to be updated)
     raise Exception(f"Failed to scan document '{document_id}'")

@@ -7,14 +7,14 @@ from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ReadTimeoutError
 from django.http import StreamingHttpResponse
 
-from conf.settings import env, STREAMING_CHUNK_SIZE, REQUEST_TIMEOUT
+from conf.settings import env, STREAMING_CHUNK_SIZE, DB_CONNECT_TIMEOUT, EXTERNAL_REQUEST_TIMEOUT
 
 _client = boto3.client(
     "s3",
     aws_access_key_id=env("AWS_ACCESS_KEY_ID"),
     aws_secret_access_key=env("AWS_SECRET_ACCESS_KEY"),
     region_name=env("AWS_REGION"),
-    config=Config(connect_timeout=REQUEST_TIMEOUT, read_timeout=REQUEST_TIMEOUT),
+    config=Config(connect_timeout=DB_CONNECT_TIMEOUT, read_timeout=EXTERNAL_REQUEST_TIMEOUT),
 )
 
 _bucket_name = env("AWS_STORAGE_BUCKET_NAME")

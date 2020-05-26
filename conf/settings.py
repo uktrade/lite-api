@@ -178,13 +178,14 @@ AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_REGION = env("AWS_REGION")
 S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180
 STREAMING_CHUNK_SIZE = 8192
+DB_CONNECT_TIMEOUT = 5  # Maximum time in seconds to wait for a DB connetion
 
 # AV
 AV_SERVICE_URL = env("AV_SERVICE_URL")
 AV_SERVICE_USERNAME = env("AV_SERVICE_USERNAME")
 AV_SERVICE_PASSWORD = env("AV_SERVICE_PASSWORD")
 
-REQUEST_TIMEOUT = 5  # Maximum time to wait for a request made to AWS or AV
+EXTERNAL_REQUEST_TIMEOUT = 5  # Maximum time in seconds to wait for a request made to AWS or AV
 
 # Background tasks
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
