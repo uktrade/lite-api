@@ -24,7 +24,7 @@ def migrate_audit_verbs(apps, schema_editor):
     if schema_editor.connection.alias != "default":
         return
 
-    Audit = apps.get_model("background_task", "Audit")
+    Audit = apps.get_model("audit_trail", "Audit")
 
     total_updates = 0
 
