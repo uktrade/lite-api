@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from conf.settings import EXTERNAL_REQUEST_TIMEOUT
+from conf.settings import AV_REQUEST_TIMEOUT
 
 
 class VirusScanException(Exception):
@@ -55,7 +55,7 @@ def scan_file_for_viruses(document_id, filename, file):
                 data=encoder,
                 auth=(settings.AV_SERVICE_USERNAME, settings.AV_SERVICE_PASSWORD),
                 headers={"Content-Type": encoder.content_type},
-                timeout=EXTERNAL_REQUEST_TIMEOUT,
+                timeout=AV_REQUEST_TIMEOUT,
             )
         except requests.exceptions.Timeout:
             raise VirusScanException(f"Timeout exceeded when AV scanning document '{document_id}'")
