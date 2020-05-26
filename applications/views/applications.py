@@ -335,6 +335,7 @@ class ApplicationSubmission(APIView):
         if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS] or (
             CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
         ):
+            application.submitted_by = request.user
             set_application_sla(application)
             create_submitted_audit(request, application, old_status)
 
@@ -351,6 +352,7 @@ class ApplicationSubmission(APIView):
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
                 # If a valid declaration is provided, save the application
+                application.submitted_by = request.user
                 application.agreed_to_foi = request.data.get("agreed_to_foi")
                 set_application_sla(application)
 

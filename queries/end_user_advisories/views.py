@@ -47,6 +47,7 @@ class EndUserAdvisoriesList(ListAPIView):
         data["organisation"] = organisation_id
         data["end_user"]["organisation"] = organisation_id
         data["end_user"]["type"] = PartyType.END_USER
+        data["submitted_by"] = request.user
 
         serializer = EndUserAdvisoryViewSerializer(data=data)
 
