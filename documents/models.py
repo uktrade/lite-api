@@ -34,13 +34,12 @@ class Document(TimestampableModel):
         file = s3_operations.get_object(self.id, self.s3_key)
         is_file_clean = av_operations.scan_file_for_viruses(self.id, self.name, file)
 
-        if is_file_clean is not None:
-            self.safe = is_file_clean
-            self.virus_scanned_at = now()
-            self.save()
+        self.safe = is_file_clean
+        self.virus_scanned_at = now()
+        self.save()
 
-            if not is_file_clean:
-                logging.warning(f"Document '{self.id}' is not safe")
-                self.delete_s3()
+        if not is_file_clean:
+            logging.warning(f"Document '{self.id}' is not safe")
+            self.delete_s3()
 
         return self.safe
