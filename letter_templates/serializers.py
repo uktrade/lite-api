@@ -3,7 +3,7 @@ from rest_framework.validators import UniqueValidator
 
 from cases.enums import CaseTypeTypeEnum, CaseTypeSubTypeEnum, CaseTypeReferenceEnum
 from cases.models import CaseType
-from cases.serializers import CaseTypeSerializer
+from cases.serializers import CaseTypeSerializer, CaseTypeReferenceListSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
@@ -11,7 +11,7 @@ from picklists.models import PicklistItem
 from static.decisions.models import Decision
 from static.decisions.serializers import DecisionSerializer
 from static.letter_layouts.models import LetterLayout
-from static.letter_layouts.serializers import LetterLayoutSerializer
+from static.letter_layouts.serializers import LetterLayoutSerializer, LetterLayoutReadOnlySerializer
 
 
 class LetterTemplateSerializer(serializers.ModelSerializer):
@@ -79,3 +79,10 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
                 )
 
         return validated_data
+
+
+class LetterTemplateListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    case_types = CaseTypeReferenceListSerializer(many=True)
+    layout = LetterLayoutReadOnlySerializer()
