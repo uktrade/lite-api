@@ -20,7 +20,6 @@ _client = boto3.client(
 _bucket_name = env("AWS_STORAGE_BUCKET_NAME")
 
 
-# S3 operations
 def get_object(document_id, s3_key):
     logging.info(f"Retrieving file '{s3_key}' on document '{document_id}'")
 
@@ -42,7 +41,6 @@ def upload_bytes_file(raw_file, s3_key):
     _client.put_object(Bucket=_bucket_name, Key=s3_key, Body=raw_file)
 
 
-# Delete
 def delete_file(document_id, s3_key):
     logging.info(f"Deleting file '{s3_key}' on document '{document_id}'")
 
@@ -56,7 +54,6 @@ def delete_file(document_id, s3_key):
         )
 
 
-# Download
 def _stream_file(result):
     for chunk in iter(lambda: result["Body"].read(STREAMING_CHUNK_SIZE), b""):
         yield chunk

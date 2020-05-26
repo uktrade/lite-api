@@ -11,16 +11,15 @@ TASK_QUEUE = "document_av_scan_queue"
 
 
 @background(schedule=0, queue=TASK_QUEUE)
-def scan_document_for_viruses_task(document_id):
+def scan_document_for_viruses(document_id):
     """
     Executed by background worker process or synchronous depending on BACKGROUND_TASK_RUN_ASYNC.
     """
 
     from documents.models import Document
 
-    logging.info(f"Fetching document '{document_id}'")
-
     with transaction.atomic():
+        logging.info(f"Fetching document '{document_id}'")
         doc = Document.objects.select_for_update(nowait=True).get(id=document_id)
 
         if doc.virus_scanned_at:
