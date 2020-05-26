@@ -23,7 +23,7 @@ def scan_document_for_viruses_task(document_id):
         doc = Document.objects.select_for_update(nowait=True).get(id=document_id)
 
         if doc.virus_scanned_at:
-            logging.info(f"Scan of document '{document_id}' has already been performed; is_safe={doc.is_safe}")
+            logging.info(f"Document '{document_id}' has already been scanned; is_safe={doc.is_safe}")
             return doc.is_safe
 
         try:
