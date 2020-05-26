@@ -72,7 +72,7 @@ class ApplicationQuestionsTest(DataTestClient):
     def test_update_f680_questions_enum_success_type(self):
         data = {
             "uk_service_equipment": True,
-            "uk_service_equipment_type": ServiceEquipmentType.MOD_FUNDED.value,
+            "uk_service_equipment_type": ServiceEquipmentType.MOD_FUNDED,
         }
 
         response = self.client.put(self.url, data, **self.exporter_headers)

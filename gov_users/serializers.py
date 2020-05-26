@@ -14,7 +14,7 @@ from queues.serializers import TinyQueueSerializer
 from static.statuses.models import CaseStatus
 from static.statuses.serializers import CaseStatusSerializer
 from teams.models import Team
-from teams.serializers import TeamSerializer
+from teams.serializers import TeamSerializer, TeamReadOnlySerializer
 from users.enums import UserType
 from users.models import GovUser, GovNotification
 from users.models import Role, Permission
@@ -50,17 +50,10 @@ class RoleSerializer(serializers.ModelSerializer):
         )
 
 
-class RoleListSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=30, read_only=True)
+class RoleListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
     permissions = PrimaryKeyRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = Role
-        fields = (
-            "id",
-            "name",
-            "permissions",
-        )
 
 
 class RoleListStatusesSerializer(RoleListSerializer):
@@ -68,17 +61,15 @@ class RoleListStatusesSerializer(RoleListSerializer):
         queryset=CaseStatus.objects.all(), many=True, required=False, serializer=CaseStatusSerializer
     )
 
-    class Meta:
-        model = Role
-        fields = ("id", "name", "permissions", "statuses")
-
 
 class GovUserListSerializer(serializers.Serializer):
-    id = serializers.UUIDField(read_only=True)
-    email = serializers.CharField(read_only=True)
-    first_name = serializers.CharField(read_only=True)
-    last_name = serializers.CharField(read_only=True)
-    status = serializers.CharField(read_only=True)
+    id = serializers.UUIDField()
+    email = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    status = serializers.ChoiceField(choices=GovUserStatuses.choices)
+    team = TeamReadOnlySerializer()
+    role_name = serializers.CharField(source="role.name")
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):

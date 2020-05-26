@@ -52,13 +52,14 @@ class Case(TimestampableModel):
     Base model for applications and queries
     """
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     reference_code = models.CharField(max_length=30, unique=True, null=True, blank=False, editable=False, default=None)
     case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=False, blank=False)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     submitted_at = models.DateTimeField(blank=True, null=True)
+    submitted_by = models.ForeignKey(ExporterUser, null=True, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(
         CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
     )
