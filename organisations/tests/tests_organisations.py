@@ -12,6 +12,7 @@ from conf.authentication import EXPORTER_USER_TOKEN_HEADER
 from conf.constants import Roles, GovPermissions
 from conf.helpers import date_to_drf_date
 from lite_content.lite_api.strings import Organisations
+from organisations.constants import UK_VAT_VALIDATION_REGEX
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.tests.factories import OrganisationFactory
 from organisations.models import Organisation
@@ -557,7 +558,7 @@ class EditOrganisationTests(DataTestClient):
         ]
         for valid_vat in valid_vats:
             stripped_vat = re.sub(r"[^A-Z0-9]", "", valid_vat)
-            self.assertTrue(bool(re.match(r"^(GB)?([0-9]{9}([0-9]{3})?|(GD|HA)[0-9]{3})$", stripped_vat)))
+            self.assertTrue(bool(re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat)))
 
     def test_vat_number_is_invalid(self):
         invalid_vats = [
@@ -573,7 +574,7 @@ class EditOrganisationTests(DataTestClient):
         ]
         for invalid_vat in invalid_vats:
             stripped_vat = re.sub(r"[^A-Z0-9]", "", invalid_vat)
-            self.assertFalse(bool(re.match(r"^(GB)?([0-9]{9}([0-9]{3})?|(GD|HA)[0-9]{3})$", stripped_vat)))
+            self.assertFalse(bool(re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat)))
 
 
 class EditOrganisationStatusTests(DataTestClient):

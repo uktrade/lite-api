@@ -13,6 +13,7 @@ from conf.serializers import (
 )
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Organisations
+from organisations.constants import UK_VAT_VALIDATION_REGEX
 from organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
@@ -199,10 +200,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_vat_number(self, value):
         if value:
             stripped_vat = re.sub(r"[^A-Z0-9]", "", value)
-            # Matches GB followed by 9/12 digits or GB followed by GD/HA and 3 digits
-            if not re.match(r"^(GB)?([0-9]{9}([0-9]{3})?|(GD|HA)[0-9]{3})$", stripped_vat):
-                raise serializers.ValidationError("Invalid VAT")
-            return re.sub(r"[^A-Z0-9]", "", value)
+            if not re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat):
+                raise serializers.ValidationError(Organisations.Create.INVALID_VAT)
+            return stripped_vat
         return value
 
     @transaction.atomic
