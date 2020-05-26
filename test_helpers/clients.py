@@ -29,6 +29,7 @@ from applications.models import (
     F680ClearanceApplication,
 )
 from audit_trail.enums import AuditType
+from audit_trail import service as audit_trail_service
 from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
 from licences.models import Licence
@@ -489,8 +490,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return good
 
-    @staticmethod
-    def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
+    def create_goods_query(self, description, organisation, clc_reason, pv_reason) -> GoodsQuery:
         good = DataTestClient.create_good(
             description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
         )
@@ -503,6 +503,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             submitted_at=django.utils.timezone.now(),
+            submitted_by=self.exporter_user,
         )
         goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
@@ -654,6 +655,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
             status_id="00000000-0000-0000-0000-000000000000",
+            submitted_by=self.exporter_user,
         )
 
         application.save()
@@ -710,6 +712,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case_type_id=case_type.id,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
             clearance_level=PvGrading.UK_UNCLASSIFIED if case_type == CaseTypeEnum.F680 else None,
+            submitted_by=self.exporter_user,
         )
 
         if case_type == CaseTypeEnum.EXHIBITION:
@@ -808,6 +811,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
             status_id="00000000-0000-0000-0000-000000000000",
+            submitted_by=self.exporter_user,
         )
 
         application.save()
@@ -845,6 +849,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             reasoning="I Am Easy to Find",
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
             have_goods_departed=have_goods_departed,
+            submitted_by=self.hmrc_exporter_user,
         )
         application.save()
 
@@ -871,7 +876,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return application
 
     def create_standard_application_case(
-        self, organisation: Organisation, reference_name="Standard Application Case", parties=True, site=True
+        self, organisation: Organisation, reference_name="Standard Application Case", parties=True, site=True, user=None
     ):
         """
         Creates a complete standard application case
@@ -894,6 +899,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             nature_of_business="guns",
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             case_type_id=CaseTypeEnum.EUA.id,
+            submitted_by=self.exporter_user,
         )
         end_user_advisory_query.save()
         return end_user_advisory_query
@@ -928,7 +934,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             letter_paragraph = self.create_picklist_item(
                 "#1", self.team, PicklistType.LETTER_PARAGRAPH, PickListStatus.ACTIVE
             )
-        letter_layout = LetterLayout.objects.first()
+        letter_layout = LetterLayout.objects.get(id=uuid.UUID(int=1))
 
         letter_template = LetterTemplate.objects.create(
             name=name, layout=letter_layout, visible_to_exporter=visible_to_exporter

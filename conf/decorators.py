@@ -1,33 +1,35 @@
 from functools import wraps
 
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from rest_framework import status
 
 from applications.enums import GoodsTypeCategory
-from applications.libraries.case_status_helpers import get_case_statuses
 from applications.libraries.get_applications import get_application
-from applications.models import BaseApplication
+from applications.models import BaseApplication, HmrcQuery
 from cases.enums import CaseTypeSubTypeEnum
 from lite_content.lite_api import strings
-from parties.enums import PartyType
 from organisations.libraries.get_organisation import get_request_user_organisation_id
-from static.statuses.libraries.case_status_validate import is_case_status_draft
+from parties.enums import PartyType
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
-def _get_application(request, kwargs):
+def _get_application_id(request, kwargs):
     if "pk" in kwargs:
-        application = get_application(kwargs.pop("pk"))
+        return kwargs.get("pk")
     elif "application" in request.request.data:
-        application = get_application(request.request.data["application"])
-    elif "application" in kwargs and isinstance(kwargs["application"], BaseApplication):
-        application = kwargs["application"]
+        return request.request.data["application"]
     else:
         return JsonResponse(data={"errors": ["Application was not found"]}, status=status.HTTP_404_NOT_FOUND,)
 
-    kwargs["application"] = application
 
-    return application
+def _get_application(request, kwargs):
+    pk = _get_application_id(request, kwargs)
+    result = BaseApplication.objects.filter(pk=pk)
+    if not result.exists():
+        raise Http404
+    else:
+        return result
 
 
 def allowed_application_types(application_types: [str]):
@@ -38,9 +40,9 @@ def allowed_application_types(application_types: [str]):
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
+            sub_type = _get_application(request, kwargs).values_list("case_type__sub_type", flat=True)[0]
 
-            if application.case_type.sub_type not in application_types:
+            if sub_type not in application_types:
                 return JsonResponse(
                     data={
                         "errors": [
@@ -58,18 +60,23 @@ def allowed_application_types(application_types: [str]):
     return decorator
 
 
-def application_in_major_editable_state():
+def application_in_state(is_editable=False, is_major_editable=False):
     """
-    Checks if application is in a major-editable state;
-    A Major editable state is either APPLICANT_EDITING or DRAFT
+    Checks if application is in an editable or major-editable state
     """
 
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
+            application_status = _get_application(request, kwargs).values_list("status__status", flat=True)[0]
 
-            if not application.is_major_editable():
+            if is_editable and application_status in CaseStatusEnum.read_only_statuses():
+                return JsonResponse(
+                    data={"errors": [f"Application status {application_status} is read-only."]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if is_major_editable and application_status not in CaseStatusEnum.major_editable_statuses():
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -82,51 +89,7 @@ def application_in_major_editable_state():
     return decorator
 
 
-def application_in_editable_state():
-    """ Check if an application is in an editable state. """
-
-    def decorator(func):
-        @wraps(func)
-        def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
-
-            if not application.is_editable():
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            return func(request, *args, **kwargs)
-
-        return inner
-
-    return decorator
-
-
-def application_in_non_readonly_state():
-    """ Validate that an application is not in a readonly state. """
-
-    def decorator(func):
-        @wraps(func)
-        def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
-
-            if is_case_status_draft(application.status.status) and application.status.status in get_case_statuses(
-                read_only=True
-            ):
-                return JsonResponse(
-                    data={"errors": [f"Application status {application.status.status} is read-only."]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            return func(request, *args, **kwargs)
-
-        return inner
-
-    return decorator
-
-
-def authorised_users(user_type):
+def authorised_to_view_application(user_type):
     """
     Checks if the user is the correct type and if they have access to the application being requested
     """
@@ -141,16 +104,18 @@ def authorised_users(user_type):
                 )
 
             if isinstance(request.request.user, ExporterUser):
-                application = _get_application(request, kwargs)
+                pk = _get_application_id(request, kwargs)
                 organisation_id = get_request_user_organisation_id(request.request)
+                required_application_details = _get_application(request, kwargs).values(
+                    "case_type__sub_type", "organisation_id"
+                )[0]
 
-                if (
-                    application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
-                    and application.hmrc_organisation.id != organisation_id
-                ) or (
-                    application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC
-                    and application.organisation.id != organisation_id
-                ):
+                if required_application_details["case_type__sub_type"] == CaseTypeSubTypeEnum.HMRC:
+                    has_access = HmrcQuery.objects.filter(pk=pk, hmrc_organisation=organisation_id).exists()
+                else:
+                    has_access = required_application_details["organisation_id"] == organisation_id
+
+                if not has_access:
                     return JsonResponse(
                         data={
                             "errors": [
@@ -176,7 +141,8 @@ def allowed_party_type_for_open_application_goodstype_category():
     def decorator(func):
         @wraps(func)
         def inner(request, *args, **kwargs):
-            application = _get_application(request, kwargs)
+            application_id = _get_application_id(request, kwargs)
+            application = get_application(application_id)
 
             party_type = request.request.data.get("type")
 

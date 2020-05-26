@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from applications.enums import GoodsTypeCategory
 from applications.libraries.case_status_helpers import get_case_statuses
+from applications.libraries.get_applications import get_application
 from applications.libraries.goods_on_applications import get_good_on_application
 from applications.models import GoodOnApplication
 from applications.serializers.good import (
@@ -17,9 +18,9 @@ from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
 from conf.decorators import (
-    authorised_users,
-    application_in_major_editable_state,
+    authorised_to_view_application,
     allowed_application_types,
+    application_in_state,
 )
 from conf.exceptions import BadRequestError
 from goods.enums import GoodStatus
@@ -29,8 +30,8 @@ from goodstype.helpers import get_goods_type, delete_goods_type_document_if_exis
 from goodstype.models import GoodsType
 from goodstype.serializers import GoodsTypeSerializer, GoodsTypeViewSerializer
 from lite_content.lite_api import strings
-from static.countries.models import Country
 from organisations.libraries.get_organisation import get_request_user_organisation_id
+from static.countries.models import Country
 from users.models import ExporterUser
 
 
@@ -49,9 +50,9 @@ class ApplicationGoodsOnApplication(APIView):
             CaseTypeSubTypeEnum.F680,
         ]
     )
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
-        goods = GoodOnApplication.objects.filter(application=application)
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
+        goods = GoodOnApplication.objects.filter(application_id=pk)
         goods_data = GoodOnApplicationViewSerializer(goods, many=True).data
 
         return JsonResponse(data={"goods": goods_data})
@@ -64,9 +65,10 @@ class ApplicationGoodsOnApplication(APIView):
             CaseTypeSubTypeEnum.F680,
         ]
     )
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @application_in_state(is_major_editable=True)
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
+        application = get_application(pk)
         data = request.data
         data["application"] = application.id
 
@@ -152,20 +154,21 @@ class ApplicationGoodsTypes(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
-        goods_types = GoodsType.objects.filter(application=application).order_by("created_at")
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
+        goods_types = GoodsType.objects.filter(application_id=pk).order_by("created_at")
         goods_types_data = GoodsTypeSerializer(goods_types, many=True).data
 
         return JsonResponse(data={"goods": goods_types_data}, status=status.HTTP_200_OK)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @application_in_state(is_major_editable=True)
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
         """
         Post a goodstype
         """
+        application = get_application(pk)
         if (
             hasattr(application, "goodstype_category")
             and application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS
@@ -192,11 +195,12 @@ class ApplicationGoodsType(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_users(ExporterUser)
-    def get(self, request, application, goodstype_pk):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk, goodstype_pk):
         """
         Gets a goodstype
         """
+        application = get_application(pk)
         goods_type = get_goods_type(goodstype_pk)
         default_countries = Country.objects.filter(countries_on_application__application=application)
 
@@ -205,11 +209,12 @@ class ApplicationGoodsType(APIView):
         return JsonResponse(data={"good": goods_type_data}, status=status.HTTP_200_OK)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.HMRC])
-    @authorised_users(ExporterUser)
-    def delete(self, request, application, goodstype_pk):
+    @authorised_to_view_application(ExporterUser)
+    def delete(self, request, pk, goodstype_pk):
         """
         Deletes a goodstype
         """
+        application = get_application(pk)
         if (
             hasattr(application, "goodstype_category")
             and application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS
@@ -240,9 +245,10 @@ class ApplicationGoodsTypeCountries(APIView):
 
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def put(self, request, application):
+    @application_in_state(is_major_editable=True)
+    @authorised_to_view_application(ExporterUser)
+    def put(self, request, pk):
+        application = get_application(pk)
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
         data = request.data

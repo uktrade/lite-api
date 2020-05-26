@@ -2,6 +2,11 @@ import datetime
 import re
 
 from django.templatetags.tz import do_timezone
+from django.utils import timezone
+
+
+DATE_FORMAT = "%d %B %Y"
+TIME_FORMAT = "%H:%M"
 
 
 def str_to_bool(v, invert_none=False):
@@ -44,3 +49,53 @@ def date_to_drf_date(date):
     suitable for comparison to rest framework datetimes
     """
     return date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+
+def friendly_boolean(boolean):
+    """
+    Returns 'Yes' if boolean is True, 'No' if boolean is False and None otherwise
+    """
+    if boolean is None or boolean == "":
+        return None
+    elif boolean is True or str(boolean).lower() == "true":
+        return "Yes"
+    else:
+        return "No"
+
+
+def pluralise_unit(unit, value):
+    """
+    Modify units given from the API to include an 's' if the
+    value is not singular.
+
+    Units require an (s) at the end of their names to
+    use this functionality.
+    """
+    is_singular = value == "1"
+
+    if "(s)" in unit:
+        if is_singular:
+            return unit.replace("(s)", "")
+        else:
+            return unit.replace("(s)", "s")
+
+    return unit
+
+
+def get_date_and_time():
+    now = timezone.now()
+    return now.strftime(DATE_FORMAT), now.strftime(TIME_FORMAT)
+
+
+def add_months(start_date, months):
+    year = start_date.year
+    month = start_date.month
+
+    for _ in range(months):
+        month += 1
+        if month == 13:
+            year += 1
+            month = 1
+
+    new_date = datetime.date(year=year, month=month, day=start_date.day)
+    return new_date.strftime(DATE_FORMAT)
