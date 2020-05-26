@@ -190,8 +190,8 @@ AV_REQUEST_TIMEOUT = 5  # Maximum time, in seconds, to wait for a request to ret
 # Background tasks
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
 BACKGROUND_TASK_RUN_ASYNC = True
-MAX_RUN_TIME = 180  # Time a given task is locked by a thread. After which, another thread can execute it simultaneously
-MAX_ATTEMPTS = 3  # How many times a task will be attempted should an unhandled exception occur
+# Number of times task is retried given a failure occurs with an exponential back-off = ((attempts ** 4) + 5)
+MAX_ATTEMPTS = 7  # 7th attempt occurs approximately 40 minutes after document upload (assuming instantaneous failures)
 
 UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
