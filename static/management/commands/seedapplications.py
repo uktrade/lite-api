@@ -85,12 +85,14 @@ class Command(SeedCommand):
     def ensure_verified_goods_exist(cls, number_of_goods, organisation, tc=DataTestClient()):
         existing_goods = [good for good in Good.objects.filter(organisation_id=organisation.pk)]
         count_existing = len(existing_goods)
-        expected_names = set([f"{organisation.name} - Product {i + 1}" for i in range(max(count_existing, number_of_goods))])
+        expected_names = set(
+            [f"{organisation.name} - Product {i + 1}" for i in range(max(count_existing, number_of_goods))]
+        )
         existing_names = set([good.description for good in existing_goods])
         missing_names = expected_names - existing_names
         matched_names = existing_names - missing_names
         count_matched = len(matched_names)
-        count_names_required = max(0, number_of_goods-count_matched)
+        count_names_required = max(0, number_of_goods - count_matched)
 
         goods_added = [
             verify_good(
@@ -106,9 +108,7 @@ class Command(SeedCommand):
         ]
 
         # select goods that match the expected good naming
-        goods = [
-            good for good in goods_added + existing_goods for name in expected_names if good.description == name
-        ]
+        goods = [good for good in goods_added + existing_goods for name in expected_names if good.description == name]
 
         return goods, goods_added
 
