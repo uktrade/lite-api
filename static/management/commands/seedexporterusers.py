@@ -49,7 +49,7 @@ class Command(SeedCommand):
                     "type": organisation["type"],
                     "eori_number": "1234567890AAA",
                     "sic_number": "2345",
-                    "vat_number": "GB1234567",
+                    "vat_number": "GB123456789",
                     "registration_number": organisation["reg_no"],
                     "status": OrganisationStatus.ACTIVE,
                 },
