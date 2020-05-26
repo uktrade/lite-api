@@ -39,7 +39,8 @@ def scan_document_for_viruses_task(document_id):
                 f"SELECT background_task.attempts FROM background_task "
                 f"WHERE background_task.queue = '{TASK_QUEUE}' "
                 f"AND background_task.task_params LIKE '%{document_id}%'"
-            )
+            )  # nosec
+
             cursor.execute(sql)
             previous_attempt = cursor.fetchone()[0]
 
