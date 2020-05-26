@@ -30,6 +30,7 @@ class HmrcQueryTests(DataTestClient):
         self.assertEqual(case.status.status, CaseStatusEnum.SUBMITTED)
         self.assertEqual(case.case_type.sub_type, CaseTypeSubTypeEnum.HMRC)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in case.flags.values_list("id", flat=True))
+        self.assertEqual(case.submitted_by, self.hmrc_exporter_user)
 
     def test_submit_hmrc_query_with_goods_departed_success(self):
         SiteOnApplication.objects.get(application=self.hmrc_query).delete()
