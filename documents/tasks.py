@@ -35,11 +35,11 @@ def scan_document_for_viruses_task(document_id):
 
         # Get the previous attempt number from the background task table
         with connection.cursor() as cursor:
-            sql = (
-                f"SELECT background_task.attempts FROM background_task "
+            sql = (  # nosec
+                f"SELECT background_task.attempts FROM background_task "  # nosec
                 f"WHERE background_task.queue = '{TASK_QUEUE}' "  # nosec
                 f"AND background_task.task_params LIKE '%{document_id}%'"  # nosec
-            )
+            )  # nosec
 
             cursor.execute(sql)
             previous_attempt = cursor.fetchone()[0]
