@@ -1,17 +1,20 @@
 import logging
 
 from background_task import background
-from django.db import transaction
+from django.db import transaction, connection
 
 from conf import settings
 from documents.libraries.av_operations import VirusScanException
 
+TASK_QUEUE = "document_av_scan_queue"
 
-@background(schedule=0, queue="document_av_scan_queue")
+
+@background(schedule=0, queue=TASK_QUEUE)
 def scan_document_for_viruses_task(document_id):
     """
     Executed by background worker process or synchronous depending on BACKGROUND_TASK_RUN_ASYNC.
     """
+
     from documents.models import Document
 
     logging.info(f"Fetching document '{document_id}'")
@@ -20,23 +23,30 @@ def scan_document_for_viruses_task(document_id):
         doc = Document.objects.select_for_update(nowait=True).get(id=document_id)
 
         if doc.virus_scanned_at:
-            logging.info(f"Skipping scan of document '{doc.id}'; already performed on {doc.virus_scanned_at}")
-            return
-
-        error = None
+            logging.info(f"Scan of document '{document_id}' has already been performed; is_safe={doc.is_safe}")
+            return doc.is_safe
 
         try:
-            doc.scan_for_viruses()
+            return doc.scan_for_viruses()
         except VirusScanException as exc:
-            error = str(exc)
+            logging.warning(str(exc))
         except Exception as exc:  # noqa
-            error = f"An unexpected error occurred when scanning document '{document_id}': {exc}"
+            logging.warning(f"An unexpected error occurred when scanning document '{document_id}': {exc}")
 
-        if error:
-            logging.warning(error)
+        # Get the previous attempt number from the background task table
+        with connection.cursor() as cursor:
+            sql = (
+                f"SELECT background_task.attempts FROM background_task "
+                f"WHERE background_task.queue = '{TASK_QUEUE}' "
+                f"AND background_task.task_params LIKE '%{document_id}%'"
+            )
+            cursor.execute(sql)
+            previous_attempt = cursor.fetchone()[0]
 
-            if doc.virus_scan_attempts == settings.MAX_ATTEMPTS:
-                logging.warning(f"{settings.MAX_ATTEMPTS} for document '{doc.id}' has been reached")
-                doc.delete_s3()
+        current_attempt = previous_attempt + 1
 
-            raise Exception(f"Failed to scan document '{doc.id}'")
+        if current_attempt >= settings.MAX_ATTEMPTS:
+            logging.warning(f"MAX_ATTEMPTS {settings.MAX_ATTEMPTS} for document '{document_id}' has been reached")
+            doc.delete_s3()
+
+    raise Exception(f"Failed to scan document '{document_id}'")

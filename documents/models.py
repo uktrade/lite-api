@@ -14,7 +14,6 @@ class Document(TimestampableModel):
     s3_key = models.CharField(max_length=1000, null=False, blank=False, default=None)
     size = models.IntegerField(null=True, blank=True)
     virus_scanned_at = models.DateTimeField(null=True, blank=True)
-    virus_scan_attempts = models.PositiveSmallIntegerField(default=0)
     safe = models.NullBooleanField()
 
     def __str__(self):
@@ -26,10 +25,7 @@ class Document(TimestampableModel):
         s3_operations.delete_file(self.id, self.s3_key)
 
     def scan_for_viruses(self):
-        """Asynchronously retrieves document's file from S3 and scans it for viruses."""
-
-        self.virus_scan_attempts += 1
-        self.save()
+        """Retrieves document's file from S3 and scans it for viruses."""
 
         file = s3_operations.get_object(self.id, self.s3_key)
         is_file_clean = av_operations.scan_file_for_viruses(self.id, self.name, file)
