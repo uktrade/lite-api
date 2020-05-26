@@ -202,7 +202,8 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
             # Matches GB followed by 9/12 digits or GB followed by GD/HA and 3 digits
             if not re.match(r"^(GB)?([0-9]{9}([0-9]{3})?|(GD|HA)[0-9]{3})$", stripped_vat):
                 raise serializers.ValidationError("Invalid VAT")
-        return re.sub(r"[^A-Z0-9]", "", value)
+            return re.sub(r"[^A-Z0-9]", "", value)
+        return value
 
     @transaction.atomic
     def create(self, validated_data):

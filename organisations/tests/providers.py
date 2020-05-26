@@ -11,7 +11,7 @@ class OrganisationProvider(BaseProvider):
         return str(random.randint(1110, 99999))  # nosec
 
     def vat_number(self):
-        return f"GB{random.randint(1000000, 9999999)}"  # nosec
+        return f"GB{random.randint(100000000, 999999999)}"  # nosec
 
     def registration_number(self):
         return str(random.randint(10000000, 99999999))  # nosec
