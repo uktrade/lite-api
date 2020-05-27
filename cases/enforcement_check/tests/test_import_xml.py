@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from cases.enforcement_check.export_xml import get_enforcement_id
@@ -14,6 +15,14 @@ class ImportXML(DataTestClient):
         super().setUp()
         self.url = reverse("cases:enforcement_check", kwargs={"queue_pk": self.queue.pk})
 
+        # Export
+        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
+        self.case = self.create_standard_application_case(self.organisation)
+        self.case.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+        response = self.client.get(self.url, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     @staticmethod
     def _build_test_xml(items):
         xml = "<SPIRE_UPLOAD>"
@@ -21,33 +30,140 @@ class ImportXML(DataTestClient):
             xml += f"<SPIRE_RETURNS><CODE1>{item['code1']}</CODE1><CODE2>{item['code2']}</CODE2><FLAG>{item['flag']}</FLAG></SPIRE_RETURNS>"
         return xml + "</SPIRE_UPLOAD>"
 
-    def test_import_xml_success(self):
-        # Export
-        self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
-        application = self.create_standard_application_case(self.organisation, site=False)
-        application.queues.set([self.queue])
-        application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
-
-        response = self.client.get(self.url, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Import
+    def test_import_xml_parties_match_success(self):
         xml = self._build_test_xml(
             [
                 {
-                    "code1": str(get_enforcement_id(application.pk)),
+                    "code1": str(get_enforcement_id(self.case.pk)),
                     "code2": str(get_enforcement_id(party.party_id)),
                     "flag": "Y",
                 }
-                for party in application.parties.all()
+                for party in self.case.parties.all()
             ]
         )
+
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
-        application.refresh_from_db()
-        flags = application.flags.values_list("id", flat=True)
+        self.case.refresh_from_db()
+        flags = self.case.flags.values_list("id", flat=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), {"file": "successful upload"})
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in flags)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_END_USER_MATCH) in flags)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CONSIGNEE_MATCH) in flags)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_THIRD_PARTY_MATCH) in flags)
+
+    def test_import_xml_site_and_org_match_success(self):
+        xml = self._build_test_xml(
+            [
+                {
+                    "code1": str(get_enforcement_id(self.case.pk)),
+                    "code2": str(get_enforcement_id(self.case.application_sites.first().site_id)),
+                    "flag": "Y",
+                },
+                {
+                    "code1": str(get_enforcement_id(self.case.pk)),
+                    "code2": str(get_enforcement_id(self.case.organisation.pk)),
+                    "flag": "Y",
+                },
+            ]
+        )
+
+        response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
+        self.case.refresh_from_db()
+        flags = self.case.flags.values_list("id", flat=True)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), {"file": "successful upload"})
+        self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in flags)
+        self.assertTrue(UUID(SystemFlags.ENFORCEMENT_SITE_MATCH) in flags)
+        self.assertTrue(UUID(SystemFlags.ENFORCEMENT_ORGANISATION_MATCH) in flags)
+
+    def test_import_xml_no_match_success(self):
+        xml = self._build_test_xml(
+            [
+                {
+                    "code1": str(get_enforcement_id(self.case.pk)),
+                    "code2": str(get_enforcement_id(self.case.organisation.pk)),
+                    "flag": "N",
+                }
+            ]
+        )
+
+        response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
+        self.case.refresh_from_db()
+        flags = self.case.flags.values_list("id", flat=True)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), {"file": "successful upload"})
+        self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in flags)
+        self.assertFalse(UUID(SystemFlags.ENFORCEMENT_ORGANISATION_MATCH) in flags)
+
+    def test_import_xml_case_doesnt_match_success(self):
+        other_case = self.create_standard_application_case(self.organisation)
+        other_case.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+        xml = self._build_test_xml(
+            [
+                {
+                    "code1": str(get_enforcement_id(self.case.pk)),
+                    "code2": str(get_enforcement_id(self.case.organisation.pk)),
+                    "flag": "Y",
+                }
+            ]
+        )
+
+        response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), {"file": "successful upload"})
+        self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in other_case.flags.values_list("id", flat=True))
+
+    def test_import_xml_incorrect_format_failure(self):
+        xml = "<abc>def</ghi>"
+        response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": {"file": ["Invalid format received"]}})
+
+    @parameterized.expand(
+        [
+            "<SPIRE_RETURNS><CODE1>1</CODE1><CODE2>2</CODE2><FLAG>Y</FLAG></SPIRE_RETURNS>",  # no SPIRE_UPLOAD
+            "<SPIRE_UPLOAD><CODE1>1</CODE1><CODE2>2</CODE2><FLAG>Y</FLAG></SPIRE_UPLOAD>",  # no SPIRE_RETURNS
+            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE2></CODE2><FLAG>Y</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # no CODE1
+            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1></CODE1><FLAG>Y</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # no CODE2
+            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1></CODE1><CODE2></CODE2></SPIRE_RETURNS></SPIRE_UPLOAD>",  # no FLAG
+            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1></CODE1><CODE2></CODE2><FLAG>Y</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # missing CODEs
+            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1>1</CODE1><CODE2>2</CODE2><FLAG></FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # missing FLAG
+            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1>1</CODE1><CODE2>2</CODE2><FLAG>a</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # invalid FLAG
+        ]
+    )
+    def test_import_xml_incorrect_xml_format_failure(self, xml):
+        response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": {"file": ["Invalid XML format received"]}})
+
+    def test_import_xml_incorrect_id_format_failure(self):
+        xml = self._build_test_xml(
+            [
+                {
+                    "code1": "a",
+                    "code2": "b",
+                    "flag": "Y",
+                }
+            ]
+        )
+
+        response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": {"file": ["Invalid ID received"]}})
+
+    def test_import_xml_invalid_id_failure(self):
+        # ID's that don't exist
+        xml = self._build_test_xml(
+            [
+                {
+                    "code1": 100,
+                    "code2": 101,
+                    "flag": "Y",
+                }
+            ]
+        )
+
+        response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json(), {"errors": {"file": ["Invalid entity ID received"]}})
