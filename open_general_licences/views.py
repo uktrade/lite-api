@@ -26,11 +26,6 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         .prefetch_related("countries", "control_list_entries")
     )
 
-    def initial(self, request, *args, **kwargs):
-        if request.user.type == UserType.INTERNAL.value:
-            assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
-        super(OpenGeneralLicenceList, self).initial(request, *args, **kwargs)
-
     def filter_queryset(self, queryset):
         filtered_qs = queryset
         filter_data = self.request.GET
@@ -54,6 +49,8 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         return filtered_qs.distinct()
 
     def perform_create(self, serializer):
+        assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
+
         if not self.request.data.get("validate_only", False):
             instance = serializer.save()
 
@@ -71,11 +68,9 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
         .prefetch_related("countries", "control_list_entries")
     )
 
-    def initial(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
-        super(OpenGeneralLicenceDetail, self).initial(request, *args, **kwargs)
-
     def perform_update(self, serializer):
+        assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
+
         # Don't update the data during validate_only requests
         if not self.request.data.get("validate_only", False):
             fields = [
