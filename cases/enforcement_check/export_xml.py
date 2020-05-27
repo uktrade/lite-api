@@ -28,7 +28,11 @@ def export_cases_xml(cases):
     return reparsed
 
 
-def uuid_to_enforcement_id(uuid, type):
+def get_enforcement_id(uuid):
+    return EnforcementCheckID.objects.get(entity_id=uuid).id
+
+
+def _uuid_to_enforcement_id(uuid, type):
     enforcement_check_id, _ = EnforcementCheckID.objects.get_or_create(entity_id=uuid, entity_type=type)
     return enforcement_check_id.id
 
@@ -54,9 +58,9 @@ def _entity_to_xml(
     _dict_to_xml(
         stakeholder,
         {
-            "ELA_ID": uuid_to_enforcement_id(application_id, EnforcementXMLEntityTypes.APPLICATION),
-            "ELA_DETAIL_ID": uuid_to_enforcement_id(id, type),
-            "SH_ID": uuid_to_enforcement_id(id, type),
+            "ELA_ID": _uuid_to_enforcement_id(application_id, EnforcementXMLEntityTypes.APPLICATION),
+            "ELA_DETAIL_ID": _uuid_to_enforcement_id(id, type),
+            "SH_ID": _uuid_to_enforcement_id(id, type),
             "SH_TYPE": sh_type,
             "COUNTRY": country,
             "ORG_NAME": organisation,
