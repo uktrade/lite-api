@@ -1,5 +1,3 @@
-from django.db.models import Value
-from django.db.models.functions import Concat
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
@@ -10,7 +8,7 @@ from conf.authentication import GovAuthentication, HawkOnlyAuthentication
 from conf.constants import Roles, GovPermissions
 from conf.custom_views import OptionalPaginationView
 from gov_users.enums import GovUserStatuses
-from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer
+from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer, GovUserListSerializer
 from organisations.enums import OrganisationStatus
 from organisations.models import Organisation
 from users.enums import UserStatuses
@@ -57,21 +55,20 @@ class AuthenticateGovUser(APIView):
 
 class GovUserList(OptionalPaginationView, generics.CreateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = GovUserViewSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return GovUserListSerializer
+        else:
+            return GovUserViewSerializer
 
     def get_queryset(self):
+        gov_users_qs = GovUser.objects.all().order_by("email").prefetch_related("team", "role")
         teams = self.request.GET.get("teams")
         status = self.request.GET.get("status")
-        full_name = self.request.GET.get("name")
-        gov_users_qs = GovUser.objects.all().order_by("email")
+
         if status:
             gov_users_qs = gov_users_qs.filter(status=UserStatuses.from_string(status))
-
-        if full_name:
-            gov_users_qs = gov_users_qs.annotate(full_name=Concat("first_name", Value(" "), "last_name")).filter(
-                full_name__icontains=full_name
-            )
-
         if teams:
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
 

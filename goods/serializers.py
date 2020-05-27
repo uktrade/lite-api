@@ -14,7 +14,7 @@ from lite_content.lite_api import strings
 from organisations.models import Organisation
 from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
-from static.control_list_entries.serializers import ControlListEntryViewSerializer, ControlListEntrySerializer
+from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from users.models import ExporterUser
@@ -62,7 +62,7 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
 class GoodListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     description = serializers.CharField()
-    control_list_entries = ControlListEntryViewSerializer(many=True)
+    control_list_entries = ControlListEntrySerializer(many=True)
     part_number = serializers.CharField()
     status = KeyValueChoiceField(choices=GoodStatus.choices)
 

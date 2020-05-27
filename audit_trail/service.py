@@ -8,7 +8,7 @@ from rest_framework.exceptions import PermissionDenied
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from audit_trail.schema import validate_kwargs
-from cases.models import Case
+from cases.libraries.dates import make_date_from_params
 from teams.models import Team
 from users.enums import UserType
 from users.enums import SystemUser
@@ -46,11 +46,11 @@ def create_system_user_audit(verb, action_object=None, target=None, payload=None
     )
 
 
-def get_user_obj_trail_qs(user, obj):
+def get_activity_for_user_and_model(user, object_type):
     """
-    Retrieve audit trail for a Django model object available for a particular user.
+    Returns activity data for all objects of the specified model, e.g. all Organisations.
     :param user: Union[GovUser, ExporterUser]
-    :param obj: models.Model
+    :param object_type: models.Model
     :return: QuerySet
     """
     if not isinstance(user, (ExporterUser, GovUser)):
@@ -61,33 +61,32 @@ def get_user_obj_trail_qs(user, obj):
     if isinstance(user, ExporterUser):
         # Show exporter-only audit trail.
         audit_trail_qs = audit_trail_qs.filter(actor_content_type=ContentType.objects.get_for_model(ExporterUser))
-    obj_content_type = ContentType.objects.get_for_model(obj)
+    obj_content_type = ContentType.objects.get_for_model(object_type)
 
-    obj_as_action_filter = Q(action_object_object_id=obj.id, action_object_content_type=obj_content_type)
-    obj_as_target_filter = Q(target_object_id=obj.id, target_content_type=obj_content_type)
+    obj_as_action_filter = Q(action_object_object_id=object_type.id, action_object_content_type=obj_content_type)
+    obj_as_target_filter = Q(target_object_id=object_type.id, target_content_type=obj_content_type)
 
     audit_trail_qs = audit_trail_qs.filter(obj_as_action_filter | obj_as_target_filter)
 
     return audit_trail_qs
 
 
-def filter_case_activity(
-    case_id,
+def filter_object_activity(
+    object_id,
+    object_content_type,
     user_id=None,
     team: Optional[Team] = None,
     user_type: Optional[UserType] = None,
     audit_type: Optional[AuditType] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
-    note_type=None,
 ):
     """
-    Filter activity timeline for a case.
+    Returns filtered activity data for a specific object, identified by the object_id and object_content_type params
     """
-    case_content_type = ContentType.objects.get_for_model(Case)
     audit_qs = Audit.objects.filter(
-        Q(action_object_object_id=case_id, action_object_content_type=case_content_type)
-        | Q(target_object_id=case_id, target_content_type=case_content_type)
+        Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
+        | Q(target_object_id=object_id, target_content_type=object_content_type)
     )
 
     if user_id:
@@ -116,12 +115,11 @@ def filter_case_activity(
     return audit_qs
 
 
-def get_case_activity_filters(case_id):
-    case_content_type = ContentType.objects.get_for_model(Case)
+def get_objects_activity_filters(object_id, object_content_type):
 
     audit_qs = Audit.objects.filter(
-        Q(action_object_object_id=case_id, action_object_content_type=case_content_type)
-        | Q(target_object_id=case_id, target_content_type=case_content_type)
+        Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
+        | Q(target_object_id=object_id, target_content_type=object_content_type)
     )
     activity_types = audit_qs.order_by("verb").values_list("verb", flat=True).distinct()
     user_ids = audit_qs.order_by("actor_object_id").values_list("actor_object_id", flat=True).distinct()
@@ -139,3 +137,14 @@ def get_case_activity_filters(case_id):
     }
 
     return filters
+
+
+def get_filters(data):
+    return {
+        "user_id": data.get("user_id"),
+        "team": data.get("team_id"),
+        "user_type": UserType(data["user_type"]) if data.get("user_type") else None,
+        "audit_type": AuditType(data["activity_type"]) if data.get("activity_type") else None,
+        "date_from": make_date_from_params("from", data),
+        "date_to": make_date_from_params("to", data),
+    }

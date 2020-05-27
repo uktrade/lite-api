@@ -38,7 +38,7 @@ class Command(SeedCommand):
         self.update_or_create(CaseStatus, status_csv)
         self.delete_unused_objects(CaseStatus, status_csv)
 
-        case_type_list = CaseTypeEnum.case_type_list
+        case_type_list = CaseTypeEnum.CASE_TYPE_LIST
 
         # Use enum from populated case_types to assign new case_to_status
         for case_type in case_type_list:
