@@ -3,6 +3,11 @@
 from django.db import migrations, models
 
 
+def remove_existing_entity_ids(apps, schema_editor):
+    EnforcementCheckID = apps.get_model("cases", "EnforcementCheckID")
+    EnforcementCheckID.objects.all().delete()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,23 +15,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="enforcementcheckid",
-            name="entity_type",
-            field=models.CharField(
-                choices=[
-                    ("application", "application"),
-                    ("end_user", "end_user"),
-                    ("consignee", "consignee"),
-                    ("ultimate_end_user", "ultimate_end_user"),
-                    ("third_party", "third_party"),
-                    ("additional_contact", "additional_contact"),
-                    ("site", "site"),
-                    ("organisation", "organisation"),
-                ],
-                default="application",
-                max_length=20,
-            ),
-            preserve_default=False,
-        ),
+        migrations.RunPython(remove_existing_entity_ids),
     ]
