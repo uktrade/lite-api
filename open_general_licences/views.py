@@ -8,16 +8,17 @@ from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
 from audit_trail.serializers import AuditSerializer
 from conf import constants
-from conf.authentication import GovAuthentication
+from conf.authentication import SharedAuthentication, GovAuthentication
 from conf.permissions import assert_user_has_permission
 from open_general_licences.models import OpenGeneralLicence
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
+from users.enums import UserType
 from users.models import GovUser, GovNotification
 from lite_content.lite_api.strings import OpenGeneralLicences
 
 
 class OpenGeneralLicenceList(ListCreateAPIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
     queryset = (
         OpenGeneralLicence.objects.all()
@@ -26,7 +27,8 @@ class OpenGeneralLicenceList(ListCreateAPIView):
     )
 
     def initial(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
+        if request.user.type == UserType.INTERNAL.value:
+            assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
         super(OpenGeneralLicenceList, self).initial(request, *args, **kwargs)
 
     def filter_queryset(self, queryset):
@@ -49,7 +51,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
         filtered_qs = filtered_qs.filter(status=filter_data.get("status", "active"))
 
-        return filtered_qs
+        return filtered_qs.distinct()
 
     def perform_create(self, serializer):
         if not self.request.data.get("validate_only", False):
@@ -61,7 +63,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
 
 class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
     queryset = (
         OpenGeneralLicence.objects.all()
