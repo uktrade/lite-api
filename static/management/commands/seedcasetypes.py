@@ -16,7 +16,7 @@ class Command(SeedCommand):
 
     @transaction.atomic
     def operation(self, *args, **options):
-        case_type_list = CaseTypeEnum.case_type_list
+        case_type_list = CaseTypeEnum.CASE_TYPE_LIST
         data = []
 
         # Convert extended_enums_list from list of objects to list of dicts

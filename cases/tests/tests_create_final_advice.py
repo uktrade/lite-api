@@ -7,7 +7,6 @@ from cases.libraries.advice import get_serialized_entities_from_final_advice_on_
 from cases.models import Advice
 from cases.tests.factories import FinalAdviceFactory
 from conf import constants
-from conf.helpers import convert_queryset_to_str
 from goods.enums import PvGrading
 from goods.serializers import GoodCreateSerializer
 from parties.serializers import PartySerializer

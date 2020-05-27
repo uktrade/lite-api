@@ -11,6 +11,9 @@ def format_payload(audit_type, payload):
 
 
 audit_type_format = {
+    AuditType.OGL_CREATED: strings.Audit.CREATED_OGL,
+    AuditType.OGL_FIELD_EDITED: strings.Audit.UPDATED_OGL,
+    AuditType.OGL_MULTI_FIELD_EDITED: strings.Audit.UPDATED_MULTI_OGL_FIELD,
     AuditType.CREATED: strings.Audit.CREATED,
     AuditType.ADD_FLAGS: strings.Audit.ADD_FLAGS,
     AuditType.REMOVE_FLAGS: strings.Audit.REMOVE_FLAGS,
