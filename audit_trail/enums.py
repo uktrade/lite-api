@@ -3,6 +3,9 @@ from common.enums import LiteEnum, autostr
 
 class AuditType(LiteEnum):
     CREATED = autostr()
+    OGL_CREATED = autostr()
+    OGL_FIELD_EDITED = autostr()
+    OGL_MULTI_FIELD_EDITED = autostr()
     ADD_FLAGS = autostr()
     REMOVE_FLAGS = autostr()
     GOOD_REVIEWED = autostr()

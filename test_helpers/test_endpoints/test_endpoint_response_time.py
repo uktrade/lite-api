@@ -50,6 +50,7 @@ class EndPointTests(SimpleTestCase):
     case_document = None
     case_ecju_query_id = None
     routing_rule_id = None
+    open_general_licence_id = None
 
     def call_endpoint(self, user, appended_address, save_results=True):
         response = get(appended_address, user)
@@ -386,3 +387,14 @@ class EndPointTests(SimpleTestCase):
                 raise IndexError("No routing rules exist or you do not have permission to access them")
 
         return self.routing_rule_id
+
+    def get_open_general_licence_id(self):
+        if not self.open_general_licence_id:
+            response = self.call_endpoint(self.get_gov_headers(), "/open-general-licences/", save_results=False)
+
+            try:
+                self.open_general_licence_id = response.json()["results"][0]["id"]
+            except IndexError:
+                raise IndexError("No routing rules exist or you do not have permission to access them")
+
+        return self.open_general_licence_id
