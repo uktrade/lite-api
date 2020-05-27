@@ -1,10 +1,12 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enforcement_check.export_xml import export_cases_xml
+from cases.enforcement_check.import_xml import import_cases_xml
 from cases.models import Case
 from conf.authentication import GovAuthentication
 from conf.constants import GovPermissions
@@ -34,3 +36,11 @@ class EnforcementCheckView(APIView):
             )
 
         return HttpResponse(xml, content_type="text/xml")
+
+    def post(self, request, **kwargs):
+        file = request.data.get("file")
+        if not file:
+            raise ValidationError({"file": ["No file given"]})
+
+        import_cases_xml(file)
+        return JsonResponse({"file": "successful upload"})
