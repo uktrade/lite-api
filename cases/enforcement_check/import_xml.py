@@ -21,11 +21,11 @@ def enforcement_id_to_uuid(id):
 def _extract_and_validate_xml_tree(tree):
     data = []
     try:
-        assert tree.tag == 'SPIRE_UPLOAD'
+        assert tree.tag == "SPIRE_UPLOAD"
         for child in tree:
-            assert child.tag == 'SPIRE_RETURNS'
+            assert child.tag == "SPIRE_RETURNS"
             elements = {element.tag: element.text for element in child}
-            assert {'FLAG', 'CODE2', 'CODE1'}.issubset(elements.keys())
+            assert {"FLAG", "CODE2", "CODE1"}.issubset(elements.keys())
             assert all(elements.values())
             data.append(elements)
     except AssertionError as e:

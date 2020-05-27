@@ -14,6 +14,7 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
     AdviceLevel,
+    EnforcementXMLEntityTypes,
 )
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
@@ -413,3 +414,4 @@ class EnforcementCheckID(models.Model):
 
     id = models.AutoField(primary_key=True)
     entity_id = models.UUIDField(unique=True)
+    entity_type = models.CharField(choices=EnforcementXMLEntityTypes.choices, max_length=20)
