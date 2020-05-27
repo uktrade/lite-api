@@ -44,6 +44,9 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         if filter_data.get("country"):
             filtered_qs = filtered_qs.filter(countries__id__contains=filter_data.get("country"))
 
+        if filter_data.get("registration_required"):
+            filtered_qs = filtered_qs.filter(registration_required=filter_data.get("registration_required"))
+
         filtered_qs = filtered_qs.filter(status=filter_data.get("status", "active"))
 
         return filtered_qs.distinct()
