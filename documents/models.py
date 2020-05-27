@@ -20,12 +20,12 @@ class Document(TimestampableModel):
         return self.name
 
     def delete_s3(self):
-        """Removes document's file from S3."""
+        """Removes the document's file from S3."""
 
         s3_operations.delete_file(self.id, self.s3_key)
 
     def scan_for_viruses(self):
-        """Retrieves document's file from S3 and scans it for viruses."""
+        """Retrieves the document's file from S3 and scans it for viruses."""
 
         file = s3_operations.get_object(self.id, self.s3_key)
 

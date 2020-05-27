@@ -16,14 +16,13 @@ class S3StreamingBodyWrapper:
     """S3 Object wrapper that plays nice with streamed multipart/form-data."""
 
     def __init__(self, s3_obj):
-        """Init wrapper, and grab interesting bits from S3 object."""
-
         self._obj = s3_obj
         self._body = s3_obj["Body"]
         self._remaining_bytes = s3_obj["ContentLength"]
 
     def read(self, amt=-1):
         """Read given amount of bytes, and decrease remaining len."""
+
         content = self._body.read(amt)
         self._remaining_bytes -= len(content)
 
