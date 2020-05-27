@@ -44,8 +44,8 @@ def _extract_and_validate_xml_tree(tree):
 
 
 def _convert_ids_to_uuids(data):
-    all_ids = [item["CODE1"] for item in data] + [item["CODE2"] for item in data]
-    uuids = EnforcementCheckID.objects.filter(id__in=set(all_ids)).values("id", "entity_id", "entity_type")
+    all_ids = set([item["CODE1"] for item in data] + [item["CODE2"] for item in data])
+    uuids = EnforcementCheckID.objects.filter(id__in=all_ids).values("id", "entity_id", "entity_type")
 
     if len(all_ids) != len(uuids):
         raise ValidationError({"file": ["Invalid entity ID received"]})

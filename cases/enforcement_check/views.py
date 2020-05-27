@@ -38,6 +38,7 @@ class EnforcementCheckView(APIView):
         return HttpResponse(xml, content_type="text/xml")
 
     def post(self, request, **kwargs):
+        assert_user_has_permission(request.user, GovPermissions.ENFORCEMENT_CHECK)
         file = request.data.get("file")
         if not file:
             raise ValidationError({"file": ["No file given"]})
