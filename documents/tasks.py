@@ -4,12 +4,12 @@ from background_task import background
 from background_task.models import Task
 from django.db import transaction
 
-from conf import settings
+from conf.settings import MAX_ATTEMPTS as TASK_UNIVERSAL_MAX_ATTEMPTS
 from documents.libraries.av_operations import VirusScanException
 from documents.models import Document
 
 TASK_QUEUE = "document_av_scan_queue"
-TASK_MAX_ATTEMPTS = 7  # Must be lower than settings.MAX_ATTEMPTS otherwise document will not be deleted from S3
+TASK_SPECIFIC_MAX_ATTEMPTS = 7  # Must be lower than settings.MAX_ATTEMPTS or document will not be deleted from S3
 
 
 @background(schedule=0, queue=TASK_QUEUE)
@@ -47,13 +47,15 @@ def scan_document_for_viruses(document_id):
             # Get the task's current attempt number by retrieving the previous attempt number and adding 1
             current_attempt = task.attempt + 1
 
-            # Delete the document's file from S3 if the task has been attempted TASK_MAX_ATTEMPTS times
-            if current_attempt >= TASK_MAX_ATTEMPTS:
-                logging.warning(f"TASK_MAX_ATTEMPTS {TASK_MAX_ATTEMPTS} for document '{document_id}' has been reached")
+            # Delete the document's file from S3 if the task has been attempted TASK_SPECIFIC_MAX_ATTEMPTS times
+            if current_attempt >= TASK_SPECIFIC_MAX_ATTEMPTS:
+                logging.warning(
+                    f"Maximum attempts of {TASK_SPECIFIC_MAX_ATTEMPTS} for document '{document_id}' has been reached"
+                )
                 doc.delete_s3()
 
                 # Set the task's attempt to settings.MAX_ATTEMPTS so that it will be deleted by the orchestration layer
-                task.attempt = settings.MAX_ATTEMPTS - 1
+                task.attempt = TASK_UNIVERSAL_MAX_ATTEMPTS - 1
                 task.save()
 
         # Raise an exception (this will cause the task to be marked as 'Failed')

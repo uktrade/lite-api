@@ -6,7 +6,7 @@ from django.core.cache import cache
 from mohawk import Sender
 from mohawk.exc import AlreadyProcessed
 
-from conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_RECEIVER_NONCE_EXPIRY_SECONDS, env, HAWK_CREDENTIALS
+from conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_RECEIVER_NONCE_EXPIRY_SECONDS, HAWK_CREDENTIALS
 
 API_HAWK_CREDENTIALS = "lite-api"
 
@@ -15,7 +15,7 @@ def get(url, headers=None, hawk_credentials=None):
     return make_request("GET", url, headers=headers, hawk_credentials=hawk_credentials)
 
 
-def post(url, request_data, headers, hawk_credentials=None):
+def post(url, request_data, headers=None, hawk_credentials=None):
     return make_request("POST", url, json=serialize(request_data), headers=headers, hawk_credentials=hawk_credentials)
 
 
@@ -24,6 +24,8 @@ def put(url, request_data, headers=None, hawk_credentials=None):
 
 
 def make_request(method, url, json=None, headers=None, hawk_credentials=None):
+    headers = headers or {}  # If no headers are supplied, default to an empty dictionary
+
     if HAWK_AUTHENTICATION_ENABLED:
         hawk_credentials = HAWK_CREDENTIALS.get(hawk_credentials or API_HAWK_CREDENTIALS)
         sender = get_hawk_sender(method, url, json, "application/json", hawk_credentials)
