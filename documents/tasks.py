@@ -36,12 +36,13 @@ def scan_document_for_viruses(document_id):
             )
 
         # Document scan not completed. Get the task's current attempt number by retrieving the previous attempt
-        # number and adding 1
+        # number and adding 1.  Note that if the scan was triggered directly and not as a background task then
+        # no task will be found so we default the previous attempt to zero
         previous_attempt = (
             Task.objects.filter(queue=TASK_QUEUE, task_params__contains=document_id)
             .values_list("attempts", flat=True)
             .first()
-        ) or 0  # If no results found, default to zero
+        ) or 0
 
         current_attempt = previous_attempt + 1
 
