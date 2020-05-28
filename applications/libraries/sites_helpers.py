@@ -11,6 +11,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations, Applications
 from organisations.models import Site
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 TRADING = "Trading"
@@ -70,8 +71,27 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
         added_sites=added_sites,
     )
 
+    # check if site has been removed but is still used on other applications:
+    # do not reset its flag to False
+    if application.status.status != CaseStatusEnum.DRAFT:
+        removed_site_ids = removed_sites.values_list("site_id", flat=True)
+        if removed_site_ids:
+            sites_still_on_other_applications = SiteOnApplication.objects.exclude(application=application).filter(
+                site__id__in=removed_site_ids
+            )
+            removed_sites_no_longer_on_other_applications = removed_sites.exclude(
+                site__id__in=sites_still_on_other_applications.values_list("site_id", flat=True)
+            )
+            for sites_on_application in removed_sites_no_longer_on_other_applications:
+                site = Site.objects.get(id=sites_on_application.site_id)
+                site.is_used_on_application = False
+                site.save()
+
     # Save the new sites
     for site in added_sites:
+        if application.status.status != CaseStatusEnum.DRAFT:
+            site.is_used_on_application = True
+            site.save()
         SiteOnApplication.objects.create(site=site, application=application)
 
     removed_sites.delete()
