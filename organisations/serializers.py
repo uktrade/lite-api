@@ -24,6 +24,13 @@ from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSi
 
 class SiteListSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
+    site_records_located_at_name = serializers.SerializerMethodField()
+
+    def get_site_records_located_at_name(self, instance):
+        if instance.site_records_located_at:
+            site = Site.objects.filter(id=instance.site_records_located_at.id).values_list('name', flat=True)
+            if site:
+                return site[0]
 
     class Meta:
         model = Site
@@ -31,12 +38,14 @@ class SiteListSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "address",
+            "site_records_located_at_name"
         )
 
 
 class SiteViewSerializer(SiteListSerializer):
     users = serializers.SerializerMethodField()
     admin_users = serializers.SerializerMethodField()
+    site_records_located_at_name = serializers.SerializerMethodField()
 
     def get_users(self, instance):
         users = (
@@ -56,9 +65,12 @@ class SiteViewSerializer(SiteListSerializer):
         )
         return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
 
+    def get_site_records_located_at_name(self, instance):
+        return [Site.objects.filter(id=instance.site_records_located_at.id).values_list('name', flat=True)]
+
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "users", "admin_users")
+        fields = ("id", "name", "address", "site_records_located_at_name", "users", "admin_users")
 
 
 class SiteCreateUpdateSerializer(serializers.ModelSerializer):
@@ -66,17 +78,14 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
     users = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all(), many=True, required=False)
+    site_records_located_at = serializers.PrimaryKeyRelatedField(queryset=Site.objects.all(), required=False)
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "organisation", "users")
+        fields = ("id", "name", "address", "organisation", "users", "site_records_located_at")
 
     @transaction.atomic
     def create(self, validated_data):
-        users = []
-        if "users" in validated_data:
-            users = validated_data.pop("users")
-
         address_data = validated_data.pop("address")
         address_data["country"] = address_data["country"].id
 
@@ -85,15 +94,25 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
             address = Address(**address_serializer.validated_data)
             address.save()
 
+        #
+
         site = Site.objects.create(address=address, **validated_data)
+
+        users = []
+        if "users" in validated_data:
+            users = validated_data.pop("users")
 
         if users:
             site.users.set([get_user_organisation_relationship(user, validated_data["organisation"]) for user in users])
 
         return site
 
+
+
+    # WE ARE HERE
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
+        instance.site_records_located_at = validated_data.get("site_records_located_at", instance.site_records_located_at.id)
         instance.save()
         return instance
 

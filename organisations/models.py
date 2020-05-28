@@ -88,6 +88,7 @@ class Site(TimestampableModel):
     )
     users = models.ManyToManyField(UserOrganisationRelationship, related_name="sites")
     address = models.ForeignKey(Address, related_name="site", on_delete=models.DO_NOTHING)
+    site_records_located_at = models.ForeignKey("self", related_name="records", on_delete=models.DO_NOTHING, null=True)
 
     objects = SiteManager()
 

@@ -92,3 +92,9 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
             return SiteViewSerializer
         else:
             return SiteCreateUpdateSerializer
+
+    def patch(self, request, *args, **kwargs):
+        if request.data["site_records_stored_here"] == 'yes':
+            request.data["site_records_located_at"] = kwargs['pk']
+
+        return self.partial_update(request, *args, **kwargs)
