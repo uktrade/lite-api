@@ -196,7 +196,7 @@ LITE_HMRC_INTEGRATION_URL = env("LITE_HMRC_INTEGRATION_URL")
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
 BACKGROUND_TASK_RUN_ASYNC = True
 # Number of times a task is retried given a failure occurs with exponential back-off = ((current_attempt ** 4) + 5)
-MAX_ATTEMPTS = 25  # Default is 25
+MAX_ATTEMPTS = 7  # 7th attempt occurs approximately 40 minutes after document upload (assuming instantaneous failures)
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True
