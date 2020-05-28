@@ -40,8 +40,8 @@ class PickListsView(OptionalPaginationView):
         """
         picklist_items = PicklistItem.objects.filter(team=self.request.user.team,)
 
-        name = self.request.GET.get("name")
         picklist_type = self.request.GET.get("type")
+        name = self.request.GET.get("name")
         show_deactivated = str_to_bool(self.request.GET.get("show_deactivated"))
         ids = self.request.GET.get("ids")
 
