@@ -2,18 +2,21 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
+from applications.libraries.get_applications import get_application
 from applications.models import ApplicationException, PartyOnApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from conf.authentication import ExporterAuthentication
-from conf.decorators import allowed_party_type_for_open_application_goodstype_category
-from conf.decorators import authorised_users
+from conf.decorators import (
+    authorised_to_view_application,
+    allowed_party_type_for_open_application_goodstype_category,
+)
 from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
+from organisations.libraries.get_organisation import get_request_user_organisation_id
 from parties.enums import PartyType
 from parties.models import Party
 from parties.serializers import PartySerializer
-from organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
@@ -22,11 +25,12 @@ class ApplicationPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_party_type_for_open_application_goodstype_category()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
         """
         Add a party to an application.
         """
+        application = get_application(pk)
 
         data = request.data
         data["organisation"] = get_request_user_organisation_id(request)
@@ -75,11 +79,13 @@ class ApplicationPartyView(APIView):
 
         return JsonResponse(data={party.type: serializer.data}, status=status.HTTP_201_CREATED)
 
-    @authorised_users(ExporterUser)
-    def delete(self, request, application, party_pk):
+    @authorised_to_view_application(ExporterUser)
+    def delete(self, request, pk, party_pk):
         """
         Removes a party from application.
         """
+        application = get_application(pk)
+
         try:
             poa = application.active_parties.all().get(party__pk=party_pk)
         except PartyOnApplication.DoesNotExist:
@@ -104,11 +110,12 @@ class ApplicationPartyView(APIView):
 
         return JsonResponse(data={"party": PartySerializer(poa.party).data}, status=status.HTTP_200_OK)
 
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
         """
         Get parties for an application
         """
+        application = get_application(pk)
 
         application_parties = application.active_parties.all().filter(deleted_at__isnull=True).select_related("party")
 
@@ -125,8 +132,8 @@ class ApplicationPartyView(APIView):
 class CopyPartyView(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
-    def get(self, request, application, party_pk):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk, party_pk):
         """
         Get parties for an application
         """

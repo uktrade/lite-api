@@ -12,7 +12,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
-from letter_templates.serializers import LetterTemplateSerializer
+from letter_templates.serializers import LetterTemplateSerializer, LetterTemplateListSerializer
 from picklists.enums import PicklistType
 from picklists.models import PicklistItem
 from cases.enums import AdviceType
@@ -26,8 +26,13 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
 
     authentication_classes = (GovAuthentication,)
-    queryset = LetterTemplate.objects.all()
-    serializer_class = LetterTemplateSerializer
+    queryset = LetterTemplate.objects.all().prefetch_related("layout", "case_types")
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return LetterTemplateListSerializer
+        else:
+            return LetterTemplateSerializer
 
     def get_queryset(self):
         case = self.request.GET.get("case")
@@ -47,7 +52,8 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         data = request.data
         data["case_types"] = CaseTypeEnum.references_to_ids(data.get("case_types"))
         data["decisions"] = [AdviceType.ids[decision] for decision in data.get("decisions", [])]
-        serializer = self.serializer_class(data=data)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -83,7 +89,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
             data["text"] = "\n\n".join([paragraph.text for paragraph in paragraphs])
 
         if str_to_bool(request.GET.get("activity")):
-            audit_qs = audit_trail_service.get_user_obj_trail_qs(request.user, template_object)
+            audit_qs = audit_trail_service.get_activity_for_user_and_model(request.user, template_object)
             data["activity"] = AuditSerializer(audit_qs, many=True).data
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)

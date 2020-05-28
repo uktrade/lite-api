@@ -66,6 +66,7 @@ class EndUserAdvisoryViewSerializer(serializers.ModelSerializer):
             "case_officer",
             "created_at",
             "updated_at",
+            "submitted_by",
         )
 
     def __init__(self, *args, **kwargs):

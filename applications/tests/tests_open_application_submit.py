@@ -92,6 +92,7 @@ class OpenApplicationTests(DataTestClient):
         self.assertIsNotNone(case.submitted_at)
         self.assertNotEqual(case.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(case.baseapplication.agreed_to_foi, True)
+        self.assertEqual(case.submitted_by, self.exporter_user)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in case.flags.values_list("id", flat=True))
 
         case_status_audits = Audit.objects.filter(target_object_id=case.id, verb=AuditType.UPDATED_STATUS).values_list(

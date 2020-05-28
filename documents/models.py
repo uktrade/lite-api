@@ -2,9 +2,10 @@ import logging
 import uuid
 
 from django.db import models
+from django.utils.timezone import now
 
 from common.models import TimestampableModel
-from documents.libraries import s3_operations
+from documents.libraries import s3_operations, av_operations
 
 
 class Document(TimestampableModel):
@@ -18,25 +19,25 @@ class Document(TimestampableModel):
     def __str__(self):
         return self.name
 
-    def delete_s3(self, **kwargs):
-        """ Removes file from s3 bucket (eg when the file is virus infected) """
-        logging.info("Removing file from S3: " + self.s3_key)
-        s3_operations.delete_file(self.s3_key)
+    def delete_s3(self):
+        """Removes the document's file from S3."""
+
+        s3_operations.delete_file(self.id, self.s3_key)
 
     def scan_for_viruses(self):
-        from documents.av_scan import virus_scan_document
+        """Retrieves the document's file from S3 and scans it for viruses."""
 
-        virus_scan_document(self.id)
-        self.refresh_from_db()
-        return self
+        file = s3_operations.get_object(self.id, self.s3_key)
 
-    def prepare_document(self):
-        """
-        Prepares the document for usage. This is run async after the document
-        is already on S3.
-            - perform a virus check
-        """
-        self.scan_for_viruses()
-        if self.safe is False:
+        if not file:
+            logging.warning(f"Failed to retrieve file '{self.s3_key}' from S3 for document '{self.id}'")
+
+        self.safe = not av_operations.scan_file_for_viruses(self.id, self.name, file)
+        self.virus_scanned_at = now()
+        self.save()
+
+        if not self.safe:
+            logging.warning(f"Document '{self.id}' is not safe")
             self.delete_s3()
+
         return self.safe

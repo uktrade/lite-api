@@ -61,6 +61,10 @@ class CaseTypeSerializer(serializers.ModelSerializer):
         )
 
 
+class CaseTypeReferenceListSerializer(serializers.Serializer):
+    reference = KeyValueChoiceField(choices=CaseTypeReferenceEnum.choices)
+
+
 class CaseSerializer(serializers.ModelSerializer):
     """
     Serializes cases
