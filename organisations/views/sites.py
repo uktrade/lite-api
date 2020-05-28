@@ -9,6 +9,7 @@ from conf.authentication import SharedAuthentication
 from conf.constants import ExporterPermissions
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
+from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_organisation_by_pk
 from organisations.models import Site
 from organisations.serializers import SiteViewSerializer, SiteCreateUpdateSerializer, SiteListSerializer
@@ -94,7 +95,18 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
             return SiteCreateUpdateSerializer
 
     def patch(self, request, *args, **kwargs):
-        if request.data["site_records_stored_here"] == 'yes':
-            request.data["site_records_located_at"] = kwargs['pk']
+        if "site_records_stored_here" in request.data:
+            # If records are held at the same site, set site_records_located_at to own pk
+            if request.data["site_records_stored_here"] == "yes":
+                request.data["site_records_located_at"] = kwargs["pk"]
+            if request.data["site_records_stored_here"] == "no" and "site_records_located_at" not in request.data:
+                return JsonResponse(
+                    data={"errors": {"site_records_located_at": [strings.Site.NO_SITE_SELECTED]}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return self.partial_update(request, *args, **kwargs)
 
-        return self.partial_update(request, *args, **kwargs)
+        return JsonResponse(
+            data={"errors": {"site_records_stored_here": [strings.Site.NO_RECORDS_LOCATED_AT]}},
+            status=status.HTTP_400_BAD_REQUEST,
+        )

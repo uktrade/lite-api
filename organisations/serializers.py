@@ -28,24 +28,18 @@ class SiteListSerializer(serializers.ModelSerializer):
 
     def get_site_records_located_at_name(self, instance):
         if instance.site_records_located_at:
-            site = Site.objects.filter(id=instance.site_records_located_at.id).values_list('name', flat=True)
+            site = Site.objects.filter(id=instance.site_records_located_at.id).values_list("name", flat=True).first()
             if site:
-                return site[0]
+                return site
 
     class Meta:
         model = Site
-        fields = (
-            "id",
-            "name",
-            "address",
-            "site_records_located_at_name"
-        )
+        fields = ("id", "name", "address", "site_records_located_at_name")
 
 
 class SiteViewSerializer(SiteListSerializer):
     users = serializers.SerializerMethodField()
     admin_users = serializers.SerializerMethodField()
-    site_records_located_at_name = serializers.SerializerMethodField()
 
     def get_users(self, instance):
         users = (
@@ -64,9 +58,6 @@ class SiteViewSerializer(SiteListSerializer):
             .order_by("user__email")
         )
         return ExporterUserSimpleSerializer([x.user for x in users], many=True).data
-
-    def get_site_records_located_at_name(self, instance):
-        return [Site.objects.filter(id=instance.site_records_located_at.id).values_list('name', flat=True)]
 
     class Meta:
         model = Site
@@ -94,8 +85,6 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
             address = Address(**address_serializer.validated_data)
             address.save()
 
-        #
-
         site = Site.objects.create(address=address, **validated_data)
 
         users = []
@@ -105,14 +94,16 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         if users:
             site.users.set([get_user_organisation_relationship(user, validated_data["organisation"]) for user in users])
 
+        if "site_records_stored_here" in self.initial_data:
+            if self.initial_data.get("site_records_stored_here") == "yes":
+                site.site_records_located_at = site
+                site.save()
+
         return site
 
-
-
-    # WE ARE HERE
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
-        instance.site_records_located_at = validated_data.get("site_records_located_at", instance.site_records_located_at.id)
+        instance.site_records_located_at = validated_data.get("site_records_located_at")
         instance.save()
         return instance
 
