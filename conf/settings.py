@@ -147,6 +147,7 @@ HAWK_CREDENTIALS = {
     },
     "lite-e2e": {"id": "lite-e2e", "key": env("LITE_E2E_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
     "lite-performance": {"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
+    "lite-api": {"id": "lite-api", "key": env("LITE_API_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
 }
 
 HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED")
@@ -188,13 +189,14 @@ AV_SERVICE_USERNAME = env("AV_SERVICE_USERNAME")
 AV_SERVICE_PASSWORD = env("AV_SERVICE_PASSWORD")
 AV_REQUEST_TIMEOUT = 5  # Maximum time, in seconds, to wait for a request to return a byte
 
+# HMRC Integration
+LITE_HMRC_INTEGRATION_URL = env("LITE_HMRC_INTEGRATION_URL")
+
 # Background tasks
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
 BACKGROUND_TASK_RUN_ASYNC = True
 # Number of times a task is retried given a failure occurs with exponential back-off = ((current_attempt ** 4) + 5)
-MAX_ATTEMPTS = 7  # 7th attempt occurs approximately 40 minutes after document upload (assuming instantaneous failures)
-
-UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
+MAX_ATTEMPTS = 25  # Default is 25
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True
