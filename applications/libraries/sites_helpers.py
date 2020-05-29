@@ -76,8 +76,10 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
     if application.status.status != CaseStatusEnum.DRAFT:
         removed_site_ids = removed_sites.values_list("site_id", flat=True)
         if removed_site_ids:
-            sites_still_on_other_applications = SiteOnApplication.objects.exclude(application=application).filter(
-                site__id__in=removed_site_ids
+            sites_still_on_other_applications = (
+                SiteOnApplication.objects.exclude(application=application)
+                .exclude(application__status__status="draft")
+                .filter(site__id__in=removed_site_ids)
             )
             removed_sites_no_longer_on_other_applications = removed_sites.exclude(
                 site__id__in=sites_still_on_other_applications.values_list("site_id", flat=True)
