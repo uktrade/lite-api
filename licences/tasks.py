@@ -54,7 +54,7 @@ def send_licence_to_hmrc_integration(licence_id):
 
             schedule_datetime = {timezone.now() + timedelta(seconds=TASK_BACK_OFF)}
             logging.info(f"Scheduling new task for licence '{licence_id}' to commence at {schedule_datetime}")
-            send_licence_changes_to_hmrc_integration(licence_id, schedule=TASK_BACK_OFF)  # noqa
+            send_licence_to_hmrc_integration(licence_id, schedule=TASK_BACK_OFF)  # noqa
 
     # Raise an exception (this will cause the task to be marked as 'Failed')
     raise Exception(f"Failed to send licence '{licence_id}' changes to HMRC Integration")
