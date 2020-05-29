@@ -35,12 +35,15 @@ def scan_document_for_viruses(document_id):
                 f"An unexpected error occurred when scanning document '{document_id}' -> {type(exc).__name__}: {exc}"
             )
 
-        # Get the task's current attempt number by retrieving the previous attempt number and adding 1
+        # Document scan not completed. Get the task's current attempt number by retrieving the previous attempt
+        # number and adding 1.  Note that if the scan was triggered directly and not as a background task then
+        # no task will be found so we default the previous attempt to zero
         previous_attempt = (
             Task.objects.filter(queue=TASK_QUEUE, task_params__contains=document_id)
             .values_list("attempts", flat=True)
             .first()
-        )
+        ) or 0
+
         current_attempt = previous_attempt + 1
 
         if current_attempt >= settings.MAX_ATTEMPTS:
