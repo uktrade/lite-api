@@ -10,6 +10,7 @@ from conf.settings import MAX_ATTEMPTS
 from licences.models import Licence
 
 TASK_QUEUE = "hmrc_integration_queue"
+TASK_BACK_OFF = 3600  # Time, in seconds, to wait before scheduling a new task (used after MAX_ATTEMPTS is reached)
 
 
 @background(schedule=0, queue=TASK_QUEUE)
@@ -44,14 +45,16 @@ def send_licence_changes_to_hmrc_integration(licence_id):
         # Get the task's current attempt number by retrieving the previous attempts and adding 1
         current_attempt = task.attempts + 1
 
-        # Schedule a new task if the current task has been attempted MAX_ATTEMPTS times
+        # Schedule a new task if the current task has been attempted MAX_ATTEMPTS times;
+        # HMRC Integration tasks need to be resilient and keep retrying post-failure indefinitely.
+        # This logic will make MAX_ATTEMPTS attempts to send licence changes according to the Django Background Task
+        # Runner scheduling, then wait TASK_BACK_OFF seconds before starting the process again.
         if current_attempt >= MAX_ATTEMPTS:
             logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for licence '{licence_id}' has been reached")
 
-            schedule = (current_attempt ** 4) + 5
-            schedule_date = {timezone.now() + timedelta(seconds=schedule)}
-            logging.info(f"Scheduling new task for licence '{licence_id}' for {schedule_date}")
-            send_licence_changes_to_hmrc_integration(licence_id, schedule=schedule)  # noqa
+            schedule_datetime = {timezone.now() + timedelta(seconds=TASK_BACK_OFF)}
+            logging.info(f"Scheduling new task for licence '{licence_id}' to commence at {schedule_datetime}")
+            send_licence_changes_to_hmrc_integration(licence_id, schedule=TASK_BACK_OFF)  # noqa
 
     # Raise an exception (this will cause the task to be marked as 'Failed')
     raise Exception(f"Failed to send licence '{licence_id}' changes to HMRC Integration")
