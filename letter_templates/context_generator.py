@@ -46,6 +46,7 @@ def get_document_context(case):
 
     return {
         "case_reference": case.reference_code,
+        # TODO: Add case_type and add it to confluence
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
