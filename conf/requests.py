@@ -1,3 +1,8 @@
+"""
+Wrapper for Requests HTTP Library.
+HAWK signs requests and verifies responses.
+"""
+
 from json import dumps as serialize
 import logging
 
@@ -6,24 +11,30 @@ from django.core.cache import cache
 from mohawk import Sender
 from mohawk.exc import AlreadyProcessed
 
-from conf.settings import HAWK_AUTHENTICATION_ENABLED, HAWK_RECEIVER_NONCE_EXPIRY_SECONDS, HAWK_CREDENTIALS
-
-API_HAWK_CREDENTIALS = "lite-api"
-
-
-def get(url, headers=None, hawk_credentials=None):
-    return make_request("GET", url, headers=headers, hawk_credentials=hawk_credentials)
+from conf.settings import (
+    HAWK_AUTHENTICATION_ENABLED,
+    HAWK_RECEIVER_NONCE_EXPIRY_SECONDS,
+    HAWK_CREDENTIALS,
+)
 
 
-def post(url, data, headers=None, hawk_credentials=None):
-    return make_request("POST", url, data=data, headers=headers, hawk_credentials=hawk_credentials)
+class RequestException(Exception):
+    """Exceptions to raise when sending requests."""
 
 
-def put(url, data, headers=None, hawk_credentials=None):
-    return make_request("PUT", url, data=data, headers=headers, hawk_credentials=hawk_credentials)
+def get(url, headers=None, hawk_credentials=None, timeout=None):
+    return make_request("GET", url, headers=headers, hawk_credentials=hawk_credentials, timeout=timeout)
 
 
-def make_request(method, url, data=None, headers=None, hawk_credentials=None):
+def post(url, data, headers=None, hawk_credentials=None, timeout=None):
+    return make_request("POST", url, data=data, headers=headers, hawk_credentials=hawk_credentials, timeout=timeout)
+
+
+def put(url, data, headers=None, hawk_credentials=None, timeout=None):
+    return make_request("PUT", url, data=data, headers=headers, hawk_credentials=hawk_credentials, timeout=timeout)
+
+
+def make_request(method, url, data=None, headers=None, hawk_credentials=None, timeout=None):
     headers = headers or {}  # If no headers are supplied, default to an empty dictionary
     headers["content-type"] = "application/json"
 
@@ -31,17 +42,30 @@ def make_request(method, url, data=None, headers=None, hawk_credentials=None):
         sender = _get_hawk_sender(method, url, data, hawk_credentials)
         headers["hawk-authentication"] = sender.request_header
 
-        response = requests.request(method, url, json=data, headers=headers)
+        response = send_request(method, url, data=data, headers=headers, timeout=timeout)
         _verify_api_response(sender, response)
     else:
-        response = requests.request(method, url, json=data, headers=headers)
+        response = send_request(method, url, data=data, headers=headers, timeout=timeout)
 
     return response
 
 
-def _get_hawk_sender(method, url, data=None, credentials=None):
-    credentials = HAWK_CREDENTIALS.get(credentials or API_HAWK_CREDENTIALS)
+def send_request(method, url, data=None, headers=None, timeout=None):
+    try:
+        response = requests.request(method, url, json=data, headers=headers, timeout=timeout)
+    except requests.exceptions.Timeout:
+        raise RequestException(f"Timeout exceeded when sending request to '{url}'")
+    except requests.exceptions.RequestException as exc:
+        raise RequestException(
+            f"An unexpected error occurred when sending request to '{url}' -> {type(exc).__name__}: {exc}"
+        )
+
+    return response
+
+
+def _get_hawk_sender(method, url, data, credentials):
     content = serialize(data) if data else data
+    credentials = HAWK_CREDENTIALS.get(credentials)
 
     return Sender(credentials, url, method, content=content, content_type="application/json", seen_nonce=_seen_nonce)
 
@@ -70,11 +94,11 @@ def _verify_api_response(sender, response):
             content_type=response.headers["Content-Type"],
         )
     except Exception as exc:  # noqa
-        error_prefix = f"Unable to authenticate response from {response.url}"
+        logging.warning(f"Unable to authenticate response from {response.url}")
 
         if "server-authorization" not in response.headers:
-            logging.error(
-                f"{error_prefix}. The 'server_authorization' header was not found - probable HAWK misconfiguration"
+            logging.warning(
+                f"'server_authorization' missing in header from response {response.url}; Probable HAWK misconfiguration"
             )
-        else:
-            logging.error(f"{error_prefix}. An unhandled exception was encountered -> {type(exc).__name__}: {exc}")
+
+        raise exc
