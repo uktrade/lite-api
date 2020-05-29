@@ -13,7 +13,7 @@ class ActivityView(APIView):
 
     def get(self, request, pk):
         case = get_case(pk)
-        audit_trail_qs = audit_trail_service.get_user_obj_trail_qs(user=request.user, obj=case)
+        audit_trail_qs = audit_trail_service.get_activity_for_user_and_model(user=request.user, object_type=case)
 
         return JsonResponse(
             data={"activity": AuditSerializer(audit_trail_qs, many=True).data}, status=status.HTTP_200_OK
