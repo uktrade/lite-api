@@ -196,6 +196,7 @@ AV_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a 
 # HMRC Integration
 LITE_HMRC_INTEGRATION_URL = env("LITE_HMRC_INTEGRATION_URL")
 
+UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
 TIME_TESTS = True  # If True, print the length of time it takes to run each test
 SUPPRESS_TEST_OUTPUT = env("SUPPRESS_TEST_OUTPUT")
