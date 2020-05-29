@@ -364,6 +364,12 @@ class ApplicationSubmission(APIView):
                 create_submitted_audit(request, application, old_status)
                 run_routing_rules(application)
 
+                # Mark the sites on this application as used so their details are no longer editable
+                for site_on_application in SiteOnApplication.objects.filter(application=application):
+                    site = Site.objects.get(id=site_on_application.site_id)
+                    site.is_used_on_application = True
+                    site.save()
+
         if application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
             CaseTypeSubTypeEnum.OPEN,
