@@ -635,6 +635,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         parties=True,
         site=True,
         case_type_id=CaseTypeEnum.SIEL.id,
+        add_a_good=True,
     ):
         application = StandardApplication(
             name=reference_name,
@@ -660,16 +661,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
 
-        # Add a good to the standard application
-        self.good_on_application = GoodOnApplication(
-            good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
-            application=application,
-            quantity=10,
-            unit=Units.NAR,
-            value=500,
-        )
-
-        self.good_on_application.save()
+        if add_a_good:
+            # Add a good to the standard application
+            self.good_on_application = GoodOnApplication.objects.create(
+                good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
+                application=application,
+                quantity=10,
+                unit=Units.NAR,
+                value=500,
+            )
 
         if parties:
             self.create_party("End User", organisation, PartyType.END_USER, application)
