@@ -1,0 +1,116 @@
+<div class="document">
+	<div class="govuk-grid-row">
+		<dl class="govuk-summary-list govuk-summary-list--no-border govuk-grid-column-two-thirds">
+			{% if not case_type.reference == "hmrc"%}
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						ECJU reference
+					</dt>
+					<dd class="govuk-summary-list__value" id="summary-list-reference-code">
+						{{ reference_code }}
+					</dd>
+				</div>
+			{% endif %}
+				<dt class="govuk-summary-list__key">
+					{% if case_type.reference == 'hmrc' %}
+						Query
+					{% else %}
+						Licence
+					{% endif %}
+				</dt>
+				<dd class="govuk-summary-list__value">
+					THIS NEEDS FIXED
+				</dd>
+			<div class="govuk-summary-list__row">
+				<dt class="govuk-summary-list__key">
+					Type
+				</dt>
+				<dd class="govuk-summary-list__value">
+					{{ case_type.sub_type }}
+				</dd>
+			</div>
+			{% if details.goodstype_category %}
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						Type of open licence
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ details.goodstype_category }}
+					</dd>
+				</div>
+			{% endif %}
+			<div class="govuk-summary-list__row">
+				<dt class="govuk-summary-list__key">
+					Reference name
+				</dt>
+				<dd class="govuk-summary-list__value">
+					{{ details.user_reference }}
+				</dd>
+			</div>
+			{% if details.export_type %}
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						Export type
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ details.export_type }}
+					</dd>
+				</div>
+			{% endif %}
+			{% if case_type.sub_type == 'standard'%}
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						Informed to apply
+					</dt>
+					<dd class="govuk-summary-list__value" id="summary-list-reference-code">
+						{{ details.reference_code }}
+					</dd>
+				</div>
+			{% endif %}
+			{% if case_type.reference == "sicl" %}
+				{% if details.trade_control_activity %}
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							Type of activity
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ details.trade_control_activity }}
+						</dd>
+					</div>
+				{% endif %}
+				{% if details.trade_control_product_categories %}
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							Product category
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ details.trade_control_product_categories }}
+						</dd>
+					</div>
+				{% endif %}
+			{% endif %}
+			{% if de.clearance_level %}
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						Security grading
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{{ details.clearance_level.value }}
+					</dd>
+				</div>
+			{% endif %}
+			{% if details.clearance_types %}
+				<div class="govuk-summary-list__row">
+					<dt class="govuk-summary-list__key">
+						Clearance types
+					</dt>
+					<dd class="govuk-summary-list__value">
+						{% for clearance_type in details.clearance_types %}
+							<p>{{ clearance_type.name.value }}</p>
+						{% endfor %}
+					</dd>
+				</div>
+			{% endif %}
+		</dl>
+	</div>
+</div>

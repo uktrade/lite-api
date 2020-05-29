@@ -48,9 +48,6 @@ def auto_generate_case_document(layout, case):
     s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
 
 
-
-
-
 def get_generated_document_data(request_params, pk):
     template_id = request_params.get("template")
     if not template_id:

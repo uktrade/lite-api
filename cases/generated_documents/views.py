@@ -61,7 +61,7 @@ class GeneratedDocuments(generics.ListAPIView):
         """
         Create a generated document
         """
-        layout = "ApplicationForm"
+        layout = "application_form"
         html = generate_preview(layout=layout, text="", case=get_case(pk))
         pdf = html_to_pdf_auto_generate(html, layout)
         s3_key = s3_operations.generate_s3_key(layout, "pdf")
@@ -69,7 +69,7 @@ class GeneratedDocuments(generics.ListAPIView):
         try:
             with transaction.atomic():
                 generated_doc = CaseDocument.objects.create(
-                    name=f"Application Form - {datetime.datetime.now()}.pdf",
+                    name=f"Application Form - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}.pdf",
                     s3_key=s3_key,
                     virus_scanned_at=timezone.now(),
                     safe=True,
@@ -83,24 +83,6 @@ class GeneratedDocuments(generics.ListAPIView):
             return JsonResponse({"errors": [strings.Cases.UPLOAD_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         # try:
         #     document = get_generated_document_data(request.data, pk)
