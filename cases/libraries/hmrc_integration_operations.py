@@ -9,4 +9,4 @@ class HMRCIntegrationException(Exception):
 
 def send_licence_changes(licence: Licence):
     request_data = {"licence": {"id": str(licence.id)}}
-    conf.requests.post(LITE_HMRC_INTEGRATION_URL + "/mail/update-licence/", request_data, {}, hawk_credentials=None)
+    conf.requests.post(LITE_HMRC_INTEGRATION_URL + "/mail/update-licence/", request_data, hawk_credentials=None)

@@ -1,10 +1,8 @@
 import logging
-from datetime import timedelta
 
 from background_task import background
 from background_task.models import Task
 from django.db import transaction
-from django.utils import timezone
 
 from conf.settings import MAX_ATTEMPTS
 from documents.libraries.av_operations import VirusScanException

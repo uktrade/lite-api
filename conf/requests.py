@@ -15,42 +15,35 @@ def get(url, headers=None, hawk_credentials=None):
     return make_request("GET", url, headers=headers, hawk_credentials=hawk_credentials)
 
 
-def post(url, request_data, headers=None, hawk_credentials=None):
-    return make_request("POST", url, json=serialize(request_data), headers=headers, hawk_credentials=hawk_credentials)
+def post(url, data, headers=None, hawk_credentials=None):
+    return make_request("POST", url, data=data, headers=headers, hawk_credentials=hawk_credentials)
 
 
-def put(url, request_data, headers=None, hawk_credentials=None):
-    return make_request("PUT", url, json=serialize(request_data), headers=headers, hawk_credentials=hawk_credentials)
+def put(url, data, headers=None, hawk_credentials=None):
+    return make_request("PUT", url, data=data, headers=headers, hawk_credentials=hawk_credentials)
 
 
-def make_request(method, url, json=None, headers=None, hawk_credentials=None):
+def make_request(method, url, data=None, headers=None, hawk_credentials=None):
     headers = headers or {}  # If no headers are supplied, default to an empty dictionary
+    headers["content-type"] = "application/json"
 
     if HAWK_AUTHENTICATION_ENABLED:
-        hawk_credentials = HAWK_CREDENTIALS.get(hawk_credentials or API_HAWK_CREDENTIALS)
-        sender = get_hawk_sender(method, url, json, "application/json", hawk_credentials)
-
+        sender = _get_hawk_sender(method, url, data, hawk_credentials)
         headers["hawk-authentication"] = sender.request_header
-        headers["content-type"] = sender.req_resource.content_type
-        response = requests.request(method, url, json=json, headers=headers)
 
+        response = requests.request(method, url, json=data, headers=headers)
         _verify_api_response(sender, response)
     else:
-        headers["content-type"] = "application/json"
-        response = requests.request(method, url, json=json, headers=headers)
+        response = requests.request(method, url, json=data, headers=headers)
 
     return response
 
 
-def get_hawk_sender(method, url, content, content_type, credentials):
-    return Sender(
-        method=method,
-        url=url,
-        content=content,
-        content_type=content_type,
-        credentials=credentials,
-        seen_nonce=_seen_nonce,
-    )
+def _get_hawk_sender(method, url, data=None, credentials=None):
+    credentials = HAWK_CREDENTIALS.get(credentials or API_HAWK_CREDENTIALS)
+    content = serialize(data) if data else data
+
+    return Sender(credentials, url, method, content=content, content_type="application/json", seen_nonce=_seen_nonce)
 
 
 def _seen_nonce(access_key_id, nonce, timestamp):
