@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import F
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -25,7 +26,7 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment
+from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -46,6 +47,8 @@ from documents.libraries.delete_documents_on_bad_request import delete_documents
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
 from goodstype.helpers import get_goods_type
+from gov_notify import service as gov_notify_service
+from gov_notify.enums import TemplateType
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api.strings import Documents, Cases
@@ -401,6 +404,12 @@ class CaseEcjuQueries(APIView):
                     action_object=serializer.instance,
                     target=serializer.instance.case,
                     payload={"ecju_query": data["question"]},
+                )
+
+                gov_notify_service.send_email(
+                    email_address=Case.objects.annotate(email=F("submitted_by__email")).values("email").get(id=pk)["email"],
+                    template_type=TemplateType.ECJU,
+                    data={}
                 )
 
                 return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)

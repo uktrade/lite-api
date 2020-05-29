@@ -70,6 +70,8 @@ from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses, SystemFlags
 from flags.models import Flag
 from goodstype.models import GoodsType
+from gov_notify import service as gov_notify_service
+from gov_notify.enums import TemplateType
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
@@ -457,6 +459,13 @@ class ApplicationManageStatus(APIView):
         # Case routing rules
         if old_status != application.status:
             run_routing_rules(case=application, keep_status=True)
+
+        if CaseStatusEnum.is_terminal(application.status.status):
+            gov_notify_service.send_email(
+                email_address=application.submitted_by.email,
+                template_type=TemplateType.APPLICATION,
+                data={}
+            )
 
         return JsonResponse(
             data={
