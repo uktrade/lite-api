@@ -37,7 +37,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
         if filter_data.get("control_list_entry"):
             filtered_qs = filtered_qs.filter(
-                control_list_entries__rating__contains=filter_data.get("control_list_entry")
+                control_list_entries__rating=filter_data.get("control_list_entry")
             )
 
         if filter_data.get("country"):
@@ -45,7 +45,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
         filtered_qs = filtered_qs.filter(status=filter_data.get("status", "active"))
 
-        return filtered_qs.distinct()
+        return filtered_qs
 
     def perform_create(self, serializer):
         assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
