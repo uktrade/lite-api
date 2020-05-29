@@ -7,7 +7,8 @@ from rest_framework.views import APIView
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseDocumentState
-from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data, auto_generate_case_document
+from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data, auto_generate_case_document, \
+    html_to_pdf_auto_generate
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import (
     GeneratedCaseDocumentGovSerializer,
@@ -21,6 +22,7 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.decorators import authorised_to_view_application
 from conf.helpers import str_to_bool
 from documents.libraries import s3_operations
+from letter_templates.helpers import generate_preview
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.enums import UserType
@@ -59,24 +61,10 @@ class GeneratedDocuments(generics.ListAPIView):
         """
         Create a generated document
         """
-        try:
-            document = get_generated_document_data(request.data, pk)
-        except AttributeError as e:
-            return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            pdf = html_to_pdf(request, "ApplicationForm", document.template.layout.filename)
-        except Exception:  # noqa
-            return JsonResponse({"errors": [strings.Cases.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
-        # base the document name on the template name and a portion of the UUID generated for the s3 key
-        document_name = f"{s3_key[:len(document.template.name) + 6]}.pdf"
-
-        visible_to_exporter = str_to_bool(request.data.get("visible_to_exporter"))
-        # If the template is not visible to exporter this supersedes what is given for the document
-        if not document.template.visible_to_exporter:
-            visible_to_exporter = False
+        layout = "ApplicationForm"
+        html = generate_preview(layout=layout, text="", case=get_case(pk))
+        pdf = html_to_pdf_auto_generate(html, layout)
+        s3_key = s3_operations.generate_s3_key(layout, "pdf")
 
         try:
             with transaction.atomic():
@@ -88,27 +76,6 @@ class GeneratedDocuments(generics.ListAPIView):
                     type=CaseDocumentState.GENERATED,
                     case=get_case(pk),
                     visible_to_exporter=False,
-                )
-                # generated_doc = GeneratedCaseDocument.objects.create(
-                #     name=f"Application Form - {datetime.datetime.now()}.pdf",
-                #     user=request.user,
-                #     s3_key=s3_key,
-                #     virus_scanned_at=timezone.now(),
-                #     safe=True,
-                #     type=CaseDocumentState.GENERATED,
-                #     case=document.case,
-                #     template=document.template,
-                #     text=document.text,
-                #     visible_to_exporter=visible_to_exporter,
-                #     advice_type=request.data.get("advice_type"),
-                # )
-
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.GENERATE_CASE_DOCUMENT,
-                    action_object=generated_doc,
-                    target=document.case,
-                    payload={"file_name": document_name, "template": document.template.name},
                 )
 
                 s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
