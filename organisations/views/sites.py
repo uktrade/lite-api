@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.views import APIView
 
+from audit_trail import service as audit_trail_service
+from audit_trail.enums import AuditType
 from conf.authentication import SharedAuthentication
 from conf.constants import ExporterPermissions
 from conf.helpers import str_to_bool
@@ -110,3 +112,20 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
             data={"errors": {"site_records_stored_here": [strings.Site.NO_RECORDS_LOCATED_AT]}},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    def perform_update(self, serializer):
+        original_instance = self.get_object()
+        updated_instance = serializer.save()
+        # TODO fix bug when selecting yes to records located at the same site
+        if getattr(original_instance, "site_records_located_at") != getattr(
+            updated_instance, "site_records_located_at"
+        ):
+            audit_trail_service.create(
+                actor=self.request.user,
+                verb="Site records located at edited",
+                target=updated_instance,
+                payload={
+                    "old_site_records_located_at": getattr(original_instance, "site_records_located_at"),
+                    "new_site_records_located_at": getattr(updated_instance, "site_records_located_at"),
+                },
+            )

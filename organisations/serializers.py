@@ -40,6 +40,7 @@ class SiteListSerializer(serializers.ModelSerializer):
 class SiteViewSerializer(SiteListSerializer):
     users = serializers.SerializerMethodField()
     admin_users = serializers.SerializerMethodField()
+    is_used_on_application = serializers.BooleanField(required=False)
 
     def get_users(self, instance):
         users = (
@@ -61,7 +62,15 @@ class SiteViewSerializer(SiteListSerializer):
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "site_records_located_at_name", "users", "admin_users")
+        fields = (
+            "id",
+            "name",
+            "address",
+            "site_records_located_at_name",
+            "users",
+            "admin_users",
+            "is_used_on_application",
+        )
 
 
 class SiteCreateUpdateSerializer(serializers.ModelSerializer):
