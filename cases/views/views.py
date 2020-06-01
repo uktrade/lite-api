@@ -605,15 +605,10 @@ class FinaliseView(RetrieveUpdateAPIView):
             payload={"status": {"new": case.status.status, "old": old_status}},
         )
 
-        try:
-            # If a licence object exists, finalise the licence.
-            # Due to a bug where multiple licences were being created, we get the latest one.
-            licence = Licence.objects.filter(application=case).order_by("created_at").last()
-            if not licence:
-                raise Licence.DoesNotExist
-        except Licence.DoesNotExist:
-            pass
-        else:
+        # If a licence object exists, finalise the licence.
+        # Due to a bug where multiple licences were being created, we get the latest one.
+        licence = Licence.objects.filter(application=case).order_by("created_at").last()
+        if licence:
             licence.is_complete = True
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.save()
