@@ -13,6 +13,7 @@ from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
+from lite_content.lite_api.strings import Cases
 
 
 class EnforcementCheckView(APIView):
@@ -41,7 +42,7 @@ class EnforcementCheckView(APIView):
         assert_user_has_permission(request.user, GovPermissions.ENFORCEMENT_CHECK)
         file = request.data.get("file")
         if not file:
-            raise ValidationError({"file": ["No file given"]})
+            raise ValidationError({"file": [Cases.EnforcementUnit.NO_FILE_ERROR]})
 
         import_cases_xml(file)
-        return JsonResponse({"file": "successful upload"})
+        return JsonResponse({"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})

@@ -7,6 +7,7 @@ from rest_framework import status
 from cases.enforcement_check.export_xml import get_enforcement_id
 from conf.constants import GovPermissions
 from flags.enums import SystemFlags
+from lite_content.lite_api.strings import Cases
 from test_helpers.clients import DataTestClient
 
 
@@ -47,7 +48,7 @@ class ImportXML(DataTestClient):
         self.case.refresh_from_db()
         flags = self.case.flags.values_list("id", flat=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), {"file": "successful upload"})
+        self.assertEqual(response.json(), {"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in flags)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_END_USER_MATCH) in flags)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CONSIGNEE_MATCH) in flags)
@@ -73,7 +74,7 @@ class ImportXML(DataTestClient):
         self.case.refresh_from_db()
         flags = self.case.flags.values_list("id", flat=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), {"file": "successful upload"})
+        self.assertEqual(response.json(), {"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in flags)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_SITE_MATCH) in flags)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_ORGANISATION_MATCH) in flags)
@@ -93,7 +94,7 @@ class ImportXML(DataTestClient):
         self.case.refresh_from_db()
         flags = self.case.flags.values_list("id", flat=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), {"file": "successful upload"})
+        self.assertEqual(response.json(), {"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in flags)
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_ORGANISATION_MATCH) in flags)
 
@@ -112,14 +113,14 @@ class ImportXML(DataTestClient):
 
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), {"file": "successful upload"})
+        self.assertEqual(response.json(), {"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in other_case.flags.values_list("id", flat=True))
 
     def test_import_xml_incorrect_format_failure(self):
         xml = "<abc>def</ghi>"
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"file": ["Invalid format received"]}})
+        self.assertEqual(response.json(), {"errors": {"file": [Cases.EnforcementUnit.INVALID_FORMAT]}})
 
     @parameterized.expand(
         [
@@ -136,14 +137,14 @@ class ImportXML(DataTestClient):
     def test_import_xml_incorrect_xml_format_failure(self, xml):
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"file": ["Invalid XML format received"]}})
+        self.assertEqual(response.json(), {"errors": {"file": [Cases.EnforcementUnit.INVALID_XML_FORMAT]}})
 
     def test_import_xml_incorrect_id_format_failure(self):
         xml = self._build_test_xml([{"code1": "a", "code2": "b", "flag": "Y",}])
 
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"file": ["Invalid ID received"]}})
+        self.assertEqual(response.json(), {"errors": {"file": [Cases.EnforcementUnit.INVALID_ID_FORMAT]}})
 
     def test_import_xml_invalid_id_failure(self):
         # ID's that don't exist
@@ -151,4 +152,4 @@ class ImportXML(DataTestClient):
 
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"file": ["Invalid entity ID received"]}})
+        self.assertEqual(response.json(), {"errors": {"file": [Cases.EnforcementUnit.INVALID_ID_FORMAT]}})

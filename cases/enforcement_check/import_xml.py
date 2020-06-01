@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from cases.enums import EnforcementXMLEntityTypes
 from cases.models import EnforcementCheckID, Case
 from flags.enums import SystemFlags
-
+from lite_content.lite_api.strings import Cases
 
 BASE_TAG = "SPIRE_UPLOAD"
 ENTITY_TAG = "SPIRE_RETURNS"
@@ -22,7 +22,7 @@ def import_cases_xml(file):
         data = _convert_ids_to_uuids(data)
         _set_flags(data)
     except ParseError:
-        raise ValidationError({"file": ["Invalid format received"]})
+        raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_FORMAT]})
 
 
 def enforcement_id_to_uuid(id):
@@ -33,7 +33,7 @@ def _extract_and_validate_xml_tree(tree):
     data = []
     try:
         if tree.tag != BASE_TAG:
-            raise ValidationError({"file": ["Invalid XML format received"]})
+            raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_XML_FORMAT]})
 
         for child in tree:
             elements = {element.tag: element.text for element in child}
@@ -45,11 +45,11 @@ def _extract_and_validate_xml_tree(tree):
                 or not int(elements[APPLICATION_ID_TAG])
                 or not int(elements[ENTITY_ID_TAG])
             ):
-                raise ValidationError({"file": ["Invalid XML format received"]})
+                raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_XML_FORMAT]})
 
             data.append(elements)
     except ValueError:
-        raise ValidationError({"file": ["Invalid ID received"]})
+        raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_ID_FORMAT]})
 
     return data
 
@@ -59,7 +59,7 @@ def _convert_ids_to_uuids(data):
     uuids = EnforcementCheckID.objects.filter(id__in=all_ids).values("id", "entity_id", "entity_type")
 
     if len(all_ids) != len(uuids):
-        raise ValidationError({"file": ["Invalid entity ID received"]})
+        raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_ID_FORMAT]})
 
     uuids = {str(item["id"]): item for item in uuids}
     return [
