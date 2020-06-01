@@ -548,7 +548,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_advice(
-        user, case, advice_field, advice_type, level, pv_grading=None, advice_text="This is some text", good=None
+        user,
+        case,
+        advice_field,
+        advice_type,
+        level,
+        pv_grading=None,
+        advice_text="This is some text",
+        good=None,
+        goods_type=None,
     ):
         advice = Advice(
             user=user,
@@ -566,10 +574,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if advice_field == "end_user":
             advice.end_user = StandardApplication.objects.get(pk=case.id).end_user.party
 
-        if advice_field == "good":
-            advice.good = GoodOnApplication.objects.get(application=case).good
-        elif good:
+        if good:
             advice.good = good
+        elif goods_type:
+            advice.goods_type = goods_type
+        elif advice_field == "good":
+            if case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+                advice.good = GoodOnApplication.objects.filter(application=case).first().good
+            elif case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+                advice.goods_type = GoodsType.objects.filter(application=case).first()
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = "I am easy to proviso"

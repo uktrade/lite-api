@@ -12,11 +12,7 @@ TASK_QUEUE = "document_av_scan_queue"
 
 
 @background(schedule=0, queue=TASK_QUEUE)
-def scan_document_for_viruses(document_id):
-    """
-    Executed by background worker process or synchronous depending on BACKGROUND_TASK_RUN_ASYNC.
-    """
-
+def scan_document_for_viruses(document_id, is_background_task=True):
     with transaction.atomic():
         logging.info(f"Fetching document '{document_id}'")
         doc = Document.objects.select_for_update(nowait=True).get(id=document_id)
@@ -35,21 +31,22 @@ def scan_document_for_viruses(document_id):
                 f"An unexpected error occurred when scanning document '{document_id}' -> {type(exc).__name__}: {exc}"
             )
 
-    # Get the task
-    task = Task.objects.filter(queue=TASK_QUEUE, task_params__contains=document_id).first()
-
-    # If the scan was triggered directly and not as a background task then no task will be found
-    if not task:
-        logging.warning(f"No task was found for document '{document_id}'")
-        doc.delete_s3()
-    else:
-        # Get the task's current attempt number by retrieving the previous attempts and adding 1
-        current_attempt = task.attempts + 1
-
-        # Delete the document's file from S3 if the task has been attempted MAX_ATTEMPTS times
-        if current_attempt >= MAX_ATTEMPTS:
-            logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for document '{document_id}' has been reached")
+    if is_background_task:
+        try:
+            task = Task.objects.get(queue=TASK_QUEUE, task_params__contains=document_id)
+        except Task.DoesNotExist:
+            logging.error(f"No task was found for document '{document_id}'")
             doc.delete_s3()
+        else:
+            # Get the task's current attempt number by retrieving the previous attempts and adding 1
+            current_attempt = task.attempts + 1
 
-    # Raise an exception (this will cause the task to be marked as 'Failed')
+            # Delete the document's file from S3 if the task has been attempted MAX_ATTEMPTS times
+            if current_attempt >= MAX_ATTEMPTS:
+                logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for document '{document_id}' has been reached")
+                doc.delete_s3()
+    else:
+        doc.delete_s3()
+
+    # Raise an exception (this will also cause the task (if any) to be marked as 'Failed')
     raise Exception(f"Failed to scan document '{document_id}'")

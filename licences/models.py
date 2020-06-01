@@ -4,7 +4,7 @@ from django.db import models
 
 from applications.models import BaseApplication
 from common.models import TimestampableModel
-from licences.tasks import send_licence_to_hmrc_integration
+from conf.settings import BACKGROUND_TASK_ENABLED
 from static.decisions.models import Decision
 
 
@@ -22,4 +22,12 @@ class Licence(TimestampableModel):
         super(Licence, self).save(*args, **kwargs)
 
         if self._state.adding:
-            send_licence_to_hmrc_integration(self.id)
+            self.send_to_hmrc_integration()
+
+    def send_to_hmrc_integration(self):
+        from licences.tasks import send_licence_to_hmrc_integration
+
+        if BACKGROUND_TASK_ENABLED:
+            send_licence_to_hmrc_integration(str(self.id))
+        else:
+            send_licence_to_hmrc_integration.now(str(self.id), is_background_task=False)
