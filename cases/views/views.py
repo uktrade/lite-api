@@ -1,7 +1,8 @@
 from django.db import transaction
-from django.http.response import JsonResponse, HttpResponse
+from django.http.response import JsonResponse, HttpResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -562,7 +563,11 @@ class FinaliseView(RetrieveUpdateAPIView):
     serializer_class = LicenceCreateSerializer
 
     def get_object(self):
-        return get_object_or_404(Licence, application=self.kwargs["pk"])
+        try:
+            # Due to a bug where multiple licences were being created, we get the latest one.
+            return Licence.objects.filter(application=self.kwargs["pk"]).order_by("created_at").last()
+        except (TypeError, ValueError, ValidationError):
+            raise Http404
 
     @transaction.atomic
     def put(self, request, pk):
@@ -603,7 +608,8 @@ class FinaliseView(RetrieveUpdateAPIView):
 
         try:
             # If a licence object exists, finalise the licence.
-            licence = Licence.objects.get(application=case)
+            # Due to a bug where multiple licences were being created, we get the latest one.
+            licence = Licence.objects.filter(application=case).order_by("created_at").last()
         except Licence.DoesNotExist:
             pass
         else:
