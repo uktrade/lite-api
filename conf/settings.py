@@ -172,13 +172,13 @@ LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts
 
 DATABASES = {"default": env.db()}
 
-# Documents
-S3_CLIENT = "boto3"
+# AWS
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_REGION = env("AWS_REGION")
-
+S3_CONNECT_TIMEOUT = 60  # Maximum time, in seconds, to wait for an initial connection
+S3_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
 S3_DOWNLOAD_LINK_EXPIRY_SECONDS = 180
 STREAMING_CHUNK_SIZE = 8192
 
@@ -186,13 +186,15 @@ STREAMING_CHUNK_SIZE = 8192
 AV_SERVICE_URL = env("AV_SERVICE_URL")
 AV_SERVICE_USERNAME = env("AV_SERVICE_USERNAME")
 AV_SERVICE_PASSWORD = env("AV_SERVICE_PASSWORD")
+AV_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
 
 # Background tasks
 BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
-UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
-# Max number of seconds before re-running task if not complete
-MAX_RUN_TIME = 180
 BACKGROUND_TASK_RUN_ASYNC = True
+# Number of times a task is retried given a failure occurs with exponential back-off = ((current_attempt ** 4) + 5)
+MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after document upload (assuming instantaneous failures)
+
+UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
 # If True, print the length of time it takes to run each test
 TIME_TESTS = True
