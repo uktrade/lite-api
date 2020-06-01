@@ -610,6 +610,8 @@ class FinaliseView(RetrieveUpdateAPIView):
             # If a licence object exists, finalise the licence.
             # Due to a bug where multiple licences were being created, we get the latest one.
             licence = Licence.objects.filter(application=case).order_by("created_at").last()
+            if not licence:
+                raise Licence.DoesNotExist
         except Licence.DoesNotExist:
             pass
         else:
