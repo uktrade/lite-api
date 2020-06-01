@@ -73,7 +73,7 @@ class SitesList(APIView):
         data = request.data
 
         if "records_located_step" in data:
-            if 'site_records_stored_here' not in data:
+            if "site_records_stored_here" not in data:
                 return JsonResponse(
                     data={"errors": {"site_records_stored_here": [strings.Site.NO_RECORDS_LOCATED_AT]}},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -92,12 +92,7 @@ class SitesList(APIView):
             if "validate_only" not in data or data["validate_only"] == "False":
                 site = serializer.save()
                 audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.CREATED_SITE,
-                    target=site,
-                    payload={
-                        "site_name": site.name,
-                    },
+                    actor=request.user, verb=AuditType.CREATED_SITE, target=site, payload={"site_name": site.name,},
                 )
                 return JsonResponse(data={"site": SiteViewSerializer(site).data}, status=status.HTTP_201_CREATED)
             return JsonResponse(data={})

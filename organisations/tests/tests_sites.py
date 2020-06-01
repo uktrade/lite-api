@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from audit_trail.models import Audit
+from lite_content.lite_api import strings
 from organisations.models import Site
 from organisations.tests.factories import OrganisationFactory
 from test_helpers.clients import DataTestClient
@@ -77,6 +78,7 @@ class OrganisationSitesTests(DataTestClient):
 
         data = {
             "name": "regional site",
+            "records_located_step": True,
             "site_records_stored_here": "yes",
             "address": {
                 "address_line_1": "a street",
@@ -87,14 +89,56 @@ class OrganisationSitesTests(DataTestClient):
         }
 
         response = self.client.post(url, data, **self.gov_headers)
-        site = response.json()['site']
+        site = response.json()["site"]
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
         # Assert that 'site_records_located_at_name' is set to the site being created
-        self.assertEqual(site['site_records_located_at_name'], data['name'])
+        self.assertEqual(site["site_records_located_at_name"], data["name"])
         self.assertEqual(Audit.objects.count(), 1)
 
+    def test_add_uk_site_no_site_record_location_error(self):
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "records_located_step": True,
+            "address": {
+                "address_line_1": "a street",
+                "city": "london",
+                "postcode": "E14GH",
+                "region": "Hertfordshire",
+            },
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"site_records_stored_here": [strings.Site.NO_RECORDS_LOCATED_AT]})
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
+        self.assertEqual(Audit.objects.count(), 0)
+
+    def test_add_uk_site_site_record_location_no_and_not_selected_error(self):
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "records_located_step": True,
+            "site_records_stored_here": "no",
+            "address": {
+                "address_line_1": "a street",
+                "city": "london",
+                "postcode": "E14GH",
+                "region": "Hertfordshire",
+            },
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"site_records_located_at": [strings.Site.NO_SITE_SELECTED]})
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
+        self.assertEqual(Audit.objects.count(), 0)
 
     def test_add_uk_site_and_assign_users(self):
         exporter_user = self.create_exporter_user(self.organisation)
