@@ -8,6 +8,13 @@ from cases.models import EnforcementCheckID, Case
 from flags.enums import SystemFlags
 
 
+BASE_TAG = "SPIRE_UPLOAD"
+ENTITY_TAG = "SPIRE_RETURNS"
+APPLICATION_ID_TAG = "CODE1"
+ENTITY_ID_TAG = "CODE2"
+FLAG_TAG = "FLAG"
+
+
 def import_cases_xml(file):
     try:
         tree = ElementTree.fromstring(file)
@@ -25,18 +32,22 @@ def enforcement_id_to_uuid(id):
 def _extract_and_validate_xml_tree(tree):
     data = []
     try:
-        assert tree.tag == "SPIRE_UPLOAD"
+        if tree.tag != BASE_TAG:
+            raise ValidationError({"file": ["Invalid XML format received"]})
+
         for child in tree:
-            assert child.tag == "SPIRE_RETURNS"
             elements = {element.tag: element.text for element in child}
-            assert {"FLAG", "CODE2", "CODE1"}.issubset(elements.keys())
-            assert all(elements.values())
-            assert elements["FLAG"] == "Y" or elements["FLAG"] == "N"
-            assert int(elements["CODE1"])
-            assert int(elements["CODE2"])
+            if (
+                child.tag != ENTITY_TAG
+                or not {APPLICATION_ID_TAG, ENTITY_ID_TAG, FLAG_TAG}.issubset(elements.keys())
+                or not all(elements.values())
+                or elements[FLAG_TAG] not in ["Y", "N"]
+                or not int(elements[APPLICATION_ID_TAG])
+                or not int(elements[ENTITY_ID_TAG])
+            ):
+                raise ValidationError({"file": ["Invalid XML format received"]})
+
             data.append(elements)
-    except AssertionError as e:
-        raise ValidationError({"file": ["Invalid XML format received"]})
     except ValueError as e:
         raise ValidationError({"file": ["Invalid ID received"]})
 
@@ -44,7 +55,7 @@ def _extract_and_validate_xml_tree(tree):
 
 
 def _convert_ids_to_uuids(data):
-    all_ids = set([item["CODE1"] for item in data] + [item["CODE2"] for item in data])
+    all_ids = set([item[APPLICATION_ID_TAG] for item in data] + [item[ENTITY_ID_TAG] for item in data])
     uuids = EnforcementCheckID.objects.filter(id__in=all_ids).values("id", "entity_id", "entity_type")
 
     if len(all_ids) != len(uuids):
@@ -53,10 +64,10 @@ def _convert_ids_to_uuids(data):
     uuids = {str(item["id"]): item for item in uuids}
     return [
         {
-            "application": uuids[item["CODE1"]]["entity_id"],
-            "entity": uuids[item["CODE2"]]["entity_id"],
-            "type": uuids[item["CODE2"]]["entity_type"],
-            "match": item["FLAG"] == "Y",
+            "application": uuids[item[APPLICATION_ID_TAG]]["entity_id"],
+            "entity": uuids[item[ENTITY_ID_TAG]]["entity_id"],
+            "type": uuids[item[ENTITY_ID_TAG]]["entity_type"],
+            "match": item[FLAG_TAG] == "Y",
         }
         for item in data
     ]
