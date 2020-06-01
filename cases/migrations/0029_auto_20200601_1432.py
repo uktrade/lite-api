@@ -17,10 +17,13 @@ def forward_migration(apps, schema_editor):
         party = Party.objects.filter(id=id)
         if party.exists():
             enforcement_check_item.entity_type = party.first().type
+            enforcement_check_item.save()
         elif Site.objects.filter(id=id).exists() or ExternalLocation.objects.filter(id=id).exists():
             enforcement_check_item.entity_type = EnforcementXMLEntityTypes.SITE
+            enforcement_check_item.save()
         elif Organisation.objects.filter(id=id).exists():
             enforcement_check_item.entity_type = EnforcementXMLEntityTypes.ORGANISATION
+            enforcement_check_item.save()
         else:
             # If no matching entity can be found, delete the enforcement check item
             enforcement_check_item.delete()
