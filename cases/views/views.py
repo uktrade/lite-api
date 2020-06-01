@@ -565,8 +565,10 @@ class FinaliseView(RetrieveUpdateAPIView):
     def get_object(self):
         try:
             # Due to a bug where multiple licences were being created, we get the latest one.
-            return Licence.objects.filter(application=self.kwargs["pk"]).order_by("created_at").last()
-        except (TypeError, ValueError, ValidationError):
+            licence = Licence.objects.filter(application=self.kwargs["pk"]).order_by("created_at").last()
+            if not licence:
+                raise Licence.DoesNotExist
+        except (TypeError, ValueError, ValidationError, Licence.DoesNotExist):
             raise Http404
 
     @transaction.atomic
