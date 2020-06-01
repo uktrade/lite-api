@@ -7,18 +7,21 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0007_auto_20200505_1542'),
+        ("organisations", "0007_auto_20200505_1542"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='site',
-            name='is_used_on_application',
-            field=models.BooleanField(default=None, null=True),
+            model_name="site", name="is_used_on_application", field=models.BooleanField(default=None, null=True),
         ),
         migrations.AddField(
-            model_name='site',
-            name='site_records_located_at',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='records', to='organisations.Site'),
+            model_name="site",
+            name="site_records_located_at",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="records",
+                to="organisations.Site",
+            ),
         ),
     ]

@@ -101,4 +101,6 @@ audit_type_format = {
     AuditType.REMOVED_FLAG_ON_ORGANISATION: strings.Audit.REMOVED_FLAG_ON_ORGANISATION,
     AuditType.ADDED_FLAG_ON_ORGANISATION: strings.Audit.ADDED_FLAG_ON_ORGANISATION,
     AuditType.ENFORCEMENT_CHECK: strings.Audit.ENFORCEMENT_CHECK,
+    AuditType.UPDATED_SITE: strings.Audit.UPDATED_SITE,
+    AuditType.CREATED_SITE: strings.Audit.CREATED_SITE,
 }

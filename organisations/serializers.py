@@ -112,7 +112,9 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
-        instance.site_records_located_at = validated_data.get("site_records_located_at")
+        instance.site_records_located_at = validated_data.get(
+            "site_records_located_at", instance.site_records_located_at
+        )
         instance.save()
         return instance
 
