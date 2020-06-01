@@ -18,6 +18,7 @@ class ImportXML(DataTestClient):
         # Export
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         self.case = self.create_standard_application_case(self.organisation)
+        self.case.queues.set([self.queue])
         self.case.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -112,7 +113,7 @@ class ImportXML(DataTestClient):
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), {"file": "successful upload"})
-        self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in other_case.flags.values_list("id", flat=True))
+        self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in other_case.flags.values_list("id", flat=True))
 
     def test_import_xml_incorrect_format_failure(self):
         xml = "<abc>def</ghi>"
@@ -138,15 +139,7 @@ class ImportXML(DataTestClient):
         self.assertEqual(response.json(), {"errors": {"file": ["Invalid XML format received"]}})
 
     def test_import_xml_incorrect_id_format_failure(self):
-        xml = self._build_test_xml(
-            [
-                {
-                    "code1": "a",
-                    "code2": "b",
-                    "flag": "Y",
-                }
-            ]
-        )
+        xml = self._build_test_xml([{"code1": "a", "code2": "b", "flag": "Y",}])
 
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -154,15 +147,7 @@ class ImportXML(DataTestClient):
 
     def test_import_xml_invalid_id_failure(self):
         # ID's that don't exist
-        xml = self._build_test_xml(
-            [
-                {
-                    "code1": 100,
-                    "code2": 101,
-                    "flag": "Y",
-                }
-            ]
-        )
+        xml = self._build_test_xml([{"code1": 100, "code2": 101, "flag": "Y",}])
 
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
