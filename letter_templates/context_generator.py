@@ -46,7 +46,6 @@ def get_document_context(case):
 
     return {
         "case_reference": case.reference_code,
-        # TODO: Add case_type and add it to confluence
         "case_type": {
             "type": case.case_type.type,
             "sub_type": case.case_type.sub_type,
@@ -125,6 +124,7 @@ def _get_standard_application_context(case):
             "trade_control_activity": standard_application.trade_control_activity,
             "trade_control_activity_other": standard_application.trade_control_activity_other,
             "trade_control_product_categories": standard_application.trade_control_product_categories,
+            "temporary_export_details": _get_temporary_export_details(standard_application),
         }
     )
     return context
@@ -148,7 +148,7 @@ def _get_open_application_context(case):
             "goodstype_category": GoodsTypeCategory.get_text(open_application.goodstype_category)
             if open_application.goodstype_category
             else None,
-            "temporary_export_details": open_application.temp_export_details,
+            "temporary_export_details": _get_temporary_export_details(open_application),
         }
     )
     return context
@@ -207,6 +207,12 @@ def _get_f680_clearance_context(case):
     return context
 
 
+def _get_gifting_clearance_context(case):
+    context = _get_base_application_details_context(case.baseapplication)
+
+    return context
+
+
 def _get_end_user_advisory_query_context(case):
     query = EndUserAdvisoryQuery.objects.get(id=case.pk)
     return {
@@ -253,6 +259,8 @@ def _get_details_context(case):
         return _get_exhibition_clearance_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.F680:
         return _get_f680_clearance_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.GIFTING:
+        return _get_gifting_clearance_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.EUA:
         return _get_end_user_advisory_query_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
@@ -287,8 +295,14 @@ def _get_licence_context(licence):
 def _get_party_context(party):
     return {
         "name": party.name,
+        "type": party.sub_type,
         "address": party.address,
-        "country": {"name": party.country.name, "code": party.country.id,},
+        **(
+            {"descriptors": party.descriptors}
+            if party.type == "third_party"
+            else {}
+        ),
+        "country": {"name": party.country.name, "code": party.country.id},
         "website": party.website,
         "clearance_level": PvGrading.choices_as_dict.get(party.clearance_level),
     }
@@ -324,6 +338,7 @@ def _get_good_context(good_on_application, advice=None):
         else None,
         "applied_for_value": f"£{good_on_application.value}",
         "is_incorporated": friendly_boolean(good_on_application.is_good_incorporated),
+
     }
     if advice:
         good_context["reason"] = advice.text
@@ -334,6 +349,13 @@ def _get_good_context(good_on_application, advice=None):
         good_context["quantity"] = _format_quantity(good_on_application.licenced_quantity, good_on_application.unit)
     if good_on_application.licenced_value:
         good_context["value"] = f"£{good_on_application.licenced_value}"
+
+    if good_on_application.item_type:
+        good_context.update({
+            "item_type": good_on_application.item_type,
+            "other_item_type": good_on_application.other_item_type,
+        })
+
     return good_context
 
 
@@ -359,6 +381,7 @@ def _get_goods_type_context(goods_types, case_pk):
             {
                 "description": good.description,
                 "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
+                "is_controlled": friendly_boolean(good.is_good_controlled)
             }
             for good in goods_types
         ],
@@ -440,3 +463,12 @@ def _get_external_location_context(location):
 
 def _get_document_context(document):
     return {"id": str(document.id), "name": document.name, "description": document.description}
+
+
+def _get_temporary_export_details(application):
+    return {
+        "temporary_export_details": application.temp_export_details,
+        "is_temp_direct_control": friendly_boolean(application.is_temp_direct_control),
+        "temp_direct_control_details": application.temp_direct_control_details,
+        "proposed_return_date": application.proposed_return_date,
+    }
