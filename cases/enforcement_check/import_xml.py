@@ -21,7 +21,7 @@ def import_cases_xml(file):
         data = _extract_and_validate_xml_tree(tree)
         data = _convert_ids_to_uuids(data)
         _set_flags(data)
-    except ParseError as e:
+    except ParseError:
         raise ValidationError({"file": ["Invalid format received"]})
 
 
@@ -48,7 +48,7 @@ def _extract_and_validate_xml_tree(tree):
                 raise ValidationError({"file": ["Invalid XML format received"]})
 
             data.append(elements)
-    except ValueError as e:
+    except ValueError:
         raise ValidationError({"file": ["Invalid ID received"]})
 
     return data
