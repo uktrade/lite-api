@@ -7,7 +7,7 @@ from cases.enums import EnforcementXMLEntityTypes
 
 def forward_migration(apps, schema_editor):
     EnforcementCheckID = apps.get_model("cases", "EnforcementCheckID")
-    Party = apps.get_model("party", "Party")
+    Party = apps.get_model("parties", "Party")
     Site = apps.get_model("organisations", "Site")
     ExternalLocation = apps.get_model("organisations", "ExternalLocation")
     Organisation = apps.get_model("organisations", "Organisation")
