@@ -4,7 +4,7 @@ from addresses.serializers import AddressSerializer
 from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseType, Advice
+from cases.models import CaseType
 from conf.helpers import add_months
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from goodstype.models import GoodsType

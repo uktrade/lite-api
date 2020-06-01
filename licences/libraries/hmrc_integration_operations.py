@@ -22,5 +22,5 @@ def send_licence(licence: Licence):
     if response.status_code != status.HTTP_201_CREATED:
         raise HMRCIntegrationException(
             f"An unexpected response was received when sending licence '{licence.id}' changes to HMRC Integration -> "
-            f"status={response.status_code}, message={response.text}"
+            f"status={response.status_code}, message={response.json()}"
         )
