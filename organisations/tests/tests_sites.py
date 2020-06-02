@@ -267,3 +267,43 @@ class SitesUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertNotEqual(self.organisation.primary_site.name, self.data["name"])
+
+    def test_edit_site_records_location_not_set_failure(self):
+        self.data = {}
+        response = self.client.patch(self.url, self.data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"site_records_stored_here": [strings.Site.NO_RECORDS_LOCATED_AT]})
+
+    def test_edit_site_records_held_at_another_location_site_not_chosen_failure(self):
+        self.data = {"site_records_stored_here": "no"}
+        response = self.client.patch(self.url, self.data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"site_records_located_at": [strings.Site.NO_SITE_SELECTED]})
+
+    def test_edit_site_name_site_already_used_on_an_application_failure(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        self.organisation.primary_site.is_used_on_application = True
+        self.organisation.primary_site.save()
+
+        response = self.client.patch(self.url, self.data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotEqual(self.organisation.primary_site.name, self.data["name"])
+        self.assertIn(
+            "You cannot edit sites that have already been used on a submitted application", response.json()["errors"]
+        )
+
+    def test_edit_site_records_location_site_already_used_on_an_application_failure(self):
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
+        self.organisation.primary_site.is_used_on_application = True
+        self.organisation.primary_site.save()
+        self.data = {"records_located_step": True, "site_records_stored_here": "yes"}
+
+        response = self.client.patch(self.url, self.data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            "You cannot edit sites that have already been used on a submitted application", response.json()["errors"]
+        )
