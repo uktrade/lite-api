@@ -1,3 +1,5 @@
+import re
+
 from django.db import transaction
 from rest_framework import serializers
 
@@ -11,6 +13,7 @@ from conf.serializers import (
 )
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Organisations
+from organisations.constants import UK_VAT_VALIDATION_REGEX
 from organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
@@ -107,8 +110,8 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         error_messages={"blank": Organisations.Create.BLANK_EORI, "max_length": Organisations.Create.LENGTH_EORI},
     )
     vat_number = serializers.CharField(
-        min_length=9,
-        max_length=9,
+        min_length=7,
+        max_length=17,
         required=False,
         allow_null=True,
         allow_blank=True,
@@ -196,8 +199,10 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_vat_number(self, value):
         if value:
-            if not value.startswith("GB"):
+            stripped_vat = re.sub(r"[^A-Z0-9]", "", value)
+            if not re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat):
                 raise serializers.ValidationError(Organisations.Create.INVALID_VAT)
+            return stripped_vat
         return value
 
     @transaction.atomic

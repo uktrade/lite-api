@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from faker import Faker
 
 from conf.constants import Roles
@@ -30,14 +31,12 @@ def create_exporter_users(organisation, quantity=1, role_id=Roles.EXPORTER_DEFAU
     users = []
 
     for i in range(quantity):
-        user = ExporterUser.objects.create(
-            first_name=faker.first_name(), last_name=faker.last_name(), email=faker.email()
-        )
+        user, created = ExporterUser.objects.get_or_create(email=faker.email())
+        if created:
+            user.first_name = faker.first_name()
+            user.last_name = faker.last_name()
+            user.save()
         UserOrganisationRelationship(user=user, organisation=organisation, role_id=role_id).save()
-
-        if quantity == 1:
-            return user
-
         users.append(user)
 
     return users

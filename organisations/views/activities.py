@@ -13,7 +13,9 @@ class OrganisationActivityView(APIView):
 
     def get(self, request, pk):
         organisation = Organisation.objects.get(pk=pk)
-        audit_trail_qs = audit_trail_service.get_user_obj_trail_qs(user=request.user, obj=organisation)
+        audit_trail_qs = audit_trail_service.get_activity_for_user_and_model(
+            user=request.user, object_type=organisation
+        )
 
         return JsonResponse(
             data={"activity": AuditSerializer(audit_trail_qs, many=True).data}, status=status.HTTP_200_OK

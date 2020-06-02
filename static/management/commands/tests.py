@@ -37,7 +37,7 @@ from users.models import Permission
 class SeedingTests(SeedCommandTest):
     def test_seed_case_types(self):
         self.seed_command(seedcasetypes.Command)
-        enum = CaseTypeEnum.case_type_list
+        enum = CaseTypeEnum.CASE_TYPE_LIST
         self.assertEqual(CaseType.objects.count(), len(enum))
         for item in enum:
             self.assertTrue(CaseType.objects.get(id=item.id))
@@ -49,7 +49,7 @@ class SeedingTests(SeedCommandTest):
             CaseStatus.objects.count(), len(seedcasestatuses.Command.read_csv(seedcasestatuses.STATUSES_FILE))
         )
 
-        case_type_list = CaseTypeEnum.case_type_list
+        case_type_list = CaseTypeEnum.CASE_TYPE_LIST
         counter = 0
         for case_type in case_type_list:
             for key, value in seedcasestatuses.Command.STATUSES_ON_CASE_TYPES.items():
@@ -60,7 +60,7 @@ class SeedingTests(SeedCommandTest):
 
     def test_seed_control_list_entries(self):
         self.seed_command(seedcontrollistentries.Command)
-        self.assertTrue(ControlListEntry.objects.count() > 3000)
+        self.assertEqual(ControlListEntry.objects.count(), 2902)
 
     def test_seed_countries(self):
         self.seed_command(seedcountries.Command)
