@@ -221,7 +221,6 @@ class CaseManager(models.Manager):
         user=None,
         status=None,
         case_type=None,
-        sort=None,
         assigned_user=None,
         case_officer=None,
         include_hidden=None,
@@ -363,9 +362,6 @@ class CaseManager(models.Manager):
             case_qs = case_qs.order_by("case_order", "submitted_at")
         else:
             case_qs = case_qs.order_by_date()
-
-        if isinstance(sort, str):
-            case_qs = case_qs.order_by_status(order="-" if sort.startswith("-") else "")
 
         if sla_days_elapsed_sort_order:
             if sla_days_elapsed_sort_order == SortOrder.ASCENDING:
