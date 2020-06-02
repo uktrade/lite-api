@@ -1,4 +1,5 @@
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
@@ -14,6 +15,7 @@ from conf.permissions import assert_user_has_permission
 from flags.enums import SystemFlags
 from flags.models import Flag
 from lite_content.lite_api.strings import Cases
+from queues.models import Queue
 
 
 class EnforcementCheckView(APIView):
@@ -38,11 +40,12 @@ class EnforcementCheckView(APIView):
 
         return HttpResponse(xml, content_type="text/xml")
 
-    def post(self, request, **kwargs):
+    def post(self, request, queue_pk):
         assert_user_has_permission(request.user, GovPermissions.ENFORCEMENT_CHECK)
         file = request.data.get("file")
         if not file:
             raise ValidationError({"file": [Cases.EnforcementUnit.NO_FILE_ERROR]})
 
-        import_cases_xml(file)
+        queue = get_object_or_404(Queue, id=queue_pk)
+        import_cases_xml(file, queue)
         return JsonResponse({"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})

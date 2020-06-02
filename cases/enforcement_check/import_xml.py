@@ -6,11 +6,16 @@ from rest_framework.exceptions import ValidationError
 import os
 import xmlschema
 
+from audit_trail import service as audit_trail_service
+from audit_trail.enums import AuditType
 from cases.enums import EnforcementXMLEntityTypes
 from cases.models import EnforcementCheckID, Case
 from conf.settings import BASE_DIR
 from flags.enums import SystemFlags
 from lite_content.lite_api.strings import Cases
+from users.enums import SystemUser
+from users.models import BaseUser
+from workflow.user_queue_assignment import user_queue_assignment_workflow
 
 BASE_TAG = "SPIRE_UPLOAD"
 ENTITY_TAG = "SPIRE_RETURNS"
@@ -20,7 +25,7 @@ FLAG_TAG = "FLAG"
 XML_SCHEMA = xmlschema.XMLSchema(os.path.join(BASE_DIR, "cases", "enforcement_check", "import_format.xsd"))
 
 
-def import_cases_xml(file):
+def import_cases_xml(file, queue):
     """
     Takes an XML string and validates it matches the expected format.
     Removes the "Enforcement check required" flag for any matching cases
@@ -35,6 +40,7 @@ def import_cases_xml(file):
 
         data = _convert_ids_to_uuids(data)
         _set_flags(data)
+        _trigger_workflow(data, queue)
     except ParseError:
         raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_FORMAT]})
 
@@ -80,6 +86,23 @@ def _set_flags(data):
                     _add_flag_if_not_exists(SystemFlags.ENFORCEMENT_ULTIMATE_END_USER_MATCH, item["application"])
                 elif item["type"] == EnforcementXMLEntityTypes.THIRD_PARTY:
                     _add_flag_if_not_exists(SystemFlags.ENFORCEMENT_THIRD_PARTY_MATCH, item["application"])
+
+
+def _trigger_workflow(data, queue):
+    system_user = BaseUser.objects.get(id=SystemUser.id)
+    applications = set([item["application"] for item in data])
+    applications_without_matches = []
+
+    for application in applications:
+        if not any([item["match"] for item in data if item["application"] == application]):
+            applications_without_matches.append(application)
+
+    cases_to_apply_workflow = Case.objects.filter(id__in=applications_without_matches)
+    for case in cases_to_apply_workflow:
+        user_queue_assignment_workflow([queue], case)
+        audit_trail_service.create(
+            actor=system_user, verb=AuditType.UNASSIGNED, target=case,
+        )
 
 
 def _add_flag_if_not_exists(flag, case_id):

@@ -1,9 +1,12 @@
+import uuid
 from uuid import UUID
 
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
+from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from cases.enforcement_check.export_xml import get_enforcement_id
 from conf.constants import GovPermissions
 from flags.enums import SystemFlags
@@ -53,6 +56,8 @@ class ImportXML(DataTestClient):
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_END_USER_MATCH) in flags)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_CONSIGNEE_MATCH) in flags)
         self.assertTrue(UUID(SystemFlags.ENFORCEMENT_THIRD_PARTY_MATCH) in flags)
+        # Test workflow was not triggered because there was a match
+        self.assertFalse(Audit.objects.filter(verb=AuditType.UNASSIGNED).exists())
 
     def test_import_xml_site_and_org_match_success(self):
         xml = self._build_test_xml(
@@ -97,6 +102,8 @@ class ImportXML(DataTestClient):
         self.assertEqual(response.json(), {"file": Cases.EnforcementUnit.SUCCESSFUL_UPLOAD})
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) in flags)
         self.assertFalse(UUID(SystemFlags.ENFORCEMENT_ORGANISATION_MATCH) in flags)
+        # Test workflow was triggered because there was no match
+        self.assertTrue(Audit.objects.filter(verb=AuditType.UNASSIGNED).exists())
 
     def test_import_xml_case_doesnt_match_success(self):
         other_case = self.create_standard_application_case(self.organisation)
@@ -146,3 +153,9 @@ class ImportXML(DataTestClient):
         response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": {"file": [Cases.EnforcementUnit.INVALID_ID_FORMAT + "101"]}})
+
+    def test_import_xml_invalid_queue_failure(self):
+        url = reverse("cases:enforcement_check", kwargs={"queue_pk": uuid.uuid4()})
+
+        response = self.client.post(url, {"file": "abc"}, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
