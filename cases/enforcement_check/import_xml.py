@@ -1,4 +1,4 @@
-from xml.etree.ElementTree import ParseError
+from xml.etree.ElementTree import ParseError  # nosec
 
 from defusedxml import ElementTree
 from django.db import transaction

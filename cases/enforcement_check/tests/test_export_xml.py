@@ -32,6 +32,11 @@ class ExportXML(DataTestClient):
             "ADDRESS2": stakeholder[10].text,
         }
 
+    def _assert_enforcement_type_recorded(self, stakholder_id, entity_uuid, type):
+        self.assertTrue(
+            EnforcementCheckID.objects.filter(id=stakholder_id, entity_id=entity_uuid, entity_type=type).exists()
+        )
+
     def test_export_xml_with_parties_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
         application = self.create_standard_application_case(self.organisation, site=False)
@@ -60,11 +65,7 @@ class ExportXML(DataTestClient):
             self.assertEqual(stakeholder["PD_SURNAME"], party.name)
             self.assertEqual(stakeholder["ADDRESS1"], party.address)
             # Ensure the correct EnforcementCheckID object is added for the import xml process
-            self.assertTrue(
-                EnforcementCheckID.objects.filter(
-                    id=stakeholder["SH_ID"], entity_id=entity_uuid, entity_type=party.type
-                ).exists()
-            )
+            self._assert_enforcement_type_recorded(stakeholder["SH_ID"], entity_uuid, party.type)
 
     def test_export_xml_with_contact_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -88,11 +89,7 @@ class ExportXML(DataTestClient):
         self.assertIsNotNone(party)
         self.assertEqual(stakeholder["SH_TYPE"], "CONTACT")
         # Ensure the correct EnforcementCheckID object is added for the import xml process
-        self.assertTrue(
-            EnforcementCheckID.objects.filter(
-                id=stakeholder["SH_ID"], entity_id=entity_uuid, entity_type=party.type
-            ).exists()
-        )
+        self._assert_enforcement_type_recorded(stakeholder["SH_ID"], entity_uuid, party.type)
 
     def test_export_xml_with_site_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -121,11 +118,7 @@ class ExportXML(DataTestClient):
             _get_address_line_2(site.address.address_line_2, site.address.postcode, site.address.city),
         )
         # Ensure the correct EnforcementCheckID object is added for the import xml process
-        self.assertTrue(
-            EnforcementCheckID.objects.filter(
-                id=stakeholder["SH_ID"], entity_id=site.pk, entity_type=EnforcementXMLEntityTypes.SITE
-            ).exists()
-        )
+        self._assert_enforcement_type_recorded(stakeholder["SH_ID"], site.pk, EnforcementXMLEntityTypes.SITE)
 
     def test_export_xml_with_external_location_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -148,11 +141,7 @@ class ExportXML(DataTestClient):
         self.assertEqual(stakeholder["ORG_NAME"], location.organisation.name)
         self.assertEqual(stakeholder["ADDRESS1"], location.address)
         # Ensure the correct EnforcementCheckID object is added for the import xml process
-        self.assertTrue(
-            EnforcementCheckID.objects.filter(
-                id=stakeholder["SH_ID"], entity_id=location.pk, entity_type=EnforcementXMLEntityTypes.SITE
-            ).exists()
-        )
+        self._assert_enforcement_type_recorded(stakeholder["SH_ID"], location.pk, EnforcementXMLEntityTypes.SITE)
 
     def test_export_xml_organisation_only_success(self):
         self.gov_user.role.permissions.set([GovPermissions.ENFORCEMENT_CHECK.name])
@@ -181,12 +170,8 @@ class ExportXML(DataTestClient):
             ),
         )
         # Ensure the correct EnforcementCheckID object is added for the import xml process
-        self.assertTrue(
-            EnforcementCheckID.objects.filter(
-                id=stakeholder["SH_ID"],
-                entity_id=self.organisation.pk,
-                entity_type=EnforcementXMLEntityTypes.ORGANISATION,
-            ).exists()
+        self._assert_enforcement_type_recorded(
+            stakeholder["SH_ID"], self.organisation.pk, EnforcementXMLEntityTypes.ORGANISATION
         )
 
     def test_export_xml_no_permission_failure(self):
