@@ -21,6 +21,11 @@ XML_SCHEMA = xmlschema.XMLSchema(os.path.join(BASE_DIR, "cases", "enforcement_ch
 
 
 def import_cases_xml(file):
+    """
+    Takes an XML string and validates it matches the expected format.
+    Removes the "Enforcement check required" flag for any matching cases
+    and sets flags for any matching entities found in the XML (i.e. sites, end users etc.)
+    """
     try:
         if not XML_SCHEMA.is_valid(file):
             raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_XML_FORMAT]})
