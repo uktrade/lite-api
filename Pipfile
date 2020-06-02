@@ -34,8 +34,8 @@ requests-toolbelt = "~=0.9"
 tblib = "~=1.6"
 weasyprint = "~=51.0"
 django-separatedvaluesfield = "~=0.6.0"
-defusedxml = "*"
-xmlschema = "*"
+defusedxml = "~=0.6.0"
+xmlschema = "~=1.2.0"
 
 [requires]
 python_version = "3.7"
