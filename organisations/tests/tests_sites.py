@@ -291,8 +291,8 @@ class SitesUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertNotEqual(self.organisation.primary_site.name, self.data["name"])
-        self.assertIn(
-            "You cannot edit sites that have already been used on a submitted application", response.json()["errors"]
+        self.assertEqual(
+            response.json()["errors"], {"site_records_stored_here": [strings.Site.CANNOT_CHANGE_SITE_IF_ALREADY_IN_USE]}
         )
 
     def test_edit_site_records_location_site_already_used_on_an_application_failure(self):
@@ -304,6 +304,6 @@ class SitesUpdateTests(DataTestClient):
         response = self.client.patch(self.url, self.data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn(
-            "You cannot edit sites that have already been used on a submitted application", response.json()["errors"]
+        self.assertEqual(
+            response.json()["errors"], {"site_records_stored_here": [strings.Site.CANNOT_CHANGE_SITE_IF_ALREADY_IN_USE]}
         )
