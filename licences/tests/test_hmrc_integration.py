@@ -1,4 +1,7 @@
 from unittest import mock
+from unittest.mock import patch
+
+from django.test import override_settings
 
 from cases.enums import AdviceType, AdviceLevel
 from conf.settings import MAX_ATTEMPTS
@@ -63,24 +66,24 @@ class HMRCIntegrationOperationsTests(DataTestClient):
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
-    def test_send_licence_success(self, serializer, requests):
+    def test_send_licence_success(self, serializer, requests_post):
         serializer.return_value = MockSerializer(self.standard_licence)
-        requests.return_value = MockResponse("", 201)
+        requests_post.return_value = MockResponse("", 201)
 
         send_licence(self.standard_licence)
 
-        requests.assert_called_once()
+        requests_post.assert_called_once()
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
-    def test_send_licence_failure(self, serializer, requests):
+    def test_send_licence_failure(self, serializer, requests_post):
         serializer.return_value = MockSerializer(self.standard_licence)
-        requests.return_value = MockResponse("Bad request", 400)
+        requests_post.return_value = MockResponse("Bad request", 400)
 
         with self.assertRaises(HMRCIntegrationException) as error:
             send_licence(self.standard_licence)
 
-        requests.assert_called_once()
+        requests_post.assert_called_once()
         self.assertEqual(
             str(error.exception),
             f"An unexpected response was received when sending licence '{self.standard_licence.id}' changes "
@@ -94,6 +97,26 @@ class HMRCIntegrationTasksTests(DataTestClient):
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+
+    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
+    @mock.patch("licences.tasks.send_licence_to_hmrc_integration.now")
+    def test_save_licence_calls_send_licence_to_hmrc_integration_now(self, send_licence_to_hmrc_integration_now):
+        send_licence_to_hmrc_integration_now.return_value = None
+
+        self.standard_licence.save()
+
+        send_licence_to_hmrc_integration_now.assert_called_with(str(self.standard_licence.id), is_background_task=False)
+
+    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", True)
+    @mock.patch("licences.tasks.send_licence_to_hmrc_integration")
+    def test_save_licence_calls_send_licence_to_hmrc_integration_as_background_task(
+        self, send_licence_to_hmrc_integration
+    ):
+        send_licence_to_hmrc_integration.return_value = None
+
+        self.standard_licence.save()
+
+        send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id))
 
     @mock.patch("licences.tasks.hmrc_integration_operations.send_licence")
     def test_send_licence_to_hmrc_integration_success(self, send_licence):
