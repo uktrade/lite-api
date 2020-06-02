@@ -48,7 +48,8 @@ def _convert_ids_to_uuids(data):
     uuids = EnforcementCheckID.objects.filter(id__in=all_ids).values("id", "entity_id", "entity_type")
 
     if len(all_ids) != len(uuids):
-        raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_ID_FORMAT]})
+        ids_not_found = all_ids.difference(set([str(id) for id in uuids.values_list("id", flat=True)]))
+        raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_ID_FORMAT + ", ".join(ids_not_found)]})
 
     uuids = {str(item["id"]): item for item in uuids}
     return [
