@@ -648,6 +648,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         parties=True,
         site=True,
         case_type_id=CaseTypeEnum.SIEL.id,
+        add_a_good=True,
     ):
         application = StandardApplication(
             name=reference_name,
@@ -673,16 +674,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
 
-        # Add a good to the standard application
-        self.good_on_application = GoodOnApplication(
-            good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
-            application=application,
-            quantity=10,
-            unit=Units.NAR,
-            value=500,
-        )
-
-        self.good_on_application.save()
+        if add_a_good:
+            # Add a good to the standard application
+            self.good_on_application = GoodOnApplication.objects.create(
+                good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
+                application=application,
+                quantity=10,
+                unit=Units.NAR,
+                value=500,
+            )
 
         if parties:
             self.create_party("End User", organisation, PartyType.END_USER, application)
@@ -1067,3 +1067,8 @@ class PerformanceTestClient(DataTestClient):
         print(f"Creating {hmrc_query_count_goods_in_uk} HMRC Queries where the products are still in the UK...")
         for i in range(hmrc_query_count_goods_in_uk):
             self.create_hmrc_query(self.organisation, have_goods_departed=True)
+
+    def create_batch_queues(self, queue_count):
+        print(f"creating {queue_count} queues")
+        queue_details = {"name": "random", "team": self.team}
+        Queue.objects.bulk_create([Queue(**queue_details) for i in range(0, queue_count)])
