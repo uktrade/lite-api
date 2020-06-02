@@ -1,8 +1,8 @@
 from django.db import transaction
-from django.http.response import JsonResponse, HttpResponse
+from django.http.response import JsonResponse, HttpResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -562,7 +562,10 @@ class FinaliseView(RetrieveUpdateAPIView):
     serializer_class = LicenceCreateSerializer
 
     def get_object(self):
-        return get_object_or_404(Licence, application=self.kwargs["pk"])
+        # Due to a bug where multiple licences were being created, we get the latest one.
+        licence = Licence.objects.filter(application=self.kwargs["pk"]).order_by("created_at").last()
+        if not licence:
+            raise Http404(Licence.DoesNotExist)
 
     @transaction.atomic
     def put(self, request, pk):
@@ -601,12 +604,10 @@ class FinaliseView(RetrieveUpdateAPIView):
             payload={"status": {"new": case.status.status, "old": old_status}},
         )
 
-        try:
-            # If a licence object exists, finalise the licence.
-            licence = Licence.objects.get(application=case)
-        except Licence.DoesNotExist:
-            pass
-        else:
+        # If a licence object exists, finalise the licence.
+        # Due to a bug where multiple licences were being created, we get the latest one.
+        licence = Licence.objects.filter(application=case).order_by("created_at").last()
+        if licence:
             licence.is_complete = True
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.save()
