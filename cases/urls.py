@@ -20,6 +20,7 @@ urlpatterns = [
     path("<uuid:pk>/activity/", CaseActivityView.as_view(), name="activity"),
     path("<uuid:pk>/activity/filters/", CaseActivityFiltersView.as_view(), name="activity_filters"),
     path("<uuid:pk>/additional-contacts/", views.AdditionalContacts.as_view(), name="additional_contacts"),
+    path("<uuid:pk>/applicant/", views.CaseApplicant.as_view(), name="case_applicant"),
     path("<uuid:pk>/documents/", views.CaseDocuments.as_view(), name="documents"),
     path("<uuid:pk>/documents/<str:s3_key>/", views.CaseDocumentDetail.as_view(), name="document",),
     path(

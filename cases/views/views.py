@@ -703,6 +703,16 @@ class AdditionalContacts(ListCreateAPIView):
         )
 
 
+class CaseApplicant(APIView):
+    def get(self, request, pk):
+        case = get_case(pk)
+        applicant = case.submitted_by
+        return JsonResponse({
+            "name": applicant.first_name + " " + applicant.last_name,
+            "email": applicant.email
+        })
+
+
 class RerunRoutingRules(APIView):
     authentication_classes = (GovAuthentication,)
 
