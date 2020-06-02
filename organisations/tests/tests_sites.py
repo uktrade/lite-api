@@ -140,6 +140,29 @@ class OrganisationSitesTests(DataTestClient):
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
         self.assertEqual(Audit.objects.count(), 0)
 
+    def test_add_uk_site_with_records_held_at_another_site_success(self):
+        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
+
+        data = {
+            "name": "regional site",
+            "records_located_step": True,
+            "site_records_stored_here": "no",
+            "site_records_located_at": self.organisation.primary_site.id,
+            "address": {
+                "address_line_1": "a street",
+                "city": "london",
+                "postcode": "E14GH",
+                "region": "Hertfordshire",
+            },
+        }
+
+        response = self.client.post(url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
+        self.assertEqual(response.json()["site"]["site_records_located_at_name"], self.organisation.primary_site.name)
+        self.assertEqual(Audit.objects.count(), 1)
+
     def test_add_uk_site_and_assign_users(self):
         exporter_user = self.create_exporter_user(self.organisation)
         exporter_user_2 = self.create_exporter_user(self.organisation)
