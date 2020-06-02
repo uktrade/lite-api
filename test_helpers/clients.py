@@ -1054,3 +1054,8 @@ class PerformanceTestClient(DataTestClient):
         print(f"Creating {hmrc_query_count_goods_in_uk} HMRC Queries where the products are still in the UK...")
         for i in range(hmrc_query_count_goods_in_uk):
             self.create_hmrc_query(self.organisation, have_goods_departed=True)
+
+    def create_batch_queues(self, queue_count):
+        print(f"creating {queue_count} queues")
+        queue_details = {"name": "random", "team": self.team}
+        Queue.objects.bulk_create([Queue(**queue_details) for i in range(0, queue_count)])
