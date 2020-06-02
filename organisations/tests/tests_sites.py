@@ -79,7 +79,7 @@ class OrganisationSitesTests(DataTestClient):
         data = {
             "name": "regional site",
             "records_located_step": True,
-            "site_records_stored_here": "yes",
+            "site_records_stored_here": True,
             "address": {
                 "address_line_1": "a street",
                 "city": "london",
@@ -124,7 +124,7 @@ class OrganisationSitesTests(DataTestClient):
         data = {
             "name": "regional site",
             "records_located_step": True,
-            "site_records_stored_here": "no",
+            "site_records_stored_here": False,
             "address": {
                 "address_line_1": "a street",
                 "city": "london",
@@ -146,7 +146,7 @@ class OrganisationSitesTests(DataTestClient):
         data = {
             "name": "regional site",
             "records_located_step": True,
-            "site_records_stored_here": "no",
+            "site_records_stored_here": "False",
             "site_records_located_at": self.organisation.primary_site.id,
             "address": {
                 "address_line_1": "a street",
@@ -276,7 +276,7 @@ class SitesUpdateTests(DataTestClient):
         self.assertEqual(response.json()["errors"], {"site_records_stored_here": [strings.Site.NO_RECORDS_LOCATED_AT]})
 
     def test_edit_site_records_held_at_another_location_site_not_chosen_failure(self):
-        self.data = {"site_records_stored_here": "no"}
+        self.data = {"site_records_stored_here": False}
         response = self.client.patch(self.url, self.data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -299,7 +299,7 @@ class SitesUpdateTests(DataTestClient):
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         self.organisation.primary_site.is_used_on_application = True
         self.organisation.primary_site.save()
-        self.data = {"records_located_step": True, "site_records_stored_here": "yes"}
+        self.data = {"records_located_step": True, "site_records_stored_here": True}
 
         response = self.client.patch(self.url, self.data, **self.exporter_headers)
 

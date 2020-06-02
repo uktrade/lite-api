@@ -6,6 +6,7 @@ from rest_framework import serializers
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
 from conf.constants import ExporterPermissions
+from conf.helpers import str_to_bool
 from conf.serializers import (
     PrimaryKeyRelatedSerializerField,
     KeyValueChoiceField,
@@ -104,7 +105,7 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
             site.users.set([get_user_organisation_relationship(user, validated_data["organisation"]) for user in users])
 
         if "site_records_stored_here" in self.initial_data:
-            if self.initial_data.get("site_records_stored_here") == "yes":
+            if str_to_bool(self.initial_data.get("site_records_stored_here")):
                 site.site_records_located_at = site
                 site.save()
 
