@@ -1,412 +1,450 @@
 <div class="document">
-	<div class="govuk-grid-row">
-		<dl class="govuk-summary-list govuk-summary-list--no-border govuk-grid-column-two-thirds">
-			{% if not case_type.reference == "hmrc"%}
-				<div class="govuk-summary-list__row">
-					<dt class="govuk-summary-list__key">
-						ECJU reference
-					</dt>
-					<dd class="govuk-summary-list__value" id="summary-list-reference-code">
-						{{ case_reference }}
-					</dd>
-				</div>
-			{% endif %}
-				<dt class="govuk-summary-list__key">
-					{% if case_type.reference == 'hmrc' %}
-						Query
-					{% else %}
-						Licence
+	<table class="govuk-table">
+		{% if not case_type.reference == "cre"%}
+			<tr class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					ECJU reference
+				</th>
+				<td class="govuk-table__cell">
+					{{ case_reference }}
+				</td>
+			<tr>
+		{% endif %}
+			<th scope="row" class="govuk-table__header">
+				{% if case_type.reference == 'cre' %}
+					Query
+				{% else %}
+					Licence
+				{% endif %}
+			</th>
+			<td class="govuk-table__cell">
+				{% if case_type.reference == "siel" %}
+					Standard Individual Export Licence
+				{% elif case_type.reference == "oiel"%}
+					Open Individual Export Licence
+				{% elif case_type.reference == "sitl"%}
+					Standard Individual Transhipment Licence
+				{% elif case_type.reference == "sicl"%}
+					Standard Trade Control Licence
+				{% elif case_type.reference == "oicl"%}
+					Open Trade Control Licence
+				{% elif case_type.reference == "gift"%}
+					Gifting clearance
+				{% elif case_type.reference == "f680"%}
+					MOD Form 680
+				{% elif case_type.reference == "exhc"%}
+					Exhibition clearance
+				{% elif case_type.reference == "cre"%}
+					Customs enquiry
+				{% endif %}
+			</td>
+		<tr class="govuk-table__row">
+			<th scope="row" class="govuk-table__header">
+				Type
+			</th>
+			<td class="govuk-table__cell">
+				{% if case_type.reference == "siel" or case_type.reference == "sitl" or case_type.reference == "sicl"%}
+					Standard Licence
+				{% elif case_type.reference == "oiel" or case_type.reference == "oicl"%}
+					Open Licence
+				{% elif case_type.reference == "gift"%}
+					MOD Gifting Clearance
+				{% elif case_type.sub_type == "f680_clearance"%}
+					MOD F680 Clearance
+				{% elif case_type.reference == "exhc"%}
+					MOD Exhibition Clearance
+				{% elif case_type.reference == "cre"%}
+					HMRC Query
+				{% endif %}
+
+			</td>
+		</tr>
+		{% if details.goodstype_category %}
+			<tr class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Type of open licence
+				</th>
+				<td class="govuk-table__cell">
+					{{ details.goodstype_category }}
+				</td>
+			</tr>
+		{% endif %}
+		<tr class="govuk-table__row">
+			<th scope="row" class="govuk-table__header">
+				Reference name
+			</th>
+			<td class="govuk-table__cell">
+				{{ details.user_reference }}
+			</td>
+		</tr>
+		{% if details.export_type %}
+			<tr class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Export type
+				</th>
+				<td class="govuk-table__cell">
+					{{ details.export_type|title }}
+				</td>
+			</tr>
+		{% endif %}
+		{% if details.has_been_informed %}
+			<tr class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Informed to apply
+				</th>
+				<td class="govuk-table__value">
+					{{ details.has_been_informed }}.{% if details.reference_number_on_information_form%} Reference number: {{ details.reference_number_on_information_form }}
 					{% endif %}
-				</dt>
-				<dd class="govuk-summary-list__value">
-					{% if case_type.reference == "siel" %}
-						Standard Individual Export Licence
-					{% elif case_type.reference == "oiel"%}
-						Open Individual Export Licence
-					{% elif case_type.reference == "sitl"%}
-						Standard Individual Transhipment Licence
-					{% elif case_type.reference == "sicl"%}
-						Standard Trade Control Licence
-					{% elif case_type.reference == "oicl"%}
-						Open Trade Control Licence
-					{% elif case_type.reference == "gift"%}
-						Gifting clearance
-					{% elif case_type.reference == "f680"%}
-						MOD Form 680
-					{% elif case_type.reference == "exhc"%}
-						Exhibition clearance
-					{% elif case_type.reference == "cre"%}
-						HMRC
-					{% endif %}
-				</dd>
-			<div class="govuk-summary-list__row">
-				<dt class="govuk-summary-list__key">
-					Type
-				</dt>
-				<dd class="govuk-summary-list__value">
-					{{ case_type.sub_type|title }}
-				</dd>
-			</div>
-			{% if details.goodstype_category %}
-				<div class="govuk-summary-list__row">
-					<dt class="govuk-summary-list__key">
-						Type of open licence
-					</dt>
-					<dd class="govuk-summary-list__value">
-						{{ details.goodstype_category }}
-					</dd>
-				</div>
-			{% endif %}
-			<div class="govuk-summary-list__row">
-				<dt class="govuk-summary-list__key">
-					Reference name
-				</dt>
-				<dd class="govuk-summary-list__value">
-					{{ details.user_reference }}
-				</dd>
-			</div>
-			{% if details.export_type %}
-				<div class="govuk-summary-list__row">
-					<dt class="govuk-summary-list__key">
-						Export type
-					</dt>
-					<dd class="govuk-summary-list__value">
-						{{ details.export_type|title }}
-					</dd>
-				</div>
-			{% endif %}
-			{% if details.has_been_informed %}
-				<div class="govuk-summary-list__row">
-					<dt class="govuk-summary-list__key">
-						Informed to apply
-					</dt>
-					<dd class="govuk-summary-list__value" id="summary-list-reference-code">
-						{{ details.has_been_informed }}.{% if details.reference_number_on_information_form%} Reference number: {{ details.reference_number_on_information_form }}
+				</td>
+			</tr>
+		{% endif %}
+		{% if case_type.reference == "sicl" or case_type.reference == "oicl" %}
+			{% if details.trade_control_activity %}
+				<tr class="govuk-table__row">
+					<th scope="row" class="govuk-table__header">
+						Type of activity
+					</th>
+					<td class="govuk-table__cell">
+						{% if details.trade_control_activity != "other" %}
+							{{ details.trade_control_activity|remove_underscores }}
+						{% else %}
+							{{ details.trade_control_activity_other }}
 						{% endif %}
-					</dd>
-				</div>
+					</td>
+				</tr>
 			{% endif %}
-			{% if case_type.reference == "sicl" or case_type.reference == "oicl" %}
-				{% if details.trade_control_activity %}
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							Type of activity
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{% if details.trade_control_activity %}
-								{{ details.trade_control_activity }}
-							{% else %}
-								{{ details.trade_control_activity_other }}
-							{% endif %}
-						</dd>
-					</div>
-				{% endif %}
-				{% if details.trade_control_product_categories %}
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							Product category
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ details.trade_control_product_categories }}
-						</dd>
-					</div>
-				{% endif %}
-			{% endif %}
-			{% if details.clearance_level %}
-				<div class="govuk-summary-list__row">
-					<dt class="govuk-summary-list__key">
-						Security grading
-					</dt>
-					<dd class="govuk-summary-list__value">
-						{{ details.clearance_level }}
-					</dd>
-				</div>
-			{% endif %}
-			{% if details.clearance_types %}
-				<div class="govuk-summary-list__row">
-					<dt class="govuk-summary-list__key">
-						Clearance types
-					</dt>
-					<dd class="govuk-summary-list__value">
-						{% for clearance_type in details.clearance_types %}
-							<p>{{ clearance_type }}</p>
+			{% if details.trade_control_product_categories %}
+				<tr class="govuk-table__row">
+					<th scope="row" class="govuk-table__header">
+						Product category
+					</th>
+					<td class="govuk-table__cell">
+						{% for category in details.trade_control_product_categories %}
 						{% endfor %}
-					</dd>
-				</div>
+						{{ details.trade_control_product_categories|join:", "|remove_underscores }}
+					</td>
+				</tr>
 			{% endif %}
-		</dl>
-	</div>
-
-	<div>
-		{% if details.contains_firearm_goods %}
-			<h2 class="govuk-heading-m">Products category</h2>
-			<table class="govuk-table">
-				<thead class="govuk-table__head">
-					<tr class="govuk-table__row">
-						<th scope="col" class="govuk-table__header">#</th>
-						<th scope="col" class="govuk-table__header">Description</th>
-						<th scope="col" class="govuk-table__header">Answer</th>
-					</tr>
-				</thead>
-				<tbody class="govuk-table__body">
-						<tr class="govuk-table__row">
-							<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
-							<td class="govuk-table__cell">Contains firearm products</td>
-							<td class="govuk-table__cell">{{ details.contains_firearm_goods }}</td>
-						</tr>
-				</tbody>
-			</table>
 		{% endif %}
-
-		{% if case_type.reference == "exhc" %}
-			<h2 class="govuk-heading-m">Exhibition details</h2>
-				<dl class="govuk-summary-list">
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							Title
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ details.exhibition_title }}
-						</dd>
-						<dt class="govuk-summary-list__key">
-							Exhibition start date
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ details.first_exhibition_date }}
-						</dd>
-						<dt class="govuk-summary-list__key">
-							Required by
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ details.required_by_date }}
-						</dd>
-						<dt class="govuk-summary-list__key">
-							Reason for clearance
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ details.reason_for_clearance|default_na }}
-						</dd>
-					</div>
-				</dl>
+		{% if details.clearance_level %}
+			<tr class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Security grading
+				</th>
+				<td class="govuk-table__cell">
+					{{ details.clearance_level }}
+				</td>
+			</tr>
 		{% endif %}
-
-		{% if goods %}
-			<h2 class="govuk-heading-m">Products</h2>
-			<table class="govuk-table">
-				<thead class="govuk-table__head">
-					<tr class="govuk-table__row">
-						<th scope="col" class="govuk-table__header">#</th>
-						<th scope="col" class="govuk-table__header">Description</th>
-						{% if goods.all.0.part_number %}
-							<th scope="col" class="govuk-table__header">Part number</th>
-						{% endif %}
-						<th scope="col" class="govuk-table__header">Controlled</th>
-						<th scope="col" class="govuk-table__header">Control list entries</th>
-						{% if case_type.reference == "exhc" %}
-							<th scope="col" class="govuk-table__header">Product type</th>
-						{% elif goods.all.0.applied_for_quantity %}
-							<th scope="col" class="govuk-table__header">Quantity</th>
-							<th scope="col" class="govuk-table__header">Value</th>
-						{% endif %}
-					</tr>
-				</thead>
-				<tbody class="govuk-table__body">
-					{% for good in goods.all %}
-						<tr class="govuk-table__row">
-							<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
-							<td class="govuk-table__cell">{{ good.description }}</td>
-							{% if good.part_number %}
-								<td class="govuk-table__cell">{{ good.part_number }}</td>
-							{% endif %}
-							<td class="govuk-table__cell">{{ good.is_controlled|title }}</td>
-							<td class="govuk-table__cell">{{ good.control_list_entries }}</td>
-							{% if case_type.reference == "exhc" %}
-								{% if good.other_item_type %}
-									<td class="govuk-table__cell">{{ good.other_item_type }}</td>
-								{% else %}
-									<td class="govuk-table__cell">{{ good.item_type }}</td>
-								{% endif %}
-							{% elif good.applied_for_quantity %}
-								<td class="govuk-table__cell">{{ good.applied_for_quantity }}</td>
-								<td class="govuk-table__cell">{{ good.applied_for_value }}</td>
-							{% endif %}
-						</tr>
+		{% if details.clearance_types %}
+			<tr class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Clearance types
+				</th>
+				<td class="govuk-table__cell">
+					{% for clearance_type in details.clearance_types %}
+						<p>{{ clearance_type }}</p>
 					{% endfor %}
-				</tbody>
-			</table>
+				</td>
+			</tr>
 		{% endif %}
+	</table>
 
-		{% if case_type.reference == "f680" %}
-			<h2 class="govuk-heading-m">Additional information</h2>
+
+	{% if case_type.reference == "cre" %}
+		<h2 class="govuk-heading-m">Exporter</h2>
 			<table class="govuk-table">
-				<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<td class="govuk-table__cell">
+						{{ organisation.name }}
+					</td>
+				</tr>
+			</table>
+	{% endif %}
+
+	{% if details.contains_firearm_goods %}
+		<h2 class="govuk-heading-m">Products category</h2>
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">Description</th>
+					<th scope="col" class="govuk-table__header">Answer</th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
 					<tr class="govuk-table__row">
-						<th scope="col" class="govuk-table__header">#</th>
-						<th scope="col" class="govuk-table__header">Description</th>
-						<th scope="col" class="govuk-table__header">Answer</th>
+						<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
+						<td class="govuk-table__cell">Contains firearm products</td>
+						<td class="govuk-table__cell">{{ details.contains_firearm_goods }}</td>
 					</tr>
-				</thead>
-				<tbody class="govuk-table__body">
-						<tr class="govuk-table__row">
-							<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
-							<td class="govuk-table__cell">Has electronic warfare requirement</td>
-							<td class="govuk-table__cell">{{ details.electronic_warfare_requirement }}</td>
-						</tr>
+			</tbody>
+		</table>
+	{% endif %}
+
+	{% if case_type.reference == "exhc" %}
+		<h2 class="govuk-heading-m">Exhibition details</h2>
+			<table class="govuk-table">
+				<tr class="govuk-table__row">
+					<th scope="row" class="govuk-table__header">
+						Title
+					</th>
+					<td class="govuk-table__cell">
+						{{ details.exhibition_title }}
+					</td>
+					<th scope="row" class="govuk-table__header">
+						Exhibition start date
+					</th>
+					<td class="govuk-table__cell">
+						{{ details.first_exhibition_date }}
+					</td>
+					<th scope="row" class="govuk-table__header">
+						Required by
+					</th>
+					<td class="govuk-table__cell">
+						{{ details.required_by_date }}
+					</td>
+					<th scope="row" class="govuk-table__header">
+						Reason for clearance
+					</th>
+					<td class="govuk-table__cell">
+						{{ details.reason_for_clearance|default_na }}
+					</td>
+				</tr>
+			</table>
+	{% endif %}
+
+	{% if goods %}
+		<h2 class="govuk-heading-m">Products</h2>
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">Description</th>
+					{% if goods.all.0.part_number %}
+						<th scope="col" class="govuk-table__header">Part number</th>
+					{% endif %}
+					<th scope="col" class="govuk-table__header">Controlled</th>
+					<th scope="col" class="govuk-table__header">Control list entries</th>
+					{% if case_type.reference == "exhc" %}
+						<th scope="col" class="govuk-table__header">Product type</th>
+					{% elif goods.all.0.applied_for_quantity %}
+						<th scope="col" class="govuk-table__header">Quantity</th>
+						<th scope="col" class="govuk-table__header">Value</th>
+					{% endif %}
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+				{% for good in goods.all %}
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
+						<td class="govuk-table__cell">{{ good.description }}</td>
+						{% if good.part_number %}
+							<td class="govuk-table__cell">{{ good.part_number }}</td>
+						{% endif %}
+						<td class="govuk-table__cell">{{ good.is_controlled|title }}</td>
+						<td class="govuk-table__cell">{{ good.control_list_entries|join:", "|default_na }}</td>
+						{% if case_type.reference == "exhc" %}
+							{% if good.other_item_type %}
+								<td class="govuk-table__cell">{{ good.other_item_type }}</td>
+							{% else %}
+								<td class="govuk-table__cell">{{ good.item_type }}</td>
+							{% endif %}
+						{% elif good.applied_for_quantity %}
+							<td class="govuk-table__cell">{{ good.applied_for_quantity }}</td>
+							<td class="govuk-table__cell">{{ good.applied_for_value }}</td>
+						{% endif %}
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	{% endif %}
+
+	{% if case_type.reference == "f680" %}
+		<h2 class="govuk-heading-m">Additional information</h2>
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">Description</th>
+					<th scope="col" class="govuk-table__header">Answer</th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
+						<td class="govuk-table__cell">Has electronic warfare requirement</td>
+						<td class="govuk-table__cell">{{ details.electronic_warfare_requirement }}</td>
+					</tr>
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">2.</td>
+						<td class="govuk-table__cell">Express clearance</td>
+						<td class="govuk-table__cell">{{ details.expedited }}</td>
+					</tr>
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">3.</td>
+						<td class="govuk-table__cell">Expedited date</td>
+						<td class="govuk-table__cell">{{ details.expedited_date }}</td>
+					</tr>
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">4.</td>
+						<td class="govuk-table__cell">Foreign technology</td>
+						<td class="govuk-table__cell">{{ details.foreign_technology }}{% if details.foreign_technology %}, {{ details.foreign_technology_description }}
+							{% endif %}
+						</td>
+					</tr>
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">5.</td>
+						<td class="govuk-table__cell">Requires local manufacture or assembly</td>
+						<td class="govuk-table__cell">{{ details.locally_manufactured }}{% if details.locally_manufactured_description %}, {{ details.locally_manufactured_description  }}
+							{% endif %}
+						</td>
+					</tr>
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">6.</td>
+						<td class="govuk-table__cell">MTCR type</td>
+						<td class="govuk-table__cell">{{ details.mtcr_type }}</td>
+					</tr>
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">7.</td>
+						<td class="govuk-table__cell">In service or due in service (UK armed forces)</td>
+						<td class="govuk-table__cell">{{ details.uk_service_equipment}}{% if details.uk_service_equipment_description  %}, {{ details.uk_service_equipment_description }}
+							{% endif %}
+						</td>
+					</tr>
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">8.</td>
+						<td class="govuk-table__cell">How funded</td>
+						<td class="govuk-table__cell">{{ details.uk_service_equipment_type }}</td>
+					</tr>
+			</tbody>
+		</table>
+	{% endif %}
+
+	{% if details.end_use_details %}
+		<h2 class="govuk-heading-m">End use details</h2>
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">Description</th>
+					<th scope="col" class="govuk-table__header">Answer</th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+					<tr class="govuk-table__row">
+						<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
+						<td class="govuk-table__cell">Intended end use</td>
+						<td class="govuk-table__cell">{{ details.end_use_details }}</td>
+					</tr>
+					{% if not case_type.reference == "f680" %}
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">2.</td>
-							<td class="govuk-table__cell">Express clearance</td>
-							<td class="govuk-table__cell">{{ details.expedited }}</td>
+							<td class="govuk-table__cell">Informed to apply</td>
+							<td class="govuk-table__cell">{{ details.military_end_use_controls }}{% if details.military_end_use_controls_reference %}, {{ details.military_end_use_controls_reference }}
+								{% endif %}
+							</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">3.</td>
-							<td class="govuk-table__cell">Expedited date</td>
-							<td class="govuk-table__cell">{{ details.expedited_date }}</td>
+							<td class="govuk-table__cell">Informed WMD</td>
+							<td class="govuk-table__cell">{{ details.informed_wmd }}{% if details.informed_wmd_reference %}, {{ details.informed_wmd_reference}}
+								{% endif %}
+							</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">4.</td>
-							<td class="govuk-table__cell">Foreign technology</td>
-							<td class="govuk-table__cell">{{ details.foreign_technology }}{% if details.foreign_technology %}, {{ details.foreign_technology_description }}
+							<td class="govuk-table__cell">Suspect WMD</td>
+							<td class="govuk-table__cell">{{ details.suspected_wmd }}{% if details.suspected_wmd_reference %}, {{ details.suspected_wmd_reference }}
 								{% endif %}
 							</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">5.</td>
-							<td class="govuk-table__cell">Requires local manufacture or assembly</td>
-							<td class="govuk-table__cell">{{ details.locally_manufactured }}{% if details.locally_manufactured_description %}, {{ details.locally_manufactured_description  }}
-								{% endif %}
-							</td>
+							<td class="govuk-table__cell">EU transfer licence</td>
+							<td class="govuk-table__cell">{{ details.eu_military }}</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">6.</td>
-							<td class="govuk-table__cell">MTCR type</td>
-							<td class="govuk-table__cell">{{ details.mtcr_type }}</td>
-						</tr>
-						<tr class="govuk-table__row">
-							<td class="govuk-table__cell govuk-table__cell--line-number">7.</td>
-							<td class="govuk-table__cell">In service or due in service (UK armed forces)</td>
-							<td class="govuk-table__cell">{{ details.uk_service_equipment}}{% if details.uk_service_equipment_description  %}, {{ details.uk_service_equipment_description }}
+							<td class="govuk-table__cell">Complied to terms</td>
+							<td class="govuk-table__cell">{{ details.compliant_limitations_eu }}{% if details.compliant_limitations_eu_reference  %}, {{ details.compliant_limitations_eu_reference }}
 								{% endif %}
 							</td>
 						</tr>
-						<tr class="govuk-table__row">
-							<td class="govuk-table__cell govuk-table__cell--line-number">8.</td>
-							<td class="govuk-table__cell">How funded</td>
-							<td class="govuk-table__cell">{{ details.uk_service_equipment_type }}</td>
-						</tr>
-				</tbody>
-			</table>
-		{% endif %}
+					{% endif %}
+			</tbody>
+		</table>
+	{% endif %}
 
-		{% if details.end_use_details %}
-			<h2 class="govuk-heading-m">End use details</h2>
-			<table class="govuk-table">
-				<thead class="govuk-table__head">
-					<tr class="govuk-table__row">
-						<th scope="col" class="govuk-table__header">#</th>
-						<th scope="col" class="govuk-table__header">Description</th>
-						<th scope="col" class="govuk-table__header">Answer</th>
-					</tr>
-				</thead>
-				<tbody class="govuk-table__body">
-						<tr class="govuk-table__row">
-							<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
-							<td class="govuk-table__cell">Intended end use</td>
-							<td class="govuk-table__cell">{{ details.end_use_details }}</td>
-						</tr>
-						{% if not case_type.reference == "f680" %}
-							<tr class="govuk-table__row">
-								<td class="govuk-table__cell govuk-table__cell--line-number">2.</td>
-								<td class="govuk-table__cell">Informed to apply</td>
-								<td class="govuk-table__cell">{{ details.military_end_use_controls }}{% if details.military_end_use_controls_reference %}, {{ details.military_end_use_controls_reference }}
-									{% endif %}
-								</td>
-							</tr>
-							<tr class="govuk-table__row">
-								<td class="govuk-table__cell govuk-table__cell--line-number">3.</td>
-								<td class="govuk-table__cell">Informed WMD</td>
-								<td class="govuk-table__cell">{{ details.informed_wmd }}{% if details.informed_wmd_reference %}, {{ details.informed_wmd_reference}}
-									{% endif %}
-								</td>
-							</tr>
-							<tr class="govuk-table__row">
-								<td class="govuk-table__cell govuk-table__cell--line-number">4.</td>
-								<td class="govuk-table__cell">Suspect WMD</td>
-								<td class="govuk-table__cell">{{ details.suspected_wmd }}{% if details.suspected_wmd_reference %}, {{ details.suspected_wmd_reference }}
-									{% endif %}
-								</td>
-							</tr>
-							<tr class="govuk-table__row">
-								<td class="govuk-table__cell govuk-table__cell--line-number">5.</td>
-								<td class="govuk-table__cell">EU transfer licence</td>
-								<td class="govuk-table__cell">{{ details.eu_military }}</td>
-							</tr>
-							<tr class="govuk-table__row">
-								<td class="govuk-table__cell govuk-table__cell--line-number">6.</td>
-								<td class="govuk-table__cell">Complied to terms</td>
-								<td class="govuk-table__cell">{{ details.compliant_limitations_eu }}{% if details.compliant_limitations_eu_reference  %}, {{ details.compliant_limitations_eu_reference }}
-									{% endif %}
-								</td>
-							</tr>
+	{% if details.shipped_waybill_or_lading %}
+		<h2 class="govuk-heading-m">Route of products</h2>
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">Description</th>
+					<th scope="col" class="govuk-table__header">Answer</th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+				<tr class="govuk-table__row">
+					<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
+					<td class="govuk-table__cell">Shipped air waybill or lading</td>
+					<td class="govuk-table__cell">{{ details.shipped_waybill_or_lading }}{% if details.non_waybill_or_lading_route_details  %}, {{ details.non_waybill_or_lading_route_details  }}</td>
 						{% endif %}
-				</tbody>
-			</table>
-		{% endif %}
+				</tr>
+			</tbody>
+		</table>
+	{% endif %}
 
-		{% if details.shipped_waybill_or_lading %}
-			<h2 class="govuk-heading-m">Route of products</h2>
-			<table class="govuk-table">
-				<thead class="govuk-table__head">
-					<tr class="govuk-table__row">
-						<th scope="col" class="govuk-table__header">#</th>
-						<th scope="col" class="govuk-table__header">Description</th>
-						<th scope="col" class="govuk-table__header">Answer</th>
-					</tr>
-				</thead>
-				<tbody class="govuk-table__body">
-					<tr class="govuk-table__row">
-						<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
-						<td class="govuk-table__cell">Shipped air waybill or lading</td>
-						<td class="govuk-table__cell">{{ details.shipped_waybill_or_lading }}{% if details.non_waybill_or_lading_route_details  %}, {{ details.non_waybill_or_lading_route_details  }}</td>
-							{% endif %}
-					</tr>
-				</tbody>
-			</table>
-		{% endif %}
+	{% if temporary_export_details %}
+		<h2 class="govuk-heading-m">Temporary export details</h2>
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">Description</th>
+					<th scope="col" class="govuk-table__header">Answer</th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+				<tr class="govuk-table__row">
+					<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
+					<td class="govuk-table__cell">Temporary export details</td>
+					<td class="govuk-table__cell">{{ details.temporary_export_details.temporary_export_details }}</td>
+				</tr>
+				<tr class="govuk-table__row">
+					<td class="govuk-table__cell govuk-table__cell--line-number">2.</td>
+					<td class="govuk-table__cell">Products remaining under your direct control</td>
+					<td class="govuk-table__cell">{{ details.temporary_export_details.is_temp_direct_control }}{% if details.temporary_export_details.is_temp_direct_control == "No" %}, {{ details.temporary_export_details.temp_direct_control_details }}
+						{% endif %}
+					</td>
+				</tr>
+				<tr class="govuk-table__row">
+					<td class="govuk-table__cell govuk-table__cell--line-number">3.</td>
+					<td class="govuk-table__cell">Date products returning to the UK</td>
+					<td class="govuk-table__cell">{{ details.temporary_export_details.proposed_return_date }}</td>
+				</tr>
+			</tbody>
+		</table>
+	{% endif %}
 
-		{% if temporary_export_details %}
-			<h2 class="govuk-heading-m">Temporary export details</h2>
-			<table class="govuk-table">
-				<thead class="govuk-table__head">
-					<tr class="govuk-table__row">
-						<th scope="col" class="govuk-table__header">#</th>
-						<th scope="col" class="govuk-table__header">Description</th>
-						<th scope="col" class="govuk-table__header">Answer</th>
-					</tr>
-				</thead>
-				<tbody class="govuk-table__body">
-					<tr class="govuk-table__row">
-						<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
-						<td class="govuk-table__cell">Temporary export details</td>
-						<td class="govuk-table__cell">{{ details.temporary_export_details.temporary_export_details }}</td>
-					</tr>
-					<tr class="govuk-table__row">
-						<td class="govuk-table__cell govuk-table__cell--line-number">2.</td>
-						<td class="govuk-table__cell">Products remaining under your direct control</td>
-						<td class="govuk-table__cell">{{ details.temporary_export_details.is_temp_direct_control }}{% if details.temporary_export_details.is_temp_direct_control == "No" %}, {{ details.temporary_export_details.temp_direct_control_details }}
-							{% endif %}
-						</td>
-					</tr>
-					<tr class="govuk-table__row">
-						<td class="govuk-table__cell govuk-table__cell--line-number">3.</td>
-						<td class="govuk-table__cell">Date products returning to the UK</td>
-						<td class="govuk-table__cell">{{ details.temporary_export_details.proposed_return_date }}</td>
-					</tr>
-				</tbody>
-			</table>
-		{% endif %}
-
-		{% if external_locations or sites %}
+	{% if external_locations or sites or details.have_goods_departed == "Yes"%}
+		{% if case_type.reference == "cre" %}
+			<h2 class="govuk-heading-m">Where are the products located?</h2>
+		{% else %}
 			<h2 class="govuk-heading-m">Locations</h2>
+		{% endif %}
+		{% if details.have_goods_departed == "Yes" %}
+			<tr class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Goods have left the UK
+				</th>
+				<td class="govuk-table__value">
+					{{ details.have_goods_departed }}
+				</td>
+			</tr>
+		{% else %}
 			<table class="govuk-table">
 				<thead class="govuk-table__head">
 					<tr class="govuk-table__row">
@@ -442,132 +480,232 @@
 				</tbody>
 			</table>
 		{% endif %}
+	{% endif %}
 
-		{% if end_user or case_type.reference == "oicl" %}
-			<h2 class="govuk-heading-m">End user</h2>
-			{% if not end_user %}
-					No information added to this section.
-			{% else %}
-				<dl class="govuk-summary-list">
-					<div class="govuk-summary-list__row">
-						<dt class="govuk-summary-list__key">
-							Name
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ end_user.name }}
-						</dd>
-						<dt class="govuk-summary-list__key">
-							Type
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ end_user.type|title }}
-						</dd>
-						<dt class="govuk-summary-list__key">
-							Address
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ end_user.address }}, {{ end_user.country.name }}
-						</dd>
-						<dt class="govuk-summary-list__key">
-							Website
-						</dt>
-						<dd class="govuk-summary-list__value">
-							{{ end_user.website|default_na }}
-						</dd>
-					</div>
-				</dl>
-			{% endif %}
+	{% if end_user or case_type.reference == "oicl" %}
+		<h2 class="govuk-heading-m">End user</h2>
+		{% if not end_user %}
+			<p class="govuk-hint">No information added to this section.</p>
+		{% else %}
+			<table class="govuk-table">
+				<tr class="govuk-table__row">
+					<th scope="row" class="govuk-table__header">
+						Name
+					</th>
+					<td class="govuk-table__cell">
+						{{ end_user.name }}
+					</td>
+				</tr>
+				<tr class="govuk-table__row">
+					<th scope="row" class="govuk-table__header">
+						Type
+					</th>
+					<td class="govuk-table__cell">
+						{{ end_user.type|title }}
+					</td>
+				</tr>
+
+				{% if case_type.reference == "f680" %}
+					<tr class="govuk-table__row">
+						<th scope="row" class="govuk-table__header">
+							Clearance level
+						</th>
+						<td class="govuk-table__cell">
+							{{ end_user.clearance_level }}
+						</td>
+						<th scope="row" class="govuk-table__header">
+							Descriptors
+						</th>
+						<td class="govuk-table__cell">
+							{{ end_user.descriptors }}
+						</td>
+					</tr>
+				{% endif %}
+				<tr class="govuk-table__row">
+					<th scope="row" class="govuk-table__header">
+						Address
+					</th>
+					<td class="govuk-table__cell">
+						{{ end_user.address }}, {{ end_user.country.name }}
+					</td>
+				</tr>
+				<tr class="govuk-table__row">
+					<th scope="row" class="govuk-table__header">
+						Website
+					</th>
+					<td class="govuk-table__cell">
+						{{ end_user.website|default_na }}
+					</td>
+				</tr>
+			</table>
 		{% endif %}
+	{% endif %}
 
-		{% if ultimate_end_users %}
-			<h2 class="govuk-heading-m">Ultimate Recipient</h2>
+	{% if ultimate_end_users %}
+		<h2 class="govuk-heading-m">Ultimate Recipient</h2>
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">Name</th>
+					<th scope="col" class="govuk-table__header">Type</th>
+					<th scope="col" class="govuk-table__header">Address</th>
+					<th scope="col" class="govuk-table__header">Website</th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+			{% for ultimate_end_user in ultimate_end_users %}
+				<tr class="govuk-table__row">
+					<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
+					<td class="govuk-table__cell">{{ ultimate_end_user.name }}</td>
+					<td class="govuk-table__cell">{{ ultimate_end_user.type|title }}</td>
+					<td class="govuk-table__cell">{{ ultimate_end_user.address }}, {{ ultimate_end_user.country.name }}</td>
+					<td class="govuk-table__cell">{{ ultimate_end_user.website|default_na }}</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	{% elif case_type.reference == "cre" and not ultimate_end_users %}
+		<h2 class="govuk-heading-m">Ultimate Recipient</h2>
+		<p class="govuk-hint">No information added to this section.</p>
+	{% endif %}
+
+	{% if consignee %}
+		<h2 class="govuk-heading-m">Consignee</h2>
+		<table class="govuk-table">
+			<tr class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Name
+				</th>
+				<td class="govuk-table__cell">
+					{{ consignee.name }}
+				</td>
+			</tr>
+			<tr scope="row" class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Type
+				</th>
+				<td class="govuk-table__cell">
+					{{ consignee.type|title }}
+				</td>
+			</tr>
+			<tr scope="row" class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Address
+				</th>
+				<td class="govuk-table__cell">
+					{{ consignee.address }}, {{ consignee.country.name }}
+				</td>
+			</tr>
+			<tr scope="row" class="govuk-table__row">
+				<th scope="row" class="govuk-table__header">
+					Website
+				</th>
+				<td class="govuk-table__cell">
+					{{ consignee.website|default_na }}
+				</td>
+			</tr>
+		</table>
+	{% elif case_type.reference == "cre" and not consignee %}
+		<h2 class="govuk-heading-m">Consignee</h2>
+		<p class="govuk-hint">No information added to this section.</p>
+	{% endif %}
+
+	{% if case_type.reference == "siel" or case_type.reference == "sitl" or case_type.reference == "sicl" or case_type.reference == "gift" or case_type.reference == "f680" or case_type.reference == "cre"%}
+		<h2 class="govuk-heading-m">Third parties</h2>
+		{% if not third_party %}
+			<p class="govuk-hint">No information added to this section.</p>
+		{% else %}
 			<table class="govuk-table">
 				<thead class="govuk-table__head">
 					<tr class="govuk-table__row">
 						<th scope="col" class="govuk-table__header">#</th>
 						<th scope="col" class="govuk-table__header">Name</th>
 						<th scope="col" class="govuk-table__header">Type</th>
+						{% if case_type.reference == "f680" %}
+							<th scope="col" class="govuk-table__header">Clearance level</th>
+						{% endif %}
+						<th scope="col" class="govuk-table__header">Descriptors</th>
 						<th scope="col" class="govuk-table__header">Address</th>
 						<th scope="col" class="govuk-table__header">Website</th>
 					</tr>
 				</thead>
 				<tbody class="govuk-table__body">
-				{% for ultimate_end_user in ultimate_end_users %}
+				{% for third_party in third_parties.all %}
 					<tr class="govuk-table__row">
 						<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
-						<td class="govuk-table__cell">{{ ultimate_end_user.name }}</td>
-						<td class="govuk-table__cell">{{ ultimate_end_user.type|title }}</td>
-						<td class="govuk-table__cell">{{ ultimate_end_user.address }}, {{ ultimate_end_user.country.name }}</td>
-						<td class="govuk-table__cell">{{ ultimate_end_user.website|default_na }}</td>
+						<td class="govuk-table__cell">{{ third_party.name }}</td>
+						<td class="govuk-table__cell">{{ third_party.type|title }}</td>
+						{% if case_type.reference == "f680" %}
+							<td class="govuk-table__cell">{{ third_party.clearance_level }}</td>
+						{% endif %}
+						<td class="govuk-table__cell">{{ third_party.descriptors }}</td>
+						<td class="govuk-table__cell">{{ third_party.address }}, {{ third_party.country.name }}</td>
+						<td class="govuk-table__cell">{{ third_party.website|default_na }}</td>
 					</tr>
 				{% endfor %}
 				</tbody>
 			</table>
 		{% endif %}
+	{% endif %}
 
-		{% if consignee %}
-			<h2 class="govuk-heading-m">Consignee</h2>
-			<dl class="govuk-summary-list">
-				<div class="govuk-summary-list__row">
-					<dt class="govuk-summary-list__key">
-						Name
-					</dt>
-					<dd class="govuk-summary-list__value">
-						{{ consignee.name }}
-					</dd>
-					<dt class="govuk-summary-list__key">
-						Type
-					</dt>
-					<dd class="govuk-summary-list__value">
-						{{ consignee.type|title }}
-					</dd>
-					<dt class="govuk-summary-list__key">
-						Address
-					</dt>
-					<dd class="govuk-summary-list__value">
-						{{ consignee.address }}, {{ consignee.country.name }}
-					</dd>
-					<dt class="govuk-summary-list__key">
-						Website
-					</dt>
-					<dd class="govuk-summary-list__value">
-						{{ consignee.website|default_na }}
-					</dd>
-				</div>
-			</dl>
-		{% endif %}
+	<h2 class="govuk-heading-m">Supporting documents</h2>
+	{% if not documents %}
+		<p class="govuk-hint">No information added to this section.</p>
+	{% else %}
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">File name</th>
+					<th scope="col" class="govuk-table__header">Description</th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+			{% for document in documents %}
+				<tr class="govuk-table__row">
+					<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
+					<td class="govuk-table__cell">{{ document.name }}</td>
+					<td class="govuk-table__cell">{{ document.description|default_na }}</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	{% endif %}
 
-		{% if case_type.reference == "siel" or case_type.reference == "sitl" or case_type.reference == "sicl" or case_type.reference == "gift" or case_type.reference == "f680"%}
-			<h2 class="govuk-heading-m">Third parties</h2>
-			{% if not third_party %}
-					No information added to this section.
-			{% else %}
-				<table class="govuk-table">
-					<thead class="govuk-table__head">
-						<tr class="govuk-table__row">
-							<th scope="col" class="govuk-table__header">#</th>
-							<th scope="col" class="govuk-table__header">Name</th>
-							<th scope="col" class="govuk-table__header">Type</th>
-							<th scope="col" class="govuk-table__header">Descriptors</th>
-							<th scope="col" class="govuk-table__header">Address</th>
-							<th scope="col" class="govuk-table__header">Website</th>
-						</tr>
-					</thead>
-					<tbody class="govuk-table__body">
-					{% for third_party in third_parties.all %}
-						<tr class="govuk-table__row">
-							<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
-							<td class="govuk-table__cell">{{ third_party.name }}</td>
-							<td class="govuk-table__cell">{{ third_party.type|title }}</td>
-							<td class="govuk-table__cell">{{ third_party.descriptors }}</td>
-							<td class="govuk-table__cell">{{ third_party.address }}, {{ third_party.country.name }}</td>
-							<td class="govuk-table__cell">{{ third_party.website|default_na }}</td>
-						</tr>
-					{% endfor %}
-					</tbody>
-				</table>
-			{% endif %}
-		{% endif %}
-	</div>
-
+	{% if case_type.reference == "cre" %}
+		<h2 class="govuk-heading-m">Explain the reason behind your query</h2>
+	{% else %}
+		<h2 class="govuk-heading-m">Notes</h2>
+	{% endif %}
+	{% if case_type.reference != "cre" and not notes or case_type.reference == "cre" and not details.query_reason %}
+		<p class="govuk-hint">No information added to this section.</p>
+	{% elif details.query_reason %}
+		<table class="govuk-table">
+			<tr class="govuk-table__row">
+				<td class="govuk-table__cell">
+					{{ details.query_reason }}
+				</td>
+			</tr>
+		</table>
+	{% else %}
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">User</th>
+					<th scope="col" class="govuk-table__header">Note</th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+			{% for note in notes %}
+				<tr class="govuk-table__row">
+					<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
+					<td class="govuk-table__cell">{{ note.user }}</td>
+					<td class="govuk-table__cell">{{ note.text }}</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	{% endif %}
 </div>

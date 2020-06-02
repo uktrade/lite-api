@@ -49,7 +49,7 @@ def get_document_context(case):
         "case_type": {
             "type": case.case_type.type,
             "sub_type": case.case_type.sub_type,
-            "reference": case.case_type.reference
+            "reference": case.case_type.reference,
         },
         "current_date": date,
         "current_time": time,
@@ -297,11 +297,7 @@ def _get_party_context(party):
         "name": party.name,
         "type": party.sub_type,
         "address": party.address,
-        **(
-            {"descriptors": party.descriptors}
-            if party.type == "third_party"
-            else {}
-        ),
+        **({"descriptors": party.descriptors} if party.type == "third_party" or party.type == "end_user" else {}),
         "country": {"name": party.country.name, "code": party.country.id},
         "website": party.website,
         "clearance_level": PvGrading.choices_as_dict.get(party.clearance_level),
@@ -338,7 +334,6 @@ def _get_good_context(good_on_application, advice=None):
         else None,
         "applied_for_value": f"£{good_on_application.value}",
         "is_incorporated": friendly_boolean(good_on_application.is_good_incorporated),
-
     }
     if advice:
         good_context["reason"] = advice.text
@@ -351,10 +346,9 @@ def _get_good_context(good_on_application, advice=None):
         good_context["value"] = f"£{good_on_application.licenced_value}"
 
     if good_on_application.item_type:
-        good_context.update({
-            "item_type": good_on_application.item_type,
-            "other_item_type": good_on_application.other_item_type,
-        })
+        good_context.update(
+            {"item_type": good_on_application.item_type, "other_item_type": good_on_application.other_item_type,}
+        )
 
     return good_context
 
@@ -381,7 +375,7 @@ def _get_goods_type_context(goods_types, case_pk):
             {
                 "description": good.description,
                 "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
-                "is_controlled": friendly_boolean(good.is_good_controlled)
+                "is_controlled": friendly_boolean(good.is_good_controlled),
             }
             for good in goods_types
         ],

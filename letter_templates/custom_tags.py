@@ -44,3 +44,11 @@ def default_na(value):
         return value
     else:
         return mark_safe('<span class="govuk-hint govuk-!-margin-0">N/A</span>')  # nosec
+
+
+@register.filter()
+def remove_underscores(value):
+    """
+    Returns a no underscore, capitalised string
+    """
+    return value.replace("_", " ").title()

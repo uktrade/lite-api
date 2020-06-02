@@ -3,5 +3,5 @@
   src: url("../fonts/Helvetica.ttf") format("truetype");
 }
 .document * {
-  font-family: Helvetica;
+    font-family: Helvetica;
 }

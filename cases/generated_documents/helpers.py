@@ -19,14 +19,7 @@ font_config = FontConfiguration()
 GeneratedDocumentPayload = namedtuple("GeneratedDocumentPayload", "case template document_html text")
 
 
-def html_to_pdf(request, html: str, template_name: str):
-    html = HTML(string=html, base_url=request.build_absolute_uri())
-    css = CSS(filename=get_css_location(template_name), font_config=font_config)
-    return html.write_pdf(stylesheets=[css], font_config=font_config)
-
-
-# New function
-def html_to_pdf_auto_generate(html: str, template_name: str):
+def html_to_pdf(html: str, template_name: str):
     html = HTML(string=html)
     css = CSS(filename=get_css_location(template_name), font_config=font_config)
     return html.write_pdf(stylesheets=[css], font_config=font_config)
@@ -34,7 +27,7 @@ def html_to_pdf_auto_generate(html: str, template_name: str):
 
 def auto_generate_case_document(layout, case):
     html = generate_preview(layout=layout, text="", case=case)
-    pdf = html_to_pdf_auto_generate(html, layout)
+    pdf = html_to_pdf(html, layout)
     s3_key = s3_operations.generate_s3_key(layout, "pdf")
     CaseDocument.objects.create(
         name=f"Application Form - {datetime.datetime.now()}.pdf",
