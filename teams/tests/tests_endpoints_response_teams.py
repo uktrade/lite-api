@@ -13,5 +13,5 @@ class TeamsResponseTests(EndPointTests):
     def test_teams_users(self):
         self.call_endpoint(self.get_gov_headers(), self.url + self.get_team_id() + "/users/")
 
-    def test_teams_users(self):
+    def test_teams_queues(self):
         self.call_endpoint(self.get_gov_headers(), self.url + self.get_team_id() + "/queues/")
