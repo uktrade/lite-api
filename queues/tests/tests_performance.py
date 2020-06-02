@@ -33,9 +33,9 @@ class QueuesPerformanceTests(PerformanceTestClient):
 
 @tag("performance-queues")
 class AllQueuesPerformanceTests(PerformanceTestClient):
-    def _make_queue_request(self):
+    def _all_queues_request(self):
         """
-        Need to wrap the get in a class method to get 'self' context into timeit
+        Test against queue endpoint which doesn't contain pagination and contains system queues
         """
         url = reverse("queues:queues") + "?include_system=True&disable_pagination=True"
         print(f"url: {url}")
@@ -45,8 +45,7 @@ class AllQueuesPerformanceTests(PerformanceTestClient):
     @parameterized.expand([(250,), (500,), (750,), (1000,)])
     def test_queue_case_ordering_performance(self, queues_count):
         """
-        Test various combinations of case/application types to ensure acceptable performance on non-system
-        queue page or highlight areas for concern
+        Test the how the list scales when count of queues increases.
         """
         self.create_batch_queues(queues_count)
-        self.timeit(self._make_queue_request)
+        self.timeit(self._all_queues_request)
