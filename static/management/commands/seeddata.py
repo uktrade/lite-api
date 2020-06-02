@@ -156,7 +156,7 @@ class ActionOrg(ActionBase):
     def action(self, options):
         org_count = self.get_arg(options, "count", 1)
         org_site_min, org_site_max = self.get_min_max_arg(options)
-        org_primary = self.get_arg(options, "user_email", required=False)
+        org_primary = self.get_arg(options, "email", required=False)
         mt = self.get_arg(options, "mt", required=False)
 
         organisations = list(Organisation.objects.all()[:org_count])
@@ -259,7 +259,7 @@ class ActionSiel(ActionBase):
         ]
 
         job_args = [
-            (ActionBase.app_factory, org, goods_count_max, apps_to_add)
+            (ActionBase.app_factory, org, apps_to_add, goods_count_max)
             for org, apps_to_add in applications_to_add_per_org
         ]
 
