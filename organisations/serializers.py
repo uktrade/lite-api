@@ -86,6 +86,10 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        users = []
+        if "users" in validated_data:
+            users = validated_data.pop("users")
+
         address_data = validated_data.pop("address")
         address_data["country"] = address_data["country"].id
 
@@ -95,10 +99,6 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
             address.save()
 
         site = Site.objects.create(address=address, **validated_data)
-
-        users = []
-        if "users" in validated_data:
-            users = validated_data.pop("users")
 
         if users:
             site.users.set([get_user_organisation_relationship(user, validated_data["organisation"]) for user in users])
