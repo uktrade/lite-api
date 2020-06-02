@@ -1,7 +1,4 @@
 from unittest import mock
-from unittest.mock import patch
-
-from django.test import override_settings
 
 from cases.enums import AdviceType, AdviceLevel
 from conf.settings import MAX_ATTEMPTS

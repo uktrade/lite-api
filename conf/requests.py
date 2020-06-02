@@ -39,11 +39,11 @@ def make_request(method, url, data=None, headers=None, hawk_credentials=None, ti
     headers["content-type"] = "application/json"
 
     if HAWK_AUTHENTICATION_ENABLED:
-        sender = _get_hawk_sender(method, url, data, hawk_credentials)
+        sender = get_hawk_sender(method, url, data, hawk_credentials)
         headers["hawk-authentication"] = sender.request_header
 
         response = send_request(method, url, data=data, headers=headers, timeout=timeout)
-        _verify_api_response(sender, response)
+        verify_api_response(sender, response)
     else:
         response = send_request(method, url, data=data, headers=headers, timeout=timeout)
 
@@ -63,11 +63,29 @@ def send_request(method, url, data=None, headers=None, timeout=None):
     return response
 
 
-def _get_hawk_sender(method, url, data, credentials):
+def get_hawk_sender(method, url, data, credentials):
     content = serialize(data) if data else data
     credentials = HAWK_CREDENTIALS.get(credentials)
 
     return Sender(credentials, url, method, content=content, content_type="application/json", seen_nonce=_seen_nonce)
+
+
+def verify_api_response(sender, response):
+    try:
+        sender.accept_response(
+            response.headers["server-authorization"],
+            content=response.content,
+            content_type=response.headers["Content-Type"],
+        )
+    except Exception as exc:  # noqa
+        logging.warning(f"Unable to authenticate response from {response.url}")
+
+        if "server-authorization" not in response.headers:
+            logging.warning(
+                f"'server_authorization' missing in header from response {response.url}; Probable HAWK misconfiguration"
+            )
+
+        raise exc
 
 
 def _seen_nonce(access_key_id, nonce, timestamp):
@@ -84,21 +102,3 @@ def _seen_nonce(access_key_id, nonce, timestamp):
         raise AlreadyProcessed(f"Already seen nonce {nonce}")
 
     return seen_cache_key
-
-
-def _verify_api_response(sender, response):
-    try:
-        sender.accept_response(
-            response.headers["server-authorization"],
-            content=response.content,
-            content_type=response.headers["Content-Type"],
-        )
-    except Exception as exc:  # noqa
-        logging.warning(f"Unable to authenticate response from {response.url}")
-
-        if "server-authorization" not in response.headers:
-            logging.warning(
-                f"'server_authorization' missing in header from response {response.url}; Probable HAWK misconfiguration"
-            )
-
-        raise exc
