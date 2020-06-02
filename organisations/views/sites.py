@@ -9,7 +9,6 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from conf.authentication import SharedAuthentication
 from conf.constants import ExporterPermissions
-from conf.exceptions import BadRequestError
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
@@ -80,7 +79,7 @@ class SitesList(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            if data["site_records_stored_here"] == "no" and "site_records_located_at" not in data:
+            if not str_to_bool(data["site_records_stored_here"]) and "site_records_located_at" not in data:
                 return JsonResponse(
                     data={"errors": {"site_records_located_at": [strings.Site.NO_SITE_SELECTED]}},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -123,9 +122,12 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
             )
         if "site_records_stored_here" in request.data and "name" not in request.data:
             # If records are held at the same site, set site_records_located_at to own pk
-            if request.data["site_records_stored_here"] == "yes":
+            if str_to_bool(request.data["site_records_stored_here"]):
                 request.data["site_records_located_at"] = site_id
-            if request.data["site_records_stored_here"] == "no" and "site_records_located_at" not in request.data:
+            if (
+                not str_to_bool(request.data["site_records_stored_here"])
+                and "site_records_located_at" not in request.data
+            ):
                 return JsonResponse(
                     data={"errors": {"site_records_located_at": [strings.Site.NO_SITE_SELECTED]}},
                     status=status.HTTP_400_BAD_REQUEST,
