@@ -394,7 +394,6 @@ class CaseEcjuQueries(APIView):
         data["case"] = pk
         data["raised_by_user"] = request.user.id
         serializer = EcjuQueryCreateSerializer(data=data)
-
         if serializer.is_valid():
             if "validate_only" not in data or not data["validate_only"]:
                 serializer.save()
@@ -406,12 +405,12 @@ class CaseEcjuQueries(APIView):
                     target=serializer.instance.case,
                     payload={"ecju_query": data["question"]},
                 )
-                if serializer.data["query_type"] == ECJUQueryType.ECJU:
+                if serializer.data["query_type"]["key"] == ECJUQueryType.ECJU:
                     # Only send email for standard ECJU queries
                     gov_notify_service.send_email(
                         email_address=Case.objects.annotate(email=F("submitted_by__email")).values("email").get(id=pk)["email"],
                         template_type=TemplateType.ECJU_CREATED,
-                        data=EcjuCreatedEmailData(application_reference="", ecju_reference="", link="")
+                        data=EcjuCreatedEmailData(application_reference=str(Case.objects.values("reference_code").get(pk=pk)["reference_code"]), ecju_reference=str(serializer.instance.id), link="")
                     )
 
                 return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
