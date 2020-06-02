@@ -1,9 +1,9 @@
 from django.db import transaction
 from django.db.models import F
-from django.http.response import JsonResponse, HttpResponse
+from django.http.response import JsonResponse, HttpResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -408,9 +408,17 @@ class CaseEcjuQueries(APIView):
                 if serializer.data["query_type"]["key"] == ECJUQueryType.ECJU:
                     # Only send email for standard ECJU queries
                     gov_notify_service.send_email(
-                        email_address=Case.objects.annotate(email=F("submitted_by__email")).values("email").get(id=pk)["email"],
+                        email_address=Case.objects.annotate(email=F("submitted_by__email"))
+                        .values("email")
+                        .get(id=pk)["email"],
                         template_type=TemplateType.ECJU_CREATED,
-                        data=EcjuCreatedEmailData(application_reference=str(Case.objects.values("reference_code").get(pk=pk)["reference_code"]), ecju_reference=str(serializer.instance.id), link="")
+                        data=EcjuCreatedEmailData(
+                            application_reference=str(
+                                Case.objects.values("reference_code").get(pk=pk)["reference_code"]
+                            ),
+                            ecju_reference=str(serializer.instance.id),
+                            link="",
+                        ),
                     )
 
                 return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
@@ -572,7 +580,10 @@ class FinaliseView(RetrieveUpdateAPIView):
     serializer_class = LicenceCreateSerializer
 
     def get_object(self):
-        return get_object_or_404(Licence, application=self.kwargs["pk"])
+        # Due to a bug where multiple licences were being created, we get the latest one.
+        licence = Licence.objects.filter(application=self.kwargs["pk"]).order_by("created_at").last()
+        if not licence:
+            raise Http404(Licence.DoesNotExist)
 
     @transaction.atomic
     def put(self, request, pk):
@@ -611,12 +622,10 @@ class FinaliseView(RetrieveUpdateAPIView):
             payload={"status": {"new": case.status.status, "old": old_status}},
         )
 
-        try:
-            # If a licence object exists, finalise the licence.
-            licence = Licence.objects.get(application=case)
-        except Licence.DoesNotExist:
-            pass
-        else:
+        # If a licence object exists, finalise the licence.
+        # Due to a bug where multiple licences were being created, we get the latest one.
+        licence = Licence.objects.filter(application=case).order_by("created_at").last()
+        if licence:
             licence.is_complete = True
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.save()

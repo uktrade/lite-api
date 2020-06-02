@@ -42,7 +42,6 @@ class Command(SeedCommand):
         no_of_sites = options.get("sites") or 1
         no_of_users = options.get("users") or 1
         primary_user = options.get("primary_user")
-
         self.seed_organisation(org_name, org_type, no_of_sites, no_of_users, primary_user)
 
     @classmethod
@@ -69,7 +68,7 @@ class Command(SeedCommand):
     @classmethod
     def _set_organisation_primary_user(cls, organisation: Organisation, primary_user: str):
         if not primary_user:
-            return create_exporter_users(organisation, 1, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID)
+            return create_exporter_users(organisation, 1, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID)[0]
 
         try:
             exporter_user = ExporterUser.objects.get(email__exact=primary_user)
@@ -86,6 +85,7 @@ class Command(SeedCommand):
     def _print_organisation_to_console(cls, organisation: Organisation, primary_user: ExporterUser):
         organisation_representation = dict(
             id=str(organisation.id),
+            name=str(organisation.name),
             primary_site_id=str(organisation.primary_site.id),
             primary_user_id=str(primary_user.id),
         )

@@ -13,8 +13,14 @@ class GovNotifyTemplateTests(DataTestClient):
         template_type = TemplateType.ECJU_CREATED
         data = {"ecju_reference": "123", "application_reference": "456", "link": "http"}
 
-        ecju_email_data = EcjuCreatedEmailData(ecju_reference=data["ecju_reference"], application_reference=data["application_reference"], link=data["link"])
+        ecju_email_data = EcjuCreatedEmailData(
+            ecju_reference=data["ecju_reference"],
+            application_reference=data["application_reference"],
+            link=data["link"],
+        )
 
         service.send_email(email_address=email, template_type=template_type, data=ecju_email_data)
 
-        mock_client.send_email.assert_called_with(email_address=email, template_id=TemplateType.ECJU_CREATED.template_id, data=data)
+        mock_client.send_email.assert_called_with(
+            email_address=email, template_id=TemplateType.ECJU_CREATED.template_id, data=data
+        )

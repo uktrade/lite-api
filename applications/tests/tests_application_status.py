@@ -73,8 +73,8 @@ class ApplicationManageStatusTests(DataTestClient):
             data={
                 "case_reference": self.standard_application.reference_code,
                 "application_reference": self.standard_application.name,
-                "link": ""
-            }
+                "link": "",
+            },
         )
 
     @parameterized.expand(
@@ -84,7 +84,6 @@ class ApplicationManageStatusTests(DataTestClient):
             if case_status not in [CaseStatusEnum.FINALISED, CaseStatusEnum.SURRENDERED]
         ]
     )
-
     def test_gov_user_set_application_to_terminal_status_removes_case_from_queues_users_success(self, case_status):
         """
         When a case is set to a terminal status, its assigned users, case officer and queues should be removed
@@ -114,8 +113,8 @@ class ApplicationManageStatusTests(DataTestClient):
             data={
                 "case_reference": self.standard_application.reference_code,
                 "application_reference": self.standard_application.name,
-                "link": ""
-            }
+                "link": "",
+            },
         )
 
     def test_exporter_set_application_status_withdrawn_when_application_terminal_failure(self):
@@ -188,8 +187,8 @@ class ApplicationManageStatusTests(DataTestClient):
             data={
                 "case_reference": self.standard_application.reference_code,
                 "application_reference": self.standard_application.name,
-                "link": ""
-            }
+                "link": "",
+            },
         )
 
     def test_exporter_set_application_status_surrendered_no_licence_failure(self):
@@ -269,8 +268,8 @@ class ApplicationManageStatusTests(DataTestClient):
                 data={
                     "case_reference": self.standard_application.reference_code,
                     "application_reference": self.standard_application.name,
-                    "link": ""
-                }
+                    "link": "",
+                },
             )
 
     @parameterized.expand([CaseStatusEnum.REOPENED_FOR_CHANGES, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES])

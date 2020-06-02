@@ -466,10 +466,8 @@ class ApplicationManageStatus(APIView):
                 email_address=application.submitted_by.email,
                 template_type=TemplateType.APPLICATION_STATUS,
                 data=ApplicationStatusEmailData(
-                    case_reference=application.reference_code,
-                    application_reference=application.name,
-                    link="",
-                )
+                    case_reference=application.reference_code, application_reference=application.name, link="",
+                ),
             )
 
         return JsonResponse(
