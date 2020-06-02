@@ -3,7 +3,7 @@ from rest_framework import status
 from conf.requests import post
 from conf.settings import LITE_HMRC_INTEGRATION_URL
 from licences.models import Licence
-from licences.serializers.view_licence import HMRCIntegrationLicenceSerializer
+from licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
 
 HAWK_CREDENTIALS = "lite-api"
 REQUEST_TIMEOUT = 5  # Maximum time, in seconds, to wait for a request to return a byte

@@ -48,5 +48,5 @@ def scan_document_for_viruses(document_id, is_background_task=True):
     else:
         doc.delete_s3()
 
-    # Raise an exception (this will also cause the task (if any) to be marked as 'Failed')
+    # Raise an exception (this will result in a serializer error or cause the task (if any) to be marked as 'Failed')
     raise Exception(f"Failed to scan document '{document_id}'")

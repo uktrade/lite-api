@@ -5,9 +5,8 @@ from background_task import background
 from background_task.models import Task
 from django.utils import timezone
 
-from licences.libraries import hmrc_integration_operations
-from licences.libraries.hmrc_integration_operations import HMRCIntegrationException
 from conf.settings import MAX_ATTEMPTS
+from licences.libraries import hmrc_integration_operations
 from licences.models import Licence
 
 TASK_QUEUE = "hmrc_integration_queue"
@@ -23,13 +22,15 @@ def send_licence_to_hmrc_integration(licence_id, is_background_task=True):
     try:
         hmrc_integration_operations.send_licence(licence)
         return
-    except HMRCIntegrationException as exc:
+    except hmrc_integration_operations.HMRCIntegrationException as exc:
         logging.warning(str(exc))
     except Exception as exc:  # noqa
         logging.warning(
             f"An unexpected error occurred when sending licence '{licence_id}' changes to HMRC Integration -> "
             f"{type(exc).__name__}: {exc}"
         )
+
+    error_message = f"Failed to send licence '{licence_id}' changes to HMRC Integration"
 
     if is_background_task:
         try:
@@ -45,11 +46,17 @@ def send_licence_to_hmrc_integration(licence_id, is_background_task=True):
             # This logic will make MAX_ATTEMPTS attempts to send licence changes according to the Django Background Task
             # Runner scheduling, then wait TASK_BACK_OFF seconds before starting the process again.
             if current_attempt >= MAX_ATTEMPTS:
-                logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for licence '{licence_id}' has been reached")
+                schedule_max_tried_task_as_new_task(licence_id)
 
-                schedule_datetime = {timezone.now() + timedelta(seconds=TASK_BACK_OFF)}
-                logging.info(f"Scheduling new task for licence '{licence_id}' to commence at {schedule_datetime}")
-                send_licence_to_hmrc_integration(licence_id, schedule=TASK_BACK_OFF)  # noqa
+        # Raise an exception (this will cause the task to be marked as 'Failed')
+        raise Exception(error_message)
+    else:
+        logging.error(error_message)
 
-    # Raise an exception (this will also cause the task (if any) to be marked as 'Failed')
-    raise Exception(f"Failed to send licence '{licence_id}' changes to HMRC Integration")
+
+def schedule_max_tried_task_as_new_task(licence_id):
+    logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for licence '{licence_id}' has been reached")
+
+    schedule_datetime = {timezone.now() + timedelta(seconds=TASK_BACK_OFF)}
+    logging.info(f"Scheduling new task for licence '{licence_id}' to commence at {schedule_datetime}")
+    send_licence_to_hmrc_integration(licence_id, schedule=TASK_BACK_OFF)  # noqa
