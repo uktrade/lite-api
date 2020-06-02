@@ -3,6 +3,29 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
+from applications.models import SiteOnApplication
+from cases.models import Case
+from organisations.models import Site
+
+
+def set_site_used_on_application(apps, schema_editor):
+    draft_application_ids = Case.objects.filter(status__status="draft").values_list("id", flat=True)
+
+    for site in Site.objects.all():
+        if (
+            SiteOnApplication.objects.filter(site_id=site.id).exclude(application_id__in=draft_application_ids).count()
+            > 0
+        ):
+            site.is_used_on_application = True
+        else:
+            site.is_used_on_application = False
+
+        site.save()
+
+
+def reverse_set_site_used_on_application(apps, schema_editor):
+    pass
+
 
 class Migration(migrations.Migration):
 
@@ -24,4 +47,5 @@ class Migration(migrations.Migration):
                 to="organisations.Site",
             ),
         ),
+        migrations.RunPython(set_site_used_on_application, reverse_code=reverse_set_site_used_on_application),
     ]
