@@ -9,6 +9,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from conf.authentication import SharedAuthentication
 from conf.constants import ExporterPermissions
+from conf.exceptions import BadRequestError
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api import strings
@@ -114,6 +115,8 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
             return SiteCreateUpdateSerializer
 
     def patch(self, request, *args, **kwargs):
+        if Site.objects.get(id=kwargs["pk"]).is_used_on_application:
+            raise BadRequestError(detail="You cannot edit sites that have already been used on a submitted application")
         if "site_records_stored_here" in request.data and "name" not in request.data:
             # If records are held at the same site, set site_records_located_at to own pk
             if request.data["site_records_stored_here"] == "yes":
