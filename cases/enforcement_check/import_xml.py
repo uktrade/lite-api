@@ -1,10 +1,14 @@
+from xml.etree.ElementTree import ParseError
+
 from defusedxml import ElementTree
-from defusedxml.ElementTree import ParseError
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
+import os
+import xmlschema
 
 from cases.enums import EnforcementXMLEntityTypes
 from cases.models import EnforcementCheckID, Case
+from conf.settings import BASE_DIR
 from flags.enums import SystemFlags
 from lite_content.lite_api.strings import Cases
 
@@ -13,12 +17,17 @@ ENTITY_TAG = "SPIRE_RETURNS"
 APPLICATION_ID_TAG = "CODE1"
 ENTITY_ID_TAG = "CODE2"
 FLAG_TAG = "FLAG"
+XML_SCHEMA = xmlschema.XMLSchema(os.path.join(BASE_DIR, "cases", "enforcement_check", "import_format.xsd"))
 
 
 def import_cases_xml(file):
     try:
+        if not XML_SCHEMA.is_valid(file):
+            raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_XML_FORMAT]})
+
         tree = ElementTree.fromstring(file)
-        data = _extract_and_validate_xml_tree(tree)
+        data = [{element.tag: element.text for element in child} for child in tree]
+
         data = _convert_ids_to_uuids(data)
         _set_flags(data)
     except ParseError:
@@ -27,31 +36,6 @@ def import_cases_xml(file):
 
 def enforcement_id_to_uuid(id):
     return EnforcementCheckID.objects.get(id=id).entity_id
-
-
-def _extract_and_validate_xml_tree(tree):
-    data = []
-    try:
-        if tree.tag != BASE_TAG:
-            raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_XML_FORMAT]})
-
-        for child in tree:
-            elements = {element.tag: element.text for element in child}
-            if (
-                child.tag != ENTITY_TAG
-                or not {APPLICATION_ID_TAG, ENTITY_ID_TAG, FLAG_TAG}.issubset(elements.keys())
-                or not all(elements.values())
-                or elements[FLAG_TAG] not in ["Y", "N"]
-                or not int(elements[APPLICATION_ID_TAG])
-                or not int(elements[ENTITY_ID_TAG])
-            ):
-                raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_XML_FORMAT]})
-
-            data.append(elements)
-    except ValueError:
-        raise ValidationError({"file": [Cases.EnforcementUnit.INVALID_ID_FORMAT]})
-
-    return data
 
 
 def _convert_ids_to_uuids(data):

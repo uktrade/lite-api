@@ -139,13 +139,6 @@ class ImportXML(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": {"file": [Cases.EnforcementUnit.INVALID_XML_FORMAT]}})
 
-    def test_import_xml_incorrect_id_format_failure(self):
-        xml = self._build_test_xml([{"code1": "a", "code2": "b", "flag": "Y",}])
-
-        response = self.client.post(self.url, {"file": xml}, **self.gov_headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": {"file": [Cases.EnforcementUnit.INVALID_ID_FORMAT]}})
-
     def test_import_xml_invalid_id_failure(self):
         # ID's that don't exist
         xml = self._build_test_xml([{"code1": 100, "code2": 101, "flag": "Y",}])
