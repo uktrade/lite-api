@@ -225,7 +225,10 @@ class HMRCIntegrationLicenceSerializer(serializers.ModelSerializer):
         if not self.instance.application.end_user:
             self.fields.pop("end_user")
 
-        if not Country.objects.filter(countries_on_application__application=self.instance.application).exists():
+        if not (
+            hasattr(self.instance.application, "openapplication")
+            and self.instance.application.openapplication.application_countries.exists()
+        ):
             self.fields.pop("countries")
 
     def get_reference(self, instance):
@@ -247,8 +250,8 @@ class HMRCIntegrationLicenceSerializer(serializers.ModelSerializer):
         return HMRCIntegrationEndUserSerializer(instance.application.end_user.party).data
 
     def get_countries(self, instance):
-        return (
-            Country.objects.filter(countries_on_application__application=instance.application)
+        return list(
+            Country.objects.filter(countries_on_application__application=instance.application.openapplication)
             .order_by("name")
             .values_list("name", flat=True)
         )
