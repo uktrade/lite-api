@@ -15,6 +15,11 @@ class MockResponse:
         return self.json_data
 
 
+def _assert_dto(self, data, licence):
+    self.assertEqual(len(data), 9)
+    self.assertEqual(data["id"], str(licence.id))
+
+
 class HMRCIntegrationTests(DataTestClient):
     def test_data_transfer_object_standard_application(self):
         standard_application = self.create_standard_application_case(self.organisation)
@@ -23,7 +28,7 @@ class HMRCIntegrationTests(DataTestClient):
 
         data = HMRCIntegrationLicenceSerializer(standard_licence).data
 
-        self._assert_dto(data, standard_licence)
+        _assert_dto(self, data, standard_licence)
 
     def test_data_transfer_object_open_application(self):
         open_application = self.create_open_application_case(self.organisation)
@@ -32,7 +37,7 @@ class HMRCIntegrationTests(DataTestClient):
 
         data = HMRCIntegrationLicenceSerializer(open_licence).data
 
-        self._assert_dto(data, open_licence)
+        _assert_dto(self, data, open_licence)
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     def test_send_licence_success(self, requests):
@@ -58,7 +63,3 @@ class HMRCIntegrationTests(DataTestClient):
             send_licence(standard_licence)
 
         requests.assert_called_once()
-
-    def _assert_dto(self, data, licence):
-        self.assertEqual(len(data), 9)
-        self.assertEqual(data["id"], str(licence.id))

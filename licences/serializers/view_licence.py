@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from addresses.serializers import AddressSerializer
+from addresses.models import Address
 from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -19,6 +19,7 @@ from organisations.models import Organisation
 from parties.enums import PartyRole
 from parties.models import Party, PartyDocument
 from static.control_list_entries.serializers import ControlListEntrySerializer
+from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.serializers import CaseStatusSerializer
 from static.units.enums import Units
@@ -38,21 +39,6 @@ class CaseLicenceViewSerializer(serializers.ModelSerializer):
 
 
 # Licence View
-
-
-class OrganisationLicenceSerializer(serializers.ModelSerializer):
-    address = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Organisation
-        fields = (
-            "name",
-            "address",
-        )
-        read_only_fields = fields
-
-    def get_address(self, instance):
-        return AddressSerializer(instance.primary_site.address).data
 
 
 class DocumentLicenceSerializer(serializers.ModelSerializer):
@@ -204,6 +190,9 @@ class LicenceSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+# HMRC Integration
+
+
 class HMRCIntegrationLicenceSerializer(serializers.ModelSerializer):
     reference = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
@@ -236,10 +225,7 @@ class HMRCIntegrationLicenceSerializer(serializers.ModelSerializer):
         if not self.instance.application.end_user:
             self.fields.pop("end_user")
 
-        if not (
-            hasattr(self.instance.application, "openapplication")
-            and self.instance.application.openapplication.application_countries.exists()
-        ):
+        if not Country.objects.filter(countries_on_application__application=self.instance.application).exists():
             self.fields.pop("countries")
 
     def get_reference(self, instance):
@@ -255,21 +241,136 @@ class HMRCIntegrationLicenceSerializer(serializers.ModelSerializer):
         return add_months(instance.start_date, instance.duration)
 
     def get_organisation(self, instance):
-        return OrganisationLicenceSerializer(instance.application.organisation).data
+        return HMRCIntegrationOrganisationSerializer(instance.application.organisation).data
 
     def get_end_user(self, instance):
-        return PartyLicenceListSerializer(instance.application.end_user.party).data
+        return HMRCIntegrationEndUserSerializer(instance.application.end_user.party).data
 
     def get_countries(self, instance):
-        return CountriesLicenceSerializer(instance.application.openapplication.application_countries, many=True).data
+        return (
+            Country.objects.filter(countries_on_application__application=instance.application)
+            .order_by("name")
+            .values_list("name", flat=True)
+        )
 
     def get_goods(self, instance):
         if instance.application.goods.exists():
             approved_goods = get_approved_goods_on_application(instance.application)
-            return GoodOnLicenceSerializer(approved_goods, many=True).data
+            return HMRCIntegrationGoodOnApplicationSerializer(approved_goods, many=True).data
 
         if instance.application.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance.application)
-            return GoodsTypeOnLicenceSerializer(approved_goods_types, many=True).data
+            return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data
 
         return []
+
+
+class HMRCIntegrationOrganisationSerializer(serializers.ModelSerializer):
+    address = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organisation
+        fields = (
+            "name",
+            "address",
+        )
+        read_only_fields = fields
+
+    def get_address(self, instance):
+        return HMRCIntegrationAddressSerializer(
+            instance.primary_site.address, site_name=instance.primary_site.name
+        ).data
+
+
+class HMRCIntegrationAddressSerializer(serializers.ModelSerializer):
+    line_1 = serializers.SerializerMethodField()
+    line_2 = serializers.SerializerMethodField()
+    line_3 = serializers.SerializerMethodField()
+    line_4 = serializers.SerializerMethodField()
+    line_5 = serializers.SerializerMethodField()
+    country = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Address
+        fields = (
+            "line_1",
+            "line_2",
+            "line_3",
+            "line_4",
+            "line_5",
+            "postcode",
+            "country",
+        )
+        read_only_fields = fields
+
+    def __init__(self, *args, **kwargs):
+        self._site_name = kwargs.pop("site_name")
+        super().__init__(*args, **kwargs)
+
+    def get_line_1(self, _):
+        return self._site_name
+
+    def get_line_2(self, instance):
+        return instance.address_line_1
+
+    def get_line_3(self, instance):
+        return instance.address_line_2
+
+    def get_line_4(self, instance):
+        return instance.city
+
+    def get_line_5(self, instance):
+        return instance.region
+
+    def get_country(self, instance):
+        return instance.country.name
+
+
+class HMRCIntegrationEndUserSerializer(serializers.ModelSerializer):
+    address = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Party
+        fields = (
+            "name",
+            "address",
+        )
+        read_only_fields = fields
+
+    def get_address(self, instance):
+        return {"line_1": instance.address, "country": instance.country.name}
+
+
+class HMRCIntegrationGoodOnApplicationSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GoodOnApplication
+        fields = (
+            "id",
+            "description",
+            "usage",
+            "unit",
+            "quantity",
+            "licenced_quantity",
+            "licenced_value",
+        )
+        read_only_fields = fields
+
+    def get_id(self, instance):
+        return str(instance.good.id)
+
+    def get_description(self, instance):
+        return instance.good.description
+
+
+class HMRCIntegrationGoodsTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoodsType
+        fields = (
+            "id",
+            "description",
+            "usage",
+        )
+        read_only_fields = fields
