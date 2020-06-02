@@ -29,3 +29,24 @@ class QueuesPerformanceTests(PerformanceTestClient):
         """
         self.create_assorted_cases(std_cases, open_cases, hmrc_queries_goods_gone, hmrc_queries_goods_in_uk)
         self.timeit(self._make_queue_request)
+
+
+@tag("performance-queues")
+class AllQueuesPerformanceTests(PerformanceTestClient):
+    def _make_queue_request(self):
+        """
+        Need to wrap the get in a class method to get 'self' context into timeit
+        """
+        url = reverse("queues:queues") + "?include_system=True&disable_pagination=True"
+        print(f"url: {url}")
+        response = self.client.get(url, **self.gov_headers)
+        self.assertTrue(response.status_code == status.HTTP_200_OK)
+
+    @parameterized.expand([(250,), (500,), (750,), (1000,)])
+    def test_queue_case_ordering_performance(self, queues_count):
+        """
+        Test various combinations of case/application types to ensure acceptable performance on non-system
+        queue page or highlight areas for concern
+        """
+        self.create_batch_queues(queues_count)
+        self.timeit(self._make_queue_request)

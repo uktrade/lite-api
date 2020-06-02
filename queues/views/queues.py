@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
+from queues.constants import SYSTEM_QUEUES
 from queues.models import Queue
 from queues.serializers import QueueCreateSerializer, QueueViewSerializer, QueueListSerializer
 from queues.service import get_queue, get_queues_qs, get_system_queues
@@ -12,7 +13,7 @@ from queues.service import get_queue, get_queues_qs, get_system_queues
 
 class QueuesList(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
-    queryset = Queue.objects.all()
+    queryset = Queue.objects.select_related("team", "countersigning_queue").all()
     serializer_class = QueueListSerializer
 
     def get(self, request, *args, **kwargs):
