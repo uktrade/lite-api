@@ -1,3 +1,4 @@
+import multiprocessing
 import random
 from multiprocessing import Process, Pool, current_process
 from time import sleep, time, perf_counter
@@ -143,16 +144,16 @@ class ActionBase:
     @staticmethod
     def get_mapper(mt):
         mapper = map
-        if mt:
+        if mt is not None:
             db.connections.close_all()
-            pool = Pool(processes=mt)
+            processes = mt if mt > 0 else None
+            pool = multiprocessing.Pool(processes=processes)
             mapper = pool.map
         return mapper
 
 
 class ActionOrg(ActionBase):
     def action(self, options):
-
         org_count = self.get_arg(options, "count", 1)
         org_site_min, org_site_max = self.get_min_max_arg(options)
         org_primary = self.get_arg(options, "user_email", required=False)
@@ -315,7 +316,7 @@ class ActionGoods(ActionBase):
         ]
         added_goods = [len(goods_added) for _, goods_added in self.get_mapper(mt)(ActionBase.do_work, job_args)]
 
-        print(f"ensured between {min_goods} and {min_goods} goods for {org_count} organisations")
+        print(f"ensured between {min_goods} and {max_goods} goods for {org_count} organisations")
         print(f"added {sum(added_goods)} goods in total")
 
 
