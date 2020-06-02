@@ -54,3 +54,11 @@
     border-collapse:collapse
 }
 
+.document .govuk-table__cell--line-number {
+	padding-right: 10px;
+	color: #626A6E;
+	white-space: nowrap;
+	width: 1%;
+	min-width: 15px;
+}
+

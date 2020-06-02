@@ -54,6 +54,7 @@ from applications.serializers.good import (
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.generated_documents.helpers import auto_generate_case_document
 from cases.libraries.get_flags import get_flags
 from cases.models import Advice
 from cases.serializers import SimpleAdviceSerializer
@@ -362,6 +363,7 @@ class ApplicationSubmission(APIView):
                 add_goods_flags_to_submitted_application(application)
                 apply_flagging_rules_to_case(application)
                 create_submitted_audit(request, application, old_status)
+                auto_generate_case_document("application_form", application)
                 run_routing_rules(application)
 
         if application.case_type.sub_type in [
