@@ -112,6 +112,7 @@ class ExhibitionClearanceTests(DataTestClient):
         self.assertIsNotNone(application.submitted_at)
         self.assertNotEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(application.agreed_to_foi, True)
+        self.assertEqual(application.submitted_by, self.exporter_user)
 
     def test_exhibition_clearance_declaration_submit_tcs_false_failure(self):
         data = {
@@ -209,6 +210,7 @@ class GiftingClearanceTests(DataTestClient):
         self.assertIsNotNone(application.submitted_at)
         self.assertNotEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(application.agreed_to_foi, True)
+        self.assertEqual(application.submitted_by, self.exporter_user)
 
     def test_gifting_clearance_declaration_submit_tcs_false_failure(self):
         data = {
@@ -345,6 +347,7 @@ class F680ClearanceTests(DataTestClient):
         self.assertIsNotNone(application.submitted_at)
         self.assertNotEqual(application.status.status, CaseStatusEnum.DRAFT)
         self.assertEqual(application.agreed_to_foi, True)
+        self.assertEqual(application.submitted_by, self.exporter_user)
 
     def test_f680_clearance_declaration_submit_tcs_false_failure(self):
         data = {

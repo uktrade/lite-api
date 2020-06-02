@@ -62,31 +62,22 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(party_on_application.party.sub_type, data_type)
         self.assertEqual(party_on_application.party.website, data["website"])
 
-    def test_set_end_user_on_draft_open_application_failure(self):
-        """
-        Given a draft open application
-        When I try to add an end user to the application
-        Then a 404 NOT FOUND is returned
-        And no end users have been added
-        """
-        pre_test_end_user_count = PartyOnApplication.objects.filter(
-            application=self.draft, deleted_at__isnull=True, party__type=PartyType.END_USER
-        ).count()
-        draft_open_application = self.create_draft_open_application(organisation=self.organisation)
+    def test_set_end_user_on_open_draft_application_success(self):
         data = {
-            "name": "Government",
-            "address": "Westminster, London SW1A 0AA",
-            "country": "GB",
-            "sub_type": "government",
-            "website": "https://www.gov.uk",
+            "name": "Lemonworld Org",
+            "address": "3730 Martinsburg Rd, Gambier, Ohio",
+            "country": "US",
+            "sub_type": "individual",
             "type": PartyType.END_USER,
         }
-        url = reverse("applications:parties", kwargs={"pk": draft_open_application.id})
+        response = self.client.post(self.url, data, **self.exporter_headers)
+        end_user = response.json()["end_user"]
 
-        response = self.client.post(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Party.objects.filter(type=PartyType.END_USER).count(), pre_test_end_user_count)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(end_user["name"], data["name"])
+        self.assertEqual(end_user["address"], data["address"])
+        self.assertEqual(end_user["country"]["id"], data["country"])
+        self.assertEqual(end_user["sub_type"]["key"], data["sub_type"])
 
     @parameterized.expand(
         [
@@ -145,35 +136,6 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertNotEqual(poa.id, new_poa.id)
         delete_s3_function.assert_not_called()
 
-    def test_set_end_user_on_open_draft_application_failure(self):
-        """
-        Given a draft open application
-        When I try to add an end user to the application
-        Then a 400 BAD REQUEST is returned
-        And no end user has been added
-        """
-        data = {
-            "name": "Government of Paraguay",
-            "address": "Asuncion",
-            "country": "PY",
-            "sub_type": "government",
-            "website": "https://www.gov.py",
-            "type": PartyType.END_USER,
-        }
-
-        open_draft = self.create_draft_open_application(self.organisation)
-        url = reverse("applications:parties", kwargs={"pk": open_draft.id})
-
-        response = self.client.post(url, data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            PartyOnApplication.objects.filter(
-                party__type=PartyType.END_USER, application=open_draft, deleted_at__isnull=True,
-            ).count(),
-            0,
-        )
-
     def test_delete_end_user_on_standard_application_when_application_has_no_end_user_failure(self,):
         """
         Given a draft standard application
@@ -192,8 +154,8 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("documents.tasks.prepare_document.now")
-    def test_get_end_user_document_successful(self, prepare_document_function):
+    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    def test_get_end_user_document_successful(self, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -225,8 +187,8 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @mock.patch("documents.tasks.prepare_document.now")
-    def test_post_document_when_no_end_user_exists_failure(self, prepare_document_function):
+    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    def test_post_document_when_no_end_user_exists_failure(self, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
         And the draft does not contain an end user
@@ -275,8 +237,8 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
         self.assertEqual(None, response.json()["document"])
 
-    @mock.patch("documents.tasks.prepare_document.now")
-    def test_post_end_user_document_success(self, prepare_document_function):
+    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    def test_post_end_user_document_success(self, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -294,8 +256,8 @@ class EndUserOnDraftTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @mock.patch("documents.tasks.prepare_document.now")
-    def test_post_end_user_document_when_a_document_already_exists_failure(self, prepare_document_function):
+    @mock.patch("documents.tasks.scan_document_for_viruses.now")
+    def test_post_end_user_document_when_a_document_already_exists_failure(self, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -311,9 +273,9 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(PartyDocument.objects.filter(party=end_user).count(), 1)
 
-    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.tasks.scan_document_for_viruses.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_end_user_document_success(self, delete_s3_function, prepare_document_function):
+    def test_delete_end_user_document_success(self, delete_s3_function, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
         And the draft contains an end user
@@ -326,9 +288,9 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         delete_s3_function.assert_called_once()
 
-    @mock.patch("documents.tasks.prepare_document.now")
+    @mock.patch("documents.tasks.scan_document_for_viruses.now")
     @mock.patch("documents.models.Document.delete_s3")
-    def test_delete_end_user_success(self, delete_s3_function, prepare_document_function):
+    def test_delete_end_user_success(self, delete_s3_function, scan_document_for_viruses_function):
         """
         Given a standard draft has been created
         And the draft contains an end user

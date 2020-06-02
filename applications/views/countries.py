@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from applications.enums import GoodsTypeCategory, ContractType
 from applications.libraries.case_status_helpers import get_case_statuses
+from applications.libraries.get_applications import get_application
 from applications.models import CountryOnApplication
 from applications.serializers.open_application import ContractTypeDataSerializer, CountryOnApplicationViewSerializer
 from audit_trail import service as audit_trail_service
@@ -12,7 +13,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from conf.authentication import ExporterAuthentication
-from conf.decorators import allowed_application_types, authorised_users, application_in_major_editable_state
+from conf.decorators import allowed_application_types, authorised_to_view_application, application_in_state
 from conf.exceptions import BadRequestError
 from flags.models import Flag
 from static.countries.helpers import get_country
@@ -26,20 +27,21 @@ class ApplicationCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
         """
         View countries belonging to an open licence application
         """
-        countries = CountryOnApplication.objects.filter(application=application)
+        countries = CountryOnApplication.objects.filter(application_id=pk)
         countries_data = CountryOnApplicationViewSerializer(countries, many=True).data
         return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
         """ Add countries to an open licence application. """
+        application = get_application(pk)
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_DESTINATIONS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
         data = request.data
@@ -128,10 +130,10 @@ class ApplicationCountries(APIView):
 class ApplicationContractTypes(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
-    @application_in_major_editable_state()
+    @application_in_state(is_major_editable=True)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    def put(self, request, application):
+    def put(self, request, pk):
+        application = get_application(pk)
         if application.goodstype_category in GoodsTypeCategory.IMMUTABLE_GOODS:
             raise BadRequestError(detail="You cannot do this action for this type of open application")
 
@@ -171,13 +173,13 @@ class ApplicationContractTypes(APIView):
 class LightCountries(APIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN])
-    def get(self, request, application):
+    def get(self, request, pk):
+        application = get_application(pk)
         countries = [
             country
             for country in (
-                CountryOnApplication.objects.filter(application=application)
+                CountryOnApplication.objects.filter(application_id=pk)
                 .prefetch_related("country_id", "country__name")
                 .values("contract_types", "other_contract_type_text", "country_id", "country__name")
             )

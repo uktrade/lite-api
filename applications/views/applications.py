@@ -61,9 +61,8 @@ from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
 from conf.constants import ExporterPermissions, GovPermissions
 from conf.decorators import (
-    authorised_users,
-    application_in_major_editable_state,
-    application_in_editable_state,
+    application_in_state,
+    authorised_to_view_application,
     allowed_application_types,
 )
 from conf.helpers import convert_date_to_string, str_to_bool
@@ -81,6 +80,7 @@ from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from users.libraries.notifications import get_case_notifications
 from users.models import ExporterUser
 from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -89,9 +89,6 @@ from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 class ApplicationList(ListCreateAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = GenericApplicationListSerializer
-
-    def get_serializer_context(self):
-        return {"exporter_user": self.request.user, "organisation_id": get_request_user_organisation_id(self.request)}
 
     def get_queryset(self):
         """
@@ -127,7 +124,11 @@ class ApplicationList(ListCreateAPIView):
                 case_type_id=CaseTypeEnum.HMRC.id
             )
 
-        return applications
+        return applications.prefetch_related("status", "case_type")
+
+    def get_paginated_response(self, data):
+        data = get_case_notifications(data, self.request)
+        return super().get_paginated_response(data)
 
     def post(self, request, **kwargs):
         """
@@ -184,11 +185,12 @@ class ApplicationExisting(APIView):
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
-    def get(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def get(self, request, pk):
         """
         Retrieve an application instance
         """
+        application = get_application(pk)
         serializer = get_application_view_serializer(application)
         data = serializer(
             application,
@@ -200,12 +202,13 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
         ).data
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 
-    @authorised_users(ExporterUser)
-    @application_in_editable_state()
-    def put(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    @application_in_state(is_editable=True)
+    def put(self, request, pk):
         """
         Update an application instance
         """
+        application = get_application(pk)
         serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()
@@ -284,11 +287,13 @@ class ApplicationDetail(RetrieveUpdateDestroyAPIView):
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-    @authorised_users(ExporterUser)
-    def delete(self, request, application):
+    @authorised_to_view_application(ExporterUser)
+    def delete(self, request, pk):
         """
         Deleting an application should only be allowed for draft applications
         """
+        application = get_application(pk)
+
         if not is_case_status_draft(application.status.status):
             return JsonResponse(
                 data={"errors": strings.Applications.Generic.DELETE_SUBMITTED_APPLICATION_ERROR},
@@ -304,13 +309,14 @@ class ApplicationSubmission(APIView):
     authentication_classes = (ExporterAuthentication,)
 
     @transaction.atomic
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def put(self, request, application):
+    @application_in_state(is_major_editable=True)
+    @authorised_to_view_application(ExporterUser)
+    def put(self, request, pk):
         """
         Submit a draft application which will set its submitted_at datetime and status before creating a case
         Depending on the application subtype, this will also submit the declaration of the licence
         """
+        application = get_application(pk)
         old_status = application.status.status
 
         if application.case_type.sub_type != CaseTypeSubTypeEnum.HMRC:
@@ -329,6 +335,7 @@ class ApplicationSubmission(APIView):
         if application.case_type.sub_type in [CaseTypeSubTypeEnum.EUA, CaseTypeSubTypeEnum.GOODS] or (
             CaseTypeSubTypeEnum.HMRC and request.data.get("submit_hmrc")
         ):
+            application.submitted_by = request.user
             set_application_sla(application)
             create_submitted_audit(request, application, old_status)
 
@@ -345,6 +352,7 @@ class ApplicationSubmission(APIView):
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
                 # If a valid declaration is provided, save the application
+                application.submitted_by = request.user
                 application.agreed_to_foi = request.data.get("agreed_to_foi")
                 set_application_sla(application)
 
@@ -816,9 +824,10 @@ class ExhibitionDetails(ListCreateAPIView):
     queryset = BaseApplication.objects.all()
     serializer = ExhibitionClearanceDetailSerializer
 
-    @application_in_major_editable_state()
-    @authorised_users(ExporterUser)
-    def post(self, request, application):
+    @application_in_state(is_major_editable=True)
+    @authorised_to_view_application(ExporterUser)
+    def post(self, request, pk):
+        application = get_application(pk)
         serializer = self.serializer(instance=application, data=request.data)
         if serializer.is_valid():
             old_title = application.title
@@ -882,12 +891,13 @@ class ExhibitionDetails(ListCreateAPIView):
 class ApplicationRouteOfGoods(UpdateAPIView):
     authentication_classes = (ExporterAuthentication,)
 
-    @authorised_users(ExporterUser)
-    @application_in_major_editable_state()
+    @authorised_to_view_application(ExporterUser)
+    @application_in_state(is_major_editable=True)
     @allowed_application_types([CaseTypeSubTypeEnum.OPEN, CaseTypeSubTypeEnum.STANDARD])
-    def put(self, request, application):
+    def put(self, request, pk):
         """ Update an application instance with route of goods data. """
 
+        application = get_application(pk)
         serializer = get_application_update_serializer(application)
         case = application.get_case()
         data = request.data.copy()

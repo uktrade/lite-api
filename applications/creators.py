@@ -1,7 +1,7 @@
 from django.utils import timezone
 
 from applications import constants
-from applications.enums import ApplicationExportType, GoodsTypeCategory
+from applications.enums import ApplicationExportType, GoodsTypeCategory, ContractType
 from applications.models import (
     CountryOnApplication,
     GoodOnApplication,
@@ -71,8 +71,9 @@ def check_party_error(party, object_not_found_error, is_mandatory, is_document_m
             return document_error
 
 
-def _validate_end_user(draft, errors, is_mandatory):
-    """ Checks there is an end user (with a document if is_document_mandatory) """
+def _validate_end_user(draft, errors, is_mandatory, open_application=False):
+    """ Validates end user. If a document is mandatory, this is also validated. """
+
     # Document is only mandatory if application is standard permanent or HMRC query
     is_document_mandatory = (
         draft.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD
@@ -356,6 +357,19 @@ def _validate_open_licence(draft, errors):
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
     errors = _validate_temporary_export_details(draft, errors)
     errors = _validate_route_of_goods(draft, errors)
+
+    # Check if end user is mandatory based on contract type 'nuclear related' being selected for any country
+    contract_types = CountryOnApplication.objects.filter(application_id=draft.id).values_list(
+        "contract_types", flat=True
+    )
+    unique_contract_types = []
+    for contract_type in contract_types:
+        if contract_type:
+            unique_contract_types.extend(contract_type.split(","))
+
+    end_user_mandatory = ContractType.NUCLEAR_RELATED in set(unique_contract_types)
+    errors = _validate_end_user(draft, errors, is_mandatory=end_user_mandatory, open_application=True)
+
     if draft.goodstype_category == GoodsTypeCategory.MILITARY:
         errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True, open_application=True)
 

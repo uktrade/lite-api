@@ -26,10 +26,7 @@ from static.statuses.libraries.get_case_status import (
     get_case_status_by_status,
 )
 from static.statuses.models import CaseStatus
-from users.libraries.notifications import (
-    get_exporter_user_notification_total_count,
-    get_exporter_user_notification_individual_count,
-)
+from users.libraries.notifications import get_exporter_user_notification_individual_count
 from users.models import ExporterUser
 
 
@@ -42,33 +39,13 @@ class TinyCaseTypeSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class GenericApplicationListSerializer(serializers.ModelSerializer):
-    exporter_user_notification_count = serializers.SerializerMethodField()
-    status = serializers.SerializerMethodField()
+class GenericApplicationListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
     case_type = TinyCaseTypeSerializer()
-
-    class Meta:
-        model = BaseApplication
-        fields = (
-            "id",
-            "name",
-            "case_type",
-            "status",
-            "updated_at",
-            "reference_code",
-            "exporter_user_notification_count",
-        )
-        read_only_fields = fields
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.exporter_user = kwargs["context"]["exporter_user"]
-        self.organisation_id = kwargs["context"]["organisation_id"]
-
-    def get_exporter_user_notification_count(self, instance):
-        return get_exporter_user_notification_total_count(
-            exporter_user=self.exporter_user, organisation_id=self.organisation_id, case=instance
-        )
+    status = serializers.SerializerMethodField()
+    updated_at = serializers.DateTimeField()
+    reference_code = serializers.CharField()
 
     def get_status(self, instance):
         if instance.status:

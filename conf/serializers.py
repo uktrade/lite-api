@@ -138,13 +138,13 @@ class KeyValueChoiceField(Field):
 
 class ControlListEntryField(PrimaryKeyRelatedSerializerField):
     def __init__(self, **kwargs):
-        from static.control_list_entries.serializers import ControlListEntryViewSerializer
+        from static.control_list_entries.serializers import ControlListEntrySerializer
 
         super().__init__(
             queryset=ControlListEntry.objects.all(),
             many=kwargs.get("many"),
-            serializer=ControlListEntryViewSerializer,
-            error_messages={"null": "bad rating"},
+            serializer=ControlListEntrySerializer,
+            error_messages={"null": strings.ControlListEntry.NULL, "required": strings.ControlListEntry.REQUIRED},
             **kwargs,
         )
 
