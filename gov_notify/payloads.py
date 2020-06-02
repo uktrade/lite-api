@@ -1,0 +1,21 @@
+from dataclasses import dataclass, fields
+
+
+@dataclass(frozen=True)
+class EmailData:
+    def as_dict(self):
+        return {field.name: getattr(self, field.name) for field in fields(self)}
+
+
+@dataclass(frozen=True)
+class EcjuCreatedEmailData(EmailData):
+    ecju_reference: str
+    application_reference: str
+    link: str
+
+
+@dataclass(frozen=True)
+class ApplicationStatusEmailData(EmailData):
+    case_reference: str
+    application_reference: str
+    link: str

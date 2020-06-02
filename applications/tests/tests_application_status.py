@@ -6,7 +6,6 @@ from rest_framework import status
 
 from cases.models import CaseAssignment
 from gov_notify.enums import TemplateType
-from gov_notify.tests.factories import GovNotifyTemplateFactory
 from lite_content.lite_api import strings
 from users.models import UserOrganisationRelationship
 from static.statuses.enums import CaseStatusEnum
@@ -21,7 +20,6 @@ class ApplicationManageStatusTests(DataTestClient):
         self.standard_application = self.create_draft_standard_application(self.organisation)
         self.submit_application(self.standard_application)
         self.url = reverse("applications:manage_status", kwargs={"pk": self.standard_application.id})
-        self.gov_notify_template = GovNotifyTemplateFactory(template_type=TemplateType.APPLICATION)
 
     def test_gov_set_application_status_to_applicant_editing_failure(self):
         data = {"status": CaseStatusEnum.APPLICANT_EDITING}
@@ -71,8 +69,12 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.WITHDRAWN))
         mock_notify_client.send_email.assert_called_with(
             email_address=self.standard_application.submitted_by.email,
-            template_id=self.gov_notify_template.template_id,
-            data={}
+            template_id=TemplateType.APPLICATION_STATUS.template_id,
+            data={
+                "case_reference": self.standard_application.reference_code,
+                "application_reference": self.standard_application.name,
+                "link": ""
+            }
         )
 
     @parameterized.expand(
@@ -108,8 +110,12 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(CaseAssignment.objects.filter(case=self.standard_application).count(), 0)
         mock_notify_client.send_email.assert_called_with(
             email_address=self.standard_application.submitted_by.email,
-            template_id=self.gov_notify_template.template_id,
-            data={}
+            template_id=TemplateType.APPLICATION_STATUS.template_id,
+            data={
+                "case_reference": self.standard_application.reference_code,
+                "application_reference": self.standard_application.name,
+                "link": ""
+            }
         )
 
     def test_exporter_set_application_status_withdrawn_when_application_terminal_failure(self):
@@ -178,8 +184,12 @@ class ApplicationManageStatusTests(DataTestClient):
         self.assertEqual(self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SURRENDERED))
         mock_notify_client.send_email.assert_called_with(
             email_address=self.standard_application.submitted_by.email,
-            template_id=self.gov_notify_template.template_id,
-            data={}
+            template_id=TemplateType.APPLICATION_STATUS.template_id,
+            data={
+                "case_reference": self.standard_application.reference_code,
+                "application_reference": self.standard_application.name,
+                "link": ""
+            }
         )
 
     def test_exporter_set_application_status_surrendered_no_licence_failure(self):
@@ -255,8 +265,12 @@ class ApplicationManageStatusTests(DataTestClient):
         if CaseStatusEnum.is_terminal(case_status):
             mock_notify_client.send_email.assert_called_with(
                 email_address=self.standard_application.submitted_by.email,
-                template_id=self.gov_notify_template.template_id,
-                data={}
+                template_id=TemplateType.APPLICATION_STATUS.template_id,
+                data={
+                    "case_reference": self.standard_application.reference_code,
+                    "application_reference": self.standard_application.name,
+                    "link": ""
+                }
             )
 
     @parameterized.expand([CaseStatusEnum.REOPENED_FOR_CHANGES, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES])

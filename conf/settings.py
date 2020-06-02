@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     "flags",
     "goods",
     "goodstype",
-    "gov_notify",
     "gov_users",
     "letter_templates",
     "licences",
@@ -240,4 +239,4 @@ SECURE_BROWSER_XSS_FILTER = True
 
 STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")
 
-GOV_NOTIFY_API_KEY = env("GOV_NOTIFY_API_KEY")
+GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")

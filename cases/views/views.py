@@ -11,7 +11,7 @@ from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from cases.libraries.advice import group_advice
@@ -49,6 +49,7 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
+from gov_notify.payloads import EcjuCreatedEmailData
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api.strings import Documents, Cases
@@ -405,12 +406,13 @@ class CaseEcjuQueries(APIView):
                     target=serializer.instance.case,
                     payload={"ecju_query": data["question"]},
                 )
-
-                gov_notify_service.send_email(
-                    email_address=Case.objects.annotate(email=F("submitted_by__email")).values("email").get(id=pk)["email"],
-                    template_type=TemplateType.ECJU,
-                    data={}
-                )
+                if serializer.data["query_type"] == ECJUQueryType.ECJU:
+                    # Only send email for standard ECJU queries
+                    gov_notify_service.send_email(
+                        email_address=Case.objects.annotate(email=F("submitted_by__email")).values("email").get(id=pk)["email"],
+                        template_type=TemplateType.ECJU_CREATED,
+                        data=EcjuCreatedEmailData(application_reference="", ecju_reference="", link="")
+                    )
 
                 return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
             else:

@@ -72,6 +72,7 @@ from flags.models import Flag
 from goodstype.models import GoodsType
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
+from gov_notify.payloads import ApplicationStatusEmailData
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
@@ -463,8 +464,12 @@ class ApplicationManageStatus(APIView):
         if CaseStatusEnum.is_terminal(application.status.status):
             gov_notify_service.send_email(
                 email_address=application.submitted_by.email,
-                template_type=TemplateType.APPLICATION,
-                data={}
+                template_type=TemplateType.APPLICATION_STATUS,
+                data=ApplicationStatusEmailData(
+                    case_reference=application.reference_code,
+                    application_reference=application.name,
+                    link="",
+                )
             )
 
         return JsonResponse(
