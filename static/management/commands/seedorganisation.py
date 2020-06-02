@@ -47,7 +47,7 @@ class Command(SeedCommand):
     @classmethod
     def seed_organisation(cls, org_name: str, org_type: str, no_of_sites: int, no_of_users: int, primary_user: str):
         if Organisation.objects.filter(name__iexact=org_name).exists():
-            raise Exception(f"An Organisation with name: '{org_name}' already exists")
+            raise ValueError(f"An Organisation with name: '{org_name}' already exists")
 
         organisation = OrganisationFactory(name=org_name, type=org_type)
 

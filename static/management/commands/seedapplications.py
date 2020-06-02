@@ -63,6 +63,7 @@ class Command(SeedCommand):
     @classmethod
     def seed_siel_applications(cls, organisation: Organisation, number_of_applications: int, number_of_goods: int):
         tc = DataTestClient()
+        tc.exporter_user = random.choice(organisation.get_users())
 
         # ensure all the required goods exist in the org product list, create if necessary
         goods, goods_added_to_org = cls.ensure_verified_goods_exist(number_of_goods, organisation, tc)
