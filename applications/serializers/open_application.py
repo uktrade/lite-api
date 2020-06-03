@@ -1,4 +1,4 @@
-from django.db.models import Min, Case, When, PositiveSmallIntegerField
+from django.db.models import Min, Case, When, PositiveSmallIntegerField, BinaryField
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -93,13 +93,12 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 .prefetch_related("country__flags", "flags")
                 .filter(application=application)
                 .annotate(
-                    highest_flag_priority=Case(
-                        When(country__flags__isnull=False, then=Min("country__flags__priority")),
-                        default=32767,
-                        output_field=PositiveSmallIntegerField(),
-                    )
+                    highest_flag_priority=Min("country__flags__priority"),
+                    contains_flags=Case(
+                        When(country__flags__isnull=True, then=0), default=1, output_field=BinaryField()
+                    ),
                 )
-                .order_by("highest_flag_priority", "country__name")
+                .order_by("-contains_flags", "highest_flag_priority", "country__name")
             )
 
         data = CountryOnApplicationViewSerializer(
