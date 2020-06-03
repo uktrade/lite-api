@@ -3,6 +3,9 @@ from dataclasses import dataclass, fields
 
 @dataclass(frozen=True)
 class EmailData:
+    """
+    Base class for email payloads.
+    """
     def as_dict(self):
         return {field.name: getattr(self, field.name) for field in fields(self)}
 

@@ -21,7 +21,7 @@ env = Env(
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
     ENV=(str, "dev"),
-    INTERNAL_BASE_URL=(str, ""),
+    EXPORTER_BASE_URL=(str, ""),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -245,6 +245,7 @@ GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
 
 ENV = env("ENV")
 
+# If EXPORTER_BASE_URL is not provided, render the base_url using the environment
 EXPORTER_BASE_URL = (
-    env("INTERNAL_BASE_URL") if env("INTERNAL_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
+    env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
 )
