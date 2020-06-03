@@ -49,6 +49,6 @@ def default_na(value):
 @register.filter()
 def remove_underscores(value):
     """
-    Returns a no underscore, capitalised string
+    Removes the underscores from a given string
     """
     return value.replace("_", " ").title()

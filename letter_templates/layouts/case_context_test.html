@@ -152,6 +152,16 @@
 			</li>
 		</ul>
 	{% endif %}
+	{% if destinations %}
+		<h2>Destinations</h2>
+		<ul>
+			<li><b>destinations:</b>
+				<ul>
+					{{ destinations|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
 	<h2>User entered text</h2>
 	<div id="paragraph_content">
 		$USER_CONTENT$

@@ -8,6 +8,7 @@ from applications.models import (
     ExhibitionClearanceApplication,
     F680ClearanceApplication,
     HmrcQuery,
+    CountryOnApplication,
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
@@ -35,6 +36,7 @@ def get_document_context(case):
     sites = Site.objects.filter(sites_on_application__application_id=case.pk)
     external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
+    destinations = CountryOnApplication.objects.filter(application_id=case.pk).order_by("-country__name")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
 
     if getattr(base_application, "goods", "") and base_application.goods.exists():
@@ -77,6 +79,7 @@ def get_document_context(case):
         "sites": [_get_site_context(site) for site in sites],
         "external_locations": [_get_external_location_context(location) for location in external_locations],
         "documents": [_get_document_context(document) for document in documents],
+        "destinations": [_get_destination_context(destination) for destination in destinations],
     }
 
 
@@ -465,4 +468,12 @@ def _get_temporary_export_details(application):
         "is_temp_direct_control": friendly_boolean(application.is_temp_direct_control),
         "temp_direct_control_details": application.temp_direct_control_details,
         "proposed_return_date": application.proposed_return_date,
+    }
+
+
+def _get_destination_context(destination):
+    return {
+        "country": {"code": destination.country.id, "name": destination.country.name,},
+        "contract_types": destination.contract_types,
+        "other_contract_type": destination.other_contract_type_text,
     }

@@ -106,7 +106,7 @@
 					</th>
 					<td class="govuk-table__cell">
 						{% if details.trade_control_activity != "other" %}
-							{{ details.trade_control_activity|remove_underscores }}
+							{{ details.trade_control_activity|remove_underscores|title }}
 						{% else %}
 							{{ details.trade_control_activity_other }}
 						{% endif %}
@@ -121,7 +121,7 @@
 					<td class="govuk-table__cell">
 						{% for category in details.trade_control_product_categories %}
 						{% endfor %}
-						{{ details.trade_control_product_categories|join:", "|remove_underscores }}
+						{{ details.trade_control_product_categories|join:", "|remove_underscores|title }}
 					</td>
 				</tr>
 			{% endif %}
@@ -568,6 +568,30 @@
 	{% elif case_type.reference == "cre" and not ultimate_end_users %}
 		<h2 class="govuk-heading-m">Ultimate Recipient</h2>
 		<p class="govuk-hint">No information added to this section.</p>
+	{% endif %}
+
+	{% if destinations %}
+		<h2 class="govuk-heading-m">Destinations</h2>
+		<table class="govuk-table">
+			<thead class="govuk-table__head">
+				<tr class="govuk-table__row">
+					<th scope="col" class="govuk-table__header">#</th>
+					<th scope="col" class="govuk-table__header">Name</th>
+					<th scope="col" class="govuk-table__header">Contract type</th>
+				</tr>
+			</thead>
+			<tbody class="govuk-table__body">
+			{% for destination in destinations %}
+				<tr class="govuk-table__row">
+					<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
+					<td class="govuk-table__cell">{{ destination.country.name }}</td>
+					<td class="govuk-table__cell">{{ destination.contract_types|join:", "|remove_underscores|title }}{% if destination.other_contract_type %} - {{ destination.other_contract_type }}
+						{% endif %}
+					</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
 	{% endif %}
 
 	{% if consignee %}
