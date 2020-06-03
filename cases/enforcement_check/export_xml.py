@@ -52,7 +52,8 @@ def _get_address_line_2(address_line_2, postcode, city):
 
 
 def _format_address(address):
-    return address.replace("\n", " ")
+    if address:
+        return address.replace("\n", " ")
 
 
 def _entity_to_xml(
