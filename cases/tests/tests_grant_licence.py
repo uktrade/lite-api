@@ -7,7 +7,6 @@ from licences.models import Licence
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import Advice
 from conf.constants import GovPermissions
 from conf.exceptions import PermissionDeniedError
 from lite_content.lite_api.strings import Cases

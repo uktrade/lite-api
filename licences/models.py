@@ -20,7 +20,8 @@ class Licence(TimestampableModel):
 
     def save(self, *args, **kwargs):
         super(Licence, self).save(*args, **kwargs)
-        self.send_to_hmrc_integration()
+        if self.is_complete:
+            self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
         from licences.tasks import send_licence_to_hmrc_integration
