@@ -242,7 +242,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         site_serializer = SiteCreateUpdateSerializer(data=site_data)
         if site_serializer.is_valid(raise_exception=True):
             site = site_serializer.save()
-
+            # Set the site records are located at to the site itself
+            site.site_records_located_at = site
+            site.save()
         user_serializer = ExporterUserCreateUpdateSerializer(data={"sites": [site.id], **user_data})
         if user_serializer.is_valid(raise_exception=True):
             user_serializer.save()
