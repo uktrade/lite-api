@@ -7,6 +7,7 @@ from licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializ
 
 HAWK_CREDENTIALS = "lite-api"
 REQUEST_TIMEOUT = 5  # Maximum time, in seconds, to wait for a request to return a byte
+SEND_LICENCE_ENDPOINT = "/mail/update-licence/"
 
 
 class HMRCIntegrationException(Exception):
@@ -14,7 +15,7 @@ class HMRCIntegrationException(Exception):
 
 
 def send_licence(licence: Licence):
-    url = f"{LITE_HMRC_INTEGRATION_URL}/mail/update-licence/"
+    url = f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
     data = {"licence": HMRCIntegrationLicenceSerializer(licence).data}
 
     response = post(url, data, hawk_credentials=HAWK_CREDENTIALS, timeout=REQUEST_TIMEOUT)

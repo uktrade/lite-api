@@ -1,12 +1,18 @@
 from unittest import mock
+from unittest.mock import ANY
 
 from django.urls import reverse
 from rest_framework import status
 
 from cases.enums import AdviceType, AdviceLevel
 from conf.constants import GovPermissions
-from conf.settings import MAX_ATTEMPTS
-from licences.libraries.hmrc_integration_operations import send_licence, HMRCIntegrationException
+from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL
+from licences.libraries.hmrc_integration_operations import (
+    send_licence,
+    HMRCIntegrationException,
+    SEND_LICENCE_ENDPOINT,
+    REQUEST_TIMEOUT,
+)
 from licences.models import Licence
 from licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
 from licences.tasks import (
@@ -237,58 +243,70 @@ class HMRCIntegrationTests(DataTestClient):
         super().setUp()
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
 
-    def test_approve_standard_application_licence_success(self):
-        standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        standard_licence = self.create_licence(standard_application, is_complete=True)
+    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
+    @mock.patch("conf.requests.requests.request")
+    def test_approve_standard_application_licence_success(self, request):
+        request.return_value = MockResponse("", 201)
+        standard_application, standard_licence = self._create_licence_for_submission(
+            self.create_standard_application_case
+        )
+
+        url = reverse("cases:finalise", kwargs={"pk": standard_application.id})
+        response = self.client.put(url, data={}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["licence"], str(standard_licence.id))
+        self.assertEqual(
+            Licence.objects.filter(
+                application=standard_application,
+                is_complete=True,
+                decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
+            ).count(),
+            1,
+        )
+        request.assert_called_with(
+            "POST",
+            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            json=ANY,
+            headers=ANY,
+            timeout=REQUEST_TIMEOUT,
+        )
+
+    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
+    @mock.patch("conf.requests.requests.request")
+    def test_approve_open_application_licence_success(self, request):
+        open_application, open_licence = self._create_licence_for_submission(self.create_open_application_case)
+
+        url = reverse("cases:finalise", kwargs={"pk": open_application.id})
+        response = self.client.put(url, data={}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["licence"], str(open_licence.id))
+        self.assertEqual(
+            Licence.objects.filter(
+                application=open_application,
+                is_complete=True,
+                decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
+            ).count(),
+            1,
+        )
+        request.assert_called_with(
+            "POST",
+            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            json=ANY,
+            headers=ANY,
+            timeout=REQUEST_TIMEOUT,
+        )
+
+    def _create_licence_for_submission(self, create_application_case_callback):
+        application = create_application_case_callback(self.organisation)
+        licence = self.create_licence(application, is_complete=True)
+        self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         template = self.create_letter_template(
             name="Template",
-            case_types=[standard_application.case_type],
+            case_types=[application.case_type],
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
-        self.create_generated_case_document(standard_application, template, advice_type=AdviceType.APPROVE)
+        self.create_generated_case_document(application, template, advice_type=AdviceType.APPROVE)
 
-        pass
-        # TODO: assert request sent to HMRC
-        # url = reverse("cases:finalise", kwargs={"pk": standard_application.id})
-        #
-        # response = self.client.put(url, data={}, **self.gov_headers)
-        #
-        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # self.assertEqual(response.json()["licence"], str(standard_licence.id))
-        # self.assertEqual(
-        #     Licence.objects.filter(
-        #         application=standard_application,
-        #         is_complete=True,
-        #         decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
-        #     ).count(),
-        #     1,
-        # )
-
-    def test_approve_open_application_licence_success(self):
-        open_application = self.create_open_application_case(self.organisation)
-        self.create_advice(self.gov_user, open_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        open_licence = self.create_licence(open_application, is_complete=True)
-        template = self.create_letter_template(
-            name="Template",
-            case_types=[open_application.case_type],
-            decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
-        )
-        self.create_generated_case_document(open_application, template, advice_type=AdviceType.APPROVE)
-
-        pass
-        # TODO: assert request sent to HMRC
-        # url = reverse("cases:finalise", kwargs={"pk": open_application.id})
-        #
-        # response = self.client.put(url, data={}, **self.gov_headers)
-        #
-        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # self.assertEqual(response.json()["licence"], str(open_licence.id))
-        # self.assertEqual(
-        #     Licence.objects.filter(
-        #         application=open_application,
-        #         is_complete=True,
-        #         decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
-        #     ).count(),
-        #     1,
-        # )
+        return application, licence
