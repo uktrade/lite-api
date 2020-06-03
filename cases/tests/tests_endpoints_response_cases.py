@@ -17,9 +17,7 @@ class CasesResponseTests(EndPointTests):
         self.call_endpoint(self.get_gov_headers(), self.url + "destinations/GB/")
 
     def test_cases_detail(self):
-        self.call_endpoint(
-            self.get_gov_headers(), self.url + "ee3e71e3-f47c-4d44-bc01-2952d53f9de9"
-        )  # self.get_case_id()
+        self.call_endpoint(self.get_gov_headers(), self.url + self.get_case_id())
 
     def test_case_notes(self):
         self.call_endpoint(self.get_gov_headers(), self.url + self.get_case_id() + "/case-notes/")
