@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from django.conf import settings
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
@@ -466,7 +467,9 @@ class ApplicationManageStatus(APIView):
                 email_address=application.submitted_by.email,
                 template_type=TemplateType.APPLICATION_STATUS,
                 data=ApplicationStatusEmailData(
-                    case_reference=application.reference_code, application_reference=application.name, link="",
+                    case_reference=application.reference_code,
+                    application_reference=application.name,
+                    link=f"{settings.EXPORTER_BASE_URL}/applications/{application.id}",
                 ),
             )
 

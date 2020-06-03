@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from django.db.models import F
 from django.http.response import JsonResponse, HttpResponse, Http404
@@ -417,7 +418,7 @@ class CaseEcjuQueries(APIView):
                                 Case.objects.values("reference_code").get(pk=pk)["reference_code"]
                             ),
                             ecju_reference=str(serializer.instance.id),
-                            link="",
+                            link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
                         ),
                     )
 

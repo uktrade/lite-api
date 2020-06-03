@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.conf import settings
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -73,7 +74,7 @@ class ApplicationManageStatusTests(DataTestClient):
             data={
                 "case_reference": self.standard_application.reference_code,
                 "application_reference": self.standard_application.name,
-                "link": "",
+                "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_application.pk}",
             },
         )
 
@@ -113,7 +114,7 @@ class ApplicationManageStatusTests(DataTestClient):
             data={
                 "case_reference": self.standard_application.reference_code,
                 "application_reference": self.standard_application.name,
-                "link": "",
+                "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_application.pk}",
             },
         )
 
@@ -187,7 +188,7 @@ class ApplicationManageStatusTests(DataTestClient):
             data={
                 "case_reference": self.standard_application.reference_code,
                 "application_reference": self.standard_application.name,
-                "link": "",
+                "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_application.pk}",
             },
         )
 
@@ -268,7 +269,7 @@ class ApplicationManageStatusTests(DataTestClient):
                 data={
                     "case_reference": self.standard_application.reference_code,
                     "application_reference": self.standard_application.name,
-                    "link": "",
+                    "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_application.pk}",
                 },
             )
 

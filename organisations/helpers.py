@@ -1,6 +1,9 @@
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from organisations.enums import OrganisationType, OrganisationStatus
+from gov_notify import service as gov_notify_service
+from gov_notify.payloads import OrganisationStatusEmailData
+from gov_notify.enums import TemplateType
 
 
 def add_edited_audit_entry(user, organisation, key, old_value, new_value):
@@ -81,3 +84,9 @@ def audit_reviewed_organisation(user, organisation, decision):
             target=organisation,
             payload={"organisation_name": organisation.name,},
         )
+
+    gov_notify_service.send_email(
+        "",
+        template_type=TemplateType.ORGANISATION_STATUS,
+        data=OrganisationStatusEmailData(organisation_name=organisation.name)
+    )

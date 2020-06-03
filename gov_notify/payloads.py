@@ -19,3 +19,9 @@ class ApplicationStatusEmailData(EmailData):
     case_reference: str
     application_reference: str
     link: str
+
+
+@dataclass(frozen=True)
+class OrganisationStatusEmailData(EmailData):
+    organisation_name: str
+
