@@ -24,4 +24,3 @@ class ApplicationStatusEmailData(EmailData):
 @dataclass(frozen=True)
 class OrganisationStatusEmailData(EmailData):
     organisation_name: str
-

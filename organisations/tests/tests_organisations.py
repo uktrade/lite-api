@@ -598,9 +598,7 @@ class EditOrganisationStatusTests(DataTestClient):
         mock_notify_client.send_email.assert_called_with(
             email_address="",
             template_id=TemplateType.ORGANISATION_STATUS.template_id,
-            data={
-                "organisation_name": self.organisation.name,
-            },
+            data={"organisation_name": self.organisation.name,},
         )
 
     def test_set_organisation_status__without_permission_failure(self):

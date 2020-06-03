@@ -88,5 +88,5 @@ def audit_reviewed_organisation(user, organisation, decision):
     gov_notify_service.send_email(
         "",
         template_type=TemplateType.ORGANISATION_STATUS,
-        data=OrganisationStatusEmailData(organisation_name=organisation.name)
+        data=OrganisationStatusEmailData(organisation_name=organisation.name),
     )
