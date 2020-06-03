@@ -623,7 +623,7 @@ class FinaliseView(RetrieveUpdateAPIView):
                 application_reference=case.baseapplication.name,
                 case_reference=case.reference_code,
                 link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}",
-             )
+            ),
         )
 
         audit_trail_service.create(

@@ -15,4 +15,5 @@ class LiteNotificationClient:
             email_address=email_address, template_id=template_id, personalisation=data
         )
 
+
 client = LiteNotificationClient(api_key=settings.GOV_NOTIFY_KEY)
