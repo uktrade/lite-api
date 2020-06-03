@@ -1,3 +1,5 @@
+from django.db.models import F
+
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from organisations.enums import OrganisationType, OrganisationStatus
@@ -85,8 +87,9 @@ def audit_reviewed_organisation(user, organisation, decision):
             payload={"organisation_name": organisation.name,},
         )
 
-    gov_notify_service.send_email(
-        "",
-        template_type=TemplateType.ORGANISATION_STATUS,
-        data=OrganisationStatusEmailData(organisation_name=organisation.name),
-    )
+    for email in organisation.users.annotate(email=F("user__email")).values_list("email", flat=True):
+        gov_notify_service.send_email(
+            email_address=email,
+            template_type=TemplateType.ORGANISATION_STATUS,
+            data=OrganisationStatusEmailData(organisation_name=organisation.name),
+        )
