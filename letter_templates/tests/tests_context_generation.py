@@ -144,6 +144,12 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["name"], document.name)
         self.assertEqual(context["description"], document.description)
 
+    def _assert_temporary_export_details(self, context, case):
+        self.assertEqual(context["temporary_export_details"], case.temp_export_details)
+        self.assertEqual(context["is_temp_direct_control"], case.is_temp_direct_control)
+        self.assertEqual(context["temp_direct_control_details"], case.temp_direct_control_details)
+        self.assertEqual(context["proposed_return_date"], case.proposed_return_date)
+
     def _assert_base_application_details(self, context, case):
         self.assertEqual(context["user_reference"], case.name)
         self.assertEqual(context["end_use_details"], case.intended_end_use)
@@ -168,6 +174,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["trade_control_activity"], case.trade_control_activity)
         self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other)
         self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
+        self._assert_temporary_export_details(context["temporary_export_details"], case)
 
     def _assert_open_application_details(self, context, case):
         self.assertEqual(context["export_type"], case.export_type)
@@ -179,7 +186,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other)
         self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
         self.assertEqual(context["goodstype_category"], GoodsTypeCategory.get_text(case.goodstype_category))
-        self.assertEqual(context["temporary_export_details"], case.temp_export_details)
+        self._assert_temporary_export_details(context["temporary_export_details"], case)
 
     def _assert_hmrc_query_details(self, context, case):
         self.assertEqual(context["query_reason"], case.reasoning)
@@ -400,6 +407,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_type"]["reference"], case.case_type.reference)
         self._assert_base_application_details(context["details"], case)
         self._assert_standard_application_details(context["details"], case)
 
@@ -421,6 +429,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_type"]["reference"], case.case_type.reference)
         self._assert_base_application_details(context["details"], case)
         self._assert_open_application_details(context["details"], case)
 
@@ -430,6 +439,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_type"]["reference"], case.case_type.reference)
         self._assert_hmrc_query_details(context["details"], case)
 
     def test_generate_context_with_exhibition_clearance_details(self):
@@ -440,6 +450,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_type"]["reference"], case.case_type.reference)
         self._assert_exhibition_clearance_details(context["details"], case)
 
     def test_generate_context_with_f680_clearance_details(self):
@@ -461,6 +472,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_type"]["reference"], case.case_type.reference)
         self._assert_f680_clearance_details(context["details"], case)
 
     def test_generate_context_with_gifting_clearance_details(self):
@@ -469,6 +481,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_type"]["reference"], case.case_type.reference)
 
     def test_generate_context_with_end_user_advisory_query_details(self):
         case = self.create_end_user_advisory(note="abc", reasoning="def", organisation=self.organisation)
