@@ -1,6 +1,7 @@
-from django.db.models import Min, Case, When, BinaryField
+from django.db.models import Min, Case, When, PositiveSmallIntegerField
 from rest_framework import serializers
 from rest_framework.fields import CharField
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory, ContractType
 from applications.libraries.goodstype_category_helpers import (
@@ -19,7 +20,9 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
-from conf.serializers import KeyValueChoiceField
+from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
+from flags.enums import FlagStatuses
+from flags.models import Flag
 from goodstype.serializers import GoodsTypeViewSerializer
 from licences.models import Licence
 from licences.serializers.view_licence import CaseLicenceViewSerializer
@@ -93,17 +96,20 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 .prefetch_related("country__flags", "flags")
                 .filter(application=application)
                 .annotate(
-                    highest_flag_priority=Min("country__flags__priority"),
-                    contains_flags=Case(
-                        When(country__flags__isnull=True, then=0), default=1, output_field=BinaryField()
-                    ),
+                    highest_flag_priority=Case(
+                        When(country__flags__isnull=False, then=Min("country__flags__priority")),
+                        default=32767,
+                        output_field=PositiveSmallIntegerField(),
+                    )
                 )
-                .order_by("-contains_flags", "highest_flag_priority", "country__name")
+                .order_by("highest_flag_priority", "country__name")
             )
 
-        serializer = CountryOnApplicationViewSerializer(countries, many=True, context={"active_flags_only": True})
+        data = CountryOnApplicationViewSerializer(
+            countries, many=True, context={"active_flags_only": True}, read_only=True
+        ).data
 
-        return {"type": "countries", "data": serializer.data}
+        return {"type": "countries", "data": data}
 
     def get_licence(self, instance):
         licence = Licence.objects.filter(application=instance).first()
