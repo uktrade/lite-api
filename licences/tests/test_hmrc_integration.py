@@ -9,7 +9,12 @@ from conf.settings import MAX_ATTEMPTS
 from licences.libraries.hmrc_integration_operations import send_licence, HMRCIntegrationException
 from licences.models import Licence
 from licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
-from licences.tasks import send_licence_to_hmrc_integration, TASK_BACK_OFF, schedule_max_tried_task_as_new_task
+from licences.tasks import (
+    send_licence_to_hmrc_integration,
+    TASK_BACK_OFF,
+    schedule_max_tried_task_as_new_task,
+    schedule_licence_for_hmrc_integration,
+)
 from static.decisions.models import Decision
 from test_helpers.clients import DataTestClient
 
@@ -93,7 +98,7 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         )
 
 
-class HMRCIntegrationTasksTests(DataTestClient):
+class HMRCIntegrationLicenceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
@@ -101,22 +106,48 @@ class HMRCIntegrationTasksTests(DataTestClient):
         self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
 
     @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
-    @mock.patch("licences.tasks.send_licence_to_hmrc_integration.now")
-    def test_save_licence_calls_send_licence_to_hmrc_integration_now(self, send_licence_to_hmrc_integration_now):
-        send_licence_to_hmrc_integration_now.return_value = None
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_save_licence_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
+        schedule_licence_for_hmrc_integration.return_value = None
 
         self.standard_licence.save()
+
+        schedule_licence_for_hmrc_integration.assert_called_with(
+            str(self.standard_licence.id), is_background_task=False
+        )
+
+    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", True)
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_save_licence_calls_schedule_licence_for_hmrc_integration_as_background_task(
+        self, schedule_licence_for_hmrc_integration
+    ):
+        schedule_licence_for_hmrc_integration.return_value = None
+
+        self.standard_licence.save()
+
+        schedule_licence_for_hmrc_integration.assert_called_with(str(self.standard_licence.id), is_background_task=True)
+
+
+class HMRCIntegrationTasksTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.standard_application = self.create_standard_application_case(self.organisation)
+        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+
+    @mock.patch("licences.tasks.send_licence_to_hmrc_integration.now")
+    def test_schedule_licence_for_hmrc_integration(self, send_licence_to_hmrc_integration_now):
+        send_licence_to_hmrc_integration_now.return_value = None
+
+        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), is_background_task=False)
 
         send_licence_to_hmrc_integration_now.assert_called_with(str(self.standard_licence.id), is_background_task=False)
 
-    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", True)
     @mock.patch("licences.tasks.send_licence_to_hmrc_integration")
-    def test_save_licence_calls_send_licence_to_hmrc_integration_as_background_task(
-        self, send_licence_to_hmrc_integration
-    ):
+    def test_schedule_licence_for_hmrc_integration_as_background_task(self, send_licence_to_hmrc_integration):
         send_licence_to_hmrc_integration.return_value = None
 
-        self.standard_licence.save()
+        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), is_background_task=True)
 
         send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id))
 
@@ -212,7 +243,7 @@ class HMRCIntegrationTests(DataTestClient):
         standard_licence = self.create_licence(standard_application, is_complete=True)
         template = self.create_letter_template(
             name="Template",
-            case_types=[standard_application.case_type.reference],
+            case_types=[standard_application.case_type],
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
         self.create_generated_case_document(standard_application, template, advice_type=AdviceType.APPROVE)
@@ -240,7 +271,7 @@ class HMRCIntegrationTests(DataTestClient):
         open_licence = self.create_licence(open_application, is_complete=True)
         template = self.create_letter_template(
             name="Template",
-            case_types=[open_application.case_type.reference],
+            case_types=[open_application.case_type],
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
         self.create_generated_case_document(open_application, template, advice_type=AdviceType.APPROVE)
