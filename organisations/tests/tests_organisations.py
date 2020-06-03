@@ -203,6 +203,9 @@ class CreateOrganisationTests(DataTestClient):
             self.assertEqual(site.address.address, data["site"]["address"]["address"])
             self.assertEqualIgnoreType(site.address.country.id, data["site"]["address"]["country"])
 
+        # assert records located at set to site itself
+        self.assertEqual(site.site_records_located_at, site)
+
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
             "name": None,
@@ -301,6 +304,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
+        self.assertEqual(site.site_records_located_at, site)
         self.assertEqualIgnoreType(site.address.country.id, "GB")
         self.assertEqual(Audit.objects.count(), 1)
 
