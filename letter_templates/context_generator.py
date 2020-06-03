@@ -260,10 +260,12 @@ def _get_details_context(case):
 
 def _get_addressee_context(addressee):
     return {
-        "name": " ".join([addressee.first_name, addressee.last_name]) if hasattr(addressee, "first_name") else addressee.name,
+        "name": " ".join([addressee.first_name, addressee.last_name])
+        if hasattr(addressee, "first_name")
+        else addressee.name,
         "email": addressee.email,
         "address": getattr(addressee, "address", ""),
-        "phone_number": getattr(addressee, "phone_number", "")
+        "phone_number": getattr(addressee, "phone_number", ""),
     }
 
 

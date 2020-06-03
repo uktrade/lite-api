@@ -247,7 +247,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self.assertIsNotNone(context["current_date"])
         self.assertIsNotNone(context["current_time"])
-        self._assert_applicant(context["applicant"], case)
+        self._assert_applicant(context["addressee"], case)
         self._assert_organisation(context["organisation"], self.organisation)
         self._assert_party(context["end_user"], case.end_user.party)
         self._assert_party(context["consignee"], case.consignee.party)
