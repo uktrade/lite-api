@@ -11,7 +11,9 @@ class LiteNotificationClient:
         self.api_key = api_key
 
     def send_email(self, email_address, template_id, data):
-        NotificationsAPIClient(self.api_key).send_email_notification(email_address=email_address, template_id=template_id, personalisation=data)
+        NotificationsAPIClient(self.api_key).send_email_notification(
+            email_address=email_address, template_id=template_id, personalisation=data
+        )
 
 
 client = LiteNotificationClient(api_key=settings.GOV_NOTIFY_KEY)
