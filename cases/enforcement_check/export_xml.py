@@ -51,6 +51,10 @@ def _get_address_line_2(address_line_2, postcode, city):
         return ", ".join([postcode, city])
 
 
+def _format_address(address):
+    return address.replace("\n", " ")
+
+
 def _entity_to_xml(
     base, application_id, id, type, sh_type, country, organisation, address_line_1, name=None, address_line_2=None
 ):
@@ -67,8 +71,8 @@ def _entity_to_xml(
             "PD_SURNAME": name,
             "PD_FORENAME": None,
             "PD_MIDDLE_INITIALS": None,
-            "ADDRESS1": address_line_1,
-            "ADDRESS2": address_line_2,
+            "ADDRESS1": _format_address(address_line_1),
+            "ADDRESS2": _format_address(address_line_2),
         },
     )
     return stakeholder
