@@ -47,7 +47,7 @@ def _dict_to_xml(parent, data):
 def _get_address_line_2(address_line_2, postcode, city):
     if address_line_2:
         return ", ".join([address_line_2, postcode, city])
-    else:
+    elif postcode and city:
         return ", ".join([postcode, city])
 
 
