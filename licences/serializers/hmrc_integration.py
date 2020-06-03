@@ -80,12 +80,11 @@ class HMRCIntegrationLicenceSerializer(serializers.ModelSerializer):
         if instance.application.goods.exists():
             approved_goods = get_approved_goods_on_application(instance.application)
             return HMRCIntegrationGoodsOnApplicationSerializer(approved_goods, many=True).data
-
-        if instance.application.goods_type.exists():
+        elif instance.application.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance.application)
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data
-
-        return []
+        else:
+            return []
 
 
 class HMRCIntegrationOrganisationSerializer(serializers.ModelSerializer):

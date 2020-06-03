@@ -3,7 +3,7 @@ from unittest import mock
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
+from cases.enums import AdviceType, AdviceLevel
 from conf.constants import GovPermissions
 from conf.settings import MAX_ATTEMPTS
 from licences.libraries.hmrc_integration_operations import send_licence, HMRCIntegrationException
@@ -205,28 +205,57 @@ class HMRCIntegrationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
-        self.standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
-        self.template = self.create_letter_template(
-            name="Template",
-            case_types=[CaseTypeEnum.SIEL.id],
-            decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
-        )
-        self.create_generated_case_document(self.standard_application, self.template, advice_type=AdviceType.APPROVE)
 
     def test_approve_standard_application_licence_success(self):
+        standard_application = self.create_standard_application_case(self.organisation)
+        self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        standard_licence = self.create_licence(standard_application, is_complete=True)
+        template = self.create_letter_template(
+            name="Template",
+            case_types=[standard_application.case_type.reference],
+            decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
+        )
+        self.create_generated_case_document(standard_application, template, advice_type=AdviceType.APPROVE)
+
         pass
         # TODO: assert request sent to HMRC
-        # url = reverse("cases:finalise", kwargs={"pk": self.standard_application.id})
+        # url = reverse("cases:finalise", kwargs={"pk": standard_application.id})
         #
         # response = self.client.put(url, data={}, **self.gov_headers)
         #
         # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # self.assertEqual(response.json()["licence"], str(self.standard_licence.id))
+        # self.assertEqual(response.json()["licence"], str(standard_licence.id))
         # self.assertEqual(
         #     Licence.objects.filter(
-        #         application=self.standard_application,
+        #         application=standard_application,
+        #         is_complete=True,
+        #         decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
+        #     ).count(),
+        #     1,
+        # )
+
+    def test_approve_open_application_licence_success(self):
+        open_application = self.create_open_application_case(self.organisation)
+        self.create_advice(self.gov_user, open_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        open_licence = self.create_licence(open_application, is_complete=True)
+        template = self.create_letter_template(
+            name="Template",
+            case_types=[open_application.case_type.reference],
+            decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
+        )
+        self.create_generated_case_document(open_application, template, advice_type=AdviceType.APPROVE)
+
+        pass
+        # TODO: assert request sent to HMRC
+        # url = reverse("cases:finalise", kwargs={"pk": open_application.id})
+        #
+        # response = self.client.put(url, data={}, **self.gov_headers)
+        #
+        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # self.assertEqual(response.json()["licence"], str(open_licence.id))
+        # self.assertEqual(
+        #     Licence.objects.filter(
+        #         application=open_application,
         #         is_complete=True,
         #         decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
         #     ).count(),

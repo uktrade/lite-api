@@ -24,9 +24,6 @@ class Licence(TimestampableModel):
             self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
-        from licences.tasks import send_licence_to_hmrc_integration
+        from licences.tasks import schedule_licence_for_hmrc_integration
 
-        if BACKGROUND_TASK_ENABLED:
-            send_licence_to_hmrc_integration(str(self.id))
-        else:
-            send_licence_to_hmrc_integration.now(str(self.id), is_background_task=False)
+        schedule_licence_for_hmrc_integration(str(self.id), is_background_task=BACKGROUND_TASK_ENABLED)

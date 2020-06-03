@@ -13,23 +13,51 @@ TASK_QUEUE = "hmrc_integration_queue"
 TASK_BACK_OFF = 3600  # Time, in seconds, to wait before scheduling a new task (used after MAX_ATTEMPTS is reached)
 
 
+def schedule_licence_for_hmrc_integration(licence_id, is_background_task):
+    if is_background_task:
+        send_licence_to_hmrc_integration(licence_id)
+    else:
+        send_licence_to_hmrc_integration.now(licence_id, is_background_task=False)
+
+
+def schedule_max_tried_task_as_new_task(licence_id):
+    """
+    Used to schedule a max-tried task as a new task (starting from attempts=0)
+    This function was abstracted from 'send_licence_to_hmrc_integration' to enable unit testing of a recursive operation
+    """
+    logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for licence '{licence_id}' has been reached")
+
+    schedule_datetime = {timezone.now() + timedelta(seconds=TASK_BACK_OFF)}
+    logging.info(f"Scheduling new task for licence '{licence_id}' to commence at {schedule_datetime}")
+    send_licence_to_hmrc_integration(licence_id, schedule=TASK_BACK_OFF)  # noqa
+
+
 @background(schedule=0, queue=TASK_QUEUE)
 def send_licence_to_hmrc_integration(licence_id, is_background_task=True):
-    logging.info(f"Sending licence '{licence_id}' changes to HMRC Integration")
+    """
+    Sends licence details to HMRC Integration
+    :param licence_id:
+    :param is_background_task: Has this function has been run as a background task or directly (used for error handling)
+    """
 
+    logging.info(f"Sending licence '{licence_id}' changes to HMRC Integration")
     licence = Licence.objects.get(id=licence_id)
 
     try:
         hmrc_integration_operations.send_licence(licence)
-        return
     except hmrc_integration_operations.HMRCIntegrationException as exc:
-        logging.warning(str(exc))
+        _handle_exception(str(exc), licence_id, is_background_task)
     except Exception as exc:  # noqa
-        logging.warning(
+        _handle_exception(
             f"An unexpected error occurred when sending licence '{licence_id}' changes to HMRC Integration -> "
-            f"{type(exc).__name__}: {exc}"
+            f"{type(exc).__name__}: {exc}",
+            licence_id,
+            is_background_task,
         )
 
+
+def _handle_exception(message, licence_id, is_background_task):
+    logging.warning(message)
     error_message = f"Failed to send licence '{licence_id}' changes to HMRC Integration"
 
     if is_background_task:
@@ -52,11 +80,3 @@ def send_licence_to_hmrc_integration(licence_id, is_background_task=True):
         raise Exception(error_message)
     else:
         logging.error(error_message)
-
-
-def schedule_max_tried_task_as_new_task(licence_id):
-    logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for licence '{licence_id}' has been reached")
-
-    schedule_datetime = {timezone.now() + timedelta(seconds=TASK_BACK_OFF)}
-    logging.info(f"Scheduling new task for licence '{licence_id}' to commence at {schedule_datetime}")
-    send_licence_to_hmrc_integration(licence_id, schedule=TASK_BACK_OFF)  # noqa

@@ -13,40 +13,53 @@ TASK_QUEUE = "document_av_scan_queue"
 
 @background(schedule=0, queue=TASK_QUEUE)
 def scan_document_for_viruses(document_id, is_background_task=True):
+    """
+    Scans documents for viruses
+    :param document_id:
+    :param is_background_task: Has this function has been run as a background task or directly (used for error handling)
+    """
+
     with transaction.atomic():
         logging.info(f"Fetching document '{document_id}'")
-        doc = Document.objects.select_for_update(nowait=True).get(id=document_id)
+        document = Document.objects.select_for_update(nowait=True).get(id=document_id)
 
-        if doc.virus_scanned_at:
-            logging.info(f"Document '{document_id}' has already been scanned; safe={doc.safe}")
+        if document.virus_scanned_at:
+            logging.info(f"Document '{document_id}' has already been scanned; safe={document.safe}")
             return
 
         try:
-            doc.scan_for_viruses()
-            return
+            document.scan_for_viruses()
         except VirusScanException as exc:
-            logging.warning(str(exc))
+            _handle_exception(str(exc), document, is_background_task)
         except Exception as exc:  # noqa
-            logging.warning(
-                f"An unexpected error occurred when scanning document '{document_id}' -> {type(exc).__name__}: {exc}"
+            _handle_exception(
+                f"An unexpected error occurred when scanning document '{document_id}' -> {type(exc).__name__}: {exc}",
+                document,
+                is_background_task,
             )
+
+
+def _handle_exception(message: str, document, is_background_task):
+    logging.warning(message)
 
     if is_background_task:
         try:
-            task = Task.objects.get(queue=TASK_QUEUE, task_params__contains=document_id)
+            task = Task.objects.get(queue=TASK_QUEUE, task_params__contains=document.id)
         except Task.DoesNotExist:
-            logging.error(f"No task was found for document '{document_id}'")
-            doc.delete_s3()
+            logging.error(f"No task was found for document '{document.id}'")
+            document.delete_s3()
         else:
             # Get the task's current attempt number by retrieving the previous attempts and adding 1
             current_attempt = task.attempts + 1
 
             # Delete the document's file from S3 if the task has been attempted MAX_ATTEMPTS times
             if current_attempt >= MAX_ATTEMPTS:
-                logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for document '{document_id}' has been reached")
-                doc.delete_s3()
+                logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for document '{document.id}' has been reached")
+                document.delete_s3()
     else:
-        doc.delete_s3()
+        document.delete_s3()
 
-    # Raise an exception (this will result in a serializer error or cause the task (if any) to be marked as 'Failed')
-    raise Exception(f"Failed to scan document '{document_id}'")
+    # Raise an exception.
+    # This will result in a serializer error or
+    # cause the task to be marked as 'Failed' and retried if there are retry attempts left
+    raise Exception(f"Failed to scan document '{document.id}'")
