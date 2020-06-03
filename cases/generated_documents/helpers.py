@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+from django.core.exceptions import ObjectDoesNotExist
 from weasyprint import CSS, HTML
 from weasyprint.fonts import FontConfiguration
 
@@ -8,6 +9,8 @@ from conf.exceptions import NotFoundError
 from letter_templates.helpers import get_css_location, generate_preview
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
+from parties.enums import PartyType
+from parties.models import Party
 
 font_config = FontConfiguration()
 GeneratedDocumentPayload = namedtuple("GeneratedDocumentPayload", "case template document_html text")
@@ -28,12 +31,19 @@ def get_generated_document_data(request_params, pk):
     if not text:
         raise AttributeError(strings.Cases.MISSING_TEXT)
 
+    addressee = request_params.get("addressee")
+    if addressee:
+        try:
+            addressee = Party.objects.get(type=PartyType.ADDITIONAL_CONTACT, id=addressee)
+        except ObjectDoesNotExist:
+            raise AttributeError("Invalid addressee")
+
     case = get_case(pk)
     try:
         template = LetterTemplate.objects.get(pk=template_id, case_types=case.case_type)
     except LetterTemplate.DoesNotExist:
         raise NotFoundError({"letter_template": strings.Cases.LETTER_TEMPLATE_NOT_FOUND})
-    document_html = generate_preview(layout=template.layout.filename, text=text, case=case)
+    document_html = generate_preview(layout=template.layout.filename, text=text, case=case, addressee=addressee)
 
     if "error" in document_html:
         raise AttributeError(document_html["error"])

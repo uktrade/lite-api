@@ -18,11 +18,12 @@
 			</li>
 		</ul>
 	{% endif %}
-	<h2>Applicant</h2>
+	<h2>Addressee</h2>
+	<p>Defaulted to case submitter</p>
 	<ul>
-		<li><b>applicant:</b>
+		<li><b>addressee:</b>
 			<ul>
-				{{ applicant|context_data_to_list|safe }}
+				{{ addressee|context_data_to_list|safe }}
 			</ul>
 		</li>
 	</ul>
