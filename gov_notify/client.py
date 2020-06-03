@@ -6,6 +6,7 @@ class LiteNotificationClient:
     """
     Adapter class for communicating with Gov Notify API.
     """
+
     def __init__(self, api_key):
         self.client = NotificationsAPIClient(api_key)
 

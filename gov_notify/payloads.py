@@ -6,6 +6,7 @@ class EmailData:
     """
     Base class for email payloads.
     """
+
     def as_dict(self):
         return {field.name: getattr(self, field.name) for field in fields(self)}
 
