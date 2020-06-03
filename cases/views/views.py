@@ -50,7 +50,7 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import EcjuCreatedEmailData
+from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api.strings import Documents, Cases
@@ -615,6 +615,16 @@ class FinaliseView(RetrieveUpdateAPIView):
         old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
+
+        gov_notify_service.send_email(
+            email_address=case.submitted_by.email,
+            template_type=TemplateType.APPLICATION_STATUS,
+            data=ApplicationStatusEmailData(
+                application_reference=case.baseapplication.name,
+                case_reference=case.reference_code,
+                link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}",
+             )
+        )
 
         audit_trail_service.create(
             actor=request.user,
