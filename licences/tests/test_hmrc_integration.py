@@ -4,9 +4,11 @@ from unittest.mock import ANY
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import AdviceType, AdviceLevel
+from cases.enums import AdviceType, AdviceLevel, CaseTypeSubTypeEnum
 from conf.constants import GovPermissions
+from conf.helpers import add_months
 from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL
+from licences.helpers import get_approved_goods_on_application, get_approved_goods_types
 from licences.libraries.hmrc_integration_operations import (
     send_licence,
     HMRCIntegrationException,
@@ -21,7 +23,9 @@ from licences.tasks import (
     schedule_max_tried_task_as_new_task,
     schedule_licence_for_hmrc_integration,
 )
+from static.countries.models import Country
 from static.decisions.models import Decision
+from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -45,16 +49,14 @@ class MockTask:
 
 
 class HMRCIntegrationSerializersTests(DataTestClient):
-    def setUp(self):
-        super().setUp()
+    def test_data_transfer_object_standard_application(self):
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
 
-    def test_data_transfer_object_standard_application(self):
         data = HMRCIntegrationLicenceSerializer(self.standard_licence).data
 
-        self._assert_dto(data, self.standard_licence)
+        self._assert_dto(data, self.standard_application, self.standard_licence)
 
     def test_data_transfer_object_open_application(self):
         open_application = self.create_open_application_case(self.organisation)
@@ -63,11 +65,84 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         data = HMRCIntegrationLicenceSerializer(open_licence).data
 
-        self._assert_dto(data, open_licence)
+        self._assert_dto(data, open_application, open_licence)
 
-    def _assert_dto(self, data: dict, licence: Licence):
+    def _assert_dto(self, data, application, licence):
         self.assertEqual(len(data), 9)
         self.assertEqual(data["id"], str(licence.id))
+        self.assertEqual(data["reference"], application.reference_code)
+        self.assertEqual(data["status"], CaseStatusEnum.get_text(application.status.status))
+        self.assertEqual(data["start_date"], licence.start_date.strftime("%Y-%m-%d"))
+        self.assertEqual(data["end_date"], add_months(licence.start_date, licence.duration, "%Y-%m-%d"))
+
+        self._assert_organisation(data, application.organisation)
+
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            self._assert_end_user(data, application.end_user.party)
+            self._assert_goods_on_application(data, get_approved_goods_on_application(application))
+        elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            self._assert_countries(
+                data, Country.objects.filter(countries_on_application__application=application).order_by("name")
+            )
+            self._assert_goods_types(data, get_approved_goods_types(application))
+
+    def _assert_organisation(self, data, organisation):
+        self.assertEqual(
+            data["organisation"],
+            {
+                "name": organisation.name,
+                "address": {
+                    "line_1": organisation.primary_site.name,
+                    "line_2": organisation.primary_site.address.address_line_1,
+                    "line_3": organisation.primary_site.address.address_line_2,
+                    "line_4": organisation.primary_site.address.city,
+                    "line_5": organisation.primary_site.address.region,
+                    "postcode": organisation.primary_site.address.postcode,
+                    "country": {
+                        "id": organisation.primary_site.address.country.id,
+                        "name": organisation.primary_site.address.country.name,
+                    },
+                },
+            },
+        )
+
+    def _assert_end_user(self, data, end_user):
+        self.assertEqual(
+            data["end_user"],
+            {
+                "name": end_user.name,
+                "address": {
+                    "line_1": end_user.address,
+                    "country": {"id": end_user.country.id, "name": end_user.country.name},
+                },
+            },
+        )
+
+    def _assert_countries(self, data, countries):
+        self.assertEqual(data["countries"], [{"id": country.id, "name": country.name} for country in countries])
+
+    def _assert_goods_on_application(self, data, goods_on_application):
+        self.assertEqual(
+            data["goods"],
+            [
+                {
+                    "id": str(good_on_application.good.id),
+                    "description": good_on_application.good.description,
+                    "usage": good_on_application.usage,
+                    "unit": good_on_application.unit,
+                    "quantity": good_on_application.quantity,
+                    "licenced_quantity": good_on_application.licenced_quantity,
+                    "licenced_value": good_on_application.licenced_value,
+                }
+                for good_on_application in goods_on_application
+            ],
+        )
+
+    def _assert_goods_types(self, data, goods):
+        self.assertEqual(
+            data["goods"],
+            [{"id": str(good.id), "description": good.description, "usage": good.usage} for good in goods],
+        )
 
 
 class HMRCIntegrationOperationsTests(DataTestClient):
@@ -255,15 +330,6 @@ class HMRCIntegrationTests(DataTestClient):
         response = self.client.put(url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json()["licence"], str(standard_licence.id))
-        self.assertEqual(
-            Licence.objects.filter(
-                application=standard_application,
-                is_complete=True,
-                decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
-            ).count(),
-            1,
-        )
         request.assert_called_with(
             "POST",
             f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
@@ -281,15 +347,6 @@ class HMRCIntegrationTests(DataTestClient):
         response = self.client.put(url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json()["licence"], str(open_licence.id))
-        self.assertEqual(
-            Licence.objects.filter(
-                application=open_application,
-                is_complete=True,
-                decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
-            ).count(),
-            1,
-        )
         request.assert_called_with(
             "POST",
             f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
