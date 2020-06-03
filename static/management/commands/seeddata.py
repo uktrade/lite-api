@@ -8,11 +8,13 @@ from uuid import UUID
 from django import db
 from faker import Faker
 from applications.models import StandardApplication
+from clients import DataTestClient
 from conf.constants import Roles
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site
 from organisations.tests.factories import SiteFactory
 from organisations.tests.providers import OrganisationProvider
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.management.SeedCommand import SeedCommand
 from static.management.commands.seedapplications import Command as AppCommand
 from static.management.commands.seedorganisation import Command as OrgCommand
@@ -118,7 +120,7 @@ class ActionBase:
 
     @staticmethod
     def app_factory(org, applications_to_add, max_goods_to_use):
-        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use, )
+        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use,)
         return len(submitted_applications)
 
     @staticmethod
@@ -191,6 +193,37 @@ class ActionAddFakeUsers(ActionBase):
         return
 
 
+class ActionEndUserAdvisory(ActionBase):
+    tc = DataTestClient()
+
+    def action(self, options):
+        print("Add End User Advisory query to organisations")
+        org_count = self.get_arg(options, "count", 1)
+        uuid = self.get_arg(options, "uuid", required=False)
+        mt = self.get_arg(options, "mt", required=False)
+
+        organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
+        org_ids = [org.id for org in organisations]
+        org_eua_data = [
+            org["organisation_id"]
+            for org in EndUserAdvisoryQuery.objects.order_by().values("organisation_id").distinct()
+        ]
+
+        orgs = [org for org in organisations if org.id not in org_eua_data]
+
+
+        jobs = [(self.add_end_user_advisory, organisation) for organisation in orgs]
+        results = [application for application in self.get_mapper(mt)(ActionBase.do_work, jobs)]
+
+        print(f"Added an end user advisory for {org_count} organisations" f", added {len(results)} EUA's in total")
+        return results
+
+    def add_end_user_advisory(self, organisation):
+        self.tc.exporter_user = random.choice(organisation.get_users())
+        self.tc.organisation = organisation
+        return self.tc.create_end_user_advisory(note="a note", reasoning="a reason", organisation=organisation)
+
+
 class ActionUser(ActionBase):
     def action(self, options):
         org_uuid = self.get_arg(options, "uuid")
@@ -204,8 +237,8 @@ class ActionUser(ActionBase):
         if org_uuid == "all":
             membership = (
                 UserOrganisationRelationship.objects.select_related("organisation")
-                    .filter(user=exporter_user)
-                    .values_list("organisation_id")
+                .filter(user=exporter_user)
+                .values_list("organisation_id")
             )
             organisations = Organisation.objects.all()
             ids_to_add = set([org.id for org in organisations]) - set(membership)
@@ -333,6 +366,7 @@ class Command(SeedCommand):
         "site": ActionSites(),
         "stats": ActionStats(),
         "good": ActionGoods(),
+        "eua": ActionEndUserAdvisory(),
     }
 
     def add_arguments(self, parser):
