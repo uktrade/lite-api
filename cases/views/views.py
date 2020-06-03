@@ -408,16 +408,17 @@ class CaseEcjuQueries(APIView):
                 )
                 if serializer.data["query_type"]["key"] == ECJUQueryType.ECJU:
                     # Only send email for standard ECJU queries
+                    application_info = (
+                        Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
+                        .values("email", "name", "reference_code")
+                        .get(id=pk)
+                    )
                     gov_notify_service.send_email(
-                        email_address=Case.objects.annotate(email=F("submitted_by__email"))
-                        .values("email")
-                        .get(id=pk)["email"],
+                        email_address=application_info["email"],
                         template_type=TemplateType.ECJU_CREATED,
                         data=EcjuCreatedEmailData(
-                            application_reference=str(
-                                Case.objects.values("reference_code").get(pk=pk)["reference_code"]
-                            ),
-                            ecju_reference=str(serializer.instance.id),
+                            application_reference=application_info["reference_code"],
+                            ecju_reference=application_info["name"],
                             link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
                         ),
                     )
