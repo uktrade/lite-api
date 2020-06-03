@@ -1,4 +1,4 @@
-from django.db.models import Min, Case, When, PositiveSmallIntegerField, BinaryField
+from django.db.models import Min, Case, When, BinaryField
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
