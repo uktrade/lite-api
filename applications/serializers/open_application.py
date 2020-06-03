@@ -1,7 +1,6 @@
 from django.db.models import Min, Case, When, PositiveSmallIntegerField
 from rest_framework import serializers
 from rest_framework.fields import CharField
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from applications.enums import ApplicationExportType, GoodsTypeCategory, ContractType
 from applications.libraries.goodstype_category_helpers import (
@@ -20,9 +19,7 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.serializer_helper import validate_field
 from cases.enums import CaseTypeEnum
-from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
-from flags.enums import FlagStatuses
-from flags.models import Flag
+from conf.serializers import KeyValueChoiceField
 from goodstype.serializers import GoodsTypeViewSerializer
 from licences.models import Licence
 from licences.serializers.view_licence import CaseLicenceViewSerializer
