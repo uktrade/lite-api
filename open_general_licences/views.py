@@ -36,9 +36,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
             filtered_qs = filtered_qs.filter(case_type_id=filter_data.get("case_type"))
 
         if filter_data.get("control_list_entry"):
-            filtered_qs = filtered_qs.filter(
-                control_list_entries__rating=filter_data.get("control_list_entry")
-            )
+            filtered_qs = filtered_qs.filter(control_list_entries__rating=filter_data.get("control_list_entry"))
 
         if filter_data.get("country"):
             filtered_qs = filtered_qs.filter(countries__id__contains=filter_data.get("country"))
