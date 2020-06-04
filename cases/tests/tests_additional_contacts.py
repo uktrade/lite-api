@@ -62,3 +62,16 @@ class AdditionalContacts(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(Party.objects.count(), party_count)
+
+
+class CaseApplicant(DataTestClient):
+    def test_get_case_applicant(self):
+        case = self.create_standard_application_case(self.organisation)
+        self.url = reverse("cases:case_applicant", kwargs={"pk": case.id})
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["name"], case.submitted_by.first_name + " " + case.submitted_by.last_name)
+        self.assertEqual(response_data["email"], case.submitted_by.email)
