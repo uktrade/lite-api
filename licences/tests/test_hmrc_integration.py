@@ -30,8 +30,9 @@ from test_helpers.clients import DataTestClient
 
 
 class MockResponse:
-    def __init__(self, json_data: str, status_code: int):
-        self.json_data = json_data
+    def __init__(self, message: str, status_code: int):
+        self.json_data = message
+        self.text = message
         self.status_code = status_code
 
     def json(self):
