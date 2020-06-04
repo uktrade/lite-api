@@ -25,16 +25,16 @@ def html_to_pdf(html: str, template_name: str):
     return html.write_pdf(stylesheets=[css], font_config=font_config)
 
 
-def auto_generate_case_document(layout, case):
+def auto_generate_case_document(layout, case, document_name):
     html = generate_preview(layout=layout, text="", case=case)
     pdf = html_to_pdf(html, layout)
     s3_key = s3_operations.generate_s3_key(layout, "pdf")
     CaseDocument.objects.create(
-        name=f"Application Form - {datetime.datetime.now()}.pdf",
+        name=f"{document_name} - {datetime.datetime.now()}.pdf",
         s3_key=s3_key,
         virus_scanned_at=timezone.now(),
         safe=True,
-        type=CaseDocumentState.GENERATED,
+        type=CaseDocumentState.AUTO_GENERATED,
         case=case,
         visible_to_exporter=False,
     )
