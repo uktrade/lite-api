@@ -66,6 +66,8 @@ class Command(SeedCommand):
                 )
 
                 site = Site.objects.create(name="Headquarters", organisation=org, address=address)
+                site.site_records_located_at = site
+                site.save()
                 org.primary_site = site
                 org.save()
 
