@@ -12,7 +12,7 @@ from queues.service import get_queue, get_queues_qs, get_system_queues
 
 class QueuesList(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
-    queryset = Queue.objects.all()
+    queryset = Queue.objects.select_related("team", "countersigning_queue").all()
     serializer_class = QueueListSerializer
 
     def get(self, request, *args, **kwargs):
