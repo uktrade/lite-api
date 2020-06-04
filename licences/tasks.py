@@ -32,7 +32,7 @@ def schedule_max_tried_task_as_new_task(licence_id):
     send_licence_to_hmrc_integration(licence_id, schedule=TASK_BACK_OFF)  # noqa
 
 
-@background(schedule=0, queue=TASK_QUEUE)
+@background(queue=TASK_QUEUE, schedule=0)
 def send_licence_to_hmrc_integration(licence_id, is_background_task=True):
     """
     Sends licence details to HMRC Integration

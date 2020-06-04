@@ -11,7 +11,7 @@ from documents.models import Document
 TASK_QUEUE = "document_av_scan_queue"
 
 
-@background(schedule=0, queue=TASK_QUEUE)
+@background(queue=TASK_QUEUE, schedule=0)
 def scan_document_for_viruses(document_id, is_background_task=True):
     """
     Scans documents for viruses
