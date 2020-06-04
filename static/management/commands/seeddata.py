@@ -8,7 +8,7 @@ from uuid import UUID
 from django import db
 from faker import Faker
 from applications.models import StandardApplication
-from clients import DataTestClient
+from test_helpers.clients import DataTestClient
 from conf.constants import Roles
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site
