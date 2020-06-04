@@ -72,13 +72,25 @@ def application_in_state(is_editable=False, is_major_editable=False):
 
             if is_editable and application_status in CaseStatusEnum.read_only_statuses():
                 return JsonResponse(
-                    data={"errors": [f"Application status {application_status} is read-only."]},
+                    data={
+                        "errors": {
+                            "non_field_errors": [
+                                strings.Applications.Generic.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR
+                            ]
+                        }
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             if is_major_editable and application_status not in CaseStatusEnum.major_editable_statuses():
                 return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT]},
+                    data={
+                        "errors": {
+                            "non_field_errors": [
+                                strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR
+                            ]
+                        }
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
