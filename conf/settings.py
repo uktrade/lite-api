@@ -22,6 +22,7 @@ env = Env(
     STREAM_PAGE_SIZE=(int, 20),
     ENV=(str, "dev"),
     EXPORTER_BASE_URL=(str, ""),
+    GOV_NOTIFY_ENABLED=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -240,6 +241,9 @@ RECENTLY_UPDATED_WORKING_DAYS = env(
 SECURE_BROWSER_XSS_FILTER = True
 
 STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")
+
+
+GOV_NOTIFY_ENABLED = env("GOV_NOTIFY_ENABLED")
 
 GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
 
