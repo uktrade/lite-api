@@ -339,6 +339,7 @@ class ApplicationSubmission(APIView):
             application.submitted_by = request.user
             set_application_sla(application)
             create_submitted_audit(request, application, old_status)
+            auto_generate_case_document("application_form", application)
 
         elif application.case_type.sub_type in [
             CaseTypeSubTypeEnum.STANDARD,
