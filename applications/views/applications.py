@@ -423,12 +423,7 @@ class ApplicationManageStatus(APIView):
                 )
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
-            if not Licence.objects.filter(application=application, is_complete=True).exists():
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            Licence.objects.get(application=application, is_complete=True).delete()
+            Licence.objects.filter(application=application, is_complete=True).delete()
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
