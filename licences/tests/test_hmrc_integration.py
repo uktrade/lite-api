@@ -7,13 +7,12 @@ from rest_framework import status
 from cases.enums import AdviceType, AdviceLevel, CaseTypeSubTypeEnum
 from conf.constants import GovPermissions
 from conf.helpers import add_months
-from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL
+from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
 from licences.helpers import get_approved_goods_on_application, get_approved_goods_types
 from licences.libraries.hmrc_integration_operations import (
     send_licence,
     HMRCIntegrationException,
     SEND_LICENCE_ENDPOINT,
-    REQUEST_TIMEOUT,
 )
 from licences.models import Licence
 from licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
@@ -338,7 +337,7 @@ class HMRCIntegrationTests(DataTestClient):
             f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
             json=ANY,
             headers=ANY,
-            timeout=REQUEST_TIMEOUT,
+            timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
     @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
@@ -355,7 +354,7 @@ class HMRCIntegrationTests(DataTestClient):
             f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
             json=ANY,
             headers=ANY,
-            timeout=REQUEST_TIMEOUT,
+            timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
     def _create_licence_for_submission(self, create_application_case_callback):
