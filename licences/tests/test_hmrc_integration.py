@@ -179,6 +179,7 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         )
 
 
+@mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
 class HMRCIntegrationLicenceTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -313,6 +314,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id), schedule=TASK_BACK_OFF)
 
 
+@mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
 class HMRCIntegrationTests(DataTestClient):
     def setUp(self):
         super().setUp()
