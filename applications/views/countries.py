@@ -32,8 +32,8 @@ class ApplicationCountries(APIView):
         """
         View countries belonging to an open licence application
         """
-        countries = CountryOnApplication.objects.filter(application_id=pk)
-        countries_data = CountryOnApplicationViewSerializer(countries, many=True).data
+        countries = CountryOnApplication.objects.select_related("country").filter(application_id=pk)
+        countries_data = CountryOnApplicationViewSerializer(countries, many=True, read_only=True).data
         return JsonResponse(data={"countries": countries_data}, status=status.HTTP_200_OK)
 
     @transaction.atomic
