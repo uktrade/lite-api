@@ -11,7 +11,7 @@ def process_document(document):
         scan_document_for_viruses(str(document.id))
     else:
         try:
-            scan_document_for_viruses.now(str(document.id), is_background_task=False)
+            scan_document_for_viruses.now(str(document.id), scheduled_as_background_task=False)
         except Exception as e:
             logging.error(e)
             raise serializers.ValidationError({"document": e})

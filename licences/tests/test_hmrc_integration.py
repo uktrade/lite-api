@@ -195,7 +195,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence.save()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), is_background_task=False
+            str(self.standard_licence.id), schedule_as_background_task=False
         )
 
     @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", True)
@@ -207,7 +207,9 @@ class HMRCIntegrationLicenceTests(DataTestClient):
 
         self.standard_licence.save()
 
-        schedule_licence_for_hmrc_integration.assert_called_with(str(self.standard_licence.id), is_background_task=True)
+        schedule_licence_for_hmrc_integration.assert_called_with(
+            str(self.standard_licence.id), schedule_as_background_task=True
+        )
 
 
 class HMRCIntegrationTasksTests(DataTestClient):
@@ -221,15 +223,17 @@ class HMRCIntegrationTasksTests(DataTestClient):
     def test_schedule_licence_for_hmrc_integration(self, send_licence_to_hmrc_integration_now):
         send_licence_to_hmrc_integration_now.return_value = None
 
-        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), is_background_task=False)
+        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), schedule_as_background_task=False)
 
-        send_licence_to_hmrc_integration_now.assert_called_with(str(self.standard_licence.id), is_background_task=False)
+        send_licence_to_hmrc_integration_now.assert_called_with(
+            str(self.standard_licence.id), scheduled_as_background_task=False
+        )
 
     @mock.patch("licences.tasks.send_licence_to_hmrc_integration")
     def test_schedule_licence_for_hmrc_integration_as_background_task(self, send_licence_to_hmrc_integration):
         send_licence_to_hmrc_integration.return_value = None
 
-        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), is_background_task=True)
+        schedule_licence_for_hmrc_integration(str(self.standard_licence.id))
 
         send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id))
 
@@ -238,7 +242,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence.return_value = None
 
         # Note: Using `.now()` operation to test code synchronously
-        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), is_background_task=False)
+        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), scheduled_as_background_task=False)
 
         send_licence.assert_called_once()
 
@@ -249,7 +253,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         task_get.return_value = MockTask(0)
 
         # Note: Using `.now()` operation to test code synchronously
-        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), is_background_task=False)
+        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), scheduled_as_background_task=False)
 
         send_licence.assert_called_once()
         task_get.assert_not_called()

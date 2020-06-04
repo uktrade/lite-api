@@ -12,11 +12,11 @@ TASK_QUEUE = "document_av_scan_queue"
 
 
 @background(queue=TASK_QUEUE, schedule=0)
-def scan_document_for_viruses(document_id, is_background_task=True):
+def scan_document_for_viruses(document_id, scheduled_as_background_task=True):
     """
     Scans documents for viruses
     :param document_id:
-    :param is_background_task: Has this function has been run as a background task or directly (used for error handling)
+    :param scheduled_as_background_task: Has this function has been scheduled as a task (used for error handling)
     """
 
     with transaction.atomic():
@@ -30,19 +30,19 @@ def scan_document_for_viruses(document_id, is_background_task=True):
         try:
             document.scan_for_viruses()
         except VirusScanException as exc:
-            _handle_exception(str(exc), document, is_background_task)
+            _handle_exception(str(exc), document, scheduled_as_background_task)
         except Exception as exc:  # noqa
             _handle_exception(
                 f"An unexpected error occurred when scanning document '{document_id}' -> {type(exc).__name__}: {exc}",
                 document,
-                is_background_task,
+                scheduled_as_background_task,
             )
 
 
-def _handle_exception(message: str, document, is_background_task):
+def _handle_exception(message: str, document, scheduled_as_background_task):
     logging.warning(message)
 
-    if is_background_task:
+    if scheduled_as_background_task:
         try:
             task = Task.objects.get(queue=TASK_QUEUE, task_params__contains=document.id)
         except Task.DoesNotExist:
