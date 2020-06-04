@@ -103,4 +103,5 @@ audit_type_format = {
     AuditType.ENFORCEMENT_CHECK: strings.Audit.ENFORCEMENT_CHECK,
     AuditType.UPDATED_SITE: strings.Audit.UPDATED_SITE,
     AuditType.CREATED_SITE: strings.Audit.CREATED_SITE,
+    AuditType.UPDATED_SITE_NAME: strings.Audit.UPDATED_SITE_NAME,
 }

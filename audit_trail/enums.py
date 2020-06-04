@@ -94,6 +94,7 @@ class AuditType(LiteEnum):
     ENFORCEMENT_CHECK = autostr()
     UPDATED_SITE = autostr()
     CREATED_SITE = autostr()
+    UPDATED_SITE_NAME = autostr()
 
     def human_readable(self):
         value = self.value.replace("_", " ")

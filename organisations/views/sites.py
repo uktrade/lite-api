@@ -167,7 +167,7 @@ class SiteRetrieveUpdate(RetrieveUpdateAPIView):
             if original_instance.name != updated_instance.name:
                 audit_trail_service.create(
                     actor=self.request.user,
-                    verb=AuditType.UPDATED_SITE,
+                    verb=AuditType.UPDATED_SITE_NAME,
                     target=updated_instance,
                     payload={
                         "key": original_instance.name,
