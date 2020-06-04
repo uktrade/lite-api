@@ -154,9 +154,9 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    name = serializers.CharField()
-    flags = serializers.SerializerMethodField()
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    flags = serializers.SerializerMethodField(read_only=True)
 
     def get_flags(self, instance):
         if self.context.get("active_flags_only"):
