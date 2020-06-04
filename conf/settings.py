@@ -18,6 +18,7 @@ env = Env(
     BACKGROUND_TASK_ENABLED=(bool, False),
     SUPPRESS_TEST_OUTPUT=(bool, False),
     HAWK_AUTHENTICATION_ENABLED=(bool, False),
+    LITE_HMRC_INTEGRATION_ENABLED=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
     ENV=(str, "dev"),
