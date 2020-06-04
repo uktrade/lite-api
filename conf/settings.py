@@ -133,28 +133,36 @@ REST_FRAMEWORK = {
 
 AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 
-SHA_ALGORITHM = "sha256"
-
+HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED")
+HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
+HAWK_ALGORITHM = "sha256"
+HAWK_LITE_API_CREDENTIALS = "lite-api"
+HAWK_LITE_PERFORMANCE_CREDENTIALS = "lite-performance"
 HAWK_CREDENTIALS = {
-    "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
-    "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
-    "hmrc-integration": {
-        "id": "hmrc-integration",
-        "key": env("LITE_HMRC_INTEGRATION_HAWK_KEY"),
-        "algorithm": SHA_ALGORITHM,
-    },
+    "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
+    "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
     "activity-stream": {
         "id": "activity-stream",
         "key": env("LITE_ACTIVITY_STREAM_HAWK_KEY"),
-        "algorithm": SHA_ALGORITHM,
+        "algorithm": HAWK_ALGORITHM,
     },
-    "lite-e2e": {"id": "lite-e2e", "key": env("LITE_E2E_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
-    "lite-performance": {"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
-    "lite-api": {"id": "lite-api", "key": env("LITE_API_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
+    "hmrc-integration": {
+        "id": "hmrc-integration",
+        "key": env("LITE_HMRC_INTEGRATION_HAWK_KEY"),
+        "algorithm": HAWK_ALGORITHM,
+    },
+    "lite-e2e": {"id": "lite-e2e", "key": env("LITE_E2E_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
+    HAWK_LITE_PERFORMANCE_CREDENTIALS: {
+        "id": HAWK_LITE_PERFORMANCE_CREDENTIALS,
+        "key": env("LITE_PERFORMANCE_HAWK_KEY"),
+        "algorithm": HAWK_ALGORITHM,
+    },
+    HAWK_LITE_API_CREDENTIALS: {
+        "id": HAWK_LITE_API_CREDENTIALS,
+        "key": env("LITE_API_HAWK_KEY"),
+        "algorithm": HAWK_ALGORITHM,
+    },
 }
-
-HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED")
-HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
 
 WSGI_APPLICATION = "conf.wsgi.application"
 

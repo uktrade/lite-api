@@ -1,11 +1,10 @@
 from rest_framework import status
 
 from conf.requests import post
-from conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
+from conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT, HAWK_LITE_API_CREDENTIALS
 from licences.models import Licence
 from licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
 
-HAWK_CREDENTIALS = "lite-api"
 SEND_LICENCE_ENDPOINT = "/mail/update-licence/"
 
 
@@ -17,7 +16,7 @@ def send_licence(licence: Licence):
     url = f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
     data = {"licence": HMRCIntegrationLicenceSerializer(licence).data}
 
-    response = post(url, data, hawk_credentials=HAWK_CREDENTIALS, timeout=LITE_HMRC_REQUEST_TIMEOUT)
+    response = post(url, data, hawk_credentials=HAWK_LITE_API_CREDENTIALS, timeout=LITE_HMRC_REQUEST_TIMEOUT)
 
     if response.status_code != status.HTTP_201_CREATED:
         raise HMRCIntegrationException(

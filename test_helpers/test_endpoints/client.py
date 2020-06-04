@@ -1,18 +1,16 @@
 from conf import requests
 
-from conf.settings import env
-
-PERFORMANCE_HAWK_CREDENTIALS = "lite-performance"
+from conf.settings import env, HAWK_LITE_PERFORMANCE_CREDENTIALS
 
 
 def get(appended_address, headers=None):
     url = _build_absolute_uri(appended_address).replace(" ", "%20")
-    return requests.get(url, headers, PERFORMANCE_HAWK_CREDENTIALS)
+    return requests.get(url, headers=headers, hawk_credentials=HAWK_LITE_PERFORMANCE_CREDENTIALS)
 
 
 def post(appended_address, request_data, headers=None):
     url = _build_absolute_uri(appended_address)
-    return requests.post(url, request_data, headers, PERFORMANCE_HAWK_CREDENTIALS)
+    return requests.post(url, request_data, headers=headers, hawk_credentials=HAWK_LITE_PERFORMANCE_CREDENTIALS)
 
 
 def _build_absolute_uri(appended_address):
