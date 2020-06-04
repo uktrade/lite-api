@@ -22,7 +22,7 @@ class Licence(TimestampableModel):
         super(Licence, self).save(*args, **kwargs)
 
         if LITE_HMRC_INTEGRATION_ENABLED and self.is_complete:
-            self.send_to_hmrc_integration()
+        self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
         from licences.tasks import schedule_licence_for_hmrc_integration
