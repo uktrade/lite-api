@@ -8,9 +8,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseDocumentState
 from cases.generated_documents.helpers import (
-    html_to_pdf,
     get_generated_document_data,
-    auto_generate_case_document,
     html_to_pdf,
 )
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -19,14 +17,10 @@ from cases.generated_documents.serializers import (
     GeneratedCaseDocumentExporterSerializer,
 )
 from cases.libraries.delete_notifications import delete_exporter_notifications
-from cases.libraries.get_case import get_case
-import datetime
-from cases.models import Case, CaseDocument
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.decorators import authorised_to_view_application
 from conf.helpers import str_to_bool
 from documents.libraries import s3_operations
-from letter_templates.helpers import generate_preview
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.enums import UserType
