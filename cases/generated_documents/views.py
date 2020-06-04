@@ -17,6 +17,7 @@ from cases.generated_documents.serializers import (
     GeneratedCaseDocumentExporterSerializer,
 )
 from cases.libraries.delete_notifications import delete_exporter_notifications
+from cases.models import Case
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.decorators import authorised_to_view_application
 from conf.helpers import str_to_bool
