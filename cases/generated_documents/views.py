@@ -65,7 +65,9 @@ class GeneratedDocuments(generics.ListAPIView):
         try:
             pdf = html_to_pdf(request, document.document_html, document.template.layout.filename)
         except Exception:  # noqa
-            return JsonResponse({"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse(
+                {"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key
@@ -102,7 +104,10 @@ class GeneratedDocuments(generics.ListAPIView):
 
                 s3_operations.upload_bytes_file(raw_file=pdf, s3_key=s3_key)
         except Exception:  # noqa
-            return JsonResponse({"errors": [strings.Cases.GeneratedDocuments.UPLOAD_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse(
+                {"errors": [strings.Cases.GeneratedDocuments.UPLOAD_ERROR]},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return JsonResponse(data={"generated_document": str(generated_doc.id)}, status=status.HTTP_201_CREATED)
 
