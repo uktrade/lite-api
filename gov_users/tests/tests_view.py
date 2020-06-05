@@ -67,6 +67,14 @@ class GovUserViewTests(DataTestClient):
             self.assertTrue(str(user.id) in [user["id"] for user in response_data])
             self.assertTrue(user.email in [user["email"] for user in response_data])
 
+    def test_filter_users_by_email(self):
+        response = self.client.get(reverse("gov_users:gov_users") + "?email=" + self.gov_user.email, **self.gov_headers,)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(str(self.gov_user.id) in [user["id"] for user in response_data])
+        self.assertTrue(self.gov_user.email in [user["email"] for user in response_data])
+
     def test_get_all_user_statuses(self):
         response = self.client.get(reverse("gov_users:gov_users") + f"?status=", **self.gov_headers)
         response_data = response.json()["results"]
