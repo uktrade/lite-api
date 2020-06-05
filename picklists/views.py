@@ -42,7 +42,7 @@ class PickListsView(OptionalPaginationView):
 
         picklist_type = self.request.GET.get("type")
         name = self.request.GET.get("name")
-        show_deactivated = str_to_bool(self.request.GET.get("show_deactivated"))
+        show_deactivated = self.request.GET.get("show_deactivated", True)
         ids = self.request.GET.get("ids")
 
         if picklist_type:
