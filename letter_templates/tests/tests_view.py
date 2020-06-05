@@ -28,6 +28,15 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertIn(CaseTypeReferenceEnum.GQY, case_types)
         self.assertIn(CaseTypeReferenceEnum.EUA, case_types)
 
+    def test_filter_letter_templates_success(self):
+        url = reverse("letter_templates:letter_templates") + "?name=" + self.letter_template.name
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertTrue(self.letter_template.name in [template["name"] for template in response_data])
+        self.assertTrue(str(self.letter_template.id) in [template["id"] for template in response_data])
+
     def test_get_letter_templates_for_case_success(self):
         url = reverse("letter_templates:letter_templates")
         self.letter_template.case_types.set([CaseTypeEnum.SIEL.id])
