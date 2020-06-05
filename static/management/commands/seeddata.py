@@ -120,7 +120,7 @@ class ActionBase:
 
     @staticmethod
     def app_factory(org, applications_to_add, max_goods_to_use):
-        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use,)
+        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use, )
         return len(submitted_applications)
 
     @staticmethod
@@ -211,7 +211,6 @@ class ActionEndUserAdvisory(ActionBase):
 
         orgs = [org for org in organisations if org.id not in org_eua_data]
 
-
         jobs = [(self.add_end_user_advisory, organisation) for organisation in orgs]
         results = [application for application in self.get_mapper(mt)(ActionBase.do_work, jobs)]
 
@@ -237,8 +236,8 @@ class ActionUser(ActionBase):
         if org_uuid == "all":
             membership = (
                 UserOrganisationRelationship.objects.select_related("organisation")
-                .filter(user=exporter_user)
-                .values_list("organisation_id")
+                    .filter(user=exporter_user)
+                    .values_list("organisation_id")
             )
             organisations = Organisation.objects.all()
             ids_to_add = set([org.id for org in organisations]) - set(membership)
