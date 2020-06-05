@@ -90,6 +90,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         self.assertEqual(
             data["organisation"],
             {
+                "id": str(organisation.id),
                 "name": organisation.name,
                 "address": {
                     "line_1": organisation.primary_site.name,
@@ -318,13 +319,13 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id), schedule=TASK_BACK_OFF)
 
 
+@mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
 @mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
 class HMRCIntegrationTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
 
-    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
     @mock.patch("conf.requests.requests.request")
     def test_approve_standard_application_licence_success(self, request):
         request.return_value = MockResponse("", 201)
@@ -344,9 +345,9 @@ class HMRCIntegrationTests(DataTestClient):
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
-    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
     @mock.patch("conf.requests.requests.request")
     def test_approve_open_application_licence_success(self, request):
+        request.return_value = MockResponse("", 201)
         open_application, open_licence = self._create_licence_for_submission(self.create_open_application_case)
 
         url = reverse("cases:finalise", kwargs={"pk": open_application.id})

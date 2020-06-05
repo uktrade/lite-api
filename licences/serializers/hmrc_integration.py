@@ -29,6 +29,7 @@ class HMRCIntegrationAddressSerializer(serializers.Serializer):
 
 
 class HMRCIntegrationOrganisationSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
     name = serializers.CharField()
     address = serializers.SerializerMethodField()
 
