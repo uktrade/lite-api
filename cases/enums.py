@@ -317,3 +317,25 @@ class ECJUQueryType:
         (PRE_VISIT_QUESTIONNAIRE, "Pre-visit question"),
         (COMPLIANCE_ACTIONS, "Compliance action"),
     ]
+
+
+class EnforcementXMLEntityTypes:
+    APPLICATION = "application"
+    END_USER = "end_user"
+    CONSIGNEE = "consignee"
+    ULTIMATE_END_USER = "ultimate_end_user"
+    ADDITIONAL_CONTACT = "additional_contact"
+    THIRD_PARTY = "third_party"
+    SITE = "site"
+    ORGANISATION = "organisation"
+
+    choices = [
+        (APPLICATION, "application"),
+        (END_USER, "end_user"),
+        (CONSIGNEE, "consignee"),
+        (ULTIMATE_END_USER, "ultimate_end_user"),
+        (THIRD_PARTY, "third_party"),
+        (ADDITIONAL_CONTACT, "additional_contact"),
+        (SITE, "site"),
+        (ORGANISATION, "organisation"),
+    ]
