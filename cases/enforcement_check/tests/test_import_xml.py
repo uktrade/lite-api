@@ -30,10 +30,10 @@ class ImportXML(DataTestClient):
 
     @staticmethod
     def _build_test_xml(items):
-        xml = "<SPIRE_UPLOAD>"
+        xml = "<SPIRE_UPLOAD_FILE>"
         for item in items:
             xml += f"<SPIRE_RETURNS><CODE1>{item['code1']}</CODE1><CODE2>{item['code2']}</CODE2><FLAG>{item['flag']}</FLAG></SPIRE_RETURNS>"
-        return xml + "</SPIRE_UPLOAD>"
+        return xml + "</SPIRE_UPLOAD_FILE>"
 
     def test_import_xml_parties_match_success(self):
         xml = self._build_test_xml(
@@ -131,14 +131,14 @@ class ImportXML(DataTestClient):
 
     @parameterized.expand(
         [
-            "<SPIRE_RETURNS><CODE1>1</CODE1><CODE2>2</CODE2><FLAG>Y</FLAG></SPIRE_RETURNS>",  # no SPIRE_UPLOAD
-            "<SPIRE_UPLOAD><CODE1>1</CODE1><CODE2>2</CODE2><FLAG>Y</FLAG></SPIRE_UPLOAD>",  # no SPIRE_RETURNS
-            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE2></CODE2><FLAG>Y</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # no CODE1
-            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1></CODE1><FLAG>Y</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # no CODE2
-            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1></CODE1><CODE2></CODE2></SPIRE_RETURNS></SPIRE_UPLOAD>",  # no FLAG
-            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1></CODE1><CODE2></CODE2><FLAG>Y</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # missing CODEs
-            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1>1</CODE1><CODE2>2</CODE2><FLAG></FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # missing FLAG
-            "<SPIRE_UPLOAD><SPIRE_RETURNS><CODE1>1</CODE1><CODE2>2</CODE2><FLAG>a</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD>",  # invalid FLAG
+            "<SPIRE_RETURNS><CODE1>1</CODE1><CODE2>2</CODE2><FLAG>Y</FLAG></SPIRE_RETURNS>",  # no SPIRE_UPLOAD_FILE
+            "<SPIRE_UPLOAD_FILE><CODE1>1</CODE1><CODE2>2</CODE2><FLAG>Y</FLAG></SPIRE_UPLOAD_FILE>",  # no SPIRE_RETURNS
+            "<SPIRE_UPLOAD_FILE><SPIRE_RETURNS><CODE2></CODE2><FLAG>Y</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD_FILE>",  # no CODE1
+            "<SPIRE_UPLOAD_FILE><SPIRE_RETURNS><CODE1></CODE1><FLAG>Y</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD_FILE>",  # no CODE2
+            "<SPIRE_UPLOAD_FILE><SPIRE_RETURNS><CODE1></CODE1><CODE2></CODE2></SPIRE_RETURNS></SPIRE_UPLOAD_FILE>",  # no FLAG
+            "<SPIRE_UPLOAD_FILE><SPIRE_RETURNS><CODE1></CODE1><CODE2></CODE2><FLAG>Y</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD_FILE>",  # missing CODEs
+            "<SPIRE_UPLOAD_FILE><SPIRE_RETURNS><CODE1>1</CODE1><CODE2>2</CODE2><FLAG></FLAG></SPIRE_RETURNS></SPIRE_UPLOAD_FILE>",  # missing FLAG
+            "<SPIRE_UPLOAD_FILE><SPIRE_RETURNS><CODE1>1</CODE1><CODE2>2</CODE2><FLAG>a</FLAG></SPIRE_RETURNS></SPIRE_UPLOAD_FILE>",  # invalid FLAG
         ]
     )
     def test_import_xml_incorrect_xml_format_failure(self, xml):

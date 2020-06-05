@@ -17,8 +17,6 @@ from users.enums import SystemUser
 from users.models import BaseUser
 from workflow.user_queue_assignment import user_queue_assignment_workflow
 
-BASE_TAG = "SPIRE_UPLOAD"
-ENTITY_TAG = "SPIRE_RETURNS"
 APPLICATION_ID_TAG = "CODE1"
 ENTITY_ID_TAG = "CODE2"
 FLAG_TAG = "FLAG"
