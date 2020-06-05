@@ -41,6 +41,7 @@ def scan_document_for_viruses(document_id, scheduled_as_background_task=True):
 
 def _handle_exception(message: str, document, scheduled_as_background_task):
     logging.warning(message)
+    error_message = f"Failed to scan document '{document.id}'"
 
     if scheduled_as_background_task:
         try:
@@ -56,10 +57,12 @@ def _handle_exception(message: str, document, scheduled_as_background_task):
             if current_attempt >= MAX_ATTEMPTS:
                 logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for document '{document.id}' has been reached")
                 document.delete_s3()
+
+            error_message += f"; attempt number {current_attempt}"
     else:
         document.delete_s3()
 
     # Raise an exception.
     # This will result in a serializer error or
     # cause the task to be marked as 'Failed' and retried if there are retry attempts left
-    raise Exception(f"Failed to scan document '{document.id}'")
+    raise Exception(error_message)

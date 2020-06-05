@@ -1,6 +1,6 @@
 from unittest import mock
 
-from conf.requests import get, post, put, make_request, send_request
+from conf.requests import get, post, put, delete, make_request, send_request
 from test_helpers.clients import DataTestClient
 
 
@@ -40,6 +40,14 @@ class RequestsTests(DataTestClient):
         make_request.assert_called_with(
             "PUT", "url", data={"data": "stuff"}, headers=None, hawk_credentials="fake-id", timeout=5
         )
+
+    @mock.patch("conf.requests.make_request")
+    def test_delete_calls_make_requests(self, make_request):
+        make_request.return_value = None
+
+        delete("url", headers=None, hawk_credentials="fake-id", timeout=5)
+
+        make_request.assert_called_with("DELETE", "url", headers=None, hawk_credentials="fake-id", timeout=5)
 
     @mock.patch("conf.requests.HAWK_AUTHENTICATION_ENABLED", False)
     @mock.patch("conf.requests.send_request")

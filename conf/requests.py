@@ -34,11 +34,18 @@ def put(url, data, headers=None, hawk_credentials=None, timeout=None):
     return make_request("PUT", url, data=data, headers=headers, hawk_credentials=hawk_credentials, timeout=timeout)
 
 
+def delete(url, headers=None, hawk_credentials=None, timeout=None):
+    return make_request("DELETE", url, headers=headers, hawk_credentials=hawk_credentials, timeout=timeout)
+
+
 def make_request(method, url, data=None, headers=None, hawk_credentials=None, timeout=None):
     headers = headers or {}  # If no headers are supplied, default to an empty dictionary
     headers["content-type"] = "application/json"
 
     if HAWK_AUTHENTICATION_ENABLED:
+        if not hawk_credentials:
+            raise RequestException("'hawk_credentials' must be specified when 'HAWK_AUTHENTICATION_ENABLED' is 'True'")
+
         sender = get_hawk_sender(method, url, data, hawk_credentials)
         headers["hawk-authentication"] = sender.request_header
 
