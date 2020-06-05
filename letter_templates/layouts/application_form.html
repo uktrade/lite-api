@@ -56,7 +56,6 @@
 				{% elif case_type.reference == "cre"%}
 					HMRC Query
 				{% endif %}
-
 			</td>
 		</tr>
 		{% if details.goodstype_category %}
@@ -232,6 +231,8 @@
 						<th scope="col" class="govuk-table__header">Quantity</th>
 						<th scope="col" class="govuk-table__header">Value</th>
 					{% endif %}
+				{% if case_type.reference != "cre" and case_type.reference != "oiel" and case_type.reference != "oicl" %}
+					<th scope="col" class="govuk-table__header">Incorporated</th>
 				</tr>
 			</thead>
 			<tbody class="govuk-table__body">
@@ -253,6 +254,9 @@
 						{% elif good.applied_for_quantity %}
 							<td class="govuk-table__cell">{{ good.applied_for_quantity }}</td>
 							<td class="govuk-table__cell">{{ good.applied_for_value }}</td>
+						{% endif %}
+						{% if case_type.reference != "cre" and case_type.reference != "oiel" and case_type.reference != "oicl" %}
+							<td class="govuk-table__cell">{{ good.is_incorporated }}</td>
 						{% endif %}
 					</tr>
 				{% endfor %}
