@@ -13,8 +13,6 @@ from letter_templates.helpers import get_css_location, generate_preview
 from letter_templates.models import LetterTemplate
 from lite_content.lite_api import strings
 
-import datetime
-
 font_config = FontConfiguration()
 GeneratedDocumentPayload = namedtuple("GeneratedDocumentPayload", "case template document_html text")
 
@@ -30,7 +28,7 @@ def auto_generate_case_document(layout, case, document_name):
     pdf = html_to_pdf(html, layout)
     s3_key = s3_operations.generate_s3_key(layout, "pdf")
     CaseDocument.objects.create(
-        name=f"{document_name} - {datetime.datetime.now()}.pdf",
+        name=f"{document_name} - {timezone.now()}.pdf",
         s3_key=s3_key,
         virus_scanned_at=timezone.now(),
         safe=True,

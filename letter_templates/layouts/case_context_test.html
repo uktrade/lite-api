@@ -5,12 +5,19 @@
 	<h2>Core properties</h2>
 	<ul>
 		<li><b>case_reference:</b> {{ case_reference }}</li>
-		<li><b>case_type.type:</b> {{ case_type.type }}</li>
-		<li><b>case_type.sub_type:</b> {{ case_type.sub_type }}</li>
-		<li><b>case_type.reference:</b> {{ case_type.reference }}</li>
 		<li><b>current_date:</b> {{ current_date }}</li>
 		<li><b>current_time:</b> {{ current_time }}</li>
 	</ul>
+	{% if case_type %}
+		<h2>Case type</h2>
+		<ul>
+			<li><b>case type:</b>
+				<ul>
+					{{ case_type|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
 	{% if details %}
 		<h2>Details</h2>
 		<ul>
