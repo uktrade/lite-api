@@ -1,11 +1,9 @@
 import json
-from unittest import mock
 
 from django.urls import reverse
 from rest_framework import status
 
 from cases.models import EcjuQuery
-from gov_notify.enums import TemplateType
 from picklists.enums import PicklistType
 from test_helpers.clients import DataTestClient
 
@@ -132,8 +130,7 @@ class CaseEcjuQueriesTests(DataTestClient):
 
 
 class EcjuQueriesCreateTest(DataTestClient):
-    @mock.patch("gov_notify.service.client")
-    def test_gov_user_can_create_ecju_queries(self, mock_client):
+    def test_gov_user_can_create_ecju_queries(self):
         """
         Given a Case
         When a gov user adds an ECJU query to the case with valid data
@@ -150,10 +147,8 @@ class EcjuQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Test ECJU Query question?", ecju_query.question)
-        mock_client.send_email.assert_not_called()
 
-    @mock.patch("gov_notify.service.client")
-    def test_gov_user_can_create_ecju_queries_on_query_cases(self, mock_client):
+    def test_gov_user_can_create_ecju_queries_on_query_cases(self):
         """
         Given a query case
         When a gov user adds an ECJU query to the case with valid data
@@ -171,7 +166,6 @@ class EcjuQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(str(ecju_query.id), response_data["ecju_query_id"])
         self.assertEqual(ecju_query.question, data["question"])
-        mock_client.send_email.assert_not_called()
 
     def test_bad_data_create_fail(self):
         """

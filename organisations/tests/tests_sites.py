@@ -2,8 +2,6 @@ from faker import Faker
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from audit_trail.models import Audit
-from lite_content.lite_api import strings
 from organisations.models import Site
 from organisations.tests.factories import OrganisationFactory
 from test_helpers.clients import DataTestClient
@@ -78,76 +76,6 @@ class OrganisationSitesTests(DataTestClient):
 
         data = {
             "name": "regional site",
-            "records_located_step": True,
-            "site_records_stored_here": True,
-            "address": {
-                "address_line_1": "a street",
-                "city": "london",
-                "postcode": "E14GH",
-                "region": "Hertfordshire",
-            },
-        }
-
-        response = self.client.post(url, data, **self.gov_headers)
-        site = response.json()["site"]
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
-        # Assert that 'site_records_located_at_name' is set to the site being created
-        self.assertEqual(site["site_records_located_at_name"], data["name"])
-        self.assertEqual(Audit.objects.count(), 1)
-
-    def test_add_uk_site_no_site_record_location_error(self):
-        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
-
-        data = {
-            "name": "regional site",
-            "records_located_step": True,
-            "address": {
-                "address_line_1": "a street",
-                "city": "london",
-                "postcode": "E14GH",
-                "region": "Hertfordshire",
-            },
-        }
-
-        response = self.client.post(url, data, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"site_records_stored_here": [strings.Site.NO_RECORDS_LOCATED_AT]})
-        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
-        self.assertEqual(Audit.objects.count(), 0)
-
-    def test_add_uk_site_site_record_location_no_and_not_selected_error(self):
-        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
-
-        data = {
-            "name": "regional site",
-            "records_located_step": True,
-            "site_records_stored_here": False,
-            "address": {
-                "address_line_1": "a street",
-                "city": "london",
-                "postcode": "E14GH",
-                "region": "Hertfordshire",
-            },
-        }
-
-        response = self.client.post(url, data, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"site_records_located_at": [strings.Site.NO_SITE_SELECTED]})
-        self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 1)
-        self.assertEqual(Audit.objects.count(), 0)
-
-    def test_add_uk_site_with_records_held_at_another_site_success(self):
-        url = reverse("organisations:sites", kwargs={"org_pk": self.organisation.id})
-
-        data = {
-            "name": "regional site",
-            "records_located_step": True,
-            "site_records_stored_here": "False",
-            "site_records_located_at": self.organisation.primary_site.id,
             "address": {
                 "address_line_1": "a street",
                 "city": "london",
@@ -160,8 +88,6 @@ class OrganisationSitesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
-        self.assertEqual(response.json()["site"]["site_records_located_at_name"], self.organisation.primary_site.name)
-        self.assertEqual(Audit.objects.count(), 1)
 
     def test_add_uk_site_and_assign_users(self):
         exporter_user = self.create_exporter_user(self.organisation)
@@ -267,43 +193,3 @@ class SitesUpdateTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertNotEqual(self.organisation.primary_site.name, self.data["name"])
-
-    def test_edit_site_records_location_not_set_failure(self):
-        self.data = {}
-        response = self.client.patch(self.url, self.data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"site_records_stored_here": [strings.Site.NO_RECORDS_LOCATED_AT]})
-
-    def test_edit_site_records_held_at_another_location_site_not_chosen_failure(self):
-        self.data = {"site_records_stored_here": False}
-        response = self.client.patch(self.url, self.data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], {"site_records_located_at": [strings.Site.NO_SITE_SELECTED]})
-
-    def test_edit_site_name_site_already_used_on_an_application_failure(self):
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        self.organisation.primary_site.is_used_on_application = True
-        self.organisation.primary_site.save()
-
-        response = self.client.patch(self.url, self.data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertNotEqual(self.organisation.primary_site.name, self.data["name"])
-        self.assertEqual(
-            response.json()["errors"], {"site_records_stored_here": [strings.Site.CANNOT_CHANGE_SITE_IF_ALREADY_IN_USE]}
-        )
-
-    def test_edit_site_records_location_site_already_used_on_an_application_failure(self):
-        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
-        self.organisation.primary_site.is_used_on_application = True
-        self.organisation.primary_site.save()
-        self.data = {"records_located_step": True, "site_records_stored_here": True}
-
-        response = self.client.patch(self.url, self.data, **self.exporter_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"], {"site_records_stored_here": [strings.Site.CANNOT_CHANGE_SITE_IF_ALREADY_IN_USE]}
-        )

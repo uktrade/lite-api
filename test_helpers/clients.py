@@ -510,7 +510,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         goods_query.save()
         return goods_query
 
-    def create_clc_query(self, description, organisation) -> GoodsQuery:
+    @staticmethod
+    def create_clc_query(description, organisation) -> GoodsQuery:
         good = DataTestClient.create_good(
             description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
         )
@@ -522,7 +523,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             submitted_at=django.utils.timezone.now(),
-            submitted_by=self.exporter_user,
         )
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         clc_query.save()

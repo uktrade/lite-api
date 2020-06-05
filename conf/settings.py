@@ -20,9 +20,6 @@ env = Env(
     HAWK_AUTHENTICATION_ENABLED=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
-    ENV=(str, "dev"),
-    EXPORTER_BASE_URL=(str, ""),
-    GOV_NOTIFY_ENABLED=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -241,15 +238,3 @@ RECENTLY_UPDATED_WORKING_DAYS = env(
 SECURE_BROWSER_XSS_FILTER = True
 
 STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")
-
-
-GOV_NOTIFY_ENABLED = env("GOV_NOTIFY_ENABLED")
-
-GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
-
-ENV = env("ENV")
-
-# If EXPORTER_BASE_URL is not provided, render the base_url using the environment
-EXPORTER_BASE_URL = (
-    env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
-)

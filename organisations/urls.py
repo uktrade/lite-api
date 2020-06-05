@@ -26,5 +26,4 @@ urlpatterns = [
     path("<uuid:org_pk>/roles/<uuid:pk>/", roles.RoleDetail.as_view(), name="role"),
     path("permissions/", roles.PermissionsView.as_view(), name="permissions"),
     path("<uuid:pk>/activity/", activities.OrganisationActivityView.as_view(), name="activities"),
-    path("<uuid:pk>/sites-activity/", activities.SitesActivityView.as_view(), name="sites-activity"),
 ]

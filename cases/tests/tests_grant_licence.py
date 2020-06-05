@@ -1,9 +1,8 @@
 from unittest import mock
-from django.conf import settings
+
 from django.urls import reverse
 from rest_framework import status
 
-from gov_notify.enums import TemplateType
 from licences.models import Licence
 from audit_trail.models import Audit
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
@@ -30,9 +29,8 @@ class FinaliseCaseTests(DataTestClient):
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
 
-    @mock.patch("gov_notify.service.client")
     @mock.patch("cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
-    def test_grant_standard_application_success(self, send_exporter_notifications_func, mock_notify_client):
+    def test_grant_standard_application_success(self, send_exporter_notifications_func):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         licence = self.create_licence(self.standard_case, is_complete=False)
         self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
@@ -56,16 +54,6 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(Audit.objects.count(), 3)
         send_exporter_notifications_func.assert_called()
 
-        mock_notify_client.send_email.assert_called_with(
-            email_address=self.standard_case.submitted_by.email,
-            template_id=TemplateType.APPLICATION_STATUS.template_id,
-            data={
-                "case_reference": self.standard_case.reference_code,
-                "application_reference": self.standard_case.name,
-                "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_case.pk}",
-            },
-        )
-
     def test_grant_standard_application_wrong_permission_failure(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
         self.create_licence(self.standard_case, is_complete=False)
@@ -85,9 +73,8 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {"errors": [Cases.Licence.MISSING_DOCUMENTS]})
 
-    @mock.patch("gov_notify.service.client")
     @mock.patch("cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
-    def test_grant_clearance_success(self, send_exporter_notifications_func, mock_notify_client):
+    def test_grant_clearance_success(self, send_exporter_notifications_func):
         clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(clearance_case)
         self.create_advice(self.gov_user, clearance_case, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
@@ -116,16 +103,6 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(Audit.objects.count(), 4)
         send_exporter_notifications_func.assert_called()
 
-        mock_notify_client.send_email.assert_called_with(
-            email_address=clearance_case.submitted_by.email,
-            template_id=TemplateType.APPLICATION_STATUS.template_id,
-            data={
-                "case_reference": clearance_case.reference_code,
-                "application_reference": clearance_case.name,
-                "link": f"{settings.EXPORTER_BASE_URL}/applications/{clearance_case.pk}",
-            },
-        )
-
     def test_grant_clearance_wrong_permission_failure(self):
         clearance_case = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.EXHIBITION)
         self.submit_application(clearance_case)
@@ -140,8 +117,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.json(), {"errors": {"error": PermissionDeniedError.default_detail}})
 
-    @mock.patch("gov_notify.service.client")
-    def test_finalise_case_without_licence_success(self, mock_notify_client):
+    def test_finalise_case_without_licence_success(self):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
 
@@ -149,13 +125,3 @@ class FinaliseCaseTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json(), {"case": str(self.standard_case.pk)})
-
-        mock_notify_client.send_email.assert_called_with(
-            email_address=self.standard_case.submitted_by.email,
-            template_id=TemplateType.APPLICATION_STATUS.template_id,
-            data={
-                "case_reference": self.standard_case.reference_code,
-                "application_reference": self.standard_case.name,
-                "link": f"{settings.EXPORTER_BASE_URL}/applications/{self.standard_case.pk}",
-            },
-        )

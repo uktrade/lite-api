@@ -72,10 +72,8 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
         )
 
     def get_goods_types(self, application):
-        goods_types = application.goods_type.all().prefetch_related("countries", "countries__flags")
-        default_countries = list(
-            Country.include_special_countries.filter(countries_on_application__application_id=application.id)
-        )
+        goods_types = application.goods_type.all().prefetch_related("countries")
+        default_countries = Country.include_special_countries.filter(countries_on_application__application=application)
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
     def get_goodstype_category(self, instance):
@@ -89,8 +87,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
             countries = CountryOnApplication.objects.filter(application=application)
         else:
             countries = (
-                CountryOnApplication.objects.select_related("country")
-                .prefetch_related("country__flags", "flags")
+                CountryOnApplication.objects.prefetch_related("country__flags", "flags", "country")
                 .filter(application=application)
                 .annotate(
                     highest_flag_priority=Min("country__flags__priority"),
@@ -101,11 +98,9 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 .order_by("-contains_flags", "highest_flag_priority", "country__name")
             )
 
-        data = CountryOnApplicationViewSerializer(
-            countries, many=True, context={"active_flags_only": True}, read_only=True
-        ).data
+        serializer = CountryOnApplicationViewSerializer(countries, many=True, context={"active_flags_only": True})
 
-        return {"type": "countries", "data": data}
+        return {"type": "countries", "data": serializer.data}
 
     def get_licence(self, instance):
         licence = Licence.objects.filter(application=instance).first()
@@ -280,11 +275,9 @@ class CountryOnApplicationViewSerializer(serializers.Serializer):
 
     def get_country(self, instance):
         if self.context.get("active_flags_only"):
-            return CountryWithFlagsSerializer(
-                instance.country, context={"with_active_flags": True}, read_only=True
-            ).data
+            return CountryWithFlagsSerializer(instance.country, context={"with_active_flags": True}).data
         else:
-            return CountrySerializer(instance.country, read_only=True).data
+            return CountrySerializer(instance.country).data
 
     def get_flags(self, instance):
         return list(instance.flags.values("id", "name"))

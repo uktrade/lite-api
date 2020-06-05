@@ -25,12 +25,12 @@ from users.models import Role, GovUser
 
 
 class GoodsQueryManageStatusTests(DataTestClient):
-    @parameterized.expand([["create_clc_query"], ["create_pv_grading_query"]])
-    def test_set_query_status_to_withdrawn_removes_case_from_queues_users_and_updates_status_success(self, cls_func):
+    @parameterized.expand([[DataTestClient.create_clc_query], [DataTestClient.create_pv_grading_query]])
+    def test_set_query_status_to_withdrawn_removes_case_from_queues_users_and_updates_status_success(self, query):
         """
         When a case is set to a terminal status, its assigned users, case officer and queues should be removed
         """
-        query = getattr(self, cls_func)("This is a widget", self.organisation)
+        query = query("This is a widget", self.organisation)
         query.case_officer = self.gov_user
         query.save()
         query.queues.set([self.queue])
