@@ -348,9 +348,8 @@ def _get_good_context(good_on_application, advice=None):
     if good_on_application.licenced_value:
         good_context["value"] = f"£{good_on_application.licenced_value}"
     if good_on_application.item_type:
-        good_context.update(
-            {"item_type": good_on_application.item_type, "other_item_type": good_on_application.other_item_type,}
-        )
+        good_context["item_type"] = good_on_application.item_type
+        good_context["other_item_type"] = good_on_application.other_item_type
 
     return good_context
 

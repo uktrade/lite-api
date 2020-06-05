@@ -11,7 +11,7 @@ from applications.models import ExternalLocationOnApplication, CountryOnApplicat
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
-from goods.enums import PvGrading
+from goods.enums import PvGrading, ItemType
 from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
 from static.countries.models import Country
@@ -81,6 +81,8 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertTrue(Units.choices_as_dict[good_on_application.unit] in context["applied_for_quantity"])
         self.assertEqual(context["applied_for_value"], f"£{good_on_application.value}")
         self.assertEqual(context["is_incorporated"], friendly_boolean(good_on_application.is_good_incorporated))
+        self.assertEqual(context["item_type"], good_on_application.item_type)
+        self.assertEqual(context["other_item_type"], good_on_application.other_item_type)
 
     def _assert_good_with_advice(self, context, advice, good_on_application):
         goods = context[advice.type if advice.type != AdviceType.PROVISO else AdviceType.APPROVE]
@@ -94,7 +96,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def _assert_goods_type(self, context, goods_type):
         self.assertTrue(goods_type.description in [item["description"] for item in context["all"]])
-        self.assertTrue(goods_type.is_good_controlled == item["is_controlled"] for item in context["all"])
+        self.assertTrue(friendly_boolean(goods_type.is_good_controlled) in [item["is_controlled"] for item in context["all"]])
         self.assertTrue(
             goods_type.description
             in [item["description"] for item in context["countries"][goods_type.countries.first().name]]
@@ -461,6 +463,10 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_exhibition_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
         case.reason_for_clearance = "abc"
+        good = case.goods.first()
+        good.item_type = ItemType.BROCHURE
+        good.other_item_type = "abc"
+        good.save()
         case.save()
 
         context = get_document_context(case)
@@ -468,6 +474,8 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_case_type_details(context["case_type"], case)
         self._assert_exhibition_clearance_details(context["details"], case)
+        self._assert_good(context["goods"]["all"][0], good)
+
 
     def test_generate_context_with_f680_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
