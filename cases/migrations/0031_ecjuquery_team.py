@@ -7,14 +7,14 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('teams', '0002_auto_20200307_1805'),
-        ('cases', '0030_auto_20200601_1433'),
+        ("teams", "0002_auto_20200307_1805"),
+        ("cases", "0030_auto_20200601_1433"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='ecjuquery',
-            name='team',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='teams.Team'),
+            model_name="ecjuquery",
+            name="team",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="teams.Team"),
         ),
     ]
