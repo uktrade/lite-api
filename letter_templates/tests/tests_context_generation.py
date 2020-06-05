@@ -96,7 +96,9 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def _assert_goods_type(self, context, goods_type):
         self.assertTrue(goods_type.description in [item["description"] for item in context["all"]])
-        self.assertTrue(friendly_boolean(goods_type.is_good_controlled) in [item["is_controlled"] for item in context["all"]])
+        self.assertTrue(
+            friendly_boolean(goods_type.is_good_controlled) in [item["is_controlled"] for item in context["all"]]
+        )
         self.assertTrue(
             goods_type.description
             in [item["description"] for item in context["countries"][goods_type.countries.first().name]]
@@ -475,7 +477,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_case_type_details(context["case_type"], case)
         self._assert_exhibition_clearance_details(context["details"], case)
         self._assert_good(context["goods"]["all"][0], good)
-
 
     def test_generate_context_with_f680_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)

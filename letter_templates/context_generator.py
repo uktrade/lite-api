@@ -473,5 +473,5 @@ def _get_destination_context(destination):
     return {
         "country": {"code": destination.country.id, "name": destination.country.name,},
         "contract_types": destination.contract_types,
-        "other_contract_type": destination.other_contract_type_text
+        "other_contract_type": destination.other_contract_type_text,
     }
