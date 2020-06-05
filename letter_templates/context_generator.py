@@ -474,6 +474,9 @@ def _get_temporary_export_details(application):
 def _get_destination_context(destination):
     return {
         "country": {"code": destination.country.id, "name": destination.country.name,},
-        "contract_types": destination.contract_types,
-        "other_contract_type": destination.other_contract_type_text,
+        **(
+            {"contract_types": destination.contract_types, "other_contract_type": destination.other_contract_type_text,}
+            if destination.contract_types or destination.other_contract_type_text
+            else {}
+        ),
     }
