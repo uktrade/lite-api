@@ -11,6 +11,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from lite_content.lite_api.strings import ExternalLocations, Applications
 from organisations.models import Site
+from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 TRADING = "Trading"
@@ -58,7 +59,7 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
         if difference:
             raise ValidationError({"sites": ["Sites have to be in the same country on minor edits"]})
 
-    removed_sites = sites_on_application.exclude(site__id__in=new_sites)
+    removed_sites_on_application = sites_on_application.exclude(site__id__in=new_sites)
     added_sites = new_sites.exclude(id__in=sites_on_application.values_list("site__id", flat=True))
     removed_locations = ExternalLocationOnApplication.objects.filter(application=application)
 
@@ -66,15 +67,38 @@ def add_sites_to_application(user: ExporterUser, new_sites: Union[QuerySet, List
         user=user,
         application=application,
         removed_locations=removed_locations,
-        removed_sites=removed_sites,
+        removed_sites=removed_sites_on_application,
         added_sites=added_sites,
     )
 
-    # Save the new sites
-    for site in added_sites:
-        SiteOnApplication.objects.create(site=site, application=application)
+    # Check if site has been removed and if it is no longer used on other applications set "is_used_on_application" to False
+    # Only do this for minor/major edits
+    if application.status.status != CaseStatusEnum.DRAFT:
+        removed_site_ids = removed_sites_on_application.values_list("site_id", flat=True)
+        if removed_site_ids:
+            sites_still_on_other_applications = (
+                SiteOnApplication.objects.exclude(application=application)
+                .exclude(application__status__status="draft")
+                .filter(site__id__in=removed_site_ids)
+            )
+            removed_sites_no_longer_on_other_applications = removed_sites_on_application.exclude(
+                site__id__in=sites_still_on_other_applications.values_list("site_id", flat=True)
+            )
 
-    removed_sites.delete()
+            removed_sites = Site.objects.filter(
+                id__in=removed_sites_no_longer_on_other_applications.values_list("site_id", flat=True)
+            )
+            removed_sites.update(is_used_on_application=False)
+
+        # Set "is_used_on_application" to True for sites that have been added
+        added_sites.update(is_used_on_application=True)
+
+    # Save the new sites
+    SiteOnApplication.objects.bulk_create(
+        [SiteOnApplication(site=site, application=application) for site in added_sites]
+    )
+
+    removed_sites_on_application.delete()
     removed_locations.delete()
 
     # Update application activity
