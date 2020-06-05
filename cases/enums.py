@@ -302,8 +302,9 @@ class AdviceLevel:
 class CaseDocumentState:
     UPLOADED = "UPLOADED"
     GENERATED = "GENERATED"
+    AUTO_GENERATED = "AUTO_GENERATED"
 
-    choices = [(UPLOADED, "Uploaded"), (GENERATED, "Generated")]
+    choices = [(UPLOADED, "Uploaded"), (GENERATED, "Generated"), (AUTO_GENERATED, "Auto Generated")]
 
 
 class ECJUQueryType:

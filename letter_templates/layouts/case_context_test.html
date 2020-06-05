@@ -5,6 +5,9 @@
 	<h2>Core properties</h2>
 	<ul>
 		<li><b>case_reference:</b> {{ case_reference }}</li>
+		<li><b>case_type.type:</b> {{ case_type.type }}</li>
+		<li><b>case_type.sub_type:</b> {{ case_type.sub_type }}</li>
+		<li><b>case_type.reference:</b> {{ case_type.reference }}</li>
 		<li><b>current_date:</b> {{ current_date }}</li>
 		<li><b>current_time:</b> {{ current_time }}</li>
 	</ul>
@@ -148,6 +151,16 @@
 			<li><b>documents:</b>
 				<ul>
 					{{ documents|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if destinations %}
+		<h2>Destinations</h2>
+		<ul>
+			<li><b>destinations:</b>
+				<ul>
+					{{ destinations|context_data_to_list|safe }}
 				</ul>
 			</li>
 		</ul>
