@@ -587,7 +587,9 @@
 				<tr class="govuk-table__row">
 					<th scope="col" class="govuk-table__header">#</th>
 					<th scope="col" class="govuk-table__header">Name</th>
-					<th scope="col" class="govuk-table__header">Contract type</th>
+					{% if destination.contract_types %}
+						<th scope="col" class="govuk-table__header">Contract type</th>
+					{% endif %}
 				</tr>
 			</thead>
 			<tbody class="govuk-table__body">
@@ -595,7 +597,7 @@
 				<tr class="govuk-table__row">
 					<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
 					<td class="govuk-table__cell">{{ destination.country.name }}</td>
-					<td class="govuk-table__cell">{{ destination.contract_types|join:", "|remove_underscores|title }}{% if destination.other_contract_type %} - {{ destination.other_contract_type }}
+					<td class="govuk-table__cell">{% if destination.contract_types %}{{ destination.contract_types|join:", "|remove_underscores|title }}{% endif %}{% if destination.other_contract_type %} - {{ destination.other_contract_type }}
 						{% endif %}
 					</td>
 				</tr>
