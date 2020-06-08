@@ -647,7 +647,7 @@
 
 	{% if case_type.reference == "siel" or case_type.reference == "sitl" or case_type.reference == "sicl" or case_type.reference == "gift" or case_type.reference == "f680" or case_type.reference == "cre"%}
 		<h2 class="govuk-heading-m">Third parties</h2>
-		{% if not third_party %}
+		{% if not third_parties %}
 			<p class="govuk-hint">No information added to this section.</p>
 		{% else %}
 			<table class="govuk-table">
