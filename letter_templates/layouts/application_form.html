@@ -119,8 +119,8 @@
 					</th>
 					<td class="govuk-table__cell">
 						{% for category in details.trade_control_product_categories %}
+							{{ details.trade_control_product_categories|join:", "|remove_underscores|title }}
 						{% endfor %}
-						{{ details.trade_control_product_categories|join:", "|remove_underscores|title }}
 					</td>
 				</tr>
 			{% endif %}
@@ -148,7 +148,6 @@
 			</tr>
 		{% endif %}
 	</table>
-
 
 	{% if case_type.reference == "cre" %}
 		<h2 class="govuk-heading-m">Exporter</h2>
@@ -191,18 +190,24 @@
 					<td class="govuk-table__cell">
 						{{ details.exhibition_title }}
 					</td>
+				</tr>
+				<tr>
 					<th scope="row" class="govuk-table__header">
 						Exhibition start date
 					</th>
 					<td class="govuk-table__cell">
 						{{ details.first_exhibition_date }}
 					</td>
+				</tr>
+				<tr>
 					<th scope="row" class="govuk-table__header">
 						Required by
 					</th>
 					<td class="govuk-table__cell">
 						{{ details.required_by_date }}
 					</td>
+				</tr>
+				<tr>
 					<th scope="row" class="govuk-table__header">
 						Reason for clearance
 					</th>
@@ -250,7 +255,7 @@
 							{% if good.other_item_type %}
 								<td class="govuk-table__cell">{{ good.other_item_type }}</td>
 							{% else %}
-								<td class="govuk-table__cell">{{ good.item_type }}</td>
+								<td class="govuk-table__cell">{{ good.item_type|title }}</td>
 							{% endif %}
 						{% elif good.applied_for_quantity %}
 							<td class="govuk-table__cell">{{ good.applied_for_quantity }}</td>
