@@ -31,10 +31,10 @@ def get_generated_document_data(request_params, pk):
     if not text:
         raise AttributeError(strings.Cases.GeneratedDocuments.MISSING_TEXT)
 
-    addressee = request_params.get("addressee")
-    if addressee:
+    additional_contact = request_params.get("addressee")
+    if additional_contact:
         try:
-            addressee = Party.objects.get(type=PartyType.ADDITIONAL_CONTACT, id=addressee)
+            additional_contact = Party.objects.get(type=PartyType.ADDITIONAL_CONTACT, id=additional_contact)
         except ObjectDoesNotExist:
             raise AttributeError(strings.Cases.GeneratedDocuments.INVALID_ADDRESSEE)
 
@@ -43,7 +43,9 @@ def get_generated_document_data(request_params, pk):
         template = LetterTemplate.objects.get(pk=template_id, case_types=case.case_type)
     except LetterTemplate.DoesNotExist:
         raise NotFoundError({"letter_template": strings.Cases.GeneratedDocuments.LETTER_TEMPLATE_NOT_FOUND})
-    document_html = generate_preview(layout=template.layout.filename, text=text, case=case, addressee=addressee)
+    document_html = generate_preview(
+        layout=template.layout.filename, text=text, case=case, addressee=additional_contact
+    )
 
     if "error" in document_html:
         raise AttributeError(document_html["error"])
