@@ -394,6 +394,7 @@ class CaseEcjuQueries(APIView):
         data = JSONParser().parse(request)
         data["case"] = pk
         data["raised_by_user"] = request.user.id
+        data["team"] = request.user.team.id
         serializer = EcjuQueryCreateSerializer(data=data)
         if serializer.is_valid():
             if "validate_only" not in data or not data["validate_only"]:
@@ -426,7 +427,6 @@ class CaseEcjuQueries(APIView):
                 return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
-
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
