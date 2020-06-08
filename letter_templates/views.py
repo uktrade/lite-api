@@ -26,7 +26,6 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
 
     authentication_classes = (GovAuthentication,)
-    queryset = LetterTemplate.objects.all().prefetch_related("layout", "case_types")
 
     def get_serializer_class(self):
         if self.request.method == "GET":
@@ -36,16 +35,22 @@ class LetterTemplatesList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         case = self.request.GET.get("case")
+        name = self.request.GET.get("name")
         decision = self.request.GET.get("decision")
+        queryset = LetterTemplate.objects.all().prefetch_related("layout", "case_types")
+
         if decision:
             case = get_case(pk=case)
             decision = Decision.objects.get(name=decision)
-            return LetterTemplate.objects.filter(case_types=case.case_type, decisions=decision)
+            return queryset.filter(case_types=case.case_type, decisions=decision)
         elif case:
             case = get_case(pk=case)
-            return LetterTemplate.objects.filter(case_types=case.case_type, decisions__isnull=True)
-        else:
-            return self.queryset
+            return queryset.filter(case_types=case.case_type, decisions__isnull=True)
+
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+
+        return queryset
 
     def post(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
