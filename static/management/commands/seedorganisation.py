@@ -62,6 +62,10 @@ class Command(SeedCommand):
         # Since OrganisationFactory has already created a Site, subtract 1 from total number of sites to seed
         sites += [SiteFactory(organisation=organisation) for _ in range(no_of_sites - 1)]
 
+        for site in sites:
+            site.site_records_located_at = site
+            site.save()
+
         cls._print_organisation_to_console(organisation, primary_user)
         return organisation, sites, exporter_users, primary_user
 
