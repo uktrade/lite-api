@@ -342,39 +342,39 @@
 			<tbody class="govuk-table__body">
 					<tr class="govuk-table__row">
 						<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
-						<td class="govuk-table__cell">Intended end use of the products</td>
+						<td class="govuk-table__cell">Provide details of the intended end use of the products</td>
 						<td class="govuk-table__cell">{{ details.end_use_details }}</td>
 					</tr>
 					{% if not case_type.reference == "f680" %}
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">2.</td>
-							<td class="govuk-table__cell">Informed by ECJU to apply for a licence</td>
+							<td class="govuk-table__cell">Have you received a letter from ECJU informing you that the products require a licence to export or are controlled under the military end use controls?</td>
 							<td class="govuk-table__cell">{{ details.military_end_use_controls }}{% if details.military_end_use_controls_reference %}, {{ details.military_end_use_controls_reference }}
 								{% endif %}
 							</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">3.</td>
-							<td class="govuk-table__cell">Informed by ECJU that products may be used in WMD</td>
+							<td class="govuk-table__cell">Have you been informed by ECJU that the products are or may be intended, wholly or in part, for use in chemical, biological or nuclear weapons, or any purpose connected with missiles capable of delivering these weapons?</td>
 							<td class="govuk-table__cell">{{ details.informed_wmd }}{% if details.informed_wmd_reference %}, {{ details.informed_wmd_reference}}
 								{% endif %}
 							</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">4.</td>
-							<td class="govuk-table__cell">You suspect products may be used in WMD</td>
+							<td class="govuk-table__cell">Do you know or suspect that the products might be used, wholly or in part, in connection with chemical, biological or nuclear weapons, or any purpose connected with missiles capable of delivering these weapons?</td>
 							<td class="govuk-table__cell">{{ details.suspected_wmd }}{% if details.suspected_wmd_reference %}, {{ details.suspected_wmd_reference }}
 								{% endif %}
 							</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">5.</td>
-							<td class="govuk-table__cell">Products received under a transfer licence</td>
+							<td class="govuk-table__cell">Have you received European military products under a transfer licence from a European Union member state that have export limitations attached to them?</td>
 							<td class="govuk-table__cell">{{ details.eu_military }}</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">6.</td>
-							<td class="govuk-table__cell">Compliant with terms of export limitations or obtained consent</td>
+							<td class="govuk-table__cell">Have you complied with the terms of the export limitations attached to them? Or where appropriate, have you obtained the required consent from the originating EU member state?</td>
 							<td class="govuk-table__cell">{{ details.compliant_limitations_eu }}{% if details.compliant_limitations_eu_reference  %}, {{ details.compliant_limitations_eu_reference }}
 								{% endif %}
 							</td>
@@ -444,14 +444,16 @@
 			<h2 class="govuk-heading-m">Locations</h2>
 		{% endif %}
 		{% if details.have_goods_departed == "Yes" %}
-			<tr class="govuk-table__row">
-				<th scope="row" class="govuk-table__header">
-					Goods have left the UK
-				</th>
-				<td class="govuk-table__value">
-					{{ details.have_goods_departed }}
-				</td>
-			</tr>
+			<table class="govuk-table">
+				<tr class="govuk-table__row">
+					<th scope="row" class="govuk-table__header">
+						Goods have left the UK
+					</th>
+					<td class="govuk-table__cell">
+						{{ details.have_goods_departed }}
+					</td>
+				<tr>
+			</table>
 		{% else %}
 			<table class="govuk-table">
 				<thead class="govuk-table__head">
