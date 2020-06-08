@@ -1,6 +1,5 @@
 <div class="document">
 	<table class="govuk-table">
-		{% if not case_type.reference == "cre"%}
 			<tr class="govuk-table__row">
 				<th scope="row" class="govuk-table__header">
 					ECJU reference
@@ -9,7 +8,6 @@
 					{{ case_reference }}
 				</td>
 			<tr>
-		{% endif %}
 			<th scope="row" class="govuk-table__header">
 				{% if case_type.reference == 'cre' %}
 					Query
