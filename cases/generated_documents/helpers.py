@@ -1,6 +1,5 @@
 from collections import namedtuple
 
-from django.core.exceptions import ObjectDoesNotExist
 from weasyprint import CSS, HTML
 from weasyprint.fonts import FontConfiguration
 
@@ -35,7 +34,7 @@ def get_generated_document_data(request_params, pk):
     if additional_contact:
         try:
             additional_contact = Party.objects.get(type=PartyType.ADDITIONAL_CONTACT, id=additional_contact)
-        except ObjectDoesNotExist:
+        except Party.DoesNotExist:
             raise AttributeError(strings.Cases.GeneratedDocuments.INVALID_ADDRESSEE)
 
     case = get_case(pk)
