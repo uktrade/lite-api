@@ -189,7 +189,9 @@ class StandardApplicationTests(DataTestClient):
 
     @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("cases.generated_documents.helpers.html_to_pdf")
-    def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self, upload_bytes_file_func, html_to_pdf_func):
+    def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(
+        self, upload_bytes_file_func, html_to_pdf_func
+    ):
         upload_bytes_file_func.return_value = None
         html_to_pdf_func.return_value = None
 
@@ -363,7 +365,9 @@ class StandardApplicationTests(DataTestClient):
 
     @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("cases.generated_documents.helpers.html_to_pdf")
-    def test_resubmit_edited_standard_application_removes_system_case_flags_success(self, upload_bytes_file_func, html_to_pdf_func):
+    def test_resubmit_edited_standard_application_removes_system_case_flags_success(
+        self, upload_bytes_file_func, html_to_pdf_func
+    ):
         upload_bytes_file_func.return_value = None
         html_to_pdf_func.return_value = None
 
