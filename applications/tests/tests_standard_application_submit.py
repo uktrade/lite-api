@@ -187,7 +187,12 @@ class StandardApplicationTests(DataTestClient):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self):
+    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("cases.generated_documents.helpers.html_to_pdf")
+    def test_exp_set_application_status_to_submitted_when_previously_applicant_editing_success(self, upload_bytes_file_func, html_to_pdf_func):
+        upload_bytes_file_func.return_value = None
+        html_to_pdf_func.return_value = None
+
         standard_application = self.create_draft_standard_application(self.organisation)
         self.submit_application(standard_application)
         standard_application.status = get_case_status_by_status(CaseStatusEnum.APPLICANT_EDITING)
@@ -221,6 +226,8 @@ class StandardApplicationTests(DataTestClient):
             },
             case_status_audits,
         )
+        html_to_pdf_func.assert_called_once()
+        upload_bytes_file_func.assert_called_once()
 
     def test_exp_set_application_status_to_submitted_when_previously_not_applicant_editing_failure(self):
         standard_application = self.create_draft_standard_application(self.organisation)
@@ -331,7 +338,12 @@ class StandardApplicationTests(DataTestClient):
         errors = response.json()["errors"]
         self.assertEqual(errors["agreed_to_declaration"], [strings.Applications.Generic.AGREEMENT_TO_TCS_REQUIRED])
 
-    def test_submit_standard_application_adds_system_case_flags_success(self):
+    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("cases.generated_documents.helpers.html_to_pdf")
+    def test_submit_standard_application_adds_system_case_flags_success(self, upload_bytes_file_func, html_to_pdf_func):
+        upload_bytes_file_func.return_value = None
+        html_to_pdf_func.return_value = None
+
         self.draft.is_military_end_use_controls = True
         self.draft.is_informed_wmd = True
         self.draft.contains_firearm_goods = True
@@ -346,8 +358,15 @@ class StandardApplicationTests(DataTestClient):
         self.assertIn(SystemFlags.MILITARY_END_USE_ID, case_flags)
         self.assertIn(SystemFlags.WMD_END_USE_ID, case_flags)
         self.assertIn(SystemFlags.FIREARMS_ID, case_flags)
+        html_to_pdf_func.assert_called_once()
+        upload_bytes_file_func.assert_called_once()
 
-    def test_resubmit_edited_standard_application_removes_system_case_flags_success(self):
+    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("cases.generated_documents.helpers.html_to_pdf")
+    def test_resubmit_edited_standard_application_removes_system_case_flags_success(self, upload_bytes_file_func, html_to_pdf_func):
+        upload_bytes_file_func.return_value = None
+        html_to_pdf_func.return_value = None
+
         # Create draft application with properties that have associated system flags
         self.draft.is_military_end_use_controls = True
         self.draft.is_suspected_wmd = True
@@ -379,6 +398,8 @@ class StandardApplicationTests(DataTestClient):
         self.assertNotIn(SystemFlags.WMD_END_USE_ID, case_flags)
         self.assertNotIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)
         self.assertNotIn(SystemFlags.FIREARMS_ID, case_flags)
+        html_to_pdf_func.assert_called_once()
+        upload_bytes_file_func.assert_called_once()
 
     def test_submit_standard_application_temporary_with_temp_export_details_success(self):
         self.draft.export_type = ApplicationExportType.TEMPORARY
@@ -462,7 +483,9 @@ class StandardApplicationTests(DataTestClient):
 
     @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("cases.generated_documents.helpers.html_to_pdf")
-    def test_submit_standard_trade_control_application_maritime_activity_adds_flag(self, upload_bytes_file_func, html_to_pdf_func):
+    def test_submit_standard_trade_control_application_maritime_activity_adds_flag(
+        self, upload_bytes_file_func, html_to_pdf_func
+    ):
         upload_bytes_file_func.return_value = None
         html_to_pdf_func.return_value = None
 

@@ -180,7 +180,9 @@ class OpenApplicationTests(DataTestClient):
 
     @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
     @mock.patch("cases.generated_documents.helpers.html_to_pdf")
-    def test_submit_open_trade_control_application_maritime_activity_adds_flag(self, upload_bytes_file_func, html_to_pdf_func):
+    def test_submit_open_trade_control_application_maritime_activity_adds_flag(
+        self, upload_bytes_file_func, html_to_pdf_func
+    ):
         upload_bytes_file_func.return_value = None
         html_to_pdf_func.return_value = None
 
