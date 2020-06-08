@@ -8,7 +8,7 @@ from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import CountryOnApplication
+from applications.models import CountryOnApplication, PartyOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -55,6 +55,7 @@ from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api.strings import Documents, Cases
 from organisations.libraries.get_organisation import get_request_user_organisation_id
+from parties.enums import PartyType
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
@@ -716,16 +717,24 @@ class AssignedQueues(APIView):
 
 
 class AdditionalContacts(ListCreateAPIView):
-    queryset = Party.objects.additional_contacts()
     serializer_class = AdditionalContactSerializer
     pagination_class = None
     authentication_classes = (GovAuthentication,)
+
+    def get_queryset(self):
+        return Party.objects.filter(
+            id__in=PartyOnApplication.objects.filter(
+                application_id=self.kwargs["pk"], party__type=PartyType.ADDITIONAL_CONTACT
+            ).values_list("party_id", flat=True)
+        )
 
     def get_serializer_context(self):
         return {"organisation_pk": get_case(self.kwargs["pk"]).organisation.id}
 
     def perform_create(self, serializer):
         super().perform_create(serializer)
+        party = PartyOnApplication(application_id=get_case(self.kwargs["pk"]).id, party_id=serializer.data["id"])
+        party.save()
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE,
