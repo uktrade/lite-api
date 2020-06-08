@@ -173,7 +173,7 @@ class DocumentContextGenerationTests(DataTestClient):
     def _assert_standard_application_details(self, context, case):
         self.assertEqual(context["export_type"], case.export_type)
         self.assertEqual(context["reference_number_on_information_form"], case.reference_number_on_information_form)
-        self.assertEqual(context["has_been_informed"], friendly_boolean(case.have_you_been_informed))
+        self.assertEqual(context["has_been_informed"], case.have_you_been_informed)
         self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods))
         self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading))
         self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details)
