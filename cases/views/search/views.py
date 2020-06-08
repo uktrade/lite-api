@@ -1,5 +1,6 @@
 from rest_framework import generics
 
+import static.statuses.service
 from cases.libraries.dates import make_date_from_params
 from cases.models import Case
 from cases.serializers import CaseListSerializer
@@ -61,7 +62,7 @@ class CasesSearchView(generics.ListAPIView):
 
         queue = next((q for q in queues if str(q["id"]) == str(queue_id)))
 
-        statuses = service.get_case_status_list()
+        statuses = static.statuses.service.get_case_status_list()
         case_types = service.get_case_type_type_list()
         gov_users = service.get_gov_users_list()
         advice_types = service.get_advice_types_list()

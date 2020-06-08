@@ -4,6 +4,7 @@ from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
 
+from common.cache import lite_invalidate_cache, Key
 from conf.authentication import GovAuthentication, HawkOnlyAuthentication
 from conf.constants import Roles, GovPermissions
 from conf.custom_views import OptionalPaginationView
@@ -82,7 +83,6 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
         """
         Add a new gov user
         """
-
         if (
             request.data.get("role") == str(Roles.INTERNAL_SUPER_USER_ROLE_ID)
             and not request.user.role_id == Roles.INTERNAL_SUPER_USER_ROLE_ID
@@ -93,6 +93,7 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
 
         if serializer.is_valid():
             serializer.save()
+            lite_invalidate_cache(Key.GOV_USERS_LIST)
             return JsonResponse(data={"gov_user": serializer.data}, status=status.HTTP_201_CREATED)
 
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

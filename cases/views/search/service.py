@@ -12,20 +12,17 @@ from applications.models import HmrcQuery
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from cases.models import Case
+from common.cache import lite_cache, Key
 from common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
-from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
 from users.models import GovUser
-
-
-def get_case_status_list() -> List[Dict]:
-    return CaseStatusEnum.as_list()
 
 
 def get_case_type_type_list() -> List[Dict]:
     return CaseTypeEnum.case_types_to_representation()
 
 
+@lite_cache(Key.GOV_USERS_LIST)
 def get_gov_users_list():
     return (
         GovUser.objects.filter(status=UserStatuses.ACTIVE)

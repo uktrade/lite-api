@@ -1,6 +1,6 @@
 from django.db.models import QuerySet
 
-from applications.models import GoodOnApplication, CountryOnApplication
+from applications.models import GoodOnApplication, CountryOnApplication, PartyOnApplication
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from flags.models import Flag
@@ -11,7 +11,7 @@ from queries.goods_query.models import GoodsQuery
 from teams.models import Team
 
 
-def get_goods_flags(case, case_type):
+def get_goods_flags(case_id, case_type):
     ids = []
 
     if case_type in [
@@ -21,34 +21,34 @@ def get_goods_flags(case, case_type):
         CaseTypeSubTypeEnum.GIFTING,
         CaseTypeSubTypeEnum.F680,
     ]:
-        ids = GoodOnApplication.objects.filter(application_id=case.id).values_list("good__flags", flat=True)
+        ids = GoodOnApplication.objects.filter(application_id=case_id).values_list("good__flags", flat=True)
     elif case_type in [
         CaseTypeSubTypeEnum.OPEN,
         CaseTypeSubTypeEnum.HMRC,
     ]:
-        ids = GoodsType.objects.filter(application_id=case.id).values_list("flags", flat=True)
+        ids = GoodsType.objects.filter(application_id=case_id).values_list("flags", flat=True)
     elif case_type == CaseTypeSubTypeEnum.GOODS:
-        return GoodsQuery.objects.select_related("good").get(id=case.id).good.flags.all()
+        return GoodsQuery.objects.select_related("good").get(id=case_id).good.flags.all()
 
     return Flag.objects.filter(id__in=ids).select_related("team")
 
 
-def get_destination_flags(case, case_type):
+def get_destination_flags(case_id, case_type):
     ids = []
 
     if case_type == CaseTypeSubTypeEnum.EUA:
-        return get_end_user_advisory_by_pk(case.id).end_user.flags.all()
+        return get_end_user_advisory_by_pk(case_id).end_user.flags.all()
     elif case_type == CaseTypeSubTypeEnum.OPEN:
         ids = set(
-            CountryOnApplication.objects.filter(application=case)
+            CountryOnApplication.objects.filter(application_id=case_id)
             .prefetch_related("country__flags")
             .values_list("country__flags", flat=True)
         )
 
-        ids = ids | set(CountryOnApplication.objects.filter(application=case).values_list("flags", flat=True))
+        ids = ids | set(CountryOnApplication.objects.filter(application_id=case_id).values_list("flags", flat=True))
 
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
-        ids = case.baseapplication.parties.filter(deleted_at__isnull=True, party__flags__isnull=False).values_list(
+        ids = PartyOnApplication.objects.filter(application_id=case_id, deleted_at__isnull=True, party__flags__isnull=False).values_list(
             "party__flags", flat=True
         )
 
@@ -80,8 +80,8 @@ def get_flags(case: Case) -> QuerySet:
 def get_ordered_flags(case: Case, team: Team):
     case_type = case.case_type.sub_type
 
-    goods_flags = annotate_my_team_flags(get_goods_flags(case, case_type), 0, team)
-    destination_flags = annotate_my_team_flags(get_destination_flags(case, case_type), 1, team)
+    goods_flags = annotate_my_team_flags(get_goods_flags(case.id, case_type), 0, team)
+    destination_flags = annotate_my_team_flags(get_destination_flags(case.id, case_type), 1, team)
     case_flags = annotate_my_team_flags(case.flags.all(), 2, team)
     organisation_flags = annotate_my_team_flags(case.organisation.flags.all(), 3, team)
 

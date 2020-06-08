@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
 from static.control_list_entries.helpers import get_control_list_entry, convert_control_list_entries_to_tree
-from static.control_list_entries.models import ControlListEntry
 from static.control_list_entries.serializers import ControlListEntrySerializerWithLinks
+from static.control_list_entries.service import control_list_entries_list
 
 
 @permission_classes((permissions.AllowAny,))
@@ -17,12 +17,12 @@ class ControlListEntriesList(APIView):
         """
         Returns list of all Control List Entries
         """
+        control_list_entries = control_list_entries_list()
 
         if request.GET.get("group", False):
-            return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree()})
+            return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree(control_list_entries)})
 
-        queryset = ControlListEntry.objects.all()
-        return JsonResponse(data={"control_list_entries": list(queryset.values("rating", "text"))})
+        return JsonResponse(data={"control_list_entries": [{"rating": entry["rating"], "text": entry["text"]} for entry in control_list_entries]})
 
 
 class ControlListEntryDetail(APIView):
