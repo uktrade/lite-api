@@ -723,9 +723,9 @@ class AdditionalContacts(ListCreateAPIView):
 
     def get_queryset(self):
         return Party.objects.filter(
-            id__in=PartyOnApplication.objects.filter(
-                application_id=self.kwargs["pk"], party__type=PartyType.ADDITIONAL_CONTACT
-            ).values_list("party_id", flat=True)
+            id__in=PartyOnApplication.objects.additional_contacts()
+            .filter(application_id=self.kwargs["pk"])
+            .values_list("party_id", flat=True)
         )
 
     def get_serializer_context(self):
