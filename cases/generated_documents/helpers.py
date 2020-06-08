@@ -44,7 +44,7 @@ def get_generated_document_data(request_params, pk):
     except LetterTemplate.DoesNotExist:
         raise NotFoundError({"letter_template": strings.Cases.GeneratedDocuments.LETTER_TEMPLATE_NOT_FOUND})
     document_html = generate_preview(
-        layout=template.layout.filename, text=text, case=case, addressee=additional_contact
+        layout=template.layout.filename, text=text, case=case, additional_contact=additional_contact
     )
 
     if "error" in document_html:
