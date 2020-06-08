@@ -89,10 +89,10 @@
 		{% if details.has_been_informed %}
 			<tr class="govuk-table__row">
 				<th scope="row" class="govuk-table__header">
-					Informed to apply
+					Have you received a letter or email from Border Force or HMRC informing you to apply for a licence?
 				</th>
 				<td class="govuk-table__cell">
-					{{ details.has_been_informed }}.{% if details.reference_number_on_information_form%} Reference number: {{ details.reference_number_on_information_form }}
+					{{ details.has_been_informed|title }}.{% if details.reference_number_on_information_form%} Reference number: {{ details.reference_number_on_information_form }}
 					{% endif %}
 				</td>
 			</tr>
@@ -174,7 +174,7 @@
 			<tbody class="govuk-table__body">
 					<tr class="govuk-table__row">
 						<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
-						<td class="govuk-table__cell">Contains firearm products</td>
+						<td class="govuk-table__cell">Are any of the products on the application firearms?</td>
 						<td class="govuk-table__cell">{{ details.contains_firearm_goods }}</td>
 					</tr>
 			</tbody>
@@ -233,6 +233,7 @@
 					{% endif %}
 				{% if case_type.reference != "cre" and case_type.reference != "oiel" and case_type.reference != "oicl" %}
 					<th scope="col" class="govuk-table__header">Incorporated</th>
+				{% endif %}
 				</tr>
 			</thead>
 			<tbody class="govuk-table__body">
@@ -338,39 +339,39 @@
 			<tbody class="govuk-table__body">
 					<tr class="govuk-table__row">
 						<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
-						<td class="govuk-table__cell">Intended end use</td>
+						<td class="govuk-table__cell">Intended end use of the products</td>
 						<td class="govuk-table__cell">{{ details.end_use_details }}</td>
 					</tr>
 					{% if not case_type.reference == "f680" %}
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">2.</td>
-							<td class="govuk-table__cell">Informed to apply</td>
+							<td class="govuk-table__cell">Informed by ECJU to apply for a licence</td>
 							<td class="govuk-table__cell">{{ details.military_end_use_controls }}{% if details.military_end_use_controls_reference %}, {{ details.military_end_use_controls_reference }}
 								{% endif %}
 							</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">3.</td>
-							<td class="govuk-table__cell">Informed WMD</td>
+							<td class="govuk-table__cell">Informed by ECJU that products may be used in WMD</td>
 							<td class="govuk-table__cell">{{ details.informed_wmd }}{% if details.informed_wmd_reference %}, {{ details.informed_wmd_reference}}
 								{% endif %}
 							</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">4.</td>
-							<td class="govuk-table__cell">Suspect WMD</td>
+							<td class="govuk-table__cell">You suspect products may be used in WMD</td>
 							<td class="govuk-table__cell">{{ details.suspected_wmd }}{% if details.suspected_wmd_reference %}, {{ details.suspected_wmd_reference }}
 								{% endif %}
 							</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">5.</td>
-							<td class="govuk-table__cell">EU transfer licence</td>
+							<td class="govuk-table__cell">Products received under a transfer licence</td>
 							<td class="govuk-table__cell">{{ details.eu_military }}</td>
 						</tr>
 						<tr class="govuk-table__row">
 							<td class="govuk-table__cell govuk-table__cell--line-number">6.</td>
-							<td class="govuk-table__cell">Complied to terms</td>
+							<td class="govuk-table__cell">Compliant with terms of export limitations or obtained consent</td>
 							<td class="govuk-table__cell">{{ details.compliant_limitations_eu }}{% if details.compliant_limitations_eu_reference  %}, {{ details.compliant_limitations_eu_reference }}
 								{% endif %}
 							</td>
@@ -393,7 +394,7 @@
 			<tbody class="govuk-table__body">
 				<tr class="govuk-table__row">
 					<td class="govuk-table__cell govuk-table__cell--line-number">1.</td>
-					<td class="govuk-table__cell">Shipped air waybill or lading</td>
+					<td class="govuk-table__cell">Are the products being shipped on an air waybill or bill of lading?</td>
 					<td class="govuk-table__cell">{{ details.shipped_waybill_or_lading }}{% if details.non_waybill_or_lading_route_details  %}, {{ details.non_waybill_or_lading_route_details  }}</td>
 						{% endif %}
 				</tr>
