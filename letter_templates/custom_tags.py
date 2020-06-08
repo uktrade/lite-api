@@ -1,5 +1,6 @@
 from django import template
 from django.template.defaultfilters import linebreaksbr
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -32,3 +33,22 @@ def context_data_to_list(data):
         return data
 
     return text or "No data for this section"
+
+
+@register.filter()
+def default_na(value):
+    """
+    Returns N/A if the parameter given is none
+    """
+    if value:
+        return value
+    else:
+        return mark_safe('<span class="govuk-hint govuk-!-margin-0">N/A</span>')  # nosec
+
+
+@register.filter()
+def remove_underscores(value):
+    """
+    Removes the underscores from a given string
+    """
+    return value.replace("_", " ").title()
