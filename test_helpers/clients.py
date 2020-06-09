@@ -144,7 +144,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         # spreadsheet each time
         ControlListEntry.objects.bulk_create(
             [
-                ControlListEntry(rating=clc, text="Description", parent=None, is_decontrolled=False)
+                ControlListEntry(rating=clc, text="Description", parent=None)
                 for clc in [
                     "ML6b2",
                     "ML2a",
@@ -490,8 +490,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return good
 
-    @staticmethod
-    def create_goods_query(description, organisation, clc_reason, pv_reason) -> GoodsQuery:
+    def create_goods_query(self, description, organisation, clc_reason, pv_reason) -> GoodsQuery:
         good = DataTestClient.create_good(
             description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
         )
@@ -504,14 +503,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             submitted_at=django.utils.timezone.now(),
+            submitted_by=self.exporter_user,
         )
         goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         goods_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_PV_GRADING_QUERY_ID))
         goods_query.save()
         return goods_query
 
-    @staticmethod
-    def create_clc_query(description, organisation) -> GoodsQuery:
+    def create_clc_query(self, description, organisation) -> GoodsQuery:
         good = DataTestClient.create_good(
             description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
         )
@@ -523,6 +522,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             submitted_at=django.utils.timezone.now(),
+            submitted_by=self.exporter_user,
         )
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         clc_query.save()
@@ -635,6 +635,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         parties=True,
         site=True,
         case_type_id=CaseTypeEnum.SIEL.id,
+        add_a_good=True,
     ):
         application = StandardApplication(
             name=reference_name,
@@ -655,20 +656,20 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
             status_id="00000000-0000-0000-0000-000000000000",
+            submitted_by=self.exporter_user,
         )
 
         application.save()
 
-        # Add a good to the standard application
-        self.good_on_application = GoodOnApplication(
-            good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
-            application=application,
-            quantity=10,
-            unit=Units.NAR,
-            value=500,
-        )
-
-        self.good_on_application.save()
+        if add_a_good:
+            # Add a good to the standard application
+            self.good_on_application = GoodOnApplication.objects.create(
+                good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
+                application=application,
+                quantity=10,
+                unit=Units.NAR,
+                value=500,
+            )
 
         if parties:
             self.create_party("End User", organisation, PartyType.END_USER, application)
@@ -711,6 +712,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case_type_id=case_type.id,
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
             clearance_level=PvGrading.UK_UNCLASSIFIED if case_type == CaseTypeEnum.F680 else None,
+            submitted_by=self.exporter_user,
         )
 
         if case_type == CaseTypeEnum.EXHIBITION:
@@ -809,6 +811,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
             status_id="00000000-0000-0000-0000-000000000000",
+            submitted_by=self.exporter_user,
         )
 
         application.save()
@@ -846,6 +849,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             reasoning="I Am Easy to Find",
             status=get_case_status_by_status(CaseStatusEnum.DRAFT),
             have_goods_departed=have_goods_departed,
+            submitted_by=self.hmrc_exporter_user,
         )
         application.save()
 
@@ -895,6 +899,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             nature_of_business="guns",
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             case_type_id=CaseTypeEnum.EUA.id,
+            submitted_by=self.exporter_user,
         )
         end_user_advisory_query.save()
         return end_user_advisory_query
@@ -1049,3 +1054,8 @@ class PerformanceTestClient(DataTestClient):
         print(f"Creating {hmrc_query_count_goods_in_uk} HMRC Queries where the products are still in the UK...")
         for i in range(hmrc_query_count_goods_in_uk):
             self.create_hmrc_query(self.organisation, have_goods_departed=True)
+
+    def create_batch_queues(self, queue_count):
+        print(f"creating {queue_count} queues")
+        queue_details = {"name": "random", "team": self.team}
+        Queue.objects.bulk_create([Queue(**queue_details) for i in range(0, queue_count)])

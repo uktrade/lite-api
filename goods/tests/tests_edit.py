@@ -28,7 +28,7 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_updating_clc_control_list_entries_then_new_control_list_entries_is_returned(self):
-        ControlListEntry.create("ML1b", "Info here", None, False)
+        ControlListEntry.create("ML1b", "Info here", None)
         request_data = {"is_good_controlled": GoodControlled.YES, "control_list_entries": ["ML1a", "ML1b"]}
 
         response = self.client.put(self.url, request_data, **self.exporter_headers)
@@ -44,7 +44,7 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_removing_a_clc_control_list_entry_from_many_then_new_control_list_entries_is_returned(self):
-        ControlListEntry.create("ML1b", "Info here", None, False)
+        ControlListEntry.create("ML1b", "Info here", None)
         good = GoodFactory(
             organisation=self.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=["ML1a", "ML1b"]
         )

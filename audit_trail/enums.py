@@ -3,6 +3,9 @@ from common.enums import LiteEnum, autostr
 
 class AuditType(LiteEnum):
     CREATED = autostr()
+    OGL_CREATED = autostr()
+    OGL_FIELD_EDITED = autostr()
+    OGL_MULTI_FIELD_EDITED = autostr()
     ADD_FLAGS = autostr()
     REMOVE_FLAGS = autostr()
     GOOD_REVIEWED = autostr()
@@ -89,6 +92,9 @@ class AuditType(LiteEnum):
     ADDED_FLAG_ON_ORGANISATION = autostr()
     RERUN_ROUTING_RULES = autostr()
     ENFORCEMENT_CHECK = autostr()
+    UPDATED_SITE = autostr()
+    CREATED_SITE = autostr()
+    UPDATED_SITE_NAME = autostr()
 
     def human_readable(self):
         value = self.value.replace("_", " ")

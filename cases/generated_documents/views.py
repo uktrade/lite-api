@@ -16,7 +16,7 @@ from cases.generated_documents.serializers import (
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.models import Case
 from conf.authentication import GovAuthentication, SharedAuthentication
-from conf.decorators import authorised_users
+from conf.decorators import authorised_to_view_application
 from conf.helpers import str_to_bool
 from documents.libraries import s3_operations
 from lite_content.lite_api import strings
@@ -52,7 +52,7 @@ class GeneratedDocuments(generics.ListAPIView):
         return documents
 
     @transaction.atomic
-    @authorised_users(GovUser)
+    @authorised_to_view_application(GovUser)
     def post(self, request, pk):
         """
         Create a generated document
@@ -63,7 +63,7 @@ class GeneratedDocuments(generics.ListAPIView):
             return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            pdf = html_to_pdf(request, document.document_html, document.template.layout.filename)
+            pdf = html_to_pdf(document.document_html, document.template.layout.filename)
         except Exception:  # noqa
             return JsonResponse({"errors": [strings.Cases.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

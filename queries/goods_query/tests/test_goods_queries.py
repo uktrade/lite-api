@@ -25,12 +25,12 @@ from users.models import Role, GovUser
 
 
 class GoodsQueryManageStatusTests(DataTestClient):
-    @parameterized.expand([[DataTestClient.create_clc_query], [DataTestClient.create_pv_grading_query]])
-    def test_set_query_status_to_withdrawn_removes_case_from_queues_users_and_updates_status_success(self, query):
+    @parameterized.expand([["create_clc_query"], ["create_pv_grading_query"]])
+    def test_set_query_status_to_withdrawn_removes_case_from_queues_users_and_updates_status_success(self, cls_func):
         """
         When a case is set to a terminal status, its assigned users, case officer and queues should be removed
         """
-        query = query("This is a widget", self.organisation)
+        query = getattr(self, cls_func)("This is a widget", self.organisation)
         query.case_officer = self.gov_user
         query.save()
         query.queues.set([self.queue])
@@ -48,7 +48,7 @@ class GoodsQueryManageStatusTests(DataTestClient):
         self.assertEqual(CaseAssignment.objects.filter(case=query).count(), 0)
 
     def test_case_routing_automation_status_change(self):
-        query = DataTestClient.create_goods_query("This is a widget", self.organisation, "reason", "reason")
+        query = self.create_goods_query("This is a widget", self.organisation, "reason", "reason")
         query.queues.set([self.queue])
 
         routing_queue = self.create_queue("new queue", self.team)
@@ -112,6 +112,7 @@ class ControlListClassificationsQueryCreateTests(DataTestClient):
         self.assertEqual(
             [str(id) for id in goods_query.flags.values_list("id", flat=True)], [SystemFlags.GOOD_CLC_QUERY_ID],
         )
+        self.assertEqual(goods_query.submitted_by, self.exporter_user)
 
     def test_cannot_create_control_list_classification_query_on_good_when_good_already_exists(self):
         self.client.post(self.url, self.data, **self.exporter_headers)

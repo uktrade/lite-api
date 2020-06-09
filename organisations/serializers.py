@@ -1,9 +1,12 @@
+import re
+
 from django.db import transaction
 from rest_framework import serializers
 
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
 from conf.constants import ExporterPermissions
+from conf.helpers import str_to_bool
 from conf.serializers import (
     PrimaryKeyRelatedSerializerField,
     KeyValueChoiceField,
@@ -11,6 +14,7 @@ from conf.serializers import (
 )
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Organisations
+from organisations.constants import UK_VAT_VALIDATION_REGEX
 from organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from organisations.models import Organisation, Site, ExternalLocation
 from static.countries.helpers import get_country
@@ -21,19 +25,23 @@ from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSi
 
 class SiteListSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
+    site_records_located_at_name = serializers.SerializerMethodField()
+
+    def get_site_records_located_at_name(self, instance):
+        if instance.site_records_located_at:
+            site = Site.objects.filter(id=instance.site_records_located_at.id).values_list("name", flat=True).first()
+            if site:
+                return site
 
     class Meta:
         model = Site
-        fields = (
-            "id",
-            "name",
-            "address",
-        )
+        fields = ("id", "name", "address", "site_records_located_at_name")
 
 
 class SiteViewSerializer(SiteListSerializer):
     users = serializers.SerializerMethodField()
     admin_users = serializers.SerializerMethodField()
+    is_used_on_application = serializers.BooleanField(required=False)
 
     def get_users(self, instance):
         users = (
@@ -55,7 +63,15 @@ class SiteViewSerializer(SiteListSerializer):
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "users", "admin_users")
+        fields = (
+            "id",
+            "name",
+            "address",
+            "site_records_located_at_name",
+            "users",
+            "admin_users",
+            "is_used_on_application",
+        )
 
 
 class SiteCreateUpdateSerializer(serializers.ModelSerializer):
@@ -63,10 +79,11 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
     users = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all(), many=True, required=False)
+    site_records_located_at = serializers.PrimaryKeyRelatedField(queryset=Site.objects.all(), required=False)
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "organisation", "users")
+        fields = ("id", "name", "address", "organisation", "users", "site_records_located_at")
 
     @transaction.atomic
     def create(self, validated_data):
@@ -87,10 +104,18 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         if users:
             site.users.set([get_user_organisation_relationship(user, validated_data["organisation"]) for user in users])
 
+        if "site_records_stored_here" in self.initial_data:
+            if str_to_bool(self.initial_data.get("site_records_stored_here")):
+                site.site_records_located_at = site
+                site.save()
+
         return site
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
+        instance.site_records_located_at = validated_data.get(
+            "site_records_located_at", instance.site_records_located_at
+        )
         instance.save()
         return instance
 
@@ -107,8 +132,8 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         error_messages={"blank": Organisations.Create.BLANK_EORI, "max_length": Organisations.Create.LENGTH_EORI},
     )
     vat_number = serializers.CharField(
-        min_length=9,
-        max_length=9,
+        min_length=7,
+        max_length=17,
         required=False,
         allow_null=True,
         allow_blank=True,
@@ -196,8 +221,10 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_vat_number(self, value):
         if value:
-            if not value.startswith("GB"):
+            stripped_vat = re.sub(r"[^A-Z0-9]", "", value)
+            if not re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat):
                 raise serializers.ValidationError(Organisations.Create.INVALID_VAT)
+            return stripped_vat
         return value
 
     @transaction.atomic
@@ -215,7 +242,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         site_serializer = SiteCreateUpdateSerializer(data=site_data)
         if site_serializer.is_valid(raise_exception=True):
             site = site_serializer.save()
-
+            # Set the site records are located at to the site itself
+            site.site_records_located_at = site
+            site.save()
         user_serializer = ExporterUserCreateUpdateSerializer(data={"sites": [site.id], **user_data})
         if user_serializer.is_valid(raise_exception=True):
             user_serializer.save()

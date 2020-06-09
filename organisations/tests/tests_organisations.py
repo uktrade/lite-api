@@ -1,3 +1,6 @@
+import re
+from unittest import mock
+
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
@@ -9,7 +12,9 @@ from audit_trail.models import Audit
 from conf.authentication import EXPORTER_USER_TOKEN_HEADER
 from conf.constants import Roles, GovPermissions
 from conf.helpers import date_to_drf_date
+from gov_notify.enums import TemplateType
 from lite_content.lite_api.strings import Organisations
+from organisations.constants import UK_VAT_VALIDATION_REGEX
 from organisations.enums import OrganisationType, OrganisationStatus
 from organisations.tests.factories import OrganisationFactory
 from organisations.models import Organisation
@@ -21,6 +26,7 @@ from test_helpers.helpers import generate_key_value_pair
 from users.libraries.get_user import get_users_from_organisation
 from users.libraries.user_to_token import user_to_token
 from users.models import UserOrganisationRelationship
+from users.tests.factories import UserOrganisationRelationshipFactory
 
 
 class GetOrganisationTests(DataTestClient):
@@ -96,7 +102,7 @@ class CreateOrganisationTests(DataTestClient):
             "type": OrganisationType.COMMERCIAL,
             "eori_number": "GB123456789000",
             "sic_number": "01110",
-            "vat_number": "GB1234567",
+            "vat_number": "GB123456789",
             "registration_number": "98765432",
             "site": {
                 "name": "Headquarters",
@@ -160,7 +166,7 @@ class CreateOrganisationTests(DataTestClient):
             "type": OrganisationType.COMMERCIAL,
             "eori_number": "GB123456789000",
             "sic_number": "01110",
-            "vat_number": "GB1234567",
+            "vat_number": "GB123456789",
             "registration_number": "98765432",
             "site": {"name": "Headquarters", "address": address},
             "user": {"email": "trinity@bsg.com"},
@@ -199,6 +205,9 @@ class CreateOrganisationTests(DataTestClient):
         else:
             self.assertEqual(site.address.address, data["site"]["address"]["address"])
             self.assertEqualIgnoreType(site.address.country.id, data["site"]["address"]["country"])
+
+        # assert records located at set to site itself
+        self.assertEqual(site.site_records_located_at, site)
 
     def test_cannot_create_organisation_with_invalid_data(self):
         data = {
@@ -260,7 +269,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Audit.objects.count(), 0)
 
-    @parameterized.expand([["GB1234567"], [""]])
+    @parameterized.expand([["GB123456789"], [""]])
     def test_create_organisation_as_a_private_individual(self, vat_number):
         data = {
             "name": "John Smith",
@@ -298,6 +307,7 @@ class CreateOrganisationTests(DataTestClient):
         self.assertEqual(site.address.region, data["site"]["address"]["region"])
         self.assertEqual(site.address.postcode, data["site"]["address"]["postcode"])
         self.assertEqual(site.address.city, data["site"]["address"]["city"])
+        self.assertEqual(site.site_records_located_at, site)
         self.assertEqualIgnoreType(site.address.country.id, "GB")
         self.assertEqual(Audit.objects.count(), 1)
 
@@ -533,14 +543,56 @@ class EditOrganisationTests(DataTestClient):
         self.assertEqual(case_one.status.status, CaseStatusEnum.REOPENED_DUE_TO_ORG_CHANGES)
         self.assertEqual(case_two.status.status, CaseStatusEnum.SUBMITTED)
 
+    def test_vat_number_is_valid(self):
+        valid_vats = [
+            "GB517182944",
+            "GB999999973",
+            "GB123456789",
+            "GBGD600",
+            "GBHA244",
+            "GB123456789123",
+            "GBHA324",
+            "GB124 555 777",
+            "GB 123 456 789",
+            "GB12 3456 789",
+            "GB1 23 45 67 89",
+            "GB12 345 67 89 012",
+            "GB-123-456-789",
+            "GB-12345-6789101",
+            "GBH A125",
+            "GB GD 123",
+            "GB GD123",
+        ]
+        for valid_vat in valid_vats:
+            stripped_vat = re.sub(r"[^A-Z0-9]", "", valid_vat)
+            self.assertTrue(bool(re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat)))
+
+    def test_vat_number_is_invalid(self):
+        invalid_vats = [
+            "GB1234567",
+            "GBGD6731890",
+            "GB12345678910111313",
+            "GBHA424GB123456789123",
+            "GB  1234567",
+            "GB GD1378",
+            "GBDG673",
+            "GBAH839",
+            "GB  HA 1324",
+        ]
+        for invalid_vat in invalid_vats:
+            stripped_vat = re.sub(r"[^A-Z0-9]", "", invalid_vat)
+            self.assertFalse(bool(re.match(r"%s" % UK_VAT_VALIDATION_REGEX, stripped_vat)))
+
 
 class EditOrganisationStatusTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.organisation = OrganisationFactory(status=OrganisationStatus.IN_REVIEW)
+        UserOrganisationRelationshipFactory(organisation=self.organisation, user=self.exporter_user)
         self.url = reverse("organisations:organisation_status", kwargs={"pk": self.organisation.pk})
 
-    def test_set_organisation_status_success(self):
+    @mock.patch("gov_notify.service.client")
+    def test_set_organisation_status_success(self, mock_notify_client):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_ORGANISATIONS.name])
         data = {"status": OrganisationStatus.ACTIVE}
 
@@ -549,6 +601,11 @@ class EditOrganisationStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["status"]["key"], OrganisationStatus.ACTIVE)
         self.assertEqual(Audit.objects.count(), 1)
+        mock_notify_client.send_email.assert_called_with(
+            email_address=self.exporter_user.email,
+            template_id=TemplateType.ORGANISATION_STATUS.template_id,
+            data={"organisation_name": self.organisation.name,},
+        )
 
     def test_set_organisation_status__without_permission_failure(self):
         data = {"status": OrganisationStatus.ACTIVE}

@@ -14,6 +14,7 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
     AdviceLevel,
+    EnforcementXMLEntityTypes,
 )
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
@@ -59,6 +60,7 @@ class Case(TimestampableModel):
     flags = models.ManyToManyField(Flag, related_name="cases")
     organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
     submitted_at = models.DateTimeField(blank=True, null=True)
+    submitted_by = models.ForeignKey(ExporterUser, null=True, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(
         CaseStatus, related_name="query_status", on_delete=models.CASCADE, blank=True, null=True,
     )
@@ -231,7 +233,7 @@ class CaseAssignment(TimestampableModel):
 
 class CaseDocument(Document):
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    user = models.ForeignKey(GovUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(GovUser, on_delete=models.CASCADE, null=True)
     description = models.TextField(default=None, blank=True, null=True, max_length=280)
     type = models.CharField(
         choices=CaseDocumentState.choices, default=CaseDocumentState.UPLOADED, max_length=100, null=False
@@ -365,6 +367,7 @@ class EcjuQuery(TimestampableModel):
     question = models.CharField(null=False, blank=False, max_length=5000)
     response = models.CharField(null=True, blank=False, max_length=2200)
     case = models.ForeignKey(Case, related_name="case_ecju_query", on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, null=True, on_delete=models.CASCADE)
     responded_at = models.DateTimeField(auto_now_add=False, blank=True, null=True)
     raised_by_user = models.ForeignKey(
         GovUser, related_name="govuser_ecju_query", on_delete=models.CASCADE, default=None, null=False,
@@ -412,3 +415,4 @@ class EnforcementCheckID(models.Model):
 
     id = models.AutoField(primary_key=True)
     entity_id = models.UUIDField(unique=True)
+    entity_type = models.CharField(choices=EnforcementXMLEntityTypes.choices, max_length=20)

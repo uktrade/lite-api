@@ -50,6 +50,7 @@ class EndUserAdvisoryCreateTests(DataTestClient):
         self.assertEqual(end_user_data["address"], data["end_user"]["address"])
         self.assertEqual(end_user_data["country"]["id"], data["end_user"]["country"])
         self.assertEqual(Case.objects.count(), 1)
+        self.assertEqual(Case.objects.get().submitted_by, self.exporter_user)
 
     def test_create_copied_end_user_advisory_query(self):
         """

@@ -4,43 +4,28 @@ from rest_framework.decorators import permission_classes
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
-from static.control_list_entries.helpers import get_control_list_entry
+from static.control_list_entries.helpers import get_control_list_entry, convert_control_list_entries_to_tree
 from static.control_list_entries.models import ControlListEntry
 from static.control_list_entries.serializers import ControlListEntrySerializerWithLinks
 
 
 @permission_classes((permissions.AllowAny,))
 class ControlListEntriesList(APIView):
-    """
-    List all Control Ratings
-    """
-
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request):
         """
         Returns list of all Control List Entries
         """
-        if request.GET.get("flatten"):
-            return JsonResponse(
-                data={
-                    "control_list_entries": list(
-                        ControlListEntry.objects.filter(is_decontrolled=False, rating__isnull=False).values(
-                            "rating", "text"
-                        )
-                    )
-                }
-            )
 
-        serializer = ControlListEntrySerializerWithLinks(ControlListEntry.objects.filter(parent=None), many=True)
-        return JsonResponse(data={"control_list_entries": serializer.data})
+        if request.GET.get("group", False):
+            return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree()})
+
+        queryset = ControlListEntry.objects.all()
+        return JsonResponse(data={"control_list_entries": list(queryset.values("rating", "text"))})
 
 
 class ControlListEntryDetail(APIView):
-    """
-    Details of a specific control list entry
-    """
-
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, rating):

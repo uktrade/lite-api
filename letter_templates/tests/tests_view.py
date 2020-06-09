@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from cases.enums import AdviceType
+from cases.enums import AdviceType, CaseTypeReferenceEnum
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from static.decisions.models import Decision
 from test_helpers.clients import DataTestClient
@@ -23,12 +23,19 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["id"], str(self.letter_template.id))
         self.assertEqual(response_data["name"], self.letter_template.name)
-        self.assertEqual(response_data["layout"]["id"], str(self.letter_template.layout.id))
-        self.assertEqual(response_data["letter_paragraphs"], [str(self.letter_template.letter_paragraphs.first().id)])
-        self.assertIn(CaseTypeSubTypeEnum.GOODS, str(response_data["case_types"]))
-        self.assertIn(CaseTypeSubTypeEnum.EUA, str(response_data["case_types"]))
-        self.assertIsNotNone(response_data.get("created_at"))
-        self.assertIsNotNone(response_data.get("updated_at"))
+        self.assertEqual(response_data["layout"]["name"], self.letter_template.layout.name)
+        case_types = [item["reference"]["key"] for item in response_data["case_types"]]
+        self.assertIn(CaseTypeReferenceEnum.GQY, case_types)
+        self.assertIn(CaseTypeReferenceEnum.EUA, case_types)
+
+    def test_filter_letter_templates_success(self):
+        url = reverse("letter_templates:letter_templates") + "?name=" + self.letter_template.name
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        self.assertTrue(self.letter_template.name in [template["name"] for template in response_data])
+        self.assertTrue(str(self.letter_template.id) in [template["id"] for template in response_data])
 
     def test_get_letter_templates_for_case_success(self):
         url = reverse("letter_templates:letter_templates")
@@ -41,11 +48,8 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["id"], str(self.letter_template.id))
         self.assertEqual(response_data["name"], self.letter_template.name)
-        self.assertEqual(response_data["layout"]["id"], str(self.letter_template.layout.id))
-        self.assertEqual(response_data["letter_paragraphs"], [str(self.letter_template.letter_paragraphs.first().id)])
-        self.assertIn(str(CaseTypeEnum.SIEL.id), str(response_data["case_types"]))
-        self.assertIsNotNone(response_data.get("created_at"))
-        self.assertIsNotNone(response_data.get("updated_at"))
+        self.assertEqual(response_data["layout"]["name"], self.letter_template.layout.name)
+        self.assertEqual(CaseTypeReferenceEnum.SIEL, response_data["case_types"][0]["reference"]["key"])
 
     def test_get_letter_templates_for_decision_success(self):
         decision = AdviceType.APPROVE
@@ -60,8 +64,7 @@ class LetterTemplatesListTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["id"], str(self.letter_template.id))
         self.assertEqual(response_data["name"], self.letter_template.name)
-        self.assertEqual(response_data["layout"]["id"], str(self.letter_template.layout.id))
-        self.assertEqual(response_data["letter_paragraphs"], [str(self.letter_template.letter_paragraphs.first().id)])
+        self.assertEqual(response_data["layout"]["name"], self.letter_template.layout.name)
 
     def test_get_letter_templates_for_case_doesnt_show_templates_with_decisions_success(self):
         self.letter_template.case_types.set([CaseTypeEnum.SIEL.id])

@@ -125,6 +125,12 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
 
             self._footnote_fields_setup()
 
+            # Only require a reason for the advice decision if it is of type refuse
+            if self.initial_data[0]["type"] != AdviceType.REFUSE:
+                self.fields["text"].required = False
+                self.fields["text"].allow_null = True
+                self.fields["text"].allow_blank = True
+
     def _footnote_fields_setup(self):
         # if the user has permission to maintain footnotes for advice,
         #  they have to explicitly state if a footnote is required.
@@ -148,9 +154,9 @@ class CaseAdviceSerializer(serializers.ModelSerializer):
 
 
 class CountryWithFlagsSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    name = serializers.CharField()
-    flags = serializers.SerializerMethodField()
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    flags = serializers.SerializerMethodField(read_only=True)
 
     def get_flags(self, instance):
         if self.context.get("active_flags_only"):

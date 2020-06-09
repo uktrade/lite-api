@@ -217,7 +217,7 @@ class ExhibitionClearanceApplication(BaseApplication):
     title = models.CharField(blank=False, null=True, max_length=255)
     first_exhibition_date = models.DateField(blank=False, null=True)
     required_by_date = models.DateField(blank=False, null=True)
-    reason_for_clearance = models.TextField(default=None, blank=True, null=True, max_length=100)
+    reason_for_clearance = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
 
 # Gifting includes End User & Third parties
@@ -325,12 +325,20 @@ class CountryOnApplication(models.Model):
     flags = models.ManyToManyField(Flag, related_name="countries_on_applications")
 
 
+class PartyOnApplicationManager(models.Manager):
+    def all(self):
+        return self.get_queryset().exclude(party__type=PartyType.ADDITIONAL_CONTACT)
+
+    def additional_contacts(self):
+        return self.get_queryset().filter(party__type=PartyType.ADDITIONAL_CONTACT)
+
+
 class PartyOnApplication(TimestampableModel):
     application = models.ForeignKey(BaseApplication, on_delete=models.CASCADE, related_name="parties")
     party = models.ForeignKey(Party, on_delete=models.PROTECT, related_name="parties_on_application")
     deleted_at = models.DateTimeField(null=True, default=None)
 
-    objects = models.Manager()
+    objects = PartyOnApplicationManager()
 
     def __repr__(self):
         return str(

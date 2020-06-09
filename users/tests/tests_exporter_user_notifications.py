@@ -147,7 +147,7 @@ class ExporterUserNotificationTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         application_response_data = response.json()["results"][0]
         self.assertIn("exporter_user_notification_count", application_response_data)
-        self.assertEqual(application_response_data["exporter_user_notification_count"]["total"], 3)
+        self.assertEqual(application_response_data["exporter_user_notification_count"], 3)
 
     def test_get_application_with_notifications_success(self):
         case = self._create_application_with_notifications()

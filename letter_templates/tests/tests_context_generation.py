@@ -7,11 +7,11 @@ from applications.enums import (
     MTCRAnswers,
     ServiceEquipmentType,
 )
-from applications.models import ExternalLocationOnApplication
+from applications.models import ExternalLocationOnApplication, CountryOnApplication
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
-from goods.enums import PvGrading
+from goods.enums import PvGrading, ItemType
 from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
 from static.countries.models import Country
@@ -58,6 +58,8 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["country"]["name"], party.country.name)
         self.assertEqual(context["country"]["code"], party.country.id)
         self.assertEqual(context["website"], party.website)
+        self.assertEqual(context["descriptors"], party.descriptors)
+        self.assertEqual(context["type"], party.sub_type)
         if party.clearance_level:
             self.assertEqual(context["clearance_level"], PvGrading.choices_as_dict[party.clearance_level])
 
@@ -79,6 +81,9 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertTrue(Units.choices_as_dict[good_on_application.unit] in context["applied_for_quantity"])
         self.assertEqual(context["applied_for_value"], f"£{good_on_application.value}")
         self.assertEqual(context["is_incorporated"], friendly_boolean(good_on_application.is_good_incorporated))
+        if context.get("item_type"):
+            self.assertEqual(context["item_type"], good_on_application.item_type)
+            self.assertEqual(context["other_item_type"], good_on_application.other_item_type)
 
     def _assert_good_with_advice(self, context, advice, good_on_application):
         goods = context[advice.type if advice.type != AdviceType.PROVISO else AdviceType.APPROVE]
@@ -92,6 +97,9 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def _assert_goods_type(self, context, goods_type):
         self.assertTrue(goods_type.description in [item["description"] for item in context["all"]])
+        self.assertTrue(
+            friendly_boolean(goods_type.is_good_controlled) in [item["is_controlled"] for item in context["all"]]
+        )
         self.assertTrue(
             goods_type.description
             in [item["description"] for item in context["countries"][goods_type.countries.first().name]]
@@ -144,6 +152,12 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["name"], document.name)
         self.assertEqual(context["description"], document.description)
 
+    def _assert_temporary_export_details(self, context, case):
+        self.assertEqual(context["temp_export_details"], case.temp_export_details)
+        self.assertEqual(context["is_temp_direct_control"], case.is_temp_direct_control)
+        self.assertEqual(context["temp_direct_control_details"], case.temp_direct_control_details)
+        self.assertEqual(context["proposed_return_date"], case.proposed_return_date)
+
     def _assert_base_application_details(self, context, case):
         self.assertEqual(context["user_reference"], case.name)
         self.assertEqual(context["end_use_details"], case.intended_end_use)
@@ -160,7 +174,7 @@ class DocumentContextGenerationTests(DataTestClient):
     def _assert_standard_application_details(self, context, case):
         self.assertEqual(context["export_type"], case.export_type)
         self.assertEqual(context["reference_number_on_information_form"], case.reference_number_on_information_form)
-        self.assertEqual(context["has_been_informed"], friendly_boolean(case.have_you_been_informed))
+        self.assertEqual(context["has_been_informed"], case.have_you_been_informed)
         self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods))
         self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading))
         self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details)
@@ -168,6 +182,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["trade_control_activity"], case.trade_control_activity)
         self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other)
         self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
+        self._assert_temporary_export_details(context["temporary_export_details"], case)
 
     def _assert_open_application_details(self, context, case):
         self.assertEqual(context["export_type"], case.export_type)
@@ -179,7 +194,13 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["trade_control_activity_other"], case.trade_control_activity_other)
         self.assertEqual(context["trade_control_product_categories"], case.trade_control_product_categories)
         self.assertEqual(context["goodstype_category"], GoodsTypeCategory.get_text(case.goodstype_category))
-        self.assertEqual(context["temporary_export_details"], case.temp_export_details)
+        self._assert_temporary_export_details(context["temporary_export_details"], case)
+
+    def _assert_destination_details(self, context, destination):
+        self.assertEqual(context["country"]["name"], destination.country.name)
+        self.assertEqual(context["country"]["code"], destination.country.id)
+        self.assertEqual(context["contract_types"], destination.contract_types)
+        self.assertEqual(context["other_contract_type"], destination.other_contract_type_text)
 
     def _assert_hmrc_query_details(self, context, case):
         self.assertEqual(context["query_reason"], case.reasoning)
@@ -236,6 +257,11 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["good"]["part_number"], case.good.part_number)
         self.assertEqual(context["clc_responded"], friendly_boolean(case.clc_responded))
         self.assertEqual(context["pv_grading_responded"], friendly_boolean(case.pv_grading_responded))
+
+    def _assert_case_type_details(self, context, case):
+        self.assertEqual(context["type"], case.case_type.type)
+        self.assertEqual(context["reference"], case.case_type.reference)
+        self.assertEqual(context["sub_type"], case.case_type.sub_type)
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types
@@ -400,6 +426,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_case_type_details(context["case_type"], case)
         self._assert_base_application_details(context["details"], case)
         self._assert_standard_application_details(context["details"], case)
 
@@ -416,13 +443,16 @@ class DocumentContextGenerationTests(DataTestClient):
         case.trade_control_activity_other = "other"
         case.trade_control_product_categories = [TradeControlProductCategory.CATEGORY_A]
         case.goodstype_category = GoodsTypeCategory.CRYPTOGRAPHIC
+        destination = CountryOnApplication.objects.filter(application_id=case.pk).first()
         case.save()
 
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_case_type_details(context["case_type"], case)
         self._assert_base_application_details(context["details"], case)
         self._assert_open_application_details(context["details"], case)
+        self._assert_destination_details(context["destinations"][0], destination)
 
     def test_generate_context_with_hmrc_query_details(self):
         case = self.create_hmrc_query(self.organisation)
@@ -430,17 +460,24 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_case_type_details(context["case_type"], case)
         self._assert_hmrc_query_details(context["details"], case)
 
     def test_generate_context_with_exhibition_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.EXHIBITION)
         case.reason_for_clearance = "abc"
+        good = case.goods.first()
+        good.item_type = ItemType.BROCHURE
+        good.other_item_type = "abc"
+        good.save()
         case.save()
 
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_case_type_details(context["case_type"], case)
         self._assert_exhibition_clearance_details(context["details"], case)
+        self._assert_good(context["goods"]["all"][0], good)
 
     def test_generate_context_with_f680_clearance_details(self):
         case = self.create_mod_clearance_application(self.organisation, case_type=CaseTypeEnum.F680)
@@ -461,6 +498,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_case_type_details(context["case_type"], case)
         self._assert_f680_clearance_details(context["details"], case)
 
     def test_generate_context_with_gifting_clearance_details(self):
@@ -469,6 +507,7 @@ class DocumentContextGenerationTests(DataTestClient):
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_case_type_details(context["case_type"], case)
 
     def test_generate_context_with_end_user_advisory_query_details(self):
         case = self.create_end_user_advisory(note="abc", reasoning="def", organisation=self.organisation)

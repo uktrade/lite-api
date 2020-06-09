@@ -49,7 +49,7 @@ class Command(SeedCommand):
                     "type": organisation["type"],
                     "eori_number": "1234567890AAA",
                     "sic_number": "2345",
-                    "vat_number": "GB1234567",
+                    "vat_number": "GB123456789",
                     "registration_number": organisation["reg_no"],
                     "status": OrganisationStatus.ACTIVE,
                 },
@@ -66,6 +66,8 @@ class Command(SeedCommand):
                 )
 
                 site = Site.objects.create(name="Headquarters", organisation=org, address=address)
+                site.site_records_located_at = site
+                site.save()
                 org.primary_site = site
                 org.save()
 
