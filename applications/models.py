@@ -23,6 +23,7 @@ from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
 from lite_content.lite_api.strings import PartyErrors
+from open_general_licences.models import OpenGeneralLicence
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
 from parties.models import Party
@@ -209,6 +210,11 @@ class OpenApplication(BaseApplication):
     )
     goodstype_category = models.CharField(choices=GoodsTypeCategory.choices, blank=False, null=True, max_length=100)
     contains_firearm_goods = models.BooleanField(blank=True, default=None, null=True)
+
+
+class OGLApplication(BaseApplication):
+    open_general_licence = models.ForeignKey(OpenGeneralLicence, blank=False, null=False, on_delete=models.CASCADE)
+    site = models.ForeignKey(Site, blank=False, null=False, on_delete=models.CASCADE)
 
 
 # MOD Clearances Applications
