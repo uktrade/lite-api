@@ -23,6 +23,7 @@ env = Env(
     ENV=(str, "dev"),
     EXPORTER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
+    CACHE_BACKEND=(str, "django.core.cache.backends.locmem.LocMemCache")
 )
 
 # Quick-start development settings - unsuitable for production
