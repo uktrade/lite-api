@@ -7,22 +7,35 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organisations', '0008_auto_20200601_0814'),
-        ('open_general_licences', '0002_auto_20200522_1410'),
-        ('applications', '0031_auto_20200525_1120'),
+        ("organisations", "0008_auto_20200601_0814"),
+        ("open_general_licences", "0002_auto_20200522_1410"),
+        ("applications", "0031_auto_20200525_1120"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OGLApplication',
+            name="OGLApplication",
             fields=[
-                ('baseapplication_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='applications.BaseApplication')),
-                ('open_general_licence', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='open_general_licences.OpenGeneralLicence')),
-                ('site', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='organisations.Site')),
+                (
+                    "baseapplication_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="applications.BaseApplication",
+                    ),
+                ),
+                (
+                    "open_general_licence",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="open_general_licences.OpenGeneralLicence"
+                    ),
+                ),
+                ("site", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="organisations.Site")),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('applications.baseapplication',),
+            options={"abstract": False,},
+            bases=("applications.baseapplication",),
         ),
     ]

@@ -20,6 +20,7 @@ from applications.serializers.hmrc_query import (
     HmrcQueryViewSerializer,
     HmrcQueryUpdateSerializer,
 )
+from applications.serializers.ogl_application import OGLApplicationDetailSerializer, OGLApplicationCreateSerializer
 from applications.serializers.open_application import (
     OpenApplicationCreateSerializer,
     OpenApplicationUpdateSerializer,
@@ -36,40 +37,46 @@ from applications.serializers.exhibition_clearance import (
     ExhibitionClearanceUpdateSerializer,
 )
 from applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, CaseTypeReferenceEnum
 from conf.exceptions import BadRequestError
 from lite_content.lite_api import strings
 
 
 def get_application_view_serializer(application: BaseApplication):
-    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+    reference = application.case_type.reference
+    sub_type = application.case_type.sub_type
+    if sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-        return OpenApplicationViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC:
+    elif sub_type == CaseTypeSubTypeEnum.OPEN:
+        if reference in [CaseTypeReferenceEnum.OGEL, CaseTypeReferenceEnum.OGTL, CaseTypeReferenceEnum.OGTCL]:
+            return OGLApplicationDetailSerializer
+        else:
+            return OpenApplicationViewSerializer
+    elif sub_type == CaseTypeSubTypeEnum.HMRC:
         return HmrcQueryViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.EXHIBITION:
+    elif sub_type == CaseTypeSubTypeEnum.EXHIBITION:
         return ExhibitionClearanceViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.GIFTING:
+    elif sub_type == CaseTypeSubTypeEnum.GIFTING:
         return GiftingClearanceViewSerializer
-    elif application.case_type.sub_type == CaseTypeSubTypeEnum.F680:
+    elif sub_type == CaseTypeSubTypeEnum.F680:
         return F680ClearanceViewSerializer
     else:
         raise BadRequestError(
-            {
-                f"get_application_view_serializer does "
-                f"not support this application type: {application.case_type.sub_type}"
-            }
+            {f"get_application_view_serializer does " f"not support this application type: {sub_type}"}
         )
 
 
 def get_application_create_serializer(case_type):
+    reference = CaseTypeEnum.reference_to_class(case_type).reference
     sub_type = CaseTypeEnum.reference_to_class(case_type).sub_type
 
     if sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.OPEN:
-        return OpenApplicationCreateSerializer
+        if reference in [CaseTypeReferenceEnum.OGEL, CaseTypeReferenceEnum.OGTL, CaseTypeReferenceEnum.OGTCL]:
+            return OGLApplicationCreateSerializer
+        else:
+            return OpenApplicationCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.HMRC:
         return HmrcQueryCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.EXHIBITION:
