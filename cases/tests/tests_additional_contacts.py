@@ -11,8 +11,8 @@ from test_helpers.helpers import generate_key_value_pair, generate_country_dict
 class AdditionalContacts(DataTestClient):
     def setUp(self):
         super().setUp()
-        case = self.create_standard_application_case(self.organisation)
-        self.url = reverse("cases:additional_contacts", kwargs={"pk": case.id})
+        self.case = self.create_standard_application_case(self.organisation)
+        self.url = reverse("cases:additional_contacts", kwargs={"pk": self.case.id})
         self.fake = Faker()
         self.data = {
             "name": self.fake.name(),
@@ -24,7 +24,9 @@ class AdditionalContacts(DataTestClient):
         }
 
     def test_view_additional_contacts(self):
-        additional_contact = self.create_party(self.fake.name(), self.organisation, PartyType.ADDITIONAL_CONTACT)
+        additional_contact = self.create_party(
+            self.fake.name(), self.organisation, PartyType.ADDITIONAL_CONTACT, application=self.case
+        )
 
         response = self.client.get(self.url, **self.gov_headers)
 
