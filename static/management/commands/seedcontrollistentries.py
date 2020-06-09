@@ -1,6 +1,7 @@
 from django.db import transaction
 from openpyxl import load_workbook
 
+from common.cache import lite_invalidate_cache, Key
 from static.control_list_entries.parser import parse_list_into_control_list_entries
 from static.management.SeedCommand import SeedCommand
 
@@ -25,3 +26,6 @@ class Command(SeedCommand):
         # Loop through remaining sheets
         for sheet in wb.worksheets:
             parse_list_into_control_list_entries(sheet)
+
+        # Invalidate cache
+        lite_invalidate_cache(Key.CONTROL_LIST_ENTRIES_LIST)

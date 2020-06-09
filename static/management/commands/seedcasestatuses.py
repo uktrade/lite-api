@@ -1,8 +1,8 @@
 from django.db import transaction
 
 from cases.enums import CaseTypeEnum
+from common.cache import lite_invalidate_cache, Key
 from static.management.SeedCommand import SeedCommand
-
 from static.statuses.models import CaseStatus, CaseStatusCaseType
 
 STATUSES_FILE = "lite_content/lite_api/case_statuses.csv"
@@ -54,3 +54,6 @@ class Command(SeedCommand):
                     if not case_status_case_type.exists():
                         CaseStatusCaseType.objects.create(**case_to_status_data)
                         self.print_created_or_updated(CaseStatusCaseType, case_to_status_data, is_created=True)
+
+        # Invalidate cache
+        lite_invalidate_cache(Key.STATUS_LIST)

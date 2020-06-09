@@ -1,5 +1,6 @@
 from django.db import transaction, IntegrityError
 
+from common.cache import lite_invalidate_cache, Key
 from conf import settings
 from static.countries.models import Country
 from static.management.SeedCommand import SeedCommand
@@ -41,3 +42,6 @@ class Command(SeedCommand):
                 except IntegrityError:
                     if not settings.SUPPRESS_TEST_OUTPUT:
                         print(f"Object {id} could not be deleted due to foreign key constraint")
+
+        # Invalidate cache
+        lite_invalidate_cache(Key.COUNTRIES_LIST)
