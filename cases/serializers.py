@@ -404,7 +404,9 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
 
     def get_team(self, instance):
-        return TeamSerializer(instance.raised_by_user.team).data
+        # If the team is not available, use the user's current team.
+        team = instance.team if instance.team else instance.raised_by_user.team
+        return TeamSerializer(team).data
 
     class Meta:
         model = EcjuQuery
@@ -437,6 +439,7 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "case",
             "raised_by_user",
             "query_type",
+            "team",
         )
 
 
