@@ -47,6 +47,12 @@ class MockTask:
     def __init__(self, attempts: int):
         self.attempts = attempts
 
+    def first(self):
+        return self
+
+    def exists(self):
+        return True
+
 
 class HMRCIntegrationSerializersTests(DataTestClient):
     def test_data_transfer_object_standard_application(self):
@@ -269,13 +275,13 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence.assert_called_once()
 
     @mock.patch("licences.tasks.schedule_max_tried_task_as_new_task")
-    @mock.patch("licences.tasks.Task.objects.get")
+    @mock.patch("licences.tasks.Task.objects.filter")
     @mock.patch("licences.tasks.hmrc_integration_operations.send_licence")
     def test_send_licence_to_hmrc_integration_with_background_task_failure(
-        self, send_licence, task_get, schedule_max_tried_task_as_new_task
+        self, send_licence, task_filter, schedule_max_tried_task_as_new_task
     ):
         send_licence.side_effect = HMRCIntegrationException("Recieved an unexpected response")
-        task_get.return_value = MockTask(0)
+        task_filter.return_value = MockTask(0)
         schedule_max_tried_task_as_new_task.return_value = None
 
         with self.assertRaises(Exception) as error:
@@ -283,20 +289,20 @@ class HMRCIntegrationTasksTests(DataTestClient):
             send_licence_to_hmrc_integration.now(str(self.standard_licence.id))
 
         send_licence.assert_called_once()
-        task_get.assert_called_once()
+        task_filter.assert_called_once()
         schedule_max_tried_task_as_new_task.assert_not_called()
         self.assertEqual(
             str(error.exception), f"Failed to send licence '{self.standard_licence.id}' changes to HMRC Integration",
         )
 
     @mock.patch("licences.tasks.schedule_max_tried_task_as_new_task")
-    @mock.patch("licences.tasks.Task.objects.get")
+    @mock.patch("licences.tasks.Task.objects.filter")
     @mock.patch("licences.tasks.hmrc_integration_operations.send_licence")
     def test_send_licence_to_hmrc_integration_with_background_task_failure_max_attempts(
-        self, send_licence, task_get, schedule_max_tried_task_as_new_task
+        self, send_licence, task_filter, schedule_max_tried_task_as_new_task
     ):
         send_licence.side_effect = HMRCIntegrationException("Recieved an unexpected response")
-        task_get.return_value = MockTask(MAX_ATTEMPTS - 1)  # Make the current task attempt 1 less than MAX_ATTEMPTS
+        task_filter.return_value = MockTask(MAX_ATTEMPTS - 1)  # Make the current task attempt 1 less than MAX_ATTEMPTS
         schedule_max_tried_task_as_new_task.return_value = None
 
         with self.assertRaises(Exception) as error:
@@ -304,7 +310,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
             send_licence_to_hmrc_integration.now(str(self.standard_licence.id))
 
         send_licence.assert_called_once()
-        task_get.assert_called_once()
+        task_filter.assert_called_once()
         schedule_max_tried_task_as_new_task.assert_called_once()
         self.assertEqual(
             str(error.exception), f"Failed to send licence '{self.standard_licence.id}' changes to HMRC Integration",
