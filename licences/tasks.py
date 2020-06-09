@@ -54,6 +54,8 @@ def send_licence_to_hmrc_integration(licence_id, scheduled_as_background_task=Tr
             licence_id,
             scheduled_as_background_task,
         )
+    else:
+        logging.info(f"Successfully sent licence '{licence_id}' changes to HMRC Integration")
 
 
 def _handle_exception(message, licence_id, scheduled_as_background_task):
@@ -61,13 +63,13 @@ def _handle_exception(message, licence_id, scheduled_as_background_task):
     error_message = f"Failed to send licence '{licence_id}' changes to HMRC Integration"
 
     if scheduled_as_background_task:
-        try:
-            task = Task.objects.get(queue=TASK_QUEUE, task_params__contains=licence_id)
-        except Task.DoesNotExist:
+        task = Task.objects.filter(queue=TASK_QUEUE, task_params__contains=licence_id)
+
+        if not task.exists():
             logging.error(f"No task was found for licence '{licence_id}'")
         else:
             # Get the task's current attempt number by retrieving the previous attempts and adding 1
-            current_attempt = task.attempts + 1
+            current_attempt = task.first().attempts + 1
 
             # Schedule a new task if the current task has been attempted MAX_ATTEMPTS times;
             # HMRC Integration tasks need to be resilient and keep retrying post-failure indefinitely.

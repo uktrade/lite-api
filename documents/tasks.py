@@ -44,14 +44,14 @@ def _handle_exception(message: str, document, scheduled_as_background_task):
     error_message = f"Failed to scan document '{document.id}'"
 
     if scheduled_as_background_task:
-        try:
-            task = Task.objects.get(queue=TASK_QUEUE, task_params__contains=document.id)
-        except Task.DoesNotExist:
+        task = Task.objects.filter(queue=TASK_QUEUE, task_params__contains=document.id)
+
+        if not task.exists():
             logging.error(f"No task was found for document '{document.id}'")
             document.delete_s3()
         else:
             # Get the task's current attempt number by retrieving the previous attempts and adding 1
-            current_attempt = task.attempts + 1
+            current_attempt = task.first().attempts + 1
 
             # Delete the document's file from S3 if the task has been attempted MAX_ATTEMPTS times
             if current_attempt >= MAX_ATTEMPTS:
