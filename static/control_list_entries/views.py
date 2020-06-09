@@ -20,9 +20,17 @@ class ControlListEntriesList(APIView):
         control_list_entries = control_list_entries_list()
 
         if request.GET.get("group", False):
-            return JsonResponse(data={"control_list_entries": convert_control_list_entries_to_tree(control_list_entries)})
+            return JsonResponse(
+                data={"control_list_entries": convert_control_list_entries_to_tree(control_list_entries)}
+            )
 
-        return JsonResponse(data={"control_list_entries": [{"rating": entry["rating"], "text": entry["text"]} for entry in control_list_entries]})
+        return JsonResponse(
+            data={
+                "control_list_entries": [
+                    {"rating": entry["rating"], "text": entry["text"]} for entry in control_list_entries
+                ]
+            }
+        )
 
 
 class ControlListEntryDetail(APIView):

@@ -4,13 +4,14 @@ from django.core.cache import cache
 
 from common.enums import LiteEnum, autostr
 
-DEFAULT_CACHE_TIMEOUT = 60*60
+DEFAULT_CACHE_TIMEOUT = 60 * 60
 
 
 class Key(LiteEnum):
     """
     LITE cache keys
     """
+
     STATUS_LIST = autostr()
     GOV_USERS_LIST = autostr()
     COUNTRIES_LIST = autostr()
@@ -28,6 +29,7 @@ def lite_cache(key: Key, timeout=DEFAULT_CACHE_TIMEOUT):
     """
     Cache decorator
     """
+
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -39,7 +41,9 @@ def lite_cache(key: Key, timeout=DEFAULT_CACHE_TIMEOUT):
             value = f(*args, **kwargs)
             cache.set(cache_key, value, timeout)
             return value
+
         return wrapper
+
     return decorator
 
 

@@ -48,9 +48,9 @@ def get_destination_flags(case_id, case_type):
         ids = ids | set(CountryOnApplication.objects.filter(application_id=case_id).values_list("flags", flat=True))
 
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
-        ids = PartyOnApplication.objects.filter(application_id=case_id, deleted_at__isnull=True, party__flags__isnull=False).values_list(
-            "party__flags", flat=True
-        )
+        ids = PartyOnApplication.objects.filter(
+            application_id=case_id, deleted_at__isnull=True, party__flags__isnull=False
+        ).values_list("party__flags", flat=True)
 
     return Flag.objects.filter(id__in=ids).select_related("team")
 

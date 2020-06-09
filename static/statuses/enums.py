@@ -157,6 +157,7 @@ class CaseStatusEnum:
     def as_list(cls):
         from static.statuses.models import CaseStatus
         from static.statuses.serializers import CaseStatusSerializer
+
         # Exclude the 'Draft' system status
         statuses = CaseStatus.objects.all().order_by("priority").exclude(status="draft")
         return CaseStatusSerializer(statuses, many=True).data
