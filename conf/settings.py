@@ -42,6 +42,7 @@ ALLOWED_HOSTS = json.loads(env("ALLOWED_HOSTS")) if env("ALLOWED_HOSTS") else []
 
 INSTALLED_APPS = [
     "addresses",
+    "annual_returns",
     "applications.apps.ApplicationsConfig",
     "audit_trail",
     "background_task",
