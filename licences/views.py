@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView
 
 from applications.models import CountryOnApplication
-from cases.enums import CaseTypeSubTypeEnum, AdviceType
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
@@ -95,4 +95,22 @@ class NLRs(ListAPIView):
         documents = GeneratedCaseDocument.objects.select_related("case").filter(
             advice_type=AdviceType.NO_LICENCE_REQUIRED, case__organisation=organisation
         )
+
+        reference = self.request.GET.get("reference")
+        clc = self.request.GET.get("clc")
+        country = self.request.GET.get("country")
+
+        if reference:
+            documents = documents.filter(case__reference_code__contains=reference)
+
+        if clc:
+            documents = documents.filter(
+                case__advice__good__control_list_entries__rating=clc,
+                case__advice__level=AdviceLevel.FINAL,
+                case__advice__type=AdviceType.NO_LICENCE_REQUIRED,
+            )
+
+        if country:
+            documents = documents.filter(case__baseapplication__parties__party__country=country)
+
         return documents

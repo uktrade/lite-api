@@ -1,7 +1,7 @@
-from django.db.models import Value, F
+from django.db.models import F
 from rest_framework import serializers
 
-from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication, CountryOnApplication
+from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType, Advice
@@ -13,7 +13,6 @@ from licences.serializers.view_licences import (
     PartyLicenceListSerializer,
     CountriesLicenceSerializer,
     GoodLicenceListSerializer,
-    GoodsTypeOnLicenceListSerializer,
 )
 from parties.enums import PartyRole
 from parties.models import Party, PartyDocument
