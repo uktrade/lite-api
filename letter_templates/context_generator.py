@@ -24,7 +24,7 @@ from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.units.enums import Units
 
 
-def get_document_context(case):
+def get_document_context(case, addressee=None):
     """
     Generate universal context dictionary to provide data for all document types.
     """
@@ -46,6 +46,9 @@ def get_document_context(case):
     else:
         goods = None
 
+    if not addressee:
+        addressee = case.submitted_by
+
     return {
         "case_reference": case.reference_code,
         "case_type": {
@@ -56,7 +59,7 @@ def get_document_context(case):
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
-        "applicant": _get_applicant_context(case.submitted_by),
+        "addressee": _get_addressee_context(addressee),
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
         "end_user": _get_party_context(base_application.end_user.party)
@@ -272,8 +275,15 @@ def _get_details_context(case):
         return None
 
 
-def _get_applicant_context(applicant):
-    return {"name": " ".join([applicant.first_name, applicant.last_name]), "email": applicant.email}
+def _get_addressee_context(addressee):
+    return {
+        "name": " ".join([addressee.first_name, addressee.last_name])
+        if hasattr(addressee, "first_name")
+        else addressee.name,
+        "email": addressee.email,
+        "address": getattr(addressee, "address", ""),
+        "phone_number": getattr(addressee, "phone_number", ""),
+    }
 
 
 def _get_organisation_context(organisation):
