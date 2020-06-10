@@ -213,8 +213,7 @@ class NLRdocumentSerializer(serializers.ModelSerializer):
 
     def get_destinations(self, instance):
         return (
-            Party.objects.prefetch_related("parties_on_application", "country")
-            .filter(parties_on_application__application_id=instance.case_id)
+            Party.objects.filter(parties_on_application__application_id=instance.case_id)
             .order_by("country__name")
             .annotate(party_name=F("name"), country_name=F("country__name"))
             .values("party_name", "country_name")

@@ -39,13 +39,13 @@ class GetLicencesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response_data), len(self.applications))
-        for i in range(len(self.applications)):
+        for application in self.applications:
             match = False
-            for j in range(len(response_data)):
-                if response_data[j]["case_id"] == str(self.applications[i].id):
-                    document = response_data[j]
-                    self.assertEqual(document["case_id"], str(self.applications[i].id))
-                    self.assertEqual(document["case_reference"], self.applications[i].reference_code)
+            for nlr in response_data:
+                if nlr["case_id"] == str(application.id):
+                    document = nlr
+                    self.assertEqual(document["case_id"], str(application.id))
+                    self.assertEqual(document["case_reference"], application.reference_code)
                     self.assertEqual(document["advice_type"], "no_licence_required")
                     match = True
                     break
