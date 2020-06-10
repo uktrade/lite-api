@@ -1,10 +1,11 @@
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns
-from compliance.serializers import OpenLicenceReturnsCreateSerializer, OpenLicenceReturnsListSerializer
+from compliance.serializers import OpenLicenceReturnsCreateSerializer, OpenLicenceReturnsListSerializer, \
+    OpenLicenceReturnsViewSerializer
 from conf.authentication import ExporterAuthentication
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 
@@ -31,3 +32,9 @@ class OpenLicenceReturnsView(ListAPIView):
 
         serializer.save()
         return JsonResponse(data={"licences": licence_ids})
+
+
+class OpenLicenceReturnDownloadView(RetrieveAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    queryset = OpenLicenceReturns.objects.all()
+    serializer_class = OpenLicenceReturnsViewSerializer
