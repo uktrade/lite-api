@@ -602,6 +602,7 @@ class ApplicationFinaliseView(APIView):
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
             data["application"] = application
+            data["reference_code"] = application.reference_code
             serializer = LicenceCreateSerializer(data=data)
 
             if not serializer.is_valid():

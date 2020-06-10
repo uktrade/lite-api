@@ -10,6 +10,7 @@ class LicenceCreateSerializer(serializers.ModelSerializer):
         model = Licence
         fields = (
             "application",
+            "reference_code"
             "start_date",
             "duration",
             "is_complete",
