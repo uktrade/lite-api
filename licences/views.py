@@ -99,6 +99,7 @@ class NLRs(ListAPIView):
         reference = self.request.GET.get("reference")
         clc = self.request.GET.get("clc")
         country = self.request.GET.get("country")
+        end_user = self.request.GET.get("end_user")
 
         if reference:
             documents = documents.filter(case__reference_code__contains=reference)
@@ -112,5 +113,8 @@ class NLRs(ListAPIView):
 
         if country:
             documents = documents.filter(case__baseapplication__parties__party__country=country)
+
+        if end_user:
+            documents = documents.filter(case__baseapplication__parties__party__name__contains=end_user)
 
         return documents
