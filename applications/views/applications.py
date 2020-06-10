@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied, ErrorDetail
+from rest_framework.exceptions import PermissionDenied, ErrorDetail, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
 from uuid import UUID
@@ -141,16 +141,7 @@ class ApplicationList(ListCreateAPIView):
         """
         data = request.data
         if not data.get("application_type"):
-            return JsonResponse(
-                data={
-                    "errors": {
-                        "application_type": [
-                            ErrorDetail(string=strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE, code="invalid")
-                        ]
-                    }
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError({"application_type": [strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE]})
         case_type = data.pop("application_type", None)
         serializer = get_application_create_serializer(case_type)
         serializer = serializer(
@@ -158,13 +149,9 @@ class ApplicationList(ListCreateAPIView):
             case_type_id=CaseTypeEnum.reference_to_id(case_type),
             context=get_request_user_organisation(request),
         )
-
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        application = serializer.save()
-
-        return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
+        if serializer.is_valid(raise_exception=True):
+            application = serializer.save()
+            return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
 
 
 class ApplicationExisting(APIView):

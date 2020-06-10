@@ -212,11 +212,6 @@ class OpenApplication(BaseApplication):
     contains_firearm_goods = models.BooleanField(blank=True, default=None, null=True)
 
 
-class OGLApplication(BaseApplication):
-    open_general_licence = models.ForeignKey(OpenGeneralLicence, blank=False, null=False, on_delete=models.CASCADE)
-    site = models.ForeignKey(Site, blank=False, null=False, on_delete=models.CASCADE)
-
-
 # MOD Clearances Applications
 # Exhibition includes End User, Consignee, Ultimate end users & Third parties
 class ExhibitionClearanceApplication(BaseApplication):

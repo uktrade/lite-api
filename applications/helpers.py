@@ -20,7 +20,6 @@ from applications.serializers.hmrc_query import (
     HmrcQueryViewSerializer,
     HmrcQueryUpdateSerializer,
 )
-from applications.serializers.ogl_application import OGLApplicationDetailSerializer, OGLApplicationCreateSerializer
 from applications.serializers.open_application import (
     OpenApplicationCreateSerializer,
     OpenApplicationUpdateSerializer,
@@ -73,10 +72,7 @@ def get_application_create_serializer(case_type):
     if sub_type == CaseTypeSubTypeEnum.STANDARD:
         return StandardApplicationCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.OPEN:
-        if reference in [CaseTypeReferenceEnum.OGEL, CaseTypeReferenceEnum.OGTL, CaseTypeReferenceEnum.OGTCL]:
-            return OGLApplicationCreateSerializer
-        else:
-            return OpenApplicationCreateSerializer
+        return OpenApplicationCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.HMRC:
         return HmrcQueryCreateSerializer
     elif sub_type == CaseTypeSubTypeEnum.EXHIBITION:

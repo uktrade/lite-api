@@ -171,7 +171,7 @@ class GenericApplicationCreateSerializer(serializers.ModelSerializer):
 
     name = CharField(
         max_length=100,
-        required=True,
+        required=False,
         allow_blank=False,
         allow_null=False,
         error_messages={"blank": strings.Applications.Generic.MISSING_REFERENCE_NAME_ERROR},

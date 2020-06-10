@@ -2,9 +2,10 @@ import uuid
 
 from django.db import models
 
-from cases.models import CaseType
+from cases.models import CaseType, Case
 from common.models import TimestampableModel
 from open_general_licences.enums import OpenGeneralLicenceStatus
+from organisations.models import Site
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 
@@ -32,3 +33,11 @@ class OpenGeneralLicence(TimestampableModel):
         db_table = "open_general_licence"
         ordering = ["name"]
         indexes = [models.Index(fields=["status", "name"])]
+
+
+class OpenGeneralLicenceCase(Case):
+    open_general_licence = models.ForeignKey(OpenGeneralLicence, blank=False, null=False, on_delete=models.CASCADE)
+    site = models.ForeignKey(Site, blank=False, null=False, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "open_general_licence_case"

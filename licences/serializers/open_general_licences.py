@@ -9,10 +9,6 @@ class OGLApplicationListSerializer(serializers.ModelSerializer):
     site = serializers.PrimaryKeyRelatedField(queryset=Site.objects.all())
 
 
-class OGLApplicationCreateSerializer(serializers.ModelSerializer):
-    open_general_licence = serializers.PrimaryKeyRelatedField(queryset=OpenGeneralLicence.objects.all())
-
-
 class OGLApplicationDetailSerializer(serializers.ModelSerializer):
     open_general_licence = serializers.PrimaryKeyRelatedField(queryset=OpenGeneralLicence.objects.all())
     site = serializers.PrimaryKeyRelatedField(queryset=Site.objects.all())

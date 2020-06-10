@@ -25,7 +25,8 @@ def generate_reference_code(case):
         reference_code = LICENCE_APPLICATION_PREFIX + reference_code
 
         # Export type
-        if case.export_type in [ApplicationExportType.TEMPORARY, ApplicationExportType.PERMANENT]:
-            reference_code += SEPARATOR + case.export_type[0]
+        if hasattr(case, "export_type"):
+            if case.export_type in [ApplicationExportType.TEMPORARY, ApplicationExportType.PERMANENT]:
+                reference_code += SEPARATOR + case.export_type[0]
 
     return reference_code.upper()

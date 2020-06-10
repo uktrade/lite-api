@@ -77,7 +77,8 @@ class Case(TimestampableModel):
     def save(self, *args, **kwargs):
         if CaseStatusEnum.is_terminal(self.status.status):
             self.case_officer = None
-            self.queues.clear()
+            if self.pk:
+                self.queues.clear()
             CaseAssignment.objects.filter(case=self).delete()
 
         if not self.reference_code and self.status != get_case_status_by_status(CaseStatusEnum.DRAFT):
