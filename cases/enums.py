@@ -210,7 +210,23 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.COMP
 
-    CASE_TYPE_LIST = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA, OGTCL, OGTL, COMPLIANCE]
+    CASE_TYPE_LIST = [
+        OIEL,
+        OGEL,
+        OICL,
+        SIEL,
+        SICL,
+        SITL,
+        F680,
+        EXHIBITION,
+        GIFTING,
+        HMRC,
+        GOODS,
+        EUA,
+        OGTCL,
+        OGTL,
+        COMPLIANCE,
+    ]
 
     OGL_ID_LIST = [OGEL.id, OGTCL.id, OGTL.id]
 
