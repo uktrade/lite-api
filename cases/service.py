@@ -43,7 +43,7 @@ def get_destinations(application_id, user_type=None):
                 },
                 "flags": [{"id": f.id, "name": f.name} for f in coa.flags.all()],
                 "contract_types": coa.contract_types,
-                "other_contract_type_text": coa.other_contract_type_text
+                "other_contract_type_text": coa.other_contract_type_text,
             }
         )
 
