@@ -496,7 +496,7 @@ class ApplicationManageStatus(APIView):
         data = get_application_view_serializer(application)(application, context={"user_type": request.user.type}).data
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            data["application"]["destinations"] = get_destinations(application.id, user_type=request.user.type)
+            data["destinations"] = get_destinations(application.id, user_type=request.user.type)
 
         return JsonResponse(data={"data": data}, status=status.HTTP_200_OK,)
 
