@@ -4,7 +4,8 @@ from compliance.models import OpenLicenceReturns
 
 
 class OpenLicenceReturnsListSerializer(serializers.Serializer):
-    pass
+    id = serializers.UUIDField()
+    year = serializers.IntegerField()
 
 
 class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
@@ -16,5 +17,6 @@ class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
         fields = (
             "file",
             "year",
+            "organisation",
             "licences",
         )
