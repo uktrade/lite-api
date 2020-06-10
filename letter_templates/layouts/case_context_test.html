@@ -8,6 +8,16 @@
 		<li><b>current_date:</b> {{ current_date }}</li>
 		<li><b>current_time:</b> {{ current_time }}</li>
 	</ul>
+	{% if case_type %}
+		<h2>Case type</h2>
+		<ul>
+			<li><b>case type:</b>
+				<ul>
+					{{ case_type|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
 	{% if details %}
 		<h2>Details</h2>
 		<ul>
@@ -18,11 +28,12 @@
 			</li>
 		</ul>
 	{% endif %}
-	<h2>Applicant</h2>
+	<h2>Addressee</h2>
+	<p>Defaulted to case submitter</p>
 	<ul>
-		<li><b>applicant:</b>
+		<li><b>addressee:</b>
 			<ul>
-				{{ applicant|context_data_to_list|safe }}
+				{{ addressee|context_data_to_list|safe }}
 			</ul>
 		</li>
 	</ul>
@@ -148,6 +159,16 @@
 			<li><b>documents:</b>
 				<ul>
 					{{ documents|context_data_to_list|safe }}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
+	{% if destinations %}
+		<h2>Destinations</h2>
+		<ul>
+			<li><b>destinations:</b>
+				<ul>
+					{{ destinations|context_data_to_list|safe }}
 				</ul>
 			</li>
 		</ul>
