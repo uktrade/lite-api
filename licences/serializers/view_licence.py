@@ -195,7 +195,6 @@ class NLRdocumentSerializer(serializers.ModelSerializer):
     case_reference = serializers.CharField(source="case.reference_code")
     goods = serializers.SerializerMethodField()
     destinations = serializers.SerializerMethodField()
-    advice_type = serializers.CharField(default="No Licence Required")
 
     class Meta:
         model = GeneratedCaseDocument
