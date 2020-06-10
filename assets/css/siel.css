@@ -91,3 +91,10 @@
 .document .page-break-after {
   page-break-after: always;
 }
+.document .terms-and-conditions-heading {
+  padding-bottom: 15px;
+  text-decoration: underline;
+}
+.document .terms-and-conditions-paragraph {
+  padding-bottom: 15px;
+}
