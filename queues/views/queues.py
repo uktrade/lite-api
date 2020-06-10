@@ -12,7 +12,7 @@ from queues.service import get_queue, get_queues_qs, get_system_queues
 
 class QueuesList(generics.ListAPIView):
     authentication_classes = (GovAuthentication,)
-    queryset = Queue.objects.all()
+    queryset = Queue.objects.select_related("team", "countersigning_queue").all()
     serializer_class = QueueListSerializer
 
     def get(self, request, *args, **kwargs):
@@ -28,9 +28,12 @@ class QueuesList(generics.ListAPIView):
 
     def filter_queryset(self, queryset):
         users_team_first = self.request.GET.get("users_team_first", False)
+        name = self.request.GET.get("name")
 
+        if name:
+            queryset = queryset.filter(name__icontains=name)
         if str_to_bool(users_team_first):
-            return queryset.annotate(
+            queryset = queryset.annotate(
                 users_team=(Case(When(team=self.request.user.team, then=1), default=0, output_field=BinaryField()))
             ).order_by("-users_team")
 

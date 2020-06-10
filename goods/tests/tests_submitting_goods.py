@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.urls import reverse
 from rest_framework import status
 
@@ -11,10 +13,15 @@ from test_helpers.helpers import is_not_verified_flag_set_on_good
 
 
 class GoodTests(DataTestClient):
-    def test_submitted_good_changes_status_and_adds_system_flag(self):
+    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
+    @mock.patch("cases.generated_documents.helpers.html_to_pdf")
+    def test_submitted_good_changes_status_and_adds_system_flag(self, upload_bytes_file_func, html_to_pdf_func):
         """
         Test that the good's status is set to submitted and the 'is_not_verified' flag is added
         """
+        upload_bytes_file_func.return_value = None
+        html_to_pdf_func.return_value = None
+
         self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
         draft = self.create_draft_standard_application(self.organisation)
         self.assertEqual(draft.status.status, CaseStatusEnum.DRAFT)
@@ -35,6 +42,8 @@ class GoodTests(DataTestClient):
         good = Good.objects.get()
         self.assertEqual(good.status, GoodStatus.SUBMITTED)
         self.assertTrue(is_not_verified_flag_set_on_good(good))
+        html_to_pdf_func.assert_called_once()
+        upload_bytes_file_func.assert_called_once()
 
     def test_submitted_good_cannot_be_edited(self):
         """
