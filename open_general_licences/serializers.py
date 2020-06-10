@@ -3,7 +3,7 @@ from rest_framework.validators import UniqueValidator
 
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
-from cases.serializers import CaseTypeSerializer
+# from cases.serializers import CaseTypeSerializer
 from conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.enums import OpenGeneralLicenceStatus
@@ -37,14 +37,14 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         allow_null=False,
         error_messages={"blank": OpenGeneralLicences.serializerErrors.BLANK_URL},
     )
-    case_type = PrimaryKeyRelatedSerializerField(
-        queryset=CaseType.objects.filter(id__in=CaseTypeEnum.OGL_ID_LIST).all(),
-        required=True,
-        allow_null=False,
-        allow_empty=False,
-        error_messages={"null": OpenGeneralLicences.serializerErrors.REQUIRED_CASE_TYPE},
-        serializer=CaseTypeSerializer,
-    )
+    # case_type = PrimaryKeyRelatedSerializerField(
+    #     queryset=CaseType.objects.filter(id__in=CaseTypeEnum.OGL_ID_LIST).all(),
+    #     required=True,
+    #     allow_null=False,
+    #     allow_empty=False,
+    #     error_messages={"null": OpenGeneralLicences.serializerErrors.REQUIRED_CASE_TYPE},
+    #     serializer=CaseTypeSerializer,
+    # )
     countries = PrimaryKeyRelatedSerializerField(
         queryset=Country.objects.all(),
         many=True,
