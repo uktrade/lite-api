@@ -198,17 +198,22 @@ class NLRdocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GeneratedCaseDocument
-        fields = ("id", "name", "case_id", "case_reference", "goods", "destinations", "advice_type")
+        fields = (
+            "id",
+            "name",
+            "case_id",
+            "case_reference",
+            "goods",
+            "destinations",
+            "advice_type",
+        )
 
     def get_goods(self, instance):
-        goods_id = set(
-            GoodOnApplication.objects.filter(
-                good__advice__case_id=instance.case_id,
-                good__advice__type=AdviceType.NO_LICENCE_REQUIRED,
-                good__advice__level=AdviceLevel.FINAL,
-            ).values_list("good_id", flat=True)
+        goods = Good.objects.prefetch_related("control_list_entries").filter(
+            advice__case_id=instance.case_id,
+            advice__type=AdviceType.NO_LICENCE_REQUIRED,
+            advice__level=AdviceLevel.FINAL,
         )
-        goods = Good.objects.prefetch_related("control_list_entries").filter(id__in=goods_id)
         return GoodLicenceListSerializer(goods, many=True).data
 
     def get_destinations(self, instance):
