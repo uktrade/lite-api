@@ -8,6 +8,7 @@ from applications.models import (
     ExhibitionClearanceApplication,
     F680ClearanceApplication,
     HmrcQuery,
+    CountryOnApplication,
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
@@ -23,7 +24,7 @@ from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.units.enums import Units
 
 
-def get_document_context(case):
+def get_document_context(case, addressee=None):
     """
     Generate universal context dictionary to provide data for all document types.
     """
@@ -35,6 +36,7 @@ def get_document_context(case):
     sites = Site.objects.filter(sites_on_application__application_id=case.pk)
     external_locations = ExternalLocation.objects.filter(external_locations_on_application__application_id=case.pk)
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
+    destinations = CountryOnApplication.objects.filter(application_id=case.pk).order_by("country__name")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
 
     if getattr(base_application, "goods", "") and base_application.goods.exists():
@@ -44,12 +46,20 @@ def get_document_context(case):
     else:
         goods = None
 
+    if not addressee:
+        addressee = case.submitted_by
+
     return {
         "case_reference": case.reference_code,
+        "case_type": {
+            "type": case.case_type.type,
+            "sub_type": case.case_type.sub_type,
+            "reference": case.case_type.reference,
+        },
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
-        "applicant": _get_applicant_context(case.submitted_by),
+        "addressee": _get_addressee_context(addressee),
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
         "end_user": _get_party_context(base_application.end_user.party)
@@ -72,6 +82,7 @@ def get_document_context(case):
         "sites": [_get_site_context(site) for site in sites],
         "external_locations": [_get_external_location_context(location) for location in external_locations],
         "documents": [_get_document_context(document) for document in documents],
+        "destinations": [_get_destination_context(destination) for destination in destinations],
     }
 
 
@@ -109,7 +120,7 @@ def _get_standard_application_context(case):
         {
             "export_type": standard_application.export_type,
             "reference_number_on_information_form": standard_application.reference_number_on_information_form,
-            "has_been_informed": friendly_boolean(standard_application.have_you_been_informed),
+            "has_been_informed": standard_application.have_you_been_informed,
             "contains_firearm_goods": friendly_boolean(standard_application.contains_firearm_goods),
             "shipped_waybill_or_lading": friendly_boolean(standard_application.is_shipped_waybill_or_lading),
             "non_waybill_or_lading_route_details": standard_application.non_waybill_or_lading_route_details,
@@ -119,6 +130,7 @@ def _get_standard_application_context(case):
             "trade_control_activity": standard_application.trade_control_activity,
             "trade_control_activity_other": standard_application.trade_control_activity_other,
             "trade_control_product_categories": standard_application.trade_control_product_categories,
+            "temporary_export_details": _get_temporary_export_details(standard_application),
         }
     )
     return context
@@ -142,7 +154,7 @@ def _get_open_application_context(case):
             "goodstype_category": GoodsTypeCategory.get_text(open_application.goodstype_category)
             if open_application.goodstype_category
             else None,
-            "temporary_export_details": open_application.temp_export_details,
+            "temporary_export_details": _get_temporary_export_details(open_application),
         }
     )
     return context
@@ -201,6 +213,12 @@ def _get_f680_clearance_context(case):
     return context
 
 
+def _get_gifting_clearance_context(case):
+    context = _get_base_application_details_context(case.baseapplication)
+
+    return context
+
+
 def _get_end_user_advisory_query_context(case):
     query = EndUserAdvisoryQuery.objects.get(id=case.pk)
     return {
@@ -247,6 +265,8 @@ def _get_details_context(case):
         return _get_exhibition_clearance_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.F680:
         return _get_f680_clearance_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.GIFTING:
+        return _get_gifting_clearance_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.EUA:
         return _get_end_user_advisory_query_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
@@ -255,8 +275,15 @@ def _get_details_context(case):
         return None
 
 
-def _get_applicant_context(applicant):
-    return {"name": " ".join([applicant.first_name, applicant.last_name]), "email": applicant.email}
+def _get_addressee_context(addressee):
+    return {
+        "name": " ".join([addressee.first_name, addressee.last_name])
+        if hasattr(addressee, "first_name")
+        else addressee.name,
+        "email": addressee.email,
+        "address": getattr(addressee, "address", ""),
+        "phone_number": getattr(addressee, "phone_number", ""),
+    }
 
 
 def _get_organisation_context(organisation):
@@ -281,8 +308,10 @@ def _get_licence_context(licence):
 def _get_party_context(party):
     return {
         "name": party.name,
+        "type": party.sub_type,
         "address": party.address,
-        "country": {"name": party.country.name, "code": party.country.id,},
+        "descriptors": party.descriptors,
+        "country": {"name": party.country.name, "code": party.country.id},
         "website": party.website,
         "clearance_level": PvGrading.choices_as_dict.get(party.clearance_level),
     }
@@ -328,6 +357,10 @@ def _get_good_context(good_on_application, advice=None):
         good_context["quantity"] = _format_quantity(good_on_application.licenced_quantity, good_on_application.unit)
     if good_on_application.licenced_value:
         good_context["value"] = f"£{good_on_application.licenced_value}"
+    if good_on_application.item_type:
+        good_context["item_type"] = good_on_application.item_type
+        good_context["other_item_type"] = good_on_application.other_item_type
+
     return good_context
 
 
@@ -353,6 +386,7 @@ def _get_goods_type_context(goods_types, case_pk):
             {
                 "description": good.description,
                 "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
+                "is_controlled": friendly_boolean(good.is_good_controlled),
             }
             for good in goods_types
         ],
@@ -434,3 +468,20 @@ def _get_external_location_context(location):
 
 def _get_document_context(document):
     return {"id": str(document.id), "name": document.name, "description": document.description}
+
+
+def _get_temporary_export_details(application):
+    return {
+        "temp_export_details": application.temp_export_details,
+        "is_temp_direct_control": friendly_boolean(application.is_temp_direct_control),
+        "temp_direct_control_details": application.temp_direct_control_details,
+        "proposed_return_date": application.proposed_return_date,
+    }
+
+
+def _get_destination_context(destination):
+    return {
+        "country": {"code": destination.country.id, "name": destination.country.name,},
+        "contract_types": destination.contract_types,
+        "other_contract_type": destination.other_contract_type_text,
+    }
