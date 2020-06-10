@@ -87,6 +87,8 @@ class ViewLicence(RetrieveAPIView):
 
 
 class NLRs(ListAPIView):
+    # TODO: using the NLRdocumentSerializer creates multiple queries for each result,
+    #  query count can be cut down in future
     authentication_classes = (ExporterAuthentication,)
     serializer_class = NLRdocumentSerializer
 
@@ -117,4 +119,4 @@ class NLRs(ListAPIView):
         if end_user:
             documents = documents.filter(case__baseapplication__parties__party__name__contains=end_user)
 
-        return documents
+        return documents.distinct()
