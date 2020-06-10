@@ -1,3 +1,4 @@
+import uuid
 from unittest import mock
 from unittest.mock import ANY
 
@@ -194,29 +195,13 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
 
-    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
     @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
     def test_save_licence_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
         schedule_licence_for_hmrc_integration.return_value = None
 
         self.standard_licence.save()
 
-        schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), schedule_as_background_task=False
-        )
-
-    @mock.patch("licences.models.BACKGROUND_TASK_ENABLED", True)
-    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
-    def test_save_licence_calls_schedule_licence_for_hmrc_integration_as_background_task(
-        self, schedule_licence_for_hmrc_integration
-    ):
-        schedule_licence_for_hmrc_integration.return_value = None
-
-        self.standard_licence.save()
-
-        schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), schedule_as_background_task=True
-        )
+        schedule_licence_for_hmrc_integration.assert_called_with(str(self.standard_licence.id))
 
 
 class HMRCIntegrationTasksTests(DataTestClient):
@@ -226,30 +211,30 @@ class HMRCIntegrationTasksTests(DataTestClient):
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
 
+    @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", False)
     @mock.patch("licences.tasks.send_licence_to_hmrc_integration.now")
     def test_schedule_licence_for_hmrc_integration(self, send_licence_to_hmrc_integration_now):
         send_licence_to_hmrc_integration_now.return_value = None
 
-        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), schedule_as_background_task=False)
+        schedule_licence_for_hmrc_integration(str(self.standard_licence.id))
 
-        send_licence_to_hmrc_integration_now.assert_called_with(
-            str(self.standard_licence.id), scheduled_as_background_task=False
-        )
+        send_licence_to_hmrc_integration_now.assert_called_with(str(self.standard_licence.id))
 
+    @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", True)
     @mock.patch("licences.tasks.send_licence_to_hmrc_integration")
     def test_schedule_licence_for_hmrc_integration_as_background_task(self, send_licence_to_hmrc_integration):
         send_licence_to_hmrc_integration.return_value = None
 
         schedule_licence_for_hmrc_integration(str(self.standard_licence.id))
 
-        send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id))
+        send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id), task_identifier=ANY)
 
     @mock.patch("licences.tasks.hmrc_integration_operations.send_licence")
     def test_send_licence_to_hmrc_integration_success(self, send_licence):
         send_licence.return_value = None
 
         # Note: Using `.now()` operation to test code synchronously
-        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), scheduled_as_background_task=False)
+        send_licence_to_hmrc_integration.now(str(self.standard_licence.id))
 
         send_licence.assert_called_once()
 
@@ -260,7 +245,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         task_get.return_value = MockTask(0)
 
         # Note: Using `.now()` operation to test code synchronously
-        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), scheduled_as_background_task=False)
+        send_licence_to_hmrc_integration.now(str(self.standard_licence.id))
 
         send_licence.assert_called_once()
         task_get.assert_not_called()
@@ -275,42 +260,42 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence.assert_called_once()
 
     @mock.patch("licences.tasks.schedule_max_tried_task_as_new_task")
-    @mock.patch("licences.tasks.Task.objects.filter")
+    @mock.patch("licences.tasks.Task.objects.get")
     @mock.patch("licences.tasks.hmrc_integration_operations.send_licence")
     def test_send_licence_to_hmrc_integration_with_background_task_failure(
-        self, send_licence, task_filter, schedule_max_tried_task_as_new_task
+        self, send_licence, task_get, schedule_max_tried_task_as_new_task
     ):
         send_licence.side_effect = HMRCIntegrationException("Recieved an unexpected response")
-        task_filter.return_value = MockTask(0)
+        task_get.return_value = MockTask(0)
         schedule_max_tried_task_as_new_task.return_value = None
 
         with self.assertRaises(Exception) as error:
             # Note: Using `.now()` operation to test code synchronously
-            send_licence_to_hmrc_integration.now(str(self.standard_licence.id))
+            send_licence_to_hmrc_integration.now(str(self.standard_licence.id), task_identifier=uuid.uuid4())
 
         send_licence.assert_called_once()
-        task_filter.assert_called_once()
+        task_get.assert_called_once()
         schedule_max_tried_task_as_new_task.assert_not_called()
         self.assertEqual(
             str(error.exception), f"Failed to send licence '{self.standard_licence.id}' changes to HMRC Integration",
         )
 
     @mock.patch("licences.tasks.schedule_max_tried_task_as_new_task")
-    @mock.patch("licences.tasks.Task.objects.filter")
+    @mock.patch("licences.tasks.Task.objects.get")
     @mock.patch("licences.tasks.hmrc_integration_operations.send_licence")
     def test_send_licence_to_hmrc_integration_with_background_task_failure_max_attempts(
-        self, send_licence, task_filter, schedule_max_tried_task_as_new_task
+        self, send_licence, task_get, schedule_max_tried_task_as_new_task
     ):
         send_licence.side_effect = HMRCIntegrationException("Recieved an unexpected response")
-        task_filter.return_value = MockTask(MAX_ATTEMPTS - 1)  # Make the current task attempt 1 less than MAX_ATTEMPTS
+        task_get.return_value = MockTask(MAX_ATTEMPTS - 1)  # Make the current task attempt 1 less than MAX_ATTEMPTS
         schedule_max_tried_task_as_new_task.return_value = None
 
         with self.assertRaises(Exception) as error:
             # Note: Using `.now()` operation to test code synchronously
-            send_licence_to_hmrc_integration.now(str(self.standard_licence.id))
+            send_licence_to_hmrc_integration.now(str(self.standard_licence.id), task_identifier=uuid.uuid4())
 
         send_licence.assert_called_once()
-        task_filter.assert_called_once()
+        task_get.assert_called_once()
         schedule_max_tried_task_as_new_task.assert_called_once()
         self.assertEqual(
             str(error.exception), f"Failed to send licence '{self.standard_licence.id}' changes to HMRC Integration",
@@ -325,7 +310,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id), schedule=TASK_BACK_OFF)
 
 
-@mock.patch("licences.models.BACKGROUND_TASK_ENABLED", False)
+@mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", False)
 @mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
 class HMRCIntegrationTests(DataTestClient):
     def setUp(self):

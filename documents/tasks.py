@@ -44,9 +44,9 @@ def _handle_exception(message: str, document, scheduled_as_background_task):
     error_message = f"Failed to scan document '{document.id}'"
 
     if scheduled_as_background_task:
-        task = Task.objects.filter(queue=TASK_QUEUE, task_params__contains=document.id)
-
-        if not task.exists():
+        try:
+            task = Task.objects.filter(queue=TASK_QUEUE, task_params__contains=document.id)
+        except Task.DoesNotExist:
             logging.error(f"No task was found for document '{document.id}'")
             document.delete_s3()
         else:
