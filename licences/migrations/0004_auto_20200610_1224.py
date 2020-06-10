@@ -15,7 +15,7 @@ def set_licence_reference(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('licences', '0003_licence_reference_code'),
+        ("licences", "0003_licence_reference_code"),
     ]
 
     operations = [

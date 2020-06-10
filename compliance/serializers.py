@@ -6,6 +6,7 @@ from compliance.models import OpenLicenceReturns
 class OpenLicenceReturnsListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     year = serializers.IntegerField()
+    created_at = serializers.DateTimeField()
 
 
 class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
