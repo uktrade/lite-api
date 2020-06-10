@@ -6,6 +6,8 @@ from lite_content.lite_api import strings
 
 
 class LicenceCreateSerializer(serializers.ModelSerializer):
+    reference_code = serializers.CharField(max_length=30, required=True)
+
     class Meta:
         model = Licence
         fields = (
