@@ -90,7 +90,7 @@ class GetLicencesTests(DataTestClient):
                 )
 
     def test_get_standard_licences_only(self):
-        response = self.client.get(self.url + "?licence_type=" + LicenceType.LICENCE, **self.exporter_headers)
+        response = self.client.get(self.url + "?licence_type=" + LicenceType.REGISTRATION, **self.exporter_headers)
         response_data = response.json()["results"]
         ids = [licence["id"] for licence in response_data]
 

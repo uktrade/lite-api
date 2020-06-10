@@ -9,7 +9,7 @@ class LicencesResponseTests(EndPointTests):
         self.call_endpoint(self.get_exporter_headers(), self.url)
 
     def test_licences_list_standard_licences_only(self):
-        self.call_endpoint(self.get_exporter_headers(), self.url + "?licence_type=" + LicenceType.LICENCE)
+        self.call_endpoint(self.get_exporter_headers(), self.url + "?licence_type=" + LicenceType.REGISTRATION)
 
     def test_licences_list_clearances_only(self):
         self.call_endpoint(self.get_exporter_headers(), self.url + "?licence_type=" + LicenceType.CLEARANCE)

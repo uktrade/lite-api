@@ -71,37 +71,37 @@ class CaseSerializer(serializers.ModelSerializer):
     """
 
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    application = serializers.SerializerMethodField()
-    query = QueryViewSerializer(read_only=True)
+    # application = serializers.SerializerMethodField()
+    # query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case
         fields = (
             "id",
             "case_type",
-            "application",
-            "query",
+            # "application",
+            # "query",
         )
 
-    def get_application(self, instance):
-        # The case has a reference to a BaseApplication but
-        # we need the full details of the application it points to
-        if instance.type in [CaseTypeTypeEnum.APPLICATION]:
-            application = get_application(instance.id)
-            serializer = get_application_view_serializer(application)
-            return serializer(application).data
+    # def get_application(self, instance):
+    #     # The case has a reference to a BaseApplication but
+    #     # we need the full details of the application it points to
+    #     if instance.type in [CaseTypeTypeEnum.APPLICATION]:
+    #         application = get_application(instance.id)
+    #         serializer = get_application_view_serializer(application)
+    #         return serializer(application).data
 
-    def to_representation(self, value):
-        """
-        Only show 'application' if it has an application inside,
-        and only show 'query' if it has a CLC query inside
-        """
-        repr_dict = super(CaseSerializer, self).to_representation(value)
-        if not repr_dict["application"]:
-            del repr_dict["application"]
-        if not repr_dict["query"]:
-            del repr_dict["query"]
-        return repr_dict
+    # def to_representation(self, value):
+    #     """
+    #     Only show 'application' if it has an application inside,
+    #     and only show 'query' if it has a CLC query inside
+    #     """
+    #     repr_dict = super(CaseSerializer, self).to_representation(value)
+    #     if not repr_dict["application"]:
+    #         del repr_dict["application"]
+    #     if not repr_dict["query"]:
+    #         del repr_dict["query"]
+    #     return repr_dict
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):
@@ -188,8 +188,6 @@ class CaseDetailSerializer(CaseSerializer):
     assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
-    query = QueryViewSerializer(read_only=True)
-    application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer(read_only=True)
     copy_of = serializers.SerializerMethodField()
@@ -197,6 +195,7 @@ class CaseDetailSerializer(CaseSerializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     advice = CaseAdviceSerializer(many=True)
+    data = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -207,8 +206,6 @@ class CaseDetailSerializer(CaseSerializer):
             "queues",
             "queue_names",
             "assigned_users",
-            "application",
-            "query",
             "has_advice",
             "advice",
             "all_flags",
@@ -218,6 +215,7 @@ class CaseDetailSerializer(CaseSerializer):
             "copy_of",
             "sla_days",
             "sla_remaining_days",
+            "data"
         )
 
     def __init__(self, *args, **kwargs):
@@ -225,13 +223,16 @@ class CaseDetailSerializer(CaseSerializer):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-    def get_application(self, instance):
-        # The case has a reference to a BaseApplication but
-        # we need the full details of the application it points to
-        if instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
+    def get_data(self, instance):
+        if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
+            return {"open_general_licence": "hello!"}
+            # return serializer(application).data
+        elif instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
+        elif instance.case_type.type == CaseTypeTypeEnum.QUERY:
+            return QueryViewSerializer(instance.query, read_only=True).data
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))
