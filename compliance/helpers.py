@@ -9,17 +9,18 @@ TOTAL_COLUMNS = 5
 
 def read_and_validate_csv(text):
     references = set()
-    cleaned_text = "\n"
+    cleaned_text = ""
 
     try:
         csv_reader = csv.reader(text.split("\n"), delimiter=",")
         # skip headers
         next(csv_reader, None)
         for row in csv_reader:
-            if len(row) != TOTAL_COLUMNS:
-                raise ValidationError({"file": ["Invalid format"]})
-            references.add(row[0])
-            cleaned_text += ",".join(row) + "\n"
+            if row:
+                if len(row) != TOTAL_COLUMNS:
+                    raise ValidationError({"file": ["Invalid format"]})
+                references.add(row[0])
+                cleaned_text += ",".join(row) + "\n"
     except csv.Error:
         raise ValidationError({"file": ["Invalid format"]})
 
