@@ -5,7 +5,7 @@ import uuid
 
 
 def set_licence_reference(apps, schema_editor):
-    Licence = apps.get_model("licence", "Licence")
+    Licence = apps.get_model("licences", "Licence")
     for licence in Licence.objects.all():
         if not licence.reference_code:
             licence.reference_code = licence.application.reference_code
