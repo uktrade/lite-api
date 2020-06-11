@@ -41,7 +41,7 @@ def generate_compliance(case: Case):
     for site in new_compliance_sites:
         ComplianceSiteCase(
             site=site,
-            status=get_case_status_by_status(CaseStatusEnum.DRAFT),
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
             organisation_id=case.organisation_id,
             case_type_id=CaseTypeEnum.COMPLIANCE.id,
             submitted_at=timezone.now(),

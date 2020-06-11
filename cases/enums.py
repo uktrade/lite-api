@@ -54,11 +54,9 @@ class CaseTypeReferenceEnum:
 class CaseTypeTypeEnum:
     APPLICATION = "application"
     QUERY = "query"
+    COMPLIANCE = "compliance"
 
-    choices = [
-        (APPLICATION, "Application"),
-        (QUERY, "Query"),
-    ]
+    choices = [(APPLICATION, "Application"), (QUERY, "Query"), (COMPLIANCE, "Compliance")]
 
     @classmethod
     def as_list(cls):
@@ -207,7 +205,7 @@ class CaseTypeEnum:
     class COMPLIANCE:
         id = UUID("00000000-0000-0000-0000-000000000015")
         reference = CaseTypeReferenceEnum.COMP
-        type = CaseTypeTypeEnum.APPLICATION
+        type = CaseTypeTypeEnum.COMPLIANCE
         sub_type = CaseTypeSubTypeEnum.COMP
 
     CASE_TYPE_LIST = [

@@ -25,6 +25,8 @@ from cases.models import (
     GoodCountryDecision,
     CaseType,
 )
+from compliance.models import ComplianceSiteCase
+from compliance.serializers import ComplianceSiteViewSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
@@ -197,6 +199,7 @@ class CaseDetailSerializer(CaseSerializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     advice = CaseAdviceSerializer(many=True)
+    compliance = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -218,6 +221,7 @@ class CaseDetailSerializer(CaseSerializer):
             "copy_of",
             "sla_days",
             "sla_remaining_days",
+            "compliance",
         )
 
     def __init__(self, *args, **kwargs):
@@ -232,6 +236,11 @@ class CaseDetailSerializer(CaseSerializer):
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
+
+    def get_compliance(self, instance):
+        if instance.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
+            compliance = ComplianceSiteCase.objects.get(id=instance.id)
+            return ComplianceSiteViewSerializer(compliance).data
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))
