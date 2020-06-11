@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
@@ -18,7 +19,11 @@ class OpenLicenceReturnsView(ListAPIView):
         return OpenLicenceReturns.objects.all()
 
     def post(self, request):
-        references, cleaned_text = read_and_validate_csv(request.data.get("file"))
+        file = request.data.get("file")
+        if not file:
+            raise ValidationError({"file": ["No file uploaded"]})
+
+        references, cleaned_text = read_and_validate_csv(file)
         licence_ids = fetch_and_validate_licences(references)
 
         data = request.data
