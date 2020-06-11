@@ -72,37 +72,13 @@ class CaseSerializer(serializers.ModelSerializer):
     """
 
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    # application = serializers.SerializerMethodField()
-    # query = QueryViewSerializer(read_only=True)
 
     class Meta:
         model = Case
         fields = (
             "id",
             "case_type",
-            # "application",
-            # "query",
         )
-
-    # def get_application(self, instance):
-    #     # The case has a reference to a BaseApplication but
-    #     # we need the full details of the application it points to
-    #     if instance.type in [CaseTypeTypeEnum.APPLICATION]:
-    #         application = get_application(instance.id)
-    #         serializer = get_application_view_serializer(application)
-    #         return serializer(application).data
-
-    # def to_representation(self, value):
-    #     """
-    #     Only show 'application' if it has an application inside,
-    #     and only show 'query' if it has a CLC query inside
-    #     """
-    #     repr_dict = super(CaseSerializer, self).to_representation(value)
-    #     if not repr_dict["application"]:
-    #         del repr_dict["application"]
-    #     if not repr_dict["query"]:
-    #         del repr_dict["query"]
-    #     return repr_dict
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):
