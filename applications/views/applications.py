@@ -1,4 +1,5 @@
 from copy import deepcopy
+from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
@@ -6,10 +7,9 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied, ErrorDetail, ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
-from uuid import UUID
 
 from applications import constants
 from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration

@@ -9,6 +9,7 @@ from audit_trail.enums import AuditType
 from audit_trail.serializers import AuditSerializer
 from conf import constants
 from conf.authentication import SharedAuthentication, GovAuthentication
+from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.enums import OpenGeneralLicenceStatus
@@ -51,7 +52,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
             if filter_data.get("site"):
                 queryset = queryset.filter(cases__site_id=filter_data.get("site"))
 
-            if filter_data.get("registered"):
+            if str_to_bool(filter_data.get("registered")):
                 queryset = queryset.filter(
                     cases__site__organisation=get_request_user_organisation_id(self.request)
                 ).distinct()
