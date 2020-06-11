@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from compliance.models import OpenLicenceReturns
+from lite_content.lite_api.strings import Compliance
 
 
 class OpenLicenceReturnsListSerializer(serializers.Serializer):
@@ -15,7 +16,7 @@ class OpenLicenceReturnsViewSerializer(OpenLicenceReturnsListSerializer):
 
 class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
     file = serializers.CharField(required=True, allow_blank=False)
-    year = serializers.IntegerField(required=True)
+    year = serializers.IntegerField(required=True, error_messages={"required": Compliance.OpenLicenceReturns.YEAR_ERROR})
 
     class Meta:
         model = OpenLicenceReturns

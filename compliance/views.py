@@ -8,6 +8,7 @@ from compliance.models import OpenLicenceReturns
 from compliance.serializers import OpenLicenceReturnsCreateSerializer, OpenLicenceReturnsListSerializer, \
     OpenLicenceReturnsViewSerializer
 from conf.authentication import ExporterAuthentication
+from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 
 
@@ -21,22 +22,23 @@ class OpenLicenceReturnsView(ListAPIView):
     def post(self, request):
         file = request.data.get("file")
         if not file:
-            raise ValidationError({"file": ["No file uploaded"]})
+            raise ValidationError({"file": [Compliance.OpenLicenceReturns.FILE_ERROR]})
 
+        organisation_id = get_request_user_organisation_id(request)
         references, cleaned_text = read_and_validate_csv(file)
-        licence_ids = fetch_and_validate_licences(references)
+        licence_ids = fetch_and_validate_licences(references, organisation_id)
 
         data = request.data
         data["file"] = cleaned_text
         data["licences"] = licence_ids
-        data["organisation"] = get_request_user_organisation_id(request)
+        data["organisation"] = organisation_id
         serializer = OpenLicenceReturnsCreateSerializer(data=data)
 
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save()
-        return JsonResponse(data={"licences": licence_ids})
+        return JsonResponse(data={"licences": list(references)}, status=status.HTTP_201_CREATED)
 
 
 class OpenLicenceReturnDownloadView(RetrieveAPIView):

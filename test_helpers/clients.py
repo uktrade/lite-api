@@ -607,10 +607,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
 
-    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
-        if not org_type:
-            org_type = OrganisationType.COMMERCIAL
-
+    def create_organisation_with_exporter_user(self, name="Organisation", org_type=OrganisationType.COMMERCIAL, exporter_user=None):
         organisation = OrganisationFactory(name=name, type=org_type)
 
         if not exporter_user:
@@ -953,12 +950,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return ecju_query
 
     @staticmethod
-    def create_licence(application: BaseApplication, is_complete: bool, decisions=None):
+    def create_licence(application: BaseApplication, is_complete: bool, reference_code=None, decisions=None):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
+        if not reference_code:
+            reference_code = application.reference_code
 
         licence = Licence.objects.create(
             application=application,
+            reference_code=reference_code,
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
             is_complete=is_complete,
