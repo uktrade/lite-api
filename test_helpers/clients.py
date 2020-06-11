@@ -755,6 +755,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
+    def create_mod_clearance_application_case(self, organisation, case_type):
+        draft = self.create_mod_clearance_application(organisation, case_type)
+
+        return self.submit_application(draft, self.exporter_user)
+
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
             is_good_controlled=True, organisation=self.organisation, description="a good", part_number="123456",
