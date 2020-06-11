@@ -67,7 +67,8 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         if filter_data.get("country"):
             queryset = queryset.filter(countries__id__contains=filter_data.get("country"))
 
-        queryset = queryset.filter(status=filter_data.get("status") or OpenGeneralLicenceStatus.ACTIVE)
+        if filter_data.get("status"):
+            queryset = queryset.filter(status=filter_data.get("status"))
 
         return queryset
 
