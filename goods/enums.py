@@ -103,7 +103,7 @@ class ItemCategory:
 
     choices = [
         (GROUP1_PLATFORM, "Platform, vehicle, system or machine"),
-        (GROUP1_DEVICE, "Device, equipment or object "),
+        (GROUP1_DEVICE, "Device, equipment or object"),
         (GROUP1_COMPONENTS, "Components, modules or accessories of something"),
         (GROUP1_MATERIALS, "Materials or substances"),
         (GROUP2_FIREARMS, "Firearms"),
