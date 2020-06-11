@@ -1,4 +1,4 @@
-from django.db.models import When, Case as db_case, F, Q
+from django.db.models import When, Case as db_case, F
 from django.utils import timezone
 
 from cases.enums import CaseTypeEnum
@@ -22,7 +22,6 @@ def generate_compliance(case: Case):
             ).exists()
         ):
             return None
-        pass
     elif case.case_type.id == CaseTypeEnum.OICL.id:
         pass
     else:

@@ -4,7 +4,6 @@ from addresses.serializers import AddressSerializer
 from cases.models import Case
 from compliance.models import ComplianceSiteCase
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from licences.models import Licence
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
