@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "teams",
     "users",
     "workflow.routing_rules",
+    "compliance",
 ]
 
 MIDDLEWARE = [
