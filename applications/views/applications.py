@@ -56,6 +56,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.generated_documents.helpers import auto_generate_case_document
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.libraries.get_flags import get_flags
 from cases.models import Advice
 from cases.serializers import SimpleAdviceSerializer
@@ -171,7 +172,10 @@ class ApplicationExisting(APIView):
         else:
             has_licences = Licence.objects.filter(application__organisation=organisation).exists()
             has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
-            return JsonResponse(data={"licences": has_licences, "applications": has_applications})
+            has_nlrs = GeneratedCaseDocument.objects.filter(
+                advice_type=AdviceType.NO_LICENCE_REQUIRED, case__organisation=organisation
+            ).exists()
+            return JsonResponse(data={"licences": has_licences, "applications": has_applications, "nlrs": has_nlrs})
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
