@@ -1,9 +1,10 @@
-from django.db.models import When, Case as db_case, F
+from django.db.models import When, Case as db_case, F, Q
 from django.utils import timezone
 
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from compliance.models import ComplianceSiteCase
+from goods.models import Good
 from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -14,7 +15,13 @@ def generate_compliance(case: Case):
     if case.case_type.id == CaseTypeEnum.OIEL.id:
         pass
     elif case.case_type.id == CaseTypeEnum.SIEL.id:
-        # TODO: Check that the control code is ML21 ML22 or dual list
+        if not (
+            Good.objects.filter(
+                goods_on_application__application_id=case.id,
+                control_list_entries__rating__regex="(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)",
+            ).exist()
+        ):
+            return None
         pass
     elif case.case_type.id == CaseTypeEnum.OICL.id:
         pass

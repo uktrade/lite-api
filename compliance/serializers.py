@@ -33,7 +33,7 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
             baseapplication__application_sites__site__site_records_located_at__compliance__id=instance.id,
         )
 
-        # Inidivual licence details to be added in future story
+        # Individual licence details to be added in future story
         return [{"case_id": case.id, "case_reference": case.reference_code,} for case in cases]
 
     def get_status(self, instance):
