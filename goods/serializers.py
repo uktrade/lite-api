@@ -148,8 +148,10 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"control_list_entries": [strings.Goods.CONTROL_LIST_ENTRY_IF_CONTROLLED_ERROR]}
             )
-
-        if data["is_military_use"] == "yes_modified" and not data["modified_military_use_details"]:
+        # TODO is_military_use throws an error when updating and no options selected
+        #  mitigate if necessary (data will be prepopulated so unlikely...)
+        is_military_use = data.get("is_military_use")
+        if is_military_use == "yes_modified" and not data["modified_military_use_details"]:
             raise serializers.ValidationError(
                 {"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]}
             )
@@ -179,6 +181,45 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                 pv_grading_details=validated_data.get("pv_grading_details"),
                 instance=instance.pv_grading_details,
             )
+        # TAU
+        instance.is_military_use = validated_data.get("is_military_use", instance.is_military_use)
+        instance.is_component = validated_data.get("is_component", instance.is_component)
+        instance.uses_information_security = validated_data.get(
+            "uses_information_security", instance.uses_information_security
+        )
+
+        # Military use
+        if validated_data.get("is_military_use") != instance.is_military_use:
+            instance.modified_military_use_details = validated_data.get(
+                "modified_military_use_details", instance.modified_military_use_details
+            )
+        if instance.is_military_use in [MilitaryUse.YES_MODIFIED, MilitaryUse.NO]:
+            instance.modified_military_use_details = None
+            instance.is_component = None
+            instance.component_details = None
+            instance.uses_information_security = None
+            instance.information_security_details = None
+        instance.modified_military_use_details = validated_data.get(
+            "modified_military_use_details", instance.modified_military_use_details
+        )
+
+        # Component
+        if validated_data.get("is_component") != instance.is_component:
+            instance.component_details = validated_data.get("component_details", instance.component_details)
+        if instance.is_component == Component.NO:
+            instance.component_details = None
+            instance.uses_information_security = None
+            instance.information_security_details = None
+        instance.component_details = validated_data.get("component_details", instance.component_details)
+
+        # Information security
+        if validated_data.get("uses_information_security") != instance.uses_information_security:
+            instance.information_security_details = validated_data.get(
+                "information_security_details", instance.information_security_details
+            )
+        instance.information_security_details = validated_data.get(
+            "information_security_details", instance.information_security_details
+        )
 
         instance.save()
         return instance
