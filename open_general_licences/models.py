@@ -36,8 +36,8 @@ class OpenGeneralLicence(TimestampableModel):
 
 
 class OpenGeneralLicenceCase(Case):
-    open_general_licence = models.ForeignKey(OpenGeneralLicence, blank=False, null=False, on_delete=models.CASCADE)
-    site = models.ForeignKey(Site, blank=False, null=False, on_delete=models.CASCADE)
+    open_general_licence = models.ForeignKey(OpenGeneralLicence, related_name="cases", blank=False, null=False, on_delete=models.CASCADE)
+    site = models.ForeignKey(Site, related_name="open_general_licence_cases", blank=False, null=False, on_delete=models.CASCADE)
 
     class Meta:
         db_table = "open_general_licence_case"

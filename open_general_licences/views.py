@@ -13,6 +13,8 @@ from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.models import OpenGeneralLicence
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
+from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from users.enums import UserType
 from users.models import GovUser, GovNotification
 
 
@@ -25,25 +27,35 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         .prefetch_related("countries", "control_list_entries")
     )
 
+    def get_serializer_context(self):
+        if self.request.user.type == UserType.EXPORTER:
+            return {"organisation": get_request_user_organisation(self.request)}
+
     def filter_queryset(self, queryset):
-        filtered_qs = queryset
         filter_data = self.request.GET
 
         if filter_data.get("name"):
-            filtered_qs = filtered_qs.filter(name__icontains=filter_data.get("name"))
+            queryset = queryset.filter(name__icontains=filter_data.get("name"))
 
         if filter_data.get("case_type"):
-            filtered_qs = filtered_qs.filter(case_type_id=filter_data.get("case_type"))
+            queryset = queryset.filter(case_type_id=filter_data.get("case_type"))
 
         if filter_data.get("control_list_entry"):
-            filtered_qs = filtered_qs.filter(control_list_entries__rating=filter_data.get("control_list_entry"))
+            queryset = queryset.filter(control_list_entries__rating=filter_data.get("control_list_entry"))
 
         if filter_data.get("country"):
-            filtered_qs = filtered_qs.filter(countries__id__contains=filter_data.get("country"))
+            queryset = queryset.filter(countries__id__contains=filter_data.get("country"))
 
-        filtered_qs = filtered_qs.filter(status=filter_data.get("status", "active"))
+        if self.request.user.type == UserType.EXPORTER:
+            if filter_data.get("site"):
+                queryset = queryset.filter(cases__site_id=filter_data.get("site"))
 
-        return filtered_qs
+            if filter_data.get("registered"):
+                queryset = queryset.filter(cases__site__organisation=get_request_user_organisation_id(self.request)).distinct()
+
+        queryset = queryset.filter(status=filter_data.get("status", "active"))
+
+        return queryset
 
     def perform_create(self, serializer):
         assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)

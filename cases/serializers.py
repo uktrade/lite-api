@@ -30,7 +30,6 @@ from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from licences.helpers import get_open_general_export_licence_case
-from licences.serializers.open_general_licences import OGLApplicationCaseSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import OrganisationCaseSerializer
@@ -226,6 +225,7 @@ class CaseDetailSerializer(CaseSerializer):
         super().__init__(*args, **kwargs)
 
     def get_data(self, instance):
+        from licences.serializers.open_general_licences import OGLApplicationCaseSerializer
         if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
             return OGLApplicationCaseSerializer(get_open_general_export_licence_case(instance.id)).data
         elif instance.case_type.type == CaseTypeTypeEnum.APPLICATION:

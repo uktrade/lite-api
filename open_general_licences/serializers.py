@@ -3,13 +3,29 @@ from rest_framework.validators import UniqueValidator
 
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
-# from cases.serializers import CaseTypeSerializer
+from cases.serializers import CaseTypeSerializer
 from conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.models import OpenGeneralLicence
+from organisations.serializers import SiteListSerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
+from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+
+
+class OGLApplicationListSerializer(serializers.Serializer):
+    reference_code = serializers.CharField()
+    site = SiteListSerializer()
+    status = serializers.SerializerMethodField()
+    submitted_at = serializers.DateTimeField()
+
+    def get_status(self, instance):
+        if instance.status:
+            return {
+                "key": instance.status.status,
+                "value": get_status_value_from_case_status_enum(instance.status.status),
+            }
 
 
 class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
@@ -37,14 +53,14 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         allow_null=False,
         error_messages={"blank": OpenGeneralLicences.serializerErrors.BLANK_URL},
     )
-    # case_type = PrimaryKeyRelatedSerializerField(
-    #     queryset=CaseType.objects.filter(id__in=CaseTypeEnum.OGL_ID_LIST).all(),
-    #     required=True,
-    #     allow_null=False,
-    #     allow_empty=False,
-    #     error_messages={"null": OpenGeneralLicences.serializerErrors.REQUIRED_CASE_TYPE},
-    #     serializer=CaseTypeSerializer,
-    # )
+    case_type = PrimaryKeyRelatedSerializerField(
+        queryset=CaseType.objects.filter(id__in=CaseTypeEnum.OGL_ID_LIST).all(),
+        required=True,
+        allow_null=False,
+        allow_empty=False,
+        error_messages={"null": OpenGeneralLicences.serializerErrors.REQUIRED_CASE_TYPE},
+        serializer=CaseTypeSerializer,
+    )
     countries = PrimaryKeyRelatedSerializerField(
         queryset=Country.objects.all(),
         many=True,
@@ -61,6 +77,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         error_messages={"invalid": OpenGeneralLicences.serializerErrors.REQUIRED_REGISTRATION_REQUIRED},
     )
     status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices, required=False)
+    registrations = OGLApplicationListSerializer(source="cases", many=True)   # Check that this doesnt return all for all orgs!
 
     class Meta:
         model = OpenGeneralLicence
