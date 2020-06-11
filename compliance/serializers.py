@@ -23,7 +23,9 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
         fields = ("site", "licences", "status", "organisation")
 
     def get_licences(self, instance):
-        licences = Case.objects.filter(
+        # For Compliance cases, when viewing from the site, we care about the Case the licence is attached to primarily,
+        #   and the licence status, and returns completed.
+        cases = Case.objects.filter(
             baseapplication__licence__is_complete=True,
             baseapplication__application_sites__site__compliance__id=instance.id,
         ) | Case.objects.filter(
@@ -31,7 +33,8 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
             baseapplication__application_sites__site__site_records_located_at__compliance__id=instance.id,
         )
 
-        return [{"case_id": licence.id, "case_reference": licence.reference_code,} for licence in licences]
+        # Inidivual licence details to be added in future story
+        return [{"case_id": case.id, "case_reference": case.reference_code,} for case in cases]
 
     def get_status(self, instance):
         if instance.status:
