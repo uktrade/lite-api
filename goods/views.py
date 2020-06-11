@@ -204,7 +204,10 @@ class GoodList(ListCreateAPIView):
 
         if "is_information_security_step" in data and "uses_information_security" not in data:
             return JsonResponse(
-                data={"errors": {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}}, status=status.HTTP_400_BAD_REQUEST,
+                data={
+                    "errors": {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)

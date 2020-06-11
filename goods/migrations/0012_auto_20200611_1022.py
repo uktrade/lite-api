@@ -6,13 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('goods', '0011_auto_20200609_1435'),
+        ("goods", "0011_auto_20200609_1435"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='good',
-            name='item_category',
-            field=models.CharField(choices=[('group1_platform', 'Platform, vehicle, system or machine'), ('group1_device', 'Device, equipment or object'), ('group1_components', 'Components, modules or accessories of something'), ('group1_materials', 'Materials or substances'), ('group2_firearms', 'Firearms'), ('group3_software', 'Software'), ('group3_technology', 'Technology')], max_length=20, null=True),
+            model_name="good",
+            name="item_category",
+            field=models.CharField(
+                choices=[
+                    ("group1_platform", "Platform, vehicle, system or machine"),
+                    ("group1_device", "Device, equipment or object"),
+                    ("group1_components", "Components, modules or accessories of something"),
+                    ("group1_materials", "Materials or substances"),
+                    ("group2_firearms", "Firearms"),
+                    ("group3_software", "Software"),
+                    ("group3_technology", "Technology"),
+                ],
+                max_length=20,
+                null=True,
+            ),
         ),
     ]

@@ -150,7 +150,9 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             )
 
         if data["is_military_use"] == "yes_modified" and not data["modified_military_use_details"]:
-            raise serializers.ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
+            raise serializers.ValidationError(
+                {"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]}
+            )
 
         return super().validate(data)
 
@@ -312,6 +314,13 @@ class GoodSerializerExporter(serializers.Serializer):
     part_number = serializers.CharField()
     is_good_controlled = KeyValueChoiceField(choices=GoodControlled.choices)
     is_pv_graded = KeyValueChoiceField(choices=GoodPvGraded.choices)
+    item_category = KeyValueChoiceField(choices=ItemCategory.choices)
+    is_military_use = KeyValueChoiceField(choices=MilitaryUse.choices)
+    is_component = KeyValueChoiceField(choices=Component.choices)
+    uses_information_security = serializers.BooleanField()
+    modified_military_use_details = serializers.CharField()
+    component_details = serializers.CharField()
+    information_security_details = serializers.CharField()
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
