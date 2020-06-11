@@ -19,7 +19,7 @@ def generate_compliance(case: Case):
             Good.objects.filter(
                 goods_on_application__application_id=case.id,
                 control_list_entries__rating__regex="(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)",
-            ).exist()
+            ).exists()
         ):
             return None
         pass
