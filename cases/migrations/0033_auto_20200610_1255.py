@@ -6,13 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0032_auto_20200608_1433'),
+        ("cases", "0032_auto_20200608_1433"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='casetype',
-            name='type',
-            field=models.CharField(choices=[('application', 'Application'), ('query', 'Query'), ('registration', 'Registration')], max_length=35),
+            model_name="casetype",
+            name="type",
+            field=models.CharField(
+                choices=[("application", "Application"), ("query", "Query"), ("registration", "Registration")],
+                max_length=35,
+            ),
         ),
     ]

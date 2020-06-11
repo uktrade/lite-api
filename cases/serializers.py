@@ -216,7 +216,7 @@ class CaseDetailSerializer(CaseSerializer):
             "copy_of",
             "sla_days",
             "sla_remaining_days",
-            "data"
+            "data",
         )
 
     def __init__(self, *args, **kwargs):
@@ -226,6 +226,7 @@ class CaseDetailSerializer(CaseSerializer):
 
     def get_data(self, instance):
         from licences.serializers.open_general_licences import OGLApplicationCaseSerializer
+
         if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
             return OGLApplicationCaseSerializer(get_open_general_export_licence_case(instance.id)).data
         elif instance.case_type.type == CaseTypeTypeEnum.APPLICATION:

@@ -22,20 +22,23 @@ class Create(APIView):
         open_general_licence = get_open_general_licence(request.data.get("open_general_licence"))
 
         if not open_general_licence.status == OpenGeneralLicenceStatus.DEACTIVATED:
-            raise ValidationError({"open_general_licence": ["This open general licence is deactivated and "
-                                                            "cannot be registered"]})
+            raise ValidationError(
+                {"open_general_licence": ["This open general licence is deactivated and " "cannot be registered"]}
+            )
 
         if not open_general_licence.registration_required:
             raise ValidationError({"open_general_licence": ["This open general licence does not require registration"]})
 
         for site in Site.objects.get_uk_sites(organisation):
             if not OpenGeneralLicenceCase.objects.filter(open_general_licence=open_general_licence, site=site).exists():
-                OpenGeneralLicenceCase.objects.create(open_general_licence=open_general_licence,
-                                                      site=site,
-                                                      case_type=open_general_licence.case_type,
-                                                      organisation=organisation,
-                                                      status=get_case_status_by_status(CaseStatusEnum.FINALISED),
-                                                      submitted_at=timezone.now(),
-                                                      submitted_by=request.user)
+                OpenGeneralLicenceCase.objects.create(
+                    open_general_licence=open_general_licence,
+                    site=site,
+                    case_type=open_general_licence.case_type,
+                    organisation=organisation,
+                    status=get_case_status_by_status(CaseStatusEnum.FINALISED),
+                    submitted_at=timezone.now(),
+                    submitted_by=request.user,
+                )
 
         return JsonResponse(data={"open_general_licence": open_general_licence.id}, status=status.HTTP_201_CREATED)

@@ -51,7 +51,9 @@ class OpenGeneralLicenceList(ListCreateAPIView):
                 queryset = queryset.filter(cases__site_id=filter_data.get("site"))
 
             if filter_data.get("registered"):
-                queryset = queryset.filter(cases__site__organisation=get_request_user_organisation_id(self.request)).distinct()
+                queryset = queryset.filter(
+                    cases__site__organisation=get_request_user_organisation_id(self.request)
+                ).distinct()
 
         queryset = queryset.filter(status=filter_data.get("status", "active"))
 
