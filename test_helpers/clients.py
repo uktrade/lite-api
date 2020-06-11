@@ -607,7 +607,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
 
-    def create_organisation_with_exporter_user(self, name="Organisation", org_type=OrganisationType.COMMERCIAL, exporter_user=None):
+    def create_organisation_with_exporter_user(
+        self, name="Organisation", org_type=OrganisationType.COMMERCIAL, exporter_user=None
+    ):
         organisation = OrganisationFactory(name=name, type=org_type)
 
         if not exporter_user:

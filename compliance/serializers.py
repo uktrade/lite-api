@@ -16,7 +16,9 @@ class OpenLicenceReturnsViewSerializer(OpenLicenceReturnsListSerializer):
 
 class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
     file = serializers.CharField(required=True, allow_blank=False)
-    year = serializers.IntegerField(required=True, error_messages={"required": Compliance.OpenLicenceReturns.YEAR_ERROR})
+    year = serializers.IntegerField(
+        required=True, error_messages={"required": Compliance.OpenLicenceReturns.YEAR_ERROR}
+    )
 
     class Meta:
         model = OpenLicenceReturns

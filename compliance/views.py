@@ -5,8 +5,11 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns
-from compliance.serializers import OpenLicenceReturnsCreateSerializer, OpenLicenceReturnsListSerializer, \
-    OpenLicenceReturnsViewSerializer
+from compliance.serializers import (
+    OpenLicenceReturnsCreateSerializer,
+    OpenLicenceReturnsListSerializer,
+    OpenLicenceReturnsViewSerializer,
+)
 from conf.authentication import ExporterAuthentication
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id
