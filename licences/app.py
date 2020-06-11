@@ -11,7 +11,7 @@ class LicencesConfig(AppConfig):
         from licences.models import Licence
         from licences.tasks import schedule_licence_for_hmrc_integration
 
-        licences_not_sent = Licence.objects.filter(sent_at__isnull=True)
+        licences_not_sent = Licence.objects.filter(is_complete=True, sent_at__isnull=True)
 
         for licence in licences_not_sent:
             schedule_licence_for_hmrc_integration(str(licence.id), licence.application.reference_code)
