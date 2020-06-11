@@ -1,10 +1,12 @@
+from django.db.models import F
 from rest_framework import serializers
 
 from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
-from cases.enums import CaseTypeSubTypeEnum, AdviceType
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType, Advice
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
+from goods.models import Good
 from goodstype.models import GoodsType
 from licences.models import Licence
 from licences.serializers.view_licences import (
@@ -187,3 +189,37 @@ class LicenceSerializer(serializers.ModelSerializer):
             "duration",
         )
         read_only_fields = fields
+
+
+class NLRdocumentSerializer(serializers.ModelSerializer):
+    case_reference = serializers.CharField(source="case.reference_code")
+    goods = serializers.SerializerMethodField()
+    destinations = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GeneratedCaseDocument
+        fields = (
+            "id",
+            "name",
+            "case_id",
+            "case_reference",
+            "goods",
+            "destinations",
+            "advice_type",
+        )
+
+    def get_goods(self, instance):
+        goods = Good.objects.prefetch_related("control_list_entries").filter(
+            advice__case_id=instance.case_id,
+            advice__type=AdviceType.NO_LICENCE_REQUIRED,
+            advice__level=AdviceLevel.FINAL,
+        )
+        return GoodLicenceListSerializer(goods, many=True).data
+
+    def get_destinations(self, instance):
+        return (
+            Party.objects.filter(parties_on_application__application_id=instance.case_id)
+            .order_by("country__name")
+            .annotate(party_name=F("name"), country_name=F("country__name"))
+            .values("party_name", "country_name")
+        )
