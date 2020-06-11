@@ -23,7 +23,6 @@ from goods.enums import ItemType
 from goods.enums import PvGrading
 from goods.models import Good
 from lite_content.lite_api.strings import PartyErrors
-from open_general_licences.models import OpenGeneralLicence
 from organisations.models import Organisation, Site, ExternalLocation
 from parties.enums import PartyType
 from parties.models import Party
