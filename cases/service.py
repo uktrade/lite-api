@@ -2,13 +2,14 @@ from django.db.models import Min, When, BinaryField, Case
 
 from applications.models import CountryOnApplication
 from flags.enums import FlagStatuses
+from users.enums import UserType
 
 
 def get_destinations(application_id, user_type=None):
     """
     Get destinations for an open application. For gov users they are ordered based on flag priority and alphabetized by name.
     """
-    if user_type == "exporter":
+    if user_type == UserType.EXPORTER:
         countries_on_application = (
             CountryOnApplication.objects.select_related("country")
             .prefetch_related("flags", "country__flags")
