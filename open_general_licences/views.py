@@ -11,6 +11,7 @@ from conf import constants
 from conf.authentication import SharedAuthentication, GovAuthentication
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import OpenGeneralLicences
+from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.models import OpenGeneralLicence
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
@@ -55,7 +56,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
                     cases__site__organisation=get_request_user_organisation_id(self.request)
                 ).distinct()
 
-        queryset = queryset.filter(status=filter_data.get("status", "active"))
+        queryset = queryset.filter(status=filter_data.get("status") or OpenGeneralLicenceStatus.ACTIVE)
 
         return queryset
 
