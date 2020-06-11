@@ -14,6 +14,7 @@ from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType
 from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
+from parties.models import Party
 from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
@@ -23,9 +24,15 @@ from test_helpers.clients import DataTestClient
 
 class DocumentContextGenerationTests(DataTestClient):
     def _assert_applicant(self, context, case):
-        applicant = Audit.objects.filter(target_object_id=case.id).first().actor
+        applicant = case.submitted_by
         self.assertEqual(context["name"], " ".join([applicant.first_name, applicant.last_name]))
         self.assertEqual(context["email"], applicant.email)
+
+    def _assert_addressee(self, context, addressee):
+        self.assertEqual(context["name"], addressee.name)
+        self.assertEqual(context["email"], addressee.email)
+        self.assertEqual(context["phone_number"], addressee.phone_number)
+        self.assertEqual(context["address"], addressee.address)
 
     def _assert_address(self, context, address):
         self.assertEqual(
@@ -273,7 +280,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["case_reference"], case.reference_code)
         self.assertIsNotNone(context["current_date"])
         self.assertIsNotNone(context["current_time"])
-        self._assert_applicant(context["applicant"], case)
+        self._assert_applicant(context["addressee"], case)
         self._assert_organisation(context["organisation"], self.organisation)
         self._assert_party(context["end_user"], case.end_user.party)
         self._assert_party(context["consignee"], case.consignee.party)
@@ -282,6 +289,21 @@ class DocumentContextGenerationTests(DataTestClient):
         # Third party should be in "all" list and role specific list
         self.assertEqual(len(context["third_parties"]), 2)
         self._assert_third_party(context["third_parties"], case.third_parties[0].party)
+
+    def test_generate_context_with_custom_addressee(self):
+        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        addressee = Party.objects.create(
+            name="Joe Bloggs",
+            address="123 test st.",
+            organisation=self.organisation,
+            type=PartyType.ADDITIONAL_CONTACT,
+            phone_number="07123456789",
+            country_id="GB",
+        )
+
+        context = get_document_context(case, addressee=addressee)
+        self.assertEqual(context["case_reference"], case.reference_code)
+        self._assert_addressee(context["addressee"], addressee)
 
     def test_generate_context_with_goods(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
