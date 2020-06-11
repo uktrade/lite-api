@@ -77,9 +77,11 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         error_messages={"invalid": OpenGeneralLicences.serializerErrors.REQUIRED_REGISTRATION_REQUIRED},
     )
     status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices, required=False)
-    registrations = OGLApplicationListSerializer(
-        source="cases", many=True
-    )  # Check that this doesnt return all for all orgs!
+    registrations = serializers.SerializerMethodField()
+
+    def get_registrations(self, instance):
+        cases = [x for x in self.context["cases"] if x in instance.cases.all()]
+        return OGLApplicationListSerializer(cases, many=True).data
 
     class Meta:
         model = OpenGeneralLicence

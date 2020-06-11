@@ -13,9 +13,10 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.enums import OpenGeneralLicenceStatus
-from open_general_licences.models import OpenGeneralLicence
+from open_general_licences.models import OpenGeneralLicence, OpenGeneralLicenceCase
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from organisations.models import Site
 from users.enums import UserType
 from users.models import GovUser, GovNotification
 
@@ -30,11 +31,29 @@ class OpenGeneralLicenceList(ListCreateAPIView):
     )
 
     def get_serializer_context(self):
-        if self.request.user.type == UserType.EXPORTER:
-            return {"organisation": get_request_user_organisation(self.request)}
+        user = self.request.user
+        if user.type == UserType.EXPORTER:
+            organisation = get_request_user_organisation(self.request)
+            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+            cases = OpenGeneralLicenceCase.objects.filter(site__in=sites)
+
+            return {"user": user,
+                    "organisation": get_request_user_organisation(self.request),
+                    "cases": cases}
 
     def filter_queryset(self, queryset):
         filter_data = self.request.GET
+
+        if self.request.user.type == UserType.EXPORTER:
+            queryset = queryset.prefetch_related("cases", "cases__site")
+
+            if filter_data.get("site"):
+                queryset = queryset.filter(cases__site_id=filter_data.get("site"))
+
+            if str_to_bool(filter_data.get("registered")):
+                organisation = get_request_user_organisation(self.request)
+                sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+                queryset = queryset.filter(cases__site__in=sites).distinct()
 
         if filter_data.get("name"):
             queryset = queryset.filter(name__icontains=filter_data.get("name"))
@@ -47,15 +66,6 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
         if filter_data.get("country"):
             queryset = queryset.filter(countries__id__contains=filter_data.get("country"))
-
-        if self.request.user.type == UserType.EXPORTER:
-            if filter_data.get("site"):
-                queryset = queryset.filter(cases__site_id=filter_data.get("site"))
-
-            if str_to_bool(filter_data.get("registered")):
-                queryset = queryset.filter(
-                    cases__site__organisation=get_request_user_organisation_id(self.request)
-                ).distinct()
 
         queryset = queryset.filter(status=filter_data.get("status") or OpenGeneralLicenceStatus.ACTIVE)
 
