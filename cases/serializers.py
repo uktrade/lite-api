@@ -94,7 +94,7 @@ class CaseSerializer(serializers.ModelSerializer):
     def to_representation(self, value):
         """
         Only show 'application' if it has an application inside,
-        and only show 'query' if it has a CLC query inside
+        and only show 'query' if it has a query inside
         """
         repr_dict = super(CaseSerializer, self).to_representation(value)
         if not repr_dict["application"]:

@@ -39,6 +39,7 @@ from cases.serializers import (
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
 )
+from compliance.helpers import generate_compliance
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
@@ -648,6 +649,7 @@ class FinaliseView(RetrieveUpdateAPIView):
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
             )
+            generate_compliance(case)
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)
