@@ -23,7 +23,7 @@ class Create(APIView):
 
         if not open_general_licence.status == OpenGeneralLicenceStatus.DEACTIVATED:
             raise ValidationError(
-                {"open_general_licence": ["This open general licence is deactivated and " "cannot be registered"]}
+                {"open_general_licence": ["This open general licence is deactivated and cannot be registered"]}
             )
 
         if not open_general_licence.registration_required:
