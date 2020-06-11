@@ -20,7 +20,7 @@ class OpenLicenceReturnsView(ListAPIView):
     serializer_class = OpenLicenceReturnsListSerializer
 
     def get_queryset(self):
-        return OpenLicenceReturns.objects.all()
+        return OpenLicenceReturns.objects.all().order_by("-year", "-created_at")
 
     def post(self, request):
         file = request.data.get("file")
@@ -41,7 +41,7 @@ class OpenLicenceReturnsView(ListAPIView):
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.save()
-        return JsonResponse(data={"licences": list(references)}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={"open_licence_returns": serializer.data["id"]}, status=status.HTTP_201_CREATED)
 
 
 class OpenLicenceReturnDownloadView(RetrieveAPIView):

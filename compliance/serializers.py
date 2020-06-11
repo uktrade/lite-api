@@ -23,6 +23,7 @@ class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = OpenLicenceReturns
         fields = (
+            "id",
             "file",
             "year",
             "organisation",

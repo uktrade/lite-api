@@ -31,13 +31,13 @@ class AddOpenLicenceReturnsTest(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json()["licences"], [self.licence.reference_code])
         self.assertEqual(
             OpenLicenceReturns.objects.filter(
                 organisation=self.organisation, file=data["file"].strip(), year=data["year"], licences=self.licence
             ).count(),
             1,
         )
+        self.assertEqual(response.json()["open_licence_returns"], str(OpenLicenceReturns.objects.first().id))
 
     def test_upload_licence_returns_no_year_failure(self):
         data = {
