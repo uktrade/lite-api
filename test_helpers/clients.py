@@ -966,7 +966,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return ecju_query
 
     @staticmethod
-    def create_licence(application: BaseApplication, is_complete: bool, decisions=None):
+    def create_licence(application: BaseApplication, is_complete: bool, sent_at=None, decisions=None):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
 
@@ -975,6 +975,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
             is_complete=is_complete,
+            sent_at=sent_at,
         )
         licence.decisions.set(decisions)
         return licence

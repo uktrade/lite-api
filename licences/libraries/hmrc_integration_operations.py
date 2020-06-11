@@ -1,3 +1,6 @@
+import logging
+
+from django.utils import timezone
 from rest_framework import status
 
 from conf.requests import post
@@ -13,6 +16,8 @@ class HMRCIntegrationException(Exception):
 
 
 def send_licence(licence: Licence):
+    logging.info(f"Sending licence '{licence.id}' changes to HMRC Integration")
+
     url = f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
     data = {"licence": HMRCIntegrationLicenceSerializer(licence).data}
 
@@ -23,3 +28,7 @@ def send_licence(licence: Licence):
             f"An unexpected response was received when sending licence '{licence.id}' changes to HMRC Integration -> "
             f"status={response.status_code}, message={response.text}"
         )
+
+    licence.set_sent_at(timezone.now())
+
+    logging.info(f"Successfully sent licence '{licence.id}' changes to HMRC Integration")

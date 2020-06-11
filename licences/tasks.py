@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from background_task import background
 from background_task.models import Task
+from django.db import transaction
 from django.utils import timezone
 
 from conf.settings import MAX_ATTEMPTS, BACKGROUND_TASK_ENABLED
@@ -15,7 +16,14 @@ TASK_BACK_OFF = 3600  # Time, in seconds, to wait before scheduling a new task (
 
 def schedule_licence_for_hmrc_integration(licence_id, licence_reference):
     if BACKGROUND_TASK_ENABLED:
-        send_licence_to_hmrc_integration(licence_id, licence_reference)
+        logging.info(f"Scheduling licence '{licence_id}' changes for HMRC Integration")
+        task = Task.objects.filter(queue=TASK_QUEUE, task_params=f'[["{licence_id}", "{licence_reference}"], {{}}]')
+
+        if task.exists():
+            logging.info(f"Licence '{licence_id}' has already been scheduled")
+        else:
+            send_licence_to_hmrc_integration(licence_id, licence_reference)
+            logging.info(f"Licence '{licence_id}' has been scheduled")
     else:
         send_licence_to_hmrc_integration.now(licence_id, licence_reference, scheduled_as_background_task=False)
 
@@ -41,23 +49,21 @@ def send_licence_to_hmrc_integration(licence_id, licence_reference, scheduled_as
     :param scheduled_as_background_task: Has this function has been scheduled as a task (used for error handling)
     """
 
-    logging.info(f"Sending licence '{licence_id}' changes to HMRC Integration")
-    licence = Licence.objects.get(id=licence_id)
+    with transaction.atomic():
+        licence = Licence.objects.select_for_update(nowait=True).get(id=licence_id)
 
-    try:
-        hmrc_integration_operations.send_licence(licence)
-    except hmrc_integration_operations.HMRCIntegrationException as exc:
-        _handle_exception(str(exc), licence_id, licence_reference, scheduled_as_background_task)
-    except Exception as exc:  # noqa
-        _handle_exception(
-            f"An unexpected error occurred when sending licence '{licence_id}' changes to HMRC Integration -> "
-            f"{type(exc).__name__}: {exc}",
-            licence_id,
-            licence_reference,
-            scheduled_as_background_task,
-        )
-    else:
-        logging.info(f"Successfully sent licence '{licence_id}' changes to HMRC Integration")
+        try:
+            hmrc_integration_operations.send_licence(licence)
+        except hmrc_integration_operations.HMRCIntegrationException as exc:
+            _handle_exception(str(exc), licence_id, licence_reference, scheduled_as_background_task)
+        except Exception as exc:  # noqa
+            _handle_exception(
+                f"An unexpected error occurred when sending licence '{licence_id}' changes to HMRC Integration -> "
+                f"{type(exc).__name__}: {exc}",
+                licence_id,
+                licence_reference,
+                scheduled_as_background_task,
+            )
 
 
 def _handle_exception(message, licence_id, licence_reference, scheduled_as_background_task):
