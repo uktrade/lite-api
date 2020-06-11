@@ -7,7 +7,7 @@ from common.libraries import (
 )
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component
 from goods.models import Good, GoodDocument, PvGradingDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
@@ -73,7 +73,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     By default, nested serializers provide the ability to only retrieve data;
     To make them writable and updatable you must override the create and update methods in the parent serializer.
 
-    This serializer sometimes can contain OrderedDict instance types due to it's 'validate_only' nature.
+    This serializer sometimes can contain OrderedDict instance types due to its 'validate_only' nature.
     Because of this, each 'get' override must check the instance type before creating queries
     """
 
@@ -92,6 +92,17 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         choices=GoodPvGraded.choices, error_messages={"required": strings.Goods.FORM_DEFAULT_ERROR_RADIO_REQUIRED}
     )
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
+    item_category = KeyValueChoiceField(
+        choices=ItemCategory.choices, error_messages={"required": strings.Goods.FORM_NO_ITEM_CATEGORY_SELECTED}
+    )
+    is_military_use = KeyValueChoiceField(
+        choices=MilitaryUse.choices, error_messages={"required": strings.Goods.FORM_NO_MILITARY_USE_SELECTED}
+    )
+    is_component = KeyValueChoiceField(choices=Component.choices, required=False)
+    uses_information_security = serializers.BooleanField(required=False)
+    modified_military_use_details = serializers.CharField(allow_blank=True, required=False)
+    component_details = serializers.CharField(allow_blank=True, required=False)
+    information_security_details = serializers.CharField(allow_blank=True, required=False)
 
     class Meta:
         model = Good
@@ -109,6 +120,13 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "missing_document_reason",
             "comment",
             "report_summary",
+            "item_category",
+            "is_military_use",
+            "is_component",
+            "uses_information_security",
+            "modified_military_use_details",
+            "component_details",
+            "information_security_details",
         )
 
     def __init__(self, *args, **kwargs):
@@ -124,14 +142,17 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
         )
 
-    def validate(self, value):
-        is_controlled_good = value.get("is_good_controlled") == GoodControlled.YES
-        if is_controlled_good and not value.get("control_list_entries"):
+    def validate(self, data):
+        is_controlled_good = data.get("is_good_controlled") == GoodControlled.YES
+        if is_controlled_good and not data.get("control_list_entries"):
             raise serializers.ValidationError(
                 {"control_list_entries": [strings.Goods.CONTROL_LIST_ENTRY_IF_CONTROLLED_ERROR]}
             )
 
-        return value
+        if data["is_military_use"] == "yes_modified" and not data["modified_military_use_details"]:
+            raise serializers.ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
+
+        return super().validate(data)
 
     def create(self, validated_data):
         if validated_data.get("pv_grading_details"):

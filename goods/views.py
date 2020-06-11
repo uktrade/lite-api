@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 
+from applications.helpers import validate_good_component_details
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -177,14 +178,34 @@ class GoodList(ListCreateAPIView):
         return super().get_paginated_response(data)
 
     def post(self, request, *args, **kwargs):
-        """
-        Add a good to to an organisation
-        """
+        """ Add a good to to an organisation. """
         data = request.data
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
 
         serializer = GoodCreateSerializer(data=data)
+
+        if "is_component_step" in data and "is_component" not in data:
+            return JsonResponse(
+                data={"errors": {"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate component detail field if the answer was not 'No'
+        if "is_component" in data and data["is_component"] != "no":
+            valid_components = validate_good_component_details(data)
+            if not valid_components["is_valid"]:
+                return JsonResponse(
+                    data={"errors": {valid_components["details_field"]: [valid_components["error"]]}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            data["component_details"] = data[valid_components["details_field"]]
+
+        if "is_information_security_step" in data and "uses_information_security" not in data:
+            return JsonResponse(
+                data={"errors": {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}}, status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 

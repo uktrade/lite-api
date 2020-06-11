@@ -127,3 +127,24 @@ def get_temp_export_details_update_serializer(export_type):
         raise BadRequestError(
             {f"get_temp_export_details_update_serializer does " f"not support this export type: {export_type}"}
         )
+
+
+def validate_good_component_details(data):
+    """ Validate that details are given for the chosen component option. Return a dictionary containing information
+    on if the detail field contains data, the field itself (as it can be 1 of 3) and if no data was given for the detail
+    field, the corresponding error. """
+
+    component = data["is_component"]
+    component_detail_options = {
+        "yes_designed": {"details_field": "designed_details", "error": strings.Goods.NO_DESIGN_COMPONENT_DETAILS},
+        "yes_modified": {"details_field": "modified_details", "error": strings.Goods.NO_MODIFIED_COMPONENT_DETAILS},
+        "yes_general": {"details_field": "general_details", "error": strings.Goods.NO_GENERAL_COMPONENT_DETAILS},
+    }
+
+    field = component_detail_options[component]["details_field"]
+    error = component_detail_options[component]["error"]
+
+    if not data[field]:
+        return {"is_valid": False, "details_field": field, "error": error}
+    else:
+        return {"is_valid": True, "details_field": field}
