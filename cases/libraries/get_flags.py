@@ -1,12 +1,11 @@
-from django.db.models import QuerySet, When, Case as DB_Case, Value, IntegerField, BinaryField
+from django.db.models import QuerySet, When, Case as DB_Case, IntegerField, BinaryField
 
-from applications.models import GoodOnApplication, CountryOnApplication
+from applications.models import CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from flags.enums import FlagLevels
 from flags.models import Flag
 from flags.serializers import CaseListFlagSerializer
-from goodstype.models import GoodsType
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from queries.goods_query.models import GoodsQuery
 from teams.models import Team
@@ -22,12 +21,14 @@ def get_goods_flags(case, case_type):
         CaseTypeSubTypeEnum.GIFTING,
         CaseTypeSubTypeEnum.F680,
     ]:
-        ids = GoodOnApplication.objects.filter(application_id=case.id).values_list("good__flags", flat=True)
+        return Flag.objects.filter(goods__goods_on_application__application_id=case.id)
+        # ids = GoodOnApplication.objects.filter(application_id=case.id).values_list("good__flags", flat=True)
     elif case_type in [
         CaseTypeSubTypeEnum.OPEN,
         CaseTypeSubTypeEnum.HMRC,
     ]:
-        ids = GoodsType.objects.filter(application_id=case.id).values_list("flags", flat=True)
+        return Flag.objects.filter(goods_type__application_id=case.id)
+        # ids = GoodsType.objects.filter(application_id=case.id).values_list("flags", flat=True)
     elif case_type == CaseTypeSubTypeEnum.GOODS:
         return GoodsQuery.objects.select_related("good").get(id=case.id).good.flags.all()
 
