@@ -32,4 +32,4 @@ class GetOpenLicenceReturnsTest(DataTestClient):
         self.assertEqual(response_data["id"], str(self.olr.id))
         self.assertEqual(response_data["year"], self.olr.year)
         self.assertIsNotNone(response_data["created_at"])
-        self.assertEqual(response_data["file"], self.olr.file)
+        self.assertEqual(response_data["returns_data"], self.olr.file)

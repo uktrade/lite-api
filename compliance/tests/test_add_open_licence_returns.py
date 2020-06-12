@@ -33,7 +33,7 @@ class AddOpenLicenceReturnsTest(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
             OpenLicenceReturns.objects.filter(
-                organisation=self.organisation, file=data["file"].strip(), year=data["year"], licences=self.licence
+                organisation=self.organisation, returns_data=data["file"].strip(), year=data["year"], licences=self.licence
             ).count(),
             1,
         )
