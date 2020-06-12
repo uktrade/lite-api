@@ -7,7 +7,6 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.libraries.get_case import get_case
 from conf.authentication import GovAuthentication
-from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from workflow.automation import run_routing_rules

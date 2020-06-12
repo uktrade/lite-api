@@ -3,6 +3,7 @@ from django.db.models import QuerySet, When, Case as DB_Case, Value, IntegerFiel
 from applications.models import GoodOnApplication, CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
+from flags.enums import FlagLevels
 from flags.models import Flag
 from flags.serializers import CaseListFlagSerializer
 from goodstype.models import GoodsType
@@ -72,16 +73,23 @@ def get_flags(case: Case) -> QuerySet:
 def get_ordered_flags(case: Case, team: Team, limit: int = None):
     case_type = case.case_type.sub_type
 
-    goods_flags = get_goods_flags(case, case_type).annotate(order=Value(0, IntegerField()))
-    destination_flags = get_destination_flags(case, case_type).annotate(order=Value(1, IntegerField()))
-    case_flags = case.flags.all().annotate(order=Value(2, IntegerField()))
-    organisation_flags = case.organisation.flags.all().annotate(order=Value(3, IntegerField()))
+    goods_flags = get_goods_flags(case, case_type)
+    destination_flags = get_destination_flags(case, case_type)
+    case_flags = case.flags.all()
+    organisation_flags = case.organisation.flags.all()
 
     all_flags = goods_flags | destination_flags | case_flags | organisation_flags
 
     all_flags = all_flags.annotate(
-        my_team=DB_Case(When(team_id=team.id, then=True), default=False, output_field=BinaryField())
-    ).order_by("my_team", "order", "priority")
+        my_team=DB_Case(When(team_id=team.id, then=True), default=False, output_field=BinaryField()),
+        order=DB_Case(
+            When(level=FlagLevels.GOOD, then=0),
+            When(level=FlagLevels.DESTINATION, then=1),
+            When(level=FlagLevels.CASE, then=2),
+            default=3,
+            output_field=IntegerField(),
+        ),
+    ).order_by("-my_team", "order", "priority")
 
     if limit:
         all_flags = all_flags[:limit]

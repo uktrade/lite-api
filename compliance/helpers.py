@@ -69,7 +69,8 @@ def generate_compliance(case: Case):
             organisation_id=case.organisation_id,
             case_type_id=CaseTypeEnum.COMPLIANCE.id,
             submitted_at=timezone.now(),
-        ).save()
+        )
+        comp_case.save()
         audits.append(
             Audit(
                 actor=system_user, verb=AuditType.COMPLIANCE_SITE_CASE_CREATE, target=comp_case.get_case(), payload={},
