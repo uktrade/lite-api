@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:element name="SPIRE_UPLOAD_FILE">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="SPIRE_RETURNS" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:all>
+                        <xs:element name="CODE1" type="xs:positiveInteger"/>
+                        <xs:element name="CODE2" type="xs:positiveInteger"/>
+                        <xs:element name="FLAG">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="Y"/>
+                                    <xs:enumeration value="N"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:element>
+                    </xs:all>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+</xs:element>
+</xs:schema>

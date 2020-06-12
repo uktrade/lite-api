@@ -65,7 +65,7 @@ def format_user_text(user_text):
     return markdown_to_html(escape(user_text))
 
 
-def generate_preview(layout: str, text: str, case=None, allow_missing_variables=True):
+def generate_preview(layout: str, text: str, case=None, additional_contact=None, allow_missing_variables=True):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
         template = django_engine.get_template(f"{layout}.html")
@@ -79,7 +79,7 @@ def generate_preview(layout: str, text: str, case=None, allow_missing_variables=
 
         context = {}
         if case:
-            context = get_document_context(case)
+            context = get_document_context(case, additional_contact)
 
         return load_css(layout) + template.render(Context(context))
     except (FileNotFoundError, TemplateDoesNotExist):

@@ -1,4 +1,3 @@
-from django.db.models import Min, Case, When, BinaryField
 from rest_framework import serializers
 from rest_framework.fields import CharField
 
@@ -10,7 +9,7 @@ from applications.libraries.goodstype_category_helpers import (
     set_destinations_for_uk_continental_shelf_application,
 )
 from applications.mixins.serializers import PartiesSerializerMixin
-from applications.models import OpenApplication, CountryOnApplication
+from applications.models import OpenApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from applications.serializers.generic_application import (
     GenericApplicationCreateSerializer,
@@ -31,7 +30,6 @@ from static.trade_control.enums import TradeControlProductCategory, TradeControl
 
 class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationViewSerializer):
     goods_types = serializers.SerializerMethodField()
-    destinations = serializers.SerializerMethodField()
     additional_documents = serializers.SerializerMethodField()
     licence = serializers.SerializerMethodField()
     proposed_return_date = serializers.DateField(required=False)
@@ -48,7 +46,6 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
                 "activity",
                 "usage",
                 "goods_types",
-                "destinations",
                 "additional_documents",
                 "is_military_end_use_controls",
                 "military_end_use_controls_ref",
@@ -72,35 +69,16 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
         )
 
     def get_goods_types(self, application):
-        goods_types = application.goods_type.all().prefetch_related("countries")
-        default_countries = Country.include_special_countries.filter(countries_on_application__application=application)
+        goods_types = application.goods_type.all().prefetch_related("countries", "countries__flags")
+        default_countries = list(
+            Country.include_special_countries.filter(countries_on_application__application_id=application.id)
+        )
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
     def get_goodstype_category(self, instance):
         key = instance.goodstype_category
         value = GoodsTypeCategory.get_text(key)
         return {"key": key, "value": value}
-
-    def get_destinations(self, application):
-        """ Get destinations for the open application, ordered based on flag priority and alphabetized by name."""
-        if "user_type" in self.context and self.context["user_type"] == "exporter":
-            countries = CountryOnApplication.objects.filter(application=application)
-        else:
-            countries = (
-                CountryOnApplication.objects.prefetch_related("country__flags", "flags", "country")
-                .filter(application=application)
-                .annotate(
-                    highest_flag_priority=Min("country__flags__priority"),
-                    contains_flags=Case(
-                        When(country__flags__isnull=True, then=0), default=1, output_field=BinaryField()
-                    ),
-                )
-                .order_by("-contains_flags", "highest_flag_priority", "country__name")
-            )
-
-        serializer = CountryOnApplicationViewSerializer(countries, many=True, context={"active_flags_only": True})
-
-        return {"type": "countries", "data": serializer.data}
 
     def get_licence(self, instance):
         licence = Licence.objects.filter(application=instance).first()
@@ -275,9 +253,11 @@ class CountryOnApplicationViewSerializer(serializers.Serializer):
 
     def get_country(self, instance):
         if self.context.get("active_flags_only"):
-            return CountryWithFlagsSerializer(instance.country, context={"with_active_flags": True}).data
+            return CountryWithFlagsSerializer(
+                instance.country, context={"with_active_flags": True}, read_only=True
+            ).data
         else:
-            return CountrySerializer(instance.country).data
+            return CountrySerializer(instance.country, read_only=True).data
 
     def get_flags(self, instance):
         return list(instance.flags.values("id", "name"))

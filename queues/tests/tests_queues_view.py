@@ -35,6 +35,14 @@ class QueuesViewTests(DataTestClient):
             queue_exists = queue["id"] in SYSTEM_QUEUES.keys() or Queue.objects.filter(pk=queue["id"]).exists()
             self.assertTrue(queue_exists)
 
+    def test_filter_queues_by_name(self):
+        url = reverse("queues:queues") + "?name=" + self.queue.name
+
+        response = self.client.get(url, **self.gov_headers)
+        data = response.json()["results"]
+
+        self.assertTrue(self.queue.name in [queue["name"] for queue in data])
+
     def test_detail_queue(self):
         """
         View an individual queue

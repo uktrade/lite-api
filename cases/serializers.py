@@ -65,45 +65,6 @@ class CaseTypeReferenceListSerializer(serializers.Serializer):
     reference = KeyValueChoiceField(choices=CaseTypeReferenceEnum.choices)
 
 
-class CaseSerializer(serializers.ModelSerializer):
-    """
-    Serializes cases
-    """
-
-    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    application = serializers.SerializerMethodField()
-    query = QueryViewSerializer(read_only=True)
-
-    class Meta:
-        model = Case
-        fields = (
-            "id",
-            "case_type",
-            "application",
-            "query",
-        )
-
-    def get_application(self, instance):
-        # The case has a reference to a BaseApplication but
-        # we need the full details of the application it points to
-        if instance.type in [CaseTypeTypeEnum.APPLICATION]:
-            application = get_application(instance.id)
-            serializer = get_application_view_serializer(application)
-            return serializer(application).data
-
-    def to_representation(self, value):
-        """
-        Only show 'application' if it has an application inside,
-        and only show 'query' if it has a CLC query inside
-        """
-        repr_dict = super(CaseSerializer, self).to_representation(value)
-        if not repr_dict["application"]:
-            del repr_dict["application"]
-        if not repr_dict["query"]:
-            del repr_dict["query"]
-        return repr_dict
-
-
 class CaseAssignmentSerializer(serializers.ModelSerializer):
     user = GovUserSimpleSerializer()
 
@@ -182,7 +143,7 @@ class CaseCopyOfSerializer(serializers.ModelSerializer):
         )
 
 
-class CaseDetailSerializer(CaseSerializer):
+class CaseDetailSerializer(serializers.ModelSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
@@ -197,6 +158,7 @@ class CaseDetailSerializer(CaseSerializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     advice = CaseAdviceSerializer(many=True)
+    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
 
     class Meta:
         model = Case
@@ -284,6 +246,18 @@ class CaseDetailSerializer(CaseSerializer):
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
+
+    def to_representation(self, value):
+        """
+        Only show 'application' if it has an application inside,
+        and only show 'query' if it has a CLC query inside
+        """
+        repr_dict = super(CaseDetailSerializer, self).to_representation(value)
+        if not repr_dict["application"]:
+            del repr_dict["application"]
+        if not repr_dict["query"]:
+            del repr_dict["query"]
+        return repr_dict
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
@@ -404,7 +378,9 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
 
     def get_team(self, instance):
-        return TeamSerializer(instance.raised_by_user.team).data
+        # If the team is not available, use the user's current team.
+        team = instance.team if instance.team else instance.raised_by_user.team
+        return TeamSerializer(team).data
 
     class Meta:
         model = EcjuQuery
@@ -437,6 +413,7 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
             "case",
             "raised_by_user",
             "query_type",
+            "team",
         )
 
 

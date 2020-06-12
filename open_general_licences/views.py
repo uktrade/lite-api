@@ -4,30 +4,26 @@ from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
 from rest_framework.views import APIView
 
-from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
+from audit_trail.enums import AuditType
 from audit_trail.serializers import AuditSerializer
 from conf import constants
-from conf.authentication import GovAuthentication
+from conf.authentication import SharedAuthentication, GovAuthentication
 from conf.permissions import assert_user_has_permission
+from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.models import OpenGeneralLicence
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
 from users.models import GovUser, GovNotification
-from lite_content.lite_api.strings import OpenGeneralLicences
 
 
 class OpenGeneralLicenceList(ListCreateAPIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
     queryset = (
         OpenGeneralLicence.objects.all()
         .select_related("case_type")
         .prefetch_related("countries", "control_list_entries")
     )
-
-    def initial(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
-        super(OpenGeneralLicenceList, self).initial(request, *args, **kwargs)
 
     def filter_queryset(self, queryset):
         filtered_qs = queryset
@@ -40,9 +36,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
             filtered_qs = filtered_qs.filter(case_type_id=filter_data.get("case_type"))
 
         if filter_data.get("control_list_entry"):
-            filtered_qs = filtered_qs.filter(
-                control_list_entries__rating__contains=filter_data.get("control_list_entry")
-            )
+            filtered_qs = filtered_qs.filter(control_list_entries__rating=filter_data.get("control_list_entry"))
 
         if filter_data.get("country"):
             filtered_qs = filtered_qs.filter(countries__id__contains=filter_data.get("country"))
@@ -52,6 +46,8 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         return filtered_qs
 
     def perform_create(self, serializer):
+        assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
+
         if not self.request.data.get("validate_only", False):
             instance = serializer.save()
 
@@ -61,7 +57,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
 
 class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
-    authentication_classes = (GovAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     serializer_class = OpenGeneralLicenceSerializer
     queryset = (
         OpenGeneralLicence.objects.all()
@@ -69,11 +65,9 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
         .prefetch_related("countries", "control_list_entries")
     )
 
-    def initial(self, request, *args, **kwargs):
-        assert_user_has_permission(request.user, constants.GovPermissions.MAINTAIN_OGL)
-        super(OpenGeneralLicenceDetail, self).initial(request, *args, **kwargs)
-
     def perform_update(self, serializer):
+        assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
+
         # Don't update the data during validate_only requests
         if not self.request.data.get("validate_only", False):
             fields = [
