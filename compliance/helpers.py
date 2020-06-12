@@ -1,4 +1,5 @@
 import csv
+import re
 
 from rest_framework.exceptions import ValidationError
 
@@ -30,7 +31,8 @@ def read_and_validate_csv(text):
                 if len(row) != TOTAL_COLUMNS:
                     raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_FILE_FORMAT]})
                 references.add(row[0])
-                cleaned_text += ",".join(row) + "\n"
+                # https://owasp.org/www-community/attacks/CSV_Injection
+                cleaned_text += ",".join(re.sub("[=+-@]", "", row)) + "\n"
     except csv.Error:
         raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_FILE_FORMAT]})
 

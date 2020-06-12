@@ -579,7 +579,9 @@ class ApplicationFinaliseView(APIView):
 
             # Create incomplete Licence object
             try:
-                start_date = timezone.datetime(year=int(licence_data["year"]), month=int(licence_data["month"]), day=int(licence_data["day"]))
+                start_date = timezone.datetime(
+                    year=int(licence_data["year"]), month=int(licence_data["month"]), day=int(licence_data["day"])
+                )
                 licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
             except KeyError:
                 return JsonResponse(
