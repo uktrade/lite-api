@@ -7,7 +7,6 @@ from flags.enums import FlagLevels
 from flags.models import Flag
 from flags.serializers import CaseListFlagSerializer
 from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
-from queries.goods_query.models import GoodsQuery
 from teams.models import Team
 
 
@@ -22,17 +21,15 @@ def get_goods_flags(case, case_type):
         CaseTypeSubTypeEnum.F680,
     ]:
         return Flag.objects.filter(goods__goods_on_application__application_id=case.id)
-        # ids = GoodOnApplication.objects.filter(application_id=case.id).values_list("good__flags", flat=True)
     elif case_type in [
         CaseTypeSubTypeEnum.OPEN,
         CaseTypeSubTypeEnum.HMRC,
     ]:
         return Flag.objects.filter(goods_type__application_id=case.id)
-        # ids = GoodsType.objects.filter(application_id=case.id).values_list("flags", flat=True)
     elif case_type == CaseTypeSubTypeEnum.GOODS:
-        return GoodsQuery.objects.select_related("good").get(id=case.id).good.flags.all()
+        return Flag.objects.filter(goods__good__id=case.id)
 
-    return Flag.objects.filter(id__in=ids).select_related("team")
+    return Flag.objects.filter(id__in=ids)
 
 
 def get_destination_flags(case, case_type):
@@ -54,7 +51,7 @@ def get_destination_flags(case, case_type):
             "party__flags", flat=True
         )
 
-    return Flag.objects.filter(id__in=ids).select_related("team")
+    return Flag.objects.filter(id__in=ids)
 
 
 def get_flags(case: Case) -> QuerySet:

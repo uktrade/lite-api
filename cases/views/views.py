@@ -723,23 +723,19 @@ class AdditionalContacts(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get_queryset(self):
-        return Party.objects.filter(
-            id__in=PartyOnApplication.objects.additional_contacts()
-            .filter(application_id=self.kwargs["pk"])
-            .values_list("party_id", flat=True)
-        )
+        return Party.objects.filter(case__id=self.kwargs["pk"])
 
     def get_serializer_context(self):
         return {"organisation_pk": get_case(self.kwargs["pk"]).organisation.id}
 
     def perform_create(self, serializer):
-        super().perform_create(serializer)
-        party = PartyOnApplication(application_id=get_case(self.kwargs["pk"]).id, party_id=serializer.data["id"])
-        party.save()
+        party = serializer.save()
+        case = get_case(self.kwargs["pk"])
+        case.additional_contacts.add(party)
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE,
-            target=get_case(self.kwargs["pk"]),
+            target=case,
             payload={"contact": serializer.data["name"]},
         )
 

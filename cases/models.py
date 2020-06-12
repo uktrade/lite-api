@@ -71,6 +71,7 @@ class Case(TimestampableModel):
     sla_days = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
+    additional_contacts = models.ManyToManyField("parties.Party", related_name="case")
 
     objects = CaseManager()
 
