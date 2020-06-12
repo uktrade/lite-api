@@ -34,6 +34,7 @@ from goods.serializers import (
     GoodSerializerExporter,
     GoodSerializerExporterFullDetail,
     GoodMissingDocumentSerializer,
+    TinyGoodDetailsSerializer,
 )
 from goodstype.helpers import get_goods_type
 from goodstype.serializers import ClcControlGoodTypeSerializer
@@ -242,7 +243,62 @@ class GoodDocumentCriteriaCheck(APIView):
         return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
 
 
-class GoodDetail(APIView):
+class GoodDetails(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def get(self, request, pk):
+        good = get_good(pk)
+
+        if isinstance(request.user, ExporterUser):
+            if good.organisation.id != get_request_user_organisation_id(request):
+                raise Http404
+            else:
+                serializer = TinyGoodDetailsSerializer(good)
+
+        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        good = get_good(pk)
+
+        if good.status == GoodStatus.SUBMITTED:
+            return JsonResponse(
+                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        data = request.data.copy()
+
+        if data.get("is_component_step") and not data.get("is_component"):
+            return JsonResponse(
+                data={"errors": {"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate component detail field if the answer was not 'No'
+        if data.get("is_component") and data["is_component"] != "no":
+            valid_components = validate_good_component_details(data)
+            if not valid_components["is_valid"]:
+                return JsonResponse(
+                    data={"errors": {valid_components["details_field"]: [valid_components["error"]]}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            data["component_details"] = data[valid_components["details_field"]]
+
+        if data.get("uses_information_security") == "None":
+            data["uses_information_security"] = None
+        if data.get("is_information_security_step") and data.get("uses_information_security") is None:
+            return JsonResponse(
+                data={
+                    "errors": {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
+        return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
+
+
+class GoodOverview(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
@@ -295,31 +351,6 @@ class GoodDetail(APIView):
                 good_on_application.delete()
 
         data["organisation"] = get_request_user_organisation_id(request)
-
-        if data.get("is_component_step") and not data.get("is_component"):
-            return JsonResponse(
-                data={"errors": {"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Validate component detail field if the answer was not 'No'
-        if data.get("is_component") and data["is_component"] != "no":
-            valid_components = validate_good_component_details(data)
-            if not valid_components["is_valid"]:
-                return JsonResponse(
-                    data={"errors": {valid_components["details_field"]: [valid_components["error"]]}},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            data["component_details"] = data[valid_components["details_field"]]
-
-        if data.get("is_information_security_step") and not data.get("uses_information_security"):
-            return JsonResponse(
-                data={
-                    "errors": {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)

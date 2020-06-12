@@ -49,7 +49,7 @@ class Good(TimestampableModel):
     modified_military_use_details = models.CharField(null=True, max_length=280)
     is_component = models.CharField(choices=Component.choices, null=True, max_length=15)
     component_details = models.CharField(null=True, max_length=280)
-    uses_information_security = models.BooleanField(null=True)
+    uses_information_security = models.BooleanField(blank=True, default=None, null=True)
     information_security_details = models.CharField(null=True, max_length=280)
 
     # Gov
