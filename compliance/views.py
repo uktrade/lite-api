@@ -32,7 +32,7 @@ class OpenLicenceReturnsView(ListAPIView):
         licence_ids = fetch_and_validate_licences(references, organisation_id)
 
         data = request.data
-        data["file"] = cleaned_text
+        data["returns_data"] = cleaned_text
         data["licences"] = licence_ids
         data["organisation"] = organisation_id
         serializer = OpenLicenceReturnsCreateSerializer(data=data)

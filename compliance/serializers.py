@@ -11,11 +11,11 @@ class OpenLicenceReturnsListSerializer(serializers.Serializer):
 
 
 class OpenLicenceReturnsViewSerializer(OpenLicenceReturnsListSerializer):
-    file = serializers.CharField()
+    returns_data = serializers.CharField()
 
 
 class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
-    file = serializers.CharField(required=True, allow_blank=False)
+    returns_data = serializers.CharField(required=True, allow_blank=False)
     year = serializers.IntegerField(
         required=True, error_messages={"required": Compliance.OpenLicenceReturns.YEAR_ERROR}
     )
@@ -24,7 +24,7 @@ class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
         model = OpenLicenceReturns
         fields = (
             "id",
-            "file",
+            "returns_data",
             "year",
             "organisation",
             "licences",
