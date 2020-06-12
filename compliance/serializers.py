@@ -1,4 +1,6 @@
+from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from compliance.models import OpenLicenceReturns
 from lite_content.lite_api.strings import Compliance
@@ -29,3 +31,12 @@ class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
             "organisation",
             "licences",
         )
+
+    def validate_year(self, value):
+        current_year = timezone.now().year
+        last_year = current_year-1
+
+        if value not in [current_year, last_year]:
+            raise ValidationError(Compliance.OpenLicenceReturns.INVALID_YEAR)
+
+        return value

@@ -53,6 +53,18 @@ class AddOpenLicenceReturnsTest(DataTestClient):
         self.assertEqual(response.json()["errors"], {"year": [Compliance.OpenLicenceReturns.YEAR_ERROR]})
         self.assertFalse(OpenLicenceReturns.objects.exists())
 
+    def test_upload_licence_returns_invalid_year_failure(self):
+        data = {
+            "file": self._create_open_licence_returns_csv([self.licence.reference_code]),
+            "year": 2018,
+        }
+
+        response = self.client.post(self.url, data, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"year": [Compliance.OpenLicenceReturns.INVALID_YEAR]})
+        self.assertFalse(OpenLicenceReturns.objects.exists())
+
     def test_upload_licence_returns_no_file_failure(self):
         data = {
             "year": datetime.now().year,

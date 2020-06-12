@@ -9,6 +9,15 @@ TOTAL_COLUMNS = 5
 
 
 def read_and_validate_csv(text):
+    """
+    Used for parsing Open Licence returns CSV files which are uploaded by the exporter for certain case types
+    and contain the Licence reference as well as other properties for compliance.
+
+    Takes CSV formatted text and returns the licence references & cleaned format of the CSV.
+    Requires the first column to be the licence reference.
+    Requires 5 items per row or throws a ValidationError.
+    Requires the first line to be blank/headers or data will be lost.
+    """
     references = set()
     cleaned_text = ""
 

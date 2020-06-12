@@ -11,6 +11,6 @@ from organisations.models import Organisation
 class OpenLicenceReturns(CreatedAt):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organisation = models.ForeignKey(Organisation, on_delete=deletion.CASCADE)
-    returns_data = models.TextField(blank=False, null=False)
-    year = models.PositiveSmallIntegerField(blank=False, null=False)
+    returns_data = models.TextField()
+    year = models.PositiveSmallIntegerField()
     licences = models.ManyToManyField(Licence, related_name="open_licence_returns")
