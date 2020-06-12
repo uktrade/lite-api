@@ -6,7 +6,7 @@ from compliance.models import OpenLicenceReturns
 
 
 class OpenLicenceReturnsFactory(factory.django.DjangoModelFactory):
-    file = "\na,b,c,d,e"
+    returns_data = "\na,b,c,d,e"
     year = datetime.now().year
 
     class Meta:
