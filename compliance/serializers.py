@@ -34,7 +34,7 @@ class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
 
     def validate_year(self, value):
         current_year = timezone.now().year
-        last_year = current_year-1
+        last_year = current_year - 1
 
         if value not in [current_year, last_year]:
             raise ValidationError(Compliance.OpenLicenceReturns.INVALID_YEAR)
