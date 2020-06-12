@@ -70,7 +70,7 @@ class Licences(ListCreateAPIView):
 
         if end_user:
             licences = licences.filter(
-                application__parties__party__name__contains=end_user,
+                application__parties__party__name__icontains=end_user,
                 application__parties__party__type=PartyType.END_USER,
             )
 

@@ -70,9 +70,6 @@ class SiteManager(models.Manager):
         exporter_user_relationship = get_user_organisation_relationship(exporter_user, organisation)
         return self.get_by_user_organisation_relationship(exporter_user_relationship)
 
-    def get_uk_sites(self, organisation):
-        return self.filter(organisation=organisation, address__country_id="GB")
-
     def get_by_user_organisation_relationship(self, exporter_user_organisation_relationship):
         # Users with Administer Sites permission have access to all sites
         if exporter_user_organisation_relationship.user.has_permission(

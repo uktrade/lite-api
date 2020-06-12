@@ -92,6 +92,17 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
         .prefetch_related("countries", "control_list_entries")
     )
 
+    def get_serializer_context(self):
+        user = self.request.user
+        if user.type == UserType.EXPORTER:
+            organisation = get_request_user_organisation(self.request)
+            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
+            cases = OpenGeneralLicenceCase.objects.filter(site__in=sites)
+
+            return {"user": user,
+                    "organisation": get_request_user_organisation(self.request),
+                    "cases": cases}
+
     def perform_update(self, serializer):
         assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
 
