@@ -174,7 +174,17 @@ LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASES = {"default": env.db()}
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': 'testdatabase'
+        }
+    }
+else:
+    DATABASES = {
+        'default': env.db()
+    }
 
 # AWS
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
