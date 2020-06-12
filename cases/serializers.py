@@ -240,7 +240,7 @@ class CaseDetailSerializer(CaseSerializer):
     def get_compliance(self, instance):
         if instance.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
             compliance = ComplianceSiteCase.objects.get(id=instance.id)
-            return ComplianceSiteViewSerializer(compliance).data
+            return ComplianceSiteViewSerializer(compliance, context={"team": self.team}).data
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))

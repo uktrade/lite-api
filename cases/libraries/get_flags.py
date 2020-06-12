@@ -1,4 +1,4 @@
-from django.db.models import QuerySet
+from django.db.models import QuerySet, When, Case as DB_Case, Value, IntegerField, BinaryField
 
 from applications.models import GoodOnApplication, CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum
@@ -55,14 +55,6 @@ def get_destination_flags(case, case_type):
     return Flag.objects.filter(id__in=ids).select_related("team")
 
 
-def annotate_my_team_flags(flags, order, team):
-    for flag in flags:
-        flag.my_team = flag.team.id != team.id
-        flag.order = order
-
-    return flags
-
-
 def get_flags(case: Case) -> QuerySet:
     """
     Get all case flags in no particular order (order will be specified by calling function)
@@ -77,15 +69,21 @@ def get_flags(case: Case) -> QuerySet:
     return goods_flags | destination_flags | case_flags | org_flags
 
 
-def get_ordered_flags(case: Case, team: Team):
+def get_ordered_flags(case: Case, team: Team, limit: int = None):
     case_type = case.case_type.sub_type
 
-    goods_flags = annotate_my_team_flags(get_goods_flags(case, case_type), 0, team)
-    destination_flags = annotate_my_team_flags(get_destination_flags(case, case_type), 1, team)
-    case_flags = annotate_my_team_flags(case.flags.all(), 2, team)
-    organisation_flags = annotate_my_team_flags(case.organisation.flags.all(), 3, team)
+    goods_flags = get_goods_flags(case, case_type).annotate(order=Value(0, IntegerField()))
+    destination_flags = get_destination_flags(case, case_type).annotate(order=Value(1, IntegerField()))
+    case_flags = case.flags.all().annotate(order=Value(2, IntegerField()))
+    organisation_flags = case.organisation.flags.all().annotate(order=Value(3, IntegerField()))
 
-    all_flags = [*goods_flags, *destination_flags, *case_flags, *organisation_flags]
-    all_flags = sorted(all_flags, key=lambda x: (x.my_team, x.order, x.priority))
+    all_flags = goods_flags | destination_flags | case_flags | organisation_flags
+
+    all_flags = all_flags.annotate(
+        my_team=DB_Case(When(team_id=team.id, then=True), default=False, output_field=BinaryField())
+    ).order_by("my_team", "order", "priority")
+
+    if limit:
+        all_flags = all_flags[:limit]
 
     return CaseListFlagSerializer(all_flags, many=True).data
