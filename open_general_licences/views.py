@@ -17,6 +17,7 @@ from open_general_licences.models import OpenGeneralLicence, OpenGeneralLicenceC
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from organisations.models import Site
+from static.statuses.enums import CaseStatusEnum
 from users.enums import UserType
 from users.models import GovUser, GovNotification
 
@@ -26,8 +27,8 @@ class OpenGeneralLicenceList(ListCreateAPIView):
     serializer_class = OpenGeneralLicenceSerializer
     queryset = (
         OpenGeneralLicence.objects.all()
-        .select_related("case_type")
-        .prefetch_related("countries", "control_list_entries")
+            .select_related("case_type")
+            .prefetch_related("countries", "control_list_entries")
     )
 
     def get_serializer_context(self):
@@ -36,6 +37,11 @@ class OpenGeneralLicenceList(ListCreateAPIView):
             organisation = get_request_user_organisation(self.request)
             sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
             cases = OpenGeneralLicenceCase.objects.filter(site__in=sites)
+
+            if str_to_bool(self.request.GET.get("active_only")):
+                cases = cases.filter(status__status__in=[CaseStatusEnum.FINALISED,
+                                                         CaseStatusEnum.REGISTERED,
+                                                         CaseStatusEnum.UNDER_ECJU_REVIEW])
 
             return {"user": user,
                     "organisation": get_request_user_organisation(self.request),
@@ -49,6 +55,11 @@ class OpenGeneralLicenceList(ListCreateAPIView):
 
             if filter_data.get("site"):
                 queryset = queryset.filter(cases__site_id=filter_data.get("site"))
+
+            if str_to_bool(filter_data.get("active_only")):
+                queryset = queryset.filter(cases__status__status__in=[CaseStatusEnum.FINALISED,
+                                                                      CaseStatusEnum.REGISTERED,
+                                                                      CaseStatusEnum.UNDER_ECJU_REVIEW])
 
             if str_to_bool(filter_data.get("registered")):
                 organisation = get_request_user_organisation(self.request)
@@ -88,8 +99,8 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
     serializer_class = OpenGeneralLicenceSerializer
     queryset = (
         OpenGeneralLicence.objects.all()
-        .select_related("case_type")
-        .prefetch_related("countries", "control_list_entries")
+            .select_related("case_type")
+            .prefetch_related("countries", "control_list_entries")
     )
 
     def get_serializer_context(self):
