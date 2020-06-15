@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from django.db.models.signals import post_migrate
 
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 
@@ -6,8 +7,8 @@ from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 class LicencesConfig(AppConfig):
     name = "licences"
 
-    @staticmethod
-    def initialize_background_tasks(**kwargs):
+    @classmethod
+    def initialize_background_tasks(cls, **kwargs):
         from licences.models import Licence
         from licences.tasks import schedule_licence_for_hmrc_integration
 
@@ -18,4 +19,4 @@ class LicencesConfig(AppConfig):
 
     def ready(self):
         if LITE_HMRC_INTEGRATION_ENABLED:
-            self.initialize_background_tasks()
+            post_migrate.connect(self.initialize_background_tasks, sender=self)
