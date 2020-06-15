@@ -353,6 +353,15 @@ class GoodSerializerInternal(serializers.Serializer):
     grading_comment = serializers.CharField()
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
     status = KeyValueChoiceField(choices=GoodStatus.choices)
+    item_category = KeyValueChoiceField(choices=ItemCategory.choices)
+    is_military_use = KeyValueChoiceField(choices=MilitaryUse.choices)
+    is_component = KeyValueChoiceField(choices=Component.choices)
+    uses_information_security = serializers.BooleanField()
+    modified_military_use_details = serializers.CharField()
+    component_details = serializers.CharField()
+    information_security_details = serializers.CharField()
+    is_pv_graded = KeyValueChoiceField(choices=GoodControlled.choices)
+    missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
@@ -387,6 +396,7 @@ class GoodSerializerExporter(serializers.Serializer):
     modified_military_use_details = serializers.CharField()
     component_details = serializers.CharField()
     information_security_details = serializers.CharField()
+    pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
