@@ -110,7 +110,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "comment",
             "report_summary",
         )
-        ordering = ["-created_at"]
 
     def __init__(self, *args, **kwargs):
         super(GoodCreateSerializer, self).__init__(*args, **kwargs)
