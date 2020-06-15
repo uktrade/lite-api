@@ -32,7 +32,7 @@ def read_and_validate_csv(text):
                     raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_FILE_FORMAT]})
                 references.add(row[0])
                 # https://owasp.org/www-community/attacks/CSV_Injection
-                cleaned_text += ",".join(re.sub("[=+-@]", "", row)) + "\n"
+                cleaned_text += ",".join([re.sub("[^A-Za-z0-9/,.]+", "", item.strip()) for item in row]) + "\n"
     except csv.Error:
         raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_FILE_FORMAT]})
 
