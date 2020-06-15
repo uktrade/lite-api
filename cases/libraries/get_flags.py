@@ -1,12 +1,10 @@
 from django.db.models import QuerySet, When, Case as DB_Case, IntegerField, BinaryField
 
-from applications.models import CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
 from flags.enums import FlagLevels
 from flags.models import Flag
 from flags.serializers import CaseListFlagSerializer
-from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
 from teams.models import Team
 
 

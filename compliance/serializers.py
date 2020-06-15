@@ -58,6 +58,7 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
         return get_ordered_flags(case=instance, team=self.team, limit=3)
 
     def get_status(self, instance):
+        # Temporarily display the case status, until licence status story is played.
         if instance.status:
             return {
                 "key": instance.status.status,

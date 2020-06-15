@@ -8,7 +8,7 @@ from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import CountryOnApplication, PartyOnApplication
+from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
