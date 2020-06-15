@@ -162,8 +162,8 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         self.assertEquals(
             response.json()["good"]["control_list_entries"],
             [
-                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
                 {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
+                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
             ],
         )
         self.assertEquals(Good.objects.all().count(), 1)
