@@ -14,7 +14,7 @@ class EndUserAdvisoryUpdate(DataTestClient):
         self.end_user_advisory = self.create_end_user_advisory_case(
             "end_user_advisory", "my reasons", organisation=self.organisation
         )
-        self.url = reverse("queries:end_user_advisories:end_user_advisory", kwargs={"pk": self.end_user_advisory.id},)
+        self.url = reverse("cases:case", kwargs={"pk": self.end_user_advisory.id},)
 
         self.end_user_advisory.case_officer = self.gov_user
         self.end_user_advisory.save()
@@ -27,7 +27,7 @@ class EndUserAdvisoryUpdate(DataTestClient):
         """
         data = {"status": CaseStatusEnum.WITHDRAWN}
 
-        response = self.client.put(self.url, data, **self.gov_headers)
+        response = self.client.patch(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.end_user_advisory.refresh_from_db()
@@ -44,12 +44,12 @@ class EndUserAdvisoryStatus(DataTestClient):
         self.query.status = get_case_status_by_status(CaseStatusEnum.CLOSED)
         self.query.save()
 
-        self.url = reverse("queries:end_user_advisories:end_user_advisory", kwargs={"pk": self.query.id})
+        self.url = reverse("cases:case", kwargs={"pk": self.query.id})
 
     def test_gov_set_status_when_no_permission_to_reopen_closed_cases_failure(self):
         data = {"status": CaseStatusEnum.SUBMITTED}
 
-        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response = self.client.patch(self.url, data=data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -62,7 +62,7 @@ class EndUserAdvisoryStatus(DataTestClient):
         self.gov_user.role = self.super_user_role
         self.gov_user.save()
 
-        response = self.client.put(self.url, data=data, **self.gov_headers)
+        response = self.client.patch(self.url, data=data, **self.gov_headers)
         self.query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -80,10 +80,10 @@ class GoodsQueryManageStatusTests(DataTestClient):
         query.save()
         query.queues.set([self.queue])
         CaseAssignment.objects.create(case=query, queue=self.queue, user=self.gov_user)
-        url = reverse("queries:goods_queries:manage_status", kwargs={"pk": query.pk})
+        url = reverse("cases:case", kwargs={"pk": query.pk})
         data = {"status": "withdrawn"}
 
-        response = self.client.put(url, data, **self.gov_headers)
+        response = self.client.patch(url, data, **self.gov_headers)
         query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -106,10 +106,10 @@ class GoodsQueryManageStatusTests(DataTestClient):
         )
         self.assertNotEqual(query.status.status, CaseStatusEnum.PV)
 
-        url = reverse("queries:goods_queries:manage_status", kwargs={"pk": query.pk})
+        url = reverse("cases:case", kwargs={"pk": query.pk})
         data = {"status": CaseStatusEnum.PV}
 
-        response = self.client.put(url, data, **self.gov_headers)
+        response = self.client.patch(url, data, **self.gov_headers)
         query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
