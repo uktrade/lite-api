@@ -8,4 +8,5 @@ app_name = "compliance"
 urlpatterns = [
     path("<uuid:pk>/licences/", views.LicenceList.as_view(), name="licences",),
     path("<uuid:pk>/status/", views.ComplianceManageStatus.as_view(), name="manage_status",),
+    path("case/<uuid:pk>/", views.ComplianceCaseId.as_view(), name="compliance_case_id")
 ]
