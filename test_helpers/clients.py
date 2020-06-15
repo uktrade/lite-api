@@ -270,7 +270,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         party = Party(**data)
         party.save()
 
-        if application:
+        if application and party_type == PartyType.ADDITIONAL_CONTACT:
+            application.additional_contacts.add(party)
+        elif application:
             # Attach party to application
             application.add_party(party)
         return party
