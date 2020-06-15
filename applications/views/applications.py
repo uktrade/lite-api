@@ -175,7 +175,8 @@ class ApplicationExisting(APIView):
             has_nlrs = GeneratedCaseDocument.objects.filter(
                 advice_type=AdviceType.NO_LICENCE_REQUIRED, case__organisation=organisation
             ).exists()
-            return JsonResponse(data={"licences": has_licences, "applications": has_applications, "nlrs": has_nlrs})
+            has_open_general_licences = False
+            return JsonResponse(data={"licences": has_licences, "applications": has_applications, "nlrs": has_nlrs, "open_general_licences": has_open_general_licences})
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):

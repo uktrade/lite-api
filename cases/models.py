@@ -143,7 +143,7 @@ class Case(TimestampableModel):
             payload={"status": {"new": CaseStatusEnum.get_text(self.status.status), "old": old_status}},
         )
 
-        if old_status.status != self.status.status:
+        if old_status != self.status.status:
             run_routing_rules(case=self, keep_status=True)
 
     def parameter_set(self):
