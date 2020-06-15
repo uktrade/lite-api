@@ -12,10 +12,9 @@ from conf.authentication import SharedAuthentication, GovAuthentication
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from lite_content.lite_api.strings import OpenGeneralLicences
-from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.models import OpenGeneralLicence, OpenGeneralLicenceCase
 from open_general_licences.serializers import OpenGeneralLicenceSerializer
-from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from organisations.libraries.get_organisation import get_request_user_organisation
 from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserType
