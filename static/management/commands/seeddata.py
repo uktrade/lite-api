@@ -1,15 +1,19 @@
 import multiprocessing
 import random
-from multiprocessing import Process, Pool, current_process
-from time import sleep, time, perf_counter
-
+from time import perf_counter
 from uuid import UUID
 
 from django import db
+from django.utils.dateparse import parse_date
 from faker import Faker
-from applications.models import StandardApplication
-from test_helpers.clients import DataTestClient
+
+from applications.enums import GoodsTypeCategory, ApplicationExportType
+from applications.models import GoodOnApplication
+from applications.models import StandardApplication, OpenApplication
+from applications.serializers.open_application import OpenApplicationCreateSerializer
+from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from conf.constants import Roles
+from goods.models import Good
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site
 from organisations.tests.factories import SiteFactory
@@ -18,9 +22,8 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.management.SeedCommand import SeedCommand
 from static.management.commands.seedapplications import Command as AppCommand
 from static.management.commands.seedorganisation import Command as OrgCommand
+from test_helpers.clients import DataTestClient
 from users.models import UserOrganisationRelationship, ExporterUser
-from goods.models import Good
-from applications.models import GoodOnApplication
 
 faker = Faker()
 faker.add_provider(OrganisationProvider)
@@ -120,7 +123,7 @@ class ActionBase:
 
     @staticmethod
     def app_factory(org, applications_to_add, max_goods_to_use):
-        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use, )
+        _, submitted_applications, _ = AppCommand.seed_siel_applications(org, applications_to_add, max_goods_to_use,)
         return len(submitted_applications)
 
     @staticmethod
@@ -236,8 +239,8 @@ class ActionUser(ActionBase):
         if org_uuid == "all":
             membership = (
                 UserOrganisationRelationship.objects.select_related("organisation")
-                    .filter(user=exporter_user)
-                    .values_list("organisation_id")
+                .filter(user=exporter_user)
+                .values_list("organisation_id")
             )
             organisations = Organisation.objects.all()
             ids_to_add = set([org.id for org in organisations]) - set(membership)
@@ -304,11 +307,93 @@ class ActionSiel(ActionBase):
         return apps
 
 
+class ActionOiel(ActionBase):
+    tc = DataTestClient()
+
+    def action(self, options):
+        print("Add OIEL applications to organisations")
+        app_count_min, app_count_max = self.get_min_max_arg(options)
+        org_count = self.get_arg(options, "count", 1)
+        uuid = self.get_arg(options, "uuid", required=False)
+        mt = self.get_arg(options, "mt", required=False)
+
+        organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
+
+        # for each organisation work out the correct number of applications to add
+        org_app_counts = [
+            (
+                org,
+                OpenApplication.objects.filter(organisation_id=org.id).count(),
+                random.randint(app_count_min, app_count_max),
+            )
+            for org in organisations
+        ]
+
+        applications_to_add_per_org = [
+            (org, required_app_count - current_app_count)
+            for org, current_app_count, required_app_count in org_app_counts
+            if current_app_count < required_app_count
+        ]
+
+        drafts = [
+            result
+            for result in self.get_mapper(mt)(
+                ActionBase.do_work,
+                [
+                    (ActionOiel.create_media_oiel_draft, organisation, f"OIEL application #{idx}")
+                    for organisation, apps_to_add in applications_to_add_per_org
+                    for idx in range(apps_to_add)
+                ],
+            )
+        ]
+
+        apps = list(
+            self.get_mapper(mt)(
+                ActionBase.do_work, [(ActionOiel.submit, organisation, draft) for draft, organisation in drafts]
+            )
+        )
+
+        print(
+            f"ensured between {app_count_min} and {app_count_max} OIEL applications for {org_count} organisations"
+            f", added {len(apps)} applications in total"
+        )
+        return apps
+
+    @staticmethod
+    def submit(organisation, draft):
+        tc = DataTestClient()
+        tc.exporter_user = random.choice(organisation.get_users())
+        return tc.submit_application(draft)
+
+    @staticmethod
+    def create_media_oiel_draft(
+        organisation, application_title, app_type=GoodsTypeCategory.MEDIA, export_type=ApplicationExportType.TEMPORARY
+    ):
+
+        serializer = OpenApplicationCreateSerializer(
+            case_type_id=CaseTypeEnum.reference_to_id(CaseTypeReferenceEnum.OIEL),
+            data={
+                "name": application_title,
+                "application_type": CaseTypeReferenceEnum.OIEL,
+                "export_type": export_type,
+                "goodstype_category": app_type,
+            },
+            context=organisation,
+        )
+        serializer.is_valid()
+        draft = serializer.save()
+        if draft.export_type == ApplicationExportType.TEMPORARY:
+            draft.proposed_return_date = parse_date("2120-12-31")
+        draft.save()
+        return draft, organisation
+
+
 class ActionStats(ActionBase):
     def action(self, options):
         print(
             f"Organisations:{Organisation.objects.all().count()}"
             f"\nSIEL applications:{StandardApplication.objects.all().count()}"
+            f"\nOIEL applications:{OpenApplication.objects.all().count()}"
             f"\nOrganisation Products:{Good.objects.all().count()}"
             f"\nProducts used in SEIL applications:{GoodOnApplication.objects.all().count()}"
             f"\nExport Users:{ExporterUser.objects.all().count()}"
@@ -362,6 +447,7 @@ class Command(SeedCommand):
         "fakeuser": ActionAddFakeUsers(),
         "user": ActionUser(),
         "siel": ActionSiel(),
+        "oiel": ActionOiel(),
         "site": ActionSites(),
         "stats": ActionStats(),
         "good": ActionGoods(),
