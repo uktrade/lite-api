@@ -34,8 +34,7 @@ class CaseGetTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self._assert_party(
-            self.standard_application.third_parties.last().party,
-            response_data["case"]["data"]["third_parties"][0],
+            self.standard_application.third_parties.last().party, response_data["case"]["data"]["third_parties"][0],
         )
         self._assert_party(self.standard_application.consignee.party, response_data["case"]["data"]["consignee"])
 
@@ -81,9 +80,7 @@ class CaseGetTests(DataTestClient):
 
         expected_flags = [Flag.objects.get(id=SystemFlags.GOOD_NOT_YET_VERIFIED_ID).name]
         actual_flags_on_case = [flag["name"] for flag in response_data["case"]["all_flags"]]
-        actual_flags_on_goods_type = [
-            flag["name"] for flag in response_data["case"]["data"]["goods_types"][0]["flags"]
-        ]
+        actual_flags_on_goods_type = [flag["name"] for flag in response_data["case"]["data"]["goods_types"][0]["flags"]]
 
         self.assertIn(actual_flags_on_case[0], expected_flags)
         self.assertEqual(actual_flags_on_goods_type, expected_flags)
