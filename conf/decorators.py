@@ -75,7 +75,7 @@ def application_in_state(is_editable=False, is_major_editable=False):
                     data={
                         "errors": {
                             "non_field_errors": [
-                                strings.Applications.Generic.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR
+                                strings.Applications.Generic.INVALID_OPERATION_FOR_READ_ONLY_CASE_ERROR
                             ]
                         }
                     },
