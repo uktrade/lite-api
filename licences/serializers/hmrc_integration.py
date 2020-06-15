@@ -67,7 +67,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference = serializers.CharField(source="application.reference_code")
     type = serializers.CharField(source="application.case_type.reference")
-    status = serializers.SerializerMethodField()
+    action = serializers.CharField(source="application.status.status")  # `insert/cancel` on later story
     start_date = serializers.DateField()
     end_date = serializers.SerializerMethodField()
     organisation = HMRCIntegrationOrganisationSerializer(source="application.organisation")
@@ -86,9 +86,6 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             and self.instance.application.openapplication.application_countries.exists()
         ):
             self.fields.pop("countries")
-
-    def get_status(self, instance):
-        return CaseStatusEnum.get_text(instance.application.status.status)
 
     def get_end_date(self, instance):
         return add_months(instance.start_date, instance.duration, "%Y-%m-%d")
