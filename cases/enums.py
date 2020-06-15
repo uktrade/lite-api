@@ -56,7 +56,11 @@ class CaseTypeTypeEnum:
     QUERY = "query"
     COMPLIANCE = "compliance"
 
-    choices = [(APPLICATION, "Application"), (QUERY, "Query"), (COMPLIANCE, "Compliance")]
+    choices = [
+        (APPLICATION, "Application"),
+        (QUERY, "Query"),
+        (COMPLIANCE, "Compliance"),
+    ]
 
     @classmethod
     def as_list(cls):
