@@ -14,12 +14,10 @@ from conf.decorators import (
 )
 from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
-from lite_content.lite_api.strings import Applications
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from parties.enums import PartyType
 from parties.models import Party
 from parties.serializers import PartySerializer
-from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
