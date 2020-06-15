@@ -8,11 +8,11 @@ from conf.serializers import PrimaryKeyRelatedSerializerField
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+from teams.helpers import get_team_by_pk
 
 
 class ComplianceSiteViewSerializer(serializers.ModelSerializer):
     site = AddressSerializer(source="site.address")
-    licences = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
@@ -20,27 +20,11 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ComplianceSiteCase
-        fields = ("site", "licences", "status", "organisation")
-
-    def get_licences(self, instance):
-        # For Compliance cases, when viewing from the site, we care about the Case the licence is attached to primarily,
-        #   and the licence status, and returns completed.
-        cases = Case.objects.filter(
-            baseapplication__licence__is_complete=True,
-            baseapplication__application_sites__site__compliance__id=instance.id,
-        ) | Case.objects.filter(
-            baseapplication__licence__is_complete=True,
-            baseapplication__application_sites__site__site_records_located_at__compliance__id=instance.id,
+        fields = (
+            "site",
+            "status",
+            "organisation",
         )
-        # Individual licence details to be added in future story
-        return [
-            {
-                "case_id": case.id,
-                "case_reference": case.reference_code,
-                "case_flags": get_ordered_flags(case, self.context.get("team"), 3),
-            }
-            for case in cases
-        ]
 
     def get_status(self, instance):
         if instance.status:
@@ -49,3 +33,19 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
         return None
+
+
+class ComplianceLicenceListSerializer(serializers.ModelSerializer):
+    flags = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Case
+        fields = (
+            "id",
+            "reference_code",
+            "flags",
+        )
+
+    def get_flags(self, instance):
+        team = get_team_by_pk(self.context.get("request").user.team_id)
+        return get_ordered_flags(case=instance, team=team, limit=3)

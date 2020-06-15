@@ -1,16 +1,35 @@
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 
 from applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.libraries.get_case import get_case
+from cases.models import Case
+from compliance.serializers import ComplianceLicenceListSerializer
 from conf.authentication import GovAuthentication
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
+
+
+class LicenceList(ListAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = ComplianceLicenceListSerializer
+
+    def get_queryset(self):
+        # For Compliance cases, when viewing from the site, we care about the Case the licence is attached to primarily,
+        #   and the licence status (not added), and returns completed (not added).
+        return Case.objects.filter(
+            baseapplication__licence__is_complete=True,
+            baseapplication__application_sites__site__compliance__id=self.kwargs["pk"],
+        ) | Case.objects.filter(
+            baseapplication__licence__is_complete=True,
+            baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
+        )
 
 
 class ComplianceManageStatus(APIView):
