@@ -37,6 +37,7 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
 
 class ComplianceLicenceListSerializer(serializers.ModelSerializer):
     flags = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
     team = None
 
     class Meta:
@@ -44,6 +45,7 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "reference_code",
+            "status",
             "flags",
         )
 
@@ -54,3 +56,11 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
 
     def get_flags(self, instance):
         return get_ordered_flags(case=instance, team=self.team, limit=3)
+
+    def get_status(self, instance):
+        if instance.status:
+            return {
+                "key": instance.status.status,
+                "value": get_status_value_from_case_status_enum(instance.status.status),
+            }
+        return None
