@@ -244,23 +244,9 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             notification = queryset.first()
             return GovUserNotificationSerializer(notification).data
 
-        return None
-
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
-
-    def to_representation(self, value):
-        """
-        Only show 'application' if it has an application inside,
-        and only show 'query' if it has a CLC query inside
-        """
-        repr_dict = super(CaseDetailSerializer, self).to_representation(value)
-        if not repr_dict["application"]:
-            del repr_dict["application"]
-        if not repr_dict["query"]:
-            del repr_dict["query"]
-        return repr_dict
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):

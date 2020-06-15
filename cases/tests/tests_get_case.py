@@ -35,9 +35,9 @@ class CaseGetTests(DataTestClient):
 
         self._assert_party(
             self.standard_application.third_parties.last().party,
-            response_data["case"]["application"]["third_parties"][0],
+            response_data["case"]["data"]["third_parties"][0],
         )
-        self._assert_party(self.standard_application.consignee.party, response_data["case"]["application"]["consignee"])
+        self._assert_party(self.standard_application.consignee.party, response_data["case"]["data"]["consignee"])
 
     def _assert_party(self, expected, actual):
         self.assertEqual(str(expected.id), actual["id"])
@@ -64,7 +64,7 @@ class CaseGetTests(DataTestClient):
 
         expected_flags = [Flag.objects.get(id=SystemFlags.GOOD_NOT_YET_VERIFIED_ID).name]
         actual_flags_on_case = [flag["name"] for flag in response_data["case"]["all_flags"]]
-        actual_flags_on_goods = [flag["name"] for flag in response_data["case"]["application"]["goods"][0]["flags"]]
+        actual_flags_on_goods = [flag["name"] for flag in response_data["case"]["data"]["goods"][0]["flags"]]
 
         self.assertIn(actual_flags_on_case[0], expected_flags)
         self.assertEqual(actual_flags_on_goods, expected_flags)
@@ -82,7 +82,7 @@ class CaseGetTests(DataTestClient):
         expected_flags = [Flag.objects.get(id=SystemFlags.GOOD_NOT_YET_VERIFIED_ID).name]
         actual_flags_on_case = [flag["name"] for flag in response_data["case"]["all_flags"]]
         actual_flags_on_goods_type = [
-            flag["name"] for flag in response_data["case"]["application"]["goods_types"][0]["flags"]
+            flag["name"] for flag in response_data["case"]["data"]["goods_types"][0]["flags"]
         ]
 
         self.assertIn(actual_flags_on_case[0], expected_flags)
@@ -119,7 +119,7 @@ class CaseGetTests(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        case_application = response.json()["case"]["application"]
+        case_application = response.json()["case"]["data"]
 
         trade_control_activity = case_application["trade_control_activity"]["value"]
         self.assertEqual(trade_control_activity, case.trade_control_activity_other)
@@ -166,7 +166,7 @@ class CaseGetTests(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        case_application = response.json()["case"]["application"]
+        case_application = response.json()["case"]["data"]
         ordered_countries = [destination["id"] for destination in case_application["destinations"]["data"]]
 
         # Countries are ordered by flag priority and for countries without flags, they are alphabetised
@@ -212,7 +212,7 @@ class CaseGetTests(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        case_application = response.json()["case"]["application"]
+        case_application = response.json()["case"]["data"]
         ordered_third_parties = [third_party["id"] for third_party in case_application["third_parties"]]
         ordered_ultimate_end_users = [ueu["id"] for ueu in case_application["ultimate_end_users"]]
 
