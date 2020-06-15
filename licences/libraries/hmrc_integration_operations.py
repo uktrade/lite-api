@@ -23,7 +23,7 @@ def send_licence(licence: Licence):
 
     response = post(url, data, hawk_credentials=HAWK_LITE_API_CREDENTIALS, timeout=LITE_HMRC_REQUEST_TIMEOUT)
 
-    if response.status_code != status.HTTP_201_CREATED:
+    if response.status_code not in [status.HTTP_201_CREATED, status.HTTP_304_NOT_MODIFIED]:
         raise HMRCIntegrationException(
             f"An unexpected response was received when sending licence '{licence.id}' changes to HMRC Integration -> "
             f"status={response.status_code}, message={response.text}"
