@@ -40,6 +40,7 @@ from cases.serializers import (
     CaseOfficerUpdateSerializer,
 )
 from compliance.helpers import generate_compliance
+from cases.service import get_destinations
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
@@ -79,9 +80,12 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, user=request.user, team=request.user.team)
+        data = CaseDetailSerializer(case, user=request.user, team=request.user.team).data
 
-        return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
+        if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            data["application"]["destinations"] = get_destinations(case.id)
+
+        return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
 
 
 class SetQueues(APIView):
