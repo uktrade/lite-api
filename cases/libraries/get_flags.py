@@ -27,7 +27,7 @@ def get_goods_flags(case, case_type):
     elif case_type == CaseTypeSubTypeEnum.GOODS:
         return Flag.objects.filter(goods__good__id=case.id)
 
-    return Flag.objects.filter(id__in=[])
+    return Flag.objects.none()
 
 
 def get_destination_flags(case, case_type):
@@ -44,13 +44,14 @@ def get_destination_flags(case, case_type):
             parties__parties_on_application__deleted_at__isnull=True,
         )
 
-    return Flag.objects.filter(id__in=[])
+    return Flag.objects.none()
 
 
 def get_flags(case: Case) -> QuerySet:
     """
     Get all case flags in no particular order (order will be specified by calling function)
     """
+    # Ensure that case_type is prefetched, or an additional query will be made for each case.
     case_type = case.case_type.sub_type
 
     goods_flags = get_goods_flags(case, case_type)
@@ -62,14 +63,17 @@ def get_flags(case: Case) -> QuerySet:
 
 
 def get_ordered_flags(case: Case, team: Team, limit: int = None):
-    case_type = case.case_type.sub_type
+    """
+    This function will get the flags for cases looking at good, destination, case, and organisation flags. The flags
+        will be ordered with your teams flags first, in order of category (same order as above), and priority
+        (lowest first).
 
-    goods_flags = get_goods_flags(case, case_type)
-    destination_flags = get_destination_flags(case, case_type)
-    case_flags = case.flags.all()
-    organisation_flags = Flag.objects.filter(organisations__cases__id=case.id)
-
-    all_flags = goods_flags | destination_flags | case_flags | organisation_flags
+    :param case: case object the flags relate to
+    :param team: The team for user making the request
+    :param limit: If assigned will return no more than given ammount
+    :return: List of flags serialized
+    """
+    all_flags = get_flags(case)
 
     all_flags = all_flags.annotate(
         my_team=DB_Case(When(team_id=team.id, then=True), default=False, output_field=BinaryField()),
