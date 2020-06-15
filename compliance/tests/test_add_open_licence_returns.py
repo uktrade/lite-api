@@ -43,8 +43,8 @@ class AddOpenLicenceReturnsTest(DataTestClient):
         self.assertEqual(response.json()["open_licence_returns"], str(OpenLicenceReturns.objects.first().id))
 
     def test_upload_licence_returns_removes_invalid_characters_success(self):
-        file_string = f"\n{self.licence.reference_code},@123,-44,=D9,d\n"
-        expected_cleaned_string = f"\n{self.licence.reference_code},123,44,D9,d\n"
+        file_string = f'\n{self.licence.reference_code},"@123,",-44,=D9,+dj.\n'
+        expected_cleaned_string = f"\n{self.licence.reference_code},123,,-44,D9,dj.\n".strip()
         data = {
             "file": file_string,
             "year": datetime.now().year,
@@ -53,15 +53,7 @@ class AddOpenLicenceReturnsTest(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(
-            OpenLicenceReturns.objects.filter(
-                organisation=self.organisation,
-                returns_data=expected_cleaned_string.strip(),
-                year=data["year"],
-                licences=self.licence,
-            ).count(),
-            1,
-        )
+        self.assertEqual(expected_cleaned_string, OpenLicenceReturns.objects.first().returns_data)
         self.assertEqual(response.json()["open_licence_returns"], str(OpenLicenceReturns.objects.first().id))
 
     def test_upload_licence_returns_no_year_failure(self):
