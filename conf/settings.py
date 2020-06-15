@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     "background_task",
     "cases.app.CasesConfig",
     "cases.generated_documents",
-    "compliance",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

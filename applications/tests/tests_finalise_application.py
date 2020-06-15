@@ -98,7 +98,7 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response_data["errors"], [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{flag.name}"])
 
     def test_finalise_clearance_application_success(self):
-        clearance_application = self.create_mod_clearance_application_case(
+        clearance_application = self.create_mod_clearance_application(
             self.organisation, case_type=CaseTypeEnum.EXHIBITION
         )
         self._set_user_permission(
