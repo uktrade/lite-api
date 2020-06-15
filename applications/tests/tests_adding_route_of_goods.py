@@ -100,7 +100,7 @@ class AddingRouteOfGoodsTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"],
+            response.json()["errors"]["non_field_errors"],
             [strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR],
         )
         self.draft.refresh_from_db()

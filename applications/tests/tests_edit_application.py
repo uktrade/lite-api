@@ -513,7 +513,7 @@ class EditExhibitionApplicationsTests(DataTestClient):
 
         response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
 
-        response_data = response.json()["errors"]
+        response_data = response.json()["errors"]["non_field_errors"]
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
