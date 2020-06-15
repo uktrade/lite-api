@@ -82,6 +82,14 @@ class CaseDetail(APIView):
 
         return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
 
+    def patch(self, request, pk):
+        """
+        Change case status
+        """
+        case = get_case(pk)
+        case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
+
 
 class SetQueues(APIView):
     authentication_classes = (GovAuthentication,)

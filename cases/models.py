@@ -4,6 +4,7 @@ from collections import defaultdict
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from audit_trail.enums import AuditType
 from cases.enums import (
@@ -19,6 +20,8 @@ from cases.enums import (
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from common.models import TimestampableModel
+from conf.constants import GovPermissions
+from conf.permissions import assert_user_has_permission
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
@@ -111,6 +114,21 @@ class Case(TimestampableModel):
             )
 
         return return_value
+
+    def change_status(self, user, status: CaseStatus):
+        from applications.libraries.application_helpers import can_status_be_set_by_gov_user
+
+        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
+        if status.status == CaseStatusEnum.FINALISED:
+            assert_user_has_permission(user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+
+        if not can_status_be_set_by_gov_user(
+            user, self.status.status, status.status, is_licence_application=False
+        ):
+            raise ValidationError({"status": ["Status cannot be set by Gov user"]})
+
+        self.status = status
+        self.save()
 
     def parameter_set(self):
         """
