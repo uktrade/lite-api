@@ -80,7 +80,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     registrations = serializers.SerializerMethodField()
 
     def get_registrations(self, instance):
-        if "cases" in self.context:
+        if self.context and "cases" in self.context:
             cases = [x for x in self.context["cases"] if x in instance.cases.all()]
             return OGLApplicationListSerializer(cases, many=True).data
 
