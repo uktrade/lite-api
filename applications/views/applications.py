@@ -78,6 +78,7 @@ from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
 from licences.models import Licence
+from licences.helpers import get_reference_code
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
@@ -616,7 +617,7 @@ class ApplicationFinaliseView(APIView):
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
             licence_data["application"] = application
-            licence_data["reference_code"] = application.reference_code
+            licence_data["reference_code"] = get_reference_code(application.reference_code)
             serializer = LicenceCreateSerializer(data=licence_data)
 
             if not serializer.is_valid():

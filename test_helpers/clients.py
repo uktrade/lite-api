@@ -32,6 +32,7 @@ from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
 from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
+from licences.helpers import get_reference_code
 from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -961,7 +962,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
         if not reference_code:
-            reference_code = application.reference_code
+            reference_code = get_reference_code(application.reference_code)
 
         licence = Licence.objects.create(
             application=application,
