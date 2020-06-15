@@ -11,8 +11,6 @@ from teams.models import Team
 
 
 def get_goods_flags(case, case_type):
-    ids = []
-
     if case_type in [
         CaseTypeSubTypeEnum.STANDARD,
         CaseTypeSubTypeEnum.EUA,
@@ -29,29 +27,24 @@ def get_goods_flags(case, case_type):
     elif case_type == CaseTypeSubTypeEnum.GOODS:
         return Flag.objects.filter(goods__good__id=case.id)
 
-    return Flag.objects.filter(id__in=ids)
+    return Flag.objects.filter(id__in=[])
 
 
 def get_destination_flags(case, case_type):
-    ids = []
-
     if case_type == CaseTypeSubTypeEnum.EUA:
-        return get_end_user_advisory_by_pk(case.id).end_user.flags.all()
+        return Flag.objects.filter(parties__parties_on_application__application_id=case.id)
     elif case_type == CaseTypeSubTypeEnum.OPEN:
-        ids = set(
-            CountryOnApplication.objects.filter(application=case)
-            .prefetch_related("country__flags")
-            .values_list("country__flags", flat=True)
+        return Flag.objects.filter(countries_on_applications__application_id=case.id) | Flag.objects.filter(
+            countries__countries_on_application__application_id=case.id
         )
-
-        ids = ids | set(CountryOnApplication.objects.filter(application=case).values_list("flags", flat=True))
 
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
-        ids = case.baseapplication.parties.filter(deleted_at__isnull=True, party__flags__isnull=False).values_list(
-            "party__flags", flat=True
+        return Flag.objects.filter(
+            parties__parties_on_application__application_id=case.id,
+            parties__parties_on_application__deleted_at__isnull=True,
         )
 
-    return Flag.objects.filter(id__in=ids)
+    return Flag.objects.filter(id__in=[])
 
 
 def get_flags(case: Case) -> QuerySet:
@@ -63,7 +56,7 @@ def get_flags(case: Case) -> QuerySet:
     goods_flags = get_goods_flags(case, case_type)
     destination_flags = get_destination_flags(case, case_type)
     case_flags = case.flags.all()
-    org_flags = case.organisation.flags.all()
+    org_flags = Flag.objects.filter(organisations__cases__id=case.id)
 
     return goods_flags | destination_flags | case_flags | org_flags
 
@@ -74,7 +67,7 @@ def get_ordered_flags(case: Case, team: Team, limit: int = None):
     goods_flags = get_goods_flags(case, case_type)
     destination_flags = get_destination_flags(case, case_type)
     case_flags = case.flags.all()
-    organisation_flags = case.organisation.flags.all()
+    organisation_flags = Flag.objects.filter(organisations__cases__id=case.id)
 
     all_flags = goods_flags | destination_flags | case_flags | organisation_flags
 

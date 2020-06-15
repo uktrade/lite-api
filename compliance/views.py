@@ -26,7 +26,7 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference")
 
-        cases = Case.objects.filter(baseapplication__licence__is_complete=True,)
+        cases = Case.objects.select_related("case_type").filter(baseapplication__licence__is_complete=True,)
 
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
             baseapplication__goods__good__control_list_entries__rating__regex="(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"

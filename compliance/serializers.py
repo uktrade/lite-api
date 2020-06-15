@@ -37,6 +37,7 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
 
 class ComplianceLicenceListSerializer(serializers.ModelSerializer):
     flags = serializers.SerializerMethodField()
+    team = None
 
     class Meta:
         model = Case
@@ -46,6 +47,10 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
             "flags",
         )
 
+    def __init__(self, *args, **kwargs):
+        super(ComplianceLicenceListSerializer, self).__init__(*args, **kwargs)
+
+        self.team = get_team_by_pk(self.context.get("request").user.team_id)
+
     def get_flags(self, instance):
-        team = get_team_by_pk(self.context.get("request").user.team_id)
-        return get_ordered_flags(case=instance, team=team, limit=3)
+        return get_ordered_flags(case=instance, team=self.team, limit=3)

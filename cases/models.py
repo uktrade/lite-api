@@ -58,7 +58,7 @@ class Case(TimestampableModel):
     case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=False, blank=False)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, related_name="cases")
     submitted_at = models.DateTimeField(blank=True, null=True)
     submitted_by = models.ForeignKey(ExporterUser, null=True, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(
