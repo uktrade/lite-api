@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
+from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.serializers import ComplianceLicenceListSerializer
@@ -23,11 +24,18 @@ class LicenceList(ListAPIView):
     def get_queryset(self):
         # For Compliance cases, when viewing from the site, we care about the Case the licence is attached to primarily,
         #   and the licence status (not added), and returns completed (not added).
-        return Case.objects.filter(
-            baseapplication__licence__is_complete=True,
-            baseapplication__application_sites__site__compliance__id=self.kwargs["pk"],
-        ) | Case.objects.filter(
-            baseapplication__licence__is_complete=True,
+        reference_code = self.request.GET.get("reference")
+
+        cases = Case.objects.filter(baseapplication__licence__is_complete=True,)
+
+        cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
+            baseapplication__goods__good__control_list_entries__rating__regex="(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
+        )
+
+        if reference_code:
+            cases = cases.filter(reference_code__icontains=reference_code)
+
+        return cases.filter(baseapplication__application_sites__site__compliance__id=self.kwargs["pk"],) | cases.filter(
             baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
         )
 
