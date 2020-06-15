@@ -19,7 +19,6 @@ class OGLApplicationCaseSerializer(serializers.Serializer):
                 "key": instance.status.status,
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
-        return None
 
 
 class OGLApplicationDetailSerializer(serializers.ModelSerializer):
