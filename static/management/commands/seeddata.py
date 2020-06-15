@@ -316,8 +316,10 @@ class ActionOiel(ActionBase):
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
         mt = self.get_arg(options, "mt", required=False)
+        app_type = self.get_arg(options, "type", "media")
 
         organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
+        app_type = GoodsTypeCategory.MEDIA if app_type == "media" else GoodsTypeCategory.MILITARY
 
         # for each organisation work out the correct number of applications to add
         org_app_counts = [
@@ -340,7 +342,12 @@ class ActionOiel(ActionBase):
             for result in self.get_mapper(mt)(
                 ActionBase.do_work,
                 [
-                    (ActionOiel.create_media_oiel_draft, organisation, f"OIEL application #{idx}")
+                    (
+                        ActionOiel.create_media_oiel_draft,
+                        organisation,
+                        f"OIEL application #{idx}",
+                        app_type,
+                    )
                     for organisation, apps_to_add in applications_to_add_per_org
                     for idx in range(apps_to_add)
                 ],
@@ -377,6 +384,7 @@ class ActionOiel(ActionBase):
                 "application_type": CaseTypeReferenceEnum.OIEL,
                 "export_type": export_type,
                 "goodstype_category": app_type,
+                "contains_firearm_goods": False,
             },
             context=organisation,
         )
@@ -463,6 +471,7 @@ class Command(SeedCommand):
         parser.add_argument("--max", help="max number of items", type=int)
         parser.add_argument("--min", help="min number of items", type=int)
         parser.add_argument("-e", "--email", help="user email", type=str)
+        parser.add_argument("--type", help="a type", type=str)
         parser.add_argument("--max-goods", help="max number of goods", type=int)
         parser.add_argument("-r", "--remove", action="store_true", help="remove an item or items")
 
