@@ -1,9 +1,7 @@
-import uuid
 from unittest import mock
 from unittest.mock import ANY
 
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 
 from cases.enums import AdviceType, AdviceLevel, CaseTypeSubTypeEnum
@@ -28,7 +26,6 @@ from licences.tasks import (
 )
 from static.countries.models import Country
 from static.decisions.models import Decision
-from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 

@@ -3,7 +3,6 @@ from rest_framework import serializers
 from conf.helpers import add_months
 from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
 from static.countries.models import Country
-from static.statuses.enums import CaseStatusEnum
 
 
 class HMRCIntegrationCountrySerializer(serializers.Serializer):
