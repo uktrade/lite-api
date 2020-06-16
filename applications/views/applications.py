@@ -172,11 +172,7 @@ class ApplicationExisting(APIView):
             return JsonResponse(data={"queries": has_queries})
         else:
             has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
-            return JsonResponse(
-                data={
-                    "applications": has_applications,
-                }
-            )
+            return JsonResponse(data={"applications": has_applications,})
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
