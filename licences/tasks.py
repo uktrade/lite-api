@@ -50,8 +50,8 @@ def send_licence_to_hmrc_integration(licence_id, licence_reference, scheduled_as
     """
 
     with transaction.atomic():
+        # transaction.atomic + select_for_update + nowait=True will throw an error if row has already been locked
         licence = Licence.objects.select_for_update(nowait=True).get(id=licence_id)
-
         try:
             hmrc_integration_operations.send_licence(licence)
         except hmrc_integration_operations.HMRCIntegrationException as exc:
