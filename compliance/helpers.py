@@ -20,10 +20,9 @@ from licences.models import Licence
 from lite_content.lite_api.strings import Compliance
 
 
-def generate_compliance(case: Case):
-    # check if case meets conditions required
+def case_meets_conditions_for_compliance(case: Case):
     if case.case_type.id == CaseTypeEnum.OIEL.id:
-        pass
+        return True
     elif case.case_type.id == CaseTypeEnum.SIEL.id:
         if not (
             Good.objects.filter(
@@ -31,15 +30,17 @@ def generate_compliance(case: Case):
                 control_list_entries__rating__regex="(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)",
             ).exists()
         ):
-            return None
+            return False
+        return True
     elif case.case_type.id == CaseTypeEnum.OICL.id:
-        pass
+        return True
     else:
-        return None
+        return False
 
-    # Get record holding sites the case
-    record_holding_sites_id = set(
-        Site.objects.filter(sites_on_application__application_id=case.id)
+
+def get_record_holding_sites_for_case(case_id):
+    return set(
+        Site.objects.filter(sites_on_application__application_id=case_id)
         .annotate(
             record_site=db_case(
                 When(site_records_located_at__isnull=False, then=F("site_records_located_at")), default=F("id")
@@ -48,14 +49,27 @@ def generate_compliance(case: Case):
         .values_list("record_site", flat=True)
     )
 
+
+def generate_compliance(case: Case):
+    # check if case meets conditions required
+    if not case_meets_conditions_for_compliance(case):
+        return
+
+    # Get record holding sites the case
+    record_holding_sites_id = get_record_holding_sites_for_case(case.id)
+
     # Get list of record holding sites that do not relate to compliance case
     new_compliance_sites = set(Site.objects.filter(id__in=record_holding_sites_id, compliance__isnull=True).distinct())
+
+    # get a list compliance cases that already exist
     existing_compliance_cases = set(
         Case.objects.filter(compliancesitecase__site_id__in=record_holding_sites_id).distinct()
     )
 
     audits = []
     system_user = BaseUser.objects.get(id=SystemUser.id)
+
+    # Audit existing compliance cases to say new licence exists
     for comp_case in existing_compliance_cases:
         audits.append(
             Audit(
@@ -70,6 +84,7 @@ def generate_compliance(case: Case):
         Audit.objects.bulk_create(audits)
         return None
 
+    # Create new compliance cases for each record holding site without a case, and audit creation
     for site in new_compliance_sites:
         comp_case = ComplianceSiteCase(
             site=site,

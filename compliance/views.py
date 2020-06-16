@@ -21,7 +21,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
-from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
+from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences, get_record_holding_sites_for_case
 from compliance.models import OpenLicenceReturns
 from compliance.serializers import (
     OpenLicenceReturnsCreateSerializer,
@@ -96,15 +96,7 @@ class ComplianceCaseId(APIView):
 
     def get(self, request, pk, *args, **kwargs):
         # Get record holding sites the case
-        record_holding_sites_id = list(
-            Site.objects.filter(sites_on_application__application_id=pk)
-            .annotate(
-                record_site=db_case(
-                    When(site_records_located_at__isnull=False, then=F("site_records_located_at")), default=F("id")
-                )
-            )
-            .values_list("record_site", flat=True)
-        )
+        record_holding_sites_id = get_record_holding_sites_for_case(pk)
 
         # Get list of record holding sites that do not relate to compliance case
 
