@@ -157,11 +157,15 @@ class GoodsCreateControlledGoodTests(DataTestClient):
         self.request_data["control_list_entries"] = ["ML1a", "ML1b"]
 
         response = self.client.post(URL, self.request_data, **self.exporter_headers)
-        response_data = response.json()["good"]["control_list_entries"]
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue({"rating": "ML1a", "text": get_control_list_entry("ML1a").text} in response_data)
-        self.assertTrue({"rating": "ML1b", "text": get_control_list_entry("ML1b").text} in response_data)
+        self.assertEquals(
+            response.json()["good"]["control_list_entries"],
+            [
+                {"rating": "ML1a", "text": get_control_list_entry("ML1a").text},
+                {"rating": "ML1b", "text": get_control_list_entry("ML1b").text},
+            ],
+        )
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_when_creating_a_good_with_a_null_control_list_entries_then_bad_request_response_is_returned(self):

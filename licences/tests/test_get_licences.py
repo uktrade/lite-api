@@ -16,11 +16,9 @@ class GetLicencesTests(DataTestClient):
         super().setUp()
         self.url = reverse("licences:licences")
         self.standard_application = self.create_standard_application_case(self.organisation)
-        self.f680_application = self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.F680)
-        self.gifting_application = self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.GIFTING)
-        self.exhibition_application = self.create_mod_clearance_application_case(
-            self.organisation, CaseTypeEnum.EXHIBITION
-        )
+        self.f680_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
+        self.gifting_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
+        self.exhibition_application = self.create_mod_clearance_application(self.organisation, CaseTypeEnum.F680)
         self.open_application = self.create_open_application_case(self.organisation)
         self.applications = [
             self.standard_application,
@@ -77,14 +75,12 @@ class GetLicencesTests(DataTestClient):
                 )
                 self.assertEqual(application_data["destinations"][0]["country"]["id"], destination.country_id)
             else:
-                if licence.application.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION:
-                    destination = licence.application.end_user.party
-                    self.assertEqual(
-                        application_data["destinations"][0]["country"]["id"], destination.country_id,
-                    )
-
+                destination = licence.application.end_user.party
                 good = licence.application.goods.first().good
 
+                self.assertEqual(
+                    application_data["destinations"][0]["country"]["id"], destination.country_id,
+                )
                 self.assertEqual(
                     application_data["goods"][0]["good"]["description"], good.description,
                 )
