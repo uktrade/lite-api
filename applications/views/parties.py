@@ -36,14 +36,6 @@ class ApplicationPartyView(APIView):
         data = request.data
         data["organisation"] = get_request_user_organisation_id(request)
 
-        # if not application.is_major_editable():
-        #     return JsonResponse(
-        #         data={
-        #             "errors": {"non_field_errors": [Applications.Generic.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]}
-        #         },
-        #         status=status.HTTP_400_BAD_REQUEST,
-        #     )
-
         serializer = PartySerializer(data=data, application_type=application.case_type.sub_type)
 
         # Validate data
