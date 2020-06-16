@@ -29,7 +29,7 @@ class Licence(TimestampableModel):
     def send_to_hmrc_integration(self):
         from licences.tasks import schedule_licence_for_hmrc_integration
 
-        schedule_licence_for_hmrc_integration(str(self.id), self.application.reference_code)
+        schedule_licence_for_hmrc_integration(str(self.id), self.reference_code)
 
     def set_sent_at(self, value):
         """

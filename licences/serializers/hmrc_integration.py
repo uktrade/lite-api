@@ -64,7 +64,7 @@ class HMRCIntegrationGoodsTypeSerializer(serializers.Serializer):
 
 class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    reference = serializers.CharField(source="application.reference_code")
+    reference = serializers.CharField(source="reference_code")
     type = serializers.CharField(source="application.case_type.reference")
     action = serializers.CharField(source="application.status.status")  # `insert/cancel` on later story
     start_date = serializers.DateField()
