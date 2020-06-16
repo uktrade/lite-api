@@ -11,12 +11,11 @@ from test_helpers.clients import DataTestClient
 
 
 class RegisterOpenGeneralLicenceTests(DataTestClient):
-
-    url = reverse("licences:open_general_licences")
-
     def setUp(self):
         super().setUp()
+        self.url = reverse("licences:open_general_licences")
         self.open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGTCL.id))
+        self.exporter_user.set_role(self.organisation, self.exporter_super_user_role)
 
     def test_register_open_general_licence_success(self):
         data = {
