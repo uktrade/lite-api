@@ -513,11 +513,11 @@ class EditExhibitionApplicationsTests(DataTestClient):
 
         response = self.client.post(self.exhibition_url, data=data, **self.exporter_headers)
 
-        response_data = response.json()["errors"]
+        response_data = response.json()["errors"]["non_field_errors"]
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response_data, [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT],
+            response_data, [strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR],
         )
 
     def test_can_edit_exhibition_details_in_major_edit(self):
