@@ -28,7 +28,7 @@ def schedule_licence_for_hmrc_integration(licence_id, licence_reference):
         send_licence_to_hmrc_integration.now(licence_id, licence_reference, scheduled_as_background_task=False)
 
 
-def schedule_max_tried_task_as_new_task(licence_id):
+def schedule_max_tried_task_as_new_task(licence_id, licence_reference):
     """
     Used to schedule a max-tried task as a new task (starting from attempts=0)
     This function was abstracted from 'send_licence_to_hmrc_integration' to enable unit testing of a recursive operation
@@ -37,7 +37,7 @@ def schedule_max_tried_task_as_new_task(licence_id):
 
     schedule_datetime = {timezone.now() + timedelta(seconds=TASK_BACK_OFF)}
     logging.info(f"Scheduling new task for licence '{licence_id}' to commence at {schedule_datetime}")
-    send_licence_to_hmrc_integration(licence_id, schedule=TASK_BACK_OFF)  # noqa
+    send_licence_to_hmrc_integration(licence_id, licence_reference, schedule=TASK_BACK_OFF)  # noqa
 
 
 @background(queue=TASK_QUEUE, schedule=0)
@@ -84,7 +84,7 @@ def _handle_exception(message, licence_id, licence_reference, scheduled_as_backg
             # This logic will make MAX_ATTEMPTS attempts to send licence changes according to the Django Background Task
             # Runner scheduling, then wait TASK_BACK_OFF seconds before starting the process again.
             if current_attempt >= MAX_ATTEMPTS:
-                schedule_max_tried_task_as_new_task(licence_id)
+                schedule_max_tried_task_as_new_task(licence_id, licence_reference)
 
         # Raise an exception (this will cause the task to be marked as 'Failed')
         raise Exception(error_message)
