@@ -21,7 +21,12 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
-from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences, get_record_holding_sites_for_case
+from compliance.helpers import (
+    read_and_validate_csv,
+    fetch_and_validate_licences,
+    get_record_holding_sites_for_case,
+    ComplianceGoodControlCodeRegex,
+)
 from compliance.models import OpenLicenceReturns
 from compliance.serializers import (
     OpenLicenceReturnsCreateSerializer,
@@ -44,7 +49,7 @@ class LicenceList(ListAPIView):
         cases = Case.objects.select_related("case_type").filter(baseapplication__licence__is_complete=True,)
 
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
-            baseapplication__goods__good__control_list_entries__rating__regex="(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
+            baseapplication__goods__good__control_list_entries__rating__regex=ComplianceGoodControlCodeRegex
         )
 
         if reference_code:

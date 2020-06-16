@@ -20,6 +20,9 @@ from licences.models import Licence
 from lite_content.lite_api.strings import Compliance
 
 
+ComplianceGoodControlCodeRegex = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
+
+
 def case_meets_conditions_for_compliance(case: Case):
     if case.case_type.id == CaseTypeEnum.OIEL.id:
         return True
@@ -27,7 +30,7 @@ def case_meets_conditions_for_compliance(case: Case):
         if not (
             Good.objects.filter(
                 goods_on_application__application_id=case.id,
-                control_list_entries__rating__regex="(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)",
+                control_list_entries__rating__regex=ComplianceGoodControlCodeRegex,
             ).exists()
         ):
             return False
