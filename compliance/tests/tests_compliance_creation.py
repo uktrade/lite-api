@@ -1,5 +1,5 @@
 from applications.models import SiteOnApplication, GoodOnApplication
-from compliance.helpers import generate_compliance
+from compliance.helpers import generate_compliance_site_case
 from compliance.models import ComplianceSiteCase
 from goods.enums import GoodControlled
 from goods.tests.factories import GoodFactory
@@ -12,7 +12,7 @@ class ComplianceCreateTests(DataTestClient):
     def tests_OIEL_type(self):
         case = self.create_open_application_case(self.organisation)
 
-        generate_compliance(case)
+        generate_compliance_site_case(case)
 
         self.assertTrue(ComplianceSiteCase.objects.exists())
 
@@ -22,7 +22,7 @@ class ComplianceCreateTests(DataTestClient):
         # create and add 2nd site to application
         SiteOnApplication(site=SiteFactory(organisation=self.organisation), application=case).save()
 
-        generate_compliance(case)
+        generate_compliance_site_case(case)
 
         self.assertEqual(ComplianceSiteCase.objects.count(), 2)
 
@@ -35,14 +35,14 @@ class ComplianceCreateTests(DataTestClient):
         new_site.save()
         SiteOnApplication(site=new_site, application=case).save()
 
-        generate_compliance(case)
+        generate_compliance_site_case(case)
 
         self.assertEqual(ComplianceSiteCase.objects.count(), 1)
 
     def tests_siel_bad_control_code(self):
         case = self.create_standard_application_case(self.organisation)
 
-        generate_compliance(case)
+        generate_compliance_site_case(case)
 
         self.assertFalse(ComplianceSiteCase.objects.exists())
 
@@ -55,7 +55,7 @@ class ComplianceCreateTests(DataTestClient):
         )
         GoodOnApplication(application_id=case.id, good=good).save()
 
-        generate_compliance(case)
+        generate_compliance_site_case(case)
 
         self.assertTrue(ComplianceSiteCase.objects.exists())
 
@@ -63,14 +63,14 @@ class ComplianceCreateTests(DataTestClient):
         # Both cases uses the organisation primary site by default on creation
         case = self.create_open_application_case(self.organisation)
         case_2 = self.create_open_application_case(self.organisation)
-        generate_compliance(case)
-        generate_compliance(case_2)
+        generate_compliance_site_case(case)
+        generate_compliance_site_case(case_2)
 
         self.assertEqual(ComplianceSiteCase.objects.count(), 1)
 
     def test_bad_case_type(self):
         case = self.create_end_user_advisory_case("note", "reasoning", self.organisation)
 
-        generate_compliance(case)
+        generate_compliance_site_case(case)
 
         self.assertFalse(ComplianceSiteCase.objects.exists())

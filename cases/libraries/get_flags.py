@@ -47,7 +47,7 @@ def get_destination_flags(case, case_type):
 
 def get_flags(case: Case) -> QuerySet:
     """
-    Get all case flags in no particular order (order will be specified by calling function)
+    Get all case flags in no particular order
     """
     # Ensure that case_type is prefetched, or an additional query will be made for each case.
     case_type = case.case_type.sub_type
@@ -68,7 +68,7 @@ def get_ordered_flags(case: Case, team: Team, limit: int = None):
 
     :param case: case object the flags relate to
     :param team: The team for user making the request
-    :param limit: If assigned will return no more than given ammount
+    :param limit: If assigned will return no more than given amount
     :return: List of flags serialized
     """
     all_flags = get_flags(case)

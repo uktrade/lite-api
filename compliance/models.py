@@ -7,6 +7,4 @@ from organisations.models import Organisation
 
 
 class ComplianceSiteCase(Case):
-    site = models.OneToOneField(
-        "organisations.Site", blank=False, null=False, related_name="compliance", on_delete=models.DO_NOTHING,
-    )
+    site = models.OneToOneField("organisations.Site", related_name="compliance", on_delete=models.DO_NOTHING,)

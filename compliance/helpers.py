@@ -13,8 +13,8 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.enums import SystemUser
 from users.models import BaseUser
 
-
-ComplianceGoodControlCodeRegex = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
+# SIEL type compliance cases require a specific control code prefixes. currently: (0 to 9)D, (0 to 9)E, ML21, ML22.
+COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
 
 
 def case_meets_conditions_for_compliance(case: Case):
@@ -24,7 +24,7 @@ def case_meets_conditions_for_compliance(case: Case):
         if not (
             Good.objects.filter(
                 goods_on_application__application_id=case.id,
-                control_list_entries__rating__regex=ComplianceGoodControlCodeRegex,
+                control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
             ).exists()
         ):
             return False
@@ -37,31 +37,25 @@ def case_meets_conditions_for_compliance(case: Case):
 
 def get_record_holding_sites_for_case(case_id):
     return set(
-        Site.objects.filter(sites_on_application__application_id=case_id)
-        .annotate(
-            record_site=db_case(
-                When(site_records_located_at__isnull=False, then=F("site_records_located_at")), default=F("id")
-            )
+        Site.objects.filter(sites_on_application__application_id=case_id).values_list(
+            "site_records_located_at_id", flat=True
         )
-        .values_list("record_site", flat=True)
     )
 
 
-def generate_compliance(case: Case):
+def generate_compliance_site_case(case: Case):
     # check if case meets conditions required
     if not case_meets_conditions_for_compliance(case):
         return
 
-    # Get record holding sites the case
+    # Get record holding sites for the case
     record_holding_sites_id = get_record_holding_sites_for_case(case.id)
 
-    # Get list of record holding sites that do not relate to compliance case
-    new_compliance_sites = set(Site.objects.filter(id__in=record_holding_sites_id, compliance__isnull=True).distinct())
+    # Get list of record holding sites that do not have a compliance case
+    new_compliance_sites = set(Site.objects.filter(id__in=record_holding_sites_id, compliance__isnull=True))
 
     # get a list compliance cases that already exist
-    existing_compliance_cases = set(
-        Case.objects.filter(compliancesitecase__site_id__in=record_holding_sites_id).distinct()
-    )
+    existing_compliance_cases = set(Case.objects.filter(compliancesitecase__site_id__in=record_holding_sites_id))
 
     audits = []
     system_user = BaseUser.objects.get(id=SystemUser.id)
@@ -77,10 +71,6 @@ def generate_compliance(case: Case):
             )
         )
 
-    if not new_compliance_sites:
-        Audit.objects.bulk_create(audits)
-        return None
-
     # Create new compliance cases for each record holding site without a case, and audit creation
     for site in new_compliance_sites:
         comp_case = ComplianceSiteCase(
@@ -88,7 +78,7 @@ def generate_compliance(case: Case):
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
             organisation_id=case.organisation_id,
             case_type_id=CaseTypeEnum.COMPLIANCE.id,
-            submitted_at=timezone.now(),
+            submitted_at=timezone.now(),  # submitted_at is set since SLA falls over if not given
         )
         comp_case.save()
         audits.append(

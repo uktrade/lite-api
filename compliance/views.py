@@ -10,6 +10,7 @@ from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.serializers import ComplianceLicenceListSerializer
 from conf.authentication import GovAuthentication
+from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from workflow.automation import run_routing_rules
@@ -17,7 +18,7 @@ from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 from compliance.helpers import (
     get_record_holding_sites_for_case,
-    ComplianceGoodControlCodeRegex,
+    COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
 )
 
 
@@ -30,18 +31,18 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference")
 
-        cases = Case.objects.select_related("case_type").filter(baseapplication__licence__is_complete=True,)
-
+        cases = Case.objects.select_related("case_type").filter(
+            baseapplication__licence__is_complete=True,
+            baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
+        )
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
-            baseapplication__goods__good__control_list_entries__rating__regex=ComplianceGoodControlCodeRegex
+            baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
         )
 
         if reference_code:
             cases = cases.filter(reference_code__icontains=reference_code)
 
-        return cases.filter(baseapplication__application_sites__site__compliance__id=self.kwargs["pk"],) | cases.filter(
-            baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
-        )
+        return cases
 
 
 class ComplianceManageStatus(APIView):
@@ -54,6 +55,10 @@ class ComplianceManageStatus(APIView):
     def put(self, request, pk):
         case = get_case(pk)
         new_status = request.data.get("status")
+
+        if new_status not in [CaseStatusEnum.OPEN, CaseStatusEnum.CLOSED]:
+            return JsonResponse(data={"errors": [strings.Statuses.BAD_STATUS]}, status=status.HTTP_400_BAD_REQUEST,)
+
         old_status = case.status
 
         case.status = get_case_status_by_status(new_status)
@@ -84,11 +89,10 @@ class ComplianceCaseId(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk, *args, **kwargs):
-        # Get record holding sites the case
+        # Get record holding sites for the case
         record_holding_sites_id = get_record_holding_sites_for_case(pk)
 
-        # Get list of record holding sites that do not relate to compliance case
-
+        # Get list of record holding sites that do not have a compliance case
         existing_compliance_cases = Case.objects.filter(
             compliancesitecase__site_id__in=record_holding_sites_id
         ).distinct()
