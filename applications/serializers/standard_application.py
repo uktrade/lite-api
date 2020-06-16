@@ -65,7 +65,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "trade_control_activity",
                 "trade_control_product_categories",
                 "contains_firearm_goods",
-
             )
         )
 

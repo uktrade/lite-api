@@ -274,7 +274,7 @@ class GoodDetails(APIView):
             )
 
         # Validate component detail field if the answer was not 'No'
-        if data.get("is_component") and data["is_component"] != "no":
+        if data.get("is_component") and data["is_component"] not in ["no", "None"]:
             valid_components = validate_good_component_details(data)
             if not valid_components["is_valid"]:
                 return JsonResponse(
