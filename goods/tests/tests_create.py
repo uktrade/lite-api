@@ -1,11 +1,10 @@
 import uuid
-
 from copy import deepcopy
 
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading, GoodStatus
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading, GoodStatus, ItemCategory, MilitaryUse
 from goods.models import Good
 from lite_content.lite_api import strings
 from static.control_list_entries.helpers import get_control_list_entry
@@ -30,6 +29,8 @@ REQUEST_DATA = {
         "reference": "ref123",
         "date_of_issue": "2019-12-25",
     },
+    "item_category": ItemCategory.GROUP1_DEVICE,
+    "is_military_use": MilitaryUse.NO,
 }
 
 
@@ -37,6 +38,8 @@ def _assert_response_data(self, response_data, request_data):
     self.assertEquals(response_data["description"], request_data["description"])
     self.assertEquals(response_data["part_number"], request_data["part_number"])
     self.assertEquals(response_data["status"]["key"], GoodStatus.DRAFT)
+    self.assertEquals(response_data["item_category"]["key"], request_data["item_category"])
+    self.assertEquals(response_data["is_military_use"]["key"], request_data["is_military_use"])
 
     if request_data["is_good_controlled"] == GoodControlled.YES:
         self.assertEquals(response_data["is_good_controlled"]["key"], GoodControlled.YES)
