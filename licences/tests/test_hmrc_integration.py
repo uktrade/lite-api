@@ -78,7 +78,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         self.assertEqual(data["id"], str(licence.id))
         self.assertEqual(data["reference"], application.reference_code)
         self.assertEqual(data["type"], application.case_type.reference)
-        self.assertEqual(data["action"], application.status.status)  # `insert/cancel` on later story
+        self.assertEqual(data["action"], "insert")  # `insert/cancel` on later story
         self.assertEqual(data["start_date"], licence.start_date.strftime("%Y-%m-%d"))
         self.assertEqual(data["end_date"], add_months(licence.start_date, licence.duration, "%Y-%m-%d"))
 
