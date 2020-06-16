@@ -48,7 +48,7 @@ class OpenGeneralLicenceFactory(factory.django.DjangoModelFactory):
 
 class OpenGeneralLicenceCaseFactory(factory.django.DjangoModelFactory):
     # This is intentional as CircleCI fails to find the case status table otherwise
-    status = factory.Iterator(CaseStatus.objects.get(status=CaseStatusEnum.REGISTERED))
+    status = factory.Iterator(CaseStatus.objects.filter(status=CaseStatusEnum.REGISTERED))
     case_type = CaseType.objects.get(id=CaseTypeEnum.OGTCL.id)
 
     class Meta:
