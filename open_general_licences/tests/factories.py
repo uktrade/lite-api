@@ -6,7 +6,6 @@ from open_general_licences import models
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from static.control_list_entries.helpers import get_control_list_entry
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.statuses.models import CaseStatus
 
 
