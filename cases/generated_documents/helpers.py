@@ -42,17 +42,17 @@ def auto_generate_case_document(layout, case, document_name):
 def get_generated_document_data(request_params, pk):
     template_id = request_params.get("template")
     if not template_id:
-        raise AttributeError(strings.Cases.MISSING_TEMPLATE)
+        raise AttributeError(strings.Cases.GeneratedDocuments.MISSING_TEMPLATE)
 
     text = request_params.get("text")
     if not text:
-        raise AttributeError(strings.Cases.MISSING_TEXT)
+        raise AttributeError(strings.Cases.GeneratedDocuments.MISSING_TEXT)
 
     case = get_case(pk)
     try:
         template = LetterTemplate.objects.get(pk=template_id, case_types=case.case_type)
     except LetterTemplate.DoesNotExist:
-        raise NotFoundError({"letter_template": strings.Cases.LETTER_TEMPLATE_NOT_FOUND})
+        raise NotFoundError({"letter_template": strings.Cases.GeneratedDocuments.LETTER_TEMPLATE_NOT_FOUND})
     document_html = generate_preview(layout=template.layout.filename, text=text, case=case)
 
     if "error" in document_html:
