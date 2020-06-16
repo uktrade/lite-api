@@ -105,22 +105,20 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
 
         old_template_name = template_object.name
         new_template_name = request.data.get("name", old_template_name)
-
         old_case_types = set(template_object.case_types.values_list("reference", flat=True))
         new_case_types = set(request.data.get("case_types", old_case_types))
-        request.data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
-
         old_decisions = set(template_object.decisions.values_list("name", flat=True))
         new_decisions = set(request.data.get("decisions", old_decisions))
-        request.data["decisions"] = AdviceType.get_ids(new_decisions)
-
         old_layout = str(template_object.layout.id)
         old_layout_name = str(template_object.layout.name)
         new_layout = request.data.get("layout", old_layout)
 
-        old_paragraphs = list(template_object.letter_paragraphs.values_list("id", "name"))
-
+        request.data["case_types"] = CaseTypeEnum.references_to_ids(new_case_types)
+        request.data["decisions"] = AdviceType.get_ids(new_decisions)
         serializer = self.get_serializer(template_object, data=request.data, partial=True)
+
+        old_paragraphs = list(template_object.letter_paragraphs.values_list("id", "name"))
+        new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list("id", "name"))
 
         if serializer.is_valid():
             serializer.save()
@@ -187,42 +185,36 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     payload={"old_layout": old_layout_name, "new_layout": serializer.instance.layout.name},
                 )
 
-            if "letter_paragraphs" in request.data:
-                new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list("id", "name"))
-
-                if set(new_paragraphs) != set(old_paragraphs):
-                    if not new_paragraphs:
-                        audit_trail_service.create(
-                            actor=request.user,
-                            verb=AuditType.REMOVED_LETTER_TEMPLATE_PARAGRAPHS,
-                            target=serializer.instance,
-                        )
-                    elif not old_paragraphs:
-                        audit_trail_service.create(
-                            actor=request.user,
-                            verb=AuditType.ADDED_LETTER_TEMPLATE_PARAGRAPHS,
-                            target=serializer.instance,
-                            payload={"new_paragraphs": [p[1] for p in new_paragraphs],},
-                        )
-                    else:
-                        audit_trail_service.create(
-                            actor=request.user,
-                            verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS,
-                            target=serializer.instance,
-                            payload={
-                                "old_paragraphs": [p[1] for p in old_paragraphs],
-                                "new_paragraphs": [p[1] for p in new_paragraphs],
-                            },
-                        )
-                elif new_paragraphs != old_paragraphs:
-                    for n, o in zip(new_paragraphs, old_paragraphs):
-                        if n != o:
-                            audit_trail_service.create(
-                                actor=request.user,
-                                verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING,
-                                target=serializer.instance,
-                            )
-                            break
+            if set(new_paragraphs) != set(old_paragraphs):
+                if not new_paragraphs:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REMOVED_LETTER_TEMPLATE_PARAGRAPHS,
+                        target=serializer.instance,
+                    )
+                elif not old_paragraphs:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.ADDED_LETTER_TEMPLATE_PARAGRAPHS,
+                        target=serializer.instance,
+                        payload={"new_paragraphs": [p[1] for p in new_paragraphs],},
+                    )
+                else:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS,
+                        target=serializer.instance,
+                        payload={
+                            "old_paragraphs": [p[1] for p in old_paragraphs],
+                            "new_paragraphs": [p[1] for p in new_paragraphs],
+                        },
+                    )
+            elif new_paragraphs != old_paragraphs:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING,
+                    target=serializer.instance,
+                )
 
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 
