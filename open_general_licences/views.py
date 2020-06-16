@@ -51,7 +51,9 @@ class OpenGeneralLicenceList(ListCreateAPIView):
     def filter_queryset(self, queryset):
         filter_data = self.request.GET
 
-        if self.request.user.type == UserType.EXPORTER:
+        if self.request.user.type == UserType.INTERNAL:
+            assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
+        elif self.request.user.type == UserType.EXPORTER:
             queryset = queryset.prefetch_related("cases", "cases__site")
 
             if filter_data.get("site"):
