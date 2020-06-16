@@ -160,7 +160,7 @@ class ApplicationExisting(APIView):
     """
     This view returns boolean values depending on the type of organisation:
     HMRC - Whether the organisation has existing submitted queries
-    Standard - Whether the organisation has any drafts/applications, or licences
+    Standard - Whether the organisation has any drafts/applications
     """
 
     authentication_classes = (ExporterAuthentication,)
