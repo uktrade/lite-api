@@ -1,4 +1,3 @@
-from django.db.models import When, Case as db_case, F
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -7,7 +6,6 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from conf.authentication import ExporterAuthentication
 
-from applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
@@ -15,7 +13,6 @@ from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.serializers import ComplianceLicenceListSerializer
 from conf.authentication import GovAuthentication
-from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from workflow.automation import run_routing_rules
