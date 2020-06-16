@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "background_task",
     "cases.app.CasesConfig",
     "cases.generated_documents",
+    "compliance",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -85,7 +86,6 @@ INSTALLED_APPS = [
     "teams",
     "users",
     "workflow.routing_rules",
-    "compliance",
 ]
 
 MIDDLEWARE = [
