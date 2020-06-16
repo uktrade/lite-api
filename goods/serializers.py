@@ -364,7 +364,6 @@ class GoodSerializerInternal(serializers.Serializer):
     modified_military_use_details = serializers.CharField()
     component_details = serializers.CharField()
     information_security_details = serializers.CharField()
-    is_pv_graded = KeyValueChoiceField(choices=GoodControlled.choices)
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
 
     def get_documents(self, instance):
