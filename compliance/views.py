@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
 
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType

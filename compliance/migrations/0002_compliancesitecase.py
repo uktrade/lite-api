@@ -7,21 +7,36 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0038_auto_20200615_1400'),
-        ('organisations', '0008_auto_20200601_0814'),
-        ('compliance', '0001_initial'),
+        ("cases", "0038_auto_20200615_1400"),
+        ("organisations", "0008_auto_20200601_0814"),
+        ("compliance", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ComplianceSiteCase',
+            name="ComplianceSiteCase",
             fields=[
-                ('case_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='cases.Case')),
-                ('site', models.OneToOneField(on_delete=django.db.models.deletion.DO_NOTHING, related_name='compliance', to='organisations.Site')),
+                (
+                    "case_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="cases.Case",
+                    ),
+                ),
+                (
+                    "site",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="compliance",
+                        to="organisations.Site",
+                    ),
+                ),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('cases.case',),
+            options={"abstract": False,},
+            bases=("cases.case",),
         ),
     ]
