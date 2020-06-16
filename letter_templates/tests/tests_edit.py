@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 
 from audit_trail.models import Audit
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
+from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum, AdviceType
 from conf import constants
 from lite_content.lite_api import strings
 from picklists.enums import PickListStatus, PicklistType
@@ -17,7 +17,7 @@ class LetterTemplateEditTests(DataTestClient):
         self.gov_user.role.permissions.set([constants.GovPermissions.CONFIGURE_TEMPLATES.name])
         self.letter_template = self.create_letter_template(
             name="SIEL",
-            case_types=[CaseTypeEnum.SIEL.id, CaseTypeEnum.OGEL.id],
+            case_types=[CaseTypeEnum.SIEL.id, CaseTypeEnum.OIEL.id],
             decisions=[Decision.objects.get(name="refuse"), Decision.objects.get(name="no_licence_required")],
         )
         self.url = reverse("letter_templates:letter_template", kwargs={"pk": self.letter_template.id})
@@ -35,7 +35,7 @@ class LetterTemplateEditTests(DataTestClient):
         self.assertEqual(AuditType(audit_trail.first().verb), AuditType.UPDATED_LETTER_TEMPLATE_NAME)
 
     def test_edit_letter_template_case_types_success(self):
-        data = {"case_types": ["oiel", "siel"]}
+        data = {"case_types": [CaseTypeReferenceEnum.OICL, CaseTypeReferenceEnum.SIEL]}
 
         response = self.client.put(self.url, data, **self.gov_headers)
 
@@ -52,7 +52,7 @@ class LetterTemplateEditTests(DataTestClient):
         self.assertEqual(AuditType(audit_trail.first().verb), AuditType.UPDATED_LETTER_TEMPLATE_CASE_TYPES)
 
     def test_edit_letter_template_decisions_success(self):
-        data = {"decisions": ["proviso", "approve"]}
+        data = {"decisions": [AdviceType.PROVISO, AdviceType.APPROVE]}
 
         response = self.client.put(self.url, data, **self.gov_headers)
 

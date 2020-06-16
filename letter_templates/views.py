@@ -60,11 +60,9 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
