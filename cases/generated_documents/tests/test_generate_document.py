@@ -129,7 +129,8 @@ class GenerateDocumentTests(DataTestClient):
             reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
             + "?template="
             + str(self.letter_template.id)
-            + "&text=" + text
+            + "&text="
+            + text
         )
         response = self.client.get(url, **self.gov_headers)
 
