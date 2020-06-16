@@ -78,6 +78,7 @@ from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
 from licences.models import Licence
+from licences.helpers import get_reference_code
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
@@ -544,15 +545,15 @@ class ApplicationFinaliseView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = deepcopy(request.data)
-        action = data.get("action")
+        licence_data = deepcopy(request.data)
+        action = licence_data.get("action")
 
         if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
             default_licence_duration = get_default_duration(application)
-            data["duration"] = data.get("duration", default_licence_duration)
+            licence_data["duration"] = licence_data.get("duration", default_licence_duration)
 
             # Check change default duration permission
-            if data["duration"] != default_licence_duration and not request.user.has_permission(
+            if licence_data["duration"] != default_licence_duration and not request.user.has_permission(
                 GovPermissions.MANAGE_LICENCE_DURATION
             ):
                 return JsonResponse(
@@ -574,8 +575,10 @@ class ApplicationFinaliseView(APIView):
 
             # Create incomplete Licence object
             try:
-                start_date = timezone.datetime(year=int(data["year"]), month=int(data["month"]), day=int(data["day"]))
-                data["start_date"] = start_date.strftime("%Y-%m-%d")
+                start_date = timezone.datetime(
+                    year=int(licence_data["year"]), month=int(licence_data["month"]), day=int(licence_data["day"])
+                )
+                licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
             except KeyError:
                 return JsonResponse(
                     data={"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}},
@@ -608,8 +611,9 @@ class ApplicationFinaliseView(APIView):
                 if errors:
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            data["application"] = application
-            serializer = LicenceCreateSerializer(data=data)
+            licence_data["application"] = application
+            licence_data["reference_code"] = get_reference_code(application.reference_code)
+            serializer = LicenceCreateSerializer(data=licence_data)
 
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

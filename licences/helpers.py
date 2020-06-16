@@ -1,3 +1,7 @@
+from django.db import transaction
+
+from licences.models import Licence
+from string import ascii_uppercase
 from conf.exceptions import NotFoundError
 from open_general_licences.models import OpenGeneralLicenceCase
 
@@ -7,3 +11,16 @@ def get_open_general_export_licence_case(pk):
         return OpenGeneralLicenceCase.objects.get(pk=pk)
     except OpenGeneralLicenceCase.DoesNotExist:
         raise NotFoundError({"open_general_licence_case": "Open general licence case not found - " + str(pk)})
+
+
+@transaction.atomic
+def get_reference_code(application_reference):
+    # Needs to lock so that 2 Licences don't get the same reference code
+    total_reference_codes = (
+        Licence.objects.filter(reference_code__icontains=application_reference).select_for_update().count()
+    )
+    return (
+        f"{application_reference}/{ascii_uppercase[total_reference_codes-1]}"
+        if total_reference_codes != 0
+        else application_reference
+    )
