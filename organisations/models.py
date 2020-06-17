@@ -53,7 +53,6 @@ class Organisation(TimestampableModel):
         return self.status == OrganisationStatus.ACTIVE
 
     def register_open_general_licence(self, open_general_licence, user):
-        from cases.models import Case
         from open_general_licences.models import OpenGeneralLicenceCase
 
         if open_general_licence.status == OpenGeneralLicenceStatus.DEACTIVATED:
