@@ -49,7 +49,8 @@ class LicenceList(ListAPIView):
             baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
         )
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
-            baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+            baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
+            baseapplication__goods__licenced_quantity__isnull=False,
         )
 
         if reference_code:
