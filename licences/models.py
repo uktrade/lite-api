@@ -4,6 +4,7 @@ from django.db import models
 
 from applications.models import BaseApplication
 from common.models import TimestampableModel
+from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from static.decisions.models import Decision
 
 
@@ -17,3 +18,23 @@ class Licence(TimestampableModel):
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
     is_complete = models.BooleanField(default=False, null=False, blank=False)
     decisions = models.ManyToManyField(Decision, related_name="licence")
+    sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
+
+    def save(self, *args, **kwargs):
+        super(Licence, self).save(*args, **kwargs)
+
+        if LITE_HMRC_INTEGRATION_ENABLED and self.is_complete:
+            self.send_to_hmrc_integration()
+
+    def send_to_hmrc_integration(self):
+        from licences.tasks import schedule_licence_for_hmrc_integration
+
+        schedule_licence_for_hmrc_integration(str(self.id), self.reference_code)
+
+    def set_sent_at(self, value):
+        """
+        For avoiding use of 'save()' which would trigger 'send_to_hmrc_integration()' again
+        """
+
+        self.sent_at = value
+        super(Licence, self).save()

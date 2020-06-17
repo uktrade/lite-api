@@ -52,8 +52,8 @@ class EndPointTests(SimpleTestCase):
     routing_rule_id = None
     open_general_licence_id = None
 
-    def call_endpoint(self, user, appended_address, save_results=True):
-        response = get(appended_address, user)
+    def call_endpoint(self, headers, appended_address, save_results=True):
+        response = get(appended_address, headers)
 
         if save_results:
             # if save is set this is the final endpoint we wish to hit, and we want to store the time against
