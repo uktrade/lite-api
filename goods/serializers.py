@@ -98,13 +98,8 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     is_military_use = KeyValueChoiceField(
         choices=MilitaryUse.choices, error_messages={"required": strings.Goods.FORM_NO_MILITARY_USE_SELECTED},
     )
-    is_component = KeyValueChoiceField(
-        choices=Component.choices,
-        allow_null=True,
-        allow_blank=True,
-        error_messages={"required": strings.Goods.FORM_NO_COMPONENT_SELECTED},
-    )
-    uses_information_security = serializers.BooleanField(allow_null=True)
+    is_component = KeyValueChoiceField(choices=Component.choices, allow_null=True, allow_blank=True, required=False,)
+    uses_information_security = serializers.BooleanField(allow_null=True, required=False, default=None)
     modified_military_use_details = serializers.CharField(allow_null=True, required=False, allow_blank=True)
     component_details = serializers.CharField(allow_null=True, required=False, allow_blank=True)
     information_security_details = serializers.CharField(allow_null=True, required=False, allow_blank=True)
@@ -187,8 +182,9 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             )
 
         # Military use
-        instance.is_military_use = validated_data.get("is_military_use", instance.is_military_use)
-        if validated_data.get("is_military_use") != instance.is_military_use:
+        is_military_use = validated_data.get("is_military_use")
+        if is_military_use is not None and is_military_use != instance.is_military_use:
+            instance.is_military_use = is_military_use
             instance.modified_military_use_details = validated_data.get("modified_military_use_details")
         instance.modified_military_use_details = validated_data.get(
             "modified_military_use_details", instance.modified_military_use_details
@@ -200,14 +196,14 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         # Component
         is_component = validated_data.get("is_component")
         if is_component is not None and is_component != instance.is_component:
-            instance.is_component = validated_data.get("is_component")
+            instance.is_component = is_component
             instance.component_details = validated_data.get("component_details")
         instance.component_details = validated_data.get("component_details", instance.component_details)
 
         # Information security
         uses_information_security = validated_data.get("uses_information_security")
         if uses_information_security is not None and uses_information_security != instance.uses_information_security:
-            instance.uses_information_security = validated_data.get("uses_information_security")
+            instance.uses_information_security = uses_information_security
             instance.information_security_details = validated_data.get(
                 "information_security_details", instance.information_security_details
             )

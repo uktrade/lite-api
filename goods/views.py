@@ -186,11 +186,18 @@ class GoodList(ListCreateAPIView):
 
         serializer = GoodCreateSerializer(data=data)
 
-        # if "is_component_step" in data and "is_component" not in data:
-        #     return JsonResponse(
-        #         data={"errors": {"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]}},
-        #         status=status.HTTP_400_BAD_REQUEST,
-        #     )
+        if "is_military_use" in data and data["is_military_use"] == "yes_modified":
+            if not data.get("modified_military_use_details"):
+                return JsonResponse(
+                    data={"errors": {"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        if "is_component_step" in data and "is_component" not in data:
+            return JsonResponse(
+                data={"errors": {"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Validate component detail field if the answer was not 'No'
         if "is_component" in data and data["is_component"] != "no":
@@ -267,11 +274,11 @@ class GoodDetails(APIView):
 
         data = request.data.copy()
 
-        # if data.get("is_component_step") and not data.get("is_component"):
-        #     return JsonResponse(
-        #         data={"errors": {"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]}},
-        #         status=status.HTTP_400_BAD_REQUEST,
-        #     )
+        if data.get("is_component_step") and not data.get("is_component"):
+            return JsonResponse(
+                data={"errors": {"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Validate component detail field if the answer was not 'No'
         if data.get("is_component") and data["is_component"] not in ["no", "None"]:
