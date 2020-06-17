@@ -1,7 +1,7 @@
 import uuid
-from datetime import timezone
 
 from django.db import models
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from addresses.models import Address
@@ -10,7 +10,6 @@ from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from flags.models import Flag
 from open_general_licences.enums import OpenGeneralLicenceStatus
-from open_general_licences.models import OpenGeneralLicenceCase
 from organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
@@ -54,6 +53,8 @@ class Organisation(TimestampableModel):
         return self.status == OrganisationStatus.ACTIVE
 
     def register_open_general_licence(self, open_general_licence, user):
+        from open_general_licences.models import OpenGeneralLicenceCase
+
         if open_general_licence.status == OpenGeneralLicenceStatus.DEACTIVATED:
             raise ValidationError(
                 {"open_general_licence": ["This open general licence is deactivated and cannot be registered"]}
