@@ -46,7 +46,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
                     ]
                 )
 
-            return {"user": user, "organisation": get_request_user_organisation(self.request), "cases": cases}
+            return {"user": user, "organisation": organisation, "cases": cases}
 
     def filter_queryset(self, queryset):
         filter_data = self.request.GET

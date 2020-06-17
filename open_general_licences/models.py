@@ -47,9 +47,10 @@ class OpenGeneralLicence(TimestampableModel):
         if not self.registration_required:
             raise ValidationError({"open_general_licence": ["This open general licence does not require registration"]})
 
-        for site in Site.objects.get_by_user_and_organisation(user, organisation).filter(address__country_id="GB"):
-            if not OpenGeneralLicenceCase.objects.filter(open_general_licence=self, site=site).exists():
-                OpenGeneralLicenceCase.objects.create(
+        # Only register open general licences for sites in the UK which don't already have that licence registered
+        OpenGeneralLicenceCase.objects.bulk_create(
+            [
+                OpenGeneralLicenceCase(
                     open_general_licence=self,
                     site=site,
                     case_type=self.case_type,
@@ -57,7 +58,11 @@ class OpenGeneralLicence(TimestampableModel):
                     status=get_case_status_by_status(CaseStatusEnum.FINALISED),
                     submitted_at=timezone.now(),
                     submitted_by=user,
-                )
+                ),
+            ]
+            for site in Site.objects.get_by_user_and_organisation(user, organisation).filter(address__country_id="GB")
+            if not OpenGeneralLicenceCase.objects.filter(open_general_licence=self, site=site).exists()
+        )
 
         return self.id
 
