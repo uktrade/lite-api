@@ -42,7 +42,7 @@ class LicenceList(ListAPIView):
     def get_queryset(self):
         # For Compliance cases, when viewing from the site, we care about the Case the licence is attached to primarily,
         #   and the licence status (not added), and returns completed (not added).
-        reference_code = self.request.GET.get("reference")
+        reference_code = self.request.GET.get("reference").upper()
 
         cases = Case.objects.select_related("case_type").filter(
             baseapplication__licence__is_complete=True,
@@ -53,7 +53,7 @@ class LicenceList(ListAPIView):
         )
 
         if reference_code:
-            cases = cases.filter(reference_code__icontains=reference_code)
+            cases = cases.filter(reference_code__contains=reference_code)
 
         return cases
 

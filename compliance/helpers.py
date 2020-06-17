@@ -57,10 +57,10 @@ def generate_compliance_site_case(case: Case):
     record_holding_sites_id = get_record_holding_sites_for_case(case.id)
 
     # Get list of record holding sites that do not have a compliance case
-    new_compliance_sites = set(Site.objects.filter(id__in=record_holding_sites_id, compliance__isnull=True))
+    new_compliance_sites = Site.objects.filter(id__in=record_holding_sites_id, compliance__isnull=True).distinct()
 
     # get a list compliance cases that already exist
-    existing_compliance_cases = set(Case.objects.filter(compliancesitecase__site_id__in=record_holding_sites_id))
+    existing_compliance_cases = Case.objects.filter(compliancesitecase__site_id__in=record_holding_sites_id).distinct()
 
     audits = []
     system_user = BaseUser.objects.get(id=SystemUser.id)
