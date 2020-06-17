@@ -187,10 +187,10 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
     def get_data(self, instance):
-        from licences.serializers.open_general_licences import OGLApplicationCaseSerializer
+        from licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer
 
         if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
-            return OGLApplicationCaseSerializer(get_open_general_export_licence_case(instance.id)).data
+            return OpenGeneralLicenceCaseSerializer(get_open_general_export_licence_case(instance.id)).data
         elif instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)

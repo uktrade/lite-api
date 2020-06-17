@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import F
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateAPIView
@@ -35,7 +36,11 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         if user.type == UserType.EXPORTER:
             organisation = get_request_user_organisation(self.request)
             sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
-            cases = OpenGeneralLicenceCase.objects.filter(site__in=sites)
+            cases = (
+                OpenGeneralLicenceCase.objects.filter(site__in=sites)
+                .select_related("status", "site", "site__address")
+                .annotate(site_records_located_at_name=F("site__site_records_located_at__name"))
+            )
 
             if str_to_bool(self.request.GET.get("active_only")):
                 cases = cases.filter(
@@ -54,8 +59,6 @@ class OpenGeneralLicenceList(ListCreateAPIView):
         if self.request.user.type == UserType.INTERNAL:
             assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)
         elif self.request.user.type == UserType.EXPORTER:
-            queryset = queryset.prefetch_related("cases", "cases__site")
-
             if filter_data.get("site"):
                 queryset = queryset.filter(cases__site_id=filter_data.get("site"))
 
@@ -115,9 +118,13 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
         if user.type == UserType.EXPORTER:
             organisation = get_request_user_organisation(self.request)
             sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation)
-            cases = OpenGeneralLicenceCase.objects.filter(site__in=sites)
+            cases = (
+                OpenGeneralLicenceCase.objects.filter(site__in=sites)
+                .select_related("status", "site", "site__address")
+                .annotate(site_records_located_at_name=F("site__site_records_located_at__name"))
+            )
 
-            return {"user": user, "organisation": get_request_user_organisation(self.request), "cases": cases}
+            return {"user": user, "organisation": organisation, "cases": cases}
 
     def perform_update(self, serializer):
         assert_user_has_permission(self.request.user, constants.GovPermissions.MAINTAIN_OGL)

@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -81,8 +82,32 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
 
     def get_registrations(self, instance):
         if self.context and "cases" in self.context:
-            cases = [x for x in self.context["cases"] if x in instance.cases.all()]
-            return OpenGeneralLicenceCaseListSerializer(cases, many=True).data
+            cases = self.context["cases"]
+            return [
+                {
+                    "reference_code": case.reference_code,
+                    "site": {
+                        "id": case.site.id,
+                        "name": case.site.name,
+                        "address": {
+                            "address_line_1": case.site.address.address_line_1,
+                            "address_line_2": case.site.address.address_line_2,
+                            "city": case.site.address.city,
+                            "region": case.site.address.region,
+                            "postcode": case.site.address.postcode,
+                            "country": {"name": "United Kingdom",},
+                        },
+                        "site_records_located_at_name": case.site_records_located_at_name,
+                    },
+                    "status": {
+                        "key": case.status.status,
+                        "value": get_status_value_from_case_status_enum(case.status.status),
+                    },
+                    "submitted_at": case.submitted_at,
+                }
+                for case in cases
+                if case.open_general_licence_id == instance.id
+            ]
 
     class Meta:
         model = OpenGeneralLicence

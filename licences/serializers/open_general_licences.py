@@ -5,11 +5,11 @@ from organisations.serializers import OrganisationDetailSerializer, SiteListSeri
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 
 
-class OGLApplicationCaseSerializer(serializers.Serializer):
-    status = serializers.SerializerMethodField()
+class OpenGeneralLicenceCaseSerializer(serializers.Serializer):
     organisation = OrganisationDetailSerializer()
     open_general_licence = OpenGeneralLicenceSerializer()
     site = SiteListSerializer()
+    status = serializers.SerializerMethodField()
 
     def get_status(self, instance):
         if instance.status:
