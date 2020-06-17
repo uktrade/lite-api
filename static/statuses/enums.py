@@ -6,6 +6,7 @@ class CaseStatusEnum:
     CHANGE_UNDER_FINAL_REVIEW = "change_under_final_review"
     CHANGE_UNDER_REVIEW = "change_under_review"
     CLC = "clc_review"
+    OPEN = "open"
     CLOSED = "closed"
     DEREGISTERED = "deregistered"
     DRAFT = "draft"  # System only status
@@ -65,6 +66,7 @@ class CaseStatusEnum:
         (CHANGE_UNDER_FINAL_REVIEW, "Change under final review"),
         (CHANGE_UNDER_REVIEW, "Change under review"),
         (CLC, "CLC review"),
+        (OPEN, "Open"),
         (CLOSED, "Closed"),
         (DEREGISTERED, "De-registered"),
         (FINALISED, "Finalised"),
@@ -97,22 +99,23 @@ class CaseStatusEnum:
         FINALISED: 8,
         CLC: 9,
         PV: 10,
-        WITHDRAWN: 11,
-        CLOSED: 12,
-        REGISTERED: 13,
-        UNDER_APPEAL: 14,
-        APPEAL_REVIEW: 15,
-        APPEAL_FINAL_REVIEW: 16,
-        REOPENED_FOR_CHANGES: 17,
-        REOPENED_DUE_TO_ORG_CHANGES: 18,
-        CHANGE_INTIAL_REVIEW: 19,
-        CHANGE_UNDER_REVIEW: 20,
-        CHANGE_UNDER_FINAL_REVIEW: 21,
-        UNDER_ECJU_REVIEW: 22,
-        REVOKED: 23,
-        SUSPENDED: 24,
-        SURRENDERED: 25,
-        DEREGISTERED: 26,
+        OPEN: 11,
+        WITHDRAWN: 12,
+        CLOSED: 13,
+        REGISTERED: 14,
+        UNDER_APPEAL: 15,
+        APPEAL_REVIEW: 16,
+        APPEAL_FINAL_REVIEW: 17,
+        REOPENED_FOR_CHANGES: 18,
+        REOPENED_DUE_TO_ORG_CHANGES: 19,
+        CHANGE_INTIAL_REVIEW: 20,
+        CHANGE_UNDER_REVIEW: 21,
+        CHANGE_UNDER_FINAL_REVIEW: 22,
+        UNDER_ECJU_REVIEW: 23,
+        REVOKED: 24,
+        SUSPENDED: 25,
+        SURRENDERED: 26,
+        DEREGISTERED: 27,
     }
 
     @classmethod
