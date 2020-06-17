@@ -65,7 +65,7 @@ class ComplianceCreateTests(DataTestClient):
         good = GoodFactory(
             organisation=self.organisation, is_good_controlled=GoodControlled.YES, control_list_entries=[control_code],
         )
-        GoodOnApplication(application_id=case.id, good=good).save()
+        GoodOnApplication(application_id=case.id, good=good, licenced_quantity=5, licenced_value=10, usage=0).save()
 
         generate_compliance_site_case(case)
 
