@@ -60,8 +60,9 @@ class OpenGeneralLicence(TimestampableModel):
                     submitted_by=user,
                 ),
             ]
-            for site in Site.objects.get_by_user_and_organisation(user, organisation).filter(address__country_id="GB")
-            if not OpenGeneralLicenceCase.objects.filter(open_general_licence=self, site=site).exists()
+            for site in Site.objects.get_by_user_and_organisation(user, organisation)
+            .filter(address__country_id="GB")
+            .exclude(open_general_licence_cases__open_general_licence=self)
         )
 
         return self.id
