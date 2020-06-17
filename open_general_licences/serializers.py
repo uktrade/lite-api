@@ -14,7 +14,7 @@ from static.countries.serializers import CountrySerializer
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 
 
-class OGLApplicationListSerializer(serializers.Serializer):
+class OpenGeneralLicenceCaseListSerializer(serializers.Serializer):
     reference_code = serializers.CharField()
     site = SiteListSerializer()
     status = serializers.SerializerMethodField()
@@ -82,7 +82,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     def get_registrations(self, instance):
         if self.context and "cases" in self.context:
             cases = [x for x in self.context["cases"] if x in instance.cases.all()]
-            return OGLApplicationListSerializer(cases, many=True).data
+            return OpenGeneralLicenceCaseListSerializer(cases, many=True).data
 
     class Meta:
         model = OpenGeneralLicence
