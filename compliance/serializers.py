@@ -18,7 +18,8 @@ from lite_content.lite_api.strings import Compliance
 
 
 class ComplianceSiteViewSerializer(serializers.ModelSerializer):
-    site = AddressSerializer(source="site.address")
+    site_name = serializers.CharField(source="site.name")
+    address = AddressSerializer(source="site.address")
     status = serializers.SerializerMethodField()
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
@@ -27,7 +28,8 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComplianceSiteCase
         fields = (
-            "site",
+            "address",
+            "site_name",
             "status",
             "organisation",
         )
