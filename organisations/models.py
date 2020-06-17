@@ -1,6 +1,6 @@
 import uuid
 
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -53,6 +53,7 @@ class Organisation(TimestampableModel):
         return self.status == OrganisationStatus.ACTIVE
 
     def register_open_general_licence(self, open_general_licence, user):
+        from cases.models import Case
         from open_general_licences.models import OpenGeneralLicenceCase
 
         if open_general_licence.status == OpenGeneralLicenceStatus.DEACTIVATED:
@@ -64,8 +65,12 @@ class Organisation(TimestampableModel):
             raise ValidationError({"open_general_licence": ["This open general licence does not require registration"]})
 
         # Only register open general licences for sites in the UK which don't already have that licence registered
-        OpenGeneralLicenceCase.objects.bulk_create(
-            [
+        with transaction.atomic():
+            for site in (
+                Site.objects.get_by_user_and_organisation(user, self)
+                .filter(address__country_id="GB")
+                .exclude(open_general_licence_cases__open_general_licence=open_general_licence)
+            ):
                 OpenGeneralLicenceCase(
                     open_general_licence=open_general_licence,
                     site=site,
@@ -74,14 +79,9 @@ class Organisation(TimestampableModel):
                     status=get_case_status_by_status(CaseStatusEnum.FINALISED),
                     submitted_at=timezone.now(),
                     submitted_by=user,
-                ),
-            ]
-            for site in Site.objects.get_by_user_and_organisation(user, self)
-            .filter(address__country_id="GB")
-            .exclude(open_general_licence_cases__open_general_licence=open_general_licence)
-        )
+                ).save()
 
-        return self.id
+        return open_general_licence.id
 
     def save(self, **kwargs):
         super().save(**kwargs)
