@@ -10,6 +10,7 @@ from conf.authentication import ExporterAuthentication
 from conf.decorators import (
     authorised_to_view_application,
     allowed_party_type_for_open_application_goodstype_category,
+    application_in_state,
 )
 from conf.helpers import str_to_bool
 from lite_content.lite_api import strings
@@ -17,7 +18,6 @@ from organisations.libraries.get_organisation import get_request_user_organisati
 from parties.enums import PartyType
 from parties.models import Party
 from parties.serializers import PartySerializer
-from static.statuses.enums import CaseStatusEnum
 from users.models import ExporterUser
 
 
@@ -26,6 +26,7 @@ class ApplicationPartyView(APIView):
 
     @allowed_party_type_for_open_application_goodstype_category()
     @authorised_to_view_application(ExporterUser)
+    @application_in_state(is_major_editable=True)
     def post(self, request, pk):
         """
         Add a party to an application.
@@ -34,17 +35,6 @@ class ApplicationPartyView(APIView):
 
         data = request.data
         data["organisation"] = get_request_user_organisation_id(request)
-
-        if not application.is_major_editable():
-            return JsonResponse(
-                data={
-                    "errors": [
-                        f"You can only perform this operation when the application is "
-                        f"in a `draft` or `{CaseStatusEnum.APPLICANT_EDITING}` state"
-                    ]
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         serializer = PartySerializer(data=data, application_type=application.case_type.sub_type)
 
@@ -93,7 +83,7 @@ class ApplicationPartyView(APIView):
 
         if not application.party_is_editable(poa.party):
             return JsonResponse(
-                data={"errors": [strings.Applications.Generic.READ_ONLY_CASE_CANNOT_PERFORM_OPERATION_ERROR]},
+                data={"errors": [strings.Applications.Generic.INVALID_OPERATION_FOR_READ_ONLY_CASE_ERROR]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
