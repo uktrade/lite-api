@@ -1,4 +1,4 @@
-from licences.views import LicenceType
+from licences.views.main import LicenceType
 from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 
 
