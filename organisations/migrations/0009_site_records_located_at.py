@@ -5,7 +5,8 @@ from django.db.models import F
 
 from compliance.helpers import generate_compliance_site_case
 
-
+# Manual migration to ensure that all current sites have their "records held at" property set and all sites that are
+#   linked to licences have a compliance case where there should be one already.
 def forward_migration(apps, schema_editor):
     Site = apps.get_model("organisations", "Site")
     Case = apps.get_model("cases", "Case")
