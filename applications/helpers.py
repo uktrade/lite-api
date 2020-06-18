@@ -134,9 +134,18 @@ def validate_good_component_details(data):
     """ Validate the details for the chosen component are given. """
     component = data["is_component"]
     component_detail_options = {
-        Component.YES_DESIGNED: {"details_field": "designed_details", "error": strings.Goods.NO_DESIGN_COMPONENT_DETAILS},
-        Component.YES_MODIFIED: {"details_field": "modified_details", "error": strings.Goods.NO_MODIFIED_COMPONENT_DETAILS},
-        Component.YES_GENERAL_PURPOSE: {"details_field": "general_details", "error": strings.Goods.NO_GENERAL_COMPONENT_DETAILS},
+        Component.YES_DESIGNED: {
+            "details_field": "designed_details",
+            "error": strings.Goods.NO_DESIGN_COMPONENT_DETAILS,
+        },
+        Component.YES_MODIFIED: {
+            "details_field": "modified_details",
+            "error": strings.Goods.NO_MODIFIED_COMPONENT_DETAILS,
+        },
+        Component.YES_GENERAL_PURPOSE: {
+            "details_field": "general_details",
+            "error": strings.Goods.NO_GENERAL_COMPONENT_DETAILS,
+        },
     }
 
     field = component_detail_options[component]["details_field"]
