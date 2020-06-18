@@ -1,19 +1,14 @@
-from django.db.models import QuerySet
+from django.db.models import QuerySet, When, Case as DB_Case, IntegerField, BinaryField
 
-from applications.models import GoodOnApplication, CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import Case
+from flags.enums import FlagLevels
 from flags.models import Flag
 from flags.serializers import CaseListFlagSerializer
-from goodstype.models import GoodsType
-from queries.end_user_advisories.libraries.get_end_user_advisory import get_end_user_advisory_by_pk
-from queries.goods_query.models import GoodsQuery
 from teams.models import Team
 
 
 def get_goods_flags(case, case_type):
-    ids = []
-
     if case_type in [
         CaseTypeSubTypeEnum.STANDARD,
         CaseTypeSubTypeEnum.EUA,
@@ -21,71 +16,75 @@ def get_goods_flags(case, case_type):
         CaseTypeSubTypeEnum.GIFTING,
         CaseTypeSubTypeEnum.F680,
     ]:
-        ids = GoodOnApplication.objects.filter(application_id=case.id).values_list("good__flags", flat=True)
+        return Flag.objects.filter(goods__goods_on_application__application_id=case.id)
     elif case_type in [
         CaseTypeSubTypeEnum.OPEN,
         CaseTypeSubTypeEnum.HMRC,
     ]:
-        ids = GoodsType.objects.filter(application_id=case.id).values_list("flags", flat=True)
+        return Flag.objects.filter(goods_type__application_id=case.id)
     elif case_type == CaseTypeSubTypeEnum.GOODS:
-        return GoodsQuery.objects.select_related("good").get(id=case.id).good.flags.all()
+        return Flag.objects.filter(goods__good__id=case.id)
 
-    return Flag.objects.filter(id__in=ids).select_related("team")
+    return Flag.objects.none()
 
 
 def get_destination_flags(case, case_type):
-    ids = []
-
     if case_type == CaseTypeSubTypeEnum.EUA:
-        return get_end_user_advisory_by_pk(case.id).end_user.flags.all()
+        return Flag.objects.filter(parties__parties_on_application__application_id=case.id)
     elif case_type == CaseTypeSubTypeEnum.OPEN:
-        ids = set(
-            CountryOnApplication.objects.filter(application=case)
-            .prefetch_related("country__flags")
-            .values_list("country__flags", flat=True)
+        return Flag.objects.filter(countries_on_applications__application_id=case.id) | Flag.objects.filter(
+            countries__countries_on_application__application_id=case.id
         )
-
-        ids = ids | set(CountryOnApplication.objects.filter(application=case).values_list("flags", flat=True))
 
     elif case_type == CaseTypeSubTypeEnum.STANDARD:
-        ids = case.baseapplication.parties.filter(deleted_at__isnull=True, party__flags__isnull=False).values_list(
-            "party__flags", flat=True
+        return Flag.objects.filter(
+            parties__parties_on_application__application_id=case.id,
+            parties__parties_on_application__deleted_at__isnull=True,
         )
 
-    return Flag.objects.filter(id__in=ids).select_related("team")
-
-
-def annotate_my_team_flags(flags, order, team):
-    for flag in flags:
-        flag.my_team = flag.team.id != team.id
-        flag.order = order
-
-    return flags
+    return Flag.objects.none()
 
 
 def get_flags(case: Case) -> QuerySet:
     """
-    Get all case flags in no particular order (order will be specified by calling function)
+    Get all case flags in no particular order
     """
+    # Ensure that case_type is prefetched, or an additional query will be made for each case.
     case_type = case.case_type.sub_type
 
     goods_flags = get_goods_flags(case, case_type)
     destination_flags = get_destination_flags(case, case_type)
     case_flags = case.flags.all()
-    org_flags = case.organisation.flags.all()
+    org_flags = Flag.objects.filter(organisations__cases__id=case.id)
 
     return goods_flags | destination_flags | case_flags | org_flags
 
 
-def get_ordered_flags(case: Case, team: Team):
-    case_type = case.case_type.sub_type
+def get_ordered_flags(case: Case, team: Team, limit: int = None):
+    """
+    This function will get the flags for cases looking at good, destination, case, and organisation flags. The flags
+        will be ordered with your teams flags first, in order of category (same order as above), and priority
+        (lowest first).
 
-    goods_flags = annotate_my_team_flags(get_goods_flags(case, case_type), 0, team)
-    destination_flags = annotate_my_team_flags(get_destination_flags(case, case_type), 1, team)
-    case_flags = annotate_my_team_flags(case.flags.all(), 2, team)
-    organisation_flags = annotate_my_team_flags(case.organisation.flags.all(), 3, team)
+    :param case: case object the flags relate to
+    :param team: The team for user making the request
+    :param limit: If assigned will return no more than given amount
+    :return: List of flags serialized
+    """
+    all_flags = get_flags(case)
 
-    all_flags = [*goods_flags, *destination_flags, *case_flags, *organisation_flags]
-    all_flags = sorted(all_flags, key=lambda x: (x.my_team, x.order, x.priority))
+    all_flags = all_flags.annotate(
+        my_team=DB_Case(When(team_id=team.id, then=True), default=False, output_field=BinaryField()),
+        order=DB_Case(
+            When(level=FlagLevels.GOOD, then=0),
+            When(level=FlagLevels.DESTINATION, then=1),
+            When(level=FlagLevels.CASE, then=2),
+            default=3,
+            output_field=IntegerField(),
+        ),
+    ).order_by("-my_team", "order", "priority")
+
+    if limit:
+        all_flags = all_flags[:limit]
 
     return CaseListFlagSerializer(all_flags, many=True).data

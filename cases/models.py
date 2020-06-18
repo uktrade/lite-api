@@ -58,7 +58,7 @@ class Case(TimestampableModel):
     case_type = models.ForeignKey(CaseType, on_delete=models.DO_NOTHING, null=False, blank=False)
     queues = models.ManyToManyField(Queue, related_name="cases")
     flags = models.ManyToManyField(Flag, related_name="cases")
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE, related_name="cases")
     submitted_at = models.DateTimeField(blank=True, null=True)
     submitted_by = models.ForeignKey(ExporterUser, null=True, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(
@@ -71,6 +71,7 @@ class Case(TimestampableModel):
     sla_days = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
     sla_remaining_days = models.SmallIntegerField(null=True)
     sla_updated_at = models.DateTimeField(null=True)
+    additional_contacts = models.ManyToManyField("parties.Party", related_name="case")
 
     objects = CaseManager()
 

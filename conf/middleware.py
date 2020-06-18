@@ -71,7 +71,7 @@ class DBLoggingMiddleware:
         final_queries = connection.queries
 
         elapsed_time = time.time() - start
-        logging.debug(
+        logging.info(
             {
                 "message": "liteolog db",
                 "corrID": request.correlation,

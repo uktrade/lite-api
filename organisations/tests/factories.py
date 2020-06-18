@@ -48,3 +48,8 @@ class SiteFactory(factory.django.DjangoModelFactory):
         if extracted:
             for user_organisation_relationship in extracted:
                 self.users.add(user_organisation_relationship)
+
+    @factory.post_generation
+    def site_records_located_at(self, create, extracted, **kwargs):
+        self.site_records_located_at = self
+        self.save()

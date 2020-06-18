@@ -71,6 +71,8 @@ class AuditType(LiteEnum):
     UPDATED_LETTER_TEMPLATE_DECISIONS = autostr()
     REMOVED_LETTER_TEMPLATE_DECISIONS = autostr()
     UPDATED_LETTER_TEMPLATE_PARAGRAPHS = autostr()
+    REMOVED_LETTER_TEMPLATE_PARAGRAPHS = autostr()
+    ADDED_LETTER_TEMPLATE_PARAGRAPHS = autostr()
     UPDATED_LETTER_TEMPLATE_LAYOUT = autostr()
     UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING = autostr()
     CREATED_PICKLIST = autostr()
@@ -95,6 +97,8 @@ class AuditType(LiteEnum):
     UPDATED_SITE = autostr()
     CREATED_SITE = autostr()
     UPDATED_SITE_NAME = autostr()
+    COMPLIANCE_SITE_CASE_CREATE = autostr()
+    COMPLIANCE_SITE_CASE_NEW_LICENCE = autostr()
 
     def human_readable(self):
         value = self.value.replace("_", " ")
