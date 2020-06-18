@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 
-from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
+from conf.settings import LITE_HMRC_INTEGRATION_ENABLED, BACKGROUND_TASK_ENABLED
 
 
 class CasesConfig(AppConfig):
@@ -29,4 +29,5 @@ class CasesConfig(AppConfig):
             schedule_licence_for_hmrc_integration(str(licence.id), licence.application.reference_code)
 
     def ready(self):
-        post_migrate.connect(self.initialize_background_tasks, sender=self)
+        if BACKGROUND_TASK_ENABLED:
+            post_migrate.connect(self.initialize_background_tasks, sender=self)
