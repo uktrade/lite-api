@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from conf.serializers import PrimaryKeyRelatedSerializerField, KeyValueChoiceField
+from conf.serializers import KeyValueChoiceField
 from addresses.serializers import AddressSerializer
 from compliance.enums import ComplianceRiskValues, ComplianceVisitTypes
 from compliance.models import ComplianceVisitCase
@@ -25,15 +25,16 @@ class ComplianceVisitViewSerializer(serializers.ModelSerializer):
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
     overall_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices, allow_null=True, allow_blank=True,)
-    compliance_risk_value = KeyValueChoiceField(
-        choices=ComplianceRiskValues.choices, allow_null=True, allow_blank=True,
-    )
-    individuals_risk_value = KeyValueChoiceField(
-        choices=ComplianceRiskValues.choices, allow_null=True, allow_blank=True,
-    )
-    products_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices, allow_null=True, allow_blank=True,)
-    visit_type = KeyValueChoiceField(choices=ComplianceVisitTypes.choices, allow_null=True, allow_blank=True,)
-    licence_risk_value = serializers.IntegerField(min_value=1, max_value=5, allow_null=True,)
+    compliance_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices)
+    individuals_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices)
+    products_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices)
+    visit_type = KeyValueChoiceField(choices=ComplianceVisitTypes.choices)
+    licence_risk_value = serializers.IntegerField(min_value=1, max_value=5, allow_null=True)
+    overview = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
+    inspection = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
+    compliance_overview = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
+    individuals_overview = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
+    products_overview = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
 
     class Meta:
         model = ComplianceVisitCase
