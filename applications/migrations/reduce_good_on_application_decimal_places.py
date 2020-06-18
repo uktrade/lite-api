@@ -4,6 +4,10 @@ from django.db import migrations, models
 
 
 def reduce_decimal_places(apps, schema_editor):
+    """
+    Reduces GoodOnApplication value & licenced_value to ensure all have
+    a maximum of 15 digits
+    """
     GoodOnApplication = apps.get_model("applications", "GoodOnApplication")
     for goodOnApp in GoodOnApplication.objects.all():
         if len(str(goodOnApp.value)) > 15:
