@@ -146,7 +146,7 @@ class GoodList(ListCreateAPIView):
 
         queryset = queryset.prefetch_related("control_list_entries")
 
-        return queryset
+        return queryset.order_by("-updated_at")
 
     def get_paginated_response(self, data):
         # Get the goods queries for the goods and format in a dict

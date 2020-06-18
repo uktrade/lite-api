@@ -64,7 +64,9 @@ class DecoratorTests(DataTestClient):
 
         resp = a_view(request=None, pk=application.pk)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(f"Application status {application_status} is read-only." in resp.content.decode("utf-8"))
+        self.assertTrue(
+            strings.Applications.Generic.INVALID_OPERATION_FOR_READ_ONLY_CASE_ERROR in resp.content.decode("utf-8")
+        )
 
     def test_application_in_state_major_editable_success(self):
         application = self.create_standard_application_case(self.organisation)
@@ -89,7 +91,10 @@ class DecoratorTests(DataTestClient):
 
         resp = a_view(request=None, pk=application.pk)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT in resp.content.decode("utf-8"))
+        self.assertTrue(
+            strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR
+            in resp.content.decode("utf-8")
+        )
 
     def test_authorised_to_view_application_exporter_success(self):
         application = self.create_standard_application_case(self.organisation)

@@ -53,12 +53,6 @@ class LetterTemplateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(strings.LetterTemplates.NEED_AT_LEAST_ONE_CASE_TYPE)
         return attrs
 
-    @staticmethod
-    def validate_letter_paragraphs(attrs):
-        if not attrs:
-            raise serializers.ValidationError(strings.LetterTemplates.NEED_AT_LEAST_ONE_PARAGRAPH)
-        return attrs
-
     def validate(self, data):
         validated_data = super().validate(data)
 

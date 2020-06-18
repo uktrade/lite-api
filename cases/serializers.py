@@ -25,6 +25,8 @@ from cases.models import (
     GoodCountryDecision,
     CaseType,
 )
+from compliance.models import ComplianceSiteCase
+from compliance.serializers import ComplianceSiteViewSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
@@ -63,45 +65,6 @@ class CaseTypeSerializer(serializers.ModelSerializer):
 
 class CaseTypeReferenceListSerializer(serializers.Serializer):
     reference = KeyValueChoiceField(choices=CaseTypeReferenceEnum.choices)
-
-
-class CaseSerializer(serializers.ModelSerializer):
-    """
-    Serializes cases
-    """
-
-    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    application = serializers.SerializerMethodField()
-    query = QueryViewSerializer(read_only=True)
-
-    class Meta:
-        model = Case
-        fields = (
-            "id",
-            "case_type",
-            "application",
-            "query",
-        )
-
-    def get_application(self, instance):
-        # The case has a reference to a BaseApplication but
-        # we need the full details of the application it points to
-        if instance.type in [CaseTypeTypeEnum.APPLICATION]:
-            application = get_application(instance.id)
-            serializer = get_application_view_serializer(application)
-            return serializer(application).data
-
-    def to_representation(self, value):
-        """
-        Only show 'application' if it has an application inside,
-        and only show 'query' if it has a CLC query inside
-        """
-        repr_dict = super(CaseSerializer, self).to_representation(value)
-        if not repr_dict["application"]:
-            del repr_dict["application"]
-        if not repr_dict["query"]:
-            del repr_dict["query"]
-        return repr_dict
 
 
 class CaseAssignmentSerializer(serializers.ModelSerializer):
@@ -149,6 +112,7 @@ class CaseListSerializer(serializers.Serializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
+    # TODO: update the serializer below to be more efficient, it creates a new query for each case in list to get site
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationCaseSerializer
     )
@@ -182,7 +146,7 @@ class CaseCopyOfSerializer(serializers.ModelSerializer):
         )
 
 
-class CaseDetailSerializer(CaseSerializer):
+class CaseDetailSerializer(serializers.ModelSerializer):
     queues = serializers.PrimaryKeyRelatedField(many=True, queryset=Queue.objects.all())
     queue_names = serializers.SerializerMethodField()
     assigned_users = serializers.SerializerMethodField()
@@ -197,6 +161,8 @@ class CaseDetailSerializer(CaseSerializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     advice = CaseAdviceSerializer(many=True)
+    compliance = serializers.SerializerMethodField()
+    case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
 
     class Meta:
         model = Case
@@ -218,6 +184,7 @@ class CaseDetailSerializer(CaseSerializer):
             "copy_of",
             "sla_days",
             "sla_remaining_days",
+            "compliance",
         )
 
     def __init__(self, *args, **kwargs):
@@ -232,6 +199,11 @@ class CaseDetailSerializer(CaseSerializer):
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
+
+    def get_compliance(self, instance):
+        if instance.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
+            compliance = ComplianceSiteCase.objects.get(id=instance.id)
+            return ComplianceSiteViewSerializer(compliance, context={"team": self.team}).data
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))
@@ -284,6 +256,20 @@ class CaseDetailSerializer(CaseSerializer):
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
+
+    def to_representation(self, value):
+        """
+        Only show 'application' if it has an application inside,
+        and only show 'query' if it has a CLC query inside
+        """
+        repr_dict = super(CaseDetailSerializer, self).to_representation(value)
+        if not repr_dict["application"]:
+            del repr_dict["application"]
+        if not repr_dict["query"]:
+            del repr_dict["query"]
+        if not repr_dict["compliance"]:
+            del repr_dict["compliance"]
+        return repr_dict
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):

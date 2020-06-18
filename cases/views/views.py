@@ -8,7 +8,7 @@ from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import CountryOnApplication, PartyOnApplication
+from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -39,6 +39,8 @@ from cases.serializers import (
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
 )
+from compliance.helpers import generate_compliance_site_case
+from cases.service import get_destinations
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
@@ -78,9 +80,12 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, user=request.user, team=request.user.team)
+        data = CaseDetailSerializer(case, user=request.user, team=request.user.team).data
 
-        return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
+        if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            data["application"]["destinations"] = get_destinations(case.id)
+
+        return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
 
 
 class SetQueues(APIView):
@@ -648,6 +653,7 @@ class FinaliseView(RetrieveUpdateAPIView):
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
             )
+            generate_compliance_site_case(case)
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)
@@ -721,25 +727,30 @@ class AdditionalContacts(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get_queryset(self):
-        return Party.objects.filter(
-            id__in=PartyOnApplication.objects.additional_contacts()
-            .filter(application_id=self.kwargs["pk"])
-            .values_list("party_id", flat=True)
-        )
+        return Party.objects.filter(case__id=self.kwargs["pk"])
 
     def get_serializer_context(self):
         return {"organisation_pk": get_case(self.kwargs["pk"]).organisation.id}
 
     def perform_create(self, serializer):
-        super().perform_create(serializer)
-        party = PartyOnApplication(application_id=get_case(self.kwargs["pk"]).id, party_id=serializer.data["id"])
-        party.save()
+        party = serializer.save()
+        case = get_case(self.kwargs["pk"])
+        case.additional_contacts.add(party)
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE,
-            target=get_case(self.kwargs["pk"]),
+            target=case,
             payload={"contact": serializer.data["name"]},
         )
+
+
+class CaseApplicant(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        case = get_case(pk)
+        applicant = case.submitted_by
+        return JsonResponse({"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email})
 
 
 class RerunRoutingRules(APIView):
