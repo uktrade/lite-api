@@ -4,8 +4,8 @@ from django.db.models.signals import post_migrate
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 
 
-class Config(AppConfig):
-    name = "conf"
+class CasesConfig(AppConfig):
+    name = "cases"
 
     @staticmethod
     def initialize_background_tasks(**kwargs):
@@ -16,7 +16,7 @@ class Config(AppConfig):
             update_cases_sla(repeat=Task.DAILY, repeat_until=None)  # noqa
 
         if LITE_HMRC_INTEGRATION_ENABLED:
-            Config.schedule_not_sent_licences()
+            CasesConfig.schedule_not_sent_licences()
 
     @staticmethod
     def schedule_not_sent_licences():
