@@ -13,6 +13,10 @@ def reduce_decimal_places(apps, schema_editor):
         goodOnApp.save()
 
 
+def reverse_decimal_places(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -20,5 +24,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(reduce_decimal_places),
+        migrations.RunPython(reduce_decimal_places, reverse_code=reverse_decimal_places),
     ]

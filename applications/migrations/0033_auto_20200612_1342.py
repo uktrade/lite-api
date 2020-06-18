@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("applications", "0032_auto_20200612_1338"),
+        ("applications", "reduce_good_on_application_decimal_places"),
     ]
 
     operations = [
