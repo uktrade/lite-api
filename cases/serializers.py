@@ -26,7 +26,7 @@ from cases.models import (
     CaseType,
 )
 from compliance.models import ComplianceSiteCase
-from compliance.serializers import ComplianceSiteViewSerializer
+from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType

@@ -7,7 +7,12 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
-from compliance.serializers import ComplianceLicenceListSerializer
+from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceLicenceListSerializer
+from compliance.serializers.OpenLicenceReturns import (
+    OpenLicenceReturnsListSerializer,
+    OpenLicenceReturnsCreateSerializer,
+    OpenLicenceReturnsViewSerializer,
+)
 from conf.authentication import GovAuthentication
 from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
@@ -18,18 +23,14 @@ from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 from compliance.helpers import (
     get_record_holding_sites_for_case,
     COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
+    get_compliance_site_case,
 )
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView
 
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns
-from compliance.serializers import (
-    OpenLicenceReturnsCreateSerializer,
-    OpenLicenceReturnsListSerializer,
-    OpenLicenceReturnsViewSerializer,
-)
 from conf.authentication import ExporterAuthentication
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -59,7 +60,7 @@ class LicenceList(ListAPIView):
         return cases
 
 
-class ComplianceManageStatus(APIView):
+class ComplianceSiteManageStatus(APIView):
     """
     Modify the status of a Compliance case
     """
@@ -93,6 +94,21 @@ class ComplianceManageStatus(APIView):
             run_routing_rules(case=case, keep_status=True)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class ComplianceSiteVisits(ListCreateAPIView):
+    def post(self, request, *args, **kwargs):
+        """
+        Add a good to to an organisation
+        """
+        pk = kwargs["pk"]
+        site_case = get_compliance_site_case(pk)
+
+        visit_case = site_case.create_visit_case()
+
+        # serialize and return data
+
+        return JsonResponse(data={"sad": "None"}, status=status.HTTP_200_OK)
 
 
 class ComplianceCaseId(APIView):
