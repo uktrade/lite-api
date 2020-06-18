@@ -151,8 +151,3 @@ def delete_goods_type_document(goods_type):
         document.delete()
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-
-
-def get_generated_case_document(generated_case_document):
-    document = GeneratedCaseDocument.objects.filter(pk=generated_case_document)
-    return _get_document(document)
