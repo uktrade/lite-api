@@ -12,11 +12,12 @@ def forward_migration(apps, schema_editor):
 
     no_record_sites = list(Site.objects.filter(site_records_located_at__isnull=True).values_list("id", flat=True))
 
-    cases = Case.objects.filter(
-        baseapplication__application_sites__site_id__in=no_record_sites, baseapplication__licence__is_complete=True
-    ).distinct()
-
     Site.objects.filter(id__in=no_record_sites).update(site_records_located_at=F("id"))
+
+    cases = Case.objects.filter(
+        baseapplication__application_sites__site__site_records_located_at__compliance__isnull=True,
+        baseapplication__licence__is_complete=True,
+    ).distinct()
 
     for case in cases:
         generate_compliance_site_case(case)
