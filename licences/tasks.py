@@ -86,7 +86,8 @@ def _handle_exception(message, licence_id, licence_reference, scheduled_as_backg
             if current_attempt >= MAX_ATTEMPTS:
                 schedule_max_tried_task_as_new_task(licence_id, licence_reference)
 
-        # Raise an exception (this will cause the task to be marked as 'Failed')
+        # Raise an exception
+        # this will cause the task to be marked as 'Failed' and retried if there are retry attempts left
         raise Exception(error_message)
     else:
         logging.error(error_message)
