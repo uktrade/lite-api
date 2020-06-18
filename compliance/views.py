@@ -30,7 +30,6 @@ from compliance.serializers import (
     OpenLicenceReturnsListSerializer,
     OpenLicenceReturnsViewSerializer,
 )
-from conf.authentication import ExporterAuthentication
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 
