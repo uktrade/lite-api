@@ -25,7 +25,6 @@ def forward_migration(apps, schema_editor):
 
 def backwards_migration(apps, schema_editor):
     pass
-    # I made this pass since we would lose data for backwards migrating this step regardless.
 
 
 class Migration(migrations.Migration):
