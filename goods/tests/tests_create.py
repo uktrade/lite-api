@@ -1,10 +1,11 @@
 import uuid
 from copy import deepcopy
 
+from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading, GoodStatus, ItemCategory, MilitaryUse
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading, GoodStatus, ItemCategory, MilitaryUse, Component
 from goods.models import Good
 from lite_content.lite_api import strings
 from static.control_list_entries.helpers import get_control_list_entry
@@ -62,7 +63,7 @@ def _assert_response_data(self, response_data, request_data):
             self.assertEqual(response_data_pv_grading_details[key], value)
 
 
-class GoodsCreateGoodTests(DataTestClient):
+class CreateGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.request_data = deepcopy(REQUEST_DATA)
@@ -136,6 +137,131 @@ class GoodsCreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(response.json()["good"]["control_list_entries"], [])
         self.assertEquals(Good.objects.all().count(), 1)
+
+    def test_add_good_no_item_category_selected_failure(self):
+        data = {
+            "description": f"Plastic bag {uuid.uuid4()}",
+            "is_good_controlled": GoodControlled.NO,
+            "validate_only": True,
+            "is_pv_graded": GoodPvGraded.NO,
+            "is_military_use": MilitaryUse.NO,
+        }
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors["item_category"], [strings.Goods.FORM_NO_ITEM_CATEGORY_SELECTED])
+
+    def test_add_good_no_description_provided_failure(self):
+        data = {
+            "is_good_controlled": GoodControlled.NO,
+            "validate_only": True,
+            "is_pv_graded": GoodPvGraded.NO,
+            "is_military_use": MilitaryUse.NO,
+            "item_category": ItemCategory.GROUP1_DEVICE,
+        }
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors["description"], ["This field is required."])
+
+    def test_add_good_empty_description_provided_failure(self):
+        data = {
+            "description": "",
+            "is_good_controlled": GoodControlled.NO,
+            "validate_only": True,
+            "is_pv_graded": GoodPvGraded.NO,
+            "is_military_use": MilitaryUse.NO,
+            "item_category": ItemCategory.GROUP1_DEVICE,
+        }
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors["description"], [strings.Goods.FORM_DEFAULT_ERROR_TEXT_BLANK])
+
+    def test_add_good_no_military_use_answer_selected_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "validate_only": True,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP1_DEVICE,
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors["is_military_use"], [strings.Goods.FORM_NO_MILITARY_USE_SELECTED])
+
+    def test_add_good_modified_military_use_answer_selected_no_details_provided_failure(self):
+        """ Test failure when modified for military use is selected but no modification details are provided."""
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "validate_only": True,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP1_DEVICE,
+            "is_military_use": MilitaryUse.YES_MODIFIED
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors["modified_military_use_details"], [strings.Goods.NO_MODIFICATIONS_DETAILS])
+
+    def test_add_good_component_answer_not_selected_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "validate_only": True,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP1_DEVICE,
+            "is_military_use": MilitaryUse.NO,
+            "is_component_step": True
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors["is_component"], [strings.Goods.FORM_NO_COMPONENT_SELECTED])
+
+
+    @parameterized.expand(
+        [[Component.YES_DESIGNED, "designed_details", strings.Goods.NO_DESIGN_COMPONENT_DETAILS],
+         [Component.YES_MODIFIED, "modified_details", strings.Goods.NO_MODIFIED_COMPONENT_DETAILS],
+         [Component.YES_GENERAL_PURPOSE, "general_details", strings.Goods.NO_GENERAL_COMPONENT_DETAILS]]
+    )
+    def test_add_good_component_not_details_provided_failure(self, component, details_field, details_error):
+        """Test failure 'yes' component answer selected but no component details provided. """
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "validate_only": True,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP1_DEVICE,
+            "is_military_use": MilitaryUse.NO,
+            "is_component_step": True,
+            "is_component": component,
+            details_field: ""
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[details_field], [details_error])
 
 
 class GoodsCreateControlledGoodTests(DataTestClient):
