@@ -10,9 +10,8 @@ def forward_migration(apps, schema_editor):
     Site = apps.get_model("organisations", "Site")
     Case = apps.get_model("cases", "Case")
 
-    no_record_sites = list(Site.objects.filter(site_records_located_at__isnull=True).values_list("id", flat=True))
-
-    Site.objects.filter(id__in=no_record_sites).update(site_records_located_at=F("id"))
+    no_record_sites = Site.objects.filter(site_records_located_at__isnull=True)
+    no_record_sites.update(site_records_located_at=F("id"))
 
     cases = Case.objects.filter(
         baseapplication__application_sites__site__site_records_located_at__compliance__isnull=True,
