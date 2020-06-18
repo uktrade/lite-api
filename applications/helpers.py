@@ -38,6 +38,7 @@ from applications.serializers.exhibition_clearance import (
 from applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from conf.exceptions import BadRequestError
+from goods.enums import Component
 from lite_content.lite_api import strings
 
 
@@ -130,15 +131,12 @@ def get_temp_export_details_update_serializer(export_type):
 
 
 def validate_good_component_details(data):
-    """ Validate that details are given for the chosen component option. Return a dictionary containing information
-    on if the detail field contains data, the field itself (as it can be 1 of 3) and if no data was given for the detail
-    field, the corresponding error. """
-
+    """ Validate the details for the chosen component are given. """
     component = data["is_component"]
     component_detail_options = {
-        "yes_designed": {"details_field": "designed_details", "error": strings.Goods.NO_DESIGN_COMPONENT_DETAILS},
-        "yes_modified": {"details_field": "modified_details", "error": strings.Goods.NO_MODIFIED_COMPONENT_DETAILS},
-        "yes_general": {"details_field": "general_details", "error": strings.Goods.NO_GENERAL_COMPONENT_DETAILS},
+        Component.YES_DESIGNED: {"details_field": "designed_details", "error": strings.Goods.NO_DESIGN_COMPONENT_DETAILS},
+        Component.YES_MODIFIED: {"details_field": "modified_details", "error": strings.Goods.NO_MODIFIED_COMPONENT_DETAILS},
+        Component.YES_GENERAL_PURPOSE: {"details_field": "general_details", "error": strings.Goods.NO_GENERAL_COMPONENT_DETAILS},
     }
 
     field = component_detail_options[component]["details_field"]

@@ -19,7 +19,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, MilitaryUse, Component
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
@@ -186,7 +186,7 @@ class GoodList(ListCreateAPIView):
 
         serializer = GoodCreateSerializer(data=data)
 
-        if "is_military_use" in data and data["is_military_use"] == "yes_modified":
+        if "is_military_use" in data and data["is_military_use"] == MilitaryUse.YES_MODIFIED:
             if not data.get("modified_military_use_details"):
                 return JsonResponse(
                     data={"errors": {"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]}},
@@ -200,7 +200,7 @@ class GoodList(ListCreateAPIView):
             )
 
         # Validate component detail field if the answer was not 'No'
-        if "is_component" in data and data["is_component"] != "no":
+        if "is_component" in data and data["is_component"] != Component.NO:
             valid_components = validate_good_component_details(data)
             if not valid_components["is_valid"]:
                 return JsonResponse(
@@ -281,7 +281,7 @@ class GoodDetails(APIView):
             )
 
         # Validate component detail field if the answer was not 'No'
-        if data.get("is_component") and data["is_component"] not in ["no", "None"]:
+        if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
             valid_components = validate_good_component_details(data)
             if not valid_components["is_valid"]:
                 return JsonResponse(
