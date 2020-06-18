@@ -252,7 +252,7 @@ class CaseManager(models.Manager):
         """
         case_qs = (
             self.submitted()
-            .select_related("organisation", "status")
+            .select_related("organisation", "status", "case_type")
             .prefetch_related(
                 "flags",
                 "flags__team",
@@ -265,7 +265,6 @@ class CaseManager(models.Manager):
                 "organisation__flags__team",
                 "organisation__primary_site",
                 "organisation__primary_site__address",
-                "case_type",
             )
         )
 
