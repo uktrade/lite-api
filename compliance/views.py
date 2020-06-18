@@ -120,7 +120,8 @@ class OpenLicenceReturnsView(ListAPIView):
     serializer_class = OpenLicenceReturnsListSerializer
 
     def get_queryset(self):
-        return OpenLicenceReturns.objects.all().order_by("-year", "-created_at")
+        organisation_id = get_request_user_organisation_id(self.request)
+        return OpenLicenceReturns.objects.filter(organisation_id=organisation_id).order_by("-year", "-created_at")
 
     def post(self, request):
         file = request.data.get("file")
