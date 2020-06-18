@@ -109,3 +109,8 @@ class OpenLicenceReturnsCreateSerializer(serializers.ModelSerializer):
             raise ValidationError(Compliance.OpenLicenceReturns.INVALID_YEAR)
 
         return value
+
+
+# ComplianceVisitCases have a number of textfields, this constant is for serializers to ensure max length on validation
+#   database doesn't enforce this max length
+COMPLIANCEVISITCASE_TEXTFIELD_LENGTH = 750
