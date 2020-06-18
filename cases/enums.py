@@ -20,6 +20,7 @@ class CaseTypeReferenceEnum:
     EUA = "eua"
     OGTCL = "ogtcl"
     OGTL = "ogtl"
+    COMP = "comp"
 
     choices = [
         (OIEL, "Open Individual Export Licence"),
@@ -36,6 +37,7 @@ class CaseTypeReferenceEnum:
         (EUA, "End User Advisory Query"),
         (OGTCL, "Open General Trade Control Licence"),
         (OGTL, "Open General Transhipment Licence"),
+        (COMP, "Compliance"),
     ]
 
     @classmethod
@@ -53,11 +55,13 @@ class CaseTypeTypeEnum:
     APPLICATION = "application"
     QUERY = "query"
     REGISTRATION = "registration"
+    COMPLIANCE = "compliance"
 
     choices = [
         (APPLICATION, "Application"),
         (QUERY, "Query"),
         (REGISTRATION, "Registration"),
+        (COMPLIANCE, "Compliance"),
     ]
 
     @classmethod
@@ -74,6 +78,7 @@ class CaseTypeSubTypeEnum:
     EXHIBITION = "exhibition_clearance"
     GIFTING = "gifting_clearance"
     F680 = "f680_clearance"
+    COMP = "compliance"
 
     choices = [
         (STANDARD, "Standard Licence"),
@@ -84,6 +89,7 @@ class CaseTypeSubTypeEnum:
         (EXHIBITION, "MOD Exhibition Clearance"),
         (GIFTING, "MOD Gifting Clearance"),
         (F680, "MOD F680 Clearance"),
+        (COMP, "Compliance"),
     ]
 
     licence = [STANDARD, OPEN, HMRC]
@@ -202,7 +208,29 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.REGISTRATION
         sub_type = CaseTypeSubTypeEnum.OPEN
 
-    CASE_TYPE_LIST = [OIEL, OGEL, OICL, SIEL, SICL, SITL, F680, EXHIBITION, GIFTING, HMRC, GOODS, EUA, OGTCL, OGTL]
+    class COMPLIANCE:
+        id = UUID("00000000-0000-0000-0000-000000000015")
+        reference = CaseTypeReferenceEnum.COMP
+        type = CaseTypeTypeEnum.COMPLIANCE
+        sub_type = CaseTypeSubTypeEnum.COMP
+
+    CASE_TYPE_LIST = [
+        OIEL,
+        OGEL,
+        OICL,
+        SIEL,
+        SICL,
+        SITL,
+        F680,
+        EXHIBITION,
+        GIFTING,
+        HMRC,
+        GOODS,
+        EUA,
+        OGTCL,
+        OGTL,
+        COMPLIANCE,
+    ]
 
     OGL_ID_LIST = [OGEL.id, OGTCL.id, OGTL.id]
 

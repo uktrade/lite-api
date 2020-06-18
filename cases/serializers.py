@@ -25,6 +25,8 @@ from cases.models import (
     GoodCountryDecision,
     CaseType,
 )
+from compliance.models import ComplianceSiteCase
+from compliance.serializers import ComplianceSiteViewSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
@@ -111,6 +113,7 @@ class CaseListSerializer(serializers.Serializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
+    # TODO: update the serializer below to be more efficient, it creates a new query for each case in list to get site
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationCaseSerializer
     )
@@ -197,6 +200,9 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             return serializer(application).data
         elif instance.case_type.type == CaseTypeTypeEnum.QUERY:
             return QueryViewSerializer(instance.query, read_only=True).data
+        elif instance.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
+            compliance = ComplianceSiteCase.objects.get(id=instance.id)
+            return ComplianceSiteViewSerializer(compliance, context={"team": self.team}).data
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))

@@ -1,10 +1,11 @@
 from datetime import datetime
 
 from applications.enums import ApplicationExportType
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 
 LICENCE_APPLICATION_PREFIX = "GB"
 SEPARATOR = "/"
+COMPLIANCE_SITE_SUFFIX = "C"
 
 
 def generate_reference_code(case):
@@ -28,5 +29,8 @@ def generate_reference_code(case):
         if hasattr(case, "export_type"):
             if case.export_type in [ApplicationExportType.TEMPORARY, ApplicationExportType.PERMANENT]:
                 reference_code += SEPARATOR + case.export_type[0]
+
+    if case.case_type.id == CaseTypeEnum.COMPLIANCE.id:
+        reference_code += SEPARATOR + COMPLIANCE_SITE_SUFFIX
 
     return reference_code.upper()
