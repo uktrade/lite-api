@@ -19,7 +19,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, MilitaryUse, Component
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, MilitaryUse, Component, ItemCategory
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
@@ -183,6 +183,18 @@ class GoodList(ListCreateAPIView):
         data = request.data
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
+
+        # TEMPORARY to prevent invalid goods - to be removed once LT-2704 and LT-2251 are implemented
+        if "item_category" in data:
+            if data["item_category"] in [
+                ItemCategory.GROUP2_FIREARMS,
+                ItemCategory.GROUP3_SOFTWARE,
+                ItemCategory.GROUP3_TECHNOLOGY,
+            ]:
+                return JsonResponse(
+                    data={"errors": {"item_category": ["Not implemented yet, please select an option in category 1"]}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         serializer = GoodCreateSerializer(data=data)
 
