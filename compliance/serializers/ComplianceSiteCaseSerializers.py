@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from addresses.serializers import AddressSerializer
 from cases.models import Case
-from compliance.models import ComplianceSiteCase
+from compliance.models import ComplianceSiteCase, ComplianceVisitCase
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
@@ -19,6 +19,8 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
+    visits = serializers.SerializerMethodField()
+    team = None
 
     class Meta:
         model = ComplianceSiteCase
@@ -27,7 +29,13 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
             "site_name",
             "status",
             "organisation",
+            "visits",
         )
+
+    def __init__(self, *args, **kwargs):
+        super(ComplianceSiteViewSerializer, self).__init__(*args, **kwargs)
+
+        self.team = self.context.get("team")
 
     def get_status(self, instance):
         if instance.status:
@@ -36,6 +44,19 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
         return None
+
+    def get_visits(self, instance):
+        visit_cases = ComplianceVisitCase.objects.filter(site_case_id=instance.id)
+        return [
+            {
+                "id": case.id,
+                "reference_code": case.reference_code,
+                "visit_date": case.visit_date,
+                "case_officer": case.case_officer,
+                "flags": get_ordered_flags(case=case, team=self.team, limit=3),
+            }
+            for case in visit_cases
+        ]
 
 
 class ComplianceLicenceListSerializer(serializers.ModelSerializer):

@@ -8,6 +8,7 @@ from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceLicenceListSerializer
+from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitViewSerializer
 from compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsListSerializer,
     OpenLicenceReturnsCreateSerializer,
@@ -27,7 +28,7 @@ from compliance.helpers import (
 )
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView
 
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns
@@ -97,23 +98,32 @@ class ComplianceSiteManageStatus(APIView):
 
 
 class ComplianceSiteVisits(ListCreateAPIView):
+    authentication_classes = (GovAuthentication,)
+
     def post(self, request, *args, **kwargs):
         """
-        Add a good to to an organisation
+        Create a compliance visit case for a given compliance site case
         """
         pk = kwargs["pk"]
         site_case = get_compliance_site_case(pk)
 
         visit_case = site_case.create_visit_case()
 
-        # serialize and return data
+        # audit creation
 
-        return JsonResponse(data={"sad": "None"}, status=status.HTTP_200_OK)
+        return JsonResponse(
+            data={"data": ComplianceVisitViewSerializer(instance=visit_case).data}, status=status.HTTP_201_CREATED
+        )
+
+
+class ComplianceVisitUpdateView(UpdateAPIView):
+    authentication_classes = (GovAuthentication,)
 
 
 class ComplianceCaseId(APIView):
     """
-    This endpoint is currently only used for testing purposes. It gives us back the compliance case ids for the given case.
+    This endpoint is currently only used for testing purposes.
+    It gives us back the compliance case ids for the given case.
     """
 
     authentication_classes = (GovAuthentication,)

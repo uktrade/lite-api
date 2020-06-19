@@ -76,7 +76,8 @@ class CaseTypeSubTypeEnum:
     EXHIBITION = "exhibition_clearance"
     GIFTING = "gifting_clearance"
     F680 = "f680_clearance"
-    COMP = "compliance"
+    COMP_SITE = "compliance_site"
+    COMP_VISIT = "compliance_visit"
 
     choices = [
         (STANDARD, "Standard Licence"),
@@ -87,7 +88,8 @@ class CaseTypeSubTypeEnum:
         (EXHIBITION, "MOD Exhibition Clearance"),
         (GIFTING, "MOD Gifting Clearance"),
         (F680, "MOD F680 Clearance"),
-        (COMP, "Compliance"),
+        (COMP_SITE, "Compliance Site Case"),
+        (COMP_VISIT, "Compliance Visit Case"),
     ]
 
     licence = [STANDARD, OPEN, HMRC]
@@ -206,11 +208,17 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.APPLICATION
         sub_type = CaseTypeSubTypeEnum.OPEN
 
-    class COMPLIANCE:
+    class COMPLIANCE_SITE:
         id = UUID("00000000-0000-0000-0000-000000000015")
         reference = CaseTypeReferenceEnum.COMP
         type = CaseTypeTypeEnum.COMPLIANCE
-        sub_type = CaseTypeSubTypeEnum.COMP
+        sub_type = CaseTypeSubTypeEnum.COMP_SITE
+
+    class COMPLIANCE_VISIT:
+        id = UUID("00000000-0000-0000-0000-000000000016")
+        reference = CaseTypeReferenceEnum.COMP
+        type = CaseTypeTypeEnum.COMPLIANCE
+        sub_type = CaseTypeSubTypeEnum.COMP_VISIT
 
     CASE_TYPE_LIST = [
         OIEL,
@@ -227,7 +235,8 @@ class CaseTypeEnum:
         EUA,
         OGTCL,
         OGTL,
-        COMPLIANCE,
+        COMPLIANCE_SITE,
+        COMPLIANCE_VISIT,
     ]
 
     OGL_ID_LIST = [OGEL.id, OGTCL.id, OGTL.id]

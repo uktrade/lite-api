@@ -96,7 +96,7 @@ def generate_compliance_site_case(case: Case):
             site=site,
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
             organisation_id=case.organisation_id,
-            case_type_id=CaseTypeEnum.COMPLIANCE.id,
+            case_type_id=CaseTypeEnum.COMPLIANCE_SITE.id,
             submitted_at=timezone.now(),  # submitted_at is set since SLA falls over if not given
         )
         comp_case.save()

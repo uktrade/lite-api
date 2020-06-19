@@ -29,7 +29,7 @@ def generate_reference_code(case):
         if case.export_type in [ApplicationExportType.TEMPORARY, ApplicationExportType.PERMANENT]:
             reference_code += SEPARATOR + case.export_type[0]
 
-    if case.case_type.id == CaseTypeEnum.COMPLIANCE.id:
+    if case.case_type.id == CaseTypeEnum.COMPLIANCE_SITE.id:
         reference_code += SEPARATOR + COMPLIANCE_SITE_SUFFIX
 
     return reference_code.upper()

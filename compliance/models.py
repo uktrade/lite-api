@@ -23,7 +23,7 @@ class ComplianceSiteCase(Case):
             site_case=self,
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
             organisation_id=self.organisation_id,
-            case_type_id=CaseTypeEnum.COMPLIANCE.id,
+            case_type_id=CaseTypeEnum.COMPLIANCE_VISIT.id,
             submitted_at=timezone.now(),  # submitted_at is set since SLA falls over if not given
             case_officer=self.case_officer,
         )
