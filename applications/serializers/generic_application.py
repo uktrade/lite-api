@@ -73,6 +73,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
     is_major_editable = serializers.SerializerMethodField(required=False)
     goods_locations = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer()
+    submitted_by = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseApplication
@@ -85,6 +86,7 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "submitted_at",
+            "submitted_by",
             "status",
             "case",
             "exporter_user_notification_count",
@@ -101,6 +103,9 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
         if not isinstance(self.exporter_user, ExporterUser):
             self.fields.pop("exporter_user_notification_count")
 
+    def get_submitted_by(self, instance):
+        return f"{instance.submitted_by.first_name} {instance.submitted_by.last_name}" if instance.submitted_by else ""
+
     def get_export_type(self, instance):
         instance = get_application(instance.pk)
         if hasattr(instance, "export_type"):
@@ -115,7 +120,6 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
                 "key": instance.status.status,
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
-        return None
 
     def get_case_type(self, instance):
         from cases.serializers import CaseTypeSerializer

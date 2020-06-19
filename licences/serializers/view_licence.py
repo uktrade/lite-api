@@ -1,11 +1,14 @@
+from django.db.models import F
 from rest_framework import serializers
 
 from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
-from cases.enums import CaseTypeSubTypeEnum, AdviceType
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseType, Advice
+from cases.models import CaseType
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
+from goods.models import Good
 from goodstype.models import GoodsType
+from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
 from licences.models import Licence
 from licences.serializers.view_licences import (
     PartyLicenceListSerializer,
@@ -17,6 +20,7 @@ from parties.models import Party, PartyDocument
 from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.statuses.serializers import CaseStatusSerializer
 from static.units.enums import Units
+
 
 # Case View
 
@@ -153,17 +157,11 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
 
     def get_goods(self, instance):
         if instance.goods.exists():
-            approved_goods = Advice.objects.filter(
-                case_id=instance.id, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
-            ).values_list("good", flat=True)
-            goods = instance.goods.filter(good_id__in=approved_goods)
-            return GoodOnLicenceSerializer(goods, many=True).data
+            approved_goods = get_approved_goods_on_application(instance)
+            return GoodOnLicenceSerializer(approved_goods, many=True).data
         elif instance.goods_type.exists():
-            approved_goods = Advice.objects.filter(
-                case_id=instance.id, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
-            ).values_list("goods_type", flat=True)
-            goods = instance.goods_type.filter(id__in=approved_goods)
-            return GoodsTypeOnLicenceSerializer(goods, many=True).data
+            approved_goods_types = get_approved_goods_types(instance)
+            return GoodsTypeOnLicenceSerializer(approved_goods_types, many=True).data
         else:
             return None
 
@@ -187,3 +185,37 @@ class LicenceSerializer(serializers.ModelSerializer):
             "duration",
         )
         read_only_fields = fields
+
+
+class NLRdocumentSerializer(serializers.ModelSerializer):
+    case_reference = serializers.CharField(source="case.reference_code")
+    goods = serializers.SerializerMethodField()
+    destinations = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GeneratedCaseDocument
+        fields = (
+            "id",
+            "name",
+            "case_id",
+            "case_reference",
+            "goods",
+            "destinations",
+            "advice_type",
+        )
+
+    def get_goods(self, instance):
+        goods = Good.objects.prefetch_related("control_list_entries").filter(
+            advice__case_id=instance.case_id,
+            advice__type=AdviceType.NO_LICENCE_REQUIRED,
+            advice__level=AdviceLevel.FINAL,
+        )
+        return GoodLicenceListSerializer(goods, many=True).data
+
+    def get_destinations(self, instance):
+        return (
+            Party.objects.filter(parties_on_application__application_id=instance.case_id)
+            .order_by("country__name")
+            .annotate(party_name=F("name"), country_name=F("country__name"))
+            .values("party_name", "country_name")
+        )

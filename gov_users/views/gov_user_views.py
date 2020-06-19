@@ -66,11 +66,14 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
         gov_users_qs = GovUser.objects.all().order_by("email").prefetch_related("team", "role")
         teams = self.request.GET.get("teams")
         status = self.request.GET.get("status")
+        email = self.request.GET.get("email")
 
         if status:
             gov_users_qs = gov_users_qs.filter(status=UserStatuses.from_string(status))
         if teams:
             gov_users_qs = gov_users_qs.filter(team__id__in=teams.split(","))
+        if email:
+            gov_users_qs = gov_users_qs.filter(email__icontains=email)
 
         return gov_users_qs
 

@@ -59,7 +59,11 @@ class PartyLicenceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Party
-        fields = ("name", "country")
+        fields = (
+            "name",
+            "address",
+            "country",
+        )
         read_only_fields = fields
 
 
@@ -83,7 +87,15 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseApplication
-        fields = ("id", "name", "reference_code", "destinations", "goods", "status", "documents")
+        fields = (
+            "id",
+            "name",
+            "reference_code",
+            "destinations",
+            "goods",
+            "status",
+            "documents",
+        )
         read_only_fields = fields
 
     def get_documents(self, instance):

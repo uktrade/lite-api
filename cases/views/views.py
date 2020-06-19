@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.db import transaction
-from django.http.response import JsonResponse, HttpResponse
+from django.db.models import F
+from django.http.response import JsonResponse, HttpResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView, get_object_or_404, ListCreateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
@@ -10,7 +12,7 @@ from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from cases.libraries.advice import group_advice
@@ -25,7 +27,7 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment
+from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -37,6 +39,8 @@ from cases.serializers import (
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
 )
+from compliance.helpers import generate_compliance_site_case
+from cases.service import get_destinations
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
@@ -46,6 +50,9 @@ from documents.libraries.delete_documents_on_bad_request import delete_documents
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
 from goodstype.helpers import get_goods_type
+from gov_notify import service as gov_notify_service
+from gov_notify.enums import TemplateType
+from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api.strings import Documents, Cases
@@ -73,9 +80,20 @@ class CaseDetail(APIView):
         Retrieve a case instance
         """
         case = get_case(pk)
-        serializer = CaseDetailSerializer(case, user=request.user, team=request.user.team)
+        data = CaseDetailSerializer(case, user=request.user, team=request.user.team).data
 
-        return JsonResponse(data={"case": serializer.data}, status=status.HTTP_200_OK)
+        if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            data["data"]["destinations"] = get_destinations(case.id)  # noqa
+
+        return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        """
+        Change case status
+        """
+        case = get_case(pk)
+        case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class SetQueues(APIView):
@@ -184,7 +202,7 @@ class ExporterCaseDocumentDownload(APIView):
         if case.organisation.id != get_request_user_organisation_id(request):
             return HttpResponse(status.HTTP_401_UNAUTHORIZED)
         try:
-            document = CaseDocument.objects.get(id=document_pk, case=case)
+            document = CaseDocument.objects.get(id=document_pk, case=case, visible_to_exporter=True)
             return document_download_stream(document)
         except Document.DoesNotExist:
             raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
@@ -389,8 +407,8 @@ class CaseEcjuQueries(APIView):
         data = JSONParser().parse(request)
         data["case"] = pk
         data["raised_by_user"] = request.user.id
+        data["team"] = request.user.team.id
         serializer = EcjuQueryCreateSerializer(data=data)
-
         if serializer.is_valid():
             if "validate_only" not in data or not data["validate_only"]:
                 serializer.save()
@@ -402,11 +420,26 @@ class CaseEcjuQueries(APIView):
                     target=serializer.instance.case,
                     payload={"ecju_query": data["question"]},
                 )
+                if serializer.data["query_type"]["key"] == ECJUQueryType.ECJU:
+                    # Only send email for standard ECJU queries
+                    application_info = (
+                        Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
+                        .values("email", "name", "reference_code")
+                        .get(id=pk)
+                    )
+                    gov_notify_service.send_email(
+                        email_address=application_info["email"],
+                        template_type=TemplateType.ECJU_CREATED,
+                        data=EcjuCreatedEmailData(
+                            application_reference=application_info["reference_code"],
+                            ecju_reference=application_info["name"],
+                            link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
+                        ),
+                    )
 
                 return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
-
         return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -562,7 +595,10 @@ class FinaliseView(RetrieveUpdateAPIView):
     serializer_class = LicenceCreateSerializer
 
     def get_object(self):
-        return get_object_or_404(Licence, application=self.kwargs["pk"])
+        # Due to a bug where multiple licences were being created, we get the latest one.
+        licence = Licence.objects.filter(application=self.kwargs["pk"]).order_by("created_at").last()
+        if not licence:
+            raise Http404(Licence.DoesNotExist)
 
     @transaction.atomic
     def put(self, request, pk):
@@ -594,6 +630,16 @@ class FinaliseView(RetrieveUpdateAPIView):
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
 
+        gov_notify_service.send_email(
+            email_address=case.submitted_by.email,
+            template_type=TemplateType.APPLICATION_STATUS,
+            data=ApplicationStatusEmailData(
+                application_reference=case.baseapplication.name,
+                case_reference=case.reference_code,
+                link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}",
+            ),
+        )
+
         audit_trail_service.create(
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
@@ -601,12 +647,10 @@ class FinaliseView(RetrieveUpdateAPIView):
             payload={"status": {"new": case.status.status, "old": old_status}},
         )
 
-        try:
-            # If a licence object exists, finalise the licence.
-            licence = Licence.objects.get(application=case)
-        except Licence.DoesNotExist:
-            pass
-        else:
+        # If a licence object exists, finalise the licence.
+        # Due to a bug where multiple licences were being created, we get the latest one.
+        licence = Licence.objects.filter(application=case).order_by("created_at").last()
+        if licence:
             licence.is_complete = True
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.save()
@@ -617,6 +661,7 @@ class FinaliseView(RetrieveUpdateAPIView):
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
             )
+            generate_compliance_site_case(case)
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)
@@ -685,22 +730,35 @@ class AssignedQueues(APIView):
 
 
 class AdditionalContacts(ListCreateAPIView):
-    queryset = Party.objects.additional_contacts()
     serializer_class = AdditionalContactSerializer
     pagination_class = None
     authentication_classes = (GovAuthentication,)
+
+    def get_queryset(self):
+        return Party.objects.filter(case__id=self.kwargs["pk"])
 
     def get_serializer_context(self):
         return {"organisation_pk": get_case(self.kwargs["pk"]).organisation.id}
 
     def perform_create(self, serializer):
-        super().perform_create(serializer)
+        party = serializer.save()
+        case = get_case(self.kwargs["pk"])
+        case.additional_contacts.add(party)
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE,
-            target=get_case(self.kwargs["pk"]),
+            target=case,
             payload={"contact": serializer.data["name"]},
         )
+
+
+class CaseApplicant(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        case = get_case(pk)
+        applicant = case.submitted_by
+        return JsonResponse({"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email})
 
 
 class RerunRoutingRules(APIView):

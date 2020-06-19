@@ -221,7 +221,6 @@ class CaseManager(models.Manager):
         user=None,
         status=None,
         case_type=None,
-        sort=None,
         assigned_user=None,
         case_officer=None,
         include_hidden=None,
@@ -253,7 +252,7 @@ class CaseManager(models.Manager):
         """
         case_qs = (
             self.submitted()
-            .select_related("organisation", "status")
+            .select_related("organisation", "status", "case_type")
             .prefetch_related(
                 "flags",
                 "flags__team",
@@ -266,7 +265,6 @@ class CaseManager(models.Manager):
                 "organisation__flags__team",
                 "organisation__primary_site",
                 "organisation__primary_site__address",
-                "case_type",
             )
         )
 
@@ -363,9 +361,6 @@ class CaseManager(models.Manager):
             case_qs = case_qs.order_by("case_order", "submitted_at")
         else:
             case_qs = case_qs.order_by_date()
-
-        if isinstance(sort, str):
-            case_qs = case_qs.order_by_status(order="-" if sort.startswith("-") else "")
 
         if sla_days_elapsed_sort_order:
             if sla_days_elapsed_sort_order == SortOrder.ASCENDING:

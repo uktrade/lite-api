@@ -6,6 +6,7 @@ from rest_framework import serializers
 from addresses.models import Address
 from addresses.serializers import AddressSerializer
 from conf.constants import ExporterPermissions
+from conf.helpers import str_to_bool
 from conf.serializers import (
     PrimaryKeyRelatedSerializerField,
     KeyValueChoiceField,
@@ -22,21 +23,23 @@ from users.models import GovUser, UserOrganisationRelationship, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
-class SiteListSerializer(serializers.ModelSerializer):
+class SiteListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
     address = AddressSerializer()
+    site_records_located_at_name = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Site
-        fields = (
-            "id",
-            "name",
-            "address",
-        )
+    def get_site_records_located_at_name(self, instance):
+        if instance.site_records_located_at:
+            site = Site.objects.filter(id=instance.site_records_located_at.id).values_list("name", flat=True).first()
+            if site:
+                return site
 
 
 class SiteViewSerializer(SiteListSerializer):
     users = serializers.SerializerMethodField()
     admin_users = serializers.SerializerMethodField()
+    is_used_on_application = serializers.BooleanField(required=False)
 
     def get_users(self, instance):
         users = (
@@ -58,7 +61,15 @@ class SiteViewSerializer(SiteListSerializer):
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "users", "admin_users")
+        fields = (
+            "id",
+            "name",
+            "address",
+            "site_records_located_at_name",
+            "users",
+            "admin_users",
+            "is_used_on_application",
+        )
 
 
 class SiteCreateUpdateSerializer(serializers.ModelSerializer):
@@ -66,10 +77,11 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
     address = AddressSerializer()
     organisation = serializers.PrimaryKeyRelatedField(queryset=Organisation.objects.all(), required=False)
     users = serializers.PrimaryKeyRelatedField(queryset=ExporterUser.objects.all(), many=True, required=False)
+    site_records_located_at = serializers.PrimaryKeyRelatedField(queryset=Site.objects.all(), required=False)
 
     class Meta:
         model = Site
-        fields = ("id", "name", "address", "organisation", "users")
+        fields = ("id", "name", "address", "organisation", "users", "site_records_located_at")
 
     @transaction.atomic
     def create(self, validated_data):
@@ -90,10 +102,18 @@ class SiteCreateUpdateSerializer(serializers.ModelSerializer):
         if users:
             site.users.set([get_user_organisation_relationship(user, validated_data["organisation"]) for user in users])
 
+        if "site_records_stored_here" in self.initial_data:
+            if str_to_bool(self.initial_data.get("site_records_stored_here")):
+                site.site_records_located_at = site
+                site.save()
+
         return site
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
+        instance.site_records_located_at = validated_data.get(
+            "site_records_located_at", instance.site_records_located_at
+        )
         instance.save()
         return instance
 
@@ -220,7 +240,9 @@ class OrganisationCreateUpdateSerializer(serializers.ModelSerializer):
         site_serializer = SiteCreateUpdateSerializer(data=site_data)
         if site_serializer.is_valid(raise_exception=True):
             site = site_serializer.save()
-
+            # Set the site records are located at to the site itself
+            site.site_records_located_at = site
+            site.save()
         user_serializer = ExporterUserCreateUpdateSerializer(data={"sites": [site.id], **user_data})
         if user_serializer.is_valid(raise_exception=True):
             user_serializer.save()

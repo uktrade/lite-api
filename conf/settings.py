@@ -18,8 +18,12 @@ env = Env(
     BACKGROUND_TASK_ENABLED=(bool, False),
     SUPPRESS_TEST_OUTPUT=(bool, False),
     HAWK_AUTHENTICATION_ENABLED=(bool, False),
+    LITE_HMRC_INTEGRATION_ENABLED=(bool, False),
     RECENTLY_UPDATED_WORKING_DAYS=(int, 5),
     STREAM_PAGE_SIZE=(int, 20),
+    ENV=(str, "dev"),
+    EXPORTER_BASE_URL=(str, ""),
+    GOV_NOTIFY_ENABLED=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -44,6 +48,7 @@ INSTALLED_APPS = [
     "background_task",
     "cases.app.CasesConfig",
     "cases.generated_documents",
+    "compliance",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -130,27 +135,36 @@ REST_FRAMEWORK = {
 
 AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 
-SHA_ALGORITHM = "sha256"
-
+HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED")
+HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
+HAWK_ALGORITHM = "sha256"
+HAWK_LITE_API_CREDENTIALS = "lite-api"
+HAWK_LITE_PERFORMANCE_CREDENTIALS = "lite-performance"
 HAWK_CREDENTIALS = {
-    "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
-    "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
-    "hmrc-integration": {
-        "id": "hmrc-integration",
-        "key": env("LITE_HMRC_INTEGRATION_HAWK_KEY"),
-        "algorithm": SHA_ALGORITHM,
-    },
+    "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
+    "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
     "activity-stream": {
         "id": "activity-stream",
         "key": env("LITE_ACTIVITY_STREAM_HAWK_KEY"),
-        "algorithm": SHA_ALGORITHM,
+        "algorithm": HAWK_ALGORITHM,
     },
-    "lite-e2e": {"id": "lite-e2e", "key": env("LITE_E2E_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
-    "lite-performance": {"id": "lite-performance", "key": env("LITE_PERFORMANCE_HAWK_KEY"), "algorithm": SHA_ALGORITHM},
+    "hmrc-integration": {
+        "id": "hmrc-integration",
+        "key": env("LITE_HMRC_INTEGRATION_HAWK_KEY"),
+        "algorithm": HAWK_ALGORITHM,
+    },
+    "lite-e2e": {"id": "lite-e2e", "key": env("LITE_E2E_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
+    HAWK_LITE_PERFORMANCE_CREDENTIALS: {
+        "id": HAWK_LITE_PERFORMANCE_CREDENTIALS,
+        "key": env("LITE_PERFORMANCE_HAWK_KEY"),
+        "algorithm": HAWK_ALGORITHM,
+    },
+    HAWK_LITE_API_CREDENTIALS: {
+        "id": HAWK_LITE_API_CREDENTIALS,
+        "key": env("LITE_API_HAWK_KEY"),
+        "algorithm": HAWK_ALGORITHM,
+    },
 }
-
-HAWK_AUTHENTICATION_ENABLED = env("HAWK_AUTHENTICATION_ENABLED")
-HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
 
 WSGI_APPLICATION = "conf.wsgi.application"
 
@@ -168,9 +182,13 @@ CSS_ROOT = os.path.join(STATIC_ROOT, "css")
 LETTER_TEMPLATES_DIRECTORY = os.path.join(BASE_DIR, "letter_templates", "layouts")
 
 # Database
-# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+DATABASES = {"default": env.db()}  # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASES = {"default": env.db()}
+# Background tasks
+BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
+BACKGROUND_TASK_RUN_ASYNC = True
+# Number of times a task is retried given a failure occurs with exponential back-off = ((current_attempt ** 4) + 5)
+MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt (assuming instantaneous failures)
 
 # AWS
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
@@ -188,16 +206,14 @@ AV_SERVICE_USERNAME = env("AV_SERVICE_USERNAME")
 AV_SERVICE_PASSWORD = env("AV_SERVICE_PASSWORD")
 AV_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
 
-# Background tasks
-BACKGROUND_TASK_ENABLED = env("BACKGROUND_TASK_ENABLED")
-BACKGROUND_TASK_RUN_ASYNC = True
-# Number of times a task is retried given a failure occurs with exponential back-off = ((current_attempt ** 4) + 5)
-MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after document upload (assuming instantaneous failures)
+# HMRC Integration
+LITE_HMRC_INTEGRATION_ENABLED = env("LITE_HMRC_INTEGRATION_ENABLED")
+LITE_HMRC_INTEGRATION_URL = env("LITE_HMRC_INTEGRATION_URL")
+LITE_HMRC_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
 
 UPLOAD_DOCUMENT_ENDPOINT_ENABLED = env("UPLOAD_DOCUMENT_ENDPOINT_ENABLED")
 
-# If True, print the length of time it takes to run each test
-TIME_TESTS = True
+TIME_TESTS = True  # If True, print the length of time it takes to run each test
 SUPPRESS_TEST_OUTPUT = env("SUPPRESS_TEST_OUTPUT")
 
 # Internationalization
@@ -238,3 +254,15 @@ RECENTLY_UPDATED_WORKING_DAYS = env(
 SECURE_BROWSER_XSS_FILTER = True
 
 STREAM_PAGE_SIZE = env("STREAM_PAGE_SIZE")
+
+
+GOV_NOTIFY_ENABLED = env("GOV_NOTIFY_ENABLED")
+
+GOV_NOTIFY_KEY = env("GOV_NOTIFY_KEY")
+
+ENV = env("ENV")
+
+# If EXPORTER_BASE_URL is not provided, render the base_url using the environment
+EXPORTER_BASE_URL = (
+    env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
+)

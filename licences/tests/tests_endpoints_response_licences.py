@@ -1,4 +1,4 @@
-from licences.views import LicenceType
+from licences.views.main import LicenceType
 from test_helpers.test_endpoints.test_endpoint_response_time import EndPointTests
 
 
@@ -13,3 +13,6 @@ class LicencesResponseTests(EndPointTests):
 
     def test_licences_list_clearances_only(self):
         self.call_endpoint(self.get_exporter_headers(), self.url + "?licence_type=" + LicenceType.CLEARANCE)
+
+    def test_nlr_list(self):
+        self.call_endpoint(self.get_exporter_headers(), self.url + "nlrs/")

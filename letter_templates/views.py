@@ -26,7 +26,6 @@ class LetterTemplatesList(generics.ListCreateAPIView):
     """
 
     authentication_classes = (GovAuthentication,)
-    queryset = LetterTemplate.objects.all().prefetch_related("layout", "case_types")
 
     def get_serializer_class(self):
         if self.request.method == "GET":
@@ -36,16 +35,22 @@ class LetterTemplatesList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         case = self.request.GET.get("case")
+        name = self.request.GET.get("name")
         decision = self.request.GET.get("decision")
+        queryset = LetterTemplate.objects.all().prefetch_related("layout", "case_types")
+
         if decision:
             case = get_case(pk=case)
             decision = Decision.objects.get(name=decision)
-            return LetterTemplate.objects.filter(case_types=case.case_type, decisions=decision)
+            return queryset.filter(case_types=case.case_type, decisions=decision)
         elif case:
             case = get_case(pk=case)
-            return LetterTemplate.objects.filter(case_types=case.case_type, decisions__isnull=True)
-        else:
-            return self.queryset
+            return queryset.filter(case_types=case.case_type, decisions__isnull=True)
+
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+
+        return queryset
 
     def post(self, request, *args, **kwargs):
         assert_user_has_permission(request.user, constants.GovPermissions.CONFIGURE_TEMPLATES)
@@ -55,11 +60,9 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
-
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
@@ -182,10 +185,23 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     payload={"old_layout": old_layout_name, "new_layout": serializer.instance.layout.name},
                 )
 
-            if request.data.get("letter_paragraphs"):
-                new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list("id", "name"))
+            new_paragraphs = list(serializer.instance.letter_paragraphs.all().values_list("id", "name"))
 
-                if set(new_paragraphs) != set(old_paragraphs):
+            if set(new_paragraphs) != set(old_paragraphs):
+                if not new_paragraphs:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.REMOVED_LETTER_TEMPLATE_PARAGRAPHS,
+                        target=serializer.instance,
+                    )
+                elif not old_paragraphs:
+                    audit_trail_service.create(
+                        actor=request.user,
+                        verb=AuditType.ADDED_LETTER_TEMPLATE_PARAGRAPHS,
+                        target=serializer.instance,
+                        payload={"new_paragraphs": [p[1] for p in new_paragraphs],},
+                    )
+                else:
                     audit_trail_service.create(
                         actor=request.user,
                         verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS,
@@ -195,15 +211,12 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                             "new_paragraphs": [p[1] for p in new_paragraphs],
                         },
                     )
-                else:
-                    for n, o in zip(new_paragraphs, old_paragraphs):
-                        if n != o:
-                            audit_trail_service.create(
-                                actor=request.user,
-                                verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING,
-                                target=serializer.instance,
-                            )
-                            break
+            elif new_paragraphs != old_paragraphs:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING,
+                    target=serializer.instance,
+                )
 
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
 

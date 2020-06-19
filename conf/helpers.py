@@ -87,7 +87,7 @@ def get_date_and_time():
     return now.strftime(DATE_FORMAT), now.strftime(TIME_FORMAT)
 
 
-def add_months(start_date, months):
+def add_months(start_date, months, date_format=DATE_FORMAT):
     year = start_date.year
     month = start_date.month
 
@@ -98,4 +98,4 @@ def add_months(start_date, months):
             month = 1
 
     new_date = datetime.date(year=year, month=month, day=start_date.day)
-    return new_date.strftime(DATE_FORMAT)
+    return new_date.strftime(date_format)

@@ -65,21 +65,21 @@ def format_user_text(user_text):
     return markdown_to_html(escape(user_text))
 
 
-def generate_preview(layout: str, text: str, case=None, allow_missing_variables=True):
+def generate_preview(layout: str, text: str, case=None, additional_contact=None, allow_missing_variables=True):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
         template = django_engine.get_template(f"{layout}.html")
 
-        if text:
-            # Substitute content placeholder for user text
+        # Substitute content placeholder for user text
+        template_text = template.source
+        if CONTENT_PLACEHOLDER in template_text:
             text = format_user_text(text)
-            template = template.source
-            template = template.replace(CONTENT_PLACEHOLDER, text)
+            template = template_text.replace(CONTENT_PLACEHOLDER, text)
             template = django_engine.from_string(template)
 
         context = {}
         if case:
-            context = get_document_context(case)
+            context = get_document_context(case, additional_contact)
 
         return load_css(layout) + template.render(Context(context))
     except (FileNotFoundError, TemplateDoesNotExist):

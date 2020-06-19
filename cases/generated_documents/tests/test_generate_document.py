@@ -92,7 +92,7 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.json()["errors"], [strings.Cases.PDF_ERROR])
+        self.assertEqual(response.json()["errors"], [strings.Cases.GeneratedDocuments.PDF_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(Audit.objects.count() == 1)
         self.assertTrue(
@@ -113,7 +113,7 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.json()["errors"], [strings.Cases.UPLOAD_ERROR])
+        self.assertEqual(response.json()["errors"], [strings.Cases.GeneratedDocuments.UPLOAD_ERROR])
         self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
         self.assertTrue(Audit.objects.count() == 1)
         self.assertTrue(
@@ -124,12 +124,30 @@ class GenerateDocumentTests(DataTestClient):
         )
 
     def test_get_document_preview_success(self):
+        text = "Sample"
         url = (
             reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
             + "?template="
             + str(self.letter_template.id)
-            + "&text=Sample"
+            + "&text="
+            + text
         )
+        response = self.client.get(url, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue("preview" in response.json())
+        preview = response.json()["preview"]
+        for html_tag in ["<style>", "</style>"]:
+            self.assertTrue(html_tag in preview)
+        self.assertTrue(text in preview)
+
+    def test_get_document_preview_without_text_success(self):
+        url = (
+            reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
+            + "?template="
+            + str(self.letter_template.id)
+        )
+
         response = self.client.get(url, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -145,21 +163,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         body = response.json()
         self.assertTrue("errors" in body)
-        self.assertEqual(body["errors"], [strings.Cases.MISSING_TEMPLATE])
-
-    def test_get_document_preview_without_text_query_param_failure(self):
-        url = (
-            reverse("cases:generated_documents:preview", kwargs={"pk": str(self.case.pk)})
-            + "?template="
-            + str(self.letter_template.id)
-        )
-
-        response = self.client.get(url, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        body = response.json()
-        self.assertTrue("errors" in body)
-        self.assertEqual(body["errors"], [strings.Cases.MISSING_TEXT])
+        self.assertEqual(body["errors"], [strings.Cases.GeneratedDocuments.MISSING_TEMPLATE])
 
     @mock.patch("cases.generated_documents.helpers.generate_preview")
     @mock.patch("cases.generated_documents.views.html_to_pdf")

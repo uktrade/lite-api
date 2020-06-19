@@ -32,6 +32,7 @@ from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
 from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
+from licences.helpers import get_reference_code
 from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -270,7 +271,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         party = Party(**data)
         party.save()
 
-        if application:
+        if application and party_type == PartyType.ADDITIONAL_CONTACT:
+            application.additional_contacts.add(party)
+        elif application:
             # Attach party to application
             application.add_party(party)
         return party
@@ -510,8 +513,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         goods_query.save()
         return goods_query
 
-    @staticmethod
-    def create_clc_query(description, organisation) -> GoodsQuery:
+    def create_clc_query(self, description, organisation) -> GoodsQuery:
         good = DataTestClient.create_good(
             description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
         )
@@ -523,6 +525,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             case_type_id=CaseTypeEnum.GOODS.id,
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             submitted_at=django.utils.timezone.now(),
+            submitted_by=self.exporter_user,
         )
         clc_query.flags.add(Flag.objects.get(id=SystemFlags.GOOD_CLC_QUERY_ID))
         clc_query.save()
@@ -548,7 +551,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_advice(
-        user, case, advice_field, advice_type, level, pv_grading=None, advice_text="This is some text", good=None
+        user,
+        case,
+        advice_field,
+        advice_type,
+        level,
+        pv_grading=None,
+        advice_text="This is some text",
+        good=None,
+        goods_type=None,
     ):
         advice = Advice(
             user=user,
@@ -566,10 +577,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if advice_field == "end_user":
             advice.end_user = StandardApplication.objects.get(pk=case.id).end_user.party
 
-        if advice_field == "good":
-            advice.good = GoodOnApplication.objects.get(application=case).good
-        elif good:
+        if good:
             advice.good = good
+        elif goods_type:
+            advice.goods_type = goods_type
+        elif advice_field == "good":
+            if case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+                advice.good = GoodOnApplication.objects.filter(application=case).first().good
+            elif case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+                advice.goods_type = GoodsType.objects.filter(application=case).first()
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = "I am easy to proviso"
@@ -607,10 +623,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
 
-    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
-        if not org_type:
-            org_type = OrganisationType.COMMERCIAL
-
+    def create_organisation_with_exporter_user(
+        self, name="Organisation", org_type=OrganisationType.COMMERCIAL, exporter_user=None
+    ):
         organisation = OrganisationFactory(name=name, type=org_type)
 
         if not exporter_user:
@@ -755,6 +770,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
+
+    def create_mod_clearance_application_case(self, organisation, case_type):
+        draft = self.create_mod_clearance_application(organisation, case_type)
+
+        return self.submit_application(draft, self.exporter_user)
 
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
@@ -953,15 +973,21 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return ecju_query
 
     @staticmethod
-    def create_licence(application: BaseApplication, is_complete: bool, decisions=None):
+    def create_licence(
+        application: BaseApplication, is_complete: bool, reference_code=None, decisions=None, sent_at=None
+    ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
+        if not reference_code:
+            reference_code = get_reference_code(application.reference_code)
 
         licence = Licence.objects.create(
             application=application,
+            reference_code=reference_code,
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
             is_complete=is_complete,
+            sent_at=sent_at,
         )
         licence.decisions.set(decisions)
         return licence
@@ -1054,3 +1080,8 @@ class PerformanceTestClient(DataTestClient):
         print(f"Creating {hmrc_query_count_goods_in_uk} HMRC Queries where the products are still in the UK...")
         for i in range(hmrc_query_count_goods_in_uk):
             self.create_hmrc_query(self.organisation, have_goods_departed=True)
+
+    def create_batch_queues(self, queue_count):
+        print(f"creating {queue_count} queues")
+        queue_details = {"name": "random", "team": self.team}
+        Queue.objects.bulk_create([Queue(**queue_details) for i in range(0, queue_count)])
