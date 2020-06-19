@@ -8,7 +8,7 @@ from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.serializers import ComplianceLicenceListSerializer
-from conf.authentication import GovAuthentication, SharedAuthentication
+from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -116,7 +116,7 @@ class ComplianceCaseId(APIView):
 
 
 class OpenLicenceReturnsView(ListAPIView):
-    authentication_classes = (SharedAuthentication,)
+    authentication_classes = (ExporterAuthentication,)
     serializer_class = OpenLicenceReturnsListSerializer
 
     def get_queryset(self):
