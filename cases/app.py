@@ -1,11 +1,11 @@
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 
-from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
+from conf.settings import LITE_HMRC_INTEGRATION_ENABLED, BACKGROUND_TASK_ENABLED
 
 
-class Config(AppConfig):
-    name = "conf"
+class CasesConfig(AppConfig):
+    name = "cases"
 
     @staticmethod
     def initialize_background_tasks(**kwargs):
@@ -16,7 +16,7 @@ class Config(AppConfig):
             update_cases_sla(repeat=Task.DAILY, repeat_until=None)  # noqa
 
         if LITE_HMRC_INTEGRATION_ENABLED:
-            Config.schedule_not_sent_licences()
+            CasesConfig.schedule_not_sent_licences()
 
     @staticmethod
     def schedule_not_sent_licences():
@@ -29,4 +29,5 @@ class Config(AppConfig):
             schedule_licence_for_hmrc_integration(str(licence.id), licence.application.reference_code)
 
     def ready(self):
-        post_migrate.connect(self.initialize_background_tasks, sender=self)
+        if BACKGROUND_TASK_ENABLED:
+            post_migrate.connect(self.initialize_background_tasks, sender=self)
