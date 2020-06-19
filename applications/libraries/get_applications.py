@@ -1,5 +1,3 @@
-from django.http import Http404
-
 from applications.models import (
     BaseApplication,
     F680ClearanceApplication,
@@ -10,6 +8,7 @@ from applications.models import (
     ExhibitionClearanceApplication,
 )
 from cases.enums import CaseTypeSubTypeEnum
+from conf.exceptions import NotFoundError
 
 
 def get_application(pk, organisation_id=None):
@@ -39,11 +38,11 @@ def get_application(pk, organisation_id=None):
         OpenApplication.DoesNotExist,
         HmrcQuery.DoesNotExist,
     ):
-        raise Http404
+        raise NotFoundError({"application": "Application not found - " + str(pk)})
 
 
 def _get_application_type(pk):
     try:
         return BaseApplication.objects.values_list("case_type__sub_type", flat=True).get(pk=pk)
     except BaseApplication.DoesNotExist:
-        raise Http404
+        raise NotFoundError({"application_type": "Application type not found - " + str(pk)})

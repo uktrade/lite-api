@@ -3,7 +3,7 @@ from rest_framework import status
 
 from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
-from licences.views import LicenceType
+from licences.views.main import LicenceType
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
