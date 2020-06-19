@@ -20,7 +20,8 @@ class CaseTypeReferenceEnum:
     EUA = "eua"
     OGTCL = "ogtcl"
     OGTL = "ogtl"
-    COMP = "comp"
+    COMP_SITE = "comp_c"
+    COMP_VISIT = "comp_v"
 
     choices = [
         (OIEL, "Open Individual Export Licence"),
@@ -37,7 +38,8 @@ class CaseTypeReferenceEnum:
         (EUA, "End User Advisory Query"),
         (OGTCL, "Open General Trade Control Licence"),
         (OGTL, "Open General Transhipment Licence"),
-        (COMP, "Compliance"),
+        (COMP_SITE, "Compliance Site Case"),
+        (COMP_SITE, "Compliance Visit Case"),
     ]
 
     @classmethod
@@ -212,13 +214,13 @@ class CaseTypeEnum:
 
     class COMPLIANCE_SITE:
         id = UUID("00000000-0000-0000-0000-000000000015")
-        reference = CaseTypeReferenceEnum.COMP
+        reference = CaseTypeReferenceEnum.COMP_SITE
         type = CaseTypeTypeEnum.COMPLIANCE
         sub_type = CaseTypeSubTypeEnum.COMP_SITE
 
     class COMPLIANCE_VISIT:
         id = UUID("00000000-0000-0000-0000-000000000016")
-        reference = CaseTypeReferenceEnum.COMP
+        reference = CaseTypeReferenceEnum.COMP_VISIT
         type = CaseTypeTypeEnum.COMPLIANCE
         sub_type = CaseTypeSubTypeEnum.COMP_VISIT
 
