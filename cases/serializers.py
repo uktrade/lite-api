@@ -31,6 +31,7 @@ from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerFie
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
+from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import OrganisationCaseSerializer
@@ -152,8 +153,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
-    query = QueryViewSerializer(read_only=True)
-    application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer(read_only=True)
     copy_of = serializers.SerializerMethodField()
@@ -161,7 +160,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     advice = CaseAdviceSerializer(many=True)
-    compliance = serializers.SerializerMethodField()
+    data = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
 
     class Meta:
@@ -173,8 +172,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "queues",
             "queue_names",
             "assigned_users",
-            "application",
-            "query",
             "has_advice",
             "advice",
             "all_flags",
@@ -184,7 +181,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "copy_of",
             "sla_days",
             "sla_remaining_days",
-            "compliance",
+            "data",
         )
 
     def __init__(self, *args, **kwargs):
@@ -192,16 +189,18 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-    def get_application(self, instance):
-        # The case has a reference to a BaseApplication but
-        # we need the full details of the application it points to
-        if instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
+    def get_data(self, instance):
+        from licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer
+
+        if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
+            return OpenGeneralLicenceCaseSerializer(get_open_general_export_licence_case(instance.id)).data
+        elif instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
-
-    def get_compliance(self, instance):
-        if instance.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
+        elif instance.case_type.type == CaseTypeTypeEnum.QUERY:
+            return QueryViewSerializer(instance.query, read_only=True).data
+        elif instance.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
             compliance = ComplianceSiteCase.objects.get(id=instance.id)
             return ComplianceSiteViewSerializer(compliance, context={"team": self.team}).data
 
@@ -251,25 +250,9 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             notification = queryset.first()
             return GovUserNotificationSerializer(notification).data
 
-        return None
-
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
-
-    def to_representation(self, value):
-        """
-        Only show 'application' if it has an application inside,
-        and only show 'query' if it has a CLC query inside
-        """
-        repr_dict = super(CaseDetailSerializer, self).to_representation(value)
-        if not repr_dict["application"]:
-            del repr_dict["application"]
-        if not repr_dict["query"]:
-            del repr_dict["query"]
-        if not repr_dict["compliance"]:
-            del repr_dict["compliance"]
-        return repr_dict
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):

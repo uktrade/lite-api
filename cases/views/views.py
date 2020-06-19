@@ -83,9 +83,17 @@ class CaseDetail(APIView):
         data = CaseDetailSerializer(case, user=request.user, team=request.user.team).data
 
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            data["application"]["destinations"] = get_destinations(case.id)
+            data["data"]["destinations"] = get_destinations(case.id)  # noqa
 
         return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        """
+        Change case status
+        """
+        case = get_case(pk)
+        case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class SetQueues(APIView):
@@ -194,7 +202,7 @@ class ExporterCaseDocumentDownload(APIView):
         if case.organisation.id != get_request_user_organisation_id(request):
             return HttpResponse(status.HTTP_401_UNAUTHORIZED)
         try:
-            document = CaseDocument.objects.get(id=document_pk, case=case)
+            document = CaseDocument.objects.get(id=document_pk, case=case, visible_to_exporter=True)
             return document_download_stream(document)
         except Document.DoesNotExist:
             raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})

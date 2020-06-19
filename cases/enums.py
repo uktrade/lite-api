@@ -54,11 +54,13 @@ class CaseTypeReferenceEnum:
 class CaseTypeTypeEnum:
     APPLICATION = "application"
     QUERY = "query"
+    REGISTRATION = "registration"
     COMPLIANCE = "compliance"
 
     choices = [
         (APPLICATION, "Application"),
         (QUERY, "Query"),
+        (REGISTRATION, "Registration"),
         (COMPLIANCE, "Compliance"),
     ]
 
@@ -133,7 +135,7 @@ class CaseTypeEnum:
     class OGEL:
         id = UUID("00000000-0000-0000-0000-000000000002")
         reference = CaseTypeReferenceEnum.OGEL
-        type = CaseTypeTypeEnum.APPLICATION
+        type = CaseTypeTypeEnum.REGISTRATION
         sub_type = CaseTypeSubTypeEnum.OPEN
 
     class OICL:
@@ -199,13 +201,13 @@ class CaseTypeEnum:
     class OGTCL:
         id = UUID("00000000-0000-0000-0000-000000000013")
         reference = CaseTypeReferenceEnum.OGTCL
-        type = CaseTypeTypeEnum.APPLICATION
+        type = CaseTypeTypeEnum.REGISTRATION
         sub_type = CaseTypeSubTypeEnum.OPEN
 
     class OGTL:
         id = UUID("00000000-0000-0000-0000-000000000014")
         reference = CaseTypeReferenceEnum.OGTL
-        type = CaseTypeTypeEnum.APPLICATION
+        type = CaseTypeTypeEnum.REGISTRATION
         sub_type = CaseTypeSubTypeEnum.OPEN
 
     class COMPLIANCE_SITE:
