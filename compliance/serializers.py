@@ -24,6 +24,7 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
+    open_licence_returns = serializers.SerializerMethodField()
 
     class Meta:
         model = ComplianceSiteCase
@@ -32,6 +33,7 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
             "site_name",
             "status",
             "organisation",
+            "open_licence_returns",
         )
 
     def get_status(self, instance):
@@ -41,6 +43,14 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
         return None
+
+    def get_open_licence_returns(self, instance):
+        queryset = OpenLicenceReturns.objects.filter(organisation_id=instance.organisation_id).order_by(
+            "-year", "-created_at"
+        )
+
+        if queryset.exists():
+            return OpenLicenceReturnsListSerializer(queryset, many=True).data
 
 
 class ComplianceLicenceListSerializer(serializers.ModelSerializer):
