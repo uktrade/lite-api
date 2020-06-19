@@ -7,7 +7,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 
-from applications.helpers import validate_component_fields, validate_information_security_field
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -22,6 +21,7 @@ from documents.libraries.delete_documents_on_bad_request import delete_documents
 from documents.models import Document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, MilitaryUse, ItemCategory
 from goods.goods_paginator import GoodListPaginator
+from goods.helpers import validate_component_fields, validate_information_security_field
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
 from goods.models import Good, GoodDocument
