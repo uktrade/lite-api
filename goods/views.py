@@ -2,7 +2,8 @@ from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
+from rest_framework import status, generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 
@@ -262,7 +263,7 @@ class GoodDocumentCriteriaCheck(APIView):
         return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
 
 
-class GoodDetails(APIView):
+class GoodDetails(generics.RetrieveUpdateAPIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
@@ -277,6 +278,7 @@ class GoodDetails(APIView):
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
+        """ Edit the TAU details of a good. This includes military use, component and information security use. """
         good = get_good(pk)
 
         if good.status == GoodStatus.SUBMITTED:
@@ -287,31 +289,20 @@ class GoodDetails(APIView):
         data = request.data.copy()
 
         if data.get("is_component_step") and not data.get("is_component"):
-            return JsonResponse(
-                data={"errors": {"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
 
         # Validate component detail field if the answer was not 'No'
         if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
             valid_components = validate_good_component_details(data)
             if not valid_components["is_valid"]:
-                return JsonResponse(
-                    data={"errors": {valid_components["details_field"]: [valid_components["error"]]}},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                raise ValidationError({valid_components["details_field"]: [valid_components["error"]]})
 
             data["component_details"] = data[valid_components["details_field"]]
 
         if data.get("uses_information_security") == "None":
             data["uses_information_security"] = None
         if data.get("is_information_security_step") and data.get("uses_information_security") is None:
-            return JsonResponse(
-                data={
-                    "errors": {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError({"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]})
 
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
@@ -350,6 +341,7 @@ class GoodOverview(APIView):
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
+        """ Edit details of a good. This includes description, control codes and PV grading. """
         good = get_good(pk)
 
         if good.organisation.id != get_request_user_organisation_id(request):
