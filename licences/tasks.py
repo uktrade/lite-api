@@ -35,7 +35,7 @@ def schedule_max_tried_task_as_new_task(licence_id, licence_reference):
     """
     logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for licence '{licence_id}' has been reached")
 
-    schedule_datetime = {timezone.now() + timedelta(seconds=TASK_BACK_OFF)}
+    schedule_datetime = timezone.now() + timedelta(seconds=TASK_BACK_OFF)
     logging.info(f"Scheduling new task for licence '{licence_id}' to commence at {schedule_datetime}")
     send_licence_to_hmrc_integration(licence_id, licence_reference, schedule=TASK_BACK_OFF)  # noqa
 
@@ -49,21 +49,21 @@ def send_licence_to_hmrc_integration(licence_id, licence_reference, scheduled_as
     :param scheduled_as_background_task: Has this function has been scheduled as a task (used for error handling)
     """
 
-    with transaction.atomic():
-        try:
+    try:
+        with transaction.atomic():
             # transaction.atomic + select_for_update + nowait=True will throw an error if row has already been locked
             licence = Licence.objects.select_for_update(nowait=True).get(id=licence_id)
             hmrc_integration_operations.send_licence(licence)
-        except hmrc_integration_operations.HMRCIntegrationException as exc:
-            _handle_exception(str(exc), licence_id, licence_reference, scheduled_as_background_task)
-        except Exception as exc:  # noqa
-            _handle_exception(
-                f"An unexpected error occurred when sending licence '{licence_id}' changes to HMRC Integration -> "
-                f"{type(exc).__name__}: {exc}",
-                licence_id,
-                licence_reference,
-                scheduled_as_background_task,
-            )
+    except hmrc_integration_operations.HMRCIntegrationException as exc:
+        _handle_exception(str(exc), licence_id, licence_reference, scheduled_as_background_task)
+    except Exception as exc:  # noqa
+        _handle_exception(
+            f"An unexpected error occurred when sending licence '{licence_id}' changes to HMRC Integration -> "
+            f"{type(exc).__name__}: {exc}",
+            licence_id,
+            licence_reference,
+            scheduled_as_background_task,
+        )
 
 
 def _handle_exception(message, licence_id, licence_reference, scheduled_as_background_task):
@@ -86,7 +86,8 @@ def _handle_exception(message, licence_id, licence_reference, scheduled_as_backg
             if current_attempt >= MAX_ATTEMPTS:
                 schedule_max_tried_task_as_new_task(licence_id, licence_reference)
 
-        # Raise an exception (this will cause the task to be marked as 'Failed')
+        # Raise an exception
+        # this will cause the task to be marked as 'Failed' and retried if there are retry attempts left
         raise Exception(error_message)
     else:
         logging.error(error_message)

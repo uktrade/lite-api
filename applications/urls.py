@@ -18,7 +18,6 @@ from applications.views import (
 app_name = "applications"
 
 urlpatterns = [
-    # Applications
     path("", applications.ApplicationList.as_view(), name="applications"),
     path("<uuid:pk>/", applications.ApplicationDetail.as_view(), name="application"),
     path("existing/", applications.ApplicationExisting.as_view(), name="existing"),

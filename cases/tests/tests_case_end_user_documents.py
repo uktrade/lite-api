@@ -29,10 +29,10 @@ class CaseEndUserDocumentTests(DataTestClient):
         # assert
         data = response.json()
 
-        self.assertIsNotNone(data["case"]["application"]["destinations"]["data"]["document"])
+        self.assertIsNotNone(data["case"]["data"]["destinations"]["data"]["document"])
         self.assertEquals(
-            "document_name.pdf", data["case"]["application"]["destinations"]["data"]["document"]["name"],
+            "document_name.pdf", data["case"]["data"]["destinations"]["data"]["document"]["name"],
         )
         self.assertEquals(
-            True, data["case"]["application"]["destinations"]["data"]["document"]["safe"],
+            True, data["case"]["data"]["destinations"]["data"]["document"]["safe"],
         )

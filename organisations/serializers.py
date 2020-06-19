@@ -23,7 +23,9 @@ from users.models import GovUser, UserOrganisationRelationship, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
-class SiteListSerializer(serializers.ModelSerializer):
+class SiteListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
     address = AddressSerializer()
     site_records_located_at_name = serializers.SerializerMethodField()
 
@@ -32,10 +34,6 @@ class SiteListSerializer(serializers.ModelSerializer):
             site = Site.objects.filter(id=instance.site_records_located_at.id).values_list("name", flat=True).first()
             if site:
                 return site
-
-    class Meta:
-        model = Site
-        fields = ("id", "name", "address", "site_records_located_at_name")
 
 
 class SiteViewSerializer(SiteListSerializer):
