@@ -9,7 +9,7 @@ def login_exporter():
         "user_profile": {"first_name": "first_name", "last_name": "last_name"},
     }
 
-    response = post(appended_address="/users/authenticate/", headers={}, request_data=exporter_user).json()
+    response = post(appended_address="/users/authenticate/", request_data=exporter_user).json()
 
     exporter_user = {
         "email": exporter_user["email"],
@@ -39,7 +39,7 @@ def login_exporter():
 def login_internal():
     gov_user = {"email": env("PERFORMANCE_GOV_USER"), "first_name": "test", "last_name": "er"}
 
-    response = post(appended_address="/gov-users/authenticate/", headers={}, request_data=gov_user).json()
+    response = post(appended_address="/gov-users/authenticate/", request_data=gov_user).json()
 
     gov_user = {
         "email": gov_user["email"],

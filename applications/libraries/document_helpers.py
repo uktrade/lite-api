@@ -5,7 +5,6 @@ from applications.models import ApplicationDocument
 from applications.serializers.document import ApplicationDocumentSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.generated_documents.models import GeneratedCaseDocument
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.document.serializers import GoodsTypeDocumentSerializer
 from parties.models import PartyDocument
@@ -151,8 +150,3 @@ def delete_goods_type_document(goods_type):
         document.delete()
 
     return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-
-
-def get_generated_case_document(generated_case_document):
-    document = GeneratedCaseDocument.objects.filter(pk=generated_case_document)
-    return _get_document(document)

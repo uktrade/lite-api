@@ -116,7 +116,6 @@ class CaseListFlagSerializer(serializers.Serializer):
     label = serializers.CharField()
     colour = serializers.CharField()
     priority = serializers.IntegerField()
-    team = serializers.UUIDField()
     level = serializers.CharField()
 
 

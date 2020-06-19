@@ -53,6 +53,22 @@ class LetterTemplateCreateTests(DataTestClient):
             CaseTypeEnum.EUA.reference, letter_template.case_types.values_list("reference", flat=True),
         )
 
+    def test_create_letter_templates_no_letter_paragraphs_success(self):
+        data = {
+            "name": "Letter Template",
+            "case_types": [CaseTypeEnum.GOODS.reference],
+            "layout": self.letter_layout.id,
+            "letter_paragraphs": [],
+            "visible_to_exporter": "True",
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+        letter_template = LetterTemplate.objects.get()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(letter_template.name, data["name"])
+        self.assertFalse(letter_template.letter_paragraphs.exists())
+
     def test_create_letter_templates_not_unique_name_failure(self):
         """
         Fail as the name is not unique
@@ -66,21 +82,6 @@ class LetterTemplateCreateTests(DataTestClient):
             "case_types": [CaseTypeEnum.GOODS.reference],
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
-        }
-
-        response = self.client.post(self.url, data, **self.gov_headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_letter_templates_no_letter_paragraphs_failure(self):
-        """
-        Fail as there are no letter paragraphs provided
-        """
-        data = {
-            "name": "Letter Template",
-            "case_types": [CaseTypeEnum.GOODS.reference],
-            "layout": self.letter_layout.id,
-            "letter_paragraphs": [],
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -133,7 +134,7 @@ class LetterTemplateCreateTests(DataTestClient):
             self.assertEqual(letter_paragraphs[1].id, picklist_items[1].id)
 
     def test_create_letter_template_with_decisions_success(self):
-        case_type_references = [CaseTypeEnum.SIEL.reference, CaseTypeEnum.OGEL.reference]
+        case_type_references = [CaseTypeEnum.SIEL.reference, CaseTypeEnum.OIEL.reference]
         data = {
             "name": "Letter Template",
             "case_types": case_type_references,
