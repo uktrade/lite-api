@@ -85,6 +85,8 @@ def _handle_exception(message, licence_id, licence_reference, scheduled_as_backg
             # Runner scheduling, then wait TASK_BACK_OFF seconds before starting the process again.
             if current_attempt >= MAX_ATTEMPTS:
                 schedule_max_tried_task_as_new_task(licence_id, licence_reference)
+            else:
+                error_message += f"; attempt number {current_attempt}"
 
         # Raise an exception
         # this will cause the task to be marked as 'Failed' and retried if there are retry attempts left
