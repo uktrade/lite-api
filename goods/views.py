@@ -7,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 
-from applications.helpers import validate_good_component_details
+from applications.helpers import validate_component_fields, validate_information_security_field
 from applications.models import GoodOnApplication, BaseApplication
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -20,7 +20,7 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, MilitaryUse, Component, ItemCategory
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, MilitaryUse, ItemCategory
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
@@ -201,27 +201,10 @@ class GoodList(ListCreateAPIView):
 
         if "is_military_use" in data and data["is_military_use"] == MilitaryUse.YES_MODIFIED:
             if not data.get("modified_military_use_details"):
+                raise ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
 
-                return JsonResponse(
-                    data={"errors": {"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]}},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-        if "is_component_step" in data and "is_component" not in data:
-            raise ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
-
-        if "is_component" in data and data["is_component"] != Component.NO:
-            # validate component details field if the answer was not 'No'
-            valid_components = validate_good_component_details(data)
-            if not valid_components["is_valid"]:
-                raise ValidationError({valid_components["details_field"]: [valid_components["error"]]})
-
-            data["component_details"] = data[valid_components["details_field"]]
-
-        if "is_information_security_step" in data and "uses_information_security" not in data:
-            raise ValidationError(
-                {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
-            )
+        validate_component_fields(data)
+        validate_information_security_field(data)
 
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 
@@ -280,23 +263,10 @@ class GoodTAUDetails(APIView):
 
         data = request.data.copy()
 
-        if data.get("is_component_step") and not data.get("is_component"):
-            raise ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
-
-        # Validate component detail field if the answer was not 'No'
-        if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
-            valid_components = validate_good_component_details(data)
-            if not valid_components["is_valid"]:
-                raise ValidationError({valid_components["details_field"]: [valid_components["error"]]})
-
-            data["component_details"] = data[valid_components["details_field"]]
-
+        validate_component_fields(data)
         if data.get("uses_information_security") == "None":
             data["uses_information_security"] = None
-        if data.get("is_information_security_step") and data.get("uses_information_security") is None:
-            raise ValidationError(
-                {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
-            )
+        validate_information_security_field(data)
 
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)

@@ -1,9 +1,16 @@
+from rest_framework.exceptions import ValidationError
+
 from applications.enums import ApplicationExportType
 from applications.models import BaseApplication
 from applications.serializers.end_use_details import (
     F680EndUseDetailsUpdateSerializer,
     OpenEndUseDetailsUpdateSerializer,
     StandardEndUseDetailsUpdateSerializer,
+)
+from applications.serializers.exhibition_clearance import (
+    ExhibitionClearanceCreateSerializer,
+    ExhibitionClearanceViewSerializer,
+    ExhibitionClearanceUpdateSerializer,
 )
 from applications.serializers.f680_clearance import (
     F680ClearanceCreateSerializer,
@@ -29,11 +36,6 @@ from applications.serializers.standard_application import (
     StandardApplicationCreateSerializer,
     StandardApplicationUpdateSerializer,
     StandardApplicationViewSerializer,
-)
-from applications.serializers.exhibition_clearance import (
-    ExhibitionClearanceCreateSerializer,
-    ExhibitionClearanceViewSerializer,
-    ExhibitionClearanceUpdateSerializer,
 )
 from applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
@@ -155,3 +157,23 @@ def validate_good_component_details(data):
         return {"is_valid": False, "details_field": field, "error": error}
     else:
         return {"is_valid": True, "details_field": field}
+
+
+def validate_component_fields(data):
+    if data.get("is_component_step") and not data.get("is_component"):
+        raise ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
+
+    # Validate component detail field if the answer was not 'No'
+    if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
+        valid_components = validate_good_component_details(data)
+        if not valid_components["is_valid"]:
+            raise ValidationError({valid_components["details_field"]: [valid_components["error"]]})
+
+        data["component_details"] = data[valid_components["details_field"]]
+
+
+def validate_information_security_field(data):
+    if data.get("is_information_security_step") and data.get("uses_information_security") is None:
+        raise ValidationError(
+            {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
+        )
