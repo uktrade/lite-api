@@ -46,11 +46,11 @@ class Good(TimestampableModel):
     missing_document_reason = models.CharField(choices=GoodMissingDocumentReasons.choices, null=True, max_length=30)
     item_category = models.CharField(choices=ItemCategory.choices, null=True, max_length=20)
     is_military_use = models.CharField(choices=MilitaryUse.choices, null=True, max_length=15)
-    modified_military_use_details = models.CharField(null=True, max_length=255)
+    modified_military_use_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
     is_component = models.CharField(choices=Component.choices, null=True, max_length=15)
-    component_details = models.CharField(null=True, max_length=255)
+    component_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
     uses_information_security = models.BooleanField(default=None, null=True)
-    information_security_details = models.CharField(null=True, max_length=255)
+    information_security_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
     # Gov
     # comment about reviewing good, or responding to CLC query

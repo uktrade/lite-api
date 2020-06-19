@@ -100,9 +100,13 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     )
     is_component = KeyValueChoiceField(choices=Component.choices, allow_null=True, allow_blank=True, required=False,)
     uses_information_security = serializers.BooleanField(allow_null=True, required=False, default=None)
-    modified_military_use_details = serializers.CharField(allow_null=True, required=False, allow_blank=True)
-    component_details = serializers.CharField(allow_null=True, required=False, allow_blank=True)
-    information_security_details = serializers.CharField(allow_null=True, required=False, allow_blank=True)
+    modified_military_use_details = serializers.CharField(
+        allow_null=True, required=False, allow_blank=True, max_length=2000
+    )
+    component_details = serializers.CharField(allow_null=True, required=False, allow_blank=True, max_length=2000)
+    information_security_details = serializers.CharField(
+        allow_null=True, required=False, allow_blank=True, max_length=2000
+    )
 
     class Meta:
         model = Good
