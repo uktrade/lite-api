@@ -21,9 +21,15 @@ class EndUserAdvisoriesList(ListAPIView):
     serializer_class = EndUserAdvisoryListSerializer
 
     def get_queryset(self):
-        return EndUserAdvisoryQuery.objects.filter(
+        name = self.request.GET.get("name")
+        queryset = EndUserAdvisoryQuery.objects.filter(
             organisation_id=get_request_user_organisation_id(self.request)
         ).select_related("end_user", "end_user__country")
+
+        if name:
+            queryset = queryset.filter(end_user__name__icontains=name)
+
+        return queryset
 
     def get_paginated_response(self, data):
         data = get_case_notifications(data, self.request)
