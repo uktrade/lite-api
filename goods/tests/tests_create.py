@@ -208,7 +208,7 @@ class CreateGoodTests(DataTestClient):
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
-            "is_military_use": MilitaryUse.YES_MODIFIED
+            "is_military_use": MilitaryUse.YES_MODIFIED,
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -226,7 +226,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
-            "is_component_step": True
+            "is_component_step": True,
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -236,11 +236,12 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors["is_component"], [strings.Goods.FORM_NO_COMPONENT_SELECTED])
 
-
     @parameterized.expand(
-        [[Component.YES_DESIGNED, "designed_details", strings.Goods.NO_DESIGN_COMPONENT_DETAILS],
-         [Component.YES_MODIFIED, "modified_details", strings.Goods.NO_MODIFIED_COMPONENT_DETAILS],
-         [Component.YES_GENERAL_PURPOSE, "general_details", strings.Goods.NO_GENERAL_COMPONENT_DETAILS]]
+        [
+            [Component.YES_DESIGNED, "designed_details", strings.Goods.NO_DESIGN_COMPONENT_DETAILS],
+            [Component.YES_MODIFIED, "modified_details", strings.Goods.NO_MODIFIED_COMPONENT_DETAILS],
+            [Component.YES_GENERAL_PURPOSE, "general_details", strings.Goods.NO_GENERAL_COMPONENT_DETAILS],
+        ]
     )
     def test_add_good_component_not_details_provided_failure(self, component, details_field, details_error):
         """Test failure 'yes' component answer selected but no component details provided. """
@@ -253,7 +254,7 @@ class CreateGoodTests(DataTestClient):
             "is_military_use": MilitaryUse.NO,
             "is_component_step": True,
             "is_component": component,
-            details_field: ""
+            details_field: "",
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -281,7 +282,9 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
-        self.assertEqual(errors["uses_information_security"], [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES])
+        self.assertEqual(
+            errors["uses_information_security"], [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]
+        )
 
     def test_add_good_information_security_no_details_provided_success(self):
         data = {
@@ -293,18 +296,18 @@ class CreateGoodTests(DataTestClient):
             "is_component_step": True,
             "is_component": Component.NO,
             "is_information_security_step": True,
-            "uses_information_security": True
+            "uses_information_security": True,
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
-        good = response.json()['good']
+        good = response.json()["good"]
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(good["description"], data["description"])
         self.assertEquals(good["status"]["key"], GoodStatus.DRAFT)
         self.assertEquals(good["item_category"]["key"], data["item_category"])
         self.assertEquals(good["is_military_use"]["key"], data["is_military_use"])
-        self.assertEqual(good["is_component"]['key'], data["is_component"])
+        self.assertEqual(good["is_component"]["key"], data["is_component"])
         self.assertTrue(good["uses_information_security"])
 
     def test_add_good_information_security_details_provided_success(self):
@@ -318,18 +321,18 @@ class CreateGoodTests(DataTestClient):
             "is_component": Component.NO,
             "is_information_security_step": True,
             "uses_information_security": True,
-            "information_security_details": "details about security"
+            "information_security_details": "details about security",
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
-        good = response.json()['good']
+        good = response.json()["good"]
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(good["description"], data["description"])
         self.assertEquals(good["status"]["key"], GoodStatus.DRAFT)
         self.assertEquals(good["item_category"]["key"], data["item_category"])
         self.assertEquals(good["is_military_use"]["key"], data["is_military_use"])
-        self.assertEqual(good["is_component"]['key'], data["is_component"])
+        self.assertEqual(good["is_component"]["key"], data["is_component"])
         self.assertTrue(good["uses_information_security"])
         self.assertEquals(good["information_security_details"], data["information_security_details"])
 

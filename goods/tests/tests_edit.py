@@ -1,20 +1,23 @@
+from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodPvGraded, GoodControlled, PvGrading
+from goods.enums import GoodPvGraded, GoodControlled, PvGrading, MilitaryUse, Component
 from goods.models import Good, PvGradingDetails
 from goods.tests.factories import GoodFactory
+from lite_content.lite_api import strings
 from static.control_list_entries.helpers import get_control_list_entry
 from static.control_list_entries.models import ControlListEntry
 from test_helpers.clients import DataTestClient
 
 
-class GoodsEditUnsubmittedGoodTests(DataTestClient):
+class GoodsEditDraftGoodTests(DataTestClient):
     def setUp(self):
         super().setUp()
 
         self.good = self.create_good(description="This is a good", organisation=self.organisation)
         self.url = reverse("goods:good", kwargs={"pk": str(self.good.id)})
+        self.edit_details_url = reverse("goods:good_details", kwargs={"pk": str(self.good.id)})
 
     def test_when_updating_is_good_controlled_to_no_then_control_list_entries_is_deleted(self):
         request_data = {"is_good_controlled": GoodControlled.NO}
@@ -87,3 +90,144 @@ class GoodsEditUnsubmittedGoodTests(DataTestClient):
         self.assertEquals(response.json()["good"]["pv_grading_details"]["grading"]["key"], PvGrading.UK_OFFICIAL)
         self.assertEquals(response.json()["good"]["pv_grading_details"]["custom_grading"], None)
         self.assertEquals(Good.objects.all().count(), 1)
+
+    def test_edit_military_use_to_designed_success(self):
+        request_data = {"is_military_use": MilitaryUse.YES_DESIGNED}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["is_military_use"]["key"], MilitaryUse.YES_DESIGNED)
+        self.assertEqual(good["modified_military_use_details"], None)
+        self.assertEquals(Good.objects.all().count(), 1)
+
+    def test_edit_military_use_to_modified_and_details_set_success(self):
+        request_data = {"is_military_use": MilitaryUse.YES_MODIFIED, "modified_military_use_details": "some details"}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["is_military_use"]["key"], MilitaryUse.YES_MODIFIED)
+        self.assertEqual(good["modified_military_use_details"], "some details")
+        self.assertEquals(Good.objects.all().count(), 1)
+
+    def test_edit_military_use_to_selection_without_details_clears_the_field_success(self):
+        good = self.create_good(
+            "a good",
+            self.organisation,
+            is_military_use=MilitaryUse.YES_MODIFIED,
+            modified_military_use_details="modified details",
+        )
+
+        request_data = {"is_military_use": MilitaryUse.NO}
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["is_military_use"]["key"], MilitaryUse.NO)
+        self.assertEqual(good["modified_military_use_details"], None)
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
+    @parameterized.expand(
+        [
+            [Component.YES_MODIFIED, "modified_details", "modified details"],
+            [Component.YES_DESIGNED, "designed_details", "designed details"],
+            [Component.YES_GENERAL_PURPOSE, "general_details", "general details"],
+        ]
+    )
+    def test_edit_component_to_yes_selection_with_details_success(self, component, details_field, details):
+        request_data = {"is_component": component, details_field: details}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["is_component"]["key"], component)
+        self.assertEquals(good["component_details"], details)
+        self.assertEquals(Good.objects.all().count(), 1)
+
+    def test_edit_component_to_no_clears_details_field_success(self):
+        good = self.create_good(
+            "a good", self.organisation, is_component=Component.YES_MODIFIED, component_details="modified details"
+        )
+
+        request_data = {"is_component": Component.NO}
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["is_component"]["key"], Component.NO)
+        self.assertEquals(good["component_details"], None)
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
+    def test_edit_information_security_to_no_clears_details_field_success(self):
+        request_data = {"uses_information_security": False}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(good["uses_information_security"])
+        self.assertEquals(good["information_security_details"], "")
+        self.assertEquals(Good.objects.all().count(), 1)
+
+    @parameterized.expand([[True, "new details"], [True, ""]])
+    def test_edit_information_security_also_edits_the_details(self, uses_information_security, details):
+        request_data = {"uses_information_security": uses_information_security, "information_security_details": details}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["uses_information_security"], uses_information_security)
+        self.assertEquals(good["information_security_details"], details)
+        self.assertEquals(Good.objects.all().count(), 1)
+
+    @parameterized.expand(
+        [
+            [Component.YES_DESIGNED, "designed_details", strings.Goods.NO_DESIGN_COMPONENT_DETAILS],
+            [Component.YES_MODIFIED, "modified_details", strings.Goods.NO_MODIFIED_COMPONENT_DETAILS],
+            [Component.YES_GENERAL_PURPOSE, "general_details", strings.Goods.NO_GENERAL_COMPONENT_DETAILS],
+        ]
+    )
+    def test_edit_component_to_yes_option_with_no_details_field_failure(self, component, details_field, error):
+        request_data = {"is_component": component, details_field: ""}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEquals(errors[details_field], [error])
+        self.assertEquals(self.good.is_component, Component.NO)
+        self.assertIsNone(self.good.component_details)
+
+    def test_edit_component_no_selection_failure(self):
+        request_data = {"is_component_step": True}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEquals(errors["is_component"], [strings.Goods.FORM_NO_COMPONENT_SELECTED])
+
+    def test_edit_information_security_no_selection_failure(self):
+        request_data = {"is_information_security_step": True}
+
+        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEquals(
+            errors["uses_information_security"], [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]
+        )
