@@ -49,8 +49,7 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
             "-year", "-created_at"
         )
 
-        if queryset.exists():
-            return OpenLicenceReturnsListSerializer(queryset, many=True).data
+        return OpenLicenceReturnsListSerializer(queryset, many=True).data
 
 
 class ComplianceLicenceListSerializer(serializers.ModelSerializer):

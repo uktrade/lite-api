@@ -65,7 +65,7 @@ class ComplianceManageStatus(APIView):
 
     authentication_classes = (GovAuthentication,)
 
-    def put(self, request, pk):
+    def put(self, request, pk):  # TODO: Move to CaseStatus endpoint
         case = get_case(pk)
         new_status = request.data.get("status")
 
