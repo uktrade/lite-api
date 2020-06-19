@@ -120,7 +120,6 @@ class GenericApplicationViewSerializer(serializers.ModelSerializer):
                 "key": instance.status.status,
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
-        return None
 
     def get_case_type(self, instance):
         from cases.serializers import CaseTypeSerializer
