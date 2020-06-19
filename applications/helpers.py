@@ -131,7 +131,7 @@ def get_temp_export_details_update_serializer(export_type):
 
 
 def validate_good_component_details(data):
-    """ Validate the details for the chosen component are given. """
+    """ Validate the accompanying details for the chosen 'yes' component option. """
     component = data["is_component"]
     component_detail_options = {
         Component.YES_DESIGNED: {

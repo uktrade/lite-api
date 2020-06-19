@@ -189,7 +189,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         instance.modified_military_use_details = validated_data.get(
             "modified_military_use_details", instance.modified_military_use_details
         )
-        # if military answer is no "yes_modified" then the details are set to None
+        # if military answer is not "yes_modified" then the details are set to None
         if instance.is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO]:
             instance.modified_military_use_details = None
 

@@ -185,7 +185,7 @@ class GoodList(ListCreateAPIView):
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
 
-        # TEMPORARY to prevent invalid goods - to be removed once LT-2704 and LT-2251 are implemented
+        # TODO: TEMPORARY to prevent invalid goods - to be removed once LT-2704 and LT-2251 are implemented
         if "item_category" in data:
             if data["item_category"] in [
                 ItemCategory.GROUP2_FIREARMS,
@@ -201,35 +201,25 @@ class GoodList(ListCreateAPIView):
 
         if "is_military_use" in data and data["is_military_use"] == MilitaryUse.YES_MODIFIED:
             if not data.get("modified_military_use_details"):
+
                 return JsonResponse(
                     data={"errors": {"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]}},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
         if "is_component_step" in data and "is_component" not in data:
-            return JsonResponse(
-                data={"errors": {"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
 
-        # Validate component detail field if the answer was not 'No'
         if "is_component" in data and data["is_component"] != Component.NO:
+            # validate component details field if the answer was not 'No'
             valid_components = validate_good_component_details(data)
             if not valid_components["is_valid"]:
-                return JsonResponse(
-                    data={"errors": {valid_components["details_field"]: [valid_components["error"]]}},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                raise ValidationError({valid_components["details_field"]: [valid_components["error"]]})
 
             data["component_details"] = data[valid_components["details_field"]]
 
         if "is_information_security_step" in data and "uses_information_security" not in data:
-            return JsonResponse(
-                data={
-                    "errors": {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError({"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]})
 
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 
@@ -263,7 +253,7 @@ class GoodDocumentCriteriaCheck(APIView):
         return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
 
 
-class GoodDetails(generics.RetrieveUpdateAPIView):
+class GoodTAUDetails(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
