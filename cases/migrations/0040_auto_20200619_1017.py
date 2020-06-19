@@ -6,10 +6,29 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("cases", "0039_auto_20200619_1011"),
+        ("cases", "0039_auto_20200618_1318"),
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name="casetype",
+            name="sub_type",
+            field=models.CharField(
+                choices=[
+                    ("standard", "Standard Licence"),
+                    ("open", "Open Licence"),
+                    ("hmrc", "HMRC Query"),
+                    ("end_user_advisory", "End User Advisory Query"),
+                    ("goods", "Goods Query"),
+                    ("exhibition_clearance", "MOD Exhibition Clearance"),
+                    ("gifting_clearance", "MOD Gifting Clearance"),
+                    ("f680_clearance", "MOD F680 Clearance"),
+                    ("compliance_site", "Compliance Site Case"),
+                    ("compliance_visit", "Compliance Visit Case"),
+                ],
+                max_length=35,
+            ),
+        ),
         migrations.AlterField(
             model_name="casetype",
             name="reference",
