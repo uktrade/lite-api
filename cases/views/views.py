@@ -202,7 +202,7 @@ class ExporterCaseDocumentDownload(APIView):
         if case.organisation.id != get_request_user_organisation_id(request):
             return HttpResponse(status.HTTP_401_UNAUTHORIZED)
         try:
-            document = CaseDocument.objects.get(id=document_pk, case=case)
+            document = CaseDocument.objects.get(id=document_pk, case=case, visible_to_exporter=True)
             return document_download_stream(document)
         except Document.DoesNotExist:
             raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
