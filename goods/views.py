@@ -2,7 +2,7 @@ from django.db import transaction
 from django.db.models import Q, Count
 from django.http import JsonResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
@@ -219,7 +219,9 @@ class GoodList(ListCreateAPIView):
             data["component_details"] = data[valid_components["details_field"]]
 
         if "is_information_security_step" in data and "uses_information_security" not in data:
-            raise ValidationError({"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]})
+            raise ValidationError(
+                {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
+            )
 
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 
@@ -292,7 +294,9 @@ class GoodTAUDetails(APIView):
         if data.get("uses_information_security") == "None":
             data["uses_information_security"] = None
         if data.get("is_information_security_step") and data.get("uses_information_security") is None:
-            raise ValidationError({"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]})
+            raise ValidationError(
+                {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
+            )
 
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
