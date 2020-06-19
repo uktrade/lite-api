@@ -49,7 +49,7 @@ class Licences(ListCreateAPIView):
 
         if reference:
             licences = licences.filter(
-                Q(application__name__contains=reference) | Q(application__reference_code__contains=reference)
+                Q(application__name__icontains=reference) | Q(application__reference_code__icontains=reference)
             )
 
         if clc:
@@ -70,7 +70,7 @@ class Licences(ListCreateAPIView):
 
         if end_user:
             licences = licences.filter(
-                application__parties__party__name__contains=end_user,
+                application__parties__party__name__icontains=end_user,
                 application__parties__party__type=PartyType.END_USER,
             )
 

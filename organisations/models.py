@@ -1,14 +1,19 @@
 import uuid
 
-from django.db import models
+from django.db import models, transaction
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from addresses.models import Address
 from common.models import TimestampableModel
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from flags.models import Flag
+from open_general_licences.enums import OpenGeneralLicenceStatus
 from organisations.enums import OrganisationType, OrganisationStatus, LocationType
 from static.countries.models import Country
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_organisation_relationship
 from users.models import UserOrganisationRelationship
 
@@ -46,6 +51,36 @@ class Organisation(TimestampableModel):
 
     def is_active(self):
         return self.status == OrganisationStatus.ACTIVE
+
+    def register_open_general_licence(self, open_general_licence, user):
+        from open_general_licences.models import OpenGeneralLicenceCase
+
+        if open_general_licence.status == OpenGeneralLicenceStatus.DEACTIVATED:
+            raise ValidationError(
+                {"open_general_licence": ["This open general licence is deactivated and cannot be registered"]}
+            )
+
+        if not open_general_licence.registration_required:
+            raise ValidationError({"open_general_licence": ["This open general licence does not require registration"]})
+
+        # Only register open general licences for sites in the UK which don't already have that licence registered
+        with transaction.atomic():
+            for site in (
+                Site.objects.get_by_user_and_organisation(user, self)
+                .filter(address__country_id="GB")
+                .exclude(open_general_licence_cases__open_general_licence=open_general_licence)
+            ):
+                OpenGeneralLicenceCase(
+                    open_general_licence=open_general_licence,
+                    site=site,
+                    case_type=open_general_licence.case_type,
+                    organisation=self,
+                    status=get_case_status_by_status(CaseStatusEnum.FINALISED),
+                    submitted_at=timezone.now(),
+                    submitted_by=user,
+                ).save()
+
+        return open_general_licence.id
 
     def save(self, **kwargs):
         super().save(**kwargs)
