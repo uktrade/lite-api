@@ -6,14 +6,20 @@
     <div class="address">
 	  Reference: {{ case_reference }}<br>
       <p>
-        {{ organisation.name }}<br>
-        {{ organisation.primary_site.address_line_1 }}<br>
-        {% if organisation.primary_site.address_line_2 %}{{ organisation.primary_site.address_line_2 }}<br>{% endif %}
-        {{ organisation.primary_site.postcode }}<br>
-        {{ organisation.primary_site.city }}<br>
-        {{ organisation.primary_site.region }}<br>
-        {{ organisation.primary_site.country.name }}
-      </p>
+		  {{ organisation.name }}<br>
+		  {% if organisation.primary_site.address %}
+			  {{ organisation.primary_site.address }}
+		  {% else %}
+			  {{ organisation.primary_site.address_line_1 }}<br>
+			  {% if organisation.primary_site.address_line_2 %}
+				  {{ organisation.primary_site.address_line_2 }}<br>
+			  {% endif %}
+		  {% endif %}
+		  {% if organisation.primary_site.postcode %}{{ organisation.primary_site.postcode }}<br>{% endif %}
+		  {% if organisation.primary_site.city %}{{ organisation.primary_site.city }}<br>{% endif %}
+		  {% if organisation.primary_site.region %}{{ organisation.primary_site.region }}<br>{% endif %}
+		  {{ organisation.primary_site.country.name }}
+	  </p>
       <p>Date: {{ current_date }}</p>
     </div>
     <div class="address">
