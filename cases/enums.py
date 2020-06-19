@@ -39,7 +39,7 @@ class CaseTypeReferenceEnum:
         (OGTCL, "Open General Trade Control Licence"),
         (OGTL, "Open General Transhipment Licence"),
         (COMP_SITE, "Compliance Site Case"),
-        (COMP_SITE, "Compliance Visit Case"),
+        (COMP_VISIT, "Compliance Visit Case"),
     ]
 
     @classmethod

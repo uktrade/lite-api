@@ -13,6 +13,7 @@ def generate_reference_code(case):
     # Case Reference
     if case.case_type.id in [CaseTypeEnum.COMPLIANCE_SITE.id, CaseTypeEnum.COMPLIANCE_VISIT.id]:
         reference_code, compliance_suffix = case.case_type.reference.split("_")
+        reference_code += SEPARATOR
     else:
         reference_code = case.case_type.reference + SEPARATOR
 

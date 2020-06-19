@@ -3,7 +3,7 @@ from rest_framework import serializers
 from conf.serializers import KeyValueChoiceField
 from addresses.serializers import AddressSerializer
 from compliance.enums import ComplianceRiskValues, ComplianceVisitTypes
-from compliance.models import ComplianceVisitCase
+from compliance.models import ComplianceVisitCase, CompliancePerson
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
@@ -17,7 +17,6 @@ COMPLIANCEVISITCASE_TEXTFIELD_LENGTH = 750
 
 
 class ComplianceVisitViewSerializer(serializers.ModelSerializer):
-    site_case = serializers.UUIDField()
     site_name = serializers.CharField(source="site_case.site.name")
     address = AddressSerializer(source="site_case.site.address")
     status = serializers.SerializerMethodField()
@@ -35,12 +34,13 @@ class ComplianceVisitViewSerializer(serializers.ModelSerializer):
     compliance_overview = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
     individuals_overview = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
     products_overview = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
+    people_present = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ComplianceVisitCase
         fields = (
             "id",
-            "site_case",
+            "site_case_id",
             "site_name",
             "address",
             "status",
@@ -58,6 +58,7 @@ class ComplianceVisitViewSerializer(serializers.ModelSerializer):
             "individuals_risk_value",
             "products_overview",
             "products_risk_value",
+            "people_present",
         )
 
     def get_status(self, instance):
@@ -67,3 +68,7 @@ class ComplianceVisitViewSerializer(serializers.ModelSerializer):
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
         return None
+
+    def get_people_present(self, instance):
+        people = CompliancePerson.objects.filter(visit_case_id=instance.id)
+        return [{"name": person.name, "job": person.job_title} for person in people]
