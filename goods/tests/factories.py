@@ -1,7 +1,7 @@
 import factory
 
 from goods import models
-from goods.enums import GoodControlled
+from goods.enums import GoodControlled, ItemCategory, Component, MilitaryUse
 from static.control_list_entries.helpers import get_control_list_entry
 
 
@@ -10,6 +10,13 @@ class GoodFactory(factory.django.DjangoModelFactory):
     is_good_controlled = GoodControlled.NO
     part_number = factory.Faker("ean13")
     organisation = None
+    item_category = ItemCategory.GROUP1_COMPONENTS
+    is_military_use = MilitaryUse.NO
+    is_component = Component.NO
+    uses_information_security = True
+    information_security_details = None
+    modified_military_use_details = None
+    component_details = None
 
     class Meta:
         model = models.Good
