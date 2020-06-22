@@ -775,13 +775,6 @@ class LicencesView(APIView):
         if not licence:
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
-        print(GoodOnApplication.objects.filter(application=pk).count())
-        print(GoodOnLicence.objects.filter(licence__application=pk).count())
-        print(GoodOnLicence.objects.filter(licence__application=pk).values("good").annotate(good_id=Sum("usage"),            unit=F("good__unit"),            usage_applied_for=F("good__quantity"),            advice_type=F("good__good__advice__type"),
-
-
-            value=F("good__value"),))
-
         # Group by good and aggregate usage information
         goods_on_licence = GoodOnLicence.objects.filter(licence__application=pk, good__good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO]).values("good").annotate(
             usage_total=Sum("usage"),
@@ -854,9 +847,6 @@ class LicencesView(APIView):
                 for good in goods_on_licence
             ]
         }
-
-        from pprint import pprint
-        pprint(data)
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)
 

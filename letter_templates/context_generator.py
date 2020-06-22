@@ -366,8 +366,6 @@ def _get_good_context(good_on_application, advice=None):
 
 def _get_goods_context(goods, final_advice):
     final_advice = final_advice.filter(good_id__isnull=False)
-    print('\n\nFinal Advice\n')
-    print(final_advice)
     goods = goods.order_by("good__description")
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
     goods_context["all"] = [_get_good_context(good_on_application) for good_on_application in goods]

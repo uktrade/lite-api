@@ -539,10 +539,6 @@ class ApplicationFinaliseView(APIView):
             }
         } for goa in goods_on_application]
 
-        from pprint import pprint
-        print("WITH ADVICE")
-        pprint(good_on_applications_with_advice)
-
         return JsonResponse({"goods": good_on_applications_with_advice})
 
     @transaction.atomic
@@ -562,11 +558,6 @@ class ApplicationFinaliseView(APIView):
 
         data = deepcopy(request.data)
         action = data.get("action")
-
-        from pprint import pprint
-        print('\n\nFINALSING APPLICATION')
-        print("DATA: ")
-        pprint(data)
 
         if action == AdviceType.REFUSE:
             application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
@@ -640,8 +631,6 @@ class ApplicationFinaliseView(APIView):
                     serializer = GoodOnLicenceSerializer(data=good_data, context={"quantity": goa['quantity']})
                     good_licence_serializers.append(serializer)
                     if not serializer.is_valid():
-                        print('\n\n')
-                        print(serializer.errors)
                         quantity_error = serializer.errors.get("quantity")
                         if quantity_error:
                             errors[quantity_key] = quantity_error
@@ -655,7 +644,6 @@ class ApplicationFinaliseView(APIView):
                     for serializer in good_licence_serializers:
                         serializer.save()
 
-            print(licence_serializer.data)
             return JsonResponse(data=licence_serializer.data, status=status.HTTP_200_OK)
 
         return JsonResponse(

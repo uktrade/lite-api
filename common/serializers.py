@@ -6,13 +6,6 @@ class EnumField(serializers.ChoiceField):
         self.cls = cls
         kwargs['choices'] = [(tag.name, tag.value) for tag in cls]
         super(EnumField, self).__init__(**kwargs)
-    #
-    # def to_representation(self, obj):
-    #     print('\n\n\n')
-    #     print(obj)
-    #     print(type(obj))
-    #     print('\n\n\n')
-    #     return obj.value
 
     def to_internal_value(self, data):
         try:
