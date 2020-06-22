@@ -1,3 +1,4 @@
+from django.db.models import Count
 from rest_framework import generics
 
 from cases.libraries.dates import make_date_from_params
@@ -7,6 +8,7 @@ from cases.views.search import service
 from conf.authentication import GovAuthentication
 from conf.helpers import str_to_bool
 from queues.constants import SYSTEM_QUEUES, ALL_CASES_QUEUE_ID, NON_WORK_QUEUES
+from queues.models import Queue
 from queues.service import get_system_queues, get_team_queues
 
 
@@ -59,7 +61,10 @@ class CasesSearchView(generics.ListAPIView):
         service.populate_is_recently_updated(cases)
         service.get_hmrc_sla_hours(cases)
 
-        queue = next((q for q in queues if str(q["id"]) == str(queue_id)))
+        queue = (
+            next((q for q in queues if str(q["id"]) == str(queue_id)), None)
+            or list(Queue.objects.filter(id=queue_id).annotate(case_count=Count("cases")).values())[0]
+        )
 
         statuses = service.get_case_status_list()
         case_types = service.get_case_type_type_list()
