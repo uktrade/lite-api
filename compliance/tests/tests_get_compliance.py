@@ -5,7 +5,34 @@ from compliance.tests.factories import ComplianceSiteCaseFactory, OpenLicenceRet
 from test_helpers.clients import DataTestClient
 
 
+def _assert_response_data(self, response_data, compliance_case, open_licence_returns):
+    self.assertEqual(response_data["id"], str(compliance_case.id))
+    self.assertEqual(response_data["reference_code"], compliance_case.reference_code)
+    self.assertEqual(response_data["case_type"]["reference"]["key"], CaseTypeReferenceEnum.COMP)
+    self.assertEqual(response_data["data"]["address"]["id"], str(self.organisation.primary_site.address.id))
+    self.assertEqual(
+        response_data["data"]["address"]["address_line_1"], self.organisation.primary_site.address.address_line_1
+    )
+    self.assertEqual(
+        response_data["data"]["address"]["address_line_2"], self.organisation.primary_site.address.address_line_2
+    )
+    self.assertEqual(response_data["data"]["address"]["city"], self.organisation.primary_site.address.city)
+    self.assertEqual(response_data["data"]["address"]["region"], self.organisation.primary_site.address.region)
+    self.assertEqual(response_data["data"]["address"]["postcode"], self.organisation.primary_site.address.postcode)
+    self.assertEqual(
+        response_data["data"]["address"]["country"]["id"], self.organisation.primary_site.address.country.id
+    )
+    self.assertEqual(response_data["data"]["site_name"], self.organisation.primary_site.name)
+    self.assertEqual(response_data["data"]["status"]["key"], compliance_case.status.status)
+    self.assertEqual(response_data["data"]["organisation"]["id"], str(self.organisation.id))
+    self.assertEqual(len(response_data["data"]["open_licence_returns"]), 1)
+    self.assertEqual(response_data["data"]["open_licence_returns"][0]["id"], str(open_licence_returns.id))
+    self.assertEqual(response_data["data"]["open_licence_returns"][0]["year"], open_licence_returns.year)
+    self.assertIsNotNone(response_data["data"]["open_licence_returns"][0]["created_at"])
+
+
 class GetComplianceTests(DataTestClient):
+
     def test_get_compliance_case(self):
         application = self.create_open_application_case(self.organisation)
         compliance_case = ComplianceSiteCaseFactory(organisation=self.organisation, site=self.organisation.primary_site)
@@ -17,26 +44,4 @@ class GetComplianceTests(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
         response_data = response.json()["case"]
 
-        self.assertEqual(response_data["id"], str(compliance_case.id))
-        self.assertEqual(response_data["reference_code"], compliance_case.reference_code)
-        self.assertEqual(response_data["case_type"]["reference"]["key"], CaseTypeReferenceEnum.COMP)
-        self.assertEqual(response_data["data"]["address"]["id"], str(self.organisation.primary_site.address.id))
-        self.assertEqual(
-            response_data["data"]["address"]["address_line_1"], self.organisation.primary_site.address.address_line_1
-        )
-        self.assertEqual(
-            response_data["data"]["address"]["address_line_2"], self.organisation.primary_site.address.address_line_2
-        )
-        self.assertEqual(response_data["data"]["address"]["city"], self.organisation.primary_site.address.city)
-        self.assertEqual(response_data["data"]["address"]["region"], self.organisation.primary_site.address.region)
-        self.assertEqual(response_data["data"]["address"]["postcode"], self.organisation.primary_site.address.postcode)
-        self.assertEqual(
-            response_data["data"]["address"]["country"]["id"], self.organisation.primary_site.address.country.id
-        )
-        self.assertEqual(response_data["data"]["site_name"], self.organisation.primary_site.name)
-        self.assertEqual(response_data["data"]["status"]["key"], compliance_case.status.status)
-        self.assertEqual(response_data["data"]["organisation"]["id"], str(self.organisation.id))
-        self.assertEqual(len(response_data["data"]["open_licence_returns"]), 1)
-        self.assertEqual(response_data["data"]["open_licence_returns"][0]["id"], str(open_licence_returns.id))
-        self.assertEqual(response_data["data"]["open_licence_returns"][0]["year"], open_licence_returns.year)
-        self.assertIsNotNone(response_data["data"]["open_licence_returns"][0]["created_at"])
+        _assert_response_data(self, response_data, compliance_case, open_licence_returns)
