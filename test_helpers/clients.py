@@ -651,7 +651,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         site=True,
         case_type_id=CaseTypeEnum.SIEL.id,
         add_a_good=True,
+        user: ExporterUser = None,
     ):
+        if not user:
+            user = UserOrganisationRelationship.objects.filter(organisation_id=organisation.id).first().user
+
         application = StandardApplication(
             name=reference_name,
             export_type=ApplicationExportType.PERMANENT,
@@ -671,7 +675,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
             status_id="00000000-0000-0000-0000-000000000000",
-            submitted_by=self.exporter_user,
+            submitted_by=user,
         )
 
         application.save()
