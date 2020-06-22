@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from applications.models import GoodOnApplication
+from cases.enums import CaseTypeSubTypeEnum
 from conf.helpers import add_months
 from goods.models import Good
 from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
@@ -115,12 +116,12 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
 
 class HMRCIntegrationGoodUsageUpdateSerializer(serializers.Serializer):
-    id = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=True, allow_null=False)
+    id = serializers.UUIDField(required=True, allow_null=False)
     usage = serializers.IntegerField(required=True, allow_null=False)
 
 
 class HMRCIntegrationLicenceUpdateSerializer(serializers.Serializer):
-    id = serializers.PrimaryKeyRelatedField(queryset=Licence.objects.all(), required=True, allow_null=False)
+    id = serializers.UUIDField(required=True, allow_null=False)
     goods = HMRCIntegrationGoodUsageUpdateSerializer(many=True, required=True, allow_null=False, allow_empty=False)
 
 
@@ -142,6 +143,15 @@ class HMRCIntegrationLicencesUpdateSerializer(serializers.Serializer):
         return validated_data
 
     def _validate_licence(self, data):
+        try:
+            data["id"] = Licence.objects.get(
+                id=data["id"], application__case_type__sub_type=CaseTypeSubTypeEnum.STANDARD
+            )
+        except Licence.DoesNotExist:
+            raise serializers.ValidationError(
+                {"licence": f"{CaseTypeSubTypeEnum.STANDARD} Licence '{data['id']}' not found."}
+            )
+
         data["goods"] = [self._validate_good(data["id"], good) for good in data["goods"]]
         return data
 
