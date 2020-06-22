@@ -61,9 +61,11 @@ class CasesSearchView(generics.ListAPIView):
         service.populate_is_recently_updated(cases)
         service.get_hmrc_sla_hours(cases)
 
+        # Get queue from system & my queues.
+        # If this fails (i.e. I'm on a non team queue) fetch the queue data
         queue = (
             next((q for q in queues if str(q["id"]) == str(queue_id)), None)
-            or list(Queue.objects.filter(id=queue_id).annotate(case_count=Count("cases")).values())[0]
+            or Queue.objects.filter(id=queue_id).annotate(case_count=Count("cases")).values()[0]
         )
 
         statuses = service.get_case_status_list()
