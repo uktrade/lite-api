@@ -12,11 +12,13 @@ class CasesConfig(AppConfig):
         from background_task.models import Task
         from cases.sla import update_cases_sla
 
-        if not Task.objects.filter(task_name="cases.sla.update_cases_sla").exists():
+        Task.objects.filter(task_name="cases.sla.update_cases_sla").delete()
+
+        if BACKGROUND_TASK_ENABLED:
             update_cases_sla(repeat=Task.DAILY, repeat_until=None)  # noqa
 
-        if LITE_HMRC_INTEGRATION_ENABLED:
-            CasesConfig.schedule_not_sent_licences()
+            if LITE_HMRC_INTEGRATION_ENABLED:
+                CasesConfig.schedule_not_sent_licences()
 
     @staticmethod
     def schedule_not_sent_licences():
@@ -29,5 +31,4 @@ class CasesConfig(AppConfig):
             schedule_licence_for_hmrc_integration(str(licence.id), licence.application.reference_code)
 
     def ready(self):
-        if BACKGROUND_TASK_ENABLED:
-            post_migrate.connect(self.initialize_background_tasks, sender=self)
+        post_migrate.connect(self.initialize_background_tasks, sender=self)

@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "applications.apps.ApplicationsConfig",
     "audit_trail",
     "background_task",
-    "cases.app.CasesConfig",
+    "cases.apps.CasesConfig",
     "cases.generated_documents",
     "compliance",
     "django.contrib.admin",
