@@ -8,9 +8,9 @@ import django.utils.timezone
 from django.conf import settings as conf_settings
 from django.db import connection
 from django.test import tag
+from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from audit_trail import service as audit_trail_service
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
 from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
@@ -28,12 +28,8 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
-from goods.tests.factories import GoodFactory
-from goodstype.tests.factories import GoodsTypeFactory
-from licences.enums import LicenceStatus
-from licences.models import Licence
+from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
@@ -46,12 +42,17 @@ from flags.models import Flag, FlaggingRule
 from flags.tests.factories import FlagFactory
 from goods.enums import GoodControlled, GoodPvGraded, PvGrading
 from goods.models import Good, GoodDocument, PvGradingDetails
+from goods.tests.factories import GoodFactory
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
+from goodstype.tests.factories import GoodsTypeFactory
 from letter_templates.models import LetterTemplate
+from licences.enums import LicenceStatus
+from licences.helpers import get_reference_code
+from licences.models import Licence
 from organisations.enums import OrganisationType
-from organisations.tests.factories import OrganisationFactory, SiteFactory
 from organisations.models import Organisation, ExternalLocation
+from organisations.tests.factories import OrganisationFactory, SiteFactory
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party
 from parties.models import PartyDocument
@@ -77,8 +78,6 @@ from test_helpers import colours
 from users.enums import UserStatuses, SystemUser
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
-from faker import Faker
-
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 from workflow.routing_rules.models import RoutingRule
@@ -271,7 +270,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         party = Party(**data)
         party.save()
 
-        if application:
+        if application and party_type == PartyType.ADDITIONAL_CONTACT:
+            application.additional_contacts.add(party)
+        elif application:
             # Attach party to application
             application.add_party(party)
         return party
@@ -549,7 +550,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_advice(
-        user, case, advice_field, advice_type, level, pv_grading=None, advice_text="This is some text", good=None
+        user,
+        case,
+        advice_field,
+        advice_type,
+        level,
+        pv_grading=None,
+        advice_text="This is some text",
+        good=None,
+        goods_type=None,
     ):
         advice = Advice(
             user=user,
@@ -567,10 +576,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if advice_field == "end_user":
             advice.end_user = StandardApplication.objects.get(pk=case.id).end_user.party
 
-        if advice_field == "good":
-            advice.good = GoodOnApplication.objects.get(application=case).good
-        elif good:
+        if good:
             advice.good = good
+        elif goods_type:
+            advice.goods_type = goods_type
+        elif advice_field == "good":
+            if case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+                advice.good = GoodOnApplication.objects.filter(application=case).first().good
+            elif case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+                advice.goods_type = GoodsType.objects.filter(application=case).first()
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = "I am easy to proviso"
@@ -608,10 +622,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
 
-    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
-        if not org_type:
-            org_type = OrganisationType.COMMERCIAL
-
+    def create_organisation_with_exporter_user(
+        self, name="Organisation", org_type=OrganisationType.COMMERCIAL, exporter_user=None
+    ):
         organisation = OrganisationFactory(name=name, type=org_type)
 
         if not exporter_user:
@@ -756,6 +769,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             SiteOnApplication(site=organisation.primary_site, application=application).save()
 
         return application
+
+    def create_mod_clearance_application_case(self, organisation, case_type):
+        draft = self.create_mod_clearance_application(organisation, case_type)
+
+        return self.submit_application(draft, self.exporter_user)
 
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
@@ -954,15 +972,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return ecju_query
 
     @staticmethod
-    def create_licence(application: BaseApplication, status: LicenceStatus, decisions=None):
+    def create_licence(application: BaseApplication, status: LicenceStatus, reference_code=None, decisions=None, sent_at=None):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
+        if not reference_code:
+            reference_code = get_reference_code(application.reference_code)
 
         licence = Licence.objects.create(
             application=application,
+            reference_code=reference_code,
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
             status=status,
+            sent_at=sent_at,
         )
         licence.decisions.set(decisions)
         return licence

@@ -70,11 +70,11 @@ def generate_preview(layout: str, text: str, case=None, additional_contact=None,
         django_engine = template_engine_factory(allow_missing_variables)
         template = django_engine.get_template(f"{layout}.html")
 
-        if text:
-            # Substitute content placeholder for user text
+        # Substitute content placeholder for user text
+        template_text = template.source
+        if CONTENT_PLACEHOLDER in template_text:
             text = format_user_text(text)
-            template = template.source
-            template = template.replace(CONTENT_PLACEHOLDER, text)
+            template = template_text.replace(CONTENT_PLACEHOLDER, text)
             template = django_engine.from_string(template)
 
         context = {}

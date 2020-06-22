@@ -99,7 +99,10 @@ class AddingRouteOfGoodsTests(DataTestClient):
         response = self.client.put(self.url, self.data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json()["errors"], [strings.Applications.Generic.NOT_POSSIBLE_ON_MINOR_EDIT])
+        self.assertEqual(
+            response.json()["errors"]["non_field_errors"],
+            [strings.Applications.Generic.INVALID_OPERATION_FOR_NON_DRAFT_OR_MAJOR_EDIT_CASE_ERROR],
+        )
         self.draft.refresh_from_db()
         self.assertEqual(self.draft.is_shipped_waybill_or_lading, True)
         self.assertEqual(self.draft.non_waybill_or_lading_route_details, None)

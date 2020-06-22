@@ -4,51 +4,65 @@ from background_task import background
 from background_task.models import Task
 from django.db import transaction
 
-from conf import settings
+from conf.settings import MAX_ATTEMPTS
 from documents.libraries.av_operations import VirusScanException
+from documents.models import Document
 
 TASK_QUEUE = "document_av_scan_queue"
 
 
-@background(schedule=0, queue=TASK_QUEUE)
-def scan_document_for_viruses(document_id):
+@background(queue=TASK_QUEUE, schedule=0)
+def scan_document_for_viruses(document_id, scheduled_as_background_task=True):
     """
-    Executed by background worker process or synchronous depending on BACKGROUND_TASK_RUN_ASYNC.
+    Scans documents for viruses
+    :param document_id:
+    :param scheduled_as_background_task: Has this function has been scheduled as a task (used for error handling)
     """
-
-    from documents.models import Document
 
     with transaction.atomic():
         logging.info(f"Fetching document '{document_id}'")
-        doc = Document.objects.select_for_update(nowait=True).get(id=document_id)
+        document = Document.objects.select_for_update(nowait=True).get(id=document_id)
 
-        if doc.virus_scanned_at:
-            logging.info(f"Document '{document_id}' has already been scanned; safe={doc.safe}")
-            return doc.safe
+        if document.virus_scanned_at:
+            logging.info(f"Document '{document_id}' has already been scanned; safe={document.safe}")
+            return
 
         try:
-            return doc.scan_for_viruses()
+            document.scan_for_viruses()
         except VirusScanException as exc:
-            logging.warning(str(exc))
+            _handle_exception(str(exc), document, scheduled_as_background_task)
         except Exception as exc:  # noqa
-            logging.warning(
-                f"An unexpected error occurred when scanning document '{document_id}' -> {type(exc).__name__}: {exc}"
+            _handle_exception(
+                f"An unexpected error occurred when scanning document '{document_id}' -> {type(exc).__name__}: {exc}",
+                document,
+                scheduled_as_background_task,
             )
 
-        # Document scan not completed. Get the task's current attempt number by retrieving the previous attempt
-        # number and adding 1.  Note that if the scan was triggered directly and not as a background task then
-        # no task will be found so we default the previous attempt to zero
-        previous_attempt = (
-            Task.objects.filter(queue=TASK_QUEUE, task_params__contains=document_id)
-            .values_list("attempts", flat=True)
-            .first()
-        ) or 0
 
-        current_attempt = previous_attempt + 1
+def _handle_exception(message: str, document, scheduled_as_background_task):
+    logging.warning(message)
+    error_message = f"Failed to scan document '{document.id}'"
 
-        if current_attempt >= settings.MAX_ATTEMPTS:
-            logging.warning(f"MAX_ATTEMPTS {settings.MAX_ATTEMPTS} for document '{document_id}' has been reached")
-            doc.delete_s3()
+    if scheduled_as_background_task:
+        try:
+            task = Task.objects.filter(queue=TASK_QUEUE, task_params__contains=document.id)
+        except Task.DoesNotExist:
+            logging.error(f"No task was found for document '{document.id}'")
+            document.delete_s3()
+        else:
+            # Get the task's current attempt number by retrieving the previous attempts and adding 1
+            current_attempt = task.first().attempts + 1
 
-    # Raise an exception (this will cause the task to be marked as 'Failed' and the attempt number to be updated)
-    raise Exception(f"Failed to scan document '{document_id}'")
+            # Delete the document's file from S3 if the task has been attempted MAX_ATTEMPTS times
+            if current_attempt >= MAX_ATTEMPTS:
+                logging.warning(f"Maximum attempts of {MAX_ATTEMPTS} for document '{document.id}' has been reached")
+                document.delete_s3()
+
+            error_message += f"; attempt number {current_attempt}"
+    else:
+        document.delete_s3()
+
+    # Raise an exception.
+    # This will result in a serializer error or
+    # cause the task to be marked as 'Failed' and retried if there are retry attempts left
+    raise Exception(error_message)

@@ -1,15 +1,16 @@
 from django.db.models import Q
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView
 
 from applications.models import CountryOnApplication
-from cases.enums import CaseTypeSubTypeEnum
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
 from licences.enums import LicenceStatus
 from licences.models import Licence
-from licences.serializers.view_licence import LicenceSerializer
+from licences.serializers.view_licence import LicenceSerializer, NLRdocumentSerializer
 from licences.serializers.view_licences import LicenceListSerializer
-from organisations.libraries.get_organisation import get_request_user_organisation_id
+from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from parties.enums import PartyType
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
@@ -49,7 +50,7 @@ class Licences(ListCreateAPIView):
 
         if reference:
             licences = licences.filter(
-                Q(application__name__contains=reference) | Q(application__reference_code__contains=reference)
+                Q(application__name__icontains=reference) | Q(application__reference_code__icontains=reference)
             )
 
         if clc:
@@ -70,7 +71,7 @@ class Licences(ListCreateAPIView):
 
         if end_user:
             licences = licences.filter(
-                application__parties__party__name__contains=end_user,
+                application__parties__party__name__icontains=end_user,
                 application__parties__party__type=PartyType.END_USER,
             )
 
@@ -84,3 +85,39 @@ class ViewLicence(RetrieveAPIView):
     authentication_classes = (ExporterAuthentication,)
     queryset = Licence.objects.all()
     serializer_class = LicenceSerializer
+
+
+class NLRs(ListAPIView):
+    # TODO: using the NLRdocumentSerializer creates multiple queries for each result,
+    #  query count can be cut down in future
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = NLRdocumentSerializer
+
+    def get_queryset(self):
+        organisation = get_request_user_organisation(self.request)
+        documents = GeneratedCaseDocument.objects.select_related("case").filter(
+            advice_type=AdviceType.NO_LICENCE_REQUIRED, case__organisation=organisation
+        )
+
+        reference = self.request.GET.get("reference")
+        clc = self.request.GET.get("clc")
+        country = self.request.GET.get("country")
+        end_user = self.request.GET.get("end_user")
+
+        if reference:
+            documents = documents.filter(case__reference_code__contains=reference)
+
+        if clc:
+            documents = documents.filter(
+                case__advice__good__control_list_entries__rating=clc,
+                case__advice__level=AdviceLevel.FINAL,
+                case__advice__type=AdviceType.NO_LICENCE_REQUIRED,
+            )
+
+        if country:
+            documents = documents.filter(case__baseapplication__parties__party__country=country)
+
+        if end_user:
+            documents = documents.filter(case__baseapplication__parties__party__name__contains=end_user)
+
+        return documents.distinct()

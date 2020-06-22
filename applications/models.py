@@ -296,7 +296,7 @@ class GoodOnApplication(TimestampableModel):
     # Every application except Exhibition applications contains the following data, as a result these can be null
     quantity = models.FloatField(null=True, blank=True, default=None)
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
-    value = models.DecimalField(max_digits=256, decimal_places=2, null=True, blank=True, default=None)
+    value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
     is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
 
     # Exhibition applications are the only applications that contain the following as such may be null
