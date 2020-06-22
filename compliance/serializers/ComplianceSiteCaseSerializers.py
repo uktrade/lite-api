@@ -46,13 +46,19 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
         return None
 
     def get_visits(self, instance):
-        visit_cases = ComplianceVisitCase.objects.filter(site_case_id=instance.id)
+        visit_cases = (
+            ComplianceVisitCase.objects.select_related("case_officer", "case_type")
+            .prefetch_related("flags")
+            .filter(site_case_id=instance.id)
+        )
         return [
             {
                 "id": case.id,
                 "reference_code": case.reference_code,
                 "visit_date": case.visit_date,
-                "case_officer": case.case_officer,
+                "case_officer": f"{case.case_officer.first_name} {case.case_officer.last_name}"
+                if case.case_officer
+                else None,
                 "flags": get_ordered_flags(case=case, team=self.team, limit=3),
             }
             for case in visit_cases

@@ -8,7 +8,10 @@ from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceLicenceListSerializer
-from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitViewSerializer
+from compliance.serializers.ComplianceVisitCaseSerializers import (
+    ComplianceVisitViewSerializer,
+    CompliancePersonSerializer,
+)
 from compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsListSerializer,
     OpenLicenceReturnsCreateSerializer,
@@ -28,10 +31,16 @@ from compliance.helpers import (
 )
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import ListAPIView, RetrieveAPIView, ListCreateAPIView, UpdateAPIView
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+)
 
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
-from compliance.models import OpenLicenceReturns
+from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
 from conf.authentication import ExporterAuthentication
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -116,8 +125,10 @@ class ComplianceSiteVisits(ListCreateAPIView):
         )
 
 
-class ComplianceVisitUpdateView(UpdateAPIView):
+class ComplianceVisitCaseView(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
+    queryset = ComplianceVisitCase.objects.all()
+    serializer_class = ComplianceVisitViewSerializer
 
 
 class ComplianceCaseId(APIView):
@@ -175,3 +186,19 @@ class OpenLicenceReturnDownloadView(RetrieveAPIView):
     authentication_classes = (ExporterAuthentication,)
     queryset = OpenLicenceReturns.objects.all()
     serializer_class = OpenLicenceReturnsViewSerializer
+
+
+class ComplianceVisitPeoplePresentView(ListCreateAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CompliancePersonSerializer
+
+    def get_queryset(self):
+        return CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"])
+
+
+class ComplianceVisitPersonPresentView(RetrieveUpdateDestroyAPIView):
+    authentication_classes = (GovAuthentication,)
+    serializer_class = CompliancePersonSerializer
+
+    def get_queryset(self):
+        return CompliancePerson.objects.filter(id=self.kwargs["pk"])

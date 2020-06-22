@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import empty
 
 from conf.serializers import KeyValueChoiceField
 from addresses.serializers import AddressSerializer
@@ -23,11 +24,11 @@ class ComplianceVisitViewSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
-    overall_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices, allow_null=True, allow_blank=True,)
+    overall_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices, allow_blank=True)
     compliance_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices)
     individuals_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices)
     products_risk_value = KeyValueChoiceField(choices=ComplianceRiskValues.choices)
-    visit_type = KeyValueChoiceField(choices=ComplianceVisitTypes.choices)
+    visit_type = KeyValueChoiceField(choices=ComplianceVisitTypes.choices, allow_blank=True)
     licence_risk_value = serializers.IntegerField(min_value=1, max_value=5, allow_null=True)
     overview = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
     inspection = serializers.CharField(max_length=COMPLIANCEVISITCASE_TEXTFIELD_LENGTH)
@@ -71,4 +72,27 @@ class ComplianceVisitViewSerializer(serializers.ModelSerializer):
 
     def get_people_present(self, instance):
         people = CompliancePerson.objects.filter(visit_case_id=instance.id)
-        return [{"name": person.name, "job": person.job_title} for person in people]
+        return [{"id": person.id, "name": person.name, "job_title": person.job_title} for person in people]
+
+    def __init__(self, instance=None, data=empty, **kwargs):
+        # if an IntegerField recieves a blank field, it throws an error. We don't enforce the user to add the field
+        # till they desire to regardless of form.
+        if data is not empty:
+            if "licence_risk_value" in data and data.get("licence_risk_value") == "":
+                data.pop("licence_risk_value")
+        super(ComplianceVisitViewSerializer, self).__init__(instance, data, **kwargs)
+
+
+class CompliancePersonSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    job_title = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    visit_case = serializers.PrimaryKeyRelatedField(queryset=ComplianceVisitCase.objects.all())
+
+    class Meta:
+        model = CompliancePerson
+        fields = (
+            "id",
+            "name",
+            "job_title",
+            "visit_case",
+        )

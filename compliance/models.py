@@ -77,6 +77,7 @@ class OpenLicenceReturns(CreatedAt):
 
 
 class CompliancePerson(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     name = models.CharField(null=False, blank=False, max_length=100)
     job_title = models.CharField(null=False, blank=False, max_length=100)
     visit_case = models.ForeignKey(

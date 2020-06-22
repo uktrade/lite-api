@@ -20,9 +20,9 @@ class ComplianceRiskValues:
     HIGHEST = "highest"
 
     choices = [
-        (VERY_LOW, "very low risk"),
-        (LOWER, "lower risk"),
-        (MEDIUM, "medium risk"),
-        (HIGHER, "higher risk"),
-        (HIGHEST, "highest risk"),
+        (VERY_LOW, "Very low risk"),
+        (LOWER, "Lower risk"),
+        (MEDIUM, "Medium risk"),
+        (HIGHER, "Higher risk"),
+        (HIGHEST, "Highest risk"),
     ]
