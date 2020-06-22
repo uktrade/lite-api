@@ -353,10 +353,10 @@ def _get_good_context(good_on_application, advice=None):
         good_context["note"] = advice.note
         if advice.proviso:
             good_context["proviso_reason"] = advice.proviso
-    if good_on_application.licenced_quantity:
-        good_context["quantity"] = _format_quantity(good_on_application.licenced_quantity, good_on_application.unit)
-    if good_on_application.licenced_value:
-        good_context["value"] = f"£{good_on_application.licenced_value}"
+    # if good_on_application.licenced_quantity:
+    #     good_context["quantity"] = _format_quantity(good_on_application.licenced_quantity, good_on_application.unit)
+    # if good_on_application.licenced_value:
+    #     good_context["value"] = f"£{good_on_application.licenced_value}"
     if good_on_application.item_type:
         good_context["item_type"] = good_on_application.item_type
         good_context["other_item_type"] = good_on_application.other_item_type
@@ -366,6 +366,8 @@ def _get_good_context(good_on_application, advice=None):
 
 def _get_goods_context(goods, final_advice):
     final_advice = final_advice.filter(good_id__isnull=False)
+    print('\n\nFinal Advice\n')
+    print(final_advice)
     goods = goods.order_by("good__description")
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
     goods_context["all"] = [_get_good_context(good_on_application) for good_on_application in goods]

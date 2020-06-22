@@ -1,14 +1,14 @@
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F
-from django.http.response import JsonResponse, HttpResponse, Http404
+from django.db.models import F, Sum, Max
+from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import CountryOnApplication, PartyOnApplication
+from applications.models import CountryOnApplication, PartyOnApplication, GoodOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -47,18 +47,21 @@ from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
+from goods.models import Good
 from goodstype.helpers import get_goods_type
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
-from licences.models import Licence
-from licences.serializers.create_licence import LicenceCreateSerializer
+from licences.enums import LicenceStatus
+from licences.models import Licence, GoodOnLicence
+from licences.serializers.create_licence import LicenceSerializer
 from lite_content.lite_api.strings import Documents, Cases
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
+from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.decisions.models import Decision
@@ -577,15 +580,8 @@ class CaseOfficer(APIView):
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
-class FinaliseView(RetrieveUpdateAPIView):
+class FinaliseView(UpdateAPIView):
     authentication_classes = (GovAuthentication,)
-    serializer_class = LicenceCreateSerializer
-
-    def get_object(self):
-        # Due to a bug where multiple licences were being created, we get the latest one.
-        licence = Licence.objects.filter(application=self.kwargs["pk"]).order_by("created_at").last()
-        if not licence:
-            raise Http404(Licence.DoesNotExist)
 
     @transaction.atomic
     def put(self, request, pk):
@@ -638,7 +634,7 @@ class FinaliseView(RetrieveUpdateAPIView):
         # Due to a bug where multiple licences were being created, we get the latest one.
         licence = Licence.objects.filter(application=case).order_by("created_at").last()
         if licence:
-            licence.is_complete = True
+            licence.status = LicenceStatus.ISSUED
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.save()
             return_payload["licence"] = licence.id
@@ -769,3 +765,99 @@ class RerunRoutingRules(APIView):
         run_routing_rules(case)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class LicencesView(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        licence = Licence.objects.filter(application=pk).last()
+        if not licence:
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+        print(GoodOnApplication.objects.filter(application=pk).count())
+        print(GoodOnLicence.objects.filter(licence__application=pk).count())
+        print(GoodOnLicence.objects.filter(licence__application=pk).values("good").annotate(good_id=Sum("usage"),            unit=F("good__unit"),            usage_applied_for=F("good__quantity"),            advice_type=F("good__good__advice__type"),
+
+
+            value=F("good__value"),))
+
+        # Group by good and aggregate usage information
+        goods_on_licence = GoodOnLicence.objects.filter(licence__application=pk, good__good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO]).values("good").annotate(
+            usage_total=Sum("usage"),
+            usage_licenced=Max("quantity"),
+            usage_applied_for=F("good__quantity"),
+            id=F("good__id"),
+            advice_type=F("good__good__advice__type"),
+            advice_text=F("good__good__advice__text"),
+            advice_proviso=F("good__good__advice__proviso"),
+            good_id=F("good__good__id"),
+            unit=F("good__unit"),
+            value=F("good__value"),
+            description=F("good__good__description")
+        )
+        control_list_entries = {
+            good.id: ControlListEntrySerializer(good.control_list_entries.all(), many=True).data
+            for good in Good.objects.filter(
+                id__in=[good["good_id"] for good in goods_on_licence]
+            ).prefetch_related("control_list_entries")
+        }
+        """
+                goods_on_application = (
+            GoodOnApplication.objects.filter(
+                application_id=pk, good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+            )
+            .annotate(
+                advice_type=F("good__advice__type"),
+                advice_text=F("good__advice__text"),
+                advice_proviso=F("good__advice__proviso")
+            )
+        )
+
+        good_on_applications_with_advice = [{
+            "id": str(goa.id),
+            "good": GoodCreateSerializer(goa.good).data,
+            "unit": goa.unit,
+            "quantity": goa.quantity,
+            "value": goa.value,
+            "advice": {
+                "type": AdviceType.as_representation(goa.advice_type),
+                "text": goa.advice_text,
+                "proviso": goa.advice_proviso,
+            }
+        } for goa in goods_on_application]
+        """
+
+        data = {
+            "licence": {
+                "id": licence.id,
+                "start_date": licence.start_date,
+                "status": licence.status,
+                "duration": licence.duration,
+                "reissued": Licence.objects.filter(application=pk, status=LicenceStatus.REVOKED).exists()
+            },
+            "goods": [
+                {
+                    "control_list_entries": control_list_entries[good["good_id"]],
+                    "id": good["id"],
+                    "unit": good["unit"],
+                    "usage_total": good["usage_total"],
+                    "usage_licenced": good["usage_licenced"],
+                    "usage_applied_for": good["usage_applied_for"],
+                    "value": good["value"],
+                    "advice": {
+                        "type": AdviceType.as_representation(good["advice_type"]),
+                        "text": good["advice_text"],
+                        "proviso": good["advice_proviso"],
+                    }
+                }
+                for good in goods_on_licence
+            ]
+        }
+
+        from pprint import pprint
+        pprint(data)
+
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+

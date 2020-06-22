@@ -1,18 +1,22 @@
 from rest_framework import serializers
+from common.serializers import EnumField
 
 from applications.enums import LicenceDuration
+from licences.enums import LicenceStatus
 from licences.models import Licence
 from lite_content.lite_api import strings
 
 
-class LicenceCreateSerializer(serializers.ModelSerializer):
+class LicenceSerializer(serializers.ModelSerializer):
+    status = EnumField(LicenceStatus, required=False)
+
     class Meta:
         model = Licence
         fields = (
             "application",
             "start_date",
             "duration",
-            "is_complete",
+            "status"
         )
 
     def validate(self, data):

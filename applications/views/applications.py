@@ -2,6 +2,7 @@ from copy import deepcopy
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import F
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
@@ -50,7 +51,7 @@ from applications.serializers.generic_application import (
 )
 from applications.serializers.good import (
     GoodOnApplicationLicenceQuantitySerializer,
-    GoodOnApplicationLicenceQuantityCreateSerializer,
+    GoodOnLicenceSerializer,
 )
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -71,12 +72,14 @@ from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses, SystemFlags
 from flags.models import Flag
+from goods.serializers import GoodCreateSerializer
 from goodstype.models import GoodsType
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
+from licences.enums import LicenceStatus
 from licences.models import Licence
-from licences.serializers.create_licence import LicenceCreateSerializer
+from licences.serializers.create_licence import LicenceSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
@@ -433,12 +436,24 @@ class ApplicationManageStatus(APIView):
                 )
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
-            if not Licence.objects.filter(application=application, is_complete=True).exists():
+            try:
+                licence = Licence.objects.get(application=application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED])
+            except Licence.DoesNotExist:
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            Licence.objects.get(application=application, is_complete=True).delete()
+            licence.surrender()
+
+        if data["status"] == CaseStatusEnum.REOPENED_FOR_CHANGES:
+            try:
+                licence = Licence.objects.get(application=application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED])
+            except Licence.DoesNotExist:
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            licence.revoke()
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -495,32 +510,40 @@ class ApplicationManageStatus(APIView):
 
 class ApplicationFinaliseView(APIView):
     authentication_classes = (GovAuthentication,)
-    approved_goods_advice = None
-    approved_goods_on_application = None
-
-    def dispatch(self, request, *args, **kwargs):
-        self.approved_goods_advice = Advice.objects.filter(
-            case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO], good_id__isnull=False,
-        )
-        self.approved_goods_on_application = GoodOnApplication.objects.filter(
-            application_id=kwargs["pk"], good__in=self.approved_goods_advice.values_list("good", flat=True)
-        )
-        return super(ApplicationFinaliseView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
         Get goods to set licenced quantity for, with advice
         """
-        goods_on_application = GoodOnApplicationLicenceQuantitySerializer(
-            self.approved_goods_on_application, many=True
-        ).data
+        goods_on_application = (
+            GoodOnApplication.objects.filter(
+                application_id=pk, good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+            )
+            .annotate(
+                advice_type=F("good__advice__type"),
+                advice_text=F("good__advice__text"),
+                advice_proviso=F("good__advice__proviso")
+            ).distinct()
+        )
 
-        for good_advice in self.approved_goods_advice:
-            for good in goods_on_application:
-                if str(good_advice.good.id) == good["good"]["id"]:
-                    good["advice"] = SimpleAdviceSerializer(good_advice).data
+        good_on_applications_with_advice = [{
+            "id": str(goa.id),
+            "good": GoodCreateSerializer(goa.good).data,
+            "unit": goa.unit,
+            "quantity": goa.quantity,
+            "value": goa.value,
+            "advice": {
+                "type": AdviceType.as_representation(goa.advice_type),
+                "text": goa.advice_text,
+                "proviso": goa.advice_proviso,
+            }
+        } for goa in goods_on_application]
 
-        return JsonResponse({"goods": goods_on_application})
+        from pprint import pprint
+        print("WITH ADVICE")
+        pprint(good_on_applications_with_advice)
+
+        return JsonResponse({"goods": good_on_applications_with_advice})
 
     @transaction.atomic
     def put(self, request, pk):
@@ -540,7 +563,20 @@ class ApplicationFinaliseView(APIView):
         data = deepcopy(request.data)
         action = data.get("action")
 
-        if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
+        from pprint import pprint
+        print('\n\nFINALSING APPLICATION')
+        print("DATA: ")
+        pprint(data)
+
+        if action == AdviceType.REFUSE:
+            application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+            application.save()
+            audit_trail_service.create(
+                actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
+            )
+            return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
+
+        elif action in [AdviceType.APPROVE, AdviceType.PROVISO]:
             default_licence_duration = get_default_duration(application)
             data["duration"] = data.get("duration", default_licence_duration)
 
@@ -565,63 +601,67 @@ class ApplicationFinaliseView(APIView):
                     [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"]
                 )
 
-            # Create incomplete Licence object
             try:
                 start_date = timezone.datetime(year=int(data["year"]), month=int(data["month"]), day=int(data["day"]))
-                data["start_date"] = start_date.strftime("%Y-%m-%d")
             except KeyError:
                 return JsonResponse(
                     data={"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Check goods have licenced quantity/value
+            # Create Draft Licence object
+            data["start_date"] = start_date.strftime("%Y-%m-%d")
+            data["application"] = application
+
+            licence_serializer = LicenceSerializer(data=data)
+
+            if not licence_serializer.is_valid():
+                return JsonResponse(data={"errors": licence_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            licence_serializer.save()
+
+            # Create GoodsOnLicence if Standard application
             if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
                 errors = {}
-                for good in self.approved_goods_on_application:
-                    good_id = str(good.id)
-                    quantity_key = f"quantity-{good_id}"
-                    value_key = f"value-{good_id}"
-                    good_data = {
-                        "licenced_quantity": request.data.get(quantity_key),
-                        "licenced_value": request.data.get(value_key),
-                    }
-                    serializer = GoodOnApplicationLicenceQuantityCreateSerializer(good, data=good_data, partial=True)
+                good_licence_serializers = []
+                good_on_applications = GoodOnApplication.objects.filter(
+                    application_id=pk, good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+                ).values("id", "quantity")
 
-                    if serializer.is_valid():
-                        serializer.save()
-                    else:
-                        quantity_error = serializer.errors.get("licenced_quantity")
+                for goa in good_on_applications:
+                    quantity_key = f"quantity-{goa['id']}"
+                    value_key = f"value-{goa['id']}"
+                    good_data = {
+                        "quantity": request.data.get(quantity_key),
+                        "value": request.data.get(value_key),
+                        "licence": licence_serializer.instance.id,
+                        "good": goa['id']
+                    }
+                    serializer = GoodOnLicenceSerializer(data=good_data, context={"quantity": goa['quantity']})
+                    good_licence_serializers.append(serializer)
+                    if not serializer.is_valid():
+                        print('\n\n')
+                        print(serializer.errors)
+                        quantity_error = serializer.errors.get("quantity")
                         if quantity_error:
                             errors[quantity_key] = quantity_error
-                        value_error = serializer.errors.get("licenced_value")
+                        value_error = serializer.errors.get("value")
                         if value_error:
                             errors[value_key] = value_error
 
                 if errors:
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    for serializer in good_licence_serializers:
+                        serializer.save()
 
-            data["application"] = application
-            serializer = LicenceCreateSerializer(data=data)
-
-            if not serializer.is_valid():
-                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-            serializer.save()
-            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
-
-        elif action == AdviceType.REFUSE:
-            application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-            application.save()
-            audit_trail_service.create(
-                actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
-            )
-            return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
+            print(licence_serializer.data)
+            return JsonResponse(data=licence_serializer.data, status=status.HTTP_200_OK)
 
         return JsonResponse(
-            data={"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]}, status=status.HTTP_400_BAD_REQUEST
+            data={"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]},
+            status=status.HTTP_400_BAD_REQUEST
         )
-
 
 class ApplicationDurationView(APIView):
     authentication_classes = (GovAuthentication,)
@@ -706,7 +746,6 @@ class ApplicationCopy(APIView):
         self.duplicate_f680_clearance_types()
 
         # Remove usage & licenced quantity/ value
-        self.new_application.goods.update(usage=0, licenced_quantity=None, licenced_value=None)
         self.new_application.goods_type.update(usage=0)
 
         # Save

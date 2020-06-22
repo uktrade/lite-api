@@ -32,6 +32,7 @@ from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
 from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
+from licences.enums import LicenceStatus
 from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -953,7 +954,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return ecju_query
 
     @staticmethod
-    def create_licence(application: BaseApplication, is_complete: bool, decisions=None):
+    def create_licence(application: BaseApplication, status: LicenceStatus, decisions=None):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
 
@@ -961,7 +962,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             application=application,
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
-            is_complete=is_complete,
+            status=status,
         )
         licence.decisions.set(decisions)
         return licence

@@ -5,6 +5,7 @@ from applications.models import CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
+from licences.enums import LicenceStatus
 from licences.models import Licence
 from licences.serializers.view_licence import LicenceSerializer
 from licences.serializers.view_licences import LicenceListSerializer
@@ -39,7 +40,7 @@ class Licences(ListCreateAPIView):
         active_only = self.request.GET.get("active_only") == "True"
 
         licences = Licence.objects.filter(
-            application__organisation_id=get_request_user_organisation_id(self.request), is_complete=True
+            application__organisation_id=get_request_user_organisation_id(self.request), status=LicenceStatus.ISSUED
         )
 
         # Apply filters

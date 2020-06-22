@@ -3,6 +3,7 @@ from rest_framework import status
 
 from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
+from licences.enums import LicenceStatus
 from licences.views import LicenceType
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
@@ -41,7 +42,7 @@ class GetLicencesTests(DataTestClient):
             for application in self.applications
         ]
         self.licences = {
-            application: self.create_licence(application, is_complete=True) for application in self.applications
+            application: self.create_licence(application, status=LicenceStatus.ISSUED) for application in self.applications
         }
 
     def test_get_all_licences(self):
@@ -117,8 +118,8 @@ class GetLicencesFilterTests(DataTestClient):
         self.url = reverse("licences:licences")
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.open_application = self.create_open_application_case(self.organisation)
-        self.standard_application_licence = self.create_licence(self.standard_application, is_complete=True)
-        self.open_application_licence = self.create_licence(self.open_application, is_complete=True)
+        self.standard_application_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        self.open_application_licence = self.create_licence(self.open_application, status=LicenceStatus.ISSUED)
 
     def test_only_my_organisations_licences_are_returned(self):
         self.standard_application.organisation = self.create_organisation_with_exporter_user()[0]
@@ -131,8 +132,8 @@ class GetLicencesFilterTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.open_application_licence.id))
 
-    def test_incomplete_licences_ignored(self):
-        self.open_application_licence.is_complete = False
+    def test_draft_licences_ignored(self):
+        self.open_application_licence.status = LicenceStatus.DRAFT
         self.open_application_licence.save()
 
         response = self.client.get(self.url, **self.exporter_headers)

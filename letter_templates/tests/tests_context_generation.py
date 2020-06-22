@@ -13,6 +13,7 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType
 from letter_templates.context_generator import get_document_context
+from licences.enums import LicenceStatus
 from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
@@ -357,7 +358,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def test_generate_context_with_licence(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        licence = self.create_licence(case, is_complete=True)
+        licence = self.create_licence(case, status=LicenceStatus.ISSUED)
 
         context = get_document_context(case)
 

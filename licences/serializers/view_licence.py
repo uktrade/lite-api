@@ -4,8 +4,10 @@ from applications.models import BaseApplication, PartyOnApplication, GoodOnAppli
 from cases.enums import CaseTypeSubTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType, Advice
+from common.serializers import EnumField
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from goodstype.models import GoodsType
+from licences.enums import LicenceStatus
 from licences.models import Licence
 from licences.serializers.view_licences import (
     PartyLicenceListSerializer,
@@ -22,12 +24,14 @@ from static.units.enums import Units
 
 
 class CaseLicenceViewSerializer(serializers.ModelSerializer):
+    status = EnumField(LicenceStatus, required=False)
+
     class Meta:
         model = Licence
         fields = (
             "start_date",
             "duration",
-            "is_complete",
+            "status",
         )
 
 
