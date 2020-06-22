@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from applications.models import GoodOnApplication
 from conf.helpers import add_months
-from goods.models import Good
 from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
 from licences.models import Licence
 from static.countries.models import Country
@@ -115,17 +114,17 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
 
 class HMRCIntegrationGoodUsageUpdateSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    usage = serializers.IntegerField()
+    id = serializers.UUIDField(required=True, allow_null=False)
+    usage = serializers.IntegerField(required=True, allow_null=False)
 
 
 class HMRCIntegrationLicenceUpdateSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    goods = HMRCIntegrationGoodUsageUpdateSerializer(many=True)
+    id = serializers.UUIDField(required=True, allow_null=False)
+    goods = HMRCIntegrationGoodUsageUpdateSerializer(many=True, required=True, allow_null=False, allow_empty=False)
 
 
 class HMRCIntegrationLicencesUpdateSerializer(serializers.Serializer):
-    licences = HMRCIntegrationLicenceUpdateSerializer(many=True)
+    licences = HMRCIntegrationLicenceUpdateSerializer(many=True, required=True, allow_null=False, allow_empty=False)
 
     def validate(self, data):
         data = super(HMRCIntegrationLicencesUpdateSerializer, self).validate(data)
