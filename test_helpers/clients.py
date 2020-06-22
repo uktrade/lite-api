@@ -905,7 +905,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates a complete standard application case
         """
-        draft = self.create_draft_standard_application(organisation, reference_name, parties=parties, site=site)
+        draft = self.create_draft_standard_application(
+            organisation, reference_name, parties=parties, site=site, user=user
+        )
 
         return self.submit_application(draft, self.exporter_user)
 

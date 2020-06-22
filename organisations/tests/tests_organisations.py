@@ -496,8 +496,12 @@ class EditOrganisationTests(DataTestClient):
             [GovPermissions.MANAGE_ORGANISATIONS.name, GovPermissions.REOPEN_CLOSED_CASES.name]
         )
 
-        case_one = self.create_standard_application_case(organisation, reference_name="Case one")
-        case_two = self.create_standard_application_case(organisation, reference_name="Case two")
+        case_one = self.create_standard_application_case(
+            organisation, reference_name="Case one", user=self.exporter_user
+        )
+        case_two = self.create_standard_application_case(
+            organisation, reference_name="Case two", user=self.exporter_user
+        )
 
         # Set case to finalised and provide licence duration
         case_one.status = get_case_status_by_status("finalised")
@@ -524,8 +528,12 @@ class EditOrganisationTests(DataTestClient):
 
         data = {"name": self.faker.company()}
 
-        case_one = self.create_standard_application_case(organisation, reference_name="Case one")
-        case_two = self.create_standard_application_case(organisation, reference_name="Case two")
+        case_one = self.create_standard_application_case(
+            organisation, reference_name="Case one", user=self.exporter_user
+        )
+        case_two = self.create_standard_application_case(
+            organisation, reference_name="Case two", user=self.exporter_user
+        )
 
         # Set case to finalised and provide licence duration
         case_one.status = get_case_status_by_status("finalised")
