@@ -41,12 +41,16 @@ class LicenceList(ListAPIView):
     def get_queryset(self):
         # For Compliance cases, when viewing from the site, we care about the Case the licence is attached to primarily,
         #   and the licence status (not added), and returns completed (not added).
-        reference_code = self.request.GET.get("reference").upper()
+        reference_code = self.request.GET.get("reference", "").upper()
 
+        # We filter for cases that are completed and have a compliance licence linked to it
         cases = Case.objects.select_related("case_type").filter(
             baseapplication__licence__is_complete=True,
             baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
         )
+
+        # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
+        #   types relevant for compliance cases
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
             baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
             baseapplication__goods__licenced_quantity__isnull=False,
