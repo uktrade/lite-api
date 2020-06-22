@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -14,4 +14,4 @@ class HMRCIntegration(APIView):
         if not serializer.is_valid():
             return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
+        return HttpResponse(status=status.HTTP_200_OK)

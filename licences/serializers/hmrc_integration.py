@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from applications.models import GoodOnApplication
 from conf.helpers import add_months
+from goods.models import Good
 from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
 from licences.models import Licence
 from static.countries.models import Country
@@ -114,12 +115,12 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
 
 class HMRCIntegrationGoodUsageUpdateSerializer(serializers.Serializer):
-    id = serializers.UUIDField(required=True, allow_null=False)
+    id = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=True, allow_null=False)
     usage = serializers.IntegerField(required=True, allow_null=False)
 
 
 class HMRCIntegrationLicenceUpdateSerializer(serializers.Serializer):
-    id = serializers.UUIDField(required=True, allow_null=False)
+    id = serializers.PrimaryKeyRelatedField(queryset=Licence.objects.all(), required=True, allow_null=False)
     goods = HMRCIntegrationGoodUsageUpdateSerializer(many=True, required=True, allow_null=False, allow_empty=False)
 
 
@@ -131,29 +132,25 @@ class HMRCIntegrationLicencesUpdateSerializer(serializers.Serializer):
         data["licences"] = [self._validate_licence(licence) for licence in data["licences"]]
         return data
 
-    def _validate_licence(self, data):
-        try:
-            data["id"] = Licence.objects.get(id=data["id"])
-        except Licence.DoesNotExist:
-            raise serializers.ValidationError({"licence": f"Licence '{data['id']}' not found."})
-
-        data["goods"] = [self._validate_good(data["id"], good) for good in data["goods"]]
-
-        return data
-
-    def _validate_good(self, licence, data):
-        try:
-            data["id"] = GoodOnApplication.objects.get(application=licence.application, good_id=data["id"])
-        except GoodOnApplication.DoesNotExist:
-            raise serializers.ValidationError({"good": f"Good '{data['id']}' not found on Licence '{licence.id}'"})
-
-        return data
-
     def create(self, validated_data):
         for licence in validated_data["licences"]:
             for good in licence["goods"]:
-                goa = good["id"]
+                goa = good["good_on_application"]
                 goa.usage = good["usage"]
                 goa.save()
 
         return validated_data
+
+    def _validate_licence(self, data):
+        data["goods"] = [self._validate_good(data["id"], good) for good in data["goods"]]
+        return data
+
+    def _validate_good(self, licence, data):
+        try:
+            data["good_on_application"] = GoodOnApplication.objects.get(
+                application=licence.application, good_id=data["id"]
+            )
+        except GoodOnApplication.DoesNotExist:
+            raise serializers.ValidationError({"good": f"Good '{data['id']}' not found on Licence '{licence.id}'"})
+
+        return data

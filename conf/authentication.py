@@ -128,7 +128,7 @@ class HawkOnlyAuthentication(authentication.BaseAuthentication):
         try:
             hawk_receiver = _authenticate(request, _lookup_credentials)
         except HawkFail as e:
-            logging.warning(f"Failed HAWK authentication {e}")
+            logging.error(f"Failed HAWK authentication {e}")
             raise e
 
         return AnonymousUser, hawk_receiver
@@ -143,7 +143,7 @@ class HMRCIntegrationOnlyAuthentication(authentication.BaseAuthentication):
         try:
             hawk_receiver = _authenticate(request, _lookup_credentials_hmrc_integration)
         except HawkFail as e:
-            logging.warning(f"Failed HAWK authentication {e}")
+            logging.error(f"Failed HAWK authentication {e}")
             raise e
 
         return AnonymousUser, hawk_receiver
