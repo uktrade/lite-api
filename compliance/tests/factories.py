@@ -19,7 +19,6 @@ class OpenLicenceReturnsFactory(factory.django.DjangoModelFactory):
 
 class ComplianceSiteCaseFactory(factory.django.DjangoModelFactory):
     case_type_id = CaseTypeEnum.COMPLIANCE.id
-    status = get_case_status_by_status(CaseStatusEnum.OPEN)
     submitted_at = timezone.now()
 
     class Meta:
