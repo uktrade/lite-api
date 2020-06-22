@@ -5,7 +5,6 @@ from parameterized import parameterized
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
-from cases.enums import CaseTypeSubTypeEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -66,6 +65,9 @@ class HMRCIntegrationUsageTests(DataTestClient):
         response = self.client.put(self.url, {})
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["licences"], ["This field is required."],
+        )
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -78,19 +80,23 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["licences"], [{"id": ["This field is required."]}],
+        )
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
     def test_data_transfer_object_invalid_licence_id_failure(self, create_licence):
         licence = create_licence(self)
+        invalid_licence_id = str(uuid.uuid4())
 
         response = self.client.put(
             self.url,
             {
                 "licences": [
                     {
-                        "id": str(uuid.uuid4()),
+                        "id": invalid_licence_id,
                         "goods": [{"id": str(licence.application.goods.first().good.id), "usage": 10}],
                     }
                 ]
@@ -98,6 +104,9 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["licences"], [f"Licence '{invalid_licence_id}' not found."],
+        )
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -108,6 +117,9 @@ class HMRCIntegrationUsageTests(DataTestClient):
         response = self.client.put(self.url, {"licences": [{"id": str(licence.id)}]})
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["licences"], [{"goods": ["This field is required."]}],
+        )
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -118,6 +130,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         response = self.client.put(self.url, {"licences": [{"id": str(licence.id), "goods": [{"usage": 10}]}]})
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["licences"], [{"goods": [{"id": ["This field is required."]}]}])
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -126,10 +139,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence = create_licence(self)
 
         response = self.client.put(
-            self.url, {"licences": [{"id": str(licence.id), "goods": [{"id": str(uuid.uuid4()), "usage": 10}]}]},
+            self.url, {"licences": [{"id": str(licence.id), "good": [{"id": str(uuid.uuid4()), "usage": 10}]}]},
         )
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["licences"], [{"goods": ["This field is required."]}],
+        )
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -143,6 +159,9 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["licences"], [{"goods": [{"usage": ["This field is required."]}]}],
+        )
 
     def test_data_transfer_object_open_application_failure(self):  # (has no concept of Usage)
         open_application = self.create_open_application_case(self.organisation)
@@ -162,5 +181,5 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["licence"], [f"{CaseTypeSubTypeEnum.STANDARD} Licence '{licence.id}' not found."],
+            response.json()["errors"]["licences"], [f"Licence '{licence.id}' not found."],
         )
