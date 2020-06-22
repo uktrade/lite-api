@@ -32,7 +32,6 @@ def _assert_response_data(self, response_data, compliance_case, open_licence_ret
 
 
 class GetComplianceTests(DataTestClient):
-
     def test_get_compliance_case(self):
         application = self.create_open_application_case(self.organisation)
         compliance_case = ComplianceSiteCaseFactory(organisation=self.organisation, site=self.organisation.primary_site)
