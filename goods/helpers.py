@@ -27,8 +27,9 @@ def validate_component_details(data):
 
     if not data[field]:
         return {"is_valid": False, "details_field": field, "error": error}
-    else:
-        return {"is_valid": True, "details_field": field}
+    if len(data[field]) > 2000:
+        return {"is_valid": False, "details_field": field, "error": strings.Goods.COMPONENT_DETAILS_OVER_LIMIT_ERROR}
+    return {"is_valid": True, "details_field": field}
 
 
 def validate_component_fields(data):
