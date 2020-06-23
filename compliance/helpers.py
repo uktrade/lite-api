@@ -8,7 +8,7 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-from compliance.models import ComplianceSiteCase
+from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
 from conf.exceptions import NotFoundError
 from goods.models import Good
 from lite_content.lite_api import strings
@@ -155,3 +155,29 @@ def fetch_and_validate_licences(references, organisation_id):
         raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_LICENCES]})
 
     return licence_ids
+
+
+def compliance_visit_case_complete(case: ComplianceVisitCase):
+    fields = [
+        "visit_type",
+        "visit_date",
+        "overall_risk_value",
+        "licence_risk_value",
+        "overview",
+        "inspection",
+        "compliance_overview",
+        "compliance_risk_value",
+        "individuals_overview",
+        "individuals_risk_value",
+        "products_overview",
+        "products_risk_value",
+    ]
+
+    for field in fields:
+        if not getattr(case, field):
+            return False
+
+    if not CompliancePerson.objects.filter(visit_case_id=case.id):
+        return False
+
+    return True

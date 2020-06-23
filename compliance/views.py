@@ -29,6 +29,7 @@ from compliance.helpers import (
     get_record_holding_sites_for_case,
     COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
     get_compliance_site_case,
+    compliance_visit_case_complete,
 )
 
 from rest_framework.exceptions import ValidationError
@@ -71,7 +72,7 @@ class LicenceList(ListAPIView):
         return cases
 
 
-class ComplianceSiteManageStatus(APIView):
+class ComplianceManageStatus(APIView):
     """
     Modify the status of a Compliance case
     """
@@ -94,8 +95,11 @@ class ComplianceSiteManageStatus(APIView):
             return JsonResponse(data={"errors": [strings.Statuses.BAD_STATUS]}, status=status.HTTP_400_BAD_REQUEST,)
 
         if case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT and new_status == CaseStatusEnum.CLOSED:
-            # Verify status can be closed
-            pass
+            comp_case = ComplianceVisitCase.objects.get(id=pk)
+            if not compliance_visit_case_complete(comp_case):
+                return JsonResponse(
+                    data={"errors": [strings.Statuses.COMPLIANCE_NOT_COMPLETE]}, status=status.HTTP_400_BAD_REQUEST,
+                )
 
         case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
 
