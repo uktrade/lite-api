@@ -2,10 +2,19 @@ import uuid
 
 from django.db import models
 
-from applications.models import BaseApplication, GoodOnApplication
+from applications.models import BaseApplication
 from common.models import TimestampableModel
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from static.decisions.models import Decision
+
+
+class HMRCIntegrationUpdateTransaction(TimestampableModel):
+    """
+    A history of when a Licence was updated via HMRC Integration
+    This is to prevent the same update from being processed multiple times
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 
 class Licence(TimestampableModel):
@@ -19,6 +28,9 @@ class Licence(TimestampableModel):
     is_complete = models.BooleanField(default=False, null=False, blank=False)
     decisions = models.ManyToManyField(Decision, related_name="licence")
     sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
+    hmrc_integration_update_transactions = models.ManyToManyField(
+        HMRCIntegrationUpdateTransaction, related_name="licences"
+    )
 
     def save(self, *args, **kwargs):
         super(Licence, self).save(*args, **kwargs)
@@ -38,13 +50,3 @@ class Licence(TimestampableModel):
 
         self.sent_at = value
         super(Licence, self).save()
-
-
-class LicenceUsageUpdateTransaction(TimestampableModel):
-    """
-    A history of when Licence Good Usages were updated via HMRC Integration
-    This is to prevent the same Usage update from being processed multiple times
-    """
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    licences = models.ManyToManyField(Licence, related_name="usage_update_transactions")

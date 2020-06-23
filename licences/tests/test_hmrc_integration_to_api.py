@@ -5,7 +5,6 @@ from parameterized import parameterized
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
-from licences.models import LicenceUsageUpdateTransaction
 from test_helpers.clients import DataTestClient
 
 
@@ -58,9 +57,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(licence.application.goods.first().usage, original_usage + usage_update)
         self.assertTrue(
-            LicenceUsageUpdateTransaction.objects.filter(
-                id="00000000-0000-0000-0000-000000000001", licences__id=licence.id
-            ).exists()
+            licence.hmrc_integration_update_transactions.filter(id="00000000-0000-0000-0000-000000000001").exists()
         )
 
     @parameterized.expand(
@@ -99,9 +96,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(licence.application.goods.first().usage, original_usage + usage_update)
         self.assertTrue(
-            LicenceUsageUpdateTransaction.objects.filter(
-                id="00000000-0000-0000-0000-000000000001", licences__id=licence.id
-            ).exists()
+            licence.hmrc_integration_update_transactions.filter(id="00000000-0000-0000-0000-000000000001").exists()
         )
 
     @parameterized.expand(

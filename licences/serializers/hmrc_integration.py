@@ -1,13 +1,11 @@
 from rest_framework import serializers
 
 from applications.models import GoodOnApplication
-from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from conf.helpers import add_months
 from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
-from licences.models import Licence, LicenceUsageUpdateTransaction
+from licences.models import Licence, HMRCIntegrationUpdateTransaction
 from static.countries.models import Country
-from audit_trail import service as audit_trail_service
 
 
 class HMRCIntegrationCountrySerializer(serializers.Serializer):
@@ -135,7 +133,7 @@ class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
     def create(self, validated_data):
         """Updates the usages for Goods on Licences"""
 
-        usage_transaction, created = LicenceUsageUpdateTransaction.objects.get_or_create(
+        hmrc_integration_update_transaction, created = HMRCIntegrationUpdateTransaction.objects.get_or_create(
             id=validated_data["transaction_id"], defaults={"id": validated_data["transaction_id"]}
         )
 
@@ -146,7 +144,7 @@ class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
                     gol.usage += good_data["usage"]
                     gol.save()
 
-                usage_transaction.licences.add(licence_data["id"])
+                hmrc_integration_update_transaction.licences.add(licence_data["id"])
 
                 # Todo - audit usage update
                 # audit_trail_service.create_system_user_audit(
