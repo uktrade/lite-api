@@ -1,4 +1,3 @@
-from django.db import models
 from model_utils.managers import InheritanceManager
 
 from static.statuses.enums import CaseStatusEnum
@@ -15,7 +14,7 @@ class BaseApplicationManager(InheritanceManager):
         return self.get_queryset().filter(organisation=organisation).exclude(status=draft).order_by("-submitted_at")
 
 
-class HmrcQueryManager(models.Manager):
+class HmrcQueryManager(InheritanceManager):
     def drafts(self, hmrc_organisation):
         draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
         return self.get_queryset().filter(status=draft, hmrc_organisation=hmrc_organisation).order_by("-created_at")
