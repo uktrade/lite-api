@@ -1,5 +1,7 @@
 from datetime import date
 
+from django.utils import timezone
+
 from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
@@ -7,13 +9,14 @@ from applications.enums import (
     MTCRAnswers,
     ServiceEquipmentType,
 )
-from applications.models import ExternalLocationOnApplication, CountryOnApplication
+from applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType
 from letter_templates.context_generator import get_document_context
 from licences.enums import LicenceStatus
+from licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
 from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
@@ -24,6 +27,23 @@ from test_helpers.clients import DataTestClient
 
 
 class DocumentContextGenerationTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.standard_case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        self.standard_licence = LicenceFactory(
+            application=self.standard_case,
+            start_date=timezone.now().date(),
+            status=LicenceStatus.ISSUED.value,
+            duration=100,
+        )
+        self.standard_good = GoodOnApplication.objects.get(application=self.standard_case)
+        self.standard_good_on_licence = GoodOnLicenceFactory(
+            licence=self.standard_licence,
+            good=self.standard_good,
+            quantity=self.standard_good.quantity,
+            value=self.standard_good.value
+        )
+
     def _assert_applicant(self, context, case):
         applicant = case.submitted_by
         self.assertEqual(context["name"], " ".join([applicant.first_name, applicant.last_name]))
@@ -93,15 +113,16 @@ class DocumentContextGenerationTests(DataTestClient):
             self.assertEqual(context["item_type"], good_on_application.item_type)
             self.assertEqual(context["other_item_type"], good_on_application.other_item_type)
 
-    def _assert_good_with_advice(self, context, advice, good_on_application):
+    def _assert_good_with_advice(self, context, advice, good_on_licence):
+        good_on_application = good_on_licence.good
         goods = context[advice.type if advice.type != AdviceType.PROVISO else AdviceType.APPROVE]
         self.assertEqual(len(goods), 1)
         self._assert_good(goods[0], good_on_application)
         self.assertEqual(goods[0]["reason"], advice.text)
         self.assertEqual(goods[0]["note"], advice.note)
-        self.assertTrue(str(good_on_application.licenced_quantity) in goods[0]["quantity"])
+        self.assertTrue(str(good_on_licence.quantity) in goods[0]["quantity"])
         self.assertTrue(Units.choices_as_dict[good_on_application.unit] in goods[0]["quantity"])
-        self.assertEqual(goods[0]["value"], f"£{good_on_application.licenced_value}")
+        self.assertEqual(goods[0]["value"], f"£{good_on_licence.value}")
 
     def _assert_goods_type(self, context, goods_type):
         self.assertTrue(goods_type.description in [item["description"] for item in context["all"]])
@@ -273,26 +294,24 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        self.create_party("Ultimate end user", self.organisation, PartyType.ULTIMATE_END_USER, case)
+        self.create_party("Ultimate end user", self.organisation, PartyType.ULTIMATE_END_USER, self.standard_case)
 
-        context = get_document_context(case)
+        context = get_document_context(self.standard_case)
 
-        self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
         self.assertIsNotNone(context["current_date"])
         self.assertIsNotNone(context["current_time"])
-        self._assert_applicant(context["addressee"], case)
+        self._assert_applicant(context["addressee"], self.standard_case)
         self._assert_organisation(context["organisation"], self.organisation)
-        self._assert_party(context["end_user"], case.end_user.party)
-        self._assert_party(context["consignee"], case.consignee.party)
+        self._assert_party(context["end_user"], self.standard_case.end_user.party)
+        self._assert_party(context["consignee"], self.standard_case.consignee.party)
         self.assertEqual(len(context["ultimate_end_users"]), 1)
-        self._assert_party(context["ultimate_end_users"][0], case.ultimate_end_users[0].party)
+        self._assert_party(context["ultimate_end_users"][0], self.standard_case.ultimate_end_users[0].party)
         # Third party should be in "all" list and role specific list
         self.assertEqual(len(context["third_parties"]), 2)
-        self._assert_third_party(context["third_parties"], case.third_parties[0].party)
+        self._assert_third_party(context["third_parties"], self.standard_case.third_parties[0].party)
 
     def test_generate_context_with_custom_addressee(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         addressee = Party.objects.create(
             name="Joe Bloggs",
             address="123 test st.",
@@ -302,47 +321,43 @@ class DocumentContextGenerationTests(DataTestClient):
             country_id="GB",
         )
 
-        context = get_document_context(case, addressee=addressee)
-        self.assertEqual(context["case_reference"], case.reference_code)
+        context = get_document_context(self.standard_case, addressee=addressee)
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
         self._assert_addressee(context["addressee"], addressee)
 
     def test_generate_context_with_goods(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        context = get_document_context(self.standard_case)
 
-        context = get_document_context(case)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_good(context["goods"]["all"][0], case.goods.all()[0])
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
+        self._assert_good(context["goods"]["all"][0], self.standard_case.goods.all()[0])
 
     def test_generate_context_with_advice_on_goods(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
-            self.gov_user, case, "good", AdviceType.APPROVE, AdviceLevel.FINAL, advice_text="abc",
+            self.gov_user, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.FINAL, advice_text="abc",
         )
-        good = case.goods.first()
-        good.licenced_quantity = 10
-        good.licenced_value = 15
-        good.save()
+        # good = self.standard_case.goods.first()
+        # good.licenced_quantity = 10
+        # good.licenced_value = 15
+        # good.save()
 
-        context = get_document_context(case)
+        context = get_document_context(self.standard_case)
 
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
+        self._assert_good_with_advice(context["goods"], final_advice, self.standard_good_on_licence)
 
     def test_generate_context_with_proviso_advice_on_goods(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         final_advice = self.create_advice(
-            self.gov_user, case, "good", AdviceType.PROVISO, AdviceLevel.FINAL, advice_text="abc",
+            self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.FINAL, advice_text="abc",
         )
-        good = case.goods.first()
+        good = self.standard_case.goods.first()
         good.licenced_quantity = 15
         good.licenced_value = 20
         good.save()
 
-        context = get_document_context(case)
+        context = get_document_context(self.standard_case)
 
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_good_with_advice(context["goods"], final_advice, case.goods.all()[0])
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
+        self._assert_good_with_advice(context["goods"], final_advice, self.standard_good_on_licence)
         self.assertEqual(context["goods"][AdviceType.APPROVE][0]["proviso_reason"], final_advice.proviso)
 
     def test_generate_context_with_goods_types(self):
@@ -357,64 +372,56 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_goods_type(context["goods"], case.goods_type.last())
 
     def test_generate_context_with_licence(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        licence = self.create_licence(case, status=LicenceStatus.ISSUED)
+        context = get_document_context(self.standard_case)
 
-        context = get_document_context(case)
-
-        self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_licence(context["licence"], licence)
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
+        self._assert_licence(context["licence"], self.standard_licence)
 
     def test_generate_context_with_ecju_query(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        ecju_query = self.create_ecju_query(case)
+        ecju_query = self.create_ecju_query(self.standard_case)
         ecju_query.response = "abc"
         ecju_query.responded_by_user = self.exporter_user
         ecju_query.save()
 
-        context = get_document_context(case)
+        context = get_document_context(self.standard_case)
 
-        self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
         self._assert_ecju_query(context["ecju_queries"][0], ecju_query)
 
     def test_generate_context_with_case_note(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        note = self.create_case_note(case, "text", self.gov_user)
+        note = self.create_case_note(self.standard_case, "text", self.gov_user)
 
-        context = get_document_context(case)
+        context = get_document_context(self.standard_case)
 
-        self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
         self._assert_note(context["notes"][0], note)
 
     def test_generate_context_with_site(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        site = case.application_sites.first().site
+        site = self.standard_case.application_sites.first().site
 
-        context = get_document_context(case)
+        context = get_document_context(self.standard_case)
 
-        self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
         self._assert_site(context["sites"][0], site)
 
     def test_generate_context_with_external_locations(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         location = self.create_external_location("external", self.organisation)
-        ExternalLocationOnApplication.objects.create(external_location=location, application=case)
+        ExternalLocationOnApplication.objects.create(external_location=location, application=self.standard_case)
 
-        context = get_document_context(case)
+        context = get_document_context(self.standard_case)
 
-        self.assertEqual(context["case_reference"], case.reference_code)
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
         self._assert_external_location(context["external_locations"][0], location)
 
     def test_generate_context_with_document(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        document = self.create_application_document(case)
+        document = self.create_application_document(self.standard_case)
 
-        context = get_document_context(case)
-        self.assertEqual(context["case_reference"], case.reference_code)
+        context = get_document_context(self.standard_case)
+        self.assertEqual(context["case_reference"], self.standard_case.reference_code)
         self._assert_document(context["documents"][0], document)
 
     def test_generate_context_with_application_details(self):
-        case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
+        case = self.standard_case
         case.intended_end_use = "abc"
         case.is_military_end_use_controls = True
         case.military_end_use_controls_ref = "123"
@@ -433,7 +440,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_base_application_details(context["details"], case)
 
     def test_generate_context_with_standard_application_details(self):
-        case = self.create_standard_application_case(self.organisation)
+        case = self.standard_case
         case.export_type = ApplicationExportType.TEMPORARY
         case.reference_number_on_information_form = "123"
         case.has_you_been_informed = ApplicationExportLicenceOfficialType.YES
