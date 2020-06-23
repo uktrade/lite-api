@@ -92,7 +92,9 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_edit_military_use_to_designed_success(self):
-        request_data = {"is_military_use": MilitaryUse.YES_DESIGNED, }
+        request_data = {
+            "is_military_use": MilitaryUse.YES_DESIGNED,
+        }
 
         response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
         good = response.json()["good"]
@@ -240,8 +242,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
     )
     def test_edit_software_or_technology_details_success(self, category, details):
         good = self.create_good(
-            "a good", self.organisation, item_category=category,
-            software_or_technology_details="initial details"
+            "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
         )
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"software_or_technology_details": details}
@@ -257,13 +258,12 @@ class GoodsEditDraftGoodTests(DataTestClient):
     @parameterized.expand(
         [
             [ItemCategory.GROUP3_SOFTWARE, strings.Goods.FORM_NO_SOFTWARE_DETAILS],
-            [ItemCategory.GROUP3_TECHNOLOGY,strings.Goods.FORM_NO_TECHNOLOGY_DETAILS]
+            [ItemCategory.GROUP3_TECHNOLOGY, strings.Goods.FORM_NO_TECHNOLOGY_DETAILS],
         ]
     )
     def test_edit_software_or_technology_details_success(self, category, error):
         good = self.create_good(
-            "a good", self.organisation, item_category=category,
-            software_or_technology_details="initial details"
+            "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
         )
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"software_or_technology_details": ""}
@@ -273,6 +273,4 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
-        self.assertEquals(
-            errors["software_or_technology_details"], [error]
-        )
+        self.assertEquals(errors["software_or_technology_details"], [error])

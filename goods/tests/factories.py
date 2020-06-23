@@ -18,7 +18,6 @@ class GoodFactory(factory.django.DjangoModelFactory):
     modified_military_use_details = None
     component_details = None
 
-
     class Meta:
         model = models.Good
 

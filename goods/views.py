@@ -277,7 +277,8 @@ class GoodTAUDetails(APIView):
                         if good.item_category == ItemCategory.GROUP3_SOFTWARE
                         else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
                     ]
-                })
+                }
+            )
 
         if "is_military_use_step" in data:
             validate_military_use(data)
