@@ -5,6 +5,7 @@ from parameterized import parameterized
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
+from licences.models import UsageTransaction
 from test_helpers.clients import DataTestClient
 
 
@@ -39,6 +40,77 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def test_update_usages_success(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.application.goods.first().usage
+        usage_update = 10
+
+        response = self.client.put(
+            self.url,
+            {
+                "transaction_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "licences": [
+                    {
+                        "id": str(licence.id),
+                        "goods": [{"id": str(licence.application.goods.first().good.id), "usage": usage_update}],
+                    }
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(licence.application.goods.first().usage, original_usage + usage_update)
+        self.assertTrue(UsageTransaction.objects.filter(id="00000000-0000-0000-0000-000000000001").exists())
+        self.assertTrue(
+            licence.application.goods.first()
+            .usage_transactions.filter(id="00000000-0000-0000-0000-000000000001")
+            .exists()
+        )
+
+    @parameterized.expand(
+        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
+    )
+    def test_update_usages_transaction_already_exists_success(self, create_licence):
+        licence = create_licence(self)
+        original_usage = licence.application.goods.first().usage
+        usage_update = 10
+
+        self.client.put(
+            self.url,
+            {
+                "transaction_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "licences": [
+                    {
+                        "id": str(licence.id),
+                        "goods": [{"id": str(licence.application.goods.first().good.id), "usage": usage_update}],
+                    }
+                ],
+            },
+        )
+        response = self.client.put(
+            self.url,
+            {
+                "transaction_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "licences": [
+                    {
+                        "id": str(licence.id),
+                        "goods": [{"id": str(licence.application.goods.first().good.id), "usage": usage_update}],
+                    }
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(licence.application.goods.first().usage, original_usage + usage_update)
+        self.assertTrue(UsageTransaction.objects.filter(id="00000000-0000-0000-0000-000000000001").exists())
+        self.assertTrue(
+            licence.application.goods.first()
+            .usage_transactions.filter(id="00000000-0000-0000-0000-000000000001")
+            .exists()
+        )
+
+    @parameterized.expand(
+        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
+    )
+    def test_update_usages_no_transaction_id_failure(self, create_licence):
+        licence = create_licence(self)
 
         response = self.client.put(
             self.url,
@@ -48,13 +120,14 @@ class HMRCIntegrationUsageTests(DataTestClient):
                         "id": str(licence.id),
                         "goods": [{"id": str(licence.application.goods.first().good.id), "usage": 10}],
                     }
-                ]
+                ],
             },
         )
 
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertNotEqual(licence.application.goods.first().usage, original_usage)
-        self.assertEqual(licence.application.goods.first().usage, 10)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"]["transaction_id"], ["This field is required."],
+        )
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -76,7 +149,11 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence = create_licence(self)
 
         response = self.client.put(
-            self.url, {"licences": [{"goods": [{"id": str(licence.application.goods.first().good.id), "usage": 10}]}]},
+            self.url,
+            {
+                "transaction_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "licences": [{"goods": [{"id": str(licence.application.goods.first().good.id), "usage": 10}]}],
+            },
         )
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
@@ -94,12 +171,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
         response = self.client.put(
             self.url,
             {
+                "transaction_id": 1,
                 "licences": [
                     {
                         "id": invalid_licence_id,
                         "goods": [{"id": str(licence.application.goods.first().good.id), "usage": 10}],
                     }
-                ]
+                ],
             },
         )
 
@@ -114,7 +192,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def test_update_usages_no_goods_failure(self, create_licence):
         licence = create_licence(self)
 
-        response = self.client.put(self.url, {"licences": [{"id": str(licence.id)}]})
+        response = self.client.put(
+            self.url,
+            {
+                "transaction_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "licences": [{"id": str(licence.id)}],
+            },
+        )
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(
@@ -127,7 +211,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def test_update_usages_no_good_ids_failure(self, create_licence):
         licence = create_licence(self)
 
-        response = self.client.put(self.url, {"licences": [{"id": str(licence.id), "goods": [{"usage": 10}]}]})
+        response = self.client.put(
+            self.url,
+            {
+                "transaction_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "licences": [{"id": str(licence.id), "goods": [{"usage": 10}]}],
+            },
+        )
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["errors"]["licences"], [{"goods": [{"id": ["This field is required."]}]}])
@@ -139,7 +229,11 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence = create_licence(self)
 
         response = self.client.put(
-            self.url, {"licences": [{"id": str(licence.id), "good": [{"id": str(uuid.uuid4()), "usage": 10}]}]},
+            self.url,
+            {
+                "transaction_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "licences": [{"id": str(licence.id), "good": [{"id": str(uuid.uuid4()), "usage": 10}]}],
+            },
         )
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
@@ -155,7 +249,12 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         response = self.client.put(
             self.url,
-            {"licences": [{"id": str(licence.id), "goods": [{"id": str(licence.application.goods.first().good.id)}]}]},
+            {
+                "transaction_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "licences": [
+                    {"id": str(licence.id), "goods": [{"id": str(licence.application.goods.first().good.id)}]}
+                ],
+            },
         )
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
@@ -170,12 +269,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
         response = self.client.put(
             self.url,
             {
+                "transaction_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 "licences": [
                     {
                         "id": str(licence.id),
                         "goods": [{"id": str(licence.application.goods_type.first().id), "usage": 10}],
                     }
-                ]
+                ],
             },
         )
 

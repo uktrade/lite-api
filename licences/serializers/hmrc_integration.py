@@ -1,11 +1,13 @@
 from rest_framework import serializers
 
 from applications.models import GoodOnApplication
+from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from conf.helpers import add_months
 from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
-from licences.models import Licence
+from licences.models import Licence, UsageTransaction
 from static.countries.models import Country
+from audit_trail import service as audit_trail_service
 
 
 class HMRCIntegrationCountrySerializer(serializers.Serializer):
@@ -125,6 +127,7 @@ class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
 
 
 class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
+    transaction_id = serializers.UUIDField(required=True, allow_null=False)
     licences = HMRCIntegrationUsageUpdateLicenceSerializer(
         many=True, required=True, allow_null=False, allow_empty=False
     )
@@ -132,11 +135,25 @@ class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
     def create(self, validated_data):
         """Updates the usages for Goods on Licences"""
 
-        for licence in validated_data["licences"]:
-            for good in licence["goods"]:
-                gol = good["good_on_licence"]
-                gol.usage = good["usage"]
-                gol.save()
+        usage_transaction, created = UsageTransaction.objects.get_or_create(
+            id=validated_data["transaction_id"], defaults={"id": validated_data["transaction_id"]}
+        )
+
+        if created:
+            for licence_data in validated_data["licences"]:
+                for good_data in licence_data["goods"]:
+                    gol = good_data["good_on_licence"]
+                    gol.usage += good_data["usage"]
+                    gol.usage_transactions.add(usage_transaction)
+                    gol.save()
+
+                # Todo - audit usage update
+                # audit_trail_service.create_system_user_audit(
+                #     verb=AuditType.UPDATED_STATUS,
+                #     target=licence_data["licence"],
+                #     payload={"status": {"new": "", "old": ""}},
+                # )
+
         return validated_data
 
     def validate(self, data):

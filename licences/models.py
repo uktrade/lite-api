@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from applications.models import BaseApplication
+from applications.models import BaseApplication, GoodOnApplication
 from common.models import TimestampableModel
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from static.decisions.models import Decision
@@ -38,3 +38,12 @@ class Licence(TimestampableModel):
 
         self.sent_at = value
         super(Licence, self).save()
+
+
+class UsageTransaction(TimestampableModel):
+    """
+    A history of when Good Usages were updated via HMRC Integration to prevent Usages from being updated multiple times
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    goods = models.ManyToManyField(GoodOnApplication, related_name="usage_transactions")
