@@ -31,22 +31,21 @@ class SiteListSerializer(serializers.Serializer):
 
     def get_records_located_at(self, instance):
         if instance.site_records_located_at:
-            site = Site.objects.filter(id=instance.site_records_located_at.id).first()
-            if site:
-                return {
-                    "id": site.id,
-                    "name": site.name,
-                    "address": {
-                        "address_line_1": site.address.address_line_1,
-                        "address_line_2": site.address.address_line_2,
-                        "region": site.address.region,
-                        "postcode": site.address.postcode,
-                        "city": site.address.city,
-                        "country": {
-                            "name": site.address.country.name
-                        }
+            site = instance.site_records_located_at
+            return {
+                "id": site.id,
+                "name": site.name,
+                "address": {
+                    "address_line_1": site.address.address_line_1,
+                    "address_line_2": site.address.address_line_2,
+                    "region": site.address.region,
+                    "postcode": site.address.postcode,
+                    "city": site.address.city,
+                    "country": {
+                        "name": site.address.country.name
                     }
                 }
+            }
 
 
 class SiteViewSerializer(SiteListSerializer):
