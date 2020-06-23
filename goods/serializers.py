@@ -215,6 +215,11 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             )
         instance.information_security_details = validated_data.get("information_security_details", "")
 
+        if instance.item_category in [ItemCategory.GROUP3_TECHNOLOGY, ItemCategory.GROUP3_SOFTWARE]:
+            software_or_technology_details = validated_data.get("software_or_technology_details")
+            if software_or_technology_details:
+                instance.software_or_technology_details = software_or_technology_details
+
         instance.save()
         return instance
 

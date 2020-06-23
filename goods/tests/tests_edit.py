@@ -2,7 +2,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodPvGraded, GoodControlled, PvGrading, MilitaryUse, Component
+from goods.enums import GoodPvGraded, GoodControlled, PvGrading, MilitaryUse, Component, ItemCategory
 from goods.models import Good, PvGradingDetails
 from goods.tests.factories import GoodFactory
 from lite_content.lite_api import strings
@@ -92,7 +92,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_edit_military_use_to_designed_success(self):
-        request_data = {"is_military_use": MilitaryUse.YES_DESIGNED}
+        request_data = {"is_military_use": MilitaryUse.YES_DESIGNED, }
 
         response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
         good = response.json()["good"]
@@ -230,4 +230,49 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(len(errors), 1)
         self.assertEquals(
             errors["uses_information_security"], [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]
+        )
+
+    @parameterized.expand(
+        [
+            [ItemCategory.GROUP3_SOFTWARE, "new software details"],
+            [ItemCategory.GROUP3_TECHNOLOGY, "new technology details"],
+        ]
+    )
+    def test_edit_software_or_technology_details_success(self, category, details):
+        good = self.create_good(
+            "a good", self.organisation, item_category=category,
+            software_or_technology_details="initial details"
+        )
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"software_or_technology_details": details}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["software_or_technology_details"], details)
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
+    @parameterized.expand(
+        [
+            [ItemCategory.GROUP3_SOFTWARE, strings.Goods.FORM_NO_SOFTWARE_DETAILS],
+            [ItemCategory.GROUP3_TECHNOLOGY,strings.Goods.FORM_NO_TECHNOLOGY_DETAILS]
+        ]
+    )
+    def test_edit_software_or_technology_details_success(self, category, error):
+        good = self.create_good(
+            "a good", self.organisation, item_category=category,
+            software_or_technology_details="initial details"
+        )
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"software_or_technology_details": ""}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEquals(
+            errors["software_or_technology_details"], [error]
         )

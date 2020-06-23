@@ -269,7 +269,19 @@ class GoodTAUDetails(APIView):
 
         data = request.data.copy()
 
-        validate_software_or_technology_details(data)
+        if "software_or_technology_details" in data and not data.get("software_or_technology_details"):
+            raise ValidationError(
+                {
+                    "software_or_technology_details": [
+                        strings.Goods.FORM_NO_SOFTWARE_DETAILS
+                        if good.item_category == ItemCategory.GROUP3_SOFTWARE
+                        else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
+                    ]
+                })
+
+        if "is_military_use_step" in data:
+            validate_military_use(data)
+
         validate_component_fields(data)
         if data.get("uses_information_security") == "None":
             data["uses_information_security"] = None
