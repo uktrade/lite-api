@@ -40,10 +40,11 @@ class Licence(TimestampableModel):
         super(Licence, self).save()
 
 
-class UsageTransaction(TimestampableModel):
+class LicenceUsageUpdateTransaction(TimestampableModel):
     """
-    A history of when Good Usages were updated via HMRC Integration to prevent Usages from being updated multiple times
+    A history of when Licence Good Usages were updated via HMRC Integration
+    This is to prevent the same Usage update from being processed multiple times
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    goods = models.ManyToManyField(GoodOnApplication, related_name="usage_transactions")
+    licences = models.ManyToManyField(Licence, related_name="usage_update_transactions")
