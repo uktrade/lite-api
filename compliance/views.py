@@ -39,6 +39,7 @@ from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateAPIView,
     RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
 )
 
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
@@ -72,34 +73,32 @@ class LicenceList(ListAPIView):
         return cases
 
 
-class ComplianceManageStatus(APIView):
+class ComplianceManageStatus(UpdateAPIView):
     """
     Modify the status of a Compliance case
     """
 
     authentication_classes = (GovAuthentication,)
 
-    def put(self, request, pk):
-        case = get_case(pk)
+    def put(self, request, *args, **kwargs):
+        case = get_case(kwargs["pk"])
         new_status = request.data.get("status")
 
         if (
             case.case_type.reference == CaseTypeReferenceEnum.COMP_SITE
             and new_status not in CaseStatusEnum.compliance_site_statuses
         ):
-            return JsonResponse(data={"errors": [strings.Statuses.BAD_STATUS]}, status=status.HTTP_400_BAD_REQUEST,)
+            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
         elif (
             case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT
             and new_status not in CaseStatusEnum.compliance_visit_statuses
         ):
-            return JsonResponse(data={"errors": [strings.Statuses.BAD_STATUS]}, status=status.HTTP_400_BAD_REQUEST,)
+            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
         if case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT and new_status == CaseStatusEnum.CLOSED:
-            comp_case = ComplianceVisitCase.objects.get(id=pk)
+            comp_case = ComplianceVisitCase.objects.get(id=kwargs["pk"])
             if not compliance_visit_case_complete(comp_case):
-                return JsonResponse(
-                    data={"errors": [strings.Statuses.COMPLIANCE_NOT_COMPLETE]}, status=status.HTTP_400_BAD_REQUEST,
-                )
+                raise ValidationError({"status": [strings.Statuses.COMPLIANCE_NOT_COMPLETE]})
 
         case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
 
@@ -243,10 +242,42 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
     def get_queryset(self):
         return CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"])
 
+    def perform_create(self, serializer):
+        person = serializer.save()
+
+        case = get_case(self.kwargs["pk"])
+
+        audit_trail_service.create(
+            actor=self.request.user,
+            verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_CREATED,
+            action_object=case,
+            payload={"name": person.name, "job_title": person.job_title,},
+        )
+
 
 class ComplianceVisitPersonPresentView(RetrieveUpdateDestroyAPIView):
     authentication_classes = (GovAuthentication,)
     serializer_class = CompliancePersonSerializer
+    queryset = CompliancePerson.objects.all()
 
-    def get_queryset(self):
-        return CompliancePerson.objects.filter(id=self.kwargs["pk"])
+    def perform_update(self, serializer):
+        person = serializer.save()
+
+        case = get_case(person.visit_case_id)
+
+        audit_trail_service.create(
+            actor=self.request.user,
+            verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_UPDATED,
+            action_object=case,
+            payload={"name": person.name, "job_title": person.job_title,},
+        )
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        case = get_case(instance.visit_case_id)
+        audit_trail_service.create(
+            actor=self.request.user,
+            verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_UPDATED,
+            action_object=case,
+            payload={"name": instance.name, "job_title": instance.job_title,},
+        )

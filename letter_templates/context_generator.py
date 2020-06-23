@@ -12,6 +12,7 @@ from applications.models import (
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
+from compliance.models import ComplianceSiteCase, ComplianceVisitCase
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading
 from licences.models import Licence
@@ -38,6 +39,8 @@ def get_document_context(case, addressee=None):
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
     destinations = CountryOnApplication.objects.filter(application_id=case.pk).order_by("country__name")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
+    compliance_site_case = ComplianceSiteCase.objects.filter(id=case.id)
+    compliance_visit_case = ComplianceVisitCase.objects.filter(id=case.id)
 
     if getattr(base_application, "goods", "") and base_application.goods.exists():
         goods = _get_goods_context(base_application.goods.all(), final_advice)
@@ -83,6 +86,8 @@ def get_document_context(case, addressee=None):
         "external_locations": [_get_external_location_context(location) for location in external_locations],
         "documents": [_get_document_context(document) for document in documents],
         "destinations": [_get_destination_context(destination) for destination in destinations],
+        "compliance": compliance_site_case,
+        "compliance_visit": compliance_visit_case,
     }
 
 

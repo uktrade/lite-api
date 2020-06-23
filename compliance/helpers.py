@@ -157,7 +157,13 @@ def fetch_and_validate_licences(references, organisation_id):
     return licence_ids
 
 
-def compliance_visit_case_complete(case: ComplianceVisitCase):
+def compliance_visit_case_complete(case: ComplianceVisitCase) -> bool:
+    """
+    Function to ensure that all the details of a ComplianceVisitCase is filled in, allowing for the status to be changed
+        to closed (terminal).
+    :param case: ComplianceVisitCase to be looked at
+    :return: boolean
+    """
     fields = [
         "visit_type",
         "visit_date",
@@ -177,7 +183,7 @@ def compliance_visit_case_complete(case: ComplianceVisitCase):
         if not getattr(case, field):
             return False
 
-    if not CompliancePerson.objects.filter(visit_case_id=case.id):
+    if not CompliancePerson.objects.filter(visit_case_id=case.id).exists():
         return False
 
     return True

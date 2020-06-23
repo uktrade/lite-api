@@ -19,6 +19,10 @@ class ComplianceSiteCase(Case):
     site = models.OneToOneField("organisations.Site", related_name="compliance", on_delete=models.DO_NOTHING,)
 
     def create_visit_case(self):
+        """
+        function to create a ComplianceVisitCase from a ComplianceSiteCase.
+        :return: ComplianceVisitCase created
+        """
         visit_case = ComplianceVisitCase(
             site_case=self,
             status=get_case_status_by_status(CaseStatusEnum.OPEN),

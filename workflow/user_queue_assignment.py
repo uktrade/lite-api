@@ -30,6 +30,8 @@ def get_next_compliance_visit_status(case):
         if not compliance_visit_case_complete(comp_case):
             return None
         return CaseStatus.objects.get(status=CaseStatusEnum.CLOSED)
+    elif case.status.status == CaseStatusEnum.CLOSED:
+        return None
     else:
         current_status_pos = CaseStatusEnum.compliance_visit_statuses.index(case.status.status)
         return CaseStatus.objects.get(status=CaseStatusEnum.compliance_visit_statuses[current_status_pos + 1])
