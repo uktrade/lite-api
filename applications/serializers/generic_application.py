@@ -46,6 +46,7 @@ class GenericApplicationListSerializer(serializers.Serializer):
     status = serializers.SerializerMethodField()
     updated_at = serializers.DateTimeField()
     reference_code = serializers.CharField()
+    export_type = serializers.SerializerMethodField()
 
     def get_status(self, instance):
         if instance.status:
@@ -53,7 +54,13 @@ class GenericApplicationListSerializer(serializers.Serializer):
                 "key": instance.status.status,
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
-        return None
+
+    def get_export_type(self, instance):
+        if hasattr(instance, "export_type") and getattr(instance, "export_type"):
+            return {
+                "key": instance.export_type,
+                "value": get_value_from_enum(instance.export_type, ApplicationExportType),
+            }
 
 
 class GenericApplicationViewSerializer(serializers.ModelSerializer):
