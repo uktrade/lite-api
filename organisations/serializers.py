@@ -27,13 +27,26 @@ class SiteListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
     address = AddressSerializer()
-    site_records_located_at_name = serializers.SerializerMethodField()
+    records_located_at = serializers.SerializerMethodField()
 
-    def get_site_records_located_at_name(self, instance):
+    def get_records_located_at(self, instance):
         if instance.site_records_located_at:
-            site = Site.objects.filter(id=instance.site_records_located_at.id).values_list("name", flat=True).first()
+            site = Site.objects.filter(id=instance.site_records_located_at.id).first()
             if site:
-                return site
+                return {
+                    "id": site.id,
+                    "name": site.name,
+                    "address": {
+                        "address_line_1": site.address.address_line_1,
+                        "address_line_2": site.address.address_line_2,
+                        "region": site.address.region,
+                        "postcode": site.address.postcode,
+                        "city": site.address.city,
+                        "country": {
+                            "name": site.address.country.name
+                        }
+                    }
+                }
 
 
 class SiteViewSerializer(SiteListSerializer):
