@@ -5,7 +5,8 @@ from django.db import models
 from common.models import TimestampableModel
 from documents.models import Document
 from flags.models import Flag
-from goods.enums import GoodStatus, GoodControlled, PvGrading, GoodPvGraded, ItemCategory, MilitaryUse, Component
+from goods.enums import GoodStatus, GoodControlled, PvGrading, GoodPvGraded, ItemCategory, MilitaryUse, Component, \
+    FirearmGoodType
 from organisations.models import Organisation
 from static.control_list_entries.models import ControlListEntry
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons
@@ -23,6 +24,19 @@ class PvGradingDetails(models.Model):
     issuing_authority = models.CharField(blank=True, null=True, max_length=100)
     reference = models.CharField(blank=True, null=True, max_length=100)
     date_of_issue = models.DateField(blank=True, null=True)
+
+
+class FirearmGoodDetails(models.Model):
+    type = models.CharField(choices=FirearmGoodType.choices, null=True, max_length=25)
+    year_of_manufacture = models.PositiveSmallIntegerField(null=True)
+    calibre = models.TextField(default=None, blank=True, null=True, max_length=2000)
+    # this refers specifically to section 1, 2 or 5 of firearms act 1968
+    is_covered_by_firearm_act_section_one_two_or_five = models.BooleanField(default=None, null=True)
+    section_certificate_number = models.CharField(null=True, max_length=20)
+    section_certificate_date_of_expiry = models.DateField(blank=True, null=True)
+    has_identification_markings = models.BooleanField(default=None, null=True)
+    identification_markings_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
+    no_identification_markings_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
 
 class Good(TimestampableModel):
@@ -51,6 +65,9 @@ class Good(TimestampableModel):
     component_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
     uses_information_security = models.BooleanField(default=None, null=True)
     information_security_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
+    firearm_details = models.ForeignKey(
+        FirearmGoodDetails, on_delete=models.CASCADE, default=None, blank=True, null=True
+    )
 
     # Gov
     # comment about reviewing good, or responding to CLC query

@@ -136,3 +136,18 @@ class Component:
         (YES_GENERAL_PURPOSE, "Yes, it's a general purpose component"),
         (NO, "No"),
     ]
+
+
+class FirearmGoodType:
+    FIREARMS = "firearms"
+    COMPONENTS_FOR_FIREARMS = "components_for_firearms"
+    AMMUNITION = "ammunition"
+    COMPONENTS_FOR_AMMUNITION = "components_for_ammunition"
+
+    choices = [
+        (FIREARMS, "Firearms"),
+        (COMPONENTS_FOR_FIREARMS, "Components for firearms"),
+        (AMMUNITION, "Ammunition"),
+        (COMPONENTS_FOR_AMMUNITION, "Components for ammunition"),
+    ]
+

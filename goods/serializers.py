@@ -7,8 +7,9 @@ from common.libraries import (
 )
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component
-from goods.models import Good, GoodDocument, PvGradingDetails
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, \
+    FirearmGoodType
+from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
@@ -56,6 +57,27 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
                 {"custom_grading": strings.Goods.PROVIDE_ONLY_GRADING_OR_CUSTOM_GRADING_ERROR}
             )
 
+        return validated_data
+
+
+class FirearmDetailsSerializer(serializers.ModelSerializer):
+    type = KeyValueChoiceField(choices=FirearmGoodType.choices, allow_null=True)
+    year_of_manufacture = serializers.IntegerField()
+    calibre = serializers.CharField(allow_blank=False, allow_null=False)
+    # this refers specifically to section 1, 2 or 5 of firearms act 1968
+    is_covered_by_firearm_act_section_one_two_or_five = serializers.BooleanField(allow_null=True, required=False)
+    section_certificate_number = serializers.CharField(allow_blank=False, allow_null=False)
+    section_certificate_date_of_expiry = serializers.DateField(allow_null=True)
+    has_identification_markings = serializers.BooleanField(allow_null=True, required=False)
+    identification_markings_details = serializers.CharField(allow_blank=False, allow_null=False)
+    no_identification_markings_details = serializers.CharField(allow_blank=False, allow_null=False)
+
+    class Meta:
+        model = FirearmGoodDetails
+        fields = '__all__'
+
+    def validate(self, data):
+        validated_data = super(FirearmDetailsSerializer, self).validate(data)
         return validated_data
 
 
@@ -213,6 +235,13 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             )
         instance.information_security_details = validated_data.get("information_security_details", "")
 
+        # Firearms
+        if validated_data.get("item_category") and validated_data.get("item_category") == ItemCategory.GROUP2_FIREARMS:
+            instance.firearm_details = GoodCreateSerializer._create_update_or_delete_firearm_details(
+                firearm_details=validated_data.get("firearm_details"),
+                instance=instance.pv_grading_details,
+            )
+
         instance.save()
         return instance
 
@@ -250,6 +279,41 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     def _delete_pv_grading_details(instance):
         instance.delete()
         return None
+
+    @staticmethod
+    def _create_update_or_delete_firearm_details(is_firearm_good=None, firearm_details=None, instance=None):
+        """ Creates/updates/deletes firearm details."""
+        if not is_firearm_good and instance:
+            return GoodCreateSerializer._delete_firearm_details(instance)
+
+        if firearm_details:
+            if instance:
+                return GoodCreateSerializer._update_firearm_details(firearm_details, instance)
+
+            return GoodCreateSerializer._create_firearm_details(firearm_details)
+
+        return None
+
+    @staticmethod
+    def _create_firearm_details(firearm_details):
+        return FirearmDetailsSerializer.create(PvGradingDetailsSerializer(), validated_data=firearm_details)
+
+    @staticmethod
+    def _update_firearm_details(firearm_details, instance):
+        return FirearmDetailsSerializer.update(
+            FirearmDetailsSerializer(), validated_data=firearm_details, instance=instance,
+        )
+
+    @staticmethod
+    def _delete_firearm_details(instance):
+        instance.delete()
+        return None
+
+    @staticmethod
+    def _update_firearm_details(firearm_details, instance):
+        return FirearmDetailsSerializer.update(
+            FirearmDetailsSerializer(), validated_data=firearm_details, instance=instance,
+        )
 
 
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):
