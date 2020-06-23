@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
-from cases.enums import CaseTypeEnum
+from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceLicenceListSerializer
@@ -82,27 +82,22 @@ class ComplianceSiteManageStatus(APIView):
         case = get_case(pk)
         new_status = request.data.get("status")
 
-        if new_status not in [CaseStatusEnum.OPEN, CaseStatusEnum.CLOSED]:
+        if (
+            case.case_type.reference == CaseTypeReferenceEnum.COMP_SITE
+            and new_status not in CaseStatusEnum.compliance_site_statuses
+        ):
+            return JsonResponse(data={"errors": [strings.Statuses.BAD_STATUS]}, status=status.HTTP_400_BAD_REQUEST,)
+        elif (
+            case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT
+            and new_status not in CaseStatusEnum.compliance_visit_statuses
+        ):
             return JsonResponse(data={"errors": [strings.Statuses.BAD_STATUS]}, status=status.HTTP_400_BAD_REQUEST,)
 
-        old_status = case.status
+        if case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT and new_status == CaseStatusEnum.CLOSED:
+            # Verify status can be closed
+            pass
 
-        case.status = get_case_status_by_status(new_status)
-        case.save()
-
-        if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(case.status.status):
-            apply_flagging_rules_to_case(case)
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=case.get_case(),
-            payload={"status": {"new": CaseStatusEnum.get_text(new_status), "old": old_status.status}},
-        )
-
-        # Case routing rules
-        if old_status.status != new_status:
-            run_routing_rules(case=case, keep_status=True)
+        case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
