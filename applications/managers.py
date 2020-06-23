@@ -1,10 +1,11 @@
 from django.db import models
+from model_utils.managers import InheritanceManager
 
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class BaseApplicationManager(models.Manager):
+class BaseApplicationManager(InheritanceManager):
     def drafts(self, organisation):
         draft = get_case_status_by_status(CaseStatusEnum.DRAFT)
         return self.get_queryset().filter(status=draft, organisation=organisation).order_by("-created_at")
