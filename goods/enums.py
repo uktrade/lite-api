@@ -90,3 +90,49 @@ class PvGrading:
     @classmethod
     def to_str(cls, obj):
         return [grading[1] for grading in PvGrading.choices if grading[0] == obj][0]
+
+
+class ItemCategory:
+    GROUP1_PLATFORM = "group1_platform"
+    GROUP1_DEVICE = "group1_device"
+    GROUP1_COMPONENTS = "group1_components"
+    GROUP1_MATERIALS = "group1_materials"
+    GROUP2_FIREARMS = "group2_firearms"
+    GROUP3_SOFTWARE = "group3_software"
+    GROUP3_TECHNOLOGY = "group3_technology"
+
+    choices = [
+        (GROUP1_PLATFORM, "Platform, vehicle, system or machine"),
+        (GROUP1_DEVICE, "Device, equipment or object"),
+        (GROUP1_COMPONENTS, "Components, modules or accessories of something"),
+        (GROUP1_MATERIALS, "Materials or substances"),
+        (GROUP2_FIREARMS, "Firearms"),
+        (GROUP3_SOFTWARE, "Software"),
+        (GROUP3_TECHNOLOGY, "Technology"),
+    ]
+
+
+class MilitaryUse:
+    YES_DESIGNED = "yes_designed"
+    YES_MODIFIED = "yes_modified"
+    NO = "no"
+
+    choices = [
+        (YES_DESIGNED, "Yes, designed specifically for military use"),
+        (YES_MODIFIED, "Yes, modified for military use"),
+        (NO, "No"),
+    ]
+
+
+class Component:
+    YES_DESIGNED = "yes_designed"
+    YES_MODIFIED = "yes_modified"
+    YES_GENERAL_PURPOSE = "yes_general"
+    NO = "no"
+
+    choices = [
+        (YES_DESIGNED, "Yes, it's designed specially for hardware"),
+        (YES_MODIFIED, "Yes, it's been modified for hardware"),
+        (YES_GENERAL_PURPOSE, "Yes, it's a general purpose component"),
+        (NO, "No"),
+    ]
