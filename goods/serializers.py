@@ -361,6 +361,7 @@ class TinyGoodDetailsSerializer(serializers.ModelSerializer):
         model = Good
         fields = (
             "id",
+            "item_category",
             "is_military_use",
             "is_component",
             "uses_information_security",
