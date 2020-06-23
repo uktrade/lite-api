@@ -116,7 +116,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
 class HMRCIntegrationUsageUpdateGoodSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True, allow_null=False)
-    usage = serializers.IntegerField(required=True, allow_null=False)
+    usage = serializers.FloatField(required=True, allow_null=False, min_value=0)
 
 
 class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
