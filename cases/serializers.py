@@ -27,7 +27,7 @@ from cases.models import (
 )
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase
 from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
-from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitViewSerializer
+from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
@@ -206,7 +206,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             return ComplianceSiteViewSerializer(compliance, context={"team": self.team}).data
         elif instance.case_type.sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
             compliance = ComplianceVisitCase.objects.get(id=instance.id)
-            return ComplianceVisitViewSerializer(compliance).data
+            return ComplianceVisitSerializer(compliance).data
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))

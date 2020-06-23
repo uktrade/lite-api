@@ -4,12 +4,13 @@ from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceLicenceListSerializer
 from compliance.serializers.ComplianceVisitCaseSerializers import (
-    ComplianceVisitViewSerializer,
+    ComplianceVisitSerializer,
     CompliancePersonSerializer,
 )
 from compliance.serializers.OpenLicenceReturns import (
@@ -118,17 +119,65 @@ class ComplianceSiteVisits(ListCreateAPIView):
 
         visit_case = site_case.create_visit_case()
 
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.COMPLIANCE_VISIT_CASE_CREATED,
+            action_object=visit_case.get_case(),
+            payload={},
+        )
+
         # audit creation
 
         return JsonResponse(
-            data={"data": ComplianceVisitViewSerializer(instance=visit_case).data}, status=status.HTTP_201_CREATED
+            data={"data": ComplianceVisitSerializer(instance=visit_case).data}, status=status.HTTP_201_CREATED
         )
 
 
 class ComplianceVisitCaseView(RetrieveUpdateAPIView):
     authentication_classes = (GovAuthentication,)
     queryset = ComplianceVisitCase.objects.all()
-    serializer_class = ComplianceVisitViewSerializer
+    serializer_class = ComplianceVisitSerializer
+
+    def perform_update(self, serializer):
+        fields = [
+            ("visit_type", Compliance.ActivityFieldDisplay.VISIT_TYPE),
+            ("visit_date", Compliance.ActivityFieldDisplay.VISIT_DATE),
+            ("overall_risk_value", Compliance.ActivityFieldDisplay.OVERALL_RISK_VALUE),
+            ("licence_risk_value", Compliance.ActivityFieldDisplay.LICENCE_RISK_VALUE),
+            ("overview", Compliance.ActivityFieldDisplay.OVERVIEW),
+            ("inspection", Compliance.ActivityFieldDisplay.INSPECTION),
+            ("compliance_overview", Compliance.ActivityFieldDisplay.COMPLIANCE_OVERVIEW),
+            ("compliance_risk_value", Compliance.ActivityFieldDisplay.COMPLIANCE_RISK_VALUE),
+            ("individuals_overview", Compliance.ActivityFieldDisplay.INDIVIDUALS_OVERVIEW),
+            ("individuals_risk_value", Compliance.ActivityFieldDisplay.INDIVIDUALS_RISK_VALUE),
+            ("products_overview", Compliance.ActivityFieldDisplay.PRODUCTS_OVERVIEW),
+            ("products_risk_value", Compliance.ActivityFieldDisplay.PRODUCTS_RISK_VALUE),
+        ]
+        # data setup for audit checks
+        original_instance = self.get_object()
+
+        # save model
+        updated_instance = serializer.save()
+
+        audits = []
+        case = updated_instance.get_case()
+        for field, display in fields:
+            if getattr(original_instance, field) != getattr(updated_instance, field):
+                audits.append(
+                    Audit(
+                        actor=self.request.user,
+                        verb=AuditType.COMPLIANCE_VISIT_CASE_UPDATED,
+                        action_object=case,
+                        payload={
+                            "key": display,
+                            "old": getattr(original_instance, field),
+                            "new": getattr(updated_instance, field),
+                        },
+                    )
+                )
+
+        if audits:
+            Audit.objects.bulk_create(audits)
 
 
 class ComplianceCaseId(APIView):
