@@ -41,10 +41,8 @@ class SiteListSerializer(serializers.Serializer):
                     "region": site.address.region,
                     "postcode": site.address.postcode,
                     "city": site.address.city,
-                    "country": {
-                        "name": site.address.country.name
-                    }
-                }
+                    "country": {"name": site.address.country.name},
+                },
             }
 
 
@@ -77,7 +75,7 @@ class SiteViewSerializer(SiteListSerializer):
             "id",
             "name",
             "address",
-            "site_records_located_at_name",
+            "records_located_at",
             "users",
             "admin_users",
             "is_used_on_application",
