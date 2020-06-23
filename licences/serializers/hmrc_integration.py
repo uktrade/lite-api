@@ -114,23 +114,20 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             return []
 
 
-class HMRCIntegrationGoodUsageUpdateSerializer(serializers.Serializer):
+class HMRCIntegrationUsageUpdateGoodSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True, allow_null=False)
     usage = serializers.IntegerField(required=True, allow_null=False)
 
 
-class HMRCIntegrationLicenceUpdateSerializer(serializers.Serializer):
+class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True, allow_null=False)
-    goods = HMRCIntegrationGoodUsageUpdateSerializer(many=True, required=True, allow_null=False, allow_empty=False)
+    goods = HMRCIntegrationUsageUpdateGoodSerializer(many=True, required=True, allow_null=False, allow_empty=False)
 
 
-class HMRCIntegrationLicencesUpdateSerializer(serializers.Serializer):
-    licences = HMRCIntegrationLicenceUpdateSerializer(many=True, required=True, allow_null=False, allow_empty=False)
-
-    def validate(self, data):
-        data = super(HMRCIntegrationLicencesUpdateSerializer, self).validate(data)
-        data["licences"] = [self._validate_licence(licence) for licence in data["licences"]]
-        return data
+class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
+    licences = HMRCIntegrationUsageUpdateLicenceSerializer(
+        many=True, required=True, allow_null=False, allow_empty=False
+    )
 
     def create(self, validated_data):
         for licence in validated_data["licences"]:
@@ -141,23 +138,34 @@ class HMRCIntegrationLicencesUpdateSerializer(serializers.Serializer):
 
         return validated_data
 
-    def _validate_licence(self, data):
+    def validate(self, data):
+        data = super(HMRCIntegrationUsageUpdateLicencesSerializer, self).validate(data)
+        data["licences"] = [self._validate_licence(licence) for licence in data["licences"]]
+        return data
+
+    def _validate_licence(self, data: dict) -> dict:
         try:
-            data["id"] = Licence.objects.exclude(application__case_type_id__in=CaseTypeEnum.OPEN_LICENCE_IDS).get(
-                id=data["id"]
-            )
+            licence = Licence.objects.get(id=data["id"])
         except Licence.DoesNotExist:
             raise serializers.ValidationError({"licences": f"Licence '{data['id']}' not found."})
 
-        data["goods"] = [self._validate_good(data["id"], good) for good in data["goods"]]
+        if licence.application.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
+            raise serializers.ValidationError(
+                {
+                    "licences": f"Licence type '{licence.application.case_type.reference}' cannot be updated; "
+                    f"Licence '{licence.id}'."
+                }
+            )
+
+        data["goods"] = [self._map_good_to_good_on_application(licence, good) for good in data["goods"]]
         return data
 
-    def _validate_good(self, licence, data):
+    @staticmethod
+    def _map_good_to_good_on_application(licence: Licence, good: dict) -> dict:
         try:
-            data["good_on_application"] = GoodOnApplication.objects.get(
-                application=licence.application, good_id=data["id"]
+            good["good_on_application"] = GoodOnApplication.objects.get(
+                application=licence.application, good_id=good["id"]
             )
         except GoodOnApplication.DoesNotExist:
-            raise serializers.ValidationError({"goods": f"Good '{data['id']}' not found on Licence '{licence.id}'"})
-
-        return data
+            raise serializers.ValidationError({"goods": f"Good '{good['id']}' not found on Licence '{licence.id}'"})
+        return good

@@ -181,5 +181,6 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["licences"], [f"Licence '{licence.id}' not found."],
+            response.json()["errors"]["licences"],
+            [f"Licence type '{licence.application.case_type.reference}' cannot be updated; Licence '{licence.id}'."],
         )
