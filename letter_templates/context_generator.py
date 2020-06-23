@@ -12,7 +12,7 @@ from applications.models import (
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
-from compliance.models import ComplianceSiteCase, ComplianceVisitCase
+from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading
 from licences.models import Licence
@@ -39,8 +39,6 @@ def get_document_context(case, addressee=None):
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
     destinations = CountryOnApplication.objects.filter(application_id=case.pk).order_by("country__name")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
-    compliance_site_case = ComplianceSiteCase.objects.filter(id=case.id)
-    compliance_visit_case = ComplianceVisitCase.objects.filter(id=case.id)
 
     if getattr(base_application, "goods", "") and base_application.goods.exists():
         goods = _get_goods_context(base_application.goods.all(), final_advice)
@@ -86,8 +84,6 @@ def get_document_context(case, addressee=None):
         "external_locations": [_get_external_location_context(location) for location in external_locations],
         "documents": [_get_document_context(document) for document in documents],
         "destinations": [_get_destination_context(destination) for destination in destinations],
-        "compliance": compliance_site_case,
-        "compliance_visit": compliance_visit_case,
     }
 
 
@@ -258,6 +254,36 @@ def _get_goods_query_context(case):
     }
 
 
+def _get_compliance_site_context(case):
+    return None
+
+
+def _get_compliance_visit_context(case):
+    def _get_people_present_compliance_visit_context(case):
+        people = CompliancePerson.objects.filter(visit_case=case.id)
+        return [{"name": person.name, "job_title": person.job_title} for person in people]
+
+    comp_case = ComplianceVisitCase.objects.get(id=case.id).select_related("site_case")
+    return {
+        "site_case_reference": comp_case.site_case.reference_code,
+        "site_name": comp_case.site_case.site.name,
+        "address": comp_case.site_case.site.address,
+        "visit_type": comp_case.visit_type,
+        "visit_date": comp_case.visit_date,
+        "overall_risk_value": comp_case.overall_risk_value,
+        "licence_risk_value": comp_case.licence_risk_value,
+        "overview": comp_case.overview,
+        "inspection": comp_case.inspection,
+        "compliance_overview": comp_case.compliance_overview,
+        "compliance_risk_value": comp_case.compliance_risk_value,
+        "individuals_overview": comp_case.individuals_overview,
+        "individuals_risk_value": comp_case.individuals_risk_value,
+        "products_overview": comp_case.products_overview,
+        "products_risk_value": comp_case.products_risk_value,
+        "people_present": _get_people_present_compliance_visit_context(comp_case),
+    }
+
+
 def _get_details_context(case):
     case_sub_type = case.case_type.sub_type
     if case_sub_type == CaseTypeSubTypeEnum.STANDARD:
@@ -276,6 +302,10 @@ def _get_details_context(case):
         return _get_end_user_advisory_query_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
         return _get_goods_query_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.COMP_SITE:
+        return _get_compliance_site_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
+        return _get_compliance_visit_context(case)
     else:
         return None
 
