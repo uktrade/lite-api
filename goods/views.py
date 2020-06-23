@@ -21,7 +21,12 @@ from documents.libraries.delete_documents_on_bad_request import delete_documents
 from documents.models import Document
 from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, MilitaryUse, ItemCategory
 from goods.goods_paginator import GoodListPaginator
-from goods.helpers import validate_component_fields, validate_information_security_field
+from goods.helpers import (
+    validate_component_fields,
+    validate_information_security_field,
+    validate_software_or_technology_details,
+    validate_military_use,
+)
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
 from goods.models import Good, GoodDocument
@@ -187,17 +192,18 @@ class GoodList(ListCreateAPIView):
 
         # TODO: TEMPORARY to prevent invalid goods - to be removed once LT-2704 and LT-2251 are implemented
         if "item_category" in data:
-            if data["item_category"] in [
-                ItemCategory.GROUP2_FIREARMS,
-                ItemCategory.GROUP3_SOFTWARE,
-                ItemCategory.GROUP3_TECHNOLOGY,
-            ]:
+            if data["item_category"] in [ItemCategory.GROUP2_FIREARMS]:
                 return JsonResponse(
-                    data={"errors": {"item_category": ["Not implemented yet, please select an option in category 1"]}},
+                    data={
+                        "errors": {"item_category": ["Not implemented yet, please select an option in category 1 or 3"]}
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
         serializer = GoodCreateSerializer(data=data)
+        validate_software_or_technology_details(data)
+
+        if "is_military_use_step" in data:
+            validate_military_use(data)
 
         if "is_military_use" in data and data["is_military_use"] == MilitaryUse.YES_MODIFIED:
             if not data.get("modified_military_use_details"):
@@ -263,6 +269,7 @@ class GoodTAUDetails(APIView):
 
         data = request.data.copy()
 
+        validate_software_or_technology_details(data)
         validate_component_fields(data)
         if data.get("uses_information_security") == "None":
             data["uses_information_security"] = None

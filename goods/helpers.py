@@ -1,6 +1,6 @@
 from rest_framework.exceptions import ValidationError
 
-from goods.enums import Component
+from goods.enums import Component, ItemCategory
 from lite_content.lite_api import strings
 
 
@@ -50,3 +50,30 @@ def validate_information_security_field(data):
         raise ValidationError(
             {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
         )
+
+
+def validate_software_or_technology_details(data):
+    """ Validate software/technology details field if the item category is software or technology. """
+    if "item_category" in data and data["item_category"] in [
+        ItemCategory.GROUP3_SOFTWARE,
+        ItemCategory.GROUP3_TECHNOLOGY,
+    ]:
+        if not data.get("software_or_technology_details"):
+            raise ValidationError(
+                {
+                    "software_or_technology_details": [
+                        strings.Goods.FORM_NO_SOFTWARE_DETAILS
+                        if data["item_category"] == ItemCategory.GROUP3_SOFTWARE
+                        else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
+                    ]
+                }
+            )
+
+
+def validate_military_use(data):
+    """ Validate military use selected if category is either Group 1 or 3. """
+    if "item_category" in data and data["item_category"] not in [
+        ItemCategory.GROUP2_FIREARMS,
+    ]:
+        if not data.get("is_military_use"):
+            raise ValidationError({"is_military_use": [strings.Goods.FORM_NO_MILITARY_USE_SELECTED]})

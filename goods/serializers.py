@@ -95,9 +95,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     item_category = KeyValueChoiceField(
         choices=ItemCategory.choices, error_messages={"required": strings.Goods.FORM_NO_ITEM_CATEGORY_SELECTED}
     )
-    is_military_use = KeyValueChoiceField(
-        choices=MilitaryUse.choices, error_messages={"required": strings.Goods.FORM_NO_MILITARY_USE_SELECTED},
-    )
+    is_military_use = KeyValueChoiceField(choices=MilitaryUse.choices, required=False, allow_null=True)
     is_component = KeyValueChoiceField(choices=Component.choices, allow_null=True, allow_blank=True, required=False,)
     uses_information_security = serializers.BooleanField(allow_null=True, required=False, default=None)
     modified_military_use_details = serializers.CharField(
@@ -105,6 +103,9 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     )
     component_details = serializers.CharField(allow_null=True, required=False, allow_blank=True, max_length=2000)
     information_security_details = serializers.CharField(
+        allow_null=True, required=False, allow_blank=True, max_length=2000
+    )
+    software_or_technology_details = serializers.CharField(
         allow_null=True, required=False, allow_blank=True, max_length=2000
     )
 
@@ -131,6 +132,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "modified_military_use_details",
             "component_details",
             "information_security_details",
+            "software_or_technology_details",
         )
 
     def __init__(self, *args, **kwargs):
@@ -342,6 +344,7 @@ class GoodSerializerInternal(serializers.Serializer):
     component_details = serializers.CharField()
     information_security_details = serializers.CharField()
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
+    software_or_technology_details = serializers.CharField()
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
@@ -359,6 +362,7 @@ class TinyGoodDetailsSerializer(serializers.ModelSerializer):
             "modified_military_use_details",
             "component_details",
             "information_security_details",
+            "software_or_technology_details",
         )
 
 
@@ -377,6 +381,7 @@ class GoodSerializerExporter(serializers.Serializer):
     component_details = serializers.CharField()
     information_security_details = serializers.CharField()
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
+    software_or_technology_details = serializers.CharField()
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
