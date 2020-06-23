@@ -266,3 +266,7 @@ ENV = env("ENV")
 EXPORTER_BASE_URL = (
     env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
 )
+
+# Document signing
+CERTIFICATE_PATH = env("CERTIFICATE_PATH")
+CERTIFICATE_PASSWORD = env("CERTIFICATE_PASSWORD")
