@@ -1,12 +1,12 @@
-from common.enums import LiteEnum, autostr
+from enum import Enum
 
 
-class LicenceStatus(LiteEnum):
-    ISSUED = autostr()
-    REINSTATED = autostr()
-    REVOKED = autostr()
-    SURRENDERED = autostr()
-    DRAFT = autostr()
+class LicenceStatus(Enum):
+    ISSUED = "issued"
+    REINSTATED = "reinstated"
+    REVOKED = "revoked"
+    SURRENDERED = "surrendered"
+    DRAFT = "draft"
 
     @classmethod
     def values(cls):

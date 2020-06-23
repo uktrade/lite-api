@@ -249,7 +249,7 @@ class ApplicationManageStatusTests(DataTestClient):
         [
             status
             for status, value in CaseStatusEnum.choices
-            if status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.FINALISED, CaseStatusEnum.SURRENDERED]
+            if status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.FINALISED, CaseStatusEnum.SURRENDERED, CaseStatusEnum.REOPENED_FOR_CHANGES]
         ]
     )
     def test_gov_set_status_for_all_except_applicant_editing_and_finalised_success(self, case_status):

@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.enums import CaseTypeEnum
+from licences.enums import LicenceStatus
 from test_helpers.clients import DataTestClient
 
 
@@ -23,7 +24,7 @@ class GetLicenceTests(DataTestClient):
             self.open_application,
         ]
         self.licences = {
-            application: self.create_licence(application, is_complete=True) for application in self.applications
+            application: self.create_licence(application, status=LicenceStatus.ISSUED) for application in self.applications
         }
 
     def test_get_licence(self):

@@ -1,5 +1,6 @@
 from string import ascii_uppercase
 
+from licences.enums import LicenceStatus
 from licences.helpers import get_reference_code
 from test_helpers.clients import DataTestClient
 
@@ -22,6 +23,6 @@ class GetLicenceReferenceCodeTests(DataTestClient):
         Check all amended licences get suffix /A -> /Z
         """
         for letter in ascii_uppercase:
-            self.create_licence(self.application, is_complete=True)
+            self.create_licence(self.application, status=LicenceStatus.ISSUED)
             reference_code = get_reference_code(self.application.reference_code)
             self.assertEqual(reference_code, self.application.reference_code + "/" + letter)

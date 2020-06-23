@@ -3,7 +3,7 @@ from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Sum
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
@@ -76,7 +76,8 @@ from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
 from licences.enums import LicenceStatus
-from licences.models import Licence
+from licences.helpers import get_reference_code
+from licences.models import Licence, GoodOnLicence
 from licences.serializers.create_licence import LicenceSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
@@ -430,7 +431,7 @@ class ApplicationManageStatus(APIView):
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
             try:
-                licence = Licence.objects.get(application=application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED])
+                licence = Licence.objects.get_open_licence(application=application)
             except Licence.DoesNotExist:
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
@@ -440,13 +441,11 @@ class ApplicationManageStatus(APIView):
 
         if data["status"] == CaseStatusEnum.REOPENED_FOR_CHANGES:
             try:
-                licence = Licence.objects.get(application=application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED])
+                # Revoke licence if one exists on a reopened case
+                licence = Licence.objects.get_open_licence(application=application)
+                licence.revoke()
             except Licence.DoesNotExist:
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            licence.revoke()
+                pass
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -508,7 +507,10 @@ class ApplicationFinaliseView(APIView):
         """
         goods_on_application = (
             GoodOnApplication.objects.filter(
-                application_id=pk, good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+                application_id=pk,
+                good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
+                good__advice__case_id=pk,
+                good__advice__good_id__isnull=False
             )
             .annotate(
                 advice_type=F("good__advice__type"),
@@ -516,6 +518,17 @@ class ApplicationFinaliseView(APIView):
                 advice_proviso=F("good__advice__proviso")
             ).distinct()
         )
+        #
+        # self.approved_goods_advice = Advice.objects.filter(
+        #     case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO], good_id__isnull=False,
+        # )
+        # goods_on_application = GoodOnApplication.objects.filter(
+        #     application_id=pk, good__in=self.approved_goods_advice.values_list("good", flat=True)
+        # ).annotate(
+        #     advice_type=F("good__advice__type"),
+        #     advice_text=F("good__advice__text"),
+        #     advice_proviso=F("good__advice__proviso")
+        # )
 
         good_on_applications_with_advice = [{
             "id": str(goa.id),
@@ -595,14 +608,15 @@ class ApplicationFinaliseView(APIView):
 
             # Create Draft Licence object
             licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
-            licence_data["application"] = application
+            licence_data["application"] = application.id
+            licence_data["status"] = LicenceStatus.DRAFT.value
 
             licence_serializer = LicenceSerializer(data=licence_data)
 
             if not licence_serializer.is_valid():
                 return JsonResponse(data={"errors": licence_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            licence_serializer.save()
+            licence = Licence.objects.new(application.reference_code, licence_serializer.validated_data)
 
             # Create GoodsOnLicence if Standard application
             if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
@@ -610,7 +624,7 @@ class ApplicationFinaliseView(APIView):
                 good_licence_serializers = []
                 good_on_applications = GoodOnApplication.objects.filter(
                     application_id=pk, good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
-                ).values("id", "quantity")
+                ).distinct().values("id", "quantity")
 
                 for goa in good_on_applications:
                     quantity_key = f"quantity-{goa['id']}"
@@ -618,10 +632,12 @@ class ApplicationFinaliseView(APIView):
                     good_data = {
                         "quantity": request.data.get(quantity_key),
                         "value": request.data.get(value_key),
-                        "licence": licence_serializer.instance.id,
+                        "licence": licence.id,
                         "good": goa['id']
                     }
-                    serializer = GoodOnLicenceSerializer(data=good_data, context={"quantity": goa['quantity']})
+                    previouse_goods = GoodOnLicence.objects.filter(good=goa['id'], licence__application=application.id).aggregate(total_usage=Sum("usage"))
+                    total_usage = previouse_goods.get("total_usage") or 0.0
+                    serializer = GoodOnLicenceSerializer(update_or_create=True, data=good_data, context={"quantity": goa['quantity'], "total_usage": total_usage})
                     good_licence_serializers.append(serializer)
                     if not serializer.is_valid():
                         quantity_error = serializer.errors.get("quantity")
@@ -637,7 +653,7 @@ class ApplicationFinaliseView(APIView):
                     for serializer in good_licence_serializers:
                         serializer.save()
 
-            return JsonResponse(data=licence_serializer.data, status=status.HTTP_200_OK)
+            return JsonResponse(data=LicenceSerializer(licence).data, status=status.HTTP_200_OK)
 
         return JsonResponse(
             data={"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]},

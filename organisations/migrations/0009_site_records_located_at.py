@@ -16,7 +16,7 @@ def forward_migration(apps, schema_editor):
 
     cases = Case.objects.filter(
         baseapplication__application_sites__site__site_records_located_at__compliance__isnull=True,
-        baseapplication__licence__is_complete=True,
+        baseapplication__licence__status=True,
     ).distinct()
 
     for case in cases:

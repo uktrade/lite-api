@@ -1,21 +1,20 @@
 from rest_framework import serializers
+from rest_framework.fields import ChoiceField
+
 from common.serializers import EnumField
 
 from applications.enums import LicenceDuration
 from licences.enums import LicenceStatus
+from licences.helpers import get_reference_code
 from licences.models import Licence
 from lite_content.lite_api import strings
 
 
 class LicenceSerializer(serializers.ModelSerializer):
-    status = EnumField(LicenceStatus, required=False)
-    reference_code = serializers.CharField(max_length=30, required=True)
-
     class Meta:
         model = Licence
         fields = (
             "application",
-            "reference_code",
             "start_date",
             "duration",
             "status"

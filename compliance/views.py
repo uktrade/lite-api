@@ -9,6 +9,7 @@ from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.serializers import ComplianceLicenceListSerializer
 from conf.authentication import GovAuthentication
+from licences.enums import LicenceStatus
 from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -45,7 +46,7 @@ class LicenceList(ListAPIView):
         reference_code = self.request.GET.get("reference").upper()
 
         cases = Case.objects.select_related("case_type").filter(
-            baseapplication__licence__is_complete=True,
+            baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
             baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
         )
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
