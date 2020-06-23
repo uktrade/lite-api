@@ -130,12 +130,13 @@ class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
     )
 
     def create(self, validated_data):
+        """Updates the usages for Goods on Licences"""
+
         for licence in validated_data["licences"]:
             for good in licence["goods"]:
-                goa = good["good_on_application"]
-                goa.usage = good["usage"]
-                goa.save()
-
+                gol = good["good_on_licence"]
+                gol.usage = good["usage"]
+                gol.save()
         return validated_data
 
     def validate(self, data):
@@ -144,6 +145,8 @@ class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
         return data
 
     def _validate_licence(self, data: dict) -> dict:
+        """Validates that a Licence exists and that the Goods exist on that Licence"""
+
         try:
             licence = Licence.objects.get(id=data["id"])
         except Licence.DoesNotExist:
@@ -157,15 +160,14 @@ class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
                 }
             )
 
-        data["goods"] = [self._map_good_to_good_on_application(licence, good) for good in data["goods"]]
+        data["goods"] = [self._validate_good_on_licence(licence, good) for good in data["goods"]]
         return data
 
-    @staticmethod
-    def _map_good_to_good_on_application(licence: Licence, good: dict) -> dict:
+    def _validate_good_on_licence(self, licence: Licence, data: dict) -> dict:
+        """Validates that a Good exists on a Licence"""
+
         try:
-            good["good_on_application"] = GoodOnApplication.objects.get(
-                application=licence.application, good_id=good["id"]
-            )
+            data["good_on_licence"] = GoodOnApplication.objects.get(application=licence.application, good_id=data["id"])
         except GoodOnApplication.DoesNotExist:
-            raise serializers.ValidationError({"goods": f"Good '{good['id']}' not found on Licence '{licence.id}'"})
-        return good
+            raise serializers.ValidationError({"goods": f"Good '{data['id']}' not found on Licence '{licence.id}'"})
+        return data

@@ -58,6 +58,7 @@ class Command(SeedCommand):
         org_id = options.get("org_id") or None
         count = options.get("count") or 1
         goods = options.get("goods") or 1
+        # Seed applications for Non-HMRC organisations
         organisations = (
             [Organisation.objects.exclude(type=OrganisationType.HMRC).get(id=org_id)]
             if org_id is not None

@@ -36,7 +36,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_data_transfer_object_success(self, create_licence):
+    def test_update_usages_success(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.application.goods.first().usage
 
@@ -59,7 +59,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_data_transfer_object_no_licences_failure(self, create_licence):
+    def test_update_usages_no_licences_failure(self, create_licence):
         create_licence(self)
 
         response = self.client.put(self.url, {})
@@ -72,7 +72,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_data_transfer_object_no_licence_ids_failure(self, create_licence):
+    def test_update_usages_no_licence_ids_failure(self, create_licence):
         licence = create_licence(self)
 
         response = self.client.put(
@@ -87,7 +87,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_data_transfer_object_invalid_licence_id_failure(self, create_licence):
+    def test_update_usages_invalid_licence_id_failure(self, create_licence):
         licence = create_licence(self)
         invalid_licence_id = str(uuid.uuid4())
 
@@ -111,7 +111,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_data_transfer_object_no_goods_failure(self, create_licence):
+    def test_update_usages_no_goods_failure(self, create_licence):
         licence = create_licence(self)
 
         response = self.client.put(self.url, {"licences": [{"id": str(licence.id)}]})
@@ -124,7 +124,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_data_transfer_object_no_good_ids_failure(self, create_licence):
+    def test_update_usages_no_good_ids_failure(self, create_licence):
         licence = create_licence(self)
 
         response = self.client.put(self.url, {"licences": [{"id": str(licence.id), "goods": [{"usage": 10}]}]})
@@ -135,7 +135,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_data_transfer_object_invalid_good_id_failure(self, create_licence):
+    def test_update_usages_invalid_good_id_failure(self, create_licence):
         licence = create_licence(self)
 
         response = self.client.put(
@@ -150,7 +150,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_data_transfer_object_no_good_usage_failure(self, create_licence):
+    def test_update_usages_no_good_usage_failure(self, create_licence):
         licence = create_licence(self)
 
         response = self.client.put(
@@ -163,7 +163,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             response.json()["errors"]["licences"], [{"goods": [{"usage": ["This field is required."]}]}],
         )
 
-    def test_data_transfer_object_open_application_failure(self):  # (has no concept of Usage)
+    def test_update_usages_open_application_failure(self):  # (has no concept of Usage)
         open_application = self.create_open_application_case(self.organisation)
         licence = self.create_licence(open_application, is_complete=True)
 
