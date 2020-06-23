@@ -2,7 +2,8 @@ from rest_framework import serializers
 
 from addresses.serializers import AddressSerializer
 from cases.models import Case
-from compliance.models import ComplianceSiteCase, ComplianceVisitCase
+from compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
+from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
@@ -19,6 +20,7 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationDetailSerializer
     )
+    open_licence_returns = serializers.SerializerMethodField()
     visits = serializers.SerializerMethodField()
     team = None
 
@@ -30,6 +32,7 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
             "status",
             "organisation",
             "visits",
+            "open_licence_returns",
         )
 
     def __init__(self, *args, **kwargs):
@@ -63,6 +66,13 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
             }
             for case in visit_cases
         ]
+
+    def get_open_licence_returns(self, instance):
+        queryset = OpenLicenceReturns.objects.filter(organisation_id=instance.organisation_id).order_by(
+            "-year", "-created_at"
+        )
+
+        return OpenLicenceReturnsListSerializer(queryset, many=True).data
 
 
 class ComplianceLicenceListSerializer(serializers.ModelSerializer):
