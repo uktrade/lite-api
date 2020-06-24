@@ -449,7 +449,7 @@ class NextReviewDateUpdateSerializer(serializers.ModelSerializer):
     next_review_date = serializers.DateField(
         required=False,
         allow_null=True,
-        error_messages={"invalid": "The next review date must be a real date and include a day, month and year.",},
+        error_messages={"invalid": strings.Cases.NextReviewDate.Errors.INVALID_DATE_FORMAT,},
     )
 
     class Meta:
@@ -460,5 +460,5 @@ class NextReviewDateUpdateSerializer(serializers.ModelSerializer):
         if value:
             today = timezone.now().date()
             if value < today:
-                raise ValidationError("The next review date must be set in the future")
+                raise ValidationError(strings.Cases.NextReviewDate.Errors.DATE_IN_PAST)
         return value

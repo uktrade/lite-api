@@ -801,15 +801,14 @@ class NextReviewDate(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
 
-            # TODO: Create added/edited audit trails
-            if old_next_review_date is None:
+            if old_next_review_date is None and next_review_date:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.ADDED_NEXT_REVIEW_DATE,
                     target=case,
                     payload={"next_review_date": convert_date_to_string(next_review_date)},
                 )
-            elif old_next_review_date and next_review_date and old_next_review_date != next_review_date:
+            elif old_next_review_date and next_review_date and str(old_next_review_date) != next_review_date:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.EDITED_NEXT_REVIEW_DATE,
