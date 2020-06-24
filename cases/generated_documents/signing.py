@@ -16,6 +16,7 @@ from conf.settings import (
     SIGNING_EMAIL,
 )
 
+SIGNATURE_TITLE = "Digital Signature"
 FONT = os.path.join(BASE_DIR, "assets", "fonts", "Helvetica.ttf")
 BACKGROUND_IMAGE = os.path.join(BASE_DIR, "assets", "images", "dit_emblem.png")
 TITLE_FONT_SIZE = 80
@@ -64,7 +65,7 @@ def _get_signature_image(text):
     drawing = ImageDraw.Draw(image)
 
     # Add text
-    drawing.text(TITLE_POSITIONING, "Digital Signature", font=title_font, fill=(0, 0, 0))
+    drawing.text(TITLE_POSITIONING, SIGNATURE_TITLE, font=title_font, fill=(0, 0, 0))
     drawing.text(TEXT_POSITIONING, text, font=text_font, fill=(0, 0, 0))
 
     return image

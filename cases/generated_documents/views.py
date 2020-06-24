@@ -70,7 +70,8 @@ class GeneratedDocuments(generics.ListAPIView):
                 {"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        pdf = sign_pdf(pdf)
+        if document.template.include_digital_signature:
+            pdf = sign_pdf(pdf)
 
         s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key
