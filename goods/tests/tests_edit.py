@@ -171,7 +171,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 2)
 
     def test_edit_information_security_to_no_clears_details_field_success(self):
-        request_data = {"uses_information_security": False}
+        request_data = {"uses_information_security": False, "information_security_details": ""}
 
         response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
         good = response.json()["good"]
