@@ -13,6 +13,7 @@ from cases.generated_documents.serializers import (
     GeneratedCaseDocumentGovSerializer,
     GeneratedCaseDocumentExporterSerializer,
 )
+from cases.generated_documents.signing import sign_pdf
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.models import Case
 from conf.authentication import GovAuthentication, SharedAuthentication
@@ -68,6 +69,8 @@ class GeneratedDocuments(generics.ListAPIView):
             return JsonResponse(
                 {"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+        pdf = sign_pdf(pdf)
 
         s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key

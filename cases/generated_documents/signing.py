@@ -34,9 +34,9 @@ def _get_signature_text(date):
     )
 
 
-def _add_blank_page(pdf_bytes):
+def _add_blank_page(pdf_bytes: bytes):
     # Write a blank page
-    pdf = PyPDF2.PdfFileReader(pdf_bytes)
+    pdf = PyPDF2.PdfFileReader(BytesIO(pdf_bytes))
     out_pdf = PyPDF2.PdfFileWriter()
     out_pdf.appendPagesFromReader(pdf)
     out_pdf.addBlankPage()
@@ -63,10 +63,9 @@ def _get_signature_image(text):
     return image
 
 
-def sign_pdf():
+def sign_pdf(original_pdf: bytes):
     date = timezone.now()
     signing_metadata = {
-        "sigflags": 3,
         "sigandcertify": True,
         "signaturebox": SIGNATURE_POSITIONING,
         "signature_img": _get_signature_image(_get_signature_text(date)),
@@ -77,17 +76,11 @@ def sign_pdf():
     }
     key, cert, othercerts = _load_certificate()
 
-    with open(os.path.join(BASE_DIR, "test.pdf"), "rb") as original_pdf:
-        # Add a blank page to the end
-        pdf, num_pages = _add_blank_page(original_pdf)
+    # Add a blank page to the end
+    pdf, num_pages = _add_blank_page(original_pdf)
 
-        # Add the signature to the last page
-        signing_metadata["sigpage"] = num_pages - 1
-        signature = sign(pdf, signing_metadata, key, cert, othercerts, "sha256")
+    # Add the signature to the last page
+    signing_metadata["sigpage"] = num_pages - 1
+    signature = sign(pdf, signing_metadata, key, cert, othercerts, "sha256")
 
-        output_name = os.path.join(BASE_DIR, "test.pdf").replace(".pdf", "-signed-cms.pdf")
-        data = pdf + signature
-        with open(output_name, "wb") as fp:
-            fp.write(data)
-
-        return data
+    return pdf + signature
