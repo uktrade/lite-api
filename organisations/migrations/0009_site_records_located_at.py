@@ -3,11 +3,17 @@
 from django.db import migrations
 from django.db.models import F
 
+from cases.enums import CaseTypeEnum
+from cases.models import CaseType
 from compliance.helpers import generate_compliance_site_case
 
-# Manual migration to ensure that all current sites have their "records held at" property set and all sites that are
-#   linked to licences have a compliance case where there should be one already.
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.models import CaseStatus, CaseStatusCaseType
+
+
 def forward_migration(apps, schema_editor):
+    # Manual migration to ensure that all current sites have their "records held at" property set and all sites that are
+    #   linked to licences have a compliance case where there should be one already.
     Site = apps.get_model("organisations", "Site")
     Case = apps.get_model("cases", "Case")
 
@@ -18,6 +24,18 @@ def forward_migration(apps, schema_editor):
         baseapplication__application_sites__site__site_records_located_at__compliance__isnull=True,
         baseapplication__licence__is_complete=True,
     ).distinct()
+
+    # Get or create case type & status because seeding may not have run yet
+    case_type, _ = CaseType.objects.get_or_create(
+        id=CaseTypeEnum.COMPLIANCE.id,
+        reference=CaseTypeEnum.COMPLIANCE.reference,
+        type=CaseTypeEnum.COMPLIANCE.type,
+        sub_type=CaseTypeEnum.COMPLIANCE.sub_type,
+    )
+    status, _ = CaseStatus.objects.get_or_create(
+        id="00000000-0000-0000-0000-000000000027", status=CaseStatusEnum.OPEN, priority=11
+    )
+    CaseStatusCaseType.objects.get_or_create(case_type=case_type, status=status)
 
     for case in cases:
         generate_compliance_site_case(case)
