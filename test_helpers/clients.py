@@ -460,7 +460,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         is_military_use=MilitaryUse.NO,
         modified_military_use_details=None,
         component_details=None,
-        is_component=Component.NO,
+        is_component=None,
         uses_information_security=True,
         information_security_details=None,
         software_or_technology_details=None,

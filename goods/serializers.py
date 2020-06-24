@@ -199,12 +199,13 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         if instance.is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO]:
             instance.modified_military_use_details = None
 
-        is_component = validated_data.get("is_component")
-        # if component answer has changed, then set the new value and the details field
-        if is_component is not None and is_component != instance.is_component:
-            instance.is_component = is_component
-            instance.component_details = validated_data.get("component_details")
-        instance.component_details = validated_data.get("component_details", instance.component_details)
+        if instance.item_category not in [ItemCategory.GROUP2_FIREARMS, ItemCategory.GROUP3_TECHNOLOGY, ItemCategory.GROUP3_SOFTWARE]:
+            is_component = validated_data.get("is_component")
+            # if component answer has changed, then set the new value and the details field
+            if is_component is not None and is_component != instance.is_component:
+                instance.is_component = is_component
+                instance.component_details = validated_data.get("component_details")
+            instance.component_details = validated_data.get("component_details", instance.component_details)
 
         uses_information_security = validated_data.get("uses_information_security")
         # if information security has changed, then set the new value and the details field

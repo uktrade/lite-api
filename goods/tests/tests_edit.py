@@ -274,3 +274,17 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEquals(errors["software_or_technology_details"], [error])
+
+    def test_cannot_edit_component_and_component_details_of_non_category_one_good_success(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP3_TECHNOLOGY, software_or_technology_details="initial details"
+        )
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"is_component_step": True, "is_component": Component.YES_GENERAL_PURPOSE, "general_details": "some details"}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(good["is_component"])
+        self.assertIsNone(good["component_details"])
