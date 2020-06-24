@@ -25,7 +25,7 @@ class ComplianceSiteCaseFactory(factory.django.DjangoModelFactory):
     submitted_at = timezone.now()
     organisation = factory.SubFactory(OrganisationFactory)
     site = factory.SubFactory(SiteFactory, organisation=factory.SelfAttribute("..organisation"))
-    status = NotImplementedError
+    status = None
 
     class Meta:
         model = ComplianceSiteCase
