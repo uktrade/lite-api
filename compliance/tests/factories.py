@@ -3,9 +3,7 @@ from datetime import datetime
 import django
 import factory
 from django.utils import timezone
-from elementpath.datatypes import Timezone
 
-from applications.tests.factories import StandardApplicationFactory
 from cases.enums import CaseTypeEnum
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import OpenLicenceReturns, ComplianceSiteCase, CompliancePerson, ComplianceVisitCase

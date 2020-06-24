@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -165,18 +167,32 @@ class ComplianceVisitCaseView(RetrieveUpdateAPIView):
         case = updated_instance.get_case()
         for field, display in fields:
             if getattr(original_instance, field) != getattr(updated_instance, field):
-                audits.append(
-                    Audit(
-                        actor=self.request.user,
-                        verb=AuditType.COMPLIANCE_VISIT_CASE_UPDATED,
-                        action_object=case,
-                        payload={
-                            "key": display,
-                            "old": getattr(original_instance, field),
-                            "new": getattr(updated_instance, field),
-                        },
+                if isinstance(getattr(original_instance, field), date):
+                    audits.append(
+                        Audit(
+                            actor=self.request.user,
+                            verb=AuditType.COMPLIANCE_VISIT_CASE_UPDATED,
+                            action_object=case,
+                            payload={
+                                "key": display,
+                                "old": getattr(original_instance, field).strftime("%Y-%m-%d"),
+                                "new": getattr(updated_instance, field).strftime("%Y-%m-%d"),
+                            },
+                        )
                     )
-                )
+                else:
+                    audits.append(
+                        Audit(
+                            actor=self.request.user,
+                            verb=AuditType.COMPLIANCE_VISIT_CASE_UPDATED,
+                            action_object=case,
+                            payload={
+                                "key": display,
+                                "old": getattr(original_instance, field),
+                                "new": getattr(updated_instance, field),
+                            },
+                        )
+                    )
 
         if audits:
             Audit.objects.bulk_create(audits)

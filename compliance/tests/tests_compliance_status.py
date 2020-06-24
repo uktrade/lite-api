@@ -1,7 +1,8 @@
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
-from compliance.tests.factories import ComplianceSiteCaseFactory
+from compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory, PeoplePresentFactory
 from conf.constants import GovPermissions
 from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
@@ -10,11 +11,9 @@ from test_helpers.clients import DataTestClient
 
 
 class ComplianceManageStatusTests(DataTestClient):
-    def test_gov_set_compliance_status_to_closed_success(self):
+    def test_gov_set_compliance_case_status_to_closed_success(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation, site=self.organisation.primary_site,
         )
 
         url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
@@ -25,7 +24,7 @@ class ComplianceManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(compliance_case.status.status, CaseStatusEnum.CLOSED)
 
-    def test_gov_set_compliance_status_to_open_success(self):
+    def test_gov_set_compliance_case_status_to_open_success(self):
         self.gov_user.role.permissions.set([GovPermissions.REOPEN_CLOSED_CASES.name])
 
         compliance_case = ComplianceSiteCaseFactory(
@@ -42,11 +41,9 @@ class ComplianceManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(compliance_case.status.status, CaseStatusEnum.OPEN)
 
-    def test_gov_set_compliance_status_to_withdrawn_failure(self):
+    def test_gov_set_compliance_case_status_to_withdrawn_failure(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation, site=self.organisation.primary_site,
         )
 
         url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
@@ -57,5 +54,27 @@ class ComplianceManageStatusTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json().get("errors")["status"][0], strings.Statuses.BAD_STATUS)
 
+    @parameterized.expand(CaseStatusEnum.compliance_visit_statuses)
+    def test_compliance_visit_case_all_applicable_statuses_setable(self, status_to_set):
+        compliance_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        PeoplePresentFactory(visit_case=compliance_case)
+        url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
+        data = {"status": status_to_set}
+        response = self.client.put(url, data=data, **self.gov_headers)
 
-# TODO: Add new compliance visit statuses tests
+        compliance_case.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(compliance_case.status.status, status_to_set)
+
+    @parameterized.expand(
+        [status[0] for status in CaseStatusEnum.choices if status[0] not in CaseStatusEnum.compliance_visit_statuses]
+    )
+    def test_visit_case_other_statuses_can_not_be_set(self, status_to_set):
+        compliance_case = ComplianceVisitCaseFactory(organisation=self.organisation,)
+
+        url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
+        data = {"status": status_to_set}
+        response = self.client.put(url, data=data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json().get("errors")["status"][0], strings.Statuses.BAD_STATUS)
