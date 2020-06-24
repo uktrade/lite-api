@@ -89,12 +89,27 @@ class OrganisationSitesTests(DataTestClient):
         }
 
         response = self.client.post(url, data, **self.gov_headers)
-        site = response.json()["site"]
+        response_data = response.json()["site"]
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
+        site = Site.objects.get(name=data["name"])
         # Assert that "records_located_at" is set to the site being created
-        self.assertEqual(site["records_located_at"]["name"], data["name"])
+        self.assertEqual(
+            response_data["records_located_at"],
+            {
+                "id": str(site.id),
+                "name": site.name,
+                "address": {
+                    "address_line_1": site.address.address_line_1,
+                    "address_line_2": site.address.address_line_2,
+                    "city": site.address.city,
+                    "country": {"name": site.address.country.name},
+                    "postcode": site.address.postcode,
+                    "region": site.address.region,
+                },
+            },
+        )
         self.assertEqual(Audit.objects.count(), 1)
 
     def test_add_uk_site_no_site_record_location_error(self):
