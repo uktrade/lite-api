@@ -8,9 +8,9 @@ from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from static.decisions.models import Decision
 
 
-class HMRCIntegrationUpdateTransaction(TimestampableModel):
+class HMRCIntegrationUsageUpdate(TimestampableModel):
     """
-    A history of when a Licence was updated via HMRC Integration
+    A history of when a Licence was updated via a Usage Update on HMRC Integration
     This is to prevent the same update from being processed multiple times
     """
 
@@ -28,9 +28,9 @@ class Licence(TimestampableModel):
     is_complete = models.BooleanField(default=False, null=False, blank=False)
     decisions = models.ManyToManyField(Decision, related_name="licence")
     sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
-    hmrc_integration_update_transactions = models.ManyToManyField(
-        HMRCIntegrationUpdateTransaction, related_name="licences"
-    )
+    hmrc_integration_usage_updates = models.ManyToManyField(
+        HMRCIntegrationUsageUpdate, related_name="licences"
+    )  # Usage Update IDs from from HMRC Integration
 
     def save(self, *args, **kwargs):
         super(Licence, self).save(*args, **kwargs)

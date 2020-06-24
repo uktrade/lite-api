@@ -57,7 +57,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(licence.application.goods.first().usage, original_usage + usage_update)
         self.assertTrue(
-            licence.hmrc_integration_update_transactions.filter(id="00000000-0000-0000-0000-000000000001").exists()
+            licence.hmrc_integration_usage_updates.filter(id="00000000-0000-0000-0000-000000000001").exists()
         )
 
     @parameterized.expand(
@@ -96,7 +96,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(licence.application.goods.first().usage, original_usage + usage_update)
         self.assertTrue(
-            licence.hmrc_integration_update_transactions.filter(id="00000000-0000-0000-0000-000000000001").exists()
+            licence.hmrc_integration_usage_updates.filter(id="00000000-0000-0000-0000-000000000001").exists()
         )
 
     @parameterized.expand(

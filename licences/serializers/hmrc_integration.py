@@ -4,7 +4,7 @@ from applications.models import GoodOnApplication
 from cases.enums import CaseTypeEnum
 from conf.helpers import add_months
 from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
-from licences.models import Licence, HMRCIntegrationUpdateTransaction
+from licences.models import Licence, HMRCIntegrationUsageUpdate
 from static.countries.models import Country
 
 
@@ -133,7 +133,7 @@ class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
     def create(self, validated_data):
         """Updates the usages for Goods on Licences"""
 
-        hmrc_integration_update_transaction, created = HMRCIntegrationUpdateTransaction.objects.get_or_create(
+        hmrc_integration_usage_update, created = HMRCIntegrationUsageUpdate.objects.get_or_create(
             id=validated_data["transaction_id"], defaults={"id": validated_data["transaction_id"]}
         )
 
@@ -144,7 +144,7 @@ class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
                     gol.usage += good_data["usage"]
                     gol.save()
 
-                hmrc_integration_update_transaction.licences.add(licence_data["id"])
+                hmrc_integration_usage_update.licences.add(licence_data["id"])
 
                 # Todo - audit usage update
                 # audit_trail_service.create_system_user_audit(
