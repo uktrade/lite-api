@@ -36,6 +36,7 @@ class LetterTemplateCreateTests(DataTestClient):
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
             "visible_to_exporter": "True",
+            "include_digital_signature": "True",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -60,6 +61,7 @@ class LetterTemplateCreateTests(DataTestClient):
             "layout": self.letter_layout.id,
             "letter_paragraphs": [],
             "visible_to_exporter": "True",
+            "include_digital_signature": "False",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -82,11 +84,14 @@ class LetterTemplateCreateTests(DataTestClient):
             "case_types": [CaseTypeEnum.GOODS.reference],
             "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
+            "visible_to_exporter": "True",
+            "include_digital_signature": "True",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"name": [strings.LetterTemplates.UNIQUE_NAME]})
 
     def test_create_letter_templates_no_layout_failure(self):
         """
@@ -96,11 +101,14 @@ class LetterTemplateCreateTests(DataTestClient):
             "name": "Letter Template",
             "case_types": [CaseTypeEnum.GOODS.reference],
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
+            "visible_to_exporter": "True",
+            "include_digital_signature": "True",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {"layout": [strings.LetterTemplates.SELECT_THE_LAYOUT]})
 
     def test_create_letter_templates_no_case_types_failure(self):
         """
@@ -109,12 +117,51 @@ class LetterTemplateCreateTests(DataTestClient):
         data = {
             "name": "Letter Template",
             "case_types": [],
+            "layout": self.letter_layout.id,
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
+            "visible_to_exporter": "True",
+            "include_digital_signature": "True",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"], {"case_types": [strings.LetterTemplates.NEED_AT_LEAST_ONE_CASE_TYPE]}
+        )
+
+    def test_create_letter_templates_no_visible_to_exporter_failure(self):
+        data = {
+            "name": "Letter Template",
+            "case_types": [CaseTypeEnum.GOODS.reference],
+            "layout": self.letter_layout.id,
+            "letter_paragraphs": [],
+            "include_digital_signature": "False",
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"], {"visible_to_exporter": [strings.LetterTemplates.VISIBLE_TO_EXPORTER]}
+        )
+
+    def test_create_letter_templates_no_include_digital_signature_failure(self):
+        data = {
+            "name": "Letter Template",
+            "case_types": [CaseTypeEnum.GOODS.reference],
+            "layout": self.letter_layout.id,
+            "letter_paragraphs": [],
+            "visible_to_exporter": "True",
+        }
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"],
+            {"include_digital_signature": [strings.LetterTemplates.INCLUDE_DIGITAL_SIGNATURE]},
+        )
 
     def test_create_letter_templates_order_is_saved(self):
         """Check the order of letter paragraphs is saved."""
@@ -126,6 +173,7 @@ class LetterTemplateCreateTests(DataTestClient):
                 "layout": self.letter_layout.id,
                 "letter_paragraphs": [item.id for item in picklist_items],
                 "visible_to_exporter": "True",
+                "include_digital_signature": "False",
             }
             self.client.post(self.url, data, **self.gov_headers)
             letter_template = LetterTemplate.objects.get(name=name)
@@ -142,6 +190,7 @@ class LetterTemplateCreateTests(DataTestClient):
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
             "decisions": ["proviso", "approve"],
             "visible_to_exporter": "True",
+            "include_digital_signature": "True",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
@@ -162,6 +211,7 @@ class LetterTemplateCreateTests(DataTestClient):
             "letter_paragraphs": [self.picklist_item_1.id, self.picklist_item_2.id],
             "decisions": ["proviso", "approve"],
             "visible_to_exporter": "True",
+            "include_digital_signature": "True",
         }
 
         response = self.client.post(self.url, data, **self.gov_headers)
