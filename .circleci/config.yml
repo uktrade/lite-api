@@ -15,6 +15,9 @@ jobs:
     working_directory: ~/lite-api
 
     steps:
+      - run:
+          name: Install OS libraries
+          command: sudo apt-get install swig;
 
       - checkout
       - run:
