@@ -1,12 +1,13 @@
 import os
 from io import BytesIO
+
 import PyPDF2
 from PIL import Image, ImageFont, ImageDraw
-from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.hazmat import backends
+from cryptography.hazmat.primitives.serialization import pkcs12
 from endesive.pdf.cms import sign
-from django.utils import timezone
 
+from conf.helpers import get_local_datetime
 from conf.settings import (
     BASE_DIR,
     CERTIFICATE_PATH,
@@ -80,7 +81,7 @@ def sign_pdf(original_pdf: bytes):
     Relies on a p12 file specified in CERTIFICATE_PATH & CERTIFICATE_PASSWORD.
     Also uses SIGNING_EMAIL, SIGNING_LOCATION & SIGNING_REASON as key data in the signing process.
     """
-    date = timezone.now()
+    date = get_local_datetime()
     # Specify signing metadata
     signing_metadata = {
         "sigandcertify": True,

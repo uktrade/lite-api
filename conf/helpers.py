@@ -3,6 +3,7 @@ import re
 
 from django.templatetags.tz import do_timezone
 from django.utils import timezone
+from pytz import timezone as get_timezone
 
 
 DATE_FORMAT = "%d %B %Y"
@@ -82,8 +83,13 @@ def pluralise_unit(unit, value):
     return unit
 
 
+def get_local_datetime():
+    utc = timezone.now()
+    return utc.astimezone(get_timezone("Europe/London"))
+
+
 def get_date_and_time():
-    now = timezone.now()
+    now = get_local_datetime()
     return now.strftime(DATE_FORMAT), now.strftime(TIME_FORMAT)
 
 
