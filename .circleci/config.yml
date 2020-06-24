@@ -15,6 +15,7 @@ jobs:
     working_directory: ~/lite-api
 
     steps:
+
       - checkout
       - run:
           name: Git Submodule Checkout
