@@ -1,10 +1,7 @@
 from rest_framework import serializers
 
-from applications.models import GoodOnApplication
-from cases.enums import CaseTypeEnum
 from conf.helpers import add_months
 from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
-from licences.models import Licence, HMRCIntegrationUsageUpdate
 from static.countries.models import Country
 
 
@@ -129,61 +126,3 @@ class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
     licences = HMRCIntegrationUsageUpdateLicenceSerializer(
         many=True, required=True, allow_null=False, allow_empty=False
     )
-
-    def create(self, validated_data):
-        """Updates the usages for Goods on Licences"""
-
-        hmrc_integration_usage_update, created = HMRCIntegrationUsageUpdate.objects.get_or_create(
-            id=validated_data["transaction_id"], defaults={"id": validated_data["transaction_id"]}
-        )
-
-        if created:
-            for licence_data in validated_data["licences"]:
-                for good_data in licence_data["goods"]:
-                    gol = good_data["good_on_licence"]
-                    gol.usage += good_data["usage"]
-                    gol.save()
-
-                hmrc_integration_usage_update.licences.add(licence_data["id"])
-
-                # Todo - audit usage update
-                # audit_trail_service.create_system_user_audit(
-                #     verb=AuditType.UPDATED_STATUS,
-                #     target=licence_data["licence"],
-                #     payload={"status": {"new": "", "old": ""}},
-                # )
-
-        return validated_data
-
-    def validate(self, data):
-        data = super(HMRCIntegrationUsageUpdateLicencesSerializer, self).validate(data)
-        data["licences"] = [self._validate_licence(licence) for licence in data["licences"]]
-        return data
-
-    def _validate_licence(self, data: dict) -> dict:
-        """Validates that a Licence exists and that the Goods exist on that Licence"""
-
-        try:
-            licence = Licence.objects.get(id=data["id"])
-        except Licence.DoesNotExist:
-            raise serializers.ValidationError({"licences": f"Licence '{data['id']}' not found."})
-
-        if licence.application.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
-            raise serializers.ValidationError(
-                {
-                    "licences": f"Licence type '{licence.application.case_type.reference}' cannot be updated; "
-                    f"Licence '{licence.id}'."
-                }
-            )
-
-        data["goods"] = [self._validate_good_on_licence(licence, good) for good in data["goods"]]
-        return data
-
-    def _validate_good_on_licence(self, licence: Licence, data: dict) -> dict:
-        """Validates that a Good exists on a Licence"""
-
-        try:
-            data["good_on_licence"] = GoodOnApplication.objects.get(application=licence.application, good_id=data["id"])
-        except GoodOnApplication.DoesNotExist:
-            raise serializers.ValidationError({"goods": f"Good '{data['id']}' not found on Licence '{licence.id}'"})
-        return data

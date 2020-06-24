@@ -9,24 +9,32 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('licences', '0006_licence_sent_at'),
+        ("licences", "0006_licence_sent_at"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='HMRCIntegrationUsageUpdate',
+            name="HMRCIntegrationUsageUpdate",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
-            options={
-                'abstract': False,
-            },
+            options={"abstract": False,},
         ),
         migrations.AddField(
-            model_name='licence',
-            name='hmrc_integration_usage_updates',
-            field=models.ManyToManyField(related_name='licences', to='licences.HMRCIntegrationUsageUpdate'),
+            model_name="licence",
+            name="hmrc_integration_usage_updates",
+            field=models.ManyToManyField(related_name="licences", to="licences.HMRCIntegrationUsageUpdate"),
         ),
     ]
