@@ -20,6 +20,7 @@ COMPLIANCEVISITCASE_TEXTFIELD_LENGTH = 750
 
 
 class ComplianceVisitSerializer(serializers.ModelSerializer):
+    site_case_reference_code = serializers.CharField(source="site_case.reference_code")
     site_name = serializers.CharField(source="site_case.site.name")
     address = AddressSerializer(source="site_case.site.address")
     status = serializers.SerializerMethodField()
@@ -63,6 +64,7 @@ class ComplianceVisitSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "site_case_id",
+            "site_case_reference_code",
             "site_name",
             "address",
             "status",
