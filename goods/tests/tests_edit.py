@@ -201,9 +201,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         ]
     )
     def test_edit_component_to_yes_option_with_no_details_field_failure(self, component, details_field, error):
-        good = self.create_good(
-            "a good", self.organisation, is_component=Component.NO
-        )
+        good = self.create_good("a good", self.organisation, is_component=Component.NO)
         request_data = {"is_component": component, details_field: ""}
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
 
@@ -281,10 +279,17 @@ class GoodsEditDraftGoodTests(DataTestClient):
 
     def test_cannot_edit_component_and_component_details_of_non_category_one_good_success(self):
         good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP3_TECHNOLOGY, software_or_technology_details="initial details"
+            "a good",
+            self.organisation,
+            item_category=ItemCategory.GROUP3_TECHNOLOGY,
+            software_or_technology_details="initial details",
         )
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-        request_data = {"is_component_step": True, "is_component": Component.YES_GENERAL_PURPOSE, "general_details": "some details"}
+        request_data = {
+            "is_component_step": True,
+            "is_component": Component.YES_GENERAL_PURPOSE,
+            "general_details": "some details",
+        }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
         good = response.json()["good"]
@@ -294,9 +299,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertIsNone(good["component_details"])
 
     def test_cannot_edit_software_technology_details_non_category_three_good_success(self):
-        good = self.create_good(
-            "a good", self.organisation, item_category=ItemCategory.GROUP1_PLATFORM
-        )
+        good = self.create_good("a good", self.organisation, item_category=ItemCategory.GROUP1_PLATFORM)
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"software_or_technology_details": "some details"}
 
