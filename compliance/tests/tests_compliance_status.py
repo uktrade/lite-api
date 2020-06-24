@@ -56,3 +56,6 @@ class ComplianceManageStatusTests(DataTestClient):
         compliance_case.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json().get("errors")["status"][0], strings.Statuses.BAD_STATUS)
+
+
+# TODO: Add new compliance visit statuses tests

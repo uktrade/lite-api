@@ -47,7 +47,7 @@ def get_document_context(case, addressee=None):
     else:
         goods = None
 
-    if not addressee:
+    if not addressee and case.submitted_by:
         addressee = case.submitted_by
 
     return {
@@ -60,7 +60,7 @@ def get_document_context(case, addressee=None):
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
-        "addressee": _get_addressee_context(addressee),
+        "addressee": _get_addressee_context(addressee) if addressee else None,
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence else None,
         "end_user": _get_party_context(base_application.end_user.party)
@@ -260,10 +260,13 @@ def _get_compliance_site_context(case):
 
 def _get_compliance_visit_context(case):
     def _get_people_present_compliance_visit_context(case):
-        people = CompliancePerson.objects.filter(visit_case=case.id)
-        return [{"name": person.name, "job_title": person.job_title} for person in people]
+        people = list(CompliancePerson.objects.filter(visit_case=case.id))
+        if people:
+            return [{"name": person.name, "job_title": person.job_title} for person in people]
+        else:
+            return None
 
-    comp_case = ComplianceVisitCase.objects.get(id=case.id).select_related("site_case")
+    comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
     return {
         "site_case_reference": comp_case.site_case.reference_code,
         "site_name": comp_case.site_case.site.name,

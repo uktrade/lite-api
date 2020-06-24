@@ -1,10 +1,17 @@
 from datetime import datetime
 
+import django
 import factory
 from django.utils import timezone
+from elementpath.datatypes import Timezone
 
+from applications.tests.factories import StandardApplicationFactory
 from cases.enums import CaseTypeEnum
-from compliance.models import OpenLicenceReturns, ComplianceSiteCase, CompliancePerson
+from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
+from compliance.models import OpenLicenceReturns, ComplianceSiteCase, CompliancePerson, ComplianceVisitCase
+from organisations.tests.factories import OrganisationFactory, SiteFactory
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
 class OpenLicenceReturnsFactory(factory.django.DjangoModelFactory):
@@ -18,9 +25,33 @@ class OpenLicenceReturnsFactory(factory.django.DjangoModelFactory):
 class ComplianceSiteCaseFactory(factory.django.DjangoModelFactory):
     case_type_id = CaseTypeEnum.COMPLIANCE_SITE.id
     submitted_at = timezone.now()
+    organisation = factory.SubFactory(OrganisationFactory)
+    site = factory.SubFactory(SiteFactory, organisation=factory.SelfAttribute("..organisation"))
+    status = get_case_status_by_status(CaseStatusEnum.OPEN)
 
     class Meta:
         model = ComplianceSiteCase
+
+
+class ComplianceVisitCaseFactory(factory.django.DjangoModelFactory):
+    site_case = factory.SubFactory(ComplianceSiteCaseFactory, organisation=factory.SelfAttribute("..organisation"))
+    status = get_case_status_by_status(CaseStatusEnum.OPEN)
+    case_type_id = CaseTypeEnum.COMPLIANCE_VISIT.id
+    visit_type = ComplianceVisitTypes.FIRST_CONTACT
+    visit_date = django.utils.timezone.now().date()
+    overall_risk_value = ComplianceRiskValues.VERY_LOW
+    licence_risk_value = 5
+    overview = factory.Faker("word")
+    inspection = factory.Faker("word")
+    compliance_overview = factory.Faker("word")
+    compliance_risk_value = ComplianceRiskValues.LOWER
+    individuals_overview = factory.Faker("word")
+    individuals_risk_value = ComplianceRiskValues.MEDIUM
+    products_overview = factory.Faker("word")
+    products_risk_value = ComplianceRiskValues.HIGHEST
+
+    class Meta:
+        model = ComplianceVisitCase
 
 
 class PeoplePresentFactory(factory.django.DjangoModelFactory):

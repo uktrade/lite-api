@@ -10,6 +10,7 @@ from applications.enums import (
 from applications.models import ExternalLocationOnApplication, CountryOnApplication
 from audit_trail.models import Audit
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
 from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType
 from letter_templates.context_generator import get_document_context
@@ -17,6 +18,8 @@ from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -565,8 +568,10 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_goods_query_details(context["details"], case)
 
     def test_generate_context_with_compliance_visit_details(self):
-        compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
-        )
+        # TODO
+        compliance_case = ComplianceVisitCaseFactory(organisation=self.organisation,)
+
+        context = get_document_context(compliance_case)
+
+        self.assertEqual(context["case_reference"], compliance_case.reference_code)
+        self._assert_compliance_visit_case_details(context["details"], compliance_case)

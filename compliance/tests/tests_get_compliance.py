@@ -10,7 +10,7 @@ from test_helpers.clients import DataTestClient
 def _assert_response_data(self, response_data, compliance_case, open_licence_returns):
     self.assertEqual(response_data["id"], str(compliance_case.id))
     self.assertEqual(response_data["reference_code"], compliance_case.reference_code)
-    self.assertEqual(response_data["case_type"]["reference"]["key"], CaseTypeReferenceEnum.COMP)
+    self.assertEqual(response_data["case_type"]["reference"]["key"], CaseTypeReferenceEnum.COMP_SITE)
     self.assertEqual(response_data["data"]["address"]["id"], str(self.organisation.primary_site.address.id))
     self.assertEqual(
         response_data["data"]["address"]["address_line_1"], self.organisation.primary_site.address.address_line_1
