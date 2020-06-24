@@ -27,6 +27,9 @@ TEXT_POSITIONING = (500, 180)
 
 
 def _load_certificate():
+    """
+    Extracts the key & certificate from the p12 file specified with CERTIFICATE_PATH & CERTIFICATE_PASSWORD
+    """
     path = os.path.join(BASE_DIR, CERTIFICATE_PATH)
     with open(path, "rb") as fp:
         return pkcs12.load_key_and_certificates(fp.read(), str.encode(CERTIFICATE_PASSWORD), backends.default_backend())
@@ -72,7 +75,13 @@ def _get_signature_image(text):
 
 
 def sign_pdf(original_pdf: bytes):
+    """
+    Takes raw bytes of a PDF file and adds a new page with a digital signature.
+    Relies on a p12 file specified in CERTIFICATE_PATH & CERTIFICATE_PASSWORD.
+    Also uses SIGNING_EMAIL, SIGNING_LOCATION & SIGNING_REASON as key data in the signing process.
+    """
     date = timezone.now()
+    # Specify signing metadata
     signing_metadata = {
         "sigandcertify": True,
         "signaturebox": SIGNATURE_POSITIONING,
@@ -82,6 +91,8 @@ def sign_pdf(original_pdf: bytes):
         "signingdate": date.strftime("D:%Y%m%d%H%M%S+00'00'"),
         "reason": SIGNING_REASON,
     }
+
+    # Load key & certificate
     key, cert, othercerts = _load_certificate()
 
     # Add a blank page to the end
