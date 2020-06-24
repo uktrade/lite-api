@@ -201,16 +201,20 @@ class GoodsEditDraftGoodTests(DataTestClient):
         ]
     )
     def test_edit_component_to_yes_option_with_no_details_field_failure(self, component, details_field, error):
+        good = self.create_good(
+            "a good", self.organisation, is_component=Component.NO
+        )
         request_data = {"is_component": component, details_field: ""}
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
 
-        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        response = self.client.put(url, request_data, **self.exporter_headers)
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEquals(errors[details_field], [error])
-        self.assertEquals(self.good.is_component, Component.NO)
-        self.assertIsNone(self.good.component_details)
+        self.assertEquals(good.is_component, Component.NO)
+        self.assertIsNone(good.component_details)
 
     def test_edit_component_no_selection_failure(self):
         request_data = {"is_component_step": True}
@@ -288,3 +292,16 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertIsNone(good["is_component"])
         self.assertIsNone(good["component_details"])
+
+    def test_cannot_edit_software_technology_details_non_category_three_good_success(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP1_PLATFORM
+        )
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"software_or_technology_details": "some details"}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(good["software_or_technology_details"])
