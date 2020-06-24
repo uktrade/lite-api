@@ -33,7 +33,7 @@ def _assert_response_data(self, response_data, compliance_case, open_licence_ret
     self.assertIsNotNone(response_data["data"]["open_licence_returns"][0]["created_at"])
 
 
-class GetComplianceTests(DataTestClient):
+class GetComplianceSiteCaseTests(DataTestClient):
     def test_get_compliance_case(self):
         application = self.create_open_application_case(self.organisation)
         compliance_case = ComplianceSiteCaseFactory(

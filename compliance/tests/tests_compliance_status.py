@@ -69,7 +69,7 @@ class ComplianceManageStatusTests(DataTestClient):
     @parameterized.expand(
         [status[0] for status in CaseStatusEnum.choices if status[0] not in CaseStatusEnum.compliance_visit_statuses]
     )
-    def test_visit_case_other_statuses_can_not_be_set(self, status_to_set):
+    def test_compliance_visit_case_other_statuses_can_not_be_set(self, status_to_set):
         compliance_case = ComplianceVisitCaseFactory(organisation=self.organisation,)
 
         url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})

@@ -1,0 +1,63 @@
+from django.urls import reverse
+from rest_framework import status
+
+from compliance.models import CompliancePerson
+from compliance.tests.factories import ComplianceVisitCaseFactory, PeoplePresentFactory
+from test_helpers.clients import DataTestClient
+
+
+class ComplianceVisitCaseTests(DataTestClient):
+    def test_get_people_present(self):
+        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        person1 = PeoplePresentFactory(visit_case=comp_case)
+        person2 = PeoplePresentFactory(visit_case=comp_case)
+
+        url = reverse("compliance:people_present", kwargs={"pk": comp_case.id})
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        for person in response_data:
+            if person["id"] == str(person1.id):
+                pass
+            elif person["id"] == str(person2.id):
+                pass
+            else:
+                self.assertFalse(True)
+
+    def test_create_people_present(self):
+        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+
+        data = {"name": "joe", "job_title": "fisher", "visit_case": str(comp_case.id)}
+
+        url = reverse("compliance:people_present", kwargs={"pk": comp_case.id})
+        response = self.client.post(url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["name"], data["name"])
+        self.assertEqual(response_data["job_title"], data["job_title"])
+
+    def test_update_people_present(self):
+        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        person = PeoplePresentFactory(visit_case=comp_case)
+
+        data = {"name": "new_name", "job_title": "anotherjob"}
+
+        url = reverse("compliance:person_present", kwargs={"pk": person.id})
+        response = self.client.patch(url, data, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data["name"], data["name"])
+        self.assertEqual(response_data["job_title"], data["job_title"])
+
+    def test_delete_people_present(self):
+        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        person = PeoplePresentFactory(visit_case=comp_case)
+
+        self.assertTrue(CompliancePerson.objects.exists())
+        url = reverse("compliance:person_present", kwargs={"pk": person.id})
+        response = self.client.delete(url, **self.gov_headers)
+
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(CompliancePerson.objects.exists())
