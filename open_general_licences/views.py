@@ -39,7 +39,7 @@ class OpenGeneralLicenceList(ListCreateAPIView):
             cases = (
                 OpenGeneralLicenceCase.objects.filter(site__in=sites)
                 .select_related("status", "site", "site__address")
-                .annotate(site_records_located_at_name=F("site__site_records_located_at__name"))
+                .annotate(records_located_at_name=F("site__site_records_located_at__name"))
             )
 
             if str_to_bool(self.request.GET.get("active_only")):
@@ -121,7 +121,7 @@ class OpenGeneralLicenceDetail(RetrieveUpdateAPIView):
             cases = (
                 OpenGeneralLicenceCase.objects.filter(site__in=sites)
                 .select_related("status", "site", "site__address")
-                .annotate(site_records_located_at_name=F("site__site_records_located_at__name"))
+                .annotate(records_located_at_name=F("site__site_records_located_at__name"))
             )
 
             return {"user": user, "organisation": organisation, "cases": cases}
