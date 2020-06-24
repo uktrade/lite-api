@@ -15,10 +15,6 @@ jobs:
     working_directory: ~/lite-api
 
     steps:
-      - run:
-          name: Install OS libraries
-          command: sudo apt-get install swig;
-
       - checkout
       - run:
           name: Git Submodule Checkout
@@ -47,6 +43,10 @@ jobs:
       # ensure this step occurs *before* installing dependencies
       - restore_cache:
           key: dependencies-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+
+      - run:
+          name: Install OS libraries
+          command: sudo apt-get install swig;
 
       - run:
           name: Install Dependencies
