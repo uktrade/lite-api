@@ -758,6 +758,7 @@ class CaseApplicant(APIView):
     def get(self, request, pk):
         case = get_case(pk)
         applicant = case.submitted_by
+        # compliance cases do not contain a person who submit them, as such we return empty details
         if not applicant:
             return JsonResponse({"name": "", "email": ""})
         return JsonResponse({"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email})

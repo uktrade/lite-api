@@ -80,7 +80,7 @@ class LicenceList(ListAPIView):
 
 class ComplianceManageStatus(UpdateAPIView):
     """
-    Modify the status of a Compliance case
+    Modify the status of a Compliance case (site or visit case)
     """
 
     authentication_classes = (GovAuthentication,)
@@ -297,8 +297,5 @@ class ComplianceVisitPersonPresentView(RetrieveUpdateDestroyAPIView):
         instance.delete()
         case = get_case(instance.visit_case_id)
         audit_trail_service.create(
-            actor=self.request.user,
-            verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_UPDATED,
-            action_object=case,
-            payload={"name": instance.name, "job_title": instance.job_title,},
+            actor=self.request.user, verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_DELETED, action_object=case, payload={},
         )
