@@ -1,4 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from rest_framework import serializers
 
 from applications.helpers import get_application_view_serializer
@@ -162,6 +164,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     advice = CaseAdviceSerializer(many=True)
     data = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
+    next_review_date = serializers.DateField(required=False)
 
     class Meta:
         model = Case
@@ -182,6 +185,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "sla_days",
             "sla_remaining_days",
             "data",
+            "next_review_date",
         )
 
     def __init__(self, *args, **kwargs):
@@ -435,3 +439,26 @@ class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = ("case_officer",)
+
+
+class NextReviewDateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for setting and editing the next review date of a case.
+    """
+
+    next_review_date = serializers.DateField(
+        required=False,
+        allow_null=True,
+        error_messages={"invalid": "The next review date must be a real date and include a day, month and year.",},
+    )
+
+    class Meta:
+        model = Case
+        fields = ("next_review_date",)
+
+    def validate_next_review_date(self, value):
+        if value:
+            today = timezone.now().date()
+            if value < today:
+                raise ValidationError("The next review date must be set in the future")
+        return value

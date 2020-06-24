@@ -38,6 +38,7 @@ from cases.serializers import (
     CaseAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
+    NextReviewDateUpdateSerializer,
 )
 from compliance.helpers import generate_compliance_site_case
 from cases.service import get_destinations
@@ -45,6 +46,7 @@ from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
 from conf.exceptions import NotFoundError, BadRequestError
+from conf.helpers import convert_date_to_string
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
@@ -779,3 +781,47 @@ class RerunRoutingRules(APIView):
         run_routing_rules(case)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class NextReviewDate(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        """
+        Sets a next review date for a case
+        """
+        case = get_case(pk)
+        old_next_review_date = case.next_review_date
+        next_review_date = request.data.get("next_review_date")
+
+        data = {"next_review_date": next_review_date}
+        serializer = NextReviewDateUpdateSerializer(instance=case, data=data)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+
+            # TODO: Create added/edited audit trails
+            if old_next_review_date is None:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ADDED_NEXT_REVIEW_DATE,
+                    target=case,
+                    payload={"next_review_date": convert_date_to_string(next_review_date)},
+                )
+            elif old_next_review_date and next_review_date and old_next_review_date != next_review_date:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.EDITED_NEXT_REVIEW_DATE,
+                    target=case,
+                    payload={
+                        "new_date": convert_date_to_string(next_review_date),
+                        "old_date": convert_date_to_string(old_next_review_date),
+                    },
+                )
+            elif old_next_review_date and next_review_date is None:
+                audit_trail_service.create(
+                    actor=request.user, verb=AuditType.REMOVED_NEXT_REVIEW_DATE, target=case,
+                )
+
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
