@@ -12,7 +12,7 @@ from applications.models import (
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
-from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
+from compliance.models import ComplianceVisitCase, CompliancePerson
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading
 from licences.models import Licence
