@@ -199,7 +199,11 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         if instance.is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO]:
             instance.modified_military_use_details = None
 
-        if instance.item_category not in [ItemCategory.GROUP2_FIREARMS, ItemCategory.GROUP3_TECHNOLOGY, ItemCategory.GROUP3_SOFTWARE]:
+        if instance.item_category not in [
+            ItemCategory.GROUP2_FIREARMS,
+            ItemCategory.GROUP3_TECHNOLOGY,
+            ItemCategory.GROUP3_SOFTWARE,
+        ]:
             is_component = validated_data.get("is_component")
             # if component answer has changed, then set the new value and the details field
             if is_component is not None and is_component != instance.is_component:
@@ -211,10 +215,17 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         # if information security has changed, then set the new value and the details field
         if uses_information_security is not None and uses_information_security != instance.uses_information_security:
             instance.uses_information_security = uses_information_security
-            instance.information_security_details = validated_data.get(
-                "information_security_details", instance.information_security_details
-            )
-        instance.information_security_details = validated_data.get("information_security_details", "")
+            if uses_information_security is False:
+                instance.information_security_details = ""
+                validated_data.pop("information_security_details")
+            else:
+                instance.information_security_details = validated_data.get(
+                    "information_security_details", instance.information_security_details
+                )
+        # If the information security details have changed
+        instance.information_security_details = validated_data.get(
+            "information_security_details", instance.information_security_details
+        )
 
         if instance.item_category in [ItemCategory.GROUP3_TECHNOLOGY, ItemCategory.GROUP3_SOFTWARE]:
             software_or_technology_details = validated_data.get("software_or_technology_details")
