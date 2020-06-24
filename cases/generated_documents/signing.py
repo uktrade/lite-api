@@ -7,11 +7,14 @@ from cryptography.hazmat import backends
 from endesive.pdf.cms import sign
 from django.utils import timezone
 
-from conf.settings import BASE_DIR, CERTIFICATE_PATH, CERTIFICATE_PASSWORD
-
-REASON = "On behalf of the Secretary of State"
-LOCATION = "Department for International Trade"
-CONTACT = "spire@berr.gsi.gov.uk"
+from conf.settings import (
+    BASE_DIR,
+    CERTIFICATE_PATH,
+    CERTIFICATE_PASSWORD,
+    SIGNING_REASON,
+    SIGNING_LOCATION,
+    SIGNING_EMAIL,
+)
 
 FONT = os.path.join(BASE_DIR, "assets", "fonts", "Helvetica.ttf")
 BACKGROUND_IMAGE = os.path.join(BASE_DIR, "assets", "images", "dit_emblem.png")
@@ -30,7 +33,11 @@ def _load_certificate():
 
 def _get_signature_text(date):
     return "\n\n".join(
-        [f"Date: {date.strftime('%Y.%m.%d %H:%M:%S GMT')}", f"Reason: {REASON}", f"Location: {LOCATION}"]
+        [
+            f"Date: {date.strftime('%Y.%m.%d %H:%M:%S GMT')}",
+            f"Reason: {SIGNING_REASON}",
+            f"Location: {SIGNING_LOCATION}",
+        ]
     )
 
 
@@ -69,10 +76,10 @@ def sign_pdf(original_pdf: bytes):
         "sigandcertify": True,
         "signaturebox": SIGNATURE_POSITIONING,
         "signature_img": _get_signature_image(_get_signature_text(date)),
-        "contact": CONTACT,
-        "location": LOCATION,
+        "contact": SIGNING_EMAIL,
+        "location": SIGNING_LOCATION,
         "signingdate": date.strftime("D:%Y%m%d%H%M%S+00'00'"),
-        "reason": REASON,
+        "reason": SIGNING_REASON,
     }
     key, cert, othercerts = _load_certificate()
 
