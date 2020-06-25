@@ -79,8 +79,9 @@ class Organisation(TimestampableModel):
                     status=get_case_status_by_status(CaseStatusEnum.FINALISED),
                     submitted_at=timezone.now(),
                     submitted_by=user,
-                ).save()
-                registrations.append(case)
+                )
+                case.save()
+                registrations.append(case.id)
 
         return open_general_licence.id, registrations
 
