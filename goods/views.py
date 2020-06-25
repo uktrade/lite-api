@@ -265,37 +265,21 @@ class GoodTAUDetails(APIView):
         data = request.data.copy()
 
         # return bad request if trying to edit software_or_technology details outside of category group 3
-        if (
-                (good.item_category in ItemCategory.group_one
-            or good.item_category in ItemCategory.group_two)
-            and data.get("software_or_technology_details")
+        if (good.item_category in ItemCategory.group_one or good.item_category in ItemCategory.group_two) and data.get(
+            "software_or_technology_details"
         ):
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
         # return bad request if trying to edit component and component details outside of category group 1
         if (
-                (good.item_category in ItemCategory.group_two
-            or good.item_category in ItemCategory.group_three)
-            and data.get("is_component")
-        ):
+            good.item_category in ItemCategory.group_two or good.item_category in ItemCategory.group_three
+        ) and data.get("is_component"):
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
         if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(
-                data={"errors": {"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]}},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]})
 
-        if "software_or_technology_details" in data and not data.get("software_or_technology_details"):
-            raise ValidationError(
-                {
-                    "software_or_technology_details": [
-                        strings.Goods.FORM_NO_SOFTWARE_DETAILS
-                        if good.item_category == ItemCategory.GROUP3_SOFTWARE
-                        else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
-                    ]
-                }
-            )
+        validate_software_or_technology_details(data, good.item_category)
 
         if "is_military_use_step" in data:
             validate_military_use(data)

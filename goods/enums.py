@@ -122,7 +122,7 @@ class MilitaryUse:
     NO = "no"
 
     choices = [
-        (YES_DESIGNED, "Yes, designed specifically for military use"),
+        (YES_DESIGNED, "Yes, specially designed for military use"),
         (YES_MODIFIED, "Yes, modified for military use"),
         (NO, "No"),
     ]

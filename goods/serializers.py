@@ -210,6 +210,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         # if information security has changed, then set the new value and the details field
         if uses_information_security is not None and uses_information_security != instance.uses_information_security:
             instance.uses_information_security = uses_information_security
+            # When information security is No, then clear the details field and remove so it is not validated again
             if uses_information_security is False:
                 instance.information_security_details = ""
                 validated_data.pop("information_security_details")
