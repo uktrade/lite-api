@@ -3,7 +3,8 @@ from uuid import UUID
 
 from django.db import transaction
 from django.utils import timezone
-from rest_framework import status, serializers
+from rest_framework import status
+from rest_framework.exceptions import APIException
 
 from applications.models import GoodOnApplication
 
@@ -12,12 +13,16 @@ from cases.enums import CaseTypeEnum
 from conf.requests import post
 from conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT, HAWK_LITE_API_CREDENTIALS
 from licences.models import Licence, HMRCIntegrationUsageUpdate
-from licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
+from licences.serializers.hmrc_integration import (
+    HMRCIntegrationLicenceSerializer,
+    HMRCIntegrationUsageUpdateGoodSerializer,
+    HMRCIntegrationUsageUpdateLicenceSerializer,
+)
 
 SEND_LICENCE_ENDPOINT = "/mail/update-licence/"
 
 
-class HMRCIntegrationException(Exception):
+class HMRCIntegrationException(APIException):
     """Exceptions to raise when sending requests to the HMRC Integration service."""
 
 
@@ -43,70 +48,95 @@ def send_licence(licence: Licence):
     logging.info(f"Successfully sent licence '{licence.id}' changes to HMRC Integration")
 
 
-def verify_and_save_licences(validated_data: dict):
-    if not HMRCIntegrationUsageUpdate.objects.filter(id=validated_data["transaction_id"]).exists():
-        verified_licences = [_verify_licence(licence) for licence in validated_data["licences"]]
-
-        with transaction.atomic():
-            licence_ids = [_save_licence(verified_licence) for verified_licence in verified_licences]
-            hmrc_integration_usage_update = HMRCIntegrationUsageUpdate.objects.create(
-                id=validated_data["transaction_id"]
-            )
-            hmrc_integration_usage_update.licences.set(licence_ids)
+def save_licence_usage_updates(transaction_id: UUID, valid_licences: list):
+    with transaction.atomic():
+        updated_licence_ids = [_update_licence(valid_licence) for valid_licence in valid_licences]
+        hmrc_integration_usage_update = HMRCIntegrationUsageUpdate.objects.create(id=transaction_id)
+        hmrc_integration_usage_update.licences.set(updated_licence_ids)
 
 
-def _verify_licence(validated_licence_data: dict) -> dict:
-    """Verifies that a Licence exists and that the Goods exist on that Licence"""
+def validate_licence_usage_updates(licences: list) -> (list, list):
+    valid_licences = []
+    invalid_licences = []
+
+    for licence in licences:
+        licence = _validate_licence(licence)
+
+        if not licence.get("errors"):
+            valid_licences.append(licence)
+        else:
+            invalid_licences.append(licence)
+
+    return valid_licences, invalid_licences
+
+
+def _validate_licence(data: dict) -> dict:
+    serializer = HMRCIntegrationUsageUpdateLicenceSerializer(data=data)
+
+    if not serializer.is_valid():
+        data["errors"] = serializer.errors
+        return data
 
     try:
-        licence = Licence.objects.get(id=validated_licence_data["id"])
+        licence = Licence.objects.get(id=data["id"])
     except Licence.DoesNotExist:
-        raise serializers.ValidationError({"licences": [f"Licence '{validated_licence_data['id']}' not found."]})
+        data["errors"] = {"id": ["Licence not found."]}
+        return data
 
     if licence.application.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
-        raise serializers.ValidationError(
-            {
-                "licences": [
-                    f"Licence type '{licence.application.case_type.reference}' cannot be updated; "
-                    f"Licence '{validated_licence_data['id']}'."
-                ]
-            }
-        )
+        data["errors"] = {"id": [f"A '{licence.application.case_type.reference}' Licence cannot be updated."]}
+        return data
 
-    validated_licence_data["goods"] = [
-        _verify_good_on_licence(licence, validated_good_data) for validated_good_data in validated_licence_data["goods"]
-    ]
-    return validated_licence_data
+    valid_goods, invalid_goods = _validate_goods_on_licence(licence.id, data["goods"])
+
+    if invalid_goods:
+        data["errors"] = {"goods": [invalid_good["errors"] for invalid_good in invalid_goods]}
+
+    return data
 
 
-def _verify_good_on_licence(validated_licence: Licence, validated_good_data: dict) -> dict:
-    """Verifies that a Good exists on a Licence"""
+def _validate_goods_on_licence(licence_id: UUID, goods: list) -> (list, list):
+    valid_goods = []
+    invalid_goods = []
+
+    for good in goods:
+        good = _validate_good_on_licence(licence_id, good)
+
+        if not good.get("errors"):
+            valid_goods.append(good)
+        else:
+            invalid_goods.append(good)
+
+    return valid_goods, invalid_goods
+
+
+def _validate_good_on_licence(licence_id: UUID, data: dict) -> dict:
+    """Validates that a Good exists on a Licence"""
+
+    serializer = HMRCIntegrationUsageUpdateGoodSerializer(data=data)
+    if not serializer.is_valid():
+        data["errors"] = serializer.errors
+        return data
 
     try:
-        validated_good_data["good_on_licence"] = GoodOnApplication.objects.get(
-            application=validated_licence.application, good_id=validated_good_data["id"]
-        )
+        GoodOnApplication.objects.get(application__licence__id=licence_id, good_id=data["id"])
     except GoodOnApplication.DoesNotExist:
-        raise serializers.ValidationError(
-            {"goods": [f"Good '{validated_good_data['id']}' not found on Licence '{validated_licence.id}'"]}
-        )
+        data["errors"] = {"id": ["Good not found on Licence."]}
 
-    return validated_good_data
+    return data
 
 
-def _save_licence(verified_licence_data: dict) -> UUID:
-    """Updates the usages for Goods on a Licence"""
+def _update_licence(data: dict) -> UUID:
+    """Updates the Usage for Goods on a Licence"""
 
-    [_save_usage_update(verified_data) for verified_data in verified_licence_data["goods"]]
-    return verified_licence_data["id"]
+    [_update_good_on_licence_usage(data["id"], good["id"], good["usage"]) for good in data["goods"]]
+    return data["id"]
 
 
-def _save_usage_update(verified_good_data: dict):
-    """Updates the usages for a Good on a Licence"""
+def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: int):
+    """Updates the Usage for a Good on a Licence"""
 
-    gol = verified_good_data["good_on_licence"]
-    gol.usage += verified_good_data["usage"]
-    gol.save()
+    GoodOnApplication.objects.filter(application__licence__id=licence_id, good_id=good_id).update(usage=usage)
 
     # audit_trail_service.create_system_user_audit(
     #     verb=AuditType.UPDATED_STATUS, target=gol.application.get_case(), payload={"status": {"new": "", "old": ""}},

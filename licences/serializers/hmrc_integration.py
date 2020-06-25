@@ -118,11 +118,9 @@ class HMRCIntegrationUsageUpdateGoodSerializer(serializers.Serializer):
 
 class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True, allow_null=False)
-    goods = HMRCIntegrationUsageUpdateGoodSerializer(many=True, required=True, allow_null=False, allow_empty=False)
+    goods = serializers.ListField(required=True, allow_null=False, allow_empty=False)
 
 
 class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
     transaction_id = serializers.UUIDField(required=True, allow_null=False)
-    licences = HMRCIntegrationUsageUpdateLicenceSerializer(
-        many=True, required=True, allow_null=False, allow_empty=False
-    )
+    licences = serializers.ListField(required=True, allow_null=False, allow_empty=False)

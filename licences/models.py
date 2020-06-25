@@ -10,7 +10,7 @@ from static.decisions.models import Decision
 
 class HMRCIntegrationUsageUpdate(TimestampableModel):
     """
-    A history of when a Licence was updated via a Usage Update on HMRC Integration
+    A history of when a Licence was updated via a Usage Update from HMRC Integration
     This is to prevent the same update from being processed multiple times
     """
 
