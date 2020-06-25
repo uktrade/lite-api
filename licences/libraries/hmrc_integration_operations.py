@@ -48,10 +48,10 @@ def send_licence(licence: Licence):
     logging.info(f"Successfully sent licence '{licence.id}' changes to HMRC Integration")
 
 
-def save_licence_usage_updates(transaction_id: UUID, valid_licences: list):
+def save_licence_usage_updates(usage_update_id: UUID, valid_licences: list):
     with transaction.atomic():
         updated_licence_ids = [_update_licence(valid_licence) for valid_licence in valid_licences]
-        hmrc_integration_usage_update = HMRCIntegrationUsageUpdate.objects.create(id=transaction_id)
+        hmrc_integration_usage_update = HMRCIntegrationUsageUpdate.objects.create(id=usage_update_id)
         hmrc_integration_usage_update.licences.set(updated_licence_ids)
 
 

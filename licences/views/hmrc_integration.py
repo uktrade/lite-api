@@ -19,18 +19,18 @@ class HMRCIntegration(UpdateAPIView):
         if not serializer.is_valid():
             return JsonResponse(data={**request.data, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        transaction_id = serializer.validated_data["transaction_id"]
-        if HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists():
-            return JsonResponse(data={"transaction_id": transaction_id}, status=HTTP_208_ALREADY_REPORTED)
+        usage_update_id = serializer.validated_data["usage_update_id"]
+        if HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists():
+            return JsonResponse(data={"usage_update_id": usage_update_id}, status=HTTP_208_ALREADY_REPORTED)
 
         valid_licences, invalid_licences = validate_licence_usage_updates(serializer.validated_data["licences"])
 
         if valid_licences:
-            save_licence_usage_updates(transaction_id, valid_licences)
+            save_licence_usage_updates(usage_update_id, valid_licences)
 
         return JsonResponse(
             data={
-                "transaction_id": transaction_id,
+                "usage_update_id": usage_update_id,
                 "licences": {"accepted": valid_licences, "rejected": invalid_licences},
             },
             status=status.HTTP_207_MULTI_STATUS,

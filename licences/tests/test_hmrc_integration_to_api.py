@@ -40,14 +40,14 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def test_update_usages_accepted_licence(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.application.goods.first().usage
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
         usage_update = 10
         licence_update = {
             "id": str(licence.id),
             "goods": [{"id": str(licence.application.goods.first().good.id), "usage": usage_update}],
         }
 
-        response = self.client.put(self.url, {"transaction_id": transaction_id, "licences": [licence_update]})
+        response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": [licence_update]})
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
@@ -55,32 +55,32 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.application.goods.first().usage, original_usage + usage_update)
-        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id, licences=licence).exists())
+        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=licence).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_update_usages_transaction_id_already_reported(self, create_licence):
+    def test_update_usages_usage_update_id_already_reported(self, create_licence):
         licence = create_licence(self)
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
         usage_update = 10
         licence_update = {
             "id": str(licence.id),
             "goods": [{"id": str(licence.application.goods.first().good.id), "usage": usage_update}],
         }
-        self.client.put(self.url, {"transaction_id": transaction_id, "licences": [licence_update]})
+        self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": [licence_update]})
         original_usage = licence.application.goods.first().usage
 
-        response = self.client.put(self.url, {"transaction_id": transaction_id, "licences": [licence_update]})
+        response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": [licence_update]})
 
         self.assertEqual(response.status_code, HTTP_208_ALREADY_REPORTED)
         self.assertEqual(licence.application.goods.first().usage, original_usage)
-        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
-    def test_update_usages_no_transaction_id_bad_request(self, create_licence):
+    def test_update_usages_no_usage_update_id_bad_request(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.application.goods.first().usage
         usage_update = 10
@@ -99,7 +99,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"]["transaction_id"], ["This field is required."],
+            response.json()["errors"]["usage_update_id"], ["This field is required."],
         )
         self.assertEqual(licence.application.goods.first().usage, original_usage)
         self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(licences=licence).exists())
@@ -110,46 +110,46 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def test_update_usages_no_licences_bad_request(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.application.goods.first().usage
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
 
-        response = self.client.put(self.url, {"transaction_id": transaction_id})
+        response = self.client.put(self.url, {"usage_update_id": usage_update_id})
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.json()["errors"]["licences"], ["This field is required."],
         )
         self.assertEqual(licence.application.goods.first().usage, original_usage)
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
     def test_update_usages_no_licence_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
         usage_update = 10
         licence_update = {"goods": [{"id": str(licence.application.goods.first().good.id), "usage": usage_update}]}
 
-        response = self.client.put(self.url, {"transaction_id": transaction_id, "licences": [licence_update]})
+        response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": [licence_update]})
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(response.json()["licences"]["accepted"], [])
         self.assertEqual(
             response.json()["licences"]["rejected"][0]["errors"], {"id": ["This field is required."]},
         )
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
     def test_update_usages_invalid_licence_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
 
         response = self.client.put(
             self.url,
             {
-                "transaction_id": transaction_id,
+                "usage_update_id": usage_update_id,
                 "licences": [
                     {
                         "id": str(uuid.uuid4()),
@@ -164,34 +164,36 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(
             response.json()["licences"]["rejected"][0]["errors"], {"id": ["Licence not found."]},
         )
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
     def test_update_usages_no_goods_rejected_licence(self, create_licence):
         licence = create_licence(self)
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
 
-        response = self.client.put(self.url, {"transaction_id": transaction_id, "licences": [{"id": str(licence.id)}]})
+        response = self.client.put(
+            self.url, {"usage_update_id": usage_update_id, "licences": [{"id": str(licence.id)}]}
+        )
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(response.json()["licences"]["accepted"], [])
         self.assertEqual(
             response.json()["licences"]["rejected"][0]["errors"], {"goods": ["This field is required."]},
         )
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
     def test_update_usages_no_good_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
 
         response = self.client.put(
             self.url,
-            {"transaction_id": transaction_id, "licences": [{"id": str(licence.id), "goods": [{"usage": 10}]}]},
+            {"usage_update_id": usage_update_id, "licences": [{"id": str(licence.id), "goods": [{"usage": 10}]}]},
         )
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
@@ -200,19 +202,19 @@ class HMRCIntegrationUsageTests(DataTestClient):
             response.json()["licences"]["rejected"][0]["goods"]["rejected"][0]["errors"],
             {"id": ["This field is required."]},
         )
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
     def test_update_usages_invalid_good_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
 
         response = self.client.put(
             self.url,
             {
-                "transaction_id": transaction_id,
+                "usage_update_id": usage_update_id,
                 "licences": [{"id": str(licence.id), "goods": [{"id": str(uuid.uuid4()), "usage": 10}]}],
             },
         )
@@ -223,7 +225,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             response.json()["licences"]["rejected"][0]["goods"]["rejected"][0]["errors"],
             {"id": ["Good not found on Licence."]},
         )
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -231,12 +233,12 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def test_update_usages_no_good_usage_rejected_licence(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.application.goods.first().usage
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
 
         response = self.client.put(
             self.url,
             {
-                "transaction_id": transaction_id,
+                "usage_update_id": usage_update_id,
                 "licences": [
                     {"id": str(licence.id), "goods": [{"id": str(licence.application.goods.first().good.id)}]}
                 ],
@@ -250,17 +252,17 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {"usage": ["This field is required."]},
         )
         self.assertEqual(licence.application.goods.first().usage, original_usage)
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     def test_update_usages_open_application_rejected_licence(self):  # (has no concept of Usage)
         open_application = self.create_open_application_case(self.organisation)
         licence = self.create_licence(open_application, is_complete=True)
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
 
         response = self.client.put(
             self.url,
             {
-                "transaction_id": transaction_id,
+                "usage_update_id": usage_update_id,
                 "licences": [
                     {
                         "id": str(licence.id),
@@ -276,7 +278,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             response.json()["licences"]["rejected"][0]["errors"],
             {"id": [f"A '{licence.application.case_type.reference}' Licence cannot be updated."]},
         )
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -284,7 +286,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def test_update_usages_multiple_licences_invalid_licence_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.application.goods.first().usage
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
         usage_update = 10
         invalid_licence_id = str(uuid.uuid4())
         licence_updates = [
@@ -298,7 +300,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             },
         ]
 
-        response = self.client.put(self.url, {"transaction_id": transaction_id, "licences": licence_updates})
+        response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": licence_updates})
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
@@ -306,9 +308,9 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
         self.assertEqual(response.json()["licences"]["rejected"][0]["errors"], {"id": ["Licence not found."]})
         self.assertEqual(licence.application.goods.first().usage, original_usage + usage_update)
-        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id, licences=licence).exists())
+        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=licence).exists())
         self.assertFalse(
-            HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id, licences=invalid_licence_id).exists()
+            HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=invalid_licence_id).exists()
         )
 
     @parameterized.expand(
@@ -318,7 +320,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence_1 = create_licence(self)
         licence_1_original_usage = licence_1.application.goods.first().usage
         licence_2 = create_licence(self)
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
         usage_update = 10
         licence_updates = [
             {
@@ -328,7 +330,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {"id": str(licence_2.id), "goods": [{"id": str(uuid.uuid4()), "usage": usage_update}]},
         ]
 
-        response = self.client.put(self.url, {"transaction_id": transaction_id, "licences": licence_updates})
+        response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": licence_updates})
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(
@@ -339,8 +341,8 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {"id": ["Good not found on Licence."]},
         )
         self.assertEqual(licence_1.application.goods.first().usage, licence_1_original_usage + usage_update)
-        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id, licences=licence_1).exists())
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id, licences=licence_2).exists())
+        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=licence_1).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=licence_2).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
@@ -348,7 +350,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def test_update_usages_multiple_goods_invalid_good_id_rejected_licence(self, create_licence):
         licence = create_licence(self)
         original_usage = licence.application.goods.first().usage
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
         usage_update = 10
         accepted_good = {"id": str(licence.application.goods.first().good.id), "usage": usage_update}
         rejected_good = {"id": str(uuid.uuid4()), "usage": usage_update}
@@ -356,7 +358,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         response = self.client.put(
             self.url,
             {
-                "transaction_id": transaction_id,
+                "usage_update_id": usage_update_id,
                 "licences": [{"id": str(licence.id), "goods": [accepted_good, rejected_good]}],
             },
         )
@@ -371,13 +373,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {"id": ["Good not found on Licence."]},
         )
         self.assertEqual(licence.application.goods.first().usage, original_usage)
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
     )
     def test_update_usages_multiple_licences_and_goods_invalid_good_id_rejected_licence(self, create_licence):
-        transaction_id = str(uuid.uuid4())
+        usage_update_id = str(uuid.uuid4())
         usage_update = 10
         licence_1 = create_licence(self)
         licence_1_original_usage = licence_1.application.goods.first().usage
@@ -392,7 +394,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {"id": str(licence_2.id), "goods": [accepted_good, rejected_good]},
         ]
 
-        response = self.client.put(self.url, {"transaction_id": transaction_id, "licences": licence_updates})
+        response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": licence_updates})
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
         self.assertEqual(response.json()["licences"]["accepted"], [licence_updates[0]])
@@ -404,5 +406,5 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {"id": ["Good not found on Licence."]},
         )
         self.assertEqual(licence_1.application.goods.first().usage, licence_1_original_usage + usage_update)
-        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id, licences=licence_1).exists())
-        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id, licences=licence_2).exists())
+        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=licence_1).exists())
+        self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=licence_2).exists())

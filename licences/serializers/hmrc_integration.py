@@ -122,5 +122,5 @@ class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
 
 
 class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
-    transaction_id = serializers.UUIDField(required=True, allow_null=False)
+    usage_update_id = serializers.UUIDField(required=True, allow_null=False)
     licences = serializers.ListField(required=True, allow_null=False, allow_empty=False)
