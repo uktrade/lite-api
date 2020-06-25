@@ -26,7 +26,8 @@ from cases.models import (
     Advice,
     GoodCountryDecision,
     CaseType,
-    CaseReviewDate)
+    CaseReviewDate,
+)
 from compliance.models import ComplianceSiteCase
 from compliance.serializers import ComplianceSiteViewSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
@@ -186,7 +187,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "sla_days",
             "sla_remaining_days",
             "data",
-            "next_review_date"
+            "next_review_date",
         )
 
     def __init__(self, *args, **kwargs):
@@ -451,6 +452,7 @@ class ReviewDateUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for setting and editing the next review date of a case.
     """
+
     team = serializers.PrimaryKeyRelatedField(required=True, queryset=Team.objects.all())
     case = serializers.PrimaryKeyRelatedField(required=True, queryset=Case.objects.submitted())
     next_review_date = serializers.DateField(

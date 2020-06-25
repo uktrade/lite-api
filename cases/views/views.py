@@ -794,13 +794,13 @@ class NextReviewDate(APIView):
         case = get_case(pk)
         next_review_date = request.data.get("next_review_date")
 
-        case_review_date = CaseReviewDate.objects.filter(case_id=case.id, team_id=request.user.team.id)
+        current_review_date = CaseReviewDate.objects.filter(case_id=case.id, team_id=request.user.team.id)
         data = {"next_review_date": next_review_date, "case": case.id, "team": request.user.team.id}
 
-        if case_review_date.exists():
-            case_review_date = case_review_date.get()
-            old_next_review_date = case_review_date.next_review_date
-            serializer = ReviewDateUpdateSerializer(instance=case_review_date, data=data)
+        if current_review_date.exists():
+            current_review_date = current_review_date.get()
+            old_next_review_date = current_review_date.next_review_date
+            serializer = ReviewDateUpdateSerializer(instance=current_review_date, data=data)
         else:
             old_next_review_date = None
             serializer = ReviewDateUpdateSerializer(data=data)
@@ -808,12 +808,13 @@ class NextReviewDate(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
 
+            team = request.user.team.name
             if old_next_review_date is None and next_review_date:
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.ADDED_NEXT_REVIEW_DATE,
                     target=case,
-                    payload={"next_review_date": convert_date_to_string(next_review_date)},
+                    payload={"next_review_date": convert_date_to_string(next_review_date), "team_name": team},
                 )
             elif old_next_review_date and next_review_date and str(old_next_review_date) != next_review_date:
                 audit_trail_service.create(
@@ -823,11 +824,15 @@ class NextReviewDate(APIView):
                     payload={
                         "new_date": convert_date_to_string(next_review_date),
                         "old_date": convert_date_to_string(old_next_review_date),
+                        "team_name": team,
                     },
                 )
             elif old_next_review_date and next_review_date is None:
                 audit_trail_service.create(
-                    actor=request.user, verb=AuditType.REMOVED_NEXT_REVIEW_DATE, target=case,
+                    actor=request.user,
+                    verb=AuditType.REMOVED_NEXT_REVIEW_DATE,
+                    target=case,
+                    payload={"team_name": team},
                 )
 
             return JsonResponse(data={}, status=status.HTTP_200_OK)
