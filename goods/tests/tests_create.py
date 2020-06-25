@@ -228,6 +228,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
+            "is_military_use_step": True,
             "is_component_step": True,
         }
 
@@ -254,6 +255,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
+            "is_military_use_step": True,
             "is_component_step": True,
             "is_component": component,
             details_field: "",
@@ -274,6 +276,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
+            "is_military_use_step": True,
             "is_component_step": True,
             "is_component": Component.NO,
             "is_information_security_step": True,
@@ -297,6 +300,7 @@ class CreateGoodTests(DataTestClient):
             "is_military_use": MilitaryUse.NO,
             "is_component_step": True,
             "is_component": Component.NO,
+            "is_military_use_step": True,
             "is_information_security_step": True,
             "uses_information_security": True,
         }
@@ -319,6 +323,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
+            "is_military_use_step": True,
             "is_component_step": True,
             "is_component": Component.NO,
             "is_information_security_step": True,
@@ -349,8 +354,8 @@ class CreateGoodTests(DataTestClient):
             "item_category": category,
             "software_or_technology_details": details,
             "is_military_use": MilitaryUse.NO,
-            "is_component_step": True,
-            "is_component": Component.NO,
+            "is_military_use_step": True,
+            "is_software_or_technology_step": True,
             "is_information_security_step": True,
             "uses_information_security": True,
             "information_security_details": "details about security",
@@ -365,7 +370,6 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(good["item_category"]["key"], data["item_category"])
         self.assertEquals(good["software_or_technology_details"], data["software_or_technology_details"])
         self.assertEquals(good["is_military_use"]["key"], data["is_military_use"])
-        self.assertEqual(good["is_component"]["key"], data["is_component"])
         self.assertTrue(good["uses_information_security"])
         self.assertEquals(good["information_security_details"], data["information_security_details"])
 
@@ -381,6 +385,7 @@ class CreateGoodTests(DataTestClient):
             "is_good_controlled": GoodControlled.NO,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": category,
+            "is_software_or_technology_step": True,
             "software_or_technology_details": details,
         }
 
@@ -397,6 +402,7 @@ class CreateGoodTests(DataTestClient):
             "is_good_controlled": GoodControlled.NO,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP3_TECHNOLOGY,
+            "is_software_or_technology_step": True,
             "software_or_technology_details": "A" * 2001,
         }
 
