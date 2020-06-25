@@ -52,18 +52,19 @@ def validate_information_security_field(data):
         )
 
 
-def validate_software_or_technology_details(data):
+def validate_software_or_technology_details(data, good_category=None):
     """ Validate software/technology details field if the item category is software or technology. """
-    if "item_category" in data and data["item_category"] in [
-        ItemCategory.GROUP3_SOFTWARE,
-        ItemCategory.GROUP3_TECHNOLOGY,
-    ]:
+    if (
+        "item_category" in data
+        and data["item_category"] in [ItemCategory.GROUP3_SOFTWARE, ItemCategory.GROUP3_TECHNOLOGY,]
+    ) or "software_or_technology_details" in data:
         if not data.get("software_or_technology_details"):
+            category = good_category if good_category else data["item_category"]
             raise ValidationError(
                 {
                     "software_or_technology_details": [
                         strings.Goods.FORM_NO_SOFTWARE_DETAILS
-                        if data["item_category"] == ItemCategory.GROUP3_SOFTWARE
+                        if category == ItemCategory.GROUP3_SOFTWARE
                         else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
                     ]
                 }
