@@ -17,12 +17,7 @@ class ComplianceVisitCaseTests(DataTestClient):
         response_data = response.json()["results"]
 
         for person in response_data:
-            if person["id"] == str(person1.id):
-                pass
-            elif person["id"] == str(person2.id):
-                pass
-            else:
-                self.assertFalse(True)
+            self.assertIn(person["id"], [str(person1.id), str(person2.id)])
 
     def test_create_people_present(self):
         comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)

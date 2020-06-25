@@ -760,8 +760,11 @@ class CaseApplicant(APIView):
         applicant = case.submitted_by
         # compliance cases do not contain a person who submit them, as such we return empty details
         if not applicant:
-            return JsonResponse({"name": "", "email": ""})
-        return JsonResponse({"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email})
+            return JsonResponse({"name": "", "email": ""}, status=status.HTTP_200_OK)
+        return JsonResponse(
+            {"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email},
+            status=status.HTTP_200_OK,
+        )
 
 
 class RerunRoutingRules(APIView):

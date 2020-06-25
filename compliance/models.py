@@ -50,26 +50,24 @@ class ComplianceVisitCase(Case):
     )
     licence_risk_value = models.PositiveSmallIntegerField(blank=True, null=True, default=None,)  # value between 1 and 5
 
-    overview = models.TextField(default=None, blank=True, null=True)
-    inspection = models.TextField(default=None, blank=True, null=True)
+    overview = models.TextField(default=None, null=True)
+    inspection = models.TextField(default=None, null=True)
 
     # compliance with licences
-    compliance_overview = models.TextField(default=None, blank=True, null=True)
+    compliance_overview = models.TextField(default=None, null=True)
     compliance_risk_value = models.CharField(
-        choices=ComplianceRiskValues.choices, max_length=10, blank=True, null=True, default=None
+        choices=ComplianceRiskValues.choices, max_length=10, null=True, default=None
     )
 
     # knowledge and understanding demonstrated by key export individuals at meeting
-    individuals_overview = models.TextField(default=None, blank=True, null=True)
+    individuals_overview = models.TextField(default=None, null=True)
     individuals_risk_value = models.CharField(
-        choices=ComplianceRiskValues.choices, max_length=10, blank=True, null=True, default=None
+        choices=ComplianceRiskValues.choices, max_length=10, null=True, default=None
     )
 
     # knowledge of controlled items of business' products
-    products_overview = models.TextField(default=None, blank=True, null=True)
-    products_risk_value = models.CharField(
-        choices=ComplianceRiskValues.choices, max_length=10, blank=True, null=True, default=None
-    )
+    products_overview = models.TextField(default=None, null=True)
+    products_risk_value = models.CharField(choices=ComplianceRiskValues.choices, max_length=10, null=True, default=None)
 
 
 class OpenLicenceReturns(CreatedAt):
@@ -81,9 +79,9 @@ class OpenLicenceReturns(CreatedAt):
 
 
 class CompliancePerson(TimestampableModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(null=False, blank=False, max_length=100)
     job_title = models.CharField(null=False, blank=False, max_length=100)
     visit_case = models.ForeignKey(
-        ComplianceVisitCase, related_name="people_present", null=False, blank=False, on_delete=models.DO_NOTHING
+        ComplianceVisitCase, related_name="people_present", null=False, blank=False, on_delete=models.CASCADE
     )

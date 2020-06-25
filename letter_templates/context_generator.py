@@ -47,6 +47,7 @@ def get_document_context(case, addressee=None):
     else:
         goods = None
 
+    # compliance type cases contain neither an addressee or submitted_by user
     if not addressee and case.submitted_by:
         addressee = case.submitted_by
 
@@ -270,7 +271,7 @@ def _get_compliance_visit_context(case):
     return {
         "site_case_reference": comp_case.site_case.reference_code,
         "site_name": comp_case.site_case.site.name,
-        "address": comp_case.site_case.site.address,
+        "site_address": comp_case.site_case.site.address,
         "visit_type": comp_case.visit_type,
         "visit_date": comp_case.visit_date,
         "overall_risk_value": comp_case.overall_risk_value,

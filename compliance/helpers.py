@@ -183,7 +183,4 @@ def compliance_visit_case_complete(case: ComplianceVisitCase) -> bool:
         if not getattr(case, field):
             return False
 
-    if not CompliancePerson.objects.filter(visit_case_id=case.id).exists():
-        return False
-
-    return True
+    return CompliancePerson.objects.filter(visit_case_id=case.id).exists()

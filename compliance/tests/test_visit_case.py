@@ -5,8 +5,10 @@ from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 
+from cases.enums import CaseTypeEnum
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
-from compliance.tests.factories import ComplianceVisitCaseFactory
+from compliance.models import ComplianceVisitCase
+from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -64,3 +66,22 @@ class ComplianceVisitCaseTests(DataTestClient):
             self.assertEqual(response_data[field]["key"], data)
         else:
             self.assertEqual(response_data[field], data)
+
+    def test_create_compliance_visit_case(self):
+        compliance_case = ComplianceSiteCaseFactory(
+            organisation=self.organisation, site=self.organisation.primary_site, case_officer_id=self.gov_user.id,
+        )
+
+        data = {}
+
+        url = reverse("compliance:compliance_visit", kwargs={"pk": compliance_case.id})
+        response = self.client.post(url, data, **self.gov_headers)
+        data = response.json()["data"]
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(data["site_case_id"], str(compliance_case.id))
+        self.assertEqual(data["site_case_reference_code"], compliance_case.reference_code)
+
+        visit_case = ComplianceVisitCase.objects.get(id=data["id"])
+        self.assertEqual(compliance_case.case_officer_id, visit_case.case_officer_id)
+        self.assertEqual(visit_case.case_type.id, CaseTypeEnum.COMPLIANCE_VISIT.id)

@@ -20,6 +20,8 @@ class CaseTypeReferenceEnum:
     EUA = "eua"
     OGTCL = "ogtcl"
     OGTL = "ogtl"
+    # Compliance cases both require COMP as a prefix in the reference code, so we use an _ to separate the suffix
+    #   which means we have both on reference code creation, without affecting filtering case_types etc
     COMP_SITE = "comp_c"
     COMP_VISIT = "comp_v"
 

@@ -25,6 +25,8 @@ def get_next_goods_query_status(case):
 
 
 def get_next_compliance_visit_status(case):
+    # Awaiting exporter response is the last status before a terminal status (closed) as such we must confirm that
+    #   the case is ready to be closed.
     if case.status.status == CaseStatusEnum.AWAITING_EXPORTER_RESPONSE:
         comp_case = ComplianceVisitCase.objects.get(id=case.id)
         if not compliance_visit_case_complete(comp_case):
@@ -34,6 +36,8 @@ def get_next_compliance_visit_status(case):
         return None
     else:
         current_status_pos = CaseStatusEnum.compliance_visit_statuses.index(case.status.status)
+        # The case status enum was used to get the next status as workflow automation uses some statuses in other
+        #   workflows
         return CaseStatus.objects.get(status=CaseStatusEnum.compliance_visit_statuses[current_status_pos + 1])
 
 

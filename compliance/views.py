@@ -101,12 +101,12 @@ class ComplianceManageStatus(UpdateAPIView):
         ):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
-        if case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT and new_status == CaseStatusEnum.CLOSED:
+        if case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT and CaseStatusEnum.is_terminal(new_status):
             comp_case = ComplianceVisitCase.objects.get(id=kwargs["pk"])
             if not compliance_visit_case_complete(comp_case):
                 raise ValidationError({"status": [strings.Statuses.COMPLIANCE_NOT_COMPLETE]})
 
-        case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
+        case.change_status(request.user, get_case_status_by_status(new_status))
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
@@ -130,8 +130,6 @@ class ComplianceSiteVisits(ListCreateAPIView):
             payload={},
         )
 
-        # audit creation
-
         return JsonResponse(
             data={"data": ComplianceVisitSerializer(instance=visit_case).data}, status=status.HTTP_201_CREATED
         )
@@ -145,7 +143,6 @@ class ComplianceVisitCaseView(RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         fields = [
             ("visit_type", Compliance.ActivityFieldDisplay.VISIT_TYPE),
-            ("visit_date", Compliance.ActivityFieldDisplay.VISIT_DATE),
             ("overall_risk_value", Compliance.ActivityFieldDisplay.OVERALL_RISK_VALUE),
             ("licence_risk_value", Compliance.ActivityFieldDisplay.LICENCE_RISK_VALUE),
             ("overview", Compliance.ActivityFieldDisplay.OVERVIEW),
@@ -167,32 +164,33 @@ class ComplianceVisitCaseView(RetrieveUpdateAPIView):
         case = updated_instance.get_case()
         for field, display in fields:
             if getattr(original_instance, field) != getattr(updated_instance, field):
-                if isinstance(getattr(original_instance, field), date):
-                    audits.append(
-                        Audit(
-                            actor=self.request.user,
-                            verb=AuditType.COMPLIANCE_VISIT_CASE_UPDATED,
-                            action_object=case,
-                            payload={
-                                "key": display,
-                                "old": getattr(original_instance, field).strftime("%Y-%m-%d"),
-                                "new": getattr(updated_instance, field).strftime("%Y-%m-%d"),
-                            },
-                        )
+                audits.append(
+                    Audit(
+                        actor=self.request.user,
+                        verb=AuditType.COMPLIANCE_VISIT_CASE_UPDATED,
+                        action_object=case,
+                        payload={
+                            "key": display,
+                            "old": getattr(original_instance, field),
+                            "new": getattr(updated_instance, field),
+                        },
                     )
-                else:
-                    audits.append(
-                        Audit(
-                            actor=self.request.user,
-                            verb=AuditType.COMPLIANCE_VISIT_CASE_UPDATED,
-                            action_object=case,
-                            payload={
-                                "key": display,
-                                "old": getattr(original_instance, field),
-                                "new": getattr(updated_instance, field),
-                            },
-                        )
-                    )
+                )
+
+        # handle dates separately in auditing since it requires different formatting
+        if original_instance.visit_date != updated_instance.visit_date:
+            audits.append(
+                Audit(
+                    actor=self.request.user,
+                    verb=AuditType.COMPLIANCE_VISIT_CASE_UPDATED,
+                    action_object=case,
+                    payload={
+                        "key": Compliance.ActivityFieldDisplay.VISIT_DATE,
+                        "old": original_instance.visit_date.strftime("%Y-%m-%d"),
+                        "new": updated_instance.visit_date.strftime("%Y-%m-%d"),
+                    },
+                )
+            )
 
         if audits:
             Audit.objects.bulk_create(audits)
