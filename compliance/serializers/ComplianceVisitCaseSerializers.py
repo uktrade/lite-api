@@ -57,7 +57,7 @@ class ComplianceVisitSerializer(serializers.ModelSerializer):
         error_messages={"blank": strings.Compliance.VisitCaseSerializer.OVERVIEW_BLANK},
     )
     people_present = serializers.SerializerMethodField(read_only=True)
-    visit_date = serializers.DateField()
+    visit_date = serializers.DateField(allow_null=True)
 
     class Meta:
         model = ComplianceVisitCase
