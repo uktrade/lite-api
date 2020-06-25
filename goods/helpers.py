@@ -73,8 +73,5 @@ def validate_software_or_technology_details(data, good_category=None):
 
 def validate_military_use(data):
     """ Validate military use selected if category is either Group 1 or 3. """
-    if "item_category" in data and data["item_category"] not in [
-        ItemCategory.GROUP2_FIREARMS,
-    ]:
-        if not data.get("is_military_use"):
-            raise ValidationError({"is_military_use": [strings.Goods.FORM_NO_MILITARY_USE_SELECTED]})
+    if "item_category" in data and not data.get("is_military_use"):
+        raise ValidationError({"is_military_use": [strings.Goods.FORM_NO_MILITARY_USE_SELECTED]})
