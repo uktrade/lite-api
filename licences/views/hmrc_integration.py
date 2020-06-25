@@ -1,4 +1,4 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.generics import UpdateAPIView
 from rest_framework.status import HTTP_208_ALREADY_REPORTED
@@ -17,11 +17,11 @@ class HMRCIntegration(UpdateAPIView):
 
         serializer = HMRCIntegrationUsageUpdateLicencesSerializer(data=request.data)
         if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(data={**request.data, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         transaction_id = serializer.validated_data["transaction_id"]
         if HMRCIntegrationUsageUpdate.objects.filter(id=transaction_id).exists():
-            return HttpResponse(status=HTTP_208_ALREADY_REPORTED)
+            return JsonResponse(data={"transaction_id": transaction_id}, status=HTTP_208_ALREADY_REPORTED)
 
         valid_licences, invalid_licences = validate_licence_usage_updates(serializer.validated_data["licences"])
 
@@ -29,6 +29,9 @@ class HMRCIntegration(UpdateAPIView):
             save_licence_usage_updates(transaction_id, valid_licences)
 
         return JsonResponse(
-            data={"licences": {"accepted": valid_licences, "rejected": invalid_licences}},
+            data={
+                "transaction_id": transaction_id,
+                "licences": {"accepted": valid_licences, "rejected": invalid_licences},
+            },
             status=status.HTTP_207_MULTI_STATUS,
         )

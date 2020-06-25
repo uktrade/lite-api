@@ -90,7 +90,8 @@ def _validate_licence(data: dict) -> dict:
     valid_goods, invalid_goods = _validate_goods_on_licence(licence.id, data["goods"])
 
     if invalid_goods:
-        data["errors"] = {"goods": [invalid_good["errors"] for invalid_good in invalid_goods]}
+        data["goods"] = {"accepted": valid_goods, "rejected": invalid_goods}
+        data["errors"] = {"goods": ["One or more Goods were rejected."]}
 
     return data
 
