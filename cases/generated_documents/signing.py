@@ -1,7 +1,9 @@
 import os
+from base64 import b64decode
 from io import BytesIO
 
 import PyPDF2
+from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from PIL import Image, ImageFont, ImageDraw
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.serialization import pkcs12
@@ -10,7 +12,7 @@ from endesive.pdf.cms import sign
 from conf.helpers import get_local_datetime
 from conf.settings import (
     BASE_DIR,
-    CERTIFICATE_PATH,
+    P12_CERTIFICATE,
     CERTIFICATE_PASSWORD,
     SIGNING_REASON,
     SIGNING_LOCATION,
@@ -27,13 +29,18 @@ TITLE_POSITIONING = (500, 30)
 TEXT_POSITIONING = (500, 180)
 
 
-def _load_certificate():
+def get_certificate_data():
+    _, cert, _ = _load_certificate_and_key()
+    return dump_certificate(FILETYPE_PEM, cert)
+
+
+def _load_certificate_and_key():
     """
     Extracts the key & certificate from the p12 file specified with CERTIFICATE_PATH & CERTIFICATE_PASSWORD
     """
-    path = os.path.join(BASE_DIR, CERTIFICATE_PATH)
-    with open(path, "rb") as fp:
-        return pkcs12.load_key_and_certificates(fp.read(), str.encode(CERTIFICATE_PASSWORD), backends.default_backend())
+    return pkcs12.load_key_and_certificates(
+        b64decode(P12_CERTIFICATE), str.encode(CERTIFICATE_PASSWORD), backends.default_backend()
+    )
 
 
 def _get_signature_text(date):
@@ -94,7 +101,7 @@ def sign_pdf(original_pdf: bytes):
     }
 
     # Load key & certificate
-    key, cert, othercerts = _load_certificate()
+    key, cert, othercerts = _load_certificate_and_key()
 
     # Add a blank page to the end
     pdf, num_pages = _add_blank_page(original_pdf)
