@@ -27,7 +27,7 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case
+from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case, CaseReviewDate
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -38,7 +38,7 @@ from cases.serializers import (
     CaseAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
-    NextReviewDateUpdateSerializer,
+    ReviewDateUpdateSerializer,
 )
 from compliance.helpers import generate_compliance_site_case
 from cases.service import get_destinations
@@ -792,11 +792,18 @@ class NextReviewDate(APIView):
         Sets a next review date for a case
         """
         case = get_case(pk)
-        old_next_review_date = case.next_review_date
         next_review_date = request.data.get("next_review_date")
 
-        data = {"next_review_date": next_review_date}
-        serializer = NextReviewDateUpdateSerializer(instance=case, data=data)
+        case_review_date = CaseReviewDate.objects.filter(case_id=case.id, team_id=request.user.team.id)
+        data = {"next_review_date": next_review_date, "case": case.id, "team": request.user.team.id}
+
+        if case_review_date.exists():
+            case_review_date = case_review_date.get()
+            old_next_review_date = case_review_date.next_review_date
+            serializer = ReviewDateUpdateSerializer(instance=case_review_date, data=data)
+        else:
+            old_next_review_date = None
+            serializer = ReviewDateUpdateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()

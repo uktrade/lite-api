@@ -26,7 +26,7 @@ from cases.models import (
     Advice,
     GoodCountryDecision,
     CaseType,
-)
+    CaseReviewDate)
 from compliance.models import ComplianceSiteCase
 from compliance.serializers import ComplianceSiteViewSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
@@ -42,6 +42,7 @@ from queues.models import Queue
 from queues.serializers import CasesQueueViewSerializer
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
+from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
 from users.models import BaseUser, GovUser, ExporterUser, GovNotification
@@ -164,7 +165,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     advice = CaseAdviceSerializer(many=True)
     data = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    next_review_date = serializers.DateField(required=False)
+    next_review_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -185,7 +186,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "sla_days",
             "sla_remaining_days",
             "data",
-            "next_review_date",
+            "next_review_date"
         )
 
     def __init__(self, *args, **kwargs):
@@ -257,6 +258,11 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
+
+    def get_next_review_date(self, instance):
+        next_review_date = CaseReviewDate.objects.filter(case_id=instance.id, team_id=self.team.id)
+        if next_review_date:
+            return next_review_date.get().next_review_date
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
@@ -441,20 +447,21 @@ class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
         fields = ("case_officer",)
 
 
-class NextReviewDateUpdateSerializer(serializers.ModelSerializer):
+class ReviewDateUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for setting and editing the next review date of a case.
     """
-
+    team = serializers.PrimaryKeyRelatedField(required=True, queryset=Team.objects.all())
+    case = serializers.PrimaryKeyRelatedField(required=True, queryset=Case.objects.submitted())
     next_review_date = serializers.DateField(
         required=False,
         allow_null=True,
-        error_messages={"invalid": strings.Cases.NextReviewDate.Errors.INVALID_DATE_FORMAT,},
+        error_messages={"invalid": strings.Cases.NextReviewDate.Errors.INVALID_DATE_FORMAT},
     )
 
     class Meta:
-        model = Case
-        fields = ("next_review_date",)
+        model = CaseReviewDate
+        fields = ("next_review_date", "team", "case")
 
     def validate_next_review_date(self, value):
         if value:
