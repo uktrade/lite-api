@@ -45,7 +45,7 @@ Do this after installing the python packages in the Pipfile;
 To digitally sign documents `endsesive` requires the OS library swig to be installed.
 To install run `sudo apt-get install swig;`
 
-A p12 file is also required as specified with CERTIFICATE_PATH & CERTIFICATE_PASSWORD.
+A p12 file is also required. Please see https://uktrade.atlassian.net/wiki/spaces/ILT/pages/1390870733/PDF+Document+Signing
 
 
 ## Documentation
