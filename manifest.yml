@@ -2,4 +2,5 @@
 applications:
   - buildpacks: 
       - python_buildpack
+      - apt_buildpack
     timeout: 180
