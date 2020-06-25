@@ -27,6 +27,7 @@ class RegisterOpenGeneralLicenceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqualIgnoreType(response_data["open_general_licence"], self.open_general_licence.id)
+        self.assertEqualIgnoreType(response_data["registrations"], OpenGeneralLicenceCase.objects.get().id)
         self.assertEqual(OpenGeneralLicenceCase.objects.count(), 1)
 
     @parameterized.expand(
