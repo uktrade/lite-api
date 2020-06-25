@@ -44,7 +44,7 @@ class ComplianceVisitCase(Case):
     visit_type = models.CharField(
         choices=ComplianceVisitTypes.choices, max_length=15, blank=True, null=True, default=None
     )
-    visit_date = models.DateField(blank=True, null=True, default=None)
+    visit_date = models.DateField(null=True, default=None)
     overall_risk_value = models.CharField(
         choices=ComplianceRiskValues.choices, max_length=10, blank=True, null=True, default=None
     )
