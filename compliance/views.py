@@ -179,6 +179,7 @@ class ComplianceVisitCaseView(RetrieveUpdateAPIView):
 
         # handle dates separately in auditing since it requires different formatting
         if original_instance.visit_date != updated_instance.visit_date:
+            old = original_instance.visit_date.strftime("%Y-%m-%d") if original_instance.visit_date else "Not set"
             audits.append(
                 Audit(
                     actor=self.request.user,
@@ -186,7 +187,7 @@ class ComplianceVisitCaseView(RetrieveUpdateAPIView):
                     action_object=case,
                     payload={
                         "key": Compliance.ActivityFieldDisplay.VISIT_DATE,
-                        "old": original_instance.visit_date.strftime("%Y-%m-%d"),
+                        "old": old,
                         "new": updated_instance.visit_date.strftime("%Y-%m-%d"),
                     },
                 )
