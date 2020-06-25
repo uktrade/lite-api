@@ -247,7 +247,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
             "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
         )
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-        request_data = {"software_or_technology_details": details}
+        request_data = {"is_software_or_technology_step": True, "software_or_technology_details": details}
 
         response = self.client.put(url, request_data, **self.exporter_headers)
         good = response.json()["good"]
@@ -268,7 +268,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
             "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
         )
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
-        request_data = {"software_or_technology_details": ""}
+        request_data = {"is_software_or_technology_step": True, "software_or_technology_details": ""}
 
         response = self.client.put(url, request_data, **self.exporter_headers)
         errors = response.json()["errors"]
