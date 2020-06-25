@@ -20,13 +20,13 @@ from conf.settings import (
 )
 
 SIGNATURE_TITLE = "Digital Signature"
-FONT = os.path.join(BASE_DIR, "assets", "fonts", "Helvetica.ttf")
+FONT = os.path.join(BASE_DIR, "assets", "fonts", "light.ttf")
 BACKGROUND_IMAGE = os.path.join(BASE_DIR, "assets", "images", "dit_emblem.png")
 TITLE_FONT_SIZE = 80
 FONT_SIZE = 50
 SIGNATURE_POSITIONING = (50, 675, 450, 775)
-TITLE_POSITIONING = (500, 30)
-TEXT_POSITIONING = (500, 180)
+TITLE_POSITIONING = (500, 10)
+TEXT_POSITIONING = (500, 150)
 
 
 def get_certificate_data():
