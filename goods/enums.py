@@ -111,6 +111,10 @@ class ItemCategory:
         (GROUP3_TECHNOLOGY, "Technology"),
     ]
 
+    group_one = [GROUP1_PLATFORM, GROUP1_DEVICE, GROUP1_COMPONENTS, GROUP1_MATERIALS]
+    group_two = [GROUP2_FIREARMS]
+    group_three = [GROUP3_SOFTWARE, GROUP3_TECHNOLOGY]
+
 
 class MilitaryUse:
     YES_DESIGNED = "yes_designed"

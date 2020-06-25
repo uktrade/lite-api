@@ -15,6 +15,7 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from conf.exceptions import BadRequestError
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
@@ -261,13 +262,29 @@ class GoodTAUDetails(APIView):
     def put(self, request, pk):
         """ Edit the TAU details of a good. This includes military use, component and information security use. """
         good = get_good(pk)
+        data = request.data.copy()
+
+        # return bad request if trying to edit software_or_technology details outside of category group 3
+        if (
+            good.item_category in ItemCategory.group_one
+            or good.item_category in ItemCategory.group_two
+            and data.get("software_or_technology_details")
+        ):
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+        # return bad request if trying to edit component and component details outside of category group 1
+        if (
+            good.item_category in ItemCategory.group_two
+            or good.item_category in ItemCategory.group_three
+            and data.get("is_component")
+        ):
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
         if good.status == GoodStatus.SUBMITTED:
             return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
+                data={"errors": {"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]}},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-
-        data = request.data.copy()
 
         if "software_or_technology_details" in data and not data.get("software_or_technology_details"):
             raise ValidationError(
