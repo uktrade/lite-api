@@ -3,7 +3,6 @@ from django.db.models import Q, Count
 from django.http import JsonResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 
@@ -20,14 +19,8 @@ from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, MilitaryUse, ItemCategory
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemCategory
 from goods.goods_paginator import GoodListPaginator
-from goods.helpers import (
-    validate_component_fields,
-    validate_information_security_field,
-    validate_software_or_technology_details,
-    validate_military_use,
-)
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
 from goods.models import Good, GoodDocument
@@ -201,29 +194,15 @@ class GoodList(ListCreateAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        serializer = GoodCreateSerializer(data=data)
-
         # return bad request if trying to edit software_or_technology details outside of category group 3
         if data.get("item_category") in ItemCategory.group_one and data.get("software_or_technology_details"):
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
         # return bad request if trying to edit component and component details outside of category group 1
-        if data.get("item_category") in ItemCategory.group_three and data.get("is_component"):
+        if data.get("item_category") in ItemCategory.group_three and data.get("is_component_step"):
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
-        if "is_software_or_technology_step" in data:
-            validate_software_or_technology_details(data)
-
-        if "is_military_use_step" in data:
-            validate_military_use(data)
-
-        if "is_military_use" in data and data["is_military_use"] == MilitaryUse.YES_MODIFIED:
-            if not data.get("modified_military_use_details"):
-                raise ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
-
-        validate_component_fields(data)
-        validate_information_security_field(data)
-
+        serializer = GoodCreateSerializer(data=data)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 
 
@@ -276,26 +255,15 @@ class GoodTAUDetails(APIView):
         data = request.data.copy()
 
         # return bad request if trying to edit software_or_technology details outside of category group 3
-        if good.item_category in ItemCategory.group_one and data.get("software_or_technology_details"):
+        if good.item_category in ItemCategory.group_one and "software_or_technology_details" in data:
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
         # return bad request if trying to edit component and component details outside of category group 1
-        if good.item_category in ItemCategory.group_three and data.get("is_component"):
+        if good.item_category in ItemCategory.group_three and data.get("is_component_step"):
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
         if good.status == GoodStatus.SUBMITTED:
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]})
-
-        if "is_software_or_technology_step" in data:
-            validate_software_or_technology_details(data, good.item_category)
-
-        if "is_military_use_step" in data:
-            validate_military_use(data)
-
-        validate_component_fields(data)
-        if data.get("uses_information_security") == "None":
-            data["uses_information_security"] = None
-        validate_information_security_field(data)
 
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
