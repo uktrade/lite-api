@@ -266,16 +266,16 @@ class GoodTAUDetails(APIView):
 
         # return bad request if trying to edit software_or_technology details outside of category group 3
         if (
-            good.item_category in ItemCategory.group_one
-            or good.item_category in ItemCategory.group_two
+                (good.item_category in ItemCategory.group_one
+            or good.item_category in ItemCategory.group_two)
             and data.get("software_or_technology_details")
         ):
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
         # return bad request if trying to edit component and component details outside of category group 1
         if (
-            good.item_category in ItemCategory.group_two
-            or good.item_category in ItemCategory.group_three
+                (good.item_category in ItemCategory.group_two
+            or good.item_category in ItemCategory.group_three)
             and data.get("is_component")
         ):
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})

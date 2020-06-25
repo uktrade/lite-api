@@ -263,7 +263,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
             [ItemCategory.GROUP3_TECHNOLOGY, strings.Goods.FORM_NO_TECHNOLOGY_DETAILS],
         ]
     )
-    def test_edit_software_or_technology_details_success(self, category, error):
+    def test_edit_software_or_technology_details_failure(self, category, error):
         good = self.create_good(
             "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
         )
@@ -277,7 +277,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEqual(len(errors), 1)
         self.assertEquals(errors["software_or_technology_details"], [error])
 
-    def test_cannot_edit_component_and_component_details_of_non_category_one_good_success(self):
+    def test_cannot_edit_component_and_component_details_of_non_category_one_good_failure(self):
         good = self.create_good(
             "a good",
             self.organisation,
@@ -292,19 +292,18 @@ class GoodsEditDraftGoodTests(DataTestClient):
         }
 
         response = self.client.put(url, request_data, **self.exporter_headers)
-        good = response.json()["good"]
+        errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertIsNone(good["is_component"])
-        self.assertIsNone(good["component_details"])
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])
 
-    def test_cannot_edit_software_technology_details_non_category_three_good_success(self):
+    def test_cannot_edit_software_technology_details_non_category_three_good_failure(self):
         good = self.create_good("a good", self.organisation, item_category=ItemCategory.GROUP1_PLATFORM)
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
         request_data = {"software_or_technology_details": "some details"}
 
         response = self.client.put(url, request_data, **self.exporter_headers)
-        good = response.json()["good"]
+        errors = response.json()["errors"]
 
-        self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertIsNone(good["software_or_technology_details"])
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])

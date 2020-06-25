@@ -375,7 +375,7 @@ class CreateGoodTests(DataTestClient):
             [ItemCategory.GROUP3_TECHNOLOGY, "", strings.Goods.FORM_NO_TECHNOLOGY_DETAILS],
         ]
     )
-    def test_add_category_three_good_failure(self, category, details, error):
+    def test_add_category_three_good_no_detailsfailure(self, category, details, error):
         data = {
             "description": "coffee",
             "is_good_controlled": GoodControlled.NO,
