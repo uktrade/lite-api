@@ -109,7 +109,6 @@ class ComplianceVisitSerializer(serializers.ModelSerializer):
 class CompliancePersonSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     job_title = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    visit_case = serializers.PrimaryKeyRelatedField(queryset=ComplianceVisitCase.objects.all())  # used for creation
 
     class Meta:
         model = CompliancePerson
@@ -117,5 +116,4 @@ class CompliancePersonSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "job_title",
-            "visit_case",
         )

@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.http import JsonResponse
+from requests import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -262,8 +263,15 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
     def get_queryset(self):
         return CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"])
 
+    def post(self, request, *args, **kwargs):
+        # if singular run self.create
+        if request.data.get("people", False):
+            return self.create_multiple(request, *args, **kwargs)
+        else:
+            return self.create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
-        person = serializer.save()
+        person = serializer.save(visit_case_id=self.kwargs["pk"])
 
         case = get_case(self.kwargs["pk"])
 
@@ -273,6 +281,17 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
             action_object=case,
             payload={"name": person.name, "job_title": person.job_title,},
         )
+
+    def create_multiple(self, request, *args, **kwargs):
+        serializer = self.get_serializer(
+            data=request.data.get("people_present"), many=True, context={"case_id": self.kwargs["pk"]}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(visit_case_id=self.kwargs["pk"])
+        # audit
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class ComplianceVisitPersonPresentView(RetrieveUpdateDestroyAPIView):
