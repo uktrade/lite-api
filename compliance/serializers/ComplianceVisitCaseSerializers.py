@@ -101,7 +101,7 @@ class ComplianceVisitSerializer(serializers.ModelSerializer):
         # If an IntegerField receives a blank field, it throws an error. We don't enforce the user to add the
         #   licence_risk_value field till they desire to regardless of form.
         if data is not empty:
-            if "licence_risk_value" in data and data.get("licence_risk_value") == "":
+            if data.get("licence_risk_value") == "":
                 data.pop("licence_risk_value")
         super(ComplianceVisitSerializer, self).__init__(instance, data, **kwargs)
 
