@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework import status, generics
 from rest_framework.views import APIView
@@ -13,7 +13,7 @@ from cases.generated_documents.serializers import (
     GeneratedCaseDocumentGovSerializer,
     GeneratedCaseDocumentExporterSerializer,
 )
-from cases.generated_documents.signing import sign_pdf, get_certificate_data
+from cases.generated_documents.signing import sign_pdf
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.models import Case
 from conf.authentication import GovAuthentication, SharedAuthentication
@@ -129,11 +129,3 @@ class GeneratedDocumentPreview(APIView):
             return JsonResponse(data={"errors": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
 
         return JsonResponse(data={"preview": document.document_html}, status=status.HTTP_200_OK)
-
-
-class DownloadSigningCertificate(APIView):
-    authentication_classes = (SharedAuthentication,)
-
-    def get(self, request):
-        certificate = get_certificate_data()
-        return HttpResponse(certificate, content_type="application/x-x509-ca-cert")

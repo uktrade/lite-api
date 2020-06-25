@@ -8,5 +8,4 @@ urlpatterns = [
     path("", views.GeneratedDocuments.as_view(), name="generated_documents"),
     path("<uuid:dpk>/", views.GeneratedDocument.as_view(), name="generated_document"),
     path("preview/", views.GeneratedDocumentPreview.as_view(), name="preview"),
-    path("certificate/", views.DownloadSigningCertificate.as_view(), name="certificate"),
 ]
