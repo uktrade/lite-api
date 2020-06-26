@@ -225,7 +225,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(errors["is_component"], [strings.Goods.FORM_NO_COMPONENT_SELECTED])
 
     def test_edit_information_security_no_selection_failure(self):
-        request_data = {"is_information_security_step": True}
+        request_data = {"uses_information_security": ""}
 
         response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
         errors = response.json()["errors"]
