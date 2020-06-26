@@ -107,8 +107,12 @@ class ComplianceVisitSerializer(serializers.ModelSerializer):
 
 
 class CompliancePersonSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    job_title = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    name = serializers.CharField(required=True, allow_blank=False, allow_null=False, error_messages={
+        "blank": "Name may not be blank"
+    })
+    job_title = serializers.CharField(required=True, allow_blank=False, allow_null=False, error_messages={
+        "blank": "Job title may not be blank"
+    })
 
     class Meta:
         model = CompliancePerson
