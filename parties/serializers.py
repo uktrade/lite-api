@@ -116,11 +116,11 @@ class PartyDocumentSerializer(serializers.ModelSerializer):
 
 
 class AdditionalContactSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(error_messages=PartyErrors.NAME)
+    name = serializers.CharField(error_messages=PartyErrors.NAME, max_length=100)
     email = serializers.EmailField(error_messages=PartyErrors.EMAIL)
-    phone_number = serializers.CharField(error_messages=PartyErrors.PHONE_NUMBER)
-    details = serializers.CharField(error_messages=PartyErrors.DETAILS)
-    address = serializers.CharField(error_messages=PartyErrors.ADDRESS)
+    phone_number = serializers.CharField(error_messages=PartyErrors.PHONE_NUMBER, max_length=50)
+    details = serializers.CharField(error_messages=PartyErrors.DETAILS, max_length=256)
+    address = serializers.CharField(error_messages=PartyErrors.ADDRESS, max_length=256)
     country = CountrySerializerField()
     type = KeyValueChoiceField(choices=PartyType.choices, required=True)
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
