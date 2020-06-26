@@ -1,2 +1,2 @@
 packages:
-- swig
+- python3-pykcs11
