@@ -266,30 +266,18 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-        return self.create_multiple(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        person = serializer.save(visit_case_id=self.kwargs["pk"])
-
-        case = get_case(self.kwargs["pk"])
-
-        audit_trail_service.create(
-            actor=self.request.user,
-            verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_CREATED,
-            action_object=case,
-            payload={"name": person.name, "job_title": person.job_title,},
-        )
-
-    def create_multiple(self, request, *args, **kwargs):
         response = []
 
+        # if people present is passed forward, we wish to validate and replace the current data
         if request.data.get("people_present"):
             serializer = self.get_serializer(data=request.data.get("people_present"), many=True,)
             serializer.is_valid(raise_exception=True)
+            # We wish to replace the current people present with the new list of people present
             CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"]).delete()
             serializer.save(visit_case_id=self.kwargs["pk"])
             response = serializer.data
         else:
+            # if no people present are given we remove all current people
             CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"]).delete()
 
         return JsonResponse(data={"people_present": response}, status=status.HTTP_201_CREATED)
