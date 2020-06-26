@@ -16,7 +16,7 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading
-from licences.models import Licence, GoodOnLicence
+from licences.models import GoodOnLicence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
@@ -26,7 +26,7 @@ from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.units.enums import Units
 
 
-def get_document_context(case, addressee=None):
+def get_document_context(case, licence=None, addressee=None):
     """
     Generate universal context dictionary to provide data for all document types.
     """
@@ -39,10 +39,6 @@ def get_document_context(case, addressee=None):
     documents = ApplicationDocument.objects.filter(application_id=case.pk).order_by("-created_at")
     destinations = CountryOnApplication.objects.filter(application_id=case.pk).order_by("country__name")
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
-    try:
-        licence = Licence.objects.get_open_licence(base_application)
-    except Licence.DoesNotExist:
-        licence = None
 
     if getattr(licence, "goods", "") and licence.goods.exists():
         goods = _get_goods_context(licence.goods.all().order_by("good__good__description"), final_advice)

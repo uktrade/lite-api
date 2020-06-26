@@ -317,8 +317,10 @@ class FinalAdviceDocuments(APIView):
         final_advice = Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
+        licence = Licence.objects.get(application=pk, status__in=[LicenceStatus.DRAFT.value, LicenceStatus.REFUSED.value])
+
         # Add advice documents
-        generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
+        generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk, licence=licence)
         generated_advice_documents = AdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
         for document in generated_advice_documents:
             advice_type = document["advice_type"]["key"]
@@ -642,11 +644,10 @@ class FinaliseView(UpdateAPIView):
 
         # If a licence object exists, finalise the licence.
         # Due to a bug where multiple licences were being created, we get the latest one.
-        licence = Licence.objects.filter(application=case).order_by("created_at").last()
-        if licence:
-            licence.status = LicenceStatus.ISSUED.value
+        try:
+            licence = Licence.objects.get(application=case, status=LicenceStatus.DRAFT.value)
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
-            licence.save()
+            licence.issue()
             return_payload["licence"] = licence.id
             audit_trail_service.create(
                 actor=request.user,
@@ -655,6 +656,9 @@ class FinaliseView(UpdateAPIView):
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
             )
             generate_compliance_site_case(case)
+        except Licence.DoesNotExist:
+            # Do nothing if Licence doesn't exist
+            pass
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)

@@ -19,6 +19,8 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.decorators import authorised_to_view_application
 from conf.helpers import str_to_bool
 from documents.libraries import s3_operations
+from licences.enums import LicenceStatus
+from licences.models import Licence
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.enums import UserType
@@ -57,6 +59,7 @@ class GeneratedDocuments(generics.ListAPIView):
         """
         Create a generated document
         """
+        licence = None
         try:
             document = get_generated_document_data(request.data, pk)
         except AttributeError as e:
@@ -68,6 +71,11 @@ class GeneratedDocuments(generics.ListAPIView):
             return JsonResponse(
                 {"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        if request.data.get("licence_pk"):
+            try:
+                licence = Licence.objects.get(application=document.case, id=request.data.get("licence_pk"))
+            except Licence.DoesNotExist:
+                pass
 
         s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key
@@ -92,6 +100,7 @@ class GeneratedDocuments(generics.ListAPIView):
                     text=document.text,
                     visible_to_exporter=visible_to_exporter,
                     advice_type=request.data.get("advice_type"),
+                    licence=licence,
                 )
 
                 audit_trail_service.create(

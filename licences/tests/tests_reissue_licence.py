@@ -62,30 +62,6 @@ class GetLicencesTests(DataTestClient):
                 'reissued': True
             }
         )
-        from pprint import pprint
-        pprint(data["goods"])
-        pprint(                [
-                    {
-                        'advice': {'proviso': None, 'text': None, 'type': None},
-                        'control_list_entries': [],
-                        'unit': None,
-                        'id': str(good_on_application_1.id),
-                        'usage_total': good_1_on_licence_1.usage + good_1_on_licence_2.usage,
-                        'usage_licenced': good_1_on_licence_1.quantity,
-                        'usage_applied_for': good_on_application_1.quantity,
-                        'value': good_on_application_1.value
-                    },
-                    {
-                        'advice': {'proviso': None, 'text': None, 'type': None},
-                        'control_list_entries': [],
-                        'unit': None,
-                        'id': str(good_on_application_2.id),
-                        'usage_total': good_2_on_licence_1.usage + good_2_on_licence_2.usage,
-                        'usage_licenced': good_2_on_licence_1.quantity,
-                        'usage_applied_for': good_on_application_2.quantity,
-                        'value': good_on_application_2.value
-                    }
-                ])
         self.assertEqual(
             sorted(data["goods"], key=lambda x: x["id"]),
             sorted(

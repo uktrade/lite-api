@@ -18,8 +18,8 @@ class Licence(TimestampableModel):
         BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licence"
     )
     status = models.CharField(choices=[(tag.value, tag) for tag in LicenceStatus], max_length=32, default=LicenceStatus.DRAFT.value)
-    start_date = models.DateField(blank=False, null=False)
-    duration = models.PositiveSmallIntegerField(blank=False, null=False)
+    start_date = models.DateField(blank=False, null=True)
+    duration = models.PositiveSmallIntegerField(blank=False, null=True)
     decisions = models.ManyToManyField(Decision, related_name="licence")
     sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
 
@@ -35,6 +35,20 @@ class Licence(TimestampableModel):
 
     def revoke(self):
         self.status = LicenceStatus.REVOKED.value
+        self.save()
+
+    def cancel(self):
+        self.status = LicenceStatus.CANCELLED.value
+        self.save()
+
+    def issue(self):
+        try:
+            old_licence = Licence.objects.get(application=self.application, status=LicenceStatus.ISSUED.value)
+            old_licence.cancel()
+        except Licence.DoesNotExist:
+            old_licence = None
+
+        self.status = LicenceStatus.ISSUED.value if not old_licence else LicenceStatus.REINSTATED.value
         self.save()
 
     def is_complete(self):

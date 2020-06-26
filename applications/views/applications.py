@@ -78,7 +78,7 @@ from gov_notify.payloads import ApplicationStatusEmailData
 from licences.enums import LicenceStatus
 from licences.helpers import get_reference_code
 from licences.models import Licence, GoodOnLicence
-from licences.serializers.create_licence import LicenceSerializer
+from licences.serializers.create_licence import LicenceSerializer, LicenceRefuseSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
@@ -439,14 +439,6 @@ class ApplicationManageStatus(APIView):
                 )
             licence.surrender()
 
-        if data["status"] == CaseStatusEnum.REOPENED_FOR_CHANGES:
-            try:
-                # Revoke licence if one exists on a reopened case
-                licence = Licence.objects.get_open_licence(application=application)
-                licence.revoke()
-            except Licence.DoesNotExist:
-                pass
-
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
         old_status = application.status
@@ -566,6 +558,15 @@ class ApplicationFinaliseView(APIView):
         if action == AdviceType.REFUSE:
             application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
             application.save()
+            licence_data["application"] = application.id
+            licence_data["status"] = LicenceStatus.REFUSED.value
+
+            licence_serializer = LicenceRefuseSerializer(data=licence_data)
+            if not licence_serializer.is_valid():
+                return JsonResponse(data={"errors": licence_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            Licence.objects.create_with_reference(application.reference_code, licence_serializer.validated_data)
+
             audit_trail_service.create(
                 actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
             )
@@ -616,7 +617,7 @@ class ApplicationFinaliseView(APIView):
             if not licence_serializer.is_valid():
                 return JsonResponse(data={"errors": licence_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            licence = Licence.objects.new(application.reference_code, licence_serializer.validated_data)
+            licence = Licence.objects.create_with_reference(application.reference_code, licence_serializer.validated_data)
 
             # Create GoodsOnLicence if Standard application
             if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:

@@ -7,6 +7,8 @@ class LicenceStatus(Enum):
     REVOKED = "revoked"
     SURRENDERED = "surrendered"
     DRAFT = "draft"
+    CANCELLED = "cancelled"
+    REFUSED = "refused"
 
     @classmethod
     def values(cls):
