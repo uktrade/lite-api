@@ -6,23 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parties', '0008_reduce_field_length'),
+        ("parties", "0008_reduce_field_length"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='party',
-            name='address',
-            field=models.TextField(blank=True, default=None, max_length=256),
+            model_name="party", name="address", field=models.TextField(blank=True, default=None, max_length=256),
         ),
         migrations.AlterField(
-            model_name='party',
-            name='details',
-            field=models.TextField(blank=True, max_length=256, null=True),
+            model_name="party", name="details", field=models.TextField(blank=True, max_length=256, null=True),
         ),
         migrations.AlterField(
-            model_name='party',
-            name='name',
-            field=models.CharField(blank=True, default=None, max_length=100),
+            model_name="party", name="name", field=models.CharField(blank=True, default=None, max_length=100),
         ),
     ]

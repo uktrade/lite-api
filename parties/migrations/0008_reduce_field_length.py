@@ -23,9 +23,7 @@ def reverse_reduce_field_length(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parties', '0007_auto_20200317_1730'),
+        ("parties", "0007_auto_20200317_1730"),
     ]
 
-    operations = [
-        migrations.RunPython(reduce_field_length, reverse_code=reverse_reduce_field_length)
-    ]
+    operations = [migrations.RunPython(reduce_field_length, reverse_code=reverse_reduce_field_length)]
