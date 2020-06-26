@@ -7,6 +7,7 @@ from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from PIL import Image, ImageFont, ImageDraw
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.serialization import pkcs12
+
 # from endesive.pdf.cms import sign
 
 from conf.helpers import get_local_datetime
