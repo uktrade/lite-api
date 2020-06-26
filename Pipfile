@@ -38,6 +38,7 @@ defusedxml = "~=0.6.0"
 xmlschema = "~=1.2.0"
 notifications-python-client = "~=5.6.0"
 dataclasses = "~=0.6"
+endesive = "~=1.5.9"
 pypdf2 = "~=1.26.0"
 pyOpenSSL = "~=19.1.0"
 
