@@ -32,6 +32,11 @@ REQUEST_DATA = {
     },
     "item_category": ItemCategory.GROUP1_DEVICE,
     "is_military_use": MilitaryUse.NO,
+    "is_component_step": True,
+    "is_component": Component.NO,
+    "is_military_use_step": True,
+    "is_information_security_step": True,
+    "uses_information_security": True,
 }
 
 

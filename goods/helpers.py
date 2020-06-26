@@ -39,5 +39,5 @@ def validate_military_use(data):
         raise ValidationError({"is_military_use": [strings.Goods.FORM_NO_MILITARY_USE_SELECTED]})
 
     is_military_use = data.get("is_military_use")
-    if is_military_use == MilitaryUse.YES_MODIFIED and not data["modified_military_use_details"]:
+    if is_military_use == MilitaryUse.YES_MODIFIED and not data.get("modified_military_use_details"):
         raise serializers.ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
