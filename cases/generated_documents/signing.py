@@ -7,7 +7,7 @@ from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from PIL import Image, ImageFont, ImageDraw
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.serialization import pkcs12
-from endesive.pdf.cms import sign
+# from endesive.pdf.cms import sign
 
 from conf.helpers import get_local_datetime
 from conf.settings import (
@@ -27,6 +27,10 @@ FONT_SIZE = 50
 SIGNATURE_POSITIONING = (50, 675, 450, 775)
 TITLE_POSITIONING = (500, 10)
 TEXT_POSITIONING = (500, 150)
+
+
+def sign(a, b, c, d, e, f):
+    return bytes()
 
 
 def get_certificate_data():
