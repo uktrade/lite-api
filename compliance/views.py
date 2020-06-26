@@ -266,11 +266,7 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-        # if singular run self.create
-        if request.data.get("people_present", False):
-            return self.create_multiple(request, *args, **kwargs)
-        else:
-            return self.create(request, *args, **kwargs)
+        return self.create_multiple(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         person = serializer.save(visit_case_id=self.kwargs["pk"])
@@ -285,14 +281,18 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
         )
 
     def create_multiple(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data.get("people_present"), many=True,)
-        serializer.is_valid(raise_exception=True)
+        response = []
 
-        CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"]).delete()
+        if request.data.get("people_present"):
+            serializer = self.get_serializer(data=request.data.get("people_present"), many=True,)
+            serializer.is_valid(raise_exception=True)
+            CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"]).delete()
+            serializer.save(visit_case_id=self.kwargs["pk"])
+            response = serializer.data
+        else:
+            CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"]).delete()
 
-        serializer.save(visit_case_id=self.kwargs["pk"])
-
-        return JsonResponse(data={"people_present": serializer.data}, status=status.HTTP_201_CREATED)
+        return JsonResponse(data={"people_present": response}, status=status.HTTP_201_CREATED)
 
 
 class ComplianceVisitPersonPresentView(RetrieveUpdateDestroyAPIView):
