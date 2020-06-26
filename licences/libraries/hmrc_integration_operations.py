@@ -49,6 +49,8 @@ def send_licence(licence: Licence):
 
 
 def save_licence_usage_updates(usage_update_id: UUID, valid_licences: list):
+    """Updates Usage figures on Goods on Licences and creates an HMRCIntegrationUsageUpdate"""
+
     with transaction.atomic():
         updated_licence_ids = [_update_licence(valid_licence) for valid_licence in valid_licences]
         hmrc_integration_usage_update = HMRCIntegrationUsageUpdate.objects.create(id=usage_update_id)
@@ -56,6 +58,8 @@ def save_licence_usage_updates(usage_update_id: UUID, valid_licences: list):
 
 
 def validate_licence_usage_updates(licences: list) -> (list, list):
+    """Validates that Licences exist and that the Goods exist on those Licences"""
+
     valid_licences = []
     invalid_licences = []
 
@@ -71,6 +75,8 @@ def validate_licence_usage_updates(licences: list) -> (list, list):
 
 
 def _validate_licence(data: dict) -> dict:
+    """Validates that a Licence exists and that the Goods exist on that Licence"""
+
     serializer = HMRCIntegrationUsageUpdateLicenceSerializer(data=data)
 
     if not serializer.is_valid():
@@ -97,6 +103,8 @@ def _validate_licence(data: dict) -> dict:
 
 
 def _validate_goods_on_licence(licence_id: UUID, goods: list) -> (list, list):
+    """Validates that the Goods exist on a Licence"""
+
     valid_goods = []
     invalid_goods = []
 
