@@ -71,7 +71,7 @@ class Organisation(TimestampableModel):
                 .filter(address__country_id="GB")
                 .exclude(open_general_licence_cases__open_general_licence=open_general_licence)
             ):
-                case = OpenGeneralLicenceCase(
+                case = OpenGeneralLicenceCase.objects.create(
                     open_general_licence=open_general_licence,
                     site=site,
                     case_type=open_general_licence.case_type,
@@ -80,7 +80,6 @@ class Organisation(TimestampableModel):
                     submitted_at=timezone.now(),
                     submitted_by=user,
                 )
-                case.save()
                 registrations.append(case.id)
 
         return open_general_licence.id, registrations
