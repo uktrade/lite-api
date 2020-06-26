@@ -91,7 +91,7 @@ class ExporterListTests(DataTestClient):
                     },
                     "id": str(self.organisation.primary_site.id),
                     "name": self.organisation.primary_site.name,
-                    "site_records_located_at_name": self.organisation.primary_site.site_records_located_at.name,
+                    "records_located_at": {"name": self.organisation.primary_site.site_records_located_at.name},
                 },
                 "status": generate_key_value_pair(self.open_general_licence_case.status.status, CaseStatusEnum.choices),
                 "submitted_at": self.open_general_licence_case.submitted_at,

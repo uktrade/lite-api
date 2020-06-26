@@ -131,7 +131,7 @@ class ApplicationList(ListCreateAPIView):
                 case_type_id=CaseTypeEnum.HMRC.id
             )
 
-        return applications.prefetch_related("status", "case_type")
+        return applications.prefetch_related("status", "case_type").select_subclasses()
 
     def get_paginated_response(self, data):
         data = get_case_notifications(data, self.request)

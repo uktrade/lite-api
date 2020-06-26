@@ -1,5 +1,7 @@
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
@@ -7,33 +9,27 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
-from compliance.serializers import ComplianceLicenceListSerializer
-from conf.authentication import GovAuthentication
-from licences.enums import LicenceStatus
-from lite_content.lite_api import strings
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from workflow.automation import run_routing_rules
-from workflow.flagging_rules_automation import apply_flagging_rules_to_case
-
 from compliance.helpers import (
     get_record_holding_sites_for_case,
     COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
 )
-
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import ListAPIView, RetrieveAPIView
-
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns
+from compliance.serializers import ComplianceLicenceListSerializer
 from compliance.serializers import (
     OpenLicenceReturnsCreateSerializer,
     OpenLicenceReturnsListSerializer,
     OpenLicenceReturnsViewSerializer,
 )
-from conf.authentication import ExporterAuthentication
+from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
+from licences.enums import LicenceStatus
+from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
+from workflow.automation import run_routing_rules
+from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
 class LicenceList(ListAPIView):
@@ -43,12 +39,16 @@ class LicenceList(ListAPIView):
     def get_queryset(self):
         # For Compliance cases, when viewing from the site, we care about the Case the licence is attached to primarily,
         #   and the licence status (not added), and returns completed (not added).
-        reference_code = self.request.GET.get("reference").upper()
+        reference_code = self.request.GET.get("reference", "").upper()
 
+        # We filter for cases that are completed and have a compliance licence linked to it
         cases = Case.objects.select_related("case_type").filter(
             baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
             baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
         )
+
+        # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
+        #   types relevant for compliance cases
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
             baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
             baseapplication__goods__licenced_quantity__isnull=False,
@@ -67,7 +67,7 @@ class ComplianceManageStatus(APIView):
 
     authentication_classes = (GovAuthentication,)
 
-    def put(self, request, pk):
+    def put(self, request, pk):  # TODO: Move to CaseStatus endpoint (in LT-1122)
         case = get_case(pk)
         new_status = request.data.get("status")
 
@@ -122,7 +122,8 @@ class OpenLicenceReturnsView(ListAPIView):
     serializer_class = OpenLicenceReturnsListSerializer
 
     def get_queryset(self):
-        return OpenLicenceReturns.objects.all().order_by("-year", "-created_at")
+        organisation_id = get_request_user_organisation_id(self.request)
+        return OpenLicenceReturns.objects.filter(organisation_id=organisation_id).order_by("-year", "-created_at")
 
     def post(self, request):
         file = request.data.get("file")
@@ -147,6 +148,6 @@ class OpenLicenceReturnsView(ListAPIView):
 
 
 class OpenLicenceReturnDownloadView(RetrieveAPIView):
-    authentication_classes = (ExporterAuthentication,)
+    authentication_classes = (SharedAuthentication,)
     queryset = OpenLicenceReturns.objects.all()
     serializer_class = OpenLicenceReturnsViewSerializer
