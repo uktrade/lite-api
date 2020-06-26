@@ -1,6 +1,7 @@
 import csv
 import re
 
+from django.db.models import Q
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 
@@ -50,13 +51,15 @@ def case_meets_conditions_for_compliance(case: Case):
         return True
     elif case.case_type.id == CaseTypeEnum.OICL.id:
         return True
+    elif case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
+        return True
     else:
         return False
 
 
 def get_record_holding_sites_for_case(case_id):
     return set(
-        Site.objects.filter(sites_on_application__application_id=case_id).values_list(
+        Site.objects.filter(Q(sites_on_application__application_id=case_id) | Q(open_general_licence_cases__in=[case_id])).values_list(
             "site_records_located_at_id", flat=True
         )
     )
