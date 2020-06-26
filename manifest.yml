@@ -2,5 +2,5 @@
 applications:
   - buildpacks: 
       - python_buildpack
-      - apt_buildpack
+      - https://github.com/cloudfoundry/apt-buildpack.git
     timeout: 180
