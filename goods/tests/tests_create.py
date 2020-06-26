@@ -32,6 +32,11 @@ REQUEST_DATA = {
     },
     "item_category": ItemCategory.GROUP1_DEVICE,
     "is_military_use": MilitaryUse.NO,
+    "is_component_step": True,
+    "is_component": Component.NO,
+    "is_military_use_step": True,
+    "is_information_security_step": True,
+    "uses_information_security": True,
 }
 
 
@@ -191,6 +196,7 @@ class CreateGoodTests(DataTestClient):
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
+            "is_military_use_step": True,
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -209,6 +215,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.YES_MODIFIED,
+            "is_military_use_step": True,
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -226,6 +233,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
+            "is_military_use_step": True,
             "is_component_step": True,
         }
 
@@ -252,6 +260,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
+            "is_military_use_step": True,
             "is_component_step": True,
             "is_component": component,
             details_field: "",
@@ -272,6 +281,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
+            "is_military_use_step": True,
             "is_component_step": True,
             "is_component": Component.NO,
             "is_information_security_step": True,
@@ -295,6 +305,7 @@ class CreateGoodTests(DataTestClient):
             "is_military_use": MilitaryUse.NO,
             "is_component_step": True,
             "is_component": Component.NO,
+            "is_military_use_step": True,
             "is_information_security_step": True,
             "uses_information_security": True,
         }
@@ -317,6 +328,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
             "is_military_use": MilitaryUse.NO,
+            "is_military_use_step": True,
             "is_component_step": True,
             "is_component": Component.NO,
             "is_information_security_step": True,
@@ -335,6 +347,78 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(good["is_component"]["key"], data["is_component"])
         self.assertTrue(good["uses_information_security"])
         self.assertEquals(good["information_security_details"], data["information_security_details"])
+
+    @parameterized.expand(
+        [[ItemCategory.GROUP3_SOFTWARE, "software details"], [ItemCategory.GROUP3_TECHNOLOGY, "technology details"]]
+    )
+    def test_add_category_three_good_success(self, category, details):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": category,
+            "software_or_technology_details": details,
+            "is_military_use": MilitaryUse.NO,
+            "is_military_use_step": True,
+            "is_software_or_technology_step": True,
+            "is_information_security_step": True,
+            "uses_information_security": True,
+            "information_security_details": "details about security",
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(good["description"], data["description"])
+        self.assertEquals(good["status"]["key"], GoodStatus.DRAFT)
+        self.assertEquals(good["item_category"]["key"], data["item_category"])
+        self.assertEquals(good["software_or_technology_details"], data["software_or_technology_details"])
+        self.assertEquals(good["is_military_use"]["key"], data["is_military_use"])
+        self.assertTrue(good["uses_information_security"])
+        self.assertEquals(good["information_security_details"], data["information_security_details"])
+
+    @parameterized.expand(
+        [
+            [ItemCategory.GROUP3_SOFTWARE, "", strings.Goods.FORM_NO_SOFTWARE_DETAILS],
+            [ItemCategory.GROUP3_TECHNOLOGY, "", strings.Goods.FORM_NO_TECHNOLOGY_DETAILS],
+        ]
+    )
+    def test_add_category_three_good_no_details_failure(self, category, details, error):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": category,
+            "is_software_or_technology_step": True,
+            "software_or_technology_details": details,
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors["software_or_technology_details"], [error])
+
+    def test_add_category_three_good_details_too_long_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP3_TECHNOLOGY,
+            "is_software_or_technology_step": True,
+            "software_or_technology_details": "A" * 2001,
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(
+            errors["software_or_technology_details"], ["Ensure this field has no more than 2000 characters."]
+        )
 
 
 class GoodsCreateControlledGoodTests(DataTestClient):

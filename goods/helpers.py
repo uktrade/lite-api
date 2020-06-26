@@ -1,6 +1,7 @@
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from goods.enums import Component
+from goods.enums import Component, MilitaryUse
 from lite_content.lite_api import strings
 
 
@@ -25,28 +26,18 @@ def validate_component_details(data):
     field = component_detail_options[component]["details_field"]
     error = component_detail_options[component]["error"]
 
-    if not data[field]:
+    if not data.get(field):
         return {"is_valid": False, "details_field": field, "error": error}
-    if len(data[field]) > 2000:
+    if len(data.get(field)) > 2000:
         return {"is_valid": False, "details_field": field, "error": strings.Goods.COMPONENT_DETAILS_OVER_LIMIT_ERROR}
     return {"is_valid": True, "details_field": field}
 
 
-def validate_component_fields(data):
-    if data.get("is_component_step") and not data.get("is_component"):
-        raise ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
+def validate_military_use(data):
+    """ Validate military use selected if category is either Group 1 or 3. """
+    if "item_category" in data and not data.get("is_military_use"):
+        raise ValidationError({"is_military_use": [strings.Goods.FORM_NO_MILITARY_USE_SELECTED]})
 
-    # Validate component detail field if the answer was not 'No'
-    if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
-        valid_components = validate_component_details(data)
-        if not valid_components["is_valid"]:
-            raise ValidationError({valid_components["details_field"]: [valid_components["error"]]})
-
-        data["component_details"] = data[valid_components["details_field"]]
-
-
-def validate_information_security_field(data):
-    if data.get("is_information_security_step") and data.get("uses_information_security") is None:
-        raise ValidationError(
-            {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
-        )
+    is_military_use = data.get("is_military_use")
+    if is_military_use == MilitaryUse.YES_MODIFIED and not data.get("modified_military_use_details"):
+        raise serializers.ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
