@@ -7,7 +7,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.serializers import AuditSerializer
 from cases.models import Case
 from conf.authentication import GovAuthentication
-from users.models import GovUser, GovNotification
+from users.models import GovNotification
 
 
 class CaseActivityView(APIView):
