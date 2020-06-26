@@ -265,7 +265,7 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         # if singular run self.create
-        if request.data.get("people", False):
+        if request.data.get("people_present", False):
             return self.create_multiple(request, *args, **kwargs)
         else:
             return self.create(request, *args, **kwargs)
@@ -291,7 +291,7 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
         # audit
 
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return JsonResponse(data={"people_present": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class ComplianceVisitPersonPresentView(RetrieveUpdateDestroyAPIView):
