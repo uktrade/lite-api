@@ -24,11 +24,21 @@ class AdviceViewSerializer(serializers.Serializer):
     note = serializers.CharField()
     type = KeyValueChoiceField(choices=AdviceType.choices)
     level = serializers.CharField()
+    proviso = serializers.CharField()
+    denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True)
     footnote = serializers.CharField()
     footnote_required = serializers.BooleanField()
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     created_at = serializers.DateTimeField()
+    collated_pv_grading = serializers.CharField()
+
     good = serializers.UUIDField(source="good_id")
+    goods_type = serializers.UUIDField(source="goods_type_id")
+    country = serializers.UUIDField(source="country_id")
+    end_user = serializers.UUIDField(source="end_user_id")
+    ultimate_end_user = serializers.UUIDField(source="ultimate_end_user_id")
+    consignee = serializers.UUIDField(source="consignee_id")
+    third_party = serializers.UUIDField(source="third_party_id")
 
 
 class AdviceCreateSerializer(serializers.ModelSerializer):
