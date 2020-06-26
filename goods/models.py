@@ -51,6 +51,7 @@ class Good(TimestampableModel):
     component_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
     uses_information_security = models.BooleanField(default=None, null=True)
     information_security_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
+    software_or_technology_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
 
     # Gov
     # comment about reviewing good, or responding to CLC query
