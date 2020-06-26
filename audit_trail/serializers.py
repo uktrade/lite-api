@@ -11,7 +11,7 @@ from audit_trail.payload import format_payload
 class AuditSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     text = serializers.SerializerMethodField()
-    additional_text = serializers.CharField(source="payload.additional_text")
+    additional_text = serializers.SerializerMethodField()
 
     class Meta:
         model = Audit
@@ -58,3 +58,6 @@ class AuditSerializer(serializers.ModelSerializer):
                 payload[key] = payload[key]["new"]
 
         return format_payload(verb, payload)
+
+    def get_additional_text(self, instance):
+        return instance.payload.get("additional_text", "")
