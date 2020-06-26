@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
-from applications.serializers.advice import CaseAdviceSerializer
+from applications.serializers.advice import AdviceViewSerializer
 from audit_trail.models import Audit
 from cases.enums import (
     CaseTypeTypeEnum,
@@ -159,7 +159,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     audit_notification = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    advice = CaseAdviceSerializer(many=True)
+    advice = AdviceViewSerializer(many=True)
     data = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
 
