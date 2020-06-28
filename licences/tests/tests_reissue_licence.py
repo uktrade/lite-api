@@ -4,6 +4,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
+from cases.enums import AdviceType
+from cases.tests.factories import FinalAdviceFactory
 from goods.tests.factories import GoodFactory
 from licences.enums import LicenceStatus
 from licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
@@ -17,17 +19,23 @@ class GetLicencesTests(DataTestClient):
         self.licence = LicenceFactory(
             application=self.application,
             start_date=timezone.now().date(),
-            status=LicenceStatus.REVOKED,
+            status=LicenceStatus.REVOKED.value,
             duration=100,
         )
         self.url = reverse("cases:licences", kwargs={"pk": self.application.id})
 
     def test_reissue_licence(self):
         good_1 = GoodFactory(organisation=self.application.organisation)
+        good_1_advice = FinalAdviceFactory(
+            user=self.gov_user, team=self.team, case=self.application, good=good_1, type=AdviceType.APPROVE
+        )
         good_on_application_1 = GoodOnApplicationFactory(
             application=self.application, good=good_1, quantity=100.0, value=Decimal("1000.00")
         )
         good_2 = GoodFactory(organisation=self.application.organisation)
+        good_2_advice = FinalAdviceFactory(
+            user=self.gov_user, team=self.team, case=self.application, good=good_2, type=AdviceType.APPROVE
+        )
         good_on_application_2 = GoodOnApplicationFactory(
             application=self.application, good=good_2, quantity=150.0, value=Decimal("1500.00")
         )
@@ -57,9 +65,8 @@ class GetLicencesTests(DataTestClient):
             {
                 'id': str(self.licence.id),
                 'start_date': str(self.licence.start_date),
-                'status': self.licence.status.value,
+                'status': self.licence.status,
                 'duration': self.licence.duration,
-                'reissued': True
             }
         )
         self.assertEqual(
@@ -67,9 +74,14 @@ class GetLicencesTests(DataTestClient):
             sorted(
                 [
                     {
-                        'advice': {'proviso': None, 'text': None, 'type': None},
+                        'advice': {
+                            "type": AdviceType.as_representation(good_1_advice.type),
+                            "text": good_1_advice.text,
+                            "proviso": good_1_advice.proviso,
+                        },
                         'control_list_entries': [],
                         'unit': None,
+                        'good_id': str(good_on_application_1.good.id),
                         'id': str(good_on_application_1.id),
                         'usage_total': good_1_on_licence_1.usage + good_1_on_licence_2.usage,
                         'usage_licenced': good_1_on_licence_1.quantity,
@@ -77,9 +89,14 @@ class GetLicencesTests(DataTestClient):
                         'value': str(good_on_application_1.value)
                     },
                     {
-                        'advice': {'proviso': None, 'text': None, 'type': None},
+                        'advice': {
+                            "type": AdviceType.as_representation(good_2_advice.type),
+                            "text": good_2_advice.text,
+                            "proviso": good_2_advice.proviso,
+                        },
                         'control_list_entries': [],
                         'unit': None,
+                        'good_id': str(good_on_application_2.good.id),
                         'id': str(good_on_application_2.id),
                         'usage_total': good_2_on_licence_1.usage + good_2_on_licence_2.usage,
                         'usage_licenced': good_2_on_licence_1.quantity,

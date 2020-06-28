@@ -52,7 +52,7 @@ class Licence(TimestampableModel):
         self.save()
 
     def is_complete(self):
-        return self.status in [LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
+        return self.status in [LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value]
 
     def save(self, *args, **kwargs):
         super(Licence, self).save(*args, **kwargs)

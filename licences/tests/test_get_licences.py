@@ -44,7 +44,7 @@ class GetLicencesTests(DataTestClient):
             for application in self.applications
         ]
         self.licences = {
-            application: self.create_licence(application, status=LicenceStatus.ISSUED) for application in self.applications
+            application: self.create_licence(application, status=LicenceStatus.ISSUED.value) for application in self.applications
         }
 
     def test_get_all_licences(self):
@@ -122,8 +122,8 @@ class GetLicencesFilterTests(DataTestClient):
         self.url = reverse("licences:licences")
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.open_application = self.create_open_application_case(self.organisation)
-        self.standard_application_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
-        self.open_application_licence = self.create_licence(self.open_application, status=LicenceStatus.ISSUED)
+        self.standard_application_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED.value)
+        self.open_application_licence = self.create_licence(self.open_application, status=LicenceStatus.ISSUED.value)
 
     def test_only_my_organisations_licences_are_returned(self):
         self.standard_application.organisation = self.create_organisation_with_exporter_user()[0]
@@ -137,7 +137,7 @@ class GetLicencesFilterTests(DataTestClient):
         self.assertEqual(response_data[0]["id"], str(self.open_application_licence.id))
 
     def test_draft_licences_ignored(self):
-        self.open_application_licence.status = LicenceStatus.DRAFT
+        self.open_application_licence.status = LicenceStatus.DRAFT.value
         self.open_application_licence.save()
 
         response = self.client.get(self.url, **self.exporter_headers)

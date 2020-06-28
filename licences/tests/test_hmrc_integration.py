@@ -4,13 +4,13 @@ from unittest.mock import ANY
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import AdviceType, AdviceLevel, CaseTypeSubTypeEnum
 from cases.app import CasesConfig
+from cases.enums import AdviceType, AdviceLevel, CaseTypeSubTypeEnum
 from conf.constants import GovPermissions
 from conf.helpers import add_months
 from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
 from licences.enums import LicenceStatus
-from licences.helpers import get_approved_goods_on_application, get_approved_goods_types
+from licences.helpers import get_approved_goods_types
 from licences.libraries.hmrc_integration_operations import (
     send_licence,
     HMRCIntegrationException,
@@ -18,6 +18,7 @@ from licences.libraries.hmrc_integration_operations import (
 )
 from licences.models import Licence
 from licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
+from licences.service import get_goods_on_licence
 from licences.tasks import (
     send_licence_to_hmrc_integration,
     TASK_BACK_OFF,
@@ -63,7 +64,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         data = HMRCIntegrationLicenceSerializer(self.standard_licence).data
 
-        # self._assert_dto(data, self.standard_application, self.standard_licence)
+        self._assert_dto(data, self.standard_application, self.standard_licence)
 
     def test_data_transfer_object_open_application(self):
         open_application = self.create_open_application_case(self.organisation)
@@ -87,7 +88,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             self._assert_end_user(data, application.end_user.party)
-            self._assert_goods_on_application(data, get_approved_goods_on_application(application))
+            self._assert_goods_on_application(data, get_goods_on_licence(licence))
         elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             self._assert_countries(
                 data, Country.objects.filter(countries_on_application__application=application).order_by("name")

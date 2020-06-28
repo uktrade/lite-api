@@ -41,7 +41,7 @@ class Licences(ListCreateAPIView):
         active_only = self.request.GET.get("active_only") == "True"
 
         licences = Licence.objects.filter(
-            application__organisation_id=get_request_user_organisation_id(self.request), status=LicenceStatus.ISSUED
+            application__organisation_id=get_request_user_organisation_id(self.request), status=LicenceStatus.ISSUED.value
         )
 
         # Apply filters
