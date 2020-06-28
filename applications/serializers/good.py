@@ -77,7 +77,7 @@ class GoodOnLicenceSerializer(serializers.ModelSerializer):
 
         licence = validated_data.pop("licence")
         good = validated_data.pop("good")
-        instance, created = GoodOnLicence.objects.update_or_create(licence=licence, good=good, defaults=validated_data)
+        instance, _ = GoodOnLicence.objects.update_or_create(licence=licence, good=good, defaults=validated_data)
         return instance
 
 

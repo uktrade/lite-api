@@ -19,7 +19,6 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.decorators import authorised_to_view_application
 from conf.helpers import str_to_bool
 from documents.libraries import s3_operations
-from licences.enums import LicenceStatus
 from licences.models import Licence
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id

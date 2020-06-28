@@ -1,11 +1,6 @@
 from rest_framework import serializers
-from rest_framework.fields import ChoiceField
-
-from common.serializers import EnumField
 
 from applications.enums import LicenceDuration
-from licences.enums import LicenceStatus
-from licences.helpers import get_reference_code
 from licences.models import Licence
 from lite_content.lite_api import strings
 

@@ -74,7 +74,6 @@ from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
 from licences.enums import LicenceStatus
-from licences.helpers import get_reference_code
 from licences.models import Licence, GoodOnLicence
 from licences.serializers.create_licence import LicenceSerializer, LicenceRefuseSerializer
 from lite_content.lite_api import strings
@@ -509,17 +508,6 @@ class ApplicationFinaliseView(APIView):
             )
             .distinct()
         )
-        #
-        # self.approved_goods_advice = Advice.objects.filter(
-        #     case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO], good_id__isnull=False,
-        # )
-        # goods_on_application = GoodOnApplication.objects.filter(
-        #     application_id=pk, good__in=self.approved_goods_advice.values_list("good", flat=True)
-        # ).annotate(
-        #     advice_type=F("good__advice__type"),
-        #     advice_text=F("good__advice__text"),
-        #     advice_proviso=F("good__advice__proviso")
-        # )
 
         good_on_applications_with_advice = [
             {
@@ -539,7 +527,7 @@ class ApplicationFinaliseView(APIView):
 
         return JsonResponse({"goods": good_on_applications_with_advice})
 
-    @transaction.atomic
+    @transaction.atomic  # noqa
     def put(self, request, pk):
         """
         Finalise an application

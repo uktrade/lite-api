@@ -12,7 +12,6 @@ class LicenceManager(models.Manager):
         application = validated_data.pop("application")
 
         with transaction.atomic():
-            """Lock to avoid race conditions"""
             try:
                 licence = self.model.objects.get(status=status, application=application)
                 for field, value in validated_data.items():
