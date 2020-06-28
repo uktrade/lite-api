@@ -14,7 +14,7 @@ class AddOpenLicenceReturnsTest(DataTestClient):
         super().setUp()
         self.url = reverse("compliance:open_licence_returns")
         application = self.create_standard_application_case(self.organisation)
-        self.licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        self.licence = self.create_licence(application, status=LicenceStatus.ISSUED.value)
 
     @staticmethod
     def _create_open_licence_returns_csv(data):
@@ -118,7 +118,7 @@ class AddOpenLicenceReturnsTest(DataTestClient):
     def test_upload_licence_returns_non_org_licences_failure(self):
         organisation, _ = self.create_organisation_with_exporter_user()
         application = self.create_standard_application_case(organisation)
-        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED.value)
 
         data = {
             "file": self._create_open_licence_returns_csv([licence.reference_code]),

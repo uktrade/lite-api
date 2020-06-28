@@ -43,7 +43,7 @@ class LicenceList(ListAPIView):
 
         # We filter for cases that are completed and have a compliance licence linked to it
         cases = Case.objects.select_related("case_type").filter(
-            baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
+            baseapplication__licence__status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value],
             baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
         )
 
@@ -51,7 +51,7 @@ class LicenceList(ListAPIView):
         #   types relevant for compliance cases
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
             baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-            baseapplication__goods__licenced_quantity__isnull=False,
+            # baseapplication__licence__goods__quantity__isnull=False,
         )
 
         if reference_code:

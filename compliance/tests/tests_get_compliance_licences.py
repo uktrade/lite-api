@@ -1,6 +1,7 @@
 from django.urls import reverse
 
 from compliance.tests.factories import ComplianceSiteCaseFactory
+from licences.enums import LicenceStatus
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
@@ -29,7 +30,7 @@ class GetComplianceLicencesTests(DataTestClient):
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
         application = self.create_open_application_case(self.organisation)
-        licence = self.create_licence(application, is_complete=True)
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED.value)
 
         url = reverse("compliance:licences", kwargs={"pk": compliance_case.id})
         response = self.client.get(url, **self.gov_headers)

@@ -10,7 +10,7 @@ class GetOpenLicenceReturnsTest(DataTestClient):
     def setUp(self):
         super().setUp()
         application = self.create_standard_application_case(self.organisation)
-        self.licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        self.licence = self.create_licence(application, status=LicenceStatus.ISSUED.value)
         self.olr = OpenLicenceReturnsFactory(organisation=self.organisation)
         self.olr.licences.set([self.licence])
 
