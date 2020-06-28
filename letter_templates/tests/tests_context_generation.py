@@ -335,10 +335,6 @@ class DocumentContextGenerationTests(DataTestClient):
         final_advice = self.create_advice(
             self.gov_user, self.standard_case, "good", AdviceType.APPROVE, AdviceLevel.FINAL, advice_text="abc",
         )
-        # good = self.standard_case.goods.first()
-        # good.licenced_quantity = 10
-        # good.licenced_value = 15
-        # good.save()
 
         context = get_document_context(self.standard_case)
 
@@ -349,10 +345,6 @@ class DocumentContextGenerationTests(DataTestClient):
         final_advice = self.create_advice(
             self.gov_user, self.standard_case, "good", AdviceType.PROVISO, AdviceLevel.FINAL, advice_text="abc",
         )
-        good = self.standard_case.goods.first()
-        good.licenced_quantity = 15
-        good.licenced_value = 20
-        good.save()
 
         context = get_document_context(self.standard_case)
 

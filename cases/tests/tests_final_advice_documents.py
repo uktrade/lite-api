@@ -3,6 +3,7 @@ from rest_framework import status
 
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from cases.models import Advice
+from licences.tests.factories import LicenceFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -13,6 +14,7 @@ class AdviceDocumentsTests(DataTestClient):
         self.advice = [AdviceType.APPROVE, AdviceType.REFUSE]
         self.create_advice(self.gov_user, self.case, "good", self.advice[0], AdviceLevel.FINAL)
         self.create_advice(self.gov_user, self.case, "end_user", self.advice[1], AdviceLevel.FINAL)
+        self.licence = LicenceFactory(application=self.case)
         self.template = self.create_letter_template(name="Template", case_types=[CaseTypeEnum.SIEL.id])
         self.url = reverse("cases:final_advice_documents", kwargs={"pk": self.case.id})
 
@@ -28,8 +30,8 @@ class AdviceDocumentsTests(DataTestClient):
         self.assertEqual(response.json()["documents"], expected_format)
 
     def test_get_final_advice_with_document(self):
-        document_one = self.create_generated_case_document(self.case, self.template, advice_type=self.advice[0])
-        document_two = self.create_generated_case_document(self.case, self.template, advice_type=self.advice[1])
+        document_one = self.create_generated_case_document(self.case, self.template, advice_type=self.advice[0], licence=self.licence)
+        document_two = self.create_generated_case_document(self.case, self.template, advice_type=self.advice[1], licence=self.licence)
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["documents"]

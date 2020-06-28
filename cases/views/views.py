@@ -317,7 +317,7 @@ class FinalAdviceDocuments(APIView):
         final_advice = Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
-        licence = Licence.objects.get(application=pk, status__in=[LicenceStatus.DRAFT.value, LicenceStatus.REFUSED.value])
+        licence = Licence.objects.filter(application=pk).last()
 
         # Add advice documents
         generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk, licence=licence)

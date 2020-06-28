@@ -941,7 +941,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.create_end_user_advisory(note, reasoning, organisation)
 
     def create_generated_case_document(
-        self, case, template, visible_to_exporter=True, document_name="Generated Doc", advice_type=None
+        self, case, template, visible_to_exporter=True, document_name="Generated Doc", advice_type=None, licence=None
     ):
         generated_case_doc = GeneratedCaseDocument.objects.create(
             name=document_name,
@@ -955,6 +955,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             text="Here is some text",
             visible_to_exporter=visible_to_exporter,
             advice_type=advice_type,
+            licence=licence
         )
         return generated_case_doc
 
