@@ -30,8 +30,12 @@ class AdviceDocumentsTests(DataTestClient):
         self.assertEqual(response.json()["documents"], expected_format)
 
     def test_get_final_advice_with_document(self):
-        document_one = self.create_generated_case_document(self.case, self.template, advice_type=self.advice[0], licence=self.licence)
-        document_two = self.create_generated_case_document(self.case, self.template, advice_type=self.advice[1], licence=self.licence)
+        document_one = self.create_generated_case_document(
+            self.case, self.template, advice_type=self.advice[0], licence=self.licence
+        )
+        document_two = self.create_generated_case_document(
+            self.case, self.template, advice_type=self.advice[1], licence=self.licence
+        )
 
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()["documents"]

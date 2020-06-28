@@ -25,7 +25,7 @@ class LicencesView(APIView):
                 "status": licence.status,
                 "duration": licence.duration,
             },
-            "goods": goods
+            "goods": goods,
         }
 
         return JsonResponse(data=data, status=status.HTTP_200_OK)

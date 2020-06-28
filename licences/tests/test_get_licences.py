@@ -44,7 +44,8 @@ class GetLicencesTests(DataTestClient):
             for application in self.applications
         ]
         self.licences = {
-            application: self.create_licence(application, status=LicenceStatus.ISSUED.value) for application in self.applications
+            application: self.create_licence(application, status=LicenceStatus.ISSUED.value)
+            for application in self.applications
         }
 
     def test_get_all_licences(self):
@@ -122,7 +123,9 @@ class GetLicencesFilterTests(DataTestClient):
         self.url = reverse("licences:licences")
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.open_application = self.create_open_application_case(self.organisation)
-        self.standard_application_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED.value)
+        self.standard_application_licence = self.create_licence(
+            self.standard_application, status=LicenceStatus.ISSUED.value
+        )
         self.open_application_licence = self.create_licence(self.open_application, status=LicenceStatus.ISSUED.value)
 
     def test_only_my_organisations_licences_are_returned(self):

@@ -17,7 +17,9 @@ class Licence(TimestampableModel):
     application = models.ForeignKey(
         BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licence"
     )
-    status = models.CharField(choices=[(tag.value, tag) for tag in LicenceStatus], max_length=32, default=LicenceStatus.DRAFT.value)
+    status = models.CharField(
+        choices=[(tag.value, tag) for tag in LicenceStatus], max_length=32, default=LicenceStatus.DRAFT.value
+    )
     start_date = models.DateField(blank=False, null=True)
     duration = models.PositiveSmallIntegerField(blank=False, null=True)
     decisions = models.ManyToManyField(Decision, related_name="licence")
@@ -26,7 +28,7 @@ class Licence(TimestampableModel):
     objects = LicenceManager()
 
     class Meta:
-        constraints = [CheckConstraint(check=Q(status__in=LicenceStatus.values()), name='status_choices')]
+        constraints = [CheckConstraint(check=Q(status__in=LicenceStatus.values()), name="status_choices")]
         ordering = ("created_at",)
 
     def surrender(self):

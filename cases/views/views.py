@@ -320,7 +320,9 @@ class FinalAdviceDocuments(APIView):
         licence = Licence.objects.filter(application=pk).last()
 
         # Add advice documents
-        generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk, licence=licence)
+        generated_advice_documents = GeneratedCaseDocument.objects.filter(
+            advice_type__in=final_advice, case__id=pk, licence=licence
+        )
         generated_advice_documents = AdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
         for document in generated_advice_documents:
             advice_type = document["advice_type"]["key"]

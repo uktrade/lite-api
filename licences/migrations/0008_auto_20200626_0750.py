@@ -8,36 +8,46 @@ import licences.enums
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('licences', '0007_auto_20200622_0835'),
+        ("licences", "0007_auto_20200622_0835"),
     ]
 
     operations = [
-        migrations.RemoveConstraint(
-            model_name='licence',
-            name='status_choices',
+        migrations.RemoveConstraint(model_name="licence", name="status_choices",),
+        migrations.AlterField(
+            model_name="goodonlicence",
+            name="good",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="licence", to="applications.GoodOnApplication"
+            ),
         ),
         migrations.AlterField(
-            model_name='goodonlicence',
-            name='good',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='licence', to='applications.GoodOnApplication'),
+            model_name="licence", name="duration", field=models.PositiveSmallIntegerField(null=True),
         ),
+        migrations.AlterField(model_name="licence", name="start_date", field=models.DateField(null=True),),
         migrations.AlterField(
-            model_name='licence',
-            name='duration',
-            field=models.PositiveSmallIntegerField(null=True),
-        ),
-        migrations.AlterField(
-            model_name='licence',
-            name='start_date',
-            field=models.DateField(null=True),
-        ),
-        migrations.AlterField(
-            model_name='licence',
-            name='status',
-            field=models.CharField(choices=[('issued', licences.enums.LicenceStatus('issued')), ('reinstated', licences.enums.LicenceStatus('reinstated')), ('revoked', licences.enums.LicenceStatus('revoked')), ('surrendered', licences.enums.LicenceStatus('surrendered')), ('draft', licences.enums.LicenceStatus('draft')), ('cancelled', licences.enums.LicenceStatus('cancelled')), ('refused', licences.enums.LicenceStatus('refused'))], default='draft', max_length=32),
+            model_name="licence",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("issued", licences.enums.LicenceStatus("issued")),
+                    ("reinstated", licences.enums.LicenceStatus("reinstated")),
+                    ("revoked", licences.enums.LicenceStatus("revoked")),
+                    ("surrendered", licences.enums.LicenceStatus("surrendered")),
+                    ("draft", licences.enums.LicenceStatus("draft")),
+                    ("cancelled", licences.enums.LicenceStatus("cancelled")),
+                    ("refused", licences.enums.LicenceStatus("refused")),
+                ],
+                default="draft",
+                max_length=32,
+            ),
         ),
         migrations.AddConstraint(
-            model_name='licence',
-            constraint=models.CheckConstraint(check=models.Q(status__in=['issued', 'reinstated', 'revoked', 'surrendered', 'draft', 'cancelled', 'refused']), name='status_choices'),
+            model_name="licence",
+            constraint=models.CheckConstraint(
+                check=models.Q(
+                    status__in=["issued", "reinstated", "revoked", "surrendered", "draft", "cancelled", "refused"]
+                ),
+                name="status_choices",
+            ),
         ),
     ]

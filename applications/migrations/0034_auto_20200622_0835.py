@@ -6,20 +6,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0033_auto_20200612_1342'),
+        ("applications", "0033_auto_20200612_1342"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='goodonapplication',
-            name='licenced_quantity',
-        ),
-        migrations.RemoveField(
-            model_name='goodonapplication',
-            name='licenced_value',
-        ),
-        migrations.RemoveField(
-            model_name='goodonapplication',
-            name='usage',
-        ),
+        migrations.RemoveField(model_name="goodonapplication", name="licenced_quantity",),
+        migrations.RemoveField(model_name="goodonapplication", name="licenced_value",),
+        migrations.RemoveField(model_name="goodonapplication", name="usage",),
     ]

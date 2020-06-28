@@ -955,7 +955,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             text="Here is some text",
             visible_to_exporter=visible_to_exporter,
             advice_type=advice_type,
-            licence=licence
+            licence=licence,
         )
         return generated_case_doc
 
@@ -987,7 +987,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return ecju_query
 
     @staticmethod
-    def create_licence(application: BaseApplication, status: LicenceStatus, reference_code=None, decisions=None, sent_at=None):
+    def create_licence(
+        application: BaseApplication, status: LicenceStatus, reference_code=None, decisions=None, sent_at=None
+    ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
         if not reference_code:

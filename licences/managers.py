@@ -20,9 +20,14 @@ class LicenceManager(models.Manager):
                 licence.save()
             except self.model.DoesNotExist:
                 from licences.helpers import get_reference_code
+
                 reference_code = get_reference_code(application_reference)
-                licence = self.model.objects.create(status=status, application=application, reference_code=reference_code, **validated_data)
+                licence = self.model.objects.create(
+                    status=status, application=application, reference_code=reference_code, **validated_data
+                )
             return licence
 
     def get_open_licence(self, application):
-        return self.get(application=application, status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value])
+        return self.get(
+            application=application, status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value]
+        )

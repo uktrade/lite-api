@@ -65,7 +65,9 @@ def format_user_text(user_text):
     return markdown_to_html(escape(user_text))
 
 
-def generate_preview(layout: str, text: str, case=None, licence=None, additional_contact=None, allow_missing_variables=True):
+def generate_preview(
+    layout: str, text: str, case=None, licence=None, additional_contact=None, allow_missing_variables=True
+):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
         template = django_engine.get_template(f"{layout}.html")

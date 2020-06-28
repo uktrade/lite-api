@@ -41,7 +41,7 @@ class DocumentContextGenerationTests(DataTestClient):
             licence=self.standard_licence,
             good=self.standard_good,
             quantity=self.standard_good.quantity,
-            value=self.standard_good.value
+            value=self.standard_good.value,
         )
 
     def _assert_applicant(self, context, case):

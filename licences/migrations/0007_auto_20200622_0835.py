@@ -11,50 +11,60 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('applications', '0034_auto_20200622_0835'),
-        ('licences', '0006_licence_sent_at'),
+        ("applications", "0034_auto_20200622_0835"),
+        ("licences", "0006_licence_sent_at"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GoodOnLicence',
+            name="GoodOnLicence",
             fields=[
-                ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created_at')),
-                ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('usage', models.FloatField(default=0)),
-                ('quantity', models.FloatField(blank=True, default=None, null=True)),
-                ('value', models.DecimalField(blank=True, decimal_places=2, default=None, max_digits=256, null=True)),
+                (
+                    "created_at",
+                    model_utils.fields.AutoCreatedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="created_at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    model_utils.fields.AutoLastModifiedField(
+                        default=django.utils.timezone.now, editable=False, verbose_name="updated_at"
+                    ),
+                ),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("usage", models.FloatField(default=0)),
+                ("quantity", models.FloatField(blank=True, default=None, null=True)),
+                ("value", models.DecimalField(blank=True, decimal_places=2, default=None, max_digits=256, null=True)),
             ],
-            options={
-                'abstract': False,
-            },
+            options={"abstract": False,},
         ),
-        migrations.AlterModelOptions(
-            name='licence',
-            options={'ordering': ('created_at',)},
-        ),
-        migrations.RemoveField(
-            model_name='licence',
-            name='is_complete',
-        ),
+        migrations.AlterModelOptions(name="licence", options={"ordering": ("created_at",)},),
+        migrations.RemoveField(model_name="licence", name="is_complete",),
         migrations.AddField(
-            model_name='licence',
-            name='status',
-            field=models.CharField(default=licences.enums.LicenceStatus('draft'), max_length=32),
+            model_name="licence",
+            name="status",
+            field=models.CharField(default=licences.enums.LicenceStatus("draft"), max_length=32),
         ),
         migrations.AddConstraint(
-            model_name='licence',
-            constraint=models.CheckConstraint(check=models.Q(status__in=['issued', 'reinstated', 'revoked', 'surrendered', 'draft']), name='status_choices'),
+            model_name="licence",
+            constraint=models.CheckConstraint(
+                check=models.Q(status__in=["issued", "reinstated", "revoked", "surrendered", "draft"]),
+                name="status_choices",
+            ),
         ),
         migrations.AddField(
-            model_name='goodonlicence',
-            name='good',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='applications.GoodOnApplication'),
+            model_name="goodonlicence",
+            name="good",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="applications.GoodOnApplication"),
         ),
         migrations.AddField(
-            model_name='goodonlicence',
-            name='licence',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='goods', related_query_name='goods', to='licences.Licence'),
+            model_name="goodonlicence",
+            name="licence",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="goods",
+                related_query_name="goods",
+                to="licences.Licence",
+            ),
         ),
     ]

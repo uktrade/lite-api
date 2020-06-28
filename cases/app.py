@@ -24,7 +24,9 @@ class CasesConfig(AppConfig):
         from licences.models import Licence
         from licences.tasks import schedule_licence_for_hmrc_integration
 
-        licences_not_sent = Licence.objects.filter(status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value], sent_at__isnull=True)
+        licences_not_sent = Licence.objects.filter(
+            status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value], sent_at__isnull=True
+        )
 
         for licence in licences_not_sent:
             schedule_licence_for_hmrc_integration(str(licence.id), licence.application.reference_code)

@@ -46,7 +46,7 @@ class GetLicencesTests(DataTestClient):
             good=good_on_application_1,
             quantity=good_on_application_1.quantity - good_1_on_licence_1.quantity,
             usage=10.0,
-            licence=self.licence
+            licence=self.licence,
         )
         good_2_on_licence_1 = GoodOnLicenceFactory(
             good=good_on_application_2, quantity=good_on_application_2.quantity, usage=50.0, licence=self.licence
@@ -55,7 +55,7 @@ class GetLicencesTests(DataTestClient):
             good=good_on_application_2,
             quantity=good_on_application_2.quantity - good_2_on_licence_1.quantity,
             usage=30.0,
-            licence=self.licence
+            licence=self.licence,
         )
 
         data = self.client.get(self.url, **self.gov_headers).json()
@@ -63,47 +63,47 @@ class GetLicencesTests(DataTestClient):
         self.assertEqual(
             data["licence"],
             {
-                'id': str(self.licence.id),
-                'start_date': str(self.licence.start_date),
-                'status': self.licence.status,
-                'duration': self.licence.duration,
-            }
+                "id": str(self.licence.id),
+                "start_date": str(self.licence.start_date),
+                "status": self.licence.status,
+                "duration": self.licence.duration,
+            },
         )
         self.assertEqual(
             sorted(data["goods"], key=lambda x: x["id"]),
             sorted(
                 [
                     {
-                        'advice': {
+                        "advice": {
                             "type": AdviceType.as_representation(good_1_advice.type),
                             "text": good_1_advice.text,
                             "proviso": good_1_advice.proviso,
                         },
-                        'control_list_entries': [],
-                        'unit': None,
-                        'good_id': str(good_on_application_1.good.id),
-                        'id': str(good_on_application_1.id),
-                        'usage_total': good_1_on_licence_1.usage + good_1_on_licence_2.usage,
-                        'usage_licenced': good_1_on_licence_1.quantity,
-                        'usage_applied_for': good_on_application_1.quantity,
-                        'value': str(good_on_application_1.value)
+                        "control_list_entries": [],
+                        "unit": None,
+                        "good_id": str(good_on_application_1.good.id),
+                        "id": str(good_on_application_1.id),
+                        "usage_total": good_1_on_licence_1.usage + good_1_on_licence_2.usage,
+                        "usage_licenced": good_1_on_licence_1.quantity,
+                        "usage_applied_for": good_on_application_1.quantity,
+                        "value": str(good_on_application_1.value),
                     },
                     {
-                        'advice': {
+                        "advice": {
                             "type": AdviceType.as_representation(good_2_advice.type),
                             "text": good_2_advice.text,
                             "proviso": good_2_advice.proviso,
                         },
-                        'control_list_entries': [],
-                        'unit': None,
-                        'good_id': str(good_on_application_2.good.id),
-                        'id': str(good_on_application_2.id),
-                        'usage_total': good_2_on_licence_1.usage + good_2_on_licence_2.usage,
-                        'usage_licenced': good_2_on_licence_1.quantity,
-                        'usage_applied_for': good_on_application_2.quantity,
-                        'value': str(good_on_application_2.value)
-                    }
+                        "control_list_entries": [],
+                        "unit": None,
+                        "good_id": str(good_on_application_2.good.id),
+                        "id": str(good_on_application_2.id),
+                        "usage_total": good_2_on_licence_1.usage + good_2_on_licence_2.usage,
+                        "usage_licenced": good_2_on_licence_1.quantity,
+                        "usage_applied_for": good_on_application_2.quantity,
+                        "value": str(good_on_application_2.value),
+                    },
                 ],
-                key=lambda x: x["id"]
-            )
+                key=lambda x: x["id"],
+            ),
         )

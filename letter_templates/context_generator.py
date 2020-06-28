@@ -11,7 +11,8 @@ from applications.models import (
     F680ClearanceApplication,
     HmrcQuery,
     CountryOnApplication,
-    GoodOnApplication)
+    GoodOnApplication,
+)
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
@@ -378,8 +379,7 @@ def _get_goods_context(goods, final_advice):
     goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
     goods_context["all"] = [_get_good_context(good_on_licence) for good_on_licence in goods]
     goods_on_application = {
-        good.good.good_id if isinstance(good, GoodOnLicence) else good.good_id: good
-        for good in goods
+        good.good.good_id if isinstance(good, GoodOnLicence) else good.good_id: good for good in goods
     }
 
     for advice in final_advice:

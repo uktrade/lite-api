@@ -13,12 +13,7 @@ from lite_content.lite_api import strings
 class LicenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Licence
-        fields = (
-            "application",
-            "start_date",
-            "duration",
-            "status"
-        )
+        fields = ("application", "start_date", "duration", "status")
 
     def validate(self, data):
         """
@@ -36,7 +31,4 @@ class LicenceSerializer(serializers.ModelSerializer):
 class LicenceRefuseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Licence
-        fields = (
-            "application",
-            "status"
-        )
+        fields = ("application", "status")
