@@ -57,12 +57,15 @@ def case_meets_conditions_for_compliance(case: Case):
         return False
 
 
-def get_record_holding_sites_for_case(case_id):
-    return set(
-        Site.objects.filter(Q(sites_on_application__application_id=case_id) | Q(open_general_licence_cases__in=[case_id])).values_list(
-            "site_records_located_at_id", flat=True
+def get_record_holding_sites_for_case(case):
+    if case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
+        return set(case.site.site_records_located_at)
+    else:
+        return set(
+            Site.objects.filter(Q(sites_on_application__application_id=case.id) | Q(open_general_licence_cases__in=[case.id])).values_list(
+                "site_records_located_at_id", flat=True
+            )
         )
-    )
 
 
 def generate_compliance_site_case(case: Case):
@@ -71,12 +74,12 @@ def generate_compliance_site_case(case: Case):
         return
 
     # Get record holding sites for the case
-    record_holding_sites_id = get_record_holding_sites_for_case(case.id)
+    record_holding_sites_id = get_record_holding_sites_for_case(case)
 
     # Get list of record holding sites that do not have a compliance case
     new_compliance_sites = Site.objects.filter(id__in=record_holding_sites_id, compliance__isnull=True).distinct()
 
-    # get a list compliance cases that already exist
+    # Get a list compliance cases that already exist
     existing_compliance_cases = Case.objects.filter(compliancesitecase__site_id__in=record_holding_sites_id).distinct()
 
     audits = []
