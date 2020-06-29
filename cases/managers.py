@@ -278,7 +278,13 @@ class CaseManager(models.Manager):
                 .values("case_id")
                 .distinct()
             )
-            case_qs = case_qs.exclude(id__in=CaseReviewDate.objects.filter(team_id=user.team.id, next_review_date__gte=timezone.now().date()))
+
+            # We hide cases that have a next review date that is set in the future (for your team)
+            case_qs = case_qs.exclude(
+                id__in=CaseReviewDate.objects.filter(
+                    team_id=user.team.id, next_review_date__gt=timezone.now().date()
+                ).values("case_id")
+            )
 
         if queue_id and user:
             case_qs = case_qs.filter_based_on_queue(queue_id=queue_id, team_id=user.team.id, user=user)
