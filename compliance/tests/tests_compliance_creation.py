@@ -1,3 +1,5 @@
+from parameterized import parameterized
+
 from applications.models import SiteOnApplication, GoodOnApplication
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
@@ -9,7 +11,6 @@ from open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory,
 from organisations.tests.factories import SiteFactory
 from static.control_list_entries.factories import ControlListEntriesFactory
 from test_helpers.clients import DataTestClient
-from parameterized import parameterized
 
 
 class ComplianceCreateTests(DataTestClient):
