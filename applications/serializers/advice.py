@@ -27,10 +27,8 @@ class AdviceViewSerializer(serializers.Serializer):
     proviso = serializers.CharField()
     denial_reasons = serializers.PrimaryKeyRelatedField(queryset=DenialReason.objects.all(), many=True)
     footnote = serializers.CharField()
-    footnote_required = serializers.BooleanField()
     user = PrimaryKeyRelatedSerializerField(queryset=GovUser.objects.all(), serializer=GovUserListSerializer)
     created_at = serializers.DateTimeField()
-    collated_pv_grading = serializers.CharField()
 
     good = serializers.UUIDField(source="good_id")
     goods_type = serializers.UUIDField(source="goods_type_id")

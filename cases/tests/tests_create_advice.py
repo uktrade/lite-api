@@ -53,19 +53,6 @@ class CreateCaseAdviceTests(DataTestClient):
         self.assertIsNotNone(Advice.objects.get())
         self.assertTrue(Audit.objects.filter(verb=AuditType.CREATED_USER_ADVICE).exists())
 
-    def test_cannot_create_empty_advice(self):
-        """
-        Tests that a gov user cannot create an empty piece of advice for an end user
-        """
-        data = {
-            "text": "I Am Easy to Find",
-            "note": "I Am Easy to Find",
-            "type": AdviceType.APPROVE,
-        }
-
-        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
     def test_cannot_create_advice_for_two_items(self):
         """
         Tests that a gov user cannot create a piece of advice for more than one item
