@@ -37,10 +37,12 @@ def get_goods_on_licence(licence, include_control_list_entries=False):
             "id": good["id"],
             "good_id": good["good_id"],
             "unit": good["unit"],
-            "usage_total": good["usage_total"],
+            "usage": good["usage_total"],
             "usage_licenced": good["usage_licenced"],
             "usage_applied_for": good["usage_applied_for"],
             "value": good["value"],
+            "description": good["description"],
+            "licenced_value": float(good["value"]) * float(good["usage_licenced"]) if good["value"] and good["usage_licenced"] else None,
             "advice": {
                 "type": AdviceType.as_representation(good["advice_type"]),
                 "text": good["advice_text"],

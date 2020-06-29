@@ -9,6 +9,7 @@ class LicenceStatus(Enum):
     DRAFT = "draft"
     CANCELLED = "cancelled"
     REFUSED = "refused"
+    NOT_REQUIRED = "not_required"
 
     @classmethod
     def values(cls):

@@ -7,6 +7,7 @@ from conf.serializers import CountrySerializerField, KeyValueChoiceField, Contro
 from goods.models import Good
 from goodstype.models import GoodsType
 from licences.models import Licence
+from licences.service import get_goods_on_licence
 from parties.models import Party
 from static.statuses.serializers import CaseStatusSerializer
 
@@ -32,6 +33,7 @@ class GoodsTypeOnLicenceListSerializer(serializers.ModelSerializer):
             "id",
             "description",
             "control_list_entries",
+            "usage",
         )
         read_only_fields = fields
 
@@ -106,7 +108,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
 
     def get_goods(self, instance):
         if instance.goods.exists():
-            return GoodOnLicenceListSerializer(instance.goods, many=True).data
+            return get_goods_on_licence(Licence.objects.filter(application=instance).last(), include_control_list_entries=True)
         elif instance.goods_type.exists():
             return GoodsTypeOnLicenceListSerializer(instance.goods_type, many=True).data
         else:

@@ -49,7 +49,7 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
-from applications.serializers.good import GoodOnLicenceSerializer
+from applications.serializers.good import GoodOnStandardLicenceSerializer, GoodOnLicenceSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
@@ -545,11 +545,11 @@ class ApplicationFinaliseView(APIView):
         licence_data = deepcopy(request.data)
         action = licence_data.get("action")
 
-        if action == AdviceType.REFUSE:
+        if action in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
             application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
             application.save()
             licence_data["application"] = application.id
-            licence_data["status"] = LicenceStatus.REFUSED.value
+            licence_data["status"] = LicenceStatus.REFUSED.value if action == AdviceType.REFUSE else LicenceStatus.NOT_REQUIRED.value
 
             licence_serializer = LicenceRefuseSerializer(data=licence_data)
             if not licence_serializer.is_valid():
@@ -596,7 +596,6 @@ class ApplicationFinaliseView(APIView):
                     data={"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
             # Create Draft Licence object
             licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
             licence_data["application"] = application.id
@@ -612,7 +611,7 @@ class ApplicationFinaliseView(APIView):
             )
 
             # Create GoodsOnLicence if Standard application
-            if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            if application.case_type.sub_type in [CaseTypeSubTypeEnum.STANDARD, CaseTypeSubTypeEnum.EXHIBITION]:
                 errors = {}
                 good_licence_serializers = []
                 good_on_applications = (
@@ -622,25 +621,32 @@ class ApplicationFinaliseView(APIView):
                     .distinct()
                     .values("id", "quantity")
                 )
-
                 for goa in good_on_applications:
-                    quantity_key = f"quantity-{goa['id']}"
-                    value_key = f"value-{goa['id']}"
-                    good_data = {
-                        "quantity": request.data.get(quantity_key),
-                        "value": request.data.get(value_key),
-                        "licence": licence.id,
-                        "good": goa["id"],
-                    }
-                    previouse_goods = GoodOnLicence.objects.filter(
-                        good=goa["id"], licence__application=application.id
-                    ).aggregate(total_usage=Sum("usage"))
-                    total_usage = previouse_goods.get("total_usage") or 0.0
-                    serializer = GoodOnLicenceSerializer(
-                        update_or_create=True,
-                        data=good_data,
-                        context={"quantity": goa["quantity"], "total_usage": total_usage},
-                    )
+                    if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+                        quantity_key = f"quantity-{goa['id']}"
+                        value_key = f"value-{goa['id']}"
+                        good_data = {
+                            "quantity": request.data.get(quantity_key),
+                            "value": request.data.get(value_key),
+                            "licence": licence.id,
+                            "good": goa["id"],
+                        }
+                        previouse_goods = GoodOnLicence.objects.filter(
+                            good=goa["id"], licence__application=application.id
+                        ).aggregate(total_usage=Sum("usage"))
+                        total_usage = previouse_goods.get("total_usage") or 0.0
+                        serializer = GoodOnStandardLicenceSerializer(
+                            update_or_create=True,
+                            data=good_data,
+                            context={"quantity": goa["quantity"], "total_usage": total_usage},
+                        )
+                    else:
+                        good_data = {
+                            "licence": licence.id,
+                            "good": goa["id"]
+                        }
+                        serializer = GoodOnLicenceSerializer(data=good_data)
+
                     good_licence_serializers.append(serializer)
                     if not serializer.is_valid():
                         quantity_error = serializer.errors.get("quantity")
