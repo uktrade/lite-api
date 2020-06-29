@@ -62,9 +62,9 @@ def get_record_holding_sites_for_case(case):
         return {case.site.site_records_located_at.id}
     else:
         return set(
-            Site.objects.filter(Q(sites_on_application__application_id=case.id) | Q(open_general_licence_cases__in=[case.id])).values_list(
-                "site_records_located_at_id", flat=True
-            )
+            Site.objects.filter(
+                Q(sites_on_application__application_id=case.id) | Q(open_general_licence_cases__in=[case.id])
+            ).values_list("site_records_located_at_id", flat=True)
         )
 
 

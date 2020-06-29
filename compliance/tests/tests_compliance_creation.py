@@ -120,8 +120,7 @@ class ComplianceCreateTests(DataTestClient):
         self.assertEqual(ComplianceSiteCase.objects.count(), 2)
 
     def tests_OGL_type(self):
-        open_general_licence = OpenGeneralLicenceFactory(name="b",
-                                                         case_type=CaseType.objects.get(id=CaseTypeEnum.OGTCL.id))
+        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGTCL.id))
         case = OpenGeneralLicenceCaseFactory(
             open_general_licence=open_general_licence,
             site=self.organisation.primary_site,
