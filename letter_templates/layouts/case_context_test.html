@@ -6,12 +6,12 @@
 	<ul>
 		<li><b>case_reference:</b> {{ case_reference }}</li>
 		<li><b>current_date:</b> {{ current_date }}</li>
-		<li><b>current_time:</b> {{ current_time }}</li>
+		<li><b>current_time:</b> {{ current_time }}</li>s
 	</ul>
 	{% if case_type %}
 		<h2>Case type</h2>
 		<ul>
-			<li><b>case type:</b>
+			<li><b>case_type:</b>
 				<ul>
 					{{ case_type|context_data_to_list|safe }}
 				</ul>

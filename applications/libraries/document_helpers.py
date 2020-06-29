@@ -74,7 +74,7 @@ def upload_party_document(party, data, application, user):
     if not party:
         return JsonResponse(data={"error": "No such user"}, status=status.HTTP_404_NOT_FOUND)
 
-    documents = PartyDocument.objects.filter(party=party)
+    documents = PartyDocument.objects.filter(party=party, safe=True)
     if documents:
         return JsonResponse(data={"error": "Document already exists"}, status=status.HTTP_400_BAD_REQUEST,)
 
@@ -83,6 +83,9 @@ def upload_party_document(party, data, application, user):
 
     if not serializer.is_valid():
         return JsonResponse({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Delete existing document with a virus if one exists
+    PartyDocument.objects.filter(party=party, safe=False).delete()
 
     serializer.save()
 
