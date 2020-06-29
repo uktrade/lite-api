@@ -11,6 +11,7 @@ from applications.models import (
 from cases.enums import CaseTypeSubTypeEnum
 from conf.helpers import str_to_bool
 from documents.models import Document
+from goods.models import GoodDocument
 from goodstype.models import GoodsType
 from lite_content.lite_api import strings
 from parties.models import PartyDocument
@@ -246,12 +247,27 @@ def _validate_third_parties(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_has_goods(draft, errors, is_mandatory):
-    """ Checks draft has Goods """
+def _validate_goods(draft, errors, is_mandatory):
+    """ Checks Goods """
+
+    goods_on_application = GoodOnApplication.objects.filter(application=draft)
 
     if is_mandatory:
-        if not GoodOnApplication.objects.filter(application=draft):
+        if not goods_on_application:
             errors["goods"] = [strings.Applications.Standard.NO_GOODS_SET]
+
+    # Check goods documents
+    if goods_on_application:
+        goods = goods_on_application.values_list("good", flat=True)
+        goods_documents = GoodDocument.objects.filter(good__in=goods)
+
+        if not all(goods_documents.values_list("virus_scanned_at", flat=True)):
+            errors["goods"] = [strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING]
+            return errors
+
+        if not all(goods_documents.values_list("safe", flat=True)):
+            errors["goods"] = [strings.Applications.Standard.GOODS_DOCUMENT_INFECTED]
+            return errors
 
     return errors
 
@@ -282,7 +298,7 @@ def _validate_standard_licence(draft, errors):
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
     errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
     errors = _validate_route_of_goods(draft, errors)
@@ -295,7 +311,7 @@ def _validate_exhibition_clearance(draft, errors):
     """ Checks that an exhibition clearance has goods, locations and details """
 
     errors = _validate_exhibition_details(draft, errors)
-    errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
     errors = _validate_locations(draft, errors)
 
     return errors
@@ -306,7 +322,7 @@ def _validate_gifting_clearance(draft, errors):
 
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
 
     if draft.consignee:
         errors["consignee"] = [strings.Applications.Gifting.CONSIGNEE]
@@ -324,7 +340,7 @@ def _validate_f680_clearance(draft, errors):
     """ F680 require goods and at least 1 end user or third party """
 
     errors = _validate_has_clearance_level(draft, errors, is_mandatory=True)
-    errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_additional_information(draft, errors)
