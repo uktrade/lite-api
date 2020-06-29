@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.enums import AdviceType, AdviceLevel, CaseTypeSubTypeEnum
-from conf.app import Config
+from cases.app import CasesConfig
 from conf.constants import GovPermissions
 from conf.helpers import add_months
 from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
@@ -53,7 +53,7 @@ class MockTask:
         return self._exists
 
 
-@mock.patch("conf.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
+@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
 class HMRCIntegrationSerializersTests(DataTestClient):
     def test_data_transfer_object_standard_application(self):
         self.standard_application = self.create_standard_application_case(self.organisation)
@@ -153,7 +153,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         )
 
 
-@mock.patch("conf.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
+@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
 class HMRCIntegrationOperationsTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -204,7 +204,7 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         self.assertIsNone(self.standard_licence.sent_at)
 
 
-@mock.patch("conf.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
+@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
 @mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
 class HMRCIntegrationLicenceTests(DataTestClient):
     def setUp(self):
@@ -224,7 +224,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         )
 
 
-@mock.patch("conf.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
+@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
 class HMRCIntegrationTasksTests(DataTestClient):
     def setUp(self):
         super().setUp()
@@ -394,14 +394,14 @@ class HMRCIntegrationTasksTests(DataTestClient):
         schedule_licence_for_hmrc_integration.return_value = None
 
         # When the application is restarted it will trigger this function
-        Config.schedule_not_sent_licences()
+        CasesConfig.schedule_not_sent_licences()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
             str(self.standard_licence.id), self.standard_licence.application.reference_code
         )
 
 
-@mock.patch("conf.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
+@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
 @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", False)
 @mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
 class HMRCIntegrationTests(DataTestClient):

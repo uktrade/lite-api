@@ -46,10 +46,7 @@ def get_generated_document_data(request_params, pk):
     if not template_id:
         raise AttributeError(strings.Cases.GeneratedDocuments.MISSING_TEMPLATE)
 
-    text = request_params.get("text")
-    if not text:
-        raise AttributeError(strings.Cases.GeneratedDocuments.MISSING_TEXT)
-
+    text = request_params.get("text", "")
     additional_contact = request_params.get("addressee")
     if additional_contact:
         try:

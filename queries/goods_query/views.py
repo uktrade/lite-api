@@ -4,7 +4,6 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 
-from applications.libraries.application_helpers import can_status_be_set_by_gov_user
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
@@ -26,9 +25,7 @@ from queries.goods_query.models import GoodsQuery
 from queries.goods_query.serializers import PVGradingResponseSerializer
 from queries.helpers import get_exporter_query
 from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.models import UserOrganisationRelationship
-from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 
 
@@ -249,43 +246,3 @@ class GoodQueryPVGradingResponse(APIView):
             target=query.get_case(),
             payload={"grading": grading},
         )
-
-
-class GoodQueryManageStatus(APIView):
-    """
-    Modify the status of a Goods Query
-    """
-
-    authentication_classes = (GovAuthentication,)
-
-    def put(self, request, pk):
-        query = get_exporter_query(pk)
-        new_status = request.data.get("status")
-
-        if not can_status_be_set_by_gov_user(
-            request.user, query.status.status, new_status, is_licence_application=False
-        ):
-            return JsonResponse(
-                data={"errors": ["Status cannot be set by Gov user."]}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        old_status = query.status
-
-        query.status = get_case_status_by_status(new_status)
-        query.save()
-
-        if CaseStatusEnum.is_terminal(old_status.status) and not CaseStatusEnum.is_terminal(query.status.status):
-            apply_flagging_rules_to_case(query)
-
-        audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_STATUS,
-            target=query.get_case(),
-            payload={"status": {"new": CaseStatusEnum.get_text(new_status), "old": old_status.status}},
-        )
-
-        # Case routing rules
-        if old_status.status != new_status:
-            run_routing_rules(case=query, keep_status=True)
-
-        return JsonResponse(data={}, status=status.HTTP_200_OK)

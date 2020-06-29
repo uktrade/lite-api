@@ -44,7 +44,7 @@ from conf.urls import urlpatterns
 from flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from flags.models import Flag, FlaggingRule
 from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
@@ -456,6 +456,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         control_list_entries: Optional[List[str]] = None,
         is_pv_graded: str = GoodPvGraded.YES,
         pv_grading_details: PvGradingDetails = None,
+        item_category=ItemCategory.GROUP1_DEVICE,
+        is_military_use=MilitaryUse.NO,
+        modified_military_use_details=None,
+        component_details=None,
+        is_component=None,
+        uses_information_security=True,
+        information_security_details=None,
+        software_or_technology_details=None,
     ) -> Good:
         warnings.warn(
             "create_good is a deprecated function. Use a GoodFactory instead", category=DeprecationWarning, stacklevel=2
@@ -481,6 +489,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             report_summary=None,
             is_pv_graded=is_pv_graded,
             pv_grading_details=pv_grading_details,
+            item_category=item_category,
+            is_military_use=is_military_use,
+            is_component=is_component,
+            uses_information_security=uses_information_security,
+            information_security_details=information_security_details,
+            modified_military_use_details=modified_military_use_details,
+            component_details=component_details,
+            software_or_technology_details=software_or_technology_details,
         )
         good.save()
 
