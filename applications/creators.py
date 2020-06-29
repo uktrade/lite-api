@@ -13,6 +13,7 @@ from conf.helpers import str_to_bool
 from documents.models import Document
 from goods.models import GoodDocument
 from goodstype.models import GoodsType
+from goodstype.document.models import GoodsTypeDocument
 from lite_content.lite_api import strings
 from parties.models import PartyDocument
 
@@ -28,6 +29,16 @@ def _validate_locations(application, errors):
         errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
 
     return errors
+
+
+def _get_document_errors(documents):
+    document_statuses = documents.values_list("safe", flat=True)
+
+    if not all([safe is not None for safe in document_statuses]):
+        return strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING
+
+    if not all(document_statuses):
+        return strings.Applications.Standard.GOODS_DOCUMENT_INFECTED
 
 
 def check_party_document(party, is_mandatory):
@@ -127,10 +138,18 @@ def _validate_countries(draft, errors, is_mandatory):
 def _validate_goods_types(draft, errors, is_mandatory):
     """ Checks there are GoodsTypes for the draft """
 
+    goods_types = GoodsType.objects.filter(application=draft)
+
     if is_mandatory:
-        results = GoodsType.objects.filter(application=draft)
-        if not results:
+        if not goods_types:
             errors["goods"] = [strings.Applications.Open.NO_GOODS_SET]
+
+    # Check goods documents
+    if goods_types:
+        document_errors = _get_document_errors(GoodsTypeDocument.objects.filter(goods_type__in=goods_types))
+
+        if document_errors:
+            errors["goods"] = [document_errors]
 
     return errors
 
@@ -259,15 +278,10 @@ def _validate_goods(draft, errors, is_mandatory):
     # Check goods documents
     if goods_on_application:
         goods = goods_on_application.values_list("good", flat=True)
-        goods_documents = GoodDocument.objects.filter(good__in=goods)
+        document_errors = _get_document_errors(GoodDocument.objects.filter(good__in=goods))
 
-        if not all(goods_documents.values_list("virus_scanned_at", flat=True)):
-            errors["goods"] = [strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING]
-            return errors
-
-        if not all(goods_documents.values_list("safe", flat=True)):
-            errors["goods"] = [strings.Applications.Standard.GOODS_DOCUMENT_INFECTED]
-            return errors
+        if document_errors:
+            errors["goods"] = [document_errors]
 
     return errors
 
