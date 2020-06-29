@@ -1,8 +1,11 @@
 from applications.models import SiteOnApplication, GoodOnApplication
+from cases.enums import CaseTypeEnum
+from cases.models import CaseType
 from compliance.helpers import generate_compliance_site_case
 from compliance.models import ComplianceSiteCase
 from goods.enums import GoodControlled
 from goods.tests.factories import GoodFactory
+from open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from organisations.tests.factories import SiteFactory
 from static.control_list_entries.factories import ControlListEntriesFactory
 from test_helpers.clients import DataTestClient
@@ -115,3 +118,16 @@ class ComplianceCreateTests(DataTestClient):
         generate_compliance_site_case(case_2)
 
         self.assertEqual(ComplianceSiteCase.objects.count(), 2)
+
+    def tests_OGL_type(self):
+        open_general_licence = OpenGeneralLicenceFactory(name="b",
+                                                         case_type=CaseType.objects.get(id=CaseTypeEnum.OGTCL.id))
+        case = OpenGeneralLicenceCaseFactory(
+            open_general_licence=open_general_licence,
+            site=self.organisation.primary_site,
+            organisation=self.organisation,
+        )
+
+        generate_compliance_site_case(case)
+
+        self.assertTrue(ComplianceSiteCase.objects.exists())
