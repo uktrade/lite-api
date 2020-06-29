@@ -1,9 +1,6 @@
-from datetime import date
-
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
-from requests import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
