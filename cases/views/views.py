@@ -15,6 +15,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
+from cases.helpers import remove_next_review_date
 from cases.libraries.advice import group_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
@@ -697,6 +698,7 @@ class AssignedQueues(APIView):
             case = get_case(pk)
 
             if assignments:
+                remove_next_review_date(case, request, pk)
                 queues = [assignment.queue for assignment in assignments]
                 queue_names = [queue.name for queue in queues]
                 assignments.delete()
