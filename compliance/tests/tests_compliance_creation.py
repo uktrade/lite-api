@@ -112,7 +112,7 @@ class ComplianceCreateTests(DataTestClient):
 
         case_2 = self.create_open_application_case(self.organisation)
 
-        # create and add 2nd site to application
+        # Add second site to application
         new_site = SiteFactory(organisation=self.organisation)
         SiteOnApplication(site=new_site, application=case_2).save()
 
