@@ -3,6 +3,7 @@ from django.utils import timezone
 from applications import constants
 from applications.enums import ApplicationExportType, GoodsTypeCategory, ContractType
 from applications.models import (
+    ApplicationDocument,
     CountryOnApplication,
     GoodOnApplication,
     SiteOnApplication,
@@ -31,14 +32,16 @@ def _validate_locations(application, errors):
     return errors
 
 
-def _get_document_errors(documents):
+def _get_document_errors(documents, processing_error, virus_error):
     document_statuses = documents.values_list("safe", flat=True)
 
+    # If safe is None, then the document hasn't been virus scanned yet
     if not all([safe is not None for safe in document_statuses]):
-        return strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING
+        return processing_error
 
+    # If safe is False, the file contains a virus
     if not all(document_statuses):
-        return strings.Applications.Standard.GOODS_DOCUMENT_INFECTED
+        return virus_error
 
 
 def check_party_document(party, is_mandatory):
@@ -146,7 +149,11 @@ def _validate_goods_types(draft, errors, is_mandatory):
 
     # Check goods documents
     if goods_types:
-        document_errors = _get_document_errors(GoodsTypeDocument.objects.filter(goods_type__in=goods_types))
+        document_errors = _get_document_errors(
+            GoodsTypeDocument.objects.filter(goods_type__in=goods_types),
+            processing_error=strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING,
+            virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
+        )
 
         if document_errors:
             errors["goods"] = [document_errors]
@@ -278,7 +285,11 @@ def _validate_goods(draft, errors, is_mandatory):
     # Check goods documents
     if goods_on_application:
         goods = goods_on_application.values_list("good", flat=True)
-        document_errors = _get_document_errors(GoodDocument.objects.filter(good__in=goods))
+        document_errors = _get_document_errors(
+            GoodDocument.objects.filter(good__in=goods),
+            processing_error=strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING,
+            virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
+        )
 
         if document_errors:
             errors["goods"] = [document_errors]
@@ -425,6 +436,23 @@ def _validate_hmrc_query(draft, errors):
     return errors
 
 
+def _validate_additional_documents(draft, errors):
+    """ Validate additional documents """
+    documents = ApplicationDocument.objects.filter(application=draft)
+
+    if documents:
+        document_errors = _get_document_errors(
+            documents,
+            processing_error=strings.Applications.Standard.ADDITIONAL_DOCUMENTS_PROCESSING,
+            virus_error=strings.Applications.Standard.ADDITIONAL_DOCUMENTS_INFECTED,
+        )
+
+        if document_errors:
+            errors["supporting-documents"] = [document_errors]
+
+    return errors
+
+
 def validate_application_ready_for_submission(application):
     errors = {}
 
@@ -443,5 +471,7 @@ def validate_application_ready_for_submission(application):
         _validate_f680_clearance(application, errors)
     else:
         errors["unsupported_application"] = ["You can only validate a supported application type"]
+
+    errors = _validate_additional_documents(application, errors)
 
     return errors
