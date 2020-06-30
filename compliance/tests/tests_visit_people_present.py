@@ -28,15 +28,17 @@ class ComplianceVisitCaseTests(DataTestClient):
             organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
         )
 
-        data = {"name": "joe", "job_title": "fisher", "visit_case": str(comp_case.id)}
+        post_person = {"name": "joe", "job_title": "fisher"}
+        data = {"people_present": [post_person]}
 
         url = reverse("compliance:people_present", kwargs={"pk": comp_case.id})
         response = self.client.post(url, data, **self.gov_headers)
         response_data = response.json()
 
         self.assertTrue(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["name"], data["name"])
-        self.assertEqual(response_data["job_title"], data["job_title"])
+        person = response_data["people_present"][0]
+        self.assertEqual(person["name"], post_person["name"])
+        self.assertEqual(person["job_title"], post_person["job_title"])
 
     def test_update_people_present(self):
         comp_case = ComplianceVisitCaseFactory(
