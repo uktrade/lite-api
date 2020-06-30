@@ -8,10 +8,10 @@ from django.utils.dateparse import parse_date
 from faker import Faker
 
 from applications.enums import GoodsTypeCategory, ApplicationExportType
-from applications.models import GoodOnApplication
-from applications.models import StandardApplication, OpenApplication
-from applications.serializers.open_application import OpenApplicationCreateSerializer
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
+from applications.models import StandardApplication, OpenApplication, GoodOnApplication
+from flags.models import Flag
+from applications.serializers.open_application import OpenApplicationCreateSerializer
 from conf.constants import Roles
 from goods.models import Good
 from organisations.enums import OrganisationType
@@ -405,6 +405,7 @@ class ActionStats(ActionBase):
             f"\nOrganisation Products:{Good.objects.all().count()}"
             f"\nProducts used in SEIL applications:{GoodOnApplication.objects.all().count()}"
             f"\nExport Users:{ExporterUser.objects.all().count()}"
+            f"\nFlags:{Flag.objects.all().count()}"
         )
 
 
