@@ -201,7 +201,7 @@ class GoodList(ListCreateAPIView):
                 raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
             # return bad request if trying to edit any details that are not applicable to category 2 goods
-            if item_category in ItemCategory.group_one or item_category in ItemCategory.group_three:
+            if item_category in ItemCategory.group_two:
                 sections = [
                     "is_military_use",
                     "is_component",
