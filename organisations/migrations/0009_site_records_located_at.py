@@ -26,7 +26,7 @@ def forward_migration(apps, schema_editor):
     ).distinct()
 
     # Get or create case type & status because seeding may not have run yet
-    if not CaseType.objects.filter(id=CaseTypeEnum.COMPLIANCE.id).exists():
+    if not CaseType.objects.filter(id=CaseTypeEnum.COMPLIANCE_SITE.id).exists():
         call_command("seedcasetypes")
 
     if not CaseStatus.objects.filter(status=CaseStatusEnum.OPEN).exists():
