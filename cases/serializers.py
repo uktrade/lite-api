@@ -15,7 +15,7 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
 )
-from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
+from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField, HasFutureReviewDate
 from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
@@ -117,6 +117,7 @@ class CaseListSerializer(serializers.Serializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
+    has_future_review_date = serializers.SerializerMethodField()
     # TODO: update the serializer below to be more efficient, it creates a new query for each case in list to get site
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationCaseSerializer
@@ -140,6 +141,12 @@ class CaseListSerializer(serializers.Serializer):
 
     def get_status(self, instance):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
+
+    def get_has_future_review_date(self, instance):
+        if instance.case_review_date.all()[0].next_review_date > timezone.now().date():
+            return True
+        else:
+            return False
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
