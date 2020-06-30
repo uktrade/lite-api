@@ -10,6 +10,7 @@ from compliance.models import OpenLicenceReturns, ComplianceSiteCase, Compliance
 from organisations.tests.factories import OrganisationFactory, SiteFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+from static.statuses.models import CaseStatus
 
 
 class OpenLicenceReturnsFactory(factory.django.DjangoModelFactory):
@@ -25,7 +26,7 @@ class ComplianceSiteCaseFactory(factory.django.DjangoModelFactory):
     submitted_at = timezone.now()
     organisation = factory.SubFactory(OrganisationFactory)
     site = factory.SubFactory(SiteFactory, organisation=factory.SelfAttribute("..organisation"))
-    status = get_case_status_by_status(CaseStatusEnum.OPEN)
+    status = factory.LazyFunction(get_case_status_by_status, status=CaseStatusEnum.OPEN)
 
     class Meta:
         model = ComplianceSiteCase
@@ -33,7 +34,7 @@ class ComplianceSiteCaseFactory(factory.django.DjangoModelFactory):
 
 class ComplianceVisitCaseFactory(factory.django.DjangoModelFactory):
     site_case = factory.SubFactory(ComplianceSiteCaseFactory, organisation=factory.SelfAttribute("..organisation"))
-    status = get_case_status_by_status(CaseStatusEnum.OPEN)
+    status = factory.LazyFunction(get_case_status_by_status, status=CaseStatusEnum.OPEN)
     case_type_id = CaseTypeEnum.COMPLIANCE_VISIT.id
     visit_type = ComplianceVisitTypes.FIRST_CONTACT
     visit_date = django.utils.timezone.now().date()
