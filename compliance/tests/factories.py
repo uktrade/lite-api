@@ -25,7 +25,6 @@ class ComplianceSiteCaseFactory(factory.django.DjangoModelFactory):
     submitted_at = timezone.now()
     organisation = factory.SubFactory(OrganisationFactory)
     site = factory.SubFactory(SiteFactory, organisation=factory.SelfAttribute("..organisation"))
-    status = get_case_status_by_status(CaseStatusEnum.OPEN)
 
     class Meta:
         model = ComplianceSiteCase

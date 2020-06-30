@@ -9,6 +9,8 @@ from cases.enums import CaseTypeEnum
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -69,7 +71,10 @@ class ComplianceVisitCaseTests(DataTestClient):
 
     def test_create_compliance_visit_case(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation, site=self.organisation.primary_site, case_officer_id=self.gov_user.id,
+            organisation=self.organisation,
+            site=self.organisation.primary_site,
+            case_officer_id=self.gov_user.id,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
         data = {}
