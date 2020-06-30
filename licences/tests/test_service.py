@@ -19,7 +19,7 @@ class GetCaseLicenceTests(DataTestClient):
             start_date=timezone.now().date(),
             status=LicenceStatus.REVOKED.value,
             duration=100,
-            reference_code="reference"
+            reference_code="reference",
         )
         self.good = GoodFactory(organisation=self.application.organisation)
         self.good_on_application = GoodOnApplicationFactory(
@@ -35,18 +35,18 @@ class GetCaseLicenceTests(DataTestClient):
             data,
             [
                 {
-                    'duration': self.licence.duration,
-                    'goods': [
+                    "duration": self.licence.duration,
+                    "goods": [
                         {
-                            'control_list_entries': [],
-                            'description': self.good.description,
-                            'quantity': self.good_on_licence.quantity,
-                            'usage': self.good_on_licence.usage
-                         }
+                            "control_list_entries": [],
+                            "description": self.good.description,
+                            "quantity": self.good_on_licence.quantity,
+                            "usage": self.good_on_licence.usage,
+                        }
                     ],
-                    'id': str(self.licence.id),
-                    'reference_code': self.licence.reference_code,
-                    'status': LicenceStatus.human_readable(self.licence.status)
+                    "id": str(self.licence.id),
+                    "reference_code": self.licence.reference_code,
+                    "status": LicenceStatus.human_readable(self.licence.status),
                 }
-            ]
+            ],
         )
