@@ -14,7 +14,7 @@ from cases.enums import (
     ECJUQueryType,
 )
 from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
-from cases.libraries.get_flags import get_ordered_flags
+from cases.libraries.get_flags import get_ordered_flags, get_goods_flags, get_destination_flags
 from cases.models import (
     Case,
     CaseNote,
@@ -30,6 +30,8 @@ from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteV
 from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
+from flags.models import Flag
+from flags.serializers import CaseListFlagSerializer
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from licences.helpers import get_open_general_export_licence_case
@@ -109,7 +111,9 @@ class CaseListSerializer(serializers.Serializer):
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
     status = serializers.SerializerMethodField()
-    flags = serializers.SerializerMethodField()
+    # flags = serializers.SerializerMethodField()
+    # destination_flags = serializers.SerializerMethodField()
+    # goods_flags = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
@@ -124,11 +128,28 @@ class CaseListSerializer(serializers.Serializer):
         self.include_hidden = kwargs.pop("include_hidden", None)
         super().__init__(*args, **kwargs)
 
-    def get_flags(self, instance):
-        """
-        Gets flags for a case and returns in sorted order by team.
-        """
-        return get_ordered_flags(instance, self.team)
+    # def get_goods_flags(self, instance):
+    #     """
+    #     Gets flags for a case and returns in sorted order by team.
+    #     """
+    #     return []
+    #     # goods_flags = get_goods_flags(instance, instance.case_type.sub_type)
+    #     # return CaseListFlagSerializer(goods_flags, many=True).data
+
+    # def get_destination_flags(self, instance):
+    #     """
+    #     Gets flags for a case and returns in sorted order by team.
+    #     """
+    #     return []
+    #     # goods_flags = get_destination_flags(instance, instance.case_type.sub_type)
+    #     # return CaseListFlagSerializer(goods_flags, many=True).data
+    #
+    # def get_flags(self, instance):
+    #     """
+    #     Gets flags for a case and returns in sorted order by team.
+    #     """
+    #     flags = instance.flags.all()
+    #     return CaseListFlagSerializer(flags, many=True).data
 
     def get_submitted_at(self, instance):
         # Return the DateTime value manually as otherwise
