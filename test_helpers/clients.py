@@ -351,15 +351,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_doc
 
     @staticmethod
-    def create_application_document(application):
+    def create_application_document(application, safe=True):
         application_doc = ApplicationDocument(
             application=application,
             description="document description",
             name="document name",
             s3_key="documentkey",
             size=12,
-            virus_scanned_at=None,
-            safe=None,
+            virus_scanned_at=django.utils.timezone.now(),
+            safe=safe,
         )
 
         application_doc.save()
