@@ -45,8 +45,7 @@ def remove_next_review_date(case, request, pk):
 
     if case.case_review_date.exists():
         other_assigned_users = (
-            CaseAssignment.objects
-            .filter(case__id=pk, queue__team_id=request.user.team_id)
+            CaseAssignment.objects.filter(case__id=pk, queue__team_id=request.user.team_id)
             .exclude(user=request.user)
             .exists()
         )
