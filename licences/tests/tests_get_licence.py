@@ -24,7 +24,7 @@ class GetLicencesTests(DataTestClient):
         )
         self.url = reverse("cases:licences", kwargs={"pk": self.application.id})
 
-    def test_reissue_licence(self):
+    def test_get_licence(self):
         good_1 = GoodFactory(organisation=self.application.organisation)
         good_1_advice = FinalAdviceFactory(
             user=self.gov_user, team=self.team, case=self.application, good=good_1, type=AdviceType.APPROVE
