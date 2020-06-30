@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+from cases.enums import CaseTypeEnum
 from compliance.tests.factories import ComplianceSiteCaseFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -22,13 +23,30 @@ def _assert_response_data(self, response_data, licence):
 
 
 class GetComplianceLicencesTests(DataTestClient):
-    def test_get_compliance_licences(self):
+    def test_get_compliance_OIEL_licences(self):
         compliance_case = ComplianceSiteCaseFactory(
             organisation=self.organisation,
             site=self.organisation.primary_site,
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
         application = self.create_open_application_case(self.organisation)
+        licence = self.create_licence(application, is_complete=True)
+
+        url = reverse("compliance:licences", kwargs={"pk": compliance_case.id})
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["results"]
+
+        _assert_response_data(self, response_data, licence)
+
+    def test_get_compliance_OICL_licences(self):
+        compliance_case = ComplianceSiteCaseFactory(
+            organisation=self.organisation,
+            site=self.organisation.primary_site,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+        )
+        application = self.create_open_application_case(self.organisation)
+        application.case_type_id = CaseTypeEnum.OICL.id
+        application.save()
         licence = self.create_licence(application, is_complete=True)
 
         url = reverse("compliance:licences", kwargs={"pk": compliance_case.id})
