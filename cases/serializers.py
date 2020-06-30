@@ -15,7 +15,7 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
 )
-from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField, HasFutureReviewDate
+from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
 from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
