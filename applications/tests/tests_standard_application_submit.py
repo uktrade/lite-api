@@ -145,9 +145,7 @@ class StandardApplicationTests(DataTestClient):
         response = self.client.put(self.url, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"], {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_INFECTED]}
-        )
+        self.assertEqual(response.json()["errors"], {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_INFECTED]})
 
     def test_submit_draft_with_incorporated_good_and_without_ultimate_end_users_failure(self):
         """
