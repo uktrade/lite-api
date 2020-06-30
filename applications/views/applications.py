@@ -549,7 +549,9 @@ class ApplicationFinaliseView(APIView):
             application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
             application.save()
             licence_data["application"] = application.id
-            licence_data["status"] = LicenceStatus.REFUSED.value if action == AdviceType.REFUSE else LicenceStatus.NOT_REQUIRED.value
+            licence_data["status"] = (
+                LicenceStatus.REFUSED.value if action == AdviceType.REFUSE else LicenceStatus.NOT_REQUIRED.value
+            )
 
             licence_serializer = LicenceRefuseSerializer(data=licence_data)
             if not licence_serializer.is_valid():
@@ -641,10 +643,7 @@ class ApplicationFinaliseView(APIView):
                             context={"quantity": goa["quantity"], "total_usage": total_usage},
                         )
                     else:
-                        good_data = {
-                            "licence": licence.id,
-                            "good": goa["id"]
-                        }
+                        good_data = {"licence": licence.id, "good": goa["id"]}
                         serializer = GoodOnLicenceSerializer(data=good_data)
 
                     good_licence_serializers.append(serializer)

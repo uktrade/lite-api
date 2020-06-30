@@ -26,5 +26,5 @@ class LicenceStatus(Enum):
             cls.DRAFT: "Draft",
             cls.CANCELLED: "Cancelled",
             cls.REFUSED: "Refused",
-            cls.NOT_REQUIRED: "Not Required"
+            cls.NOT_REQUIRED: "Not Required",
         }[status]

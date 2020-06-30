@@ -45,7 +45,9 @@ class Licence(TimestampableModel):
 
     def issue(self):
         try:
-            old_licence = Licence.objects.get(application=self.application, status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value])
+            old_licence = Licence.objects.get(
+                application=self.application, status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value]
+            )
             old_licence.cancel()
         except Licence.DoesNotExist:
             old_licence = None

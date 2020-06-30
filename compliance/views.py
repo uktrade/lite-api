@@ -31,9 +31,7 @@ from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
     CompliancePersonSerializer,
 )
-from compliance.serializers.OpenLicenceReturns import (
-    OpenLicenceReturnsCreateSerializer,
-)
+from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsCreateSerializer
 from compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsListSerializer,
     OpenLicenceReturnsViewSerializer,

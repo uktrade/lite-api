@@ -7,21 +7,45 @@ import licences.enums
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('licences', '0008_auto_20200626_0750'),
+        ("licences", "0008_auto_20200626_0750"),
     ]
 
     operations = [
-        migrations.RemoveConstraint(
-            model_name='licence',
-            name='status_choices',
-        ),
+        migrations.RemoveConstraint(model_name="licence", name="status_choices",),
         migrations.AlterField(
-            model_name='licence',
-            name='status',
-            field=models.CharField(choices=[('issued', licences.enums.LicenceStatus('issued')), ('reinstated', licences.enums.LicenceStatus('reinstated')), ('revoked', licences.enums.LicenceStatus('revoked')), ('surrendered', licences.enums.LicenceStatus('surrendered')), ('draft', licences.enums.LicenceStatus('draft')), ('cancelled', licences.enums.LicenceStatus('cancelled')), ('refused', licences.enums.LicenceStatus('refused')), ('not_required', licences.enums.LicenceStatus('not_required'))], default='draft', max_length=32),
+            model_name="licence",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("issued", licences.enums.LicenceStatus("issued")),
+                    ("reinstated", licences.enums.LicenceStatus("reinstated")),
+                    ("revoked", licences.enums.LicenceStatus("revoked")),
+                    ("surrendered", licences.enums.LicenceStatus("surrendered")),
+                    ("draft", licences.enums.LicenceStatus("draft")),
+                    ("cancelled", licences.enums.LicenceStatus("cancelled")),
+                    ("refused", licences.enums.LicenceStatus("refused")),
+                    ("not_required", licences.enums.LicenceStatus("not_required")),
+                ],
+                default="draft",
+                max_length=32,
+            ),
         ),
         migrations.AddConstraint(
-            model_name='licence',
-            constraint=models.CheckConstraint(check=models.Q(status__in=['issued', 'reinstated', 'revoked', 'surrendered', 'draft', 'cancelled', 'refused', 'not_required']), name='status_choices'),
+            model_name="licence",
+            constraint=models.CheckConstraint(
+                check=models.Q(
+                    status__in=[
+                        "issued",
+                        "reinstated",
+                        "revoked",
+                        "surrendered",
+                        "draft",
+                        "cancelled",
+                        "refused",
+                        "not_required",
+                    ]
+                ),
+                name="status_choices",
+            ),
         ),
     ]

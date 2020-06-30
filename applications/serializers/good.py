@@ -17,11 +17,7 @@ from static.units.enums import Units
 class GoodOnLicenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodOnLicence
-        fields = (
-            "id",
-            "good",
-            "licence"
-        )
+        fields = ("id", "good", "licence")
 
 
 class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):

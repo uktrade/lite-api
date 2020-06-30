@@ -43,7 +43,9 @@ def get_goods_on_licence(licence, include_control_list_entries=False):
             "usage_applied_for": good["usage_applied_for"],
             "value": good["value"],
             "description": good["description"],
-            "licenced_value": float(good["value"]) * float(good["usage_licenced"]) if good["value"] and good["usage_licenced"] else None,
+            "licenced_value": float(good["value"]) * float(good["usage_licenced"])
+            if good["value"] and good["usage_licenced"]
+            else None,
             "advice": {
                 "type": AdviceType.as_representation(good["advice_type"]),
                 "text": good["advice_text"],
@@ -68,7 +70,9 @@ def get_goods_on_licence(licence, include_control_list_entries=False):
 
 
 def get_case_licences(case):
-    licences = Licence.objects.prefetch_related("goods", "goods__good", "goods__good__good", "goods__good__good__control_list_entries").filter(application=case)
+    licences = Licence.objects.prefetch_related(
+        "goods", "goods__good", "goods__good__good", "goods__good__good__control_list_entries"
+    ).filter(application=case)
     return [
         {
             "id": str(licence.id),
@@ -78,10 +82,14 @@ def get_case_licences(case):
             "goods": [
                 {
                     "description": licence_good.good.good.description,
-                    "control_list_entries": ControlListEntrySerializer(licence_good.good.good.control_list_entries.all(), many=True).data,
+                    "control_list_entries": ControlListEntrySerializer(
+                        licence_good.good.good.control_list_entries.all(), many=True
+                    ).data,
                     "quantity": licence_good.quantity,
-                    "usage": licence_good.usage
-                } for licence_good in licence.goods.all()
-            ]
-        } for licence in licences
+                    "usage": licence_good.usage,
+                }
+                for licence_good in licence.goods.all()
+            ],
+        }
+        for licence in licences
     ]
