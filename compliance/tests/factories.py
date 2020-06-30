@@ -26,15 +26,17 @@ class ComplianceSiteCaseFactory(factory.django.DjangoModelFactory):
     submitted_at = timezone.now()
     organisation = factory.SubFactory(OrganisationFactory)
     site = factory.SubFactory(SiteFactory, organisation=factory.SelfAttribute("..organisation"))
-    status = factory.LazyFunction(get_case_status_by_status, status=CaseStatusEnum.OPEN)
 
     class Meta:
         model = ComplianceSiteCase
 
 
 class ComplianceVisitCaseFactory(factory.django.DjangoModelFactory):
-    site_case = factory.SubFactory(ComplianceSiteCaseFactory, organisation=factory.SelfAttribute("..organisation"))
-    status = factory.LazyFunction(get_case_status_by_status, status=CaseStatusEnum.OPEN)
+    site_case = factory.SubFactory(
+        ComplianceSiteCaseFactory,
+        organisation=factory.SelfAttribute("..organisation"),
+        status=factory.SelfAttribute("..status"),
+    )
     case_type_id = CaseTypeEnum.COMPLIANCE_VISIT.id
     visit_type = ComplianceVisitTypes.FIRST_CONTACT
     visit_date = django.utils.timezone.now().date()

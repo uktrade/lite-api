@@ -13,7 +13,9 @@ from test_helpers.clients import DataTestClient
 class ComplianceManageStatusTests(DataTestClient):
     def test_gov_set_compliance_case_status_to_closed_success(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation, site=self.organisation.primary_site,
+            organisation=self.organisation,
+            site=self.organisation.primary_site,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
         url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
@@ -43,7 +45,9 @@ class ComplianceManageStatusTests(DataTestClient):
 
     def test_gov_set_compliance_case_status_to_withdrawn_failure(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation, site=self.organisation.primary_site,
+            organisation=self.organisation,
+            site=self.organisation.primary_site,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
         url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
@@ -56,7 +60,9 @@ class ComplianceManageStatusTests(DataTestClient):
 
     @parameterized.expand(CaseStatusEnum.compliance_visit_statuses)
     def test_compliance_visit_case_all_applicable_statuses_setable(self, status_to_set):
-        compliance_case = ComplianceVisitCaseFactory(organisation=self.organisation,)
+        compliance_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
         PeoplePresentFactory(visit_case=compliance_case)
         url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
         data = {"status": status_to_set}
@@ -70,7 +76,9 @@ class ComplianceManageStatusTests(DataTestClient):
         [status[0] for status in CaseStatusEnum.choices if status[0] not in CaseStatusEnum.compliance_visit_statuses]
     )
     def test_compliance_visit_case_other_statuses_can_not_be_set(self, status_to_set):
-        compliance_case = ComplianceVisitCaseFactory(organisation=self.organisation,)
+        compliance_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
 
         url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
         data = {"status": status_to_set}
