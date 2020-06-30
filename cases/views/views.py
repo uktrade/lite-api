@@ -55,6 +55,7 @@ from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
 from licences.enums import LicenceStatus
 from licences.models import Licence
+from licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from parties.models import Party
@@ -84,6 +85,9 @@ class CaseDetail(APIView):
 
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             data["data"]["destinations"] = get_destinations(case.id)  # noqa
+
+        if case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            data["licences"] = get_case_licences(case)
 
         return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
 
@@ -317,7 +321,7 @@ class FinalAdviceDocuments(APIView):
         final_advice = Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
-        licence = Licence.objects.filter(application=pk).last()
+        licence = Licence.objects.filter(application=pk).first()
 
         # Add advice documents
         generated_advice_documents = GeneratedCaseDocument.objects.filter(
@@ -647,13 +651,14 @@ class FinaliseView(UpdateAPIView):
         # If a licence object exists, finalise the licence.
         # Due to a bug where multiple licences were being created, we get the latest one.
         try:
-            licence = Licence.objects.get(application=case, status=LicenceStatus.DRAFT.value)
+            application_licences = Licence.objects.filter(application=case)
+            licence = application_licences.get(status=LicenceStatus.DRAFT.value)
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.issue()
             return_payload["licence"] = licence.id
             audit_trail_service.create(
                 actor=request.user,
-                verb=AuditType.GRANTED_APPLICATION,
+                verb=AuditType.GRANTED_APPLICATION if application_licences.count() < 2 else AuditType.REINSTATED_APPLICATION,
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
             )

@@ -1,0 +1,33 @@
+from decimal import Decimal
+
+from django.utils import timezone
+
+from applications.tests.factories import StandardApplicationFactory, GoodOnApplicationFactory
+from goods.tests.factories import GoodFactory
+from licences.enums import LicenceStatus
+from licences.service import get_case_licences
+from licences.tests.factories import LicenceFactory, GoodOnLicenceFactory
+from test_helpers.clients import DataTestClient
+
+
+class GetCaseLicenceTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.application = StandardApplicationFactory()
+        self.licence = LicenceFactory(
+            application=self.application,
+            start_date=timezone.now().date(),
+            status=LicenceStatus.REVOKED.value,
+            duration=100,
+        )
+        self.good = GoodFactory(organisation=self.application.organisation)
+        self.good_on_application = GoodOnApplicationFactory(
+            application=self.application, good=self.good, quantity=100.0, value=Decimal("1000.00")
+        )
+        self.good_on_licence = GoodOnLicenceFactory(
+            good=self.good_on_application, quantity=self.good_on_application.quantity, usage=20.0, licence=self.licence
+        )
+
+    def test_reissue_licence(self):
+        data = get_case_licences(self.application)
+        self.assertEqual(data, {})

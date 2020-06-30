@@ -60,6 +60,7 @@ class AuditType(LiteEnum):
     ADD_CASE_OFFICER_TO_CASE = autostr()
     REMOVE_CASE_OFFICER_FROM_CASE = autostr()
     GRANTED_APPLICATION = autostr()
+    REINSTATED_APPLICATION = autostr()
     FINALISED_APPLICATION = autostr()
     UNASSIGNED_QUEUES = autostr()
     UNASSIGNED = autostr()

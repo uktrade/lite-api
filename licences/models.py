@@ -29,7 +29,7 @@ class Licence(TimestampableModel):
 
     class Meta:
         constraints = [CheckConstraint(check=Q(status__in=LicenceStatus.values()), name="status_choices")]
-        ordering = ("created_at",)
+        ordering = ("-created_at",)
 
     def surrender(self):
         self.status = LicenceStatus.SURRENDERED.value
@@ -45,7 +45,7 @@ class Licence(TimestampableModel):
 
     def issue(self):
         try:
-            old_licence = Licence.objects.get(application=self.application, status=LicenceStatus.ISSUED.value)
+            old_licence = Licence.objects.get(application=self.application, status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value])
             old_licence.cancel()
         except Licence.DoesNotExist:
             old_licence = None

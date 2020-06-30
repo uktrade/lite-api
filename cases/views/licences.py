@@ -11,7 +11,7 @@ class LicencesView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        licence = Licence.objects.filter(application=pk).last()
+        licence = Licence.objects.filter(application=pk).first()
         if not licence:
             return JsonResponse(data={}, status=status.HTTP_200_OK)
 
