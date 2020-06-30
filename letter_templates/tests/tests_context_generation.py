@@ -9,9 +9,10 @@ from applications.enums import (
     MTCRAnswers,
     ServiceEquipmentType,
 )
-from applications.models import ExternalLocationOnApplication, CountryOnApplication, GoodOnApplication
-from audit_trail.models import Audit
+from applications.models import ExternalLocationOnApplication, CountryOnApplication
+from applications.models import GoodOnApplication
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from compliance.tests.factories import ComplianceVisitCaseFactory
 from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType
 from letter_templates.context_generator import get_document_context
@@ -21,6 +22,8 @@ from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -292,6 +295,23 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["reference"], case.case_type.reference)
         self.assertEqual(context["sub_type"], case.case_type.sub_type)
 
+    def _assert_compliance_site_case_details(self, context, case):
+        pass
+
+    def _assert_compliance_visit_case_details(self, context, case):
+        self.assertEqual(context["visit_type"], case.visit_type)
+        self.assertEqual(context["visit_date"], case.visit_date)
+        self.assertEqual(context["overall_risk_value"], case.overall_risk_value)
+        self.assertEqual(context["licence_risk_value"], case.licence_risk_value)
+        self.assertEqual(context["overview"], case.overview)
+        self.assertEqual(context["inspection"], case.inspection)
+        self.assertEqual(context["compliance_overview"], case.compliance_overview)
+        self.assertEqual(context["compliance_risk_value"], case.compliance_risk_value)
+        self.assertEqual(context["individuals_overview"], case.individuals_overview)
+        self.assertEqual(context["individuals_risk_value"], case.individuals_risk_value)
+        self.assertEqual(context["products_overview"], case.products_overview)
+        self.assertEqual(context["products_risk_value"], case.products_risk_value)
+
     def test_generate_context_with_parties(self):
         # Standard application with all party types
         self.create_party("Ultimate end user", self.organisation, PartyType.ULTIMATE_END_USER, self.standard_case)
@@ -546,3 +566,13 @@ class DocumentContextGenerationTests(DataTestClient):
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_goods_query_details(context["details"], case)
+
+    def test_generate_context_with_compliance_visit_details(self):
+        compliance_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
+
+        context = get_document_context(compliance_case)
+
+        self.assertEqual(context["case_reference"], compliance_case.reference_code)
+        self._assert_compliance_visit_case_details(context["details"], compliance_case)

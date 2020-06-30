@@ -15,6 +15,7 @@ from applications.models import (
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
+from compliance.models import ComplianceVisitCase, CompliancePerson
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading
 from licences.enums import LicenceStatus
@@ -52,7 +53,8 @@ def get_document_context(case, licence=None, addressee=None):
     else:
         goods = None
 
-    if not addressee:
+    # compliance type cases contain neither an addressee or submitted_by user
+    if not addressee and case.submitted_by:
         addressee = case.submitted_by
 
     return {
@@ -65,7 +67,7 @@ def get_document_context(case, licence=None, addressee=None):
         "current_date": date,
         "current_time": time,
         "details": _get_details_context(case),
-        "addressee": _get_addressee_context(addressee),
+        "addressee": _get_addressee_context(addressee) if addressee else None,
         "organisation": _get_organisation_context(case.organisation),
         "licence": _get_licence_context(licence) if licence and licence.status != LicenceStatus.REFUSED.value else None,
         "end_user": _get_party_context(base_application.end_user.party)
@@ -259,6 +261,39 @@ def _get_goods_query_context(case):
     }
 
 
+def _get_compliance_site_context(case):
+    return None
+
+
+def _get_compliance_visit_context(case):
+    def _get_people_present_compliance_visit_context(case):
+        people = list(CompliancePerson.objects.filter(visit_case=case.id))
+        if people:
+            return [{"name": person.name, "job_title": person.job_title} for person in people]
+        else:
+            return None
+
+    comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
+    return {
+        "site_case_reference": comp_case.site_case.reference_code,
+        "site_name": comp_case.site_case.site.name,
+        "site_address": comp_case.site_case.site.address,
+        "visit_type": comp_case.visit_type,
+        "visit_date": comp_case.visit_date,
+        "overall_risk_value": comp_case.overall_risk_value,
+        "licence_risk_value": comp_case.licence_risk_value,
+        "overview": comp_case.overview,
+        "inspection": comp_case.inspection,
+        "compliance_overview": comp_case.compliance_overview,
+        "compliance_risk_value": comp_case.compliance_risk_value,
+        "individuals_overview": comp_case.individuals_overview,
+        "individuals_risk_value": comp_case.individuals_risk_value,
+        "products_overview": comp_case.products_overview,
+        "products_risk_value": comp_case.products_risk_value,
+        "people_present": _get_people_present_compliance_visit_context(comp_case),
+    }
+
+
 def _get_details_context(case):
     case_sub_type = case.case_type.sub_type
     if case_sub_type == CaseTypeSubTypeEnum.STANDARD:
@@ -277,6 +312,10 @@ def _get_details_context(case):
         return _get_end_user_advisory_query_context(case)
     elif case_sub_type == CaseTypeSubTypeEnum.GOODS:
         return _get_goods_query_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.COMP_SITE:
+        return _get_compliance_site_context(case)
+    elif case_sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
+        return _get_compliance_visit_context(case)
     else:
         return None
 
