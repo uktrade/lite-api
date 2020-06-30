@@ -65,7 +65,6 @@ class LicenceList(ListAPIView):
         #   types relevant for compliance cases
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
             baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-            # baseapplication__licence__goods__quantity__isnull=False,
         )
 
         if reference_code:
