@@ -3,12 +3,16 @@ from rest_framework import status
 
 from compliance.models import CompliancePerson
 from compliance.tests.factories import ComplianceVisitCaseFactory, PeoplePresentFactory
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
 class ComplianceVisitCaseTests(DataTestClient):
     def test_get_people_present(self):
-        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        comp_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
         person1 = PeoplePresentFactory(visit_case=comp_case)
         person2 = PeoplePresentFactory(visit_case=comp_case)
 
@@ -20,7 +24,9 @@ class ComplianceVisitCaseTests(DataTestClient):
             self.assertIn(person["id"], [str(person1.id), str(person2.id)])
 
     def test_create_people_present(self):
-        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        comp_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
 
         data = {"name": "joe", "job_title": "fisher", "visit_case": str(comp_case.id)}
 
@@ -33,7 +39,9 @@ class ComplianceVisitCaseTests(DataTestClient):
         self.assertEqual(response_data["job_title"], data["job_title"])
 
     def test_update_people_present(self):
-        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        comp_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
         person = PeoplePresentFactory(visit_case=comp_case)
 
         data = {"name": "new_name", "job_title": "anotherjob"}
@@ -47,7 +55,9 @@ class ComplianceVisitCaseTests(DataTestClient):
         self.assertEqual(response_data["job_title"], data["job_title"])
 
     def test_delete_people_present(self):
-        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        comp_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
         person = PeoplePresentFactory(visit_case=comp_case)
 
         self.assertTrue(CompliancePerson.objects.exists())

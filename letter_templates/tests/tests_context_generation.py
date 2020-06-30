@@ -17,6 +17,8 @@ from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from static.trade_control.enums import TradeControlActivity, TradeControlProductCategory
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
@@ -565,7 +567,9 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_goods_query_details(context["details"], case)
 
     def test_generate_context_with_compliance_visit_details(self):
-        compliance_case = ComplianceVisitCaseFactory(organisation=self.organisation,)
+        compliance_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
 
         context = get_document_context(compliance_case)
 
