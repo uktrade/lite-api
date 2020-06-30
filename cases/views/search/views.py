@@ -58,6 +58,9 @@ class CasesSearchView(generics.ListAPIView):
             page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
         ).data
 
+        service.populate_goods_flags(cases)
+        service.populate_destinations_flags(cases)
+        service.populate_organisation_flags(cases)
         service.populate_is_recently_updated(cases)
         service.get_hmrc_sla_hours(cases)
 
