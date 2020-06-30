@@ -9,6 +9,8 @@ from cases.enums import CaseTypeEnum
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
@@ -29,7 +31,9 @@ class ComplianceVisitCaseTests(DataTestClient):
 
     # Get a compliance visit case and check all of it's details
     def test_get_compliance_visit_case(self):
-        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        comp_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
 
         url = reverse("compliance:visit_case", kwargs={"pk": comp_case.id})
         response = self.client.get(url, **self.gov_headers)
@@ -55,7 +59,9 @@ class ComplianceVisitCaseTests(DataTestClient):
         ]
     )
     def test_update_compliance_visit_case(self, field, data, key):
-        comp_case = ComplianceVisitCaseFactory(organisation=self.organisation)
+        comp_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        )
         json = {field: data}
         url = reverse("compliance:visit_case", kwargs={"pk": comp_case.id})
         response = self.client.patch(url, json, **self.gov_headers)
@@ -69,7 +75,10 @@ class ComplianceVisitCaseTests(DataTestClient):
 
     def test_create_compliance_visit_case(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation, site=self.organisation.primary_site, case_officer_id=self.gov_user.id,
+            organisation=self.organisation,
+            site=self.organisation.primary_site,
+            case_officer_id=self.gov_user.id,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
         data = {}

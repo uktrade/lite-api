@@ -76,8 +76,7 @@ class ExporterListTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.json()["results"]), 1)
         self.assertEquals(len(response.json()["results"][0]["registrations"]), 2)
-        self.assertEquals(
-            response.json()["results"][0]["registrations"][0],
+        self.assertIn(
             {
                 "reference_code": self.open_general_licence_case.reference_code,
                 "site": {
@@ -96,6 +95,7 @@ class ExporterListTests(DataTestClient):
                 "status": generate_key_value_pair(self.open_general_licence_case.status.status, CaseStatusEnum.choices),
                 "submitted_at": self.open_general_licence_case.submitted_at,
             },
+            response.json()["results"][0]["registrations"],
         )
 
     def test_exporter_view_site_licences_success(self):

@@ -65,6 +65,7 @@ class Organisation(TimestampableModel):
             raise ValidationError({"open_general_licence": ["This open general licence does not require registration"]})
 
         # Only register open general licences for sites in the UK which don't already have that licence registered
+        registrations = []
         with transaction.atomic():
             for site in (
                 Site.objects.get_by_user_and_organisation(user, self)
@@ -81,8 +82,9 @@ class Organisation(TimestampableModel):
                     submitted_by=user,
                 )
                 generate_compliance_site_case(case)
+                registrations.append(case.id)
 
-        return open_general_licence.id
+        return open_general_licence.id, registrations
 
     def save(self, **kwargs):
         super().save(**kwargs)
