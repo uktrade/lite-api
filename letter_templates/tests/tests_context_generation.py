@@ -567,9 +567,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_goods_query_details(context["details"], case)
 
     def test_generate_context_with_compliance_visit_details(self):
-        compliance_case = ComplianceVisitCaseFactory(
-            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
-        )
+        compliance_case = ComplianceVisitCaseFactory(organisation=self.organisation,)
 
         context = get_document_context(compliance_case)
 
