@@ -19,6 +19,7 @@ class GetCaseLicenceTests(DataTestClient):
             start_date=timezone.now().date(),
             status=LicenceStatus.REVOKED.value,
             duration=100,
+            reference_code="reference"
         )
         self.good = GoodFactory(organisation=self.application.organisation)
         self.good_on_application = GoodOnApplicationFactory(
@@ -28,6 +29,24 @@ class GetCaseLicenceTests(DataTestClient):
             good=self.good_on_application, quantity=self.good_on_application.quantity, usage=20.0, licence=self.licence
         )
 
-    def test_reissue_licence(self):
+    def test_get_application_licences(self):
         data = get_case_licences(self.application)
-        self.assertEqual(data, {})
+        self.assertEqual(
+            data,
+            [
+                {
+                    'duration': self.licence.duration,
+                    'goods': [
+                        {
+                            'control_list_entries': [],
+                            'description': self.good.description,
+                            'quantity': self.good_on_licence.quantity,
+                            'usage': self.good_on_licence.usage
+                         }
+                    ],
+                    'id': str(self.licence.id),
+                    'reference_code': self.licence.reference_code,
+                    'status': LicenceStatus.human_readable(self.licence.status)
+                }
+            ]
+        )
