@@ -20,7 +20,10 @@ class CaseTypeReferenceEnum:
     EUA = "eua"
     OGTCL = "ogtcl"
     OGTL = "ogtl"
-    COMP = "comp"
+    # Compliance cases both require COMP as a prefix in the reference code, so we use an _ to separate the suffix
+    #   which means we have both on reference code creation, without affecting filtering case_types etc
+    COMP_SITE = "comp_c"
+    COMP_VISIT = "comp_v"
 
     choices = [
         (OIEL, "Open Individual Export Licence"),
@@ -37,7 +40,8 @@ class CaseTypeReferenceEnum:
         (EUA, "End User Advisory Query"),
         (OGTCL, "Open General Trade Control Licence"),
         (OGTL, "Open General Transhipment Licence"),
-        (COMP, "Compliance"),
+        (COMP_SITE, "Compliance Site Case"),
+        (COMP_VISIT, "Compliance Visit Case"),
     ]
 
     @classmethod
@@ -78,7 +82,8 @@ class CaseTypeSubTypeEnum:
     EXHIBITION = "exhibition_clearance"
     GIFTING = "gifting_clearance"
     F680 = "f680_clearance"
-    COMP = "compliance"
+    COMP_SITE = "compliance_site"
+    COMP_VISIT = "compliance_visit"
 
     choices = [
         (STANDARD, "Standard Licence"),
@@ -89,7 +94,8 @@ class CaseTypeSubTypeEnum:
         (EXHIBITION, "MOD Exhibition Clearance"),
         (GIFTING, "MOD Gifting Clearance"),
         (F680, "MOD F680 Clearance"),
-        (COMP, "Compliance"),
+        (COMP_SITE, "Compliance Site Case"),
+        (COMP_VISIT, "Compliance Visit Case"),
     ]
 
     licence = [STANDARD, OPEN, HMRC]
@@ -208,11 +214,17 @@ class CaseTypeEnum:
         type = CaseTypeTypeEnum.REGISTRATION
         sub_type = CaseTypeSubTypeEnum.OPEN
 
-    class COMPLIANCE:
+    class COMPLIANCE_SITE:
         id = UUID("00000000-0000-0000-0000-000000000015")
-        reference = CaseTypeReferenceEnum.COMP
+        reference = CaseTypeReferenceEnum.COMP_SITE
         type = CaseTypeTypeEnum.COMPLIANCE
-        sub_type = CaseTypeSubTypeEnum.COMP
+        sub_type = CaseTypeSubTypeEnum.COMP_SITE
+
+    class COMPLIANCE_VISIT:
+        id = UUID("00000000-0000-0000-0000-000000000016")
+        reference = CaseTypeReferenceEnum.COMP_VISIT
+        type = CaseTypeTypeEnum.COMPLIANCE
+        sub_type = CaseTypeSubTypeEnum.COMP_VISIT
 
     CASE_TYPE_LIST = [
         OIEL,
@@ -229,7 +241,8 @@ class CaseTypeEnum:
         EUA,
         OGTCL,
         OGTL,
-        COMPLIANCE,
+        COMPLIANCE_SITE,
+        COMPLIANCE_VISIT,
     ]
 
     OGL_ID_LIST = [OGEL.id, OGTCL.id, OGTL.id]
