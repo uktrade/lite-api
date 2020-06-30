@@ -47,7 +47,7 @@ class CaseType(models.Model):
     type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35)
     sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35)
     reference = models.CharField(
-        choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=5,
+        choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=6,
     )
 
 
