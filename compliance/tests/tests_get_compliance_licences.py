@@ -25,9 +25,7 @@ def _assert_response_data(self, response_data, licence):
 class GetComplianceLicencesTests(DataTestClient):
     def test_get_compliance_OIEL_licences(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation, site=self.organisation.primary_site,
         )
         application = self.create_open_application_case(self.organisation)
         licence = self.create_licence(application, is_complete=True)
@@ -40,9 +38,7 @@ class GetComplianceLicencesTests(DataTestClient):
 
     def test_get_compliance_OICL_licences(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation, site=self.organisation.primary_site,
         )
         application = self.create_open_application_case(self.organisation)
         application.case_type_id = CaseTypeEnum.OICL.id

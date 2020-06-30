@@ -13,9 +13,7 @@ from test_helpers.clients import DataTestClient
 class ComplianceManageStatusTests(DataTestClient):
     def test_gov_set_compliance_case_status_to_closed_success(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation, site=self.organisation.primary_site,
         )
 
         url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
@@ -45,9 +43,7 @@ class ComplianceManageStatusTests(DataTestClient):
 
     def test_gov_set_compliance_case_status_to_withdrawn_failure(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation, site=self.organisation.primary_site,
         )
 
         url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})

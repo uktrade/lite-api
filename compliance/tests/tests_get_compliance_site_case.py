@@ -38,9 +38,7 @@ class GetComplianceSiteCaseTests(DataTestClient):
     def test_get_compliance_case(self):
         application = self.create_open_application_case(self.organisation)
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation, site=self.organisation.primary_site,
         )
         open_licence_returns = OpenLicenceReturnsFactory(organisation=self.organisation)
         licence = self.create_licence(application, is_complete=True)
@@ -54,9 +52,7 @@ class GetComplianceSiteCaseTests(DataTestClient):
 
     def test_get_compliance_visit_cases_as_part_of_site(self):
         compliance_case = ComplianceSiteCaseFactory(
-            organisation=self.organisation,
-            site=self.organisation.primary_site,
-            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            organisation=self.organisation, site=self.organisation.primary_site,
         )
         visit_case1 = compliance_case.create_visit_case()
 
