@@ -144,10 +144,7 @@ class CaseListSerializer(serializers.Serializer):
 
     def get_has_future_review_date(self, instance):
         case_review_date = instance.case_review_date.first()
-        if (
-            case_review_date
-            and case_review_date.next_review_date > timezone.now().date()
-        ):
+        if case_review_date and case_review_date.next_review_date > timezone.now().date():
             return True
         else:
             return False
