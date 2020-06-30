@@ -8,9 +8,6 @@ from cases.enums import CaseTypeEnum
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import OpenLicenceReturns, ComplianceSiteCase, CompliancePerson, ComplianceVisitCase
 from organisations.tests.factories import OrganisationFactory, SiteFactory
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-from static.statuses.models import CaseStatus
 
 
 class OpenLicenceReturnsFactory(factory.django.DjangoModelFactory):
