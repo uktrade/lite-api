@@ -48,7 +48,7 @@ class GetComplianceLicencesTests(DataTestClient):
         application = self.create_open_application_case(self.organisation)
         application.case_type_id = CaseTypeEnum.OICL.id
         application.save()
-        licence = self.create_licence(application, is_complete=True)
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED.value)
 
         url = reverse("compliance:licences", kwargs={"pk": compliance_case.id})
         response = self.client.get(url, **self.gov_headers)

@@ -19,7 +19,7 @@ class GetLicencesTests(DataTestClient):
         self.licence = LicenceFactory(
             application=self.application,
             start_date=timezone.now().date(),
-            status=LicenceStatus.REVOKED.value,
+            status=LicenceStatus.ISSUED.value,
             duration=100,
         )
         self.url = reverse("cases:licences", kwargs={"pk": self.application.id})
@@ -80,7 +80,7 @@ class GetLicencesTests(DataTestClient):
                             "proviso": good_1_advice.proviso,
                         },
                         "control_list_entries": [],
-                        "decription": good_1.description,
+                        "description": good_1.description,
                         "unit": None,
                         "good_id": str(good_on_application_1.good.id),
                         "id": str(good_on_application_1.id),
@@ -97,7 +97,7 @@ class GetLicencesTests(DataTestClient):
                             "proviso": good_2_advice.proviso,
                         },
                         "control_list_entries": [],
-                        "decription": good_2.description,
+                        "description": good_2.description,
                         "unit": None,
                         "good_id": str(good_on_application_2.good.id),
                         "id": str(good_on_application_2.id),

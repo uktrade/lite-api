@@ -108,19 +108,15 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
 
     def get_goods(self, instance):
         if instance.goods.exists():
-            return get_goods_on_licence(Licence.objects.filter(application=instance).last(), include_control_list_entries=True)
+            return get_goods_on_licence(Licence.objects.filter(application=instance).first(), include_control_list_entries=True)
         elif instance.goods_type.exists():
             return GoodsTypeOnLicenceListSerializer(instance.goods_type, many=True).data
-        else:
-            return None
 
     def get_destinations(self, instance):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
         elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
             return CountriesLicenceSerializer(instance.openapplication.application_countries, many=True).data
-        else:
-            return None
 
 
 class LicenceListSerializer(serializers.ModelSerializer):

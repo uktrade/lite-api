@@ -3,7 +3,9 @@ from rest_framework import status
 
 from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
+from cases.tests.factories import FinalAdviceFactory
 from licences.enums import LicenceStatus
+from licences.tests.factories import GoodOnLicenceFactory
 from licences.views.main import LicenceType
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
@@ -48,6 +50,11 @@ class GetLicencesTests(DataTestClient):
             for application in self.applications
         }
 
+        for application, licence in self.licences.items():
+            for good in application.goods.all():
+                FinalAdviceFactory(user=self.gov_user, good=good.good, case=application)
+                GoodOnLicenceFactory(licence=licence, good=good, quantity=good.quantity)
+
     def test_get_all_licences(self):
         response = self.client.get(self.url, **self.exporter_headers)
         response_data = response.json()["results"]
@@ -62,7 +69,6 @@ class GetLicencesTests(DataTestClient):
             self.assertEqual(licence["application"]["reference_code"], self.applications[i].reference_code)
             self.assertEqual(licence["application"]["status"]["id"], str(self.applications[i].status_id))
             self.assertEqual(licence["application"]["documents"][0]["id"], str(self.documents[i].id))
-
         # Assert correct information is returned
         for licence in self.licences.values():
             licence_data = node_by_id(response_data, licence.id)
@@ -88,10 +94,10 @@ class GetLicencesTests(DataTestClient):
                 good = licence.application.goods.first().good
 
                 self.assertEqual(
-                    application_data["goods"][0]["good"]["description"], good.description,
+                    application_data["goods"][0]["description"], good.description,
                 )
                 self.assertEqual(
-                    application_data["goods"][0]["good"]["control_list_entries"][0]["rating"],
+                    application_data["goods"][0]["control_list_entries"][0]["rating"],
                     good.control_list_entries.all()[0].rating,
                 )
 

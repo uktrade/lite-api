@@ -35,8 +35,8 @@ def get_goods_on_licence(licence, include_control_list_entries=False):
 
     goods = [
         {
-            "id": good["id"],
-            "good_id": good["good_id"],
+            "id": str(good["id"]),
+            "good_id": str(good["good_id"]),
             "unit": good["unit"],
             "usage": good["usage_total"],
             "usage_licenced": good["usage_licenced"],
@@ -55,7 +55,7 @@ def get_goods_on_licence(licence, include_control_list_entries=False):
 
     if include_control_list_entries:
         control_list_entries = {
-            good.id: ControlListEntrySerializer(good.control_list_entries.all(), many=True).data
+            str(good.id): ControlListEntrySerializer(good.control_list_entries.all(), many=True).data
             for good in Good.objects.filter(id__in=[gol["good_id"] for gol in goods_on_licence]).prefetch_related(
                 "control_list_entries"
             )

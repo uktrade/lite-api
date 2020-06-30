@@ -42,7 +42,7 @@ class Licences(ListCreateAPIView):
 
         licences = Licence.objects.filter(
             application__organisation_id=get_request_user_organisation_id(self.request),
-            status=LicenceStatus.ISSUED.value,
+            status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value],
         )
 
         # Apply filters
