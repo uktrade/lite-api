@@ -17,6 +17,7 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading
+from licences.enums import LicenceStatus
 from licences.models import GoodOnLicence, Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
@@ -66,7 +67,7 @@ def get_document_context(case, licence=None, addressee=None):
         "details": _get_details_context(case),
         "addressee": _get_addressee_context(addressee),
         "organisation": _get_organisation_context(case.organisation),
-        "licence": _get_licence_context(licence) if licence else None,
+        "licence": _get_licence_context(licence) if licence and licence.status != LicenceStatus.REFUSED.value else None,
         "end_user": _get_party_context(base_application.end_user.party)
         if base_application and getattr(base_application, "end_user", "")
         else None,
