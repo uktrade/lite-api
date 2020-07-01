@@ -144,11 +144,11 @@ class CaseListSerializer(serializers.Serializer):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
 
     def get_has_future_review_date(self, instance):
-        case_review_date = instance.case_review_date.first()
-        if case_review_date and case_review_date.next_review_date > timezone.now().date():
-            return True
-        else:
-            return False
+        case_review_date = CaseReviewDate.objects.filter(case_id=instance.id, team_id=self.team.id).first()
+        if case_review_date:
+            if case_review_date.next_review_date and case_review_date.next_review_date > timezone.now().date():
+                return True
+        return False
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
