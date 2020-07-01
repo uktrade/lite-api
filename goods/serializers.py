@@ -19,7 +19,12 @@ from goods.enums import (
     Component,
     FirearmGoodType,
 )
-from goods.helpers import validate_military_use, validate_component_details
+from goods.helpers import (
+    validate_military_use,
+    validate_component_details,
+    validate_identification_markings,
+    validate_section_certificate_number_and_expiry_date,
+)
 from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
@@ -81,13 +86,19 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     calibre = serializers.CharField(error_messages={"blank": strings.Goods.FIREARM_GOOD_NO_CALIBRE}, max_length=15)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = serializers.BooleanField(allow_null=True, required=False)
-    section_certificate_number = serializers.CharField(allow_blank=True, allow_null=True, required=False, max_length=100)
+    section_certificate_number = serializers.CharField(
+        allow_blank=True, allow_null=True, required=False, max_length=100
+    )
     section_certificate_date_of_expiry = serializers.DateField(
         allow_null=True, required=False, error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE}
     )
     has_identification_markings = serializers.BooleanField(allow_null=True, required=False,)
-    identification_markings_details = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
-    no_identification_markings_details = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
+    identification_markings_details = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, max_length=2000
+    )
+    no_identification_markings_details = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, max_length=2000
+    )
 
     class Meta:
         model = FirearmGoodDetails
@@ -106,10 +117,20 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     def validate(self, data):
         validated_data = super(FirearmDetailsSerializer, self).validate(data)
 
+        # Year of manufacture should be in the past and a valid year
         year_of_manufacture = validated_data.get("year_of_manufacture")
-        if year_of_manufacture and year_of_manufacture >= timezone.now().date().year:
-            raise serializers.ValidationError({"year_of_manufacture": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_IN_PAST})
+        if year_of_manufacture:
+            if year_of_manufacture >= timezone.now().date().year:
+                raise serializers.ValidationError(
+                    {"year_of_manufacture": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_IN_PAST}
+                )
+            # Oldest firearm/ammunition in the world could date back to the 9th century - do not allow negative years
+            if year_of_manufacture < 800:
+                raise serializers.ValidationError(
+                    {"year_of_manufacture": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_VALID}
+                )
 
+        # Firearms act validation - mandatory question
         if (
             "is_covered_by_firearm_act_section_one_two_or_five" in data
             and data.get("is_covered_by_firearm_act_section_one_two_or_five") is None
@@ -118,41 +139,12 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
                 {"is_covered_by_firearm_act_section_one_two_or_five": [strings.Goods.FIREARM_GOOD_NO_SECTION]}
             )
 
+        # Section certificate number and date of expiry are mandatory if the answer to the firearms act question is True
         if validated_data.get("is_covered_by_firearm_act_section_one_two_or_five"):
-            if not validated_data.get("section_certificate_number"):
-                raise serializers.ValidationError(
-                    {"section_certificate_number": strings.Goods.FIREARM_GOOD_NO_CERT_NUM}
-                )
-            if not validated_data.get("section_certificate_date_of_expiry"):
-                raise serializers.ValidationError(
-                    {"section_certificate_date_of_expiry": strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE}
-                )
+            validate_section_certificate_number_and_expiry_date(validated_data)
 
-            date_of_expiry = validated_data.get("section_certificate_date_of_expiry")
-            if date_of_expiry and date_of_expiry < timezone.now().date():
-                raise serializers.ValidationError(
-                    {"section_certificate_date_of_expiry": [strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE]}
-                )
-
-        if (
-            "has_identification_markings" in validated_data
-            and validated_data.get("has_identification_markings") is None
-        ):
-            raise serializers.ValidationError({"has_identification_markings": [strings.Goods.FIREARM_GOOD_NO_MARKINGS]})
-
-        if validated_data.get("has_identification_markings") is True and not validated_data.get(
-            "identification_markings_details"
-        ):
-            raise serializers.ValidationError(
-                {"identification_markings_details": [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_MARKINGS]}
-            )
-
-        if validated_data.get("has_identification_markings") is False and not validated_data.get(
-            "no_identification_markings_details"
-        ):
-            raise serializers.ValidationError(
-                {"no_identification_markings_details": [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_NO_MARKINGS]}
-            )
+        # Identification markings - mandatory question
+        validate_identification_markings(validated_data)
 
         return validated_data
 
