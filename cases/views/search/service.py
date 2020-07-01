@@ -14,6 +14,7 @@ from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from cases.models import Case
 from common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
 from flags.serializers import CaseListFlagSerializer
+from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
 from users.models import GovUser
@@ -76,8 +77,10 @@ def populate_destinations_flags(cases: List[Dict]):
     case_ids = [case["id"] for case in cases]
     flags = Flag.objects.filter(
         Q(parties__parties_on_application__application_id__in=case_ids)
-        | Q(parties__parties_on_application__application_id__in=case_ids,
-            parties__parties_on_application__deleted_at__isnull=True)
+        | Q(
+            parties__parties_on_application__application_id__in=case_ids,
+            parties__parties_on_application__deleted_at__isnull=True,
+        )
         | Q(countries_on_applications__application_id__in=case_ids)
         | Q(countries__countries_on_application__application_id__in=case_ids)
     ).annotate(
@@ -86,12 +89,18 @@ def populate_destinations_flags(cases: List[Dict]):
                 parties__parties_on_application__application_id__in=case_ids,
                 then=F("parties__parties_on_application__application_id"),
             ),
-            When(parties__parties_on_application__application_id__in=case_ids,
-                 then=F("parties__parties_on_application__application_id")),
-            When(countries_on_applications__application_id__in=case_ids,
-                 then=F("countries_on_applications__application_id")),
-            When(countries__countries_on_application__application_id__in=case_ids,
-                 then=F("countries__countries_on_application__application_id")),
+            When(
+                parties__parties_on_application__application_id__in=case_ids,
+                then=F("parties__parties_on_application__application_id"),
+            ),
+            When(
+                countries_on_applications__application_id__in=case_ids,
+                then=F("countries_on_applications__application_id"),
+            ),
+            When(
+                countries__countries_on_application__application_id__in=case_ids,
+                then=F("countries__countries_on_application__application_id"),
+            ),
             default=None,
             output_field=UUIDField(),
         )
@@ -101,6 +110,32 @@ def populate_destinations_flags(cases: List[Dict]):
         case["destinations_flags"] = CaseListFlagSerializer(
             [flag for flag in flags if str(flag.case_id) == str(case["id"])], many=True
         ).data
+
+    return cases
+
+
+def populate_organisation(cases: List[Dict]):
+    from organisations.serializers import OrganisationCaseSerializer
+
+    case_ids = [case["id"] for case in cases]
+    organisations = (
+        Organisation.objects.filter(cases__id__in=case_ids)
+        .annotate(case_id=F("cases__id"))
+        .select_related("primary_site")
+        .prefetch_related(
+            "primary_site__address",
+            "primary_site__address__country",
+            "primary_site__site_records_located_at",
+            "primary_site__site_records_located_at__address",
+            "primary_site__site_records_located_at__address__country",
+        )
+    )
+
+    for case in cases:
+        organisation = next(
+            organisation for organisation in organisations if str(organisation.case_id) == str(case["id"])
+        )
+        case["organisation"] = OrganisationCaseSerializer(organisation).data
 
     return cases
 

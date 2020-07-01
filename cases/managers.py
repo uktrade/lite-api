@@ -70,15 +70,6 @@ class CaseQuerySet(models.QuerySet):
     def is_type(self, case_type):
         return self.filter(case_type=case_type)
 
-    def order_by_status(self, order=""):
-        """
-        :param order: ('', '-')
-        :return:
-        """
-        order = order if order in ["", "-"] else ""
-
-        return self.order_by(f"{order}status__priority")
-
     def with_case_reference_code(self, case_reference):
         return self.filter(reference_code__icontains=case_reference)
 

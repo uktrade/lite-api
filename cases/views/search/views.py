@@ -60,6 +60,7 @@ class CasesSearchView(generics.ListAPIView):
 
         service.populate_goods_flags(cases)
         service.populate_destinations_flags(cases)
+        service.populate_organisation(cases)
         service.populate_organisation_flags(cases)
         service.populate_is_recently_updated(cases)
         service.get_hmrc_sla_hours(cases)

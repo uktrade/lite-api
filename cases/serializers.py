@@ -111,45 +111,23 @@ class CaseListSerializer(serializers.Serializer):
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
     status = serializers.SerializerMethodField()
-    # flags = serializers.SerializerMethodField()
-    # destination_flags = serializers.SerializerMethodField()
-    # goods_flags = serializers.SerializerMethodField()
+    flags = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
-    # TODO: update the serializer below to be more efficient, it creates a new query for each case in list to get site
-    organisation = PrimaryKeyRelatedSerializerField(
-        queryset=Organisation.objects.all(), serializer=OrganisationCaseSerializer
-    )
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
         self.include_hidden = kwargs.pop("include_hidden", None)
         super().__init__(*args, **kwargs)
 
-    # def get_goods_flags(self, instance):
-    #     """
-    #     Gets flags for a case and returns in sorted order by team.
-    #     """
-    #     return []
-    #     # goods_flags = get_goods_flags(instance, instance.case_type.sub_type)
-    #     # return CaseListFlagSerializer(goods_flags, many=True).data
-
-    # def get_destination_flags(self, instance):
-    #     """
-    #     Gets flags for a case and returns in sorted order by team.
-    #     """
-    #     return []
-    #     # goods_flags = get_destination_flags(instance, instance.case_type.sub_type)
-    #     # return CaseListFlagSerializer(goods_flags, many=True).data
-    #
-    # def get_flags(self, instance):
-    #     """
-    #     Gets flags for a case and returns in sorted order by team.
-    #     """
-    #     flags = instance.flags.all()
-    #     return CaseListFlagSerializer(flags, many=True).data
+    def get_flags(self, instance):
+        """
+        Gets flags for a case and returns in sorted order by team.
+        """
+        flags = instance.flags.all()
+        return CaseListFlagSerializer(flags, many=True).data
 
     def get_submitted_at(self, instance):
         # Return the DateTime value manually as otherwise
