@@ -28,7 +28,6 @@ class Licence(TimestampableModel):
     objects = LicenceManager()
 
     class Meta:
-        constraints = [CheckConstraint(check=Q(status__in=LicenceStatus.values()), name="status_choices")]
         ordering = ("-created_at",)
 
     def surrender(self):
@@ -84,4 +83,4 @@ class GoodOnLicence(TimestampableModel):
     licence = models.ForeignKey(Licence, on_delete=models.CASCADE, related_name="goods", related_query_name="goods")
     usage = models.FloatField(null=False, blank=False, default=0)
     quantity = models.FloatField(null=True, blank=True, default=None)
-    value = models.DecimalField(max_digits=256, decimal_places=2, null=True, blank=True, default=None)
+    value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)

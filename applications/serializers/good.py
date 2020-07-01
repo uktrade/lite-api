@@ -31,17 +31,13 @@ class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
         },
     )
     value = serializers.DecimalField(
-        max_digits=256,
+        max_digits=15,
         decimal_places=2,
         required=True,
         allow_null=False,
         min_value=0,
         error_messages={"null": strings.Licence.NULL_VALUE_ERROR, "min_value": strings.Licence.NEGATIVE_VALUE_ERROR,},
     )
-
-    def __init__(self, update_or_create=False, *args, **kwargs):
-        self.update_or_create = update_or_create
-        super().__init__(*args, **kwargs)
 
     class Meta:
         model = GoodOnLicence
@@ -54,22 +50,9 @@ class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        if data["quantity"] + self.context.get("total_usage", 0) > self.context.get("quantity", 0):
-            # Requested quantity and usage is greater than quantity issued
+        if data["quantity"] > self.context.get("applied_for_quantity"):
             raise serializers.ValidationError({"quantity": strings.Licence.INVALID_QUANTITY_ERROR})
         return data
-
-    def create(self, validated_data):
-        """
-        Override create in order to avoid creating multiple draft versions of a Licence
-        """
-        if not self.update_or_create:
-            return super().create(validated_data)
-
-        licence = validated_data.pop("licence")
-        good = validated_data.pop("good")
-        instance, _ = GoodOnLicence.objects.update_or_create(licence=licence, good=good, defaults=validated_data)
-        return instance
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):

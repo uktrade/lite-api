@@ -5,10 +5,10 @@ from licences.models import Licence
 from lite_content.lite_api import strings
 
 
-class LicenceSerializer(serializers.ModelSerializer):
+class LicenceCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Licence
-        fields = ("application", "start_date", "duration", "status")
+        fields = ("application", "reference_code", "start_date", "duration", "status")
 
     def validate(self, data):
         """

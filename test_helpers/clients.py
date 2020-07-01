@@ -48,7 +48,7 @@ from goodstype.models import GoodsType
 from goodstype.tests.factories import GoodsTypeFactory
 from letter_templates.models import LetterTemplate
 from licences.enums import LicenceStatus
-from licences.helpers import get_reference_code
+from licences.helpers import get_licence_reference_code
 from licences.models import Licence
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, ExternalLocation
@@ -995,7 +995,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
         if not reference_code:
-            reference_code = get_reference_code(application.reference_code)
+            reference_code = get_licence_reference_code(application.reference_code)
 
         licence = Licence.objects.create(
             application=application,
