@@ -148,6 +148,53 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
 
         return validated_data
 
+    def update(self, instance, validated_data):
+        instance.type = validated_data.get("type", instance.type)
+        instance.year_of_manufacture = validated_data.get("year_of_manufacture", instance.year_of_manufacture)
+        instance.calibre = validated_data.get("calibre", instance.calibre)
+
+        is_covered_by_firearms_act = validated_data.get("is_covered_by_firearm_act_section_one_two_or_five")
+        # if the answer to the firearms act has changed, then set the new value and the certificate and date fields
+        if (
+            is_covered_by_firearms_act is not None
+            and is_covered_by_firearms_act != instance.is_covered_by_firearm_act_section_one_two_or_five
+        ):
+            instance.is_covered_by_firearm_act_section_one_two_or_five = is_covered_by_firearms_act
+            # Clear the date and certificate fields if the answer has changed to a No
+            if not instance.is_covered_by_firearm_act_section_one_two_or_five:
+                instance.section_certificate_number = ""
+                instance.section_certificate_date_of_expiry = None
+
+        # Update just the certificate and expiryy date fields if changed
+        instance.section_certificate_number = validated_data.get(
+            "section_certificate_number", instance.section_certificate_number
+        )
+        instance.section_certificate_date_of_expiry = validated_data.get(
+            "section_certificate_date_of_expiry", instance.section_certificate_date_of_expiry
+        )
+
+        has_markings = validated_data.get("has_identification_markings")
+        # if the answer to the identification markings question has changed
+        if has_markings is not None and has_markings != instance.has_identification_markings:
+            instance.has_identification_markings = has_markings
+            # If changed to Yes, clear the no_identification_markings_details field
+            if has_markings:
+                instance.no_identification_markings_details = ""
+                instance.identification_markings_details = validated_data.get("identification_markings_details")
+            else:
+                instance.identification_markings_details = ""
+                instance.no_identification_markings_details = validated_data.get("no_identification_markings_details")
+        # Update just the identification marking details fields value if changed
+        instance.identification_markings_details = validated_data.get(
+            "identification_markings_details", instance.identification_markings_details
+        )
+        instance.no_identification_markings_details = validated_data.get(
+            "no_identification_markings_details", instance.no_identification_markings_details
+        )
+
+        instance.save()
+        return instance
+
 
 class GoodListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
