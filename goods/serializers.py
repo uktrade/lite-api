@@ -283,6 +283,17 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             if hasattr(self, "initial_data"):
                 self.initial_data["control_list_entries"] = []
 
+        if self.get_initial().get("is_military_use"):
+            is_military_use = self.get_initial().get("is_military_use")
+            # if military answer is not "yes_modified" then remove the irrelevant details
+            if is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO] and hasattr(self, "initial_data"):
+                self.initial_data.pop("modified_military_use_details")
+
+        if self.get_initial().get("uses_information_security"):
+            # if information security is False then remove the irrelevant details
+            if not str_to_bool(self.get_initial().get("uses_information_security")) and hasattr(self, "initial_data"):
+                self.initial_data.pop("information_security_details")
+
         if self.get_initial().get("firearm_details"):
             firearm_details = self.get_initial().get("firearm_details")
             # Remove the dependent nested fields in the data if irrelevant based on the parent option selected
@@ -421,7 +432,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             # When information security is No, then clear the details field and remove so it is not validated again
             if uses_information_security is False:
                 instance.information_security_details = ""
-                validated_data.pop("information_security_details")
             else:
                 instance.information_security_details = validated_data.get(
                     "information_security_details", instance.information_security_details
