@@ -550,6 +550,8 @@ class GoodSerializerInternal(serializers.Serializer):
 
 
 class TinyGoodDetailsSerializer(serializers.ModelSerializer):
+    firearm_details = FirearmDetailsSerializer(read_only=True)
+
     class Meta:
         model = Good
         fields = (
@@ -562,6 +564,7 @@ class TinyGoodDetailsSerializer(serializers.ModelSerializer):
             "component_details",
             "information_security_details",
             "software_or_technology_details",
+            "firearm_details",
         )
 
 
