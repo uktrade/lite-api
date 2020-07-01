@@ -2,6 +2,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from conf.exceptions import BadRequestError
 from goods.enums import Component, MilitaryUse
 from lite_content.lite_api import strings
 
@@ -77,3 +78,42 @@ def validate_section_certificate_number_and_expiry_date(validated_data):
         raise serializers.ValidationError(
             {"section_certificate_date_of_expiry": [strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE]}
         )
+
+
+def check_if_firearm_details_edited_on_unsupported_good(data):
+    """ Return bad request if editing any of the firearm details on a good that is not in group 2 firearms """
+    firearm_good_specific_details = [
+        "type",
+        "year_of_manufacture",
+        "calibre",
+        "is_covered_by_firearm_act_section_one_two_or_five",
+        "section_certificate_number",
+        "section_certificate_date_of_expiry",
+        "has_identification_markings",
+        "identification_markings_details",
+        "no_identification_markings_details",
+    ]
+    if any(detail in data["firearm_details"] for detail in firearm_good_specific_details):
+        raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+
+def check_if_unsupported_fields_edited_on_firearm_good(data):
+    """
+    Return bad request if trying to edit any details that are NOT applicable to category 2 firearm goods.
+    This includes all military use/component/information security fields only relevant to category 1
+    along with the software or technology details for category 3
+    """
+    sections = [
+        "is_military_use",
+        "modified_military_use_details",
+        "is_component",
+        "designed_details",
+        "modified_details",
+        "general_details",
+        "uses_information_security",
+        "information_security_details",
+        "software_or_technology_details",
+    ]
+    # The parent field values don't get sent if not explicitly selected on the form, so we check the presence of details fields as well
+    if any(section in data for section in sections):
+        raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
