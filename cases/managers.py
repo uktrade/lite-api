@@ -243,19 +243,12 @@ class CaseManager(models.Manager):
         """
         case_qs = (
             self.submitted()
-            .select_related("organisation", "status", "case_type")
+            .select_related("status", "case_type")
             .prefetch_related(
-                "flags",
-                "flags__team",
                 "case_assignments",
                 "case_assignments__user",
                 "case_ecju_query",
                 "case_assignments__queue",
-                "organisation",
-                "organisation__flags",
-                "organisation__flags__team",
-                "organisation__primary_site",
-                "organisation__primary_site__address",
             )
         )
 

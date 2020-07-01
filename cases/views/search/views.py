@@ -24,6 +24,8 @@ class CasesSearchView(generics.ListAPIView):
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
         is_system_queue = queue_id in SYSTEM_QUEUES.keys()
 
+        from django.db import connection
+
         context = {
             "queue_id": queue_id,
             "is_system_queue": is_system_queue,
@@ -50,6 +52,7 @@ class CasesSearchView(generics.ListAPIView):
                 **filters,
             )
         )
+
         queues = get_system_queues(
             include_team_info=False, include_case_count=True, user=request.user
         ) + get_team_queues(team_id=request.user.team_id, include_team_info=False, include_case_count=True)
@@ -58,10 +61,11 @@ class CasesSearchView(generics.ListAPIView):
             page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
         ).data
 
+        # Populate certain fields out of the serializer for performance improvements
         service.populate_goods_flags(cases)
         service.populate_destinations_flags(cases)
+        service.populate_other_flags(cases)
         service.populate_organisation(cases)
-        service.populate_organisation_flags(cases)
         service.populate_is_recently_updated(cases)
         service.get_hmrc_sla_hours(cases)
 
@@ -69,7 +73,7 @@ class CasesSearchView(generics.ListAPIView):
         # If this fails (i.e. I'm on a non team queue) fetch the queue data
         queue = (
             next((q for q in queues if str(q["id"]) == str(queue_id)), None)
-            or Queue.objects.filter(id=queue_id).annotate(case_count=Count("cases")).values()[0]
+            or Queue.objects.filter(id=queue_id).values()[0]
         )
 
         statuses = service.get_case_status_list()

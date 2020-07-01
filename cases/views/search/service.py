@@ -140,8 +140,12 @@ def populate_organisation(cases: List[Dict]):
     return cases
 
 
-def populate_organisation_flags(cases: List[Dict]):
+def populate_other_flags(cases: List[Dict]):
     from flags.models import Flag
+
+    #     """
+    #     flags = instance.flags.all()
+    #     return CaseListFlagSerializer(flags, many=True).data
 
     case_ids = [case["id"] for case in cases]
     flags = Flag.objects.filter(organisations__cases__id__in=case_ids).annotate(case_id=F("organisations__cases__id"))

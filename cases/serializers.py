@@ -111,7 +111,6 @@ class CaseListSerializer(serializers.Serializer):
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
     assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
     status = serializers.SerializerMethodField()
-    flags = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
@@ -121,13 +120,6 @@ class CaseListSerializer(serializers.Serializer):
         self.team = kwargs.pop("team", None)
         self.include_hidden = kwargs.pop("include_hidden", None)
         super().__init__(*args, **kwargs)
-
-    def get_flags(self, instance):
-        """
-        Gets flags for a case and returns in sorted order by team.
-        """
-        flags = instance.flags.all()
-        return CaseListFlagSerializer(flags, many=True).data
 
     def get_submitted_at(self, instance):
         # Return the DateTime value manually as otherwise

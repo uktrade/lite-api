@@ -1,8 +1,8 @@
 from faker import Faker
 
-from cases.models import Case
 from flags.models import Flag
 from flags.tests.factories import FlagFactory
+from goods.models import Good
 from organisations.tests.providers import OrganisationProvider
 from static.management.SeedCommand import SeedCommand
 from teams.models import Team
@@ -24,7 +24,7 @@ class Command(SeedCommand):
             while Flag.objects.filter(name=name).exists():
                 name = faker.word()
 
-            flag = FlagFactory(name=name, level="Case", team=Team.objects.get(name="Admin"), priority=10)
-            for case in Case.objects.submitted().order_by("-submitted_at")[:25]:
-                case.flags.add(flag)
-                print(f"Created {flag.name} and added to {case.reference_code}")
+            flag = FlagFactory(name=name, level="Destination", team=Team.objects.get(name="Admin"), priority=10)
+            # for case in Good.objects.filter(status="verified").order_by("-created_at")[:25]:
+            #     case.flags.add(flag)
+            #     print(f"Created {flag.name} and added to {case.id}")
