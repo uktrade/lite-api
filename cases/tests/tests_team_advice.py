@@ -287,7 +287,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        self.assertEquals(PvGrading.to_str(pv_grading), Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading)
+        self.assertEquals(
+            PvGrading.to_str(pv_grading), Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        )
 
     def test_merge_user_advice_same_advice_type_different_pv_gradings(self):
         """
@@ -343,7 +345,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        self.assertEquals(PvGrading.to_str(pv_grading), Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading)
+        self.assertEquals(
+            PvGrading.to_str(pv_grading), Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        )
 
     def test_when_user_advice_exists_combine_team_advice_with_confirm_own_advice_success(self,):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])
