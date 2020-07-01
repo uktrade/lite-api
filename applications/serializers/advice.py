@@ -38,6 +38,9 @@ class AdviceViewSerializer(serializers.Serializer):
     consignee = serializers.UUIDField(source="consignee_id")
     third_party = serializers.UUIDField(source="third_party_id")
 
+    class Meta:
+        ordering = ["created_at"]
+
 
 class AdviceCreateSerializer(serializers.ModelSerializer):
     text = serializers.CharField(required=True, max_length=5000, error_messages={"blank": strings.Advice.TEXT})
