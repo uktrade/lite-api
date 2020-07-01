@@ -13,5 +13,10 @@ class Create(APIView):
     def post(self, request, *args, **kwargs):
         organisation = get_request_user_organisation(request)
         open_general_licence = get_open_general_licence(request.data.get("open_general_licence"))
-        organisation.register_open_general_licence(open_general_licence, request.user)
-        return JsonResponse(data={"open_general_licence": open_general_licence.id}, status=status.HTTP_201_CREATED)
+        open_general_licence_id, registrations = organisation.register_open_general_licence(
+            open_general_licence, request.user
+        )
+        return JsonResponse(
+            data={"open_general_licence": open_general_licence_id, "registrations": registrations},
+            status=status.HTTP_201_CREATED,
+        )

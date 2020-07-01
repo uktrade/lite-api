@@ -28,8 +28,9 @@ from cases.models import (
     CaseType,
     CaseReviewDate,
 )
-from compliance.models import ComplianceSiteCase
-from compliance.serializers import ComplianceSiteViewSerializer
+from compliance.models import ComplianceSiteCase, ComplianceVisitCase
+from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
+from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
@@ -214,9 +215,12 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             return serializer(application).data
         elif instance.case_type.type == CaseTypeTypeEnum.QUERY:
             return QueryViewSerializer(instance.query, read_only=True).data
-        elif instance.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
+        elif instance.case_type.sub_type == CaseTypeSubTypeEnum.COMP_SITE:
             compliance = ComplianceSiteCase.objects.get(id=instance.id)
             return ComplianceSiteViewSerializer(compliance, context={"team": self.team}).data
+        elif instance.case_type.sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
+            compliance = ComplianceVisitCase.objects.get(id=instance.id)
+            return ComplianceVisitSerializer(compliance).data
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))
@@ -462,7 +466,7 @@ class ReviewDateUpdateSerializer(serializers.ModelSerializer):
     """
 
     team = serializers.PrimaryKeyRelatedField(required=True, queryset=Team.objects.all())
-    case = serializers.PrimaryKeyRelatedField(required=True, queryset=Case.objects.submitted())
+    case = serializers.PrimaryKeyRelatedField(required=True, queryset=Case.objects.all())
     next_review_date = serializers.DateField(
         required=False,
         allow_null=True,

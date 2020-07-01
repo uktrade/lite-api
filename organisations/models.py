@@ -64,13 +64,14 @@ class Organisation(TimestampableModel):
             raise ValidationError({"open_general_licence": ["This open general licence does not require registration"]})
 
         # Only register open general licences for sites in the UK which don't already have that licence registered
+        registrations = []
         with transaction.atomic():
             for site in (
                 Site.objects.get_by_user_and_organisation(user, self)
                 .filter(address__country_id="GB")
                 .exclude(open_general_licence_cases__open_general_licence=open_general_licence)
             ):
-                OpenGeneralLicenceCase(
+                case = OpenGeneralLicenceCase.objects.create(
                     open_general_licence=open_general_licence,
                     site=site,
                     case_type=open_general_licence.case_type,
@@ -78,9 +79,10 @@ class Organisation(TimestampableModel):
                     status=get_case_status_by_status(CaseStatusEnum.FINALISED),
                     submitted_at=timezone.now(),
                     submitted_by=user,
-                ).save()
+                )
+                registrations.append(case.id)
 
-        return open_general_licence.id
+        return open_general_licence.id, registrations
 
     def save(self, **kwargs):
         super().save(**kwargs)
