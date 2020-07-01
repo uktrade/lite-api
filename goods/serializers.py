@@ -78,16 +78,16 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
     year_of_manufacture = serializers.IntegerField(
         error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_YEAR_OF_MANUFACTURE},
     )
-    calibre = serializers.CharField(error_messages={"blank": strings.Goods.FIREARM_GOOD_NO_CALIBRE})
+    calibre = serializers.CharField(error_messages={"blank": strings.Goods.FIREARM_GOOD_NO_CALIBRE}, max_length=15)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = serializers.BooleanField(allow_null=True, required=False)
-    section_certificate_number = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+    section_certificate_number = serializers.CharField(allow_blank=True, allow_null=True, required=False, max_length=100)
     section_certificate_date_of_expiry = serializers.DateField(
         allow_null=True, required=False, error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE}
     )
     has_identification_markings = serializers.BooleanField(allow_null=True, required=False,)
-    identification_markings_details = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    no_identification_markings_details = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    identification_markings_details = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
+    no_identification_markings_details = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=2000)
 
     class Meta:
         model = FirearmGoodDetails
