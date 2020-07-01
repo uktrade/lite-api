@@ -152,6 +152,7 @@ class CreateCaseAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
+        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
         self.assertNotIn("\n-------\n", pv_gradings)
         self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
