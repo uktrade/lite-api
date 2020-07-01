@@ -272,7 +272,7 @@ class GoodTAUDetails(APIView):
             raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
 
         # return bad request if editing any of the firearm details on a good that is not in group 2 firearms
-        if good.item_category not in ItemCategory.group_two:
+        if good.item_category not in ItemCategory.group_two and data.get("firearm_details"):
             check_if_firearm_details_edited_on_unsupported_good(data)
 
         # return bad request if trying to edit any details that are not applicable to category 2 firearm goods
