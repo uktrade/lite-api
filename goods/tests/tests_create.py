@@ -473,17 +473,14 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(errors["calibre"], [strings.Goods.FIREARM_GOOD_NO_CALIBRE])
         self.assertEqual(errors["year_of_manufacture"], [strings.Goods.FIREARM_GOOD_NO_YEAR_OF_MANUFACTURE])
 
-    @parameterized.expand(
-        [[str(timezone.now().date().year)], [str(timezone.now().date().year + 1)],]
-    )
-    def test_add_category_two_good_no_year_of_manufacture_not_in_the_past_failure(self, year):
+    def test_add_category_two_good_no_year_of_manufacture_not_in_the_past_failure(self):
         data = {
             "description": "coffee",
             "is_good_controlled": GoodControlled.NO,
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
-            "firearm_details": {"type": FirearmGoodType.AMMUNITION, "calibre": "0.5", "year_of_manufacture": year},
+            "firearm_details": {"type": FirearmGoodType.AMMUNITION, "calibre": "0.5", "year_of_manufacture": str(timezone.now().date().year + 1)},
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -491,6 +488,28 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["year_of_manufacture"], [strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_IN_PAST])
+
+    @parameterized.expand(
+        [
+            [timezone.now().date().year],
+            [timezone.now().date().year-1]
+        ]
+    )
+    def test_add_category_two_good_no_year_of_manufacture_in_the_past_success(self, year):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": FirearmGoodType.AMMUNITION, "calibre": "0.5", "year_of_manufacture": str(year)},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(good["firearm_details"]["year_of_manufacture"], year)
 
     def test_add_category_two_good_no_section_certificate_failure(self):
         data = {
@@ -828,6 +847,65 @@ class CreateGoodTests(DataTestClient):
         )
         self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
 
+    @parameterized.expand(
+        [
+            ["True",  "identification_markings_details", "no_identification_markings_details"],
+            ["False",  "no_identification_markings_details", "identification_markings_details"]
+        ]
+    )
+    def test_add_category_two_good_has_markings_details_too_long_failure(self, has_identification_markings, details_field, other_details_fields):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "",
+                "has_identification_markings": has_identification_markings,
+                details_field: "A"*2001,
+                other_details_fields: ""
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors[details_field], ['Ensure this field has no more than 2000 characters.'])
+
+    @parameterized.expand([
+            ["is_military_use", "True"],
+            ["modified_military_use_details", "some details"],
+            ["is_component", "True"],
+            ["designed_details", "some details"],
+            ["modified_details", "some details"],
+            ["general_details", "some details"],
+            ["uses_information_security", "True"],
+            ["information_security_details", "some details"],
+            ["software_or_technology_details", "some details"],
+        ]
+    )
+    def test_add_category_two_adding_invalid_attributes_failure(self, field, value):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            field: value
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])
 
 class GoodsCreateControlledGoodTests(DataTestClient):
     def setUp(self):
@@ -889,6 +967,8 @@ class GoodsCreateControlledGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(Good.objects.all().count(), 1)
+
+
 
 
 class GoodsCreatePvGradedGoodTests(DataTestClient):

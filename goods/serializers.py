@@ -120,7 +120,7 @@ class FirearmDetailsSerializer(serializers.ModelSerializer):
         # Year of manufacture should be in the past and a valid year
         year_of_manufacture = validated_data.get("year_of_manufacture")
         if year_of_manufacture:
-            if year_of_manufacture >= timezone.now().date().year:
+            if year_of_manufacture > timezone.now().date().year:
                 raise serializers.ValidationError(
                     {"year_of_manufacture": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_IN_PAST}
                 )
