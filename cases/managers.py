@@ -4,6 +4,7 @@ from typing import List
 from compat import get_model
 from django.db import models, transaction
 from django.db.models import Q, Case, When, BinaryField
+from django.utils import timezone
 
 from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
@@ -270,11 +271,19 @@ class CaseManager(models.Manager):
 
         if not include_hidden and user:
             EcjuQuery = get_model("cases", "ecjuquery")
+            CaseReviewDate = get_model("cases", "casereviewdate")
 
             case_qs = case_qs.exclude(
                 id__in=EcjuQuery.objects.filter(raised_by_user__team_id=user.team.id, responded_at__isnull=True)
                 .values("case_id")
                 .distinct()
+            )
+
+            # We hide cases that have a next review date that is set in the future (for your team)
+            case_qs = case_qs.exclude(
+                id__in=CaseReviewDate.objects.filter(
+                    team_id=user.team.id, next_review_date__gt=timezone.now().date()
+                ).values("case_id")
             )
 
         if queue_id and user:
