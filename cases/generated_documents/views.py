@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseDocumentState
+from cases.enums import CaseDocumentState, AdviceType
 from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import (
@@ -70,7 +70,8 @@ class GeneratedDocuments(generics.ListAPIView):
             return JsonResponse(
                 {"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        if request.data.get("licence_pk"):
+
+        if request.data.get("licence_pk") and request.data.get("advice_type") in [AdviceType.APPROVE, AdviceType.PROVISO]:
             try:
                 licence = Licence.objects.get(application=document.case, id=request.data.get("licence_pk"))
             except Licence.DoesNotExist:
