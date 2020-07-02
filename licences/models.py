@@ -1,7 +1,6 @@
 import uuid
 
 from django.db import models
-from django.db.models import CheckConstraint, Q
 
 from applications.models import BaseApplication, GoodOnApplication
 from common.models import TimestampableModel
