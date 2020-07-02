@@ -84,7 +84,7 @@ class Command(SeedCommand):
         [add_goods_to_application(choose_some_goods(goods, number_of_goods), draft) for draft in drafts]
         submitted_applications = [tc.submit_application(draft) for draft in drafts]
 
-        added_docs = [
+        [
             tc.create_case_document(user=gov_user, case=application, name=f"SIEL application.doc")
             for application in submitted_applications
         ]
@@ -119,7 +119,7 @@ class Command(SeedCommand):
             for name in list(missing_names)[:count_names_required]
         ]
 
-        docs_added = [
+        [
             tc.create_good_document(
                 organisation=organisation,
                 good=good,

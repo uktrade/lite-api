@@ -206,12 +206,10 @@ class ActionEndUserAdvisory(ActionBase):
         mt = self.get_arg(options, "mt", required=False)
 
         organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
-        org_ids = [org.id for org in organisations]
         org_eua_data = [
             org["organisation_id"]
             for org in EndUserAdvisoryQuery.objects.order_by().values("organisation_id").distinct()
         ]
-
         orgs = [org for org in organisations if org.id not in org_eua_data]
 
         jobs = [(self.add_end_user_advisory, organisation) for organisation in orgs]
@@ -342,12 +340,7 @@ class ActionOiel(ActionBase):
             for result in self.get_mapper(mt)(
                 ActionBase.do_work,
                 [
-                    (
-                        ActionOiel.create_media_oiel_draft,
-                        organisation,
-                        f"OIEL application #{idx}",
-                        app_type,
-                    )
+                    (ActionOiel.create_media_oiel_draft, organisation, f"OIEL application #{idx}", app_type,)
                     for organisation, apps_to_add in applications_to_add_per_org
                     for idx in range(apps_to_add)
                 ],
