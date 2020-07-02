@@ -215,7 +215,7 @@ class ActionEndUserAdvisory(ActionBase):
         jobs = [(self.add_end_user_advisory, organisation) for organisation in orgs]
         results = [application for application in self.get_mapper(mt)(ActionBase.do_work, jobs)]
 
-        print(f"Added an end user advisory for {org_count} organisations" f", added {len(results)} EUA's in total")
+        print(f"Added an end user advisory for {org_count} organisations, added {len(results)} EUA's in total")
         return results
 
     def add_end_user_advisory(self, organisation):

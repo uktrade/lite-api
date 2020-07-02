@@ -11,12 +11,9 @@ from organisations.models import Organisation
 from static.management.SeedCommand import SeedCommand
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-
-
-# helper functions
 from users.models import GovUser
 
-
+# helper functions
 def verify_good(good):
     good.status = GoodStatus.VERIFIED
     good.save()
