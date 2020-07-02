@@ -9,7 +9,11 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
-from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceLicenceListSerializer
+from compliance.serializers.ComplianceSiteCaseSerializers import (
+    ComplianceLicenceListSerializer,
+    ExporterComplianceSiteListSerializer,
+    ExporterComplianceVisitListSerializer,
+)
 from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
     CompliancePersonSerializer,
@@ -20,7 +24,10 @@ from compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsViewSerializer,
 )
 from conf.authentication import GovAuthentication, SharedAuthentication
+from conf.constants import ExporterPermissions
+from conf.permissions import check_user_has_permission
 from lite_content.lite_api import strings
+from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -42,11 +49,61 @@ from rest_framework.generics import (
 )
 
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
-from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
+from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson, ComplianceSiteCase
 from conf.authentication import ExporterAuthentication
 
 from lite_content.lite_api.strings import Compliance
-from organisations.libraries.get_organisation import get_request_user_organisation_id
+from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+
+
+class ExporterComplianceListSerializer(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceSiteListSerializer
+
+    def get_queryset(self):
+        # filter by organisation
+        organisation = get_request_user_organisation(self.request)
+        qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(organisation_id=organisation.id)
+
+        # if user does not have permission to manage all sites, filter by sites accessible
+        if not check_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_SITES, organisation):
+            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation).values_list(
+                "id", flat=True
+            )
+            qs = qs.filter(site__in=sites)
+
+        return qs
+
+
+class ExporterComplianceDetailSerializer(RetrieveAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceSiteListSerializer
+
+    def get_queryset(self):
+        # filter by organisation
+        organisation = get_request_user_organisation(self.request)
+        qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(organisation_id=organisation.id)
+
+        # if user does not have permission to manage all sites, filter by sites accessible
+        if not check_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_SITES, organisation):
+            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation).values_list(
+                "id", flat=True
+            )
+            qs = qs.filter(site__in=sites)
+
+        return qs
+
+
+class ExporterVisitList(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceVisitListSerializer
+
+    def get_queryset(self):
+        return (
+            ComplianceVisitCase.objects.select_related("case_officer")
+            .filter(site_case_id=self.kwargs["pk"])
+            .order_by("created_at")
+        )
 
 
 class LicenceList(ListAPIView):

@@ -105,3 +105,24 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
         return None
+
+
+class ExporterComplianceSiteListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    reference_code = serializers.CharField()
+    site_name = serializers.CharField(source="site.name")
+    address = AddressSerializer(source="site.address")
+    review_date = serializers.SerializerMethodField()
+
+    def get_review_date(self, instance):
+        # if review date exists get one in the future (nearest)
+        # else determine if serializer is for many or single (if singular get nearest past date if none in future)
+        return None
+
+
+class ExporterComplianceVisitListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    reference_code = serializers.CharField()
+    visit_date = serializers.DateField()
+    case_officer_first_name = serializers.CharField(source="case_officer.first_name", default=None)
+    case_officer_last_name = serializers.CharField(source="case_officer.last_name", default=None)
