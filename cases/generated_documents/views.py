@@ -88,6 +88,15 @@ class GeneratedDocuments(generics.ListAPIView):
 
         try:
             with transaction.atomic():
+                if licence:
+                    # Unlink any preexisting licence document from the existing Licence (remains a generated document on the case)
+                    try:
+                        existing_licence_document = GeneratedCaseDocument.objects.get(licence=licence)
+                        existing_licence_document.licence = None
+                        existing_licence_document.save()
+                    except GeneratedCaseDocument.DoesNotExist:
+                        pass
+
                 generated_doc = GeneratedCaseDocument.objects.create(
                     name=document_name,
                     user=request.user,

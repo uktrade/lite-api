@@ -318,19 +318,33 @@ class FinalAdviceDocuments(APIView):
         """
         # Get all advice
         advice_values = AdviceType.as_dict()
-        final_advice = Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True)
+        final_advice = list(Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True))
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
-        licence = Licence.objects.filter(application=pk).first()
+        # Map Proviso -> Approve advice (Proviso results in Approve document)
+        if AdviceType.PROVISO in final_advice:
+            if AdviceType.APPROVE not in final_advice:
+                final_advice.append(AdviceType.APPROVE)
+            final_advice.remove(AdviceType.PROVISO)
 
-        # Add advice documents
-        generated_advice_documents = GeneratedCaseDocument.objects.filter(
-            advice_type__in=final_advice, case__id=pk, licence=licence
-        )
-        generated_advice_documents = AdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
-        for document in generated_advice_documents:
-            advice_type = document["advice_type"]["key"]
-            advice_documents[advice_type]["document"] = document
+        # Get Licence document (Approve)
+        licence = Licence.objects.get_draft_or_active_licence(pk)
+        licence_document = None
+        # Only cases with Approve/Proviso advice have a Licence
+        if licence:
+            try:
+                licence_document = GeneratedCaseDocument.objects.get(advice_type=AdviceType.APPROVE, licence=licence)
+                advice_documents[AdviceType.APPROVE]["document"] = AdviceDocumentGovSerializer(licence_document).data
+            except GeneratedCaseDocument.DoesNotExist:
+                pass
+
+        # Get other decision documents
+        final_advice.remove(AdviceType.APPROVE)
+        if final_advice:
+            generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
+            generated_advice_documents = AdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
+            for document in generated_advice_documents:
+                advice_documents[document["advice_type"]["key"]]["document"] = document
 
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
