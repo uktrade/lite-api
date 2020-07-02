@@ -21,8 +21,8 @@ class LicenceManager(models.Manager):
         """
         try:
             return self.get_draft_licence(application)
-        except self.DoesNotExist:
+        except self.model.DoesNotExist:
             try:
                 return self.get_active_licence(application)
-            except self.DoesNotExist:
+            except self.model.DoesNotExist:
                 return None

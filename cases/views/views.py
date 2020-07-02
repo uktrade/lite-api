@@ -319,7 +319,6 @@ class FinalAdviceDocuments(APIView):
         # Get all advice
         advice_values = AdviceType.as_dict()
         final_advice = list(Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True))
-        advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
         # Map Proviso -> Approve advice (Proviso results in Approve document)
         if AdviceType.PROVISO in final_advice:
@@ -327,9 +326,10 @@ class FinalAdviceDocuments(APIView):
                 final_advice.append(AdviceType.APPROVE)
             final_advice.remove(AdviceType.PROVISO)
 
+        advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
+
         # Get Licence document (Approve)
         licence = Licence.objects.get_draft_or_active_licence(pk)
-        licence_document = None
         # Only cases with Approve/Proviso advice have a Licence
         if licence:
             try:
@@ -630,6 +630,11 @@ class FinaliseView(UpdateAPIView):
 
         # Check all decision types have documents
         required_decisions = set(Advice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
+
+        if AdviceType.PROVISO in required_decisions:
+            required_decisions.add(AdviceType.APPROVE)
+            required_decisions.remove(AdviceType.PROVISO)
+
         generated_document_decisions = set(
             GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list(
                 "advice_type", flat=True

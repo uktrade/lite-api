@@ -555,10 +555,6 @@ class ApplicationFinaliseView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Finalise
-        application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        application.save()
-
         # Refusals & NLRs
         if action in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
             audit_trail_service.create(
