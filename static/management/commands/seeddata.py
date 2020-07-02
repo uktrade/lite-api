@@ -1,19 +1,29 @@
+import multiprocessing
 import random
-
+from time import perf_counter
 from uuid import UUID
+
+from django import db
+from django.utils.dateparse import parse_date
 from faker import Faker
-from applications.models import StandardApplication
+
+from applications.enums import GoodsTypeCategory, ApplicationExportType
+from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
+from applications.models import StandardApplication, OpenApplication, GoodOnApplication
+from flags.models import Flag
+from applications.serializers.open_application import OpenApplicationCreateSerializer
 from conf.constants import Roles
+from goods.models import Good
 from organisations.enums import OrganisationType
 from organisations.models import Organisation, Site
 from organisations.tests.factories import SiteFactory
 from organisations.tests.providers import OrganisationProvider
+from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from static.management.SeedCommand import SeedCommand
 from static.management.commands.seedapplications import Command as AppCommand
 from static.management.commands.seedorganisation import Command as OrgCommand
+from test_helpers.clients import DataTestClient
 from users.models import UserOrganisationRelationship, ExporterUser
-from goods.models import Good
-from applications.models import GoodOnApplication
 
 faker = Faker()
 faker.add_provider(OrganisationProvider)
@@ -38,12 +48,6 @@ class ActionBase:
         created_users = self.organisation_create_random_users(company_domain, organisation, required_users_count)
         return current_users + created_users, created_users
 
-    def get_create_organisations(self, org_count, org_primary, org_site_min, org_site_max):
-        organisations = list(Organisation.objects.all()[:org_count])
-        required = max(0, org_count - len(organisations))
-        created_organisations = [self.org_factory(org_primary, org_site_min, org_site_max) for _ in range(0, required)]
-        return organisations + created_organisations, len(created_organisations)
-
     @staticmethod
     def get_arg(options, name, default=None, required=True):
         var = options.get(name)
@@ -53,6 +57,13 @@ class ActionBase:
             raise Exception(f"{name} not specified!")
         print(f"{name}={var}")
         return var
+
+    @staticmethod
+    def get_min_max_arg(options):
+        min_value = ActionBase.get_arg(options, "min", 1)
+        max_value = ActionBase.get_arg(options, "max", 1)
+        max_value = max(min_value, max_value)
+        return min_value, max_value
 
     @staticmethod
     def organisation_create_random_users(company_email_domain, organisation, required_users_count):
@@ -75,19 +86,19 @@ class ActionBase:
 
     @staticmethod
     def org_factory(org_primary, org_site_min, org_site_max):
-        org_name = faker.company()
-        if Organisation.objects.filter(name__iexact=org_name).exists():
-            idx = 1
-            new_name = f"{org_name} ({idx})"
-            while Organisation.objects.filter(name__iexact=new_name).exists():
+        root_name = faker.company()
+        idx = 1
+        org_name = root_name
+        while idx < 100:
+            try:
+                organisation, _, _, _ = OrgCommand.seed_organisation(
+                    org_name, OrganisationType.COMMERCIAL, random.randint(org_site_min, org_site_max), 1, org_primary,
+                )
+                return organisation
+            except ValueError:
+                org_name = f"{root_name} ({idx})"
                 idx += 1
-                new_name = f"{org_name} ({idx})"
-            org_name = new_name
-
-        organisation, _, _, _ = OrgCommand.seed_organisation(
-            org_name, OrganisationType.COMMERCIAL, random.randint(org_site_min, org_site_max), 1, org_primary,
-        )
-        return organisation
+        return None
 
     @staticmethod
     def organisation_get_create_user(organisation, exporter_user, role_id=Roles.EXPORTER_SUPER_USER_ROLE_ID):
@@ -131,29 +142,45 @@ class ActionBase:
         added = [SiteFactory(organisation=organisation) for _ in range(site_count - existing_sites)]
         return list(sites) + added, len(added)
 
+    @staticmethod
+    def do_work(args):
+        return args[0](*args[1:])
+
+    @staticmethod
+    def get_mapper(mt):
+        mapper = map
+        if mt is not None:
+            db.connections.close_all()
+            processes = mt if mt > 0 else None
+            pool = multiprocessing.Pool(processes=processes)
+            mapper = pool.map
+        return mapper
+
 
 class ActionOrg(ActionBase):
     def action(self, options):
         org_count = self.get_arg(options, "count", 1)
-        site_min = self.get_arg(options, "site_min", 1)
-        site_max = self.get_arg(options, "site_max", max(1, site_min))
-        user_email = self.get_arg(options, "user_email", required=False)
+        org_site_min, org_site_max = self.get_min_max_arg(options)
+        org_primary = self.get_arg(options, "email", required=False)
+        mt = self.get_arg(options, "mt", required=False)
 
-        # ensure the correct number of organisations
-        organisations, created_count = self.get_create_organisations(org_count, user_email, site_min, site_max)
+        organisations = list(Organisation.objects.all()[:org_count])
+        required = max(0, org_count - len(organisations))
+
+        job_args = [(ActionBase.org_factory, org_primary, org_site_min, org_site_max) for _ in range(0, required)]
+        created_organisations = [org for org in self.get_mapper(mt)(ActionBase.do_work, job_args)]
 
         print(
-            f"Ensured that at least {len(organisations)} organisations exist"
-            f", added {created_count} new organisations"
+            f"Ensured that at least {org_count} organisations exist"
+            f", added {len(created_organisations)} new organisations"
         )
-        return organisations
+        return organisations + created_organisations
 
 
 class ActionAddFakeUsers(ActionBase):
     def action(self, options):
         print("Add fake export users to organisations")
-        user_min = self.get_arg(options, "min", 1)
-        user_max = self.get_arg(options, "max", max(1, user_min))
+        user_min, user_max = self.get_min_max_arg(options)
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
         organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
@@ -167,6 +194,34 @@ class ActionAddFakeUsers(ActionBase):
             f" each have between {user_min} and {user_max} users, added {sum(added_counts)} new users"
         )
         return
+
+
+class ActionEndUserAdvisory(ActionBase):
+    tc = DataTestClient()
+
+    def action(self, options):
+        print("Add End User Advisory query to organisations")
+        org_count = self.get_arg(options, "count", 1)
+        uuid = self.get_arg(options, "uuid", required=False)
+        mt = self.get_arg(options, "mt", required=False)
+
+        organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
+        org_eua_data = [
+            org["organisation_id"]
+            for org in EndUserAdvisoryQuery.objects.order_by().values("organisation_id").distinct()
+        ]
+        orgs = [org for org in organisations if org.id not in org_eua_data]
+
+        jobs = [(self.add_end_user_advisory, organisation) for organisation in orgs]
+        results = [application for application in self.get_mapper(mt)(ActionBase.do_work, jobs)]
+
+        print(f"Added an end user advisory for {org_count} organisations, added {len(results)} EUA's in total")
+        return results
+
+    def add_end_user_advisory(self, organisation):
+        self.tc.exporter_user = random.choice(organisation.get_users())
+        self.tc.organisation = organisation
+        return self.tc.create_end_user_advisory(note="a note", reasoning="a reason", organisation=organisation)
 
 
 class ActionUser(ActionBase):
@@ -214,11 +269,11 @@ class ActionUser(ActionBase):
 class ActionSiel(ActionBase):
     def action(self, options):
         print("Add SIEL applications to organisations")
-        app_count_min = self.get_arg(options, "min", 1)
-        app_count_max = self.get_arg(options, "max", max(1, app_count_min))
+        app_count_min, app_count_max = self.get_min_max_arg(options)
         goods_count_max = self.get_arg(options, "max_goods", 1)
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
+        mt = self.get_arg(options, "mt", required=False)
         organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
 
         # figure out the correct number of standard applications to add to each organisation
@@ -236,15 +291,102 @@ class ActionSiel(ActionBase):
             if current_app_count < required_app_count
         ]
 
-        apps = [
-            self.app_factory(org=org, max_goods_to_use=goods_count_max, applications_to_add=apps_to_add)
+        job_args = [
+            (ActionBase.app_factory, org, apps_to_add, goods_count_max)
             for org, apps_to_add in applications_to_add_per_org
         ]
+
+        apps = [application for application in self.get_mapper(mt)(ActionBase.do_work, job_args)]
+
         print(
             f"ensured between {app_count_min} and {app_count_max} applications for {org_count} organisations"
-            f"added {sum(apps)} applications in total"
+            f", added {sum(apps)} applications in total"
         )
         return apps
+
+
+class ActionOiel(ActionBase):
+    tc = DataTestClient()
+
+    def action(self, options):
+        print("Add OIEL applications to organisations")
+        app_count_min, app_count_max = self.get_min_max_arg(options)
+        org_count = self.get_arg(options, "count", 1)
+        uuid = self.get_arg(options, "uuid", required=False)
+        mt = self.get_arg(options, "mt", required=False)
+        app_type = self.get_arg(options, "type", "media")
+
+        organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
+        app_type = GoodsTypeCategory.MEDIA if app_type == "media" else GoodsTypeCategory.MILITARY
+
+        # for each organisation work out the correct number of applications to add
+        org_app_counts = [
+            (
+                org,
+                OpenApplication.objects.filter(organisation_id=org.id).count(),
+                random.randint(app_count_min, app_count_max),
+            )
+            for org in organisations
+        ]
+
+        applications_to_add_per_org = [
+            (org, required_app_count - current_app_count)
+            for org, current_app_count, required_app_count in org_app_counts
+            if current_app_count < required_app_count
+        ]
+
+        drafts = [
+            result
+            for result in self.get_mapper(mt)(
+                ActionBase.do_work,
+                [
+                    (ActionOiel.create_media_oiel_draft, organisation, f"OIEL application #{idx}", app_type,)
+                    for organisation, apps_to_add in applications_to_add_per_org
+                    for idx in range(apps_to_add)
+                ],
+            )
+        ]
+
+        apps = list(
+            self.get_mapper(mt)(
+                ActionBase.do_work, [(ActionOiel.submit, organisation, draft) for draft, organisation in drafts]
+            )
+        )
+
+        print(
+            f"ensured between {app_count_min} and {app_count_max} OIEL applications for {org_count} organisations"
+            f", added {len(apps)} applications in total"
+        )
+        return apps
+
+    @staticmethod
+    def submit(organisation, draft):
+        tc = DataTestClient()
+        tc.exporter_user = random.choice(organisation.get_users())
+        return tc.submit_application(draft)
+
+    @staticmethod
+    def create_media_oiel_draft(
+        organisation, application_title, app_type=GoodsTypeCategory.MEDIA, export_type=ApplicationExportType.TEMPORARY
+    ):
+
+        serializer = OpenApplicationCreateSerializer(
+            case_type_id=CaseTypeEnum.reference_to_id(CaseTypeReferenceEnum.OIEL),
+            data={
+                "name": application_title,
+                "application_type": CaseTypeReferenceEnum.OIEL,
+                "export_type": export_type,
+                "goodstype_category": app_type,
+                "contains_firearm_goods": False,
+            },
+            context=organisation,
+        )
+        serializer.is_valid()
+        draft = serializer.save()
+        if draft.export_type == ApplicationExportType.TEMPORARY:
+            draft.proposed_return_date = parse_date("2120-12-31")
+        draft.save()
+        return draft, organisation
 
 
 class ActionStats(ActionBase):
@@ -252,18 +394,19 @@ class ActionStats(ActionBase):
         print(
             f"Organisations:{Organisation.objects.all().count()}"
             f"\nSIEL applications:{StandardApplication.objects.all().count()}"
+            f"\nOIEL applications:{OpenApplication.objects.all().count()}"
             f"\nOrganisation Products:{Good.objects.all().count()}"
             f"\nProducts used in SEIL applications:{GoodOnApplication.objects.all().count()}"
             f"\nExport Users:{ExporterUser.objects.all().count()}"
+            f"\nFlags:{Flag.objects.all().count()}"
         )
 
 
 class ActionSites(ActionBase):
     def action(self, options):
         print("Add sites to organisations")
-        min_items = self.get_arg(options, "min", 1)
-        max_items = self.get_arg(options, "max", max(1, min_items))
 
+        min_items, max_items = self.get_min_max_arg(options)
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
         organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
@@ -281,20 +424,18 @@ class ActionSites(ActionBase):
 class ActionGoods(ActionBase):
     def action(self, options):
         print("Add goods to organisations")
-        goods_min = self.get_arg(options, "min", 1)
-        goods_max = max(self.get_arg(options, "max", 1), goods_min)
+        min_goods, max_goods = self.get_min_max_arg(options)
         org_count = self.get_arg(options, "count", 1)
         uuid = self.get_arg(options, "uuid", required=False)
+        mt = self.get_arg(options, "mt", required=False)
         organisations = [Organisation.objects.get(id=UUID(uuid))] if uuid else self.organisation_get_first_n(org_count)
-
-        added_results = [
-            self.organisation_get_create_goods(organisation, random.randint(goods_min, goods_max))
+        job_args = [
+            (ActionBase.organisation_get_create_goods, organisation, random.randint(min_goods, max_goods))
             for organisation in organisations
         ]
+        added_goods = [len(goods_added) for _, goods_added in self.get_mapper(mt)(ActionBase.do_work, job_args)]
 
-        added_goods = [len(goods_added) for _, goods_added in added_results]
-
-        print(f"ensured between {goods_min} and {goods_max} goods for {org_count} organisations")
+        print(f"ensured between {min_goods} and {max_goods} goods for {org_count} organisations")
         print(f"added {sum(added_goods)} goods in total")
 
 
@@ -308,19 +449,23 @@ class Command(SeedCommand):
         "fakeuser": ActionAddFakeUsers(),
         "user": ActionUser(),
         "siel": ActionSiel(),
+        "oiel": ActionOiel(),
         "site": ActionSites(),
         "stats": ActionStats(),
         "good": ActionGoods(),
+        "eua": ActionEndUserAdvisory(),
     }
 
     def add_arguments(self, parser):
         # Named (optional) arguments
         parser.add_argument("-a", "--action", help="action command", choices=list(self.action_map.keys()), type=str)
         parser.add_argument("--uuid", help="a uuid", type=str)
+        parser.add_argument("--mt", help="run multi-threaded, provide the number of threads to use", type=int)
         parser.add_argument("-c", "--count", help="item count", type=int)
         parser.add_argument("--max", help="max number of items", type=int)
         parser.add_argument("--min", help="min number of items", type=int)
         parser.add_argument("-e", "--email", help="user email", type=str)
+        parser.add_argument("--type", help="a type", type=str)
         parser.add_argument("--max-goods", help="max number of goods", type=int)
         parser.add_argument("-r", "--remove", action="store_true", help="remove an item or items")
 
@@ -329,4 +474,8 @@ class Command(SeedCommand):
         if not action:
             raise Exception("action not specified!")
         self.stdout.write(self.style.SUCCESS(f"action = {action}"))
+        tic = perf_counter()
+
         self.action_map[action].action(options)
+        toc = perf_counter()
+        print(f"action completed in {toc - tic:0.4f} seconds")
