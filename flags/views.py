@@ -74,18 +74,17 @@ class FlagsListCreateView(ListCreateAPIView):
         if team and team != "None":
             flags = flags.filter(team=team)
 
-        # if status:
-        #     flags = flags.filter(status=status)
+        if status:
+            flags = flags.filter(status=status)
 
         if include_system_flags:
             system_flags = Flag.objects.filter(id__in=SystemFlags.list)
             flags = flags | system_flags
 
-        # if blocks_approval:
-        #     flags = flags.filter(blocks_approval=True)
+        if blocks_approval:
+            flags = flags.filter(blocks_approval=True)
 
-        return []
-        # return flags.order_by("name").select_related("team")
+        return flags.order_by("name").select_related("team")
 
 
 class FlagsRetrieveUpdateView(RetrieveUpdateAPIView):
