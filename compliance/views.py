@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -60,13 +61,15 @@ class LicenceList(ListAPIView):
 
         # We filter for cases that are completed and have a compliance licence linked to it
         cases = Case.objects.select_related("case_type").filter(
-            baseapplication__licence__is_complete=True,
-            baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
+            Q(baseapplication__licence__is_complete=True,
+              baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"]) |
+            Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.kwargs["pk"])
         )
 
         # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
         #   types relevant for compliance cases
-        cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
+        cases = cases.filter(
+            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]) | cases.filter(
             baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
             baseapplication__goods__licenced_quantity__isnull=False,
         )
@@ -90,13 +93,13 @@ class ComplianceManageStatus(UpdateAPIView):
         new_status = request.data.get("status")
 
         if (
-            case.case_type.reference == CaseTypeReferenceEnum.COMP_SITE
-            and new_status not in CaseStatusEnum.compliance_site_statuses
+                case.case_type.reference == CaseTypeReferenceEnum.COMP_SITE
+                and new_status not in CaseStatusEnum.compliance_site_statuses
         ):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
         elif (
-            case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT
-            and new_status not in CaseStatusEnum.compliance_visit_statuses
+                case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT
+                and new_status not in CaseStatusEnum.compliance_visit_statuses
         ):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
@@ -267,7 +270,7 @@ class ComplianceVisitPeoplePresentView(ListCreateAPIView):
 
         # if people present is passed forward, we wish to validate and replace the current data
         if request.data.get("people_present"):
-            serializer = self.get_serializer(data=request.data.get("people_present"), many=True,)
+            serializer = self.get_serializer(data=request.data.get("people_present"), many=True, )
             serializer.is_valid(raise_exception=True)
             # We wish to replace the current people present with the new list of people present
             CompliancePerson.objects.filter(visit_case_id=self.kwargs["pk"]).delete()
@@ -294,7 +297,7 @@ class ComplianceVisitPersonPresentView(RetrieveUpdateDestroyAPIView):
             actor=self.request.user,
             verb=AuditType.COMPLIANCE_PEOPLE_PRESENT_UPDATED,
             action_object=case,
-            payload={"name": person.name, "job_title": person.job_title,},
+            payload={"name": person.name, "job_title": person.job_title, },
         )
 
     def perform_destroy(self, instance):
