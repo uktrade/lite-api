@@ -58,7 +58,8 @@ def get_record_holding_sites_for_case(case):
     else:
         return set(
             Site.objects.filter(sites_on_application__application_id=case.id).values_list(
-            ).values_list("site_records_located_at_id", flat=True)
+                "site_records_located_at_id", flat=True
+            )
         )
 
 
