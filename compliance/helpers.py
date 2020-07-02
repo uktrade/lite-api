@@ -54,7 +54,7 @@ def case_meets_conditions_for_compliance(case: Case):
 
 def get_record_holding_sites_for_case(case):
     if case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
-        return {case.site.site_records_located_at.id}
+        return {case.site.site_records_located_at_id}
     else:
         return set(
             Site.objects.filter(sites_on_application__application_id=case.id).values_list(
