@@ -11,30 +11,36 @@ class ApplicationResponseTests(EndPointTests):
         self.call_endpoint(self.get_exporter_headers(), self.url + self.get_standard_application()["id"])
 
     def test_application_activity(self):
-        self.call_endpoint(self.get_exporter(), self.url + self.get_standard_application()["id"] + "/activity/")
+        self.call_endpoint(self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/activity/")
 
     def test_application_countries(self):
-        self.call_endpoint(self.get_exporter(), self.url + self.get_standard_application()["id"] + "/countries/")
+        self.call_endpoint(
+            self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/countries/"
+        )
 
     def test_application_documents(self):
-        self.call_endpoint(self.get_exporter(), self.url + self.get_standard_application()["id"] + "/documents/")
+        self.call_endpoint(
+            self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/documents/"
+        )
 
     def test_application_duration(self):
-        self.call_endpoint(self.get_exporter(), self.url + self.get_standard_application()["id"] + "/duration/")
+        self.call_endpoint(self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/duration/")
 
     def test_application_existing(self):
-        self.call_endpoint(self.get_exporter(), self.url + "existing/")
+        self.call_endpoint(self.get_exporter_headers(), self.url + "existing/")
 
     def test_application_existing_parties(self):
-        self.call_endpoint(self.get_exporter(), self.url + "existing-parties/")
+        self.call_endpoint(self.get_exporter_headers(), self.url + "existing-parties/")
 
     def test_application_external_locations(self):
         self.call_endpoint(
-            self.get_exporter(), self.url + self.get_standard_application()["id"] + "/external_location/"
+            self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/external_location/"
         )
 
     def test_application_final_decision(self):
-        self.call_endpoint(self.get_exporter(), self.url + self.get_standard_application()["id"] + "/final-decision/")
+        self.call_endpoint(
+            self.get_exporter_headers(), self.url + self.get_standard_application()["id"] + "/final-decision/"
+        )
 
     def test_application_goods(self):
         self.call_endpoint(
@@ -77,7 +83,7 @@ class ApplicationResponseTests(EndPointTests):
 
     def test_application_parties_copy(self):
         self.call_endpoint(
-            self.get_exporter(),
+            self.get_exporter_headers(),
             self.url
             + self.get_standard_application()["id"]
             + "/parties/"

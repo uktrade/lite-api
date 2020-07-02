@@ -19,7 +19,9 @@ from cases.enums import (
 )
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
-from common.models import TimestampableModel
+from common.models import TimestampableModel, CreatedAt
+from conf.constants import GovPermissions
+from conf.permissions import assert_user_has_permission
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
@@ -446,3 +448,13 @@ class EnforcementCheckID(models.Model):
     id = models.AutoField(primary_key=True)
     entity_id = models.UUIDField(unique=True)
     entity_type = models.CharField(choices=EnforcementXMLEntityTypes.choices, max_length=20)
+
+
+class CaseReviewDate(CreatedAt):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    next_review_date = models.DateField(default=None, null=True)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    case = models.ForeignKey(Case, related_name="case_review_date", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = [["case", "team"]]
