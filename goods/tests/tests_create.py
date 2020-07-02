@@ -480,7 +480,11 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
-            "firearm_details": {"type": FirearmGoodType.AMMUNITION, "calibre": "0.5", "year_of_manufacture": str(timezone.now().date().year + 1)},
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": str(timezone.now().date().year + 1),
+            },
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -489,12 +493,7 @@ class CreateGoodTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["year_of_manufacture"], [strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_IN_PAST])
 
-    @parameterized.expand(
-        [
-            [timezone.now().date().year],
-            [timezone.now().date().year-1]
-        ]
-    )
+    @parameterized.expand([[timezone.now().date().year], [timezone.now().date().year - 1]])
     def test_add_category_two_good_no_year_of_manufacture_in_the_past_success(self, year):
         data = {
             "description": "coffee",
@@ -849,11 +848,13 @@ class CreateGoodTests(DataTestClient):
 
     @parameterized.expand(
         [
-            ["True",  "identification_markings_details", "no_identification_markings_details"],
-            ["False",  "no_identification_markings_details", "identification_markings_details"]
+            ["True", "identification_markings_details", "no_identification_markings_details"],
+            ["False", "no_identification_markings_details", "identification_markings_details"],
         ]
     )
-    def test_add_category_two_good_has_markings_details_too_long_failure(self, has_identification_markings, details_field, other_details_fields):
+    def test_add_category_two_good_has_markings_details_too_long_failure(
+        self, has_identification_markings, details_field, other_details_fields
+    ):
         data = {
             "description": "coffee",
             "is_good_controlled": GoodControlled.NO,
@@ -868,8 +869,8 @@ class CreateGoodTests(DataTestClient):
                 "section_certificate_number": "",
                 "section_certificate_date_of_expiry": "",
                 "has_identification_markings": has_identification_markings,
-                details_field: "A"*2001,
-                other_details_fields: ""
+                details_field: "A" * 2001,
+                other_details_fields: "",
             },
         }
 
@@ -877,9 +878,10 @@ class CreateGoodTests(DataTestClient):
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(errors[details_field], ['Ensure this field has no more than 2000 characters.'])
+        self.assertEqual(errors[details_field], ["Ensure this field has no more than 2000 characters."])
 
-    @parameterized.expand([
+    @parameterized.expand(
+        [
             ["is_military_use", "True"],
             ["modified_military_use_details", "some details"],
             ["is_component", "True"],
@@ -898,7 +900,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "item_category": ItemCategory.GROUP2_FIREARMS,
             "validate_only": True,
-            field: value
+            field: value,
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -906,6 +908,7 @@ class CreateGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])
+
 
 class GoodsCreateControlledGoodTests(DataTestClient):
     def setUp(self):
@@ -967,8 +970,6 @@ class GoodsCreateControlledGoodTests(DataTestClient):
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(Good.objects.all().count(), 1)
-
-
 
 
 class GoodsCreatePvGradedGoodTests(DataTestClient):

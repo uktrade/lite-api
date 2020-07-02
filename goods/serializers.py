@@ -447,7 +447,9 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         else:
             firearm_details = validated_data.get("firearm_details")
             if firearm_details:
-                instance.firearm_details = GoodCreateSerializer._update_firearm_details(firearm_details=firearm_details, instance=instance.firearm_details,)
+                instance.firearm_details = GoodCreateSerializer._update_firearm_details(
+                    firearm_details=firearm_details, instance=instance.firearm_details,
+                )
 
         instance.save()
         return instance
