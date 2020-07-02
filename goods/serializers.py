@@ -445,9 +445,9 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             if software_or_technology_details:
                 instance.software_or_technology_details = software_or_technology_details
         else:
-            instance.firearm_details = GoodCreateSerializer._create_or_update_firearm_details(
-                firearm_details=validated_data.get("firearm_details"), instance=instance.firearm_details,
-            )
+            firearm_details = validated_data.get("firearm_details")
+            if firearm_details:
+                instance.firearm_details = GoodCreateSerializer._update_firearm_details(firearm_details=firearm_details, instance=instance.firearm_details,)
 
         instance.save()
         return instance
@@ -485,17 +485,6 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     @staticmethod
     def _delete_pv_grading_details(instance):
         instance.delete()
-        return None
-
-    @staticmethod
-    def _create_or_update_firearm_details(firearm_details=None, instance=None):
-        """ Creates or update firearm details."""
-        if firearm_details:
-            if instance:
-                return GoodCreateSerializer._update_firearm_details(firearm_details, instance)
-
-            return GoodCreateSerializer._create_firearm_details(firearm_details)
-
         return None
 
     @staticmethod

@@ -466,3 +466,6 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(good.firearm_details.identification_markings_details, "some marking details")
         self.assertEquals(good.firearm_details.no_identification_markings_details, "")
         self.assertEqual(errors["identification_markings_details"], [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_MARKINGS])
+
+
+
