@@ -41,11 +41,11 @@ class FirearmGoodDetails(models.Model):
     calibre = models.TextField(blank=False, max_length=15)
     # this refers specifically to section 1, 2 or 5 of firearms act 1968
     is_covered_by_firearm_act_section_one_two_or_five = models.BooleanField()
-    section_certificate_number = models.CharField(blank=True, max_length=100)
+    section_certificate_number = models.CharField(blank=True, max_length=100, null=True)
     section_certificate_date_of_expiry = models.DateField(blank=True, null=True)
     has_identification_markings = models.BooleanField(null=False)
-    identification_markings_details = models.TextField(blank=True, max_length=2000)
-    no_identification_markings_details = models.TextField(blank=True, max_length=2000)
+    identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
+    no_identification_markings_details = models.TextField(blank=True, max_length=2000, null=True)
 
 
 class Good(TimestampableModel):

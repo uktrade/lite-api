@@ -304,7 +304,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                     firearm_details.pop("section_certificate_date_of_expiry")
 
             if "has_identification_markings" in firearm_details:
-                # Keep the identification marking details only if the answer is Yes
+                # Keep only the details relevant for the yes/no answer
                 if str_to_bool(firearm_details.get("has_identification_markings")):
                     firearm_details.pop("no_identification_markings_details")
                 else:
