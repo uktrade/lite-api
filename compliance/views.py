@@ -39,6 +39,7 @@ from compliance.serializers.OpenLicenceReturns import (
 from conf.authentication import ExporterAuthentication
 from conf.authentication import GovAuthentication, SharedAuthentication
 from licences.enums import LicenceStatus
+from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id
@@ -63,8 +64,12 @@ class LicenceList(ListAPIView):
 
         # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
         #   types relevant for compliance cases
+        approved_goods_on_licence = GoodOnLicence.objects.filter(
+            good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+        ).values_list("good", flat=True)
+
         cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
-            baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
+            baseapplication__goods__id__in=approved_goods_on_licence,
         )
 
         if reference_code:

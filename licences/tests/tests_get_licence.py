@@ -17,10 +17,7 @@ class GetLicencesTests(DataTestClient):
         super().setUp()
         self.application = StandardApplicationFactory()
         self.licence = LicenceFactory(
-            application=self.application,
-            start_date=timezone.now().date(),
-            status=LicenceStatus.ISSUED,
-            duration=100,
+            application=self.application, start_date=timezone.now().date(), status=LicenceStatus.ISSUED, duration=100,
         )
         self.url = reverse("cases:licences", kwargs={"pk": self.application.id})
 

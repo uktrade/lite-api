@@ -122,9 +122,7 @@ class FinaliseApplicationTests(DataTestClient):
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
         self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
-        self.assertTrue(
-            Licence.objects.filter(application=clearance_application, status=LicenceStatus.DRAFT).exists()
-        )
+        self.assertTrue(Licence.objects.filter(application=clearance_application, status=LicenceStatus.DRAFT).exists())
 
     def test_set_duration_permission_denied(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])

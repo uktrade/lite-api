@@ -129,9 +129,7 @@ class GetLicencesFilterTests(DataTestClient):
         self.url = reverse("licences:licences")
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.open_application = self.create_open_application_case(self.organisation)
-        self.standard_application_licence = self.create_licence(
-            self.standard_application, status=LicenceStatus.ISSUED
-        )
+        self.standard_application_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
         self.open_application_licence = self.create_licence(self.open_application, status=LicenceStatus.ISSUED)
 
     def test_only_my_organisations_licences_are_returned(self):

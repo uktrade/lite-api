@@ -71,7 +71,10 @@ class GeneratedDocuments(generics.ListAPIView):
                 {"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        if request.data.get("licence_pk") and request.data.get("advice_type") in [AdviceType.APPROVE, AdviceType.PROVISO]:
+        if request.data.get("licence_pk") and request.data.get("advice_type") in [
+            AdviceType.APPROVE,
+            AdviceType.PROVISO,
+        ]:
             try:
                 licence = Licence.objects.get(application=document.case, id=request.data.get("licence_pk"))
             except Licence.DoesNotExist:

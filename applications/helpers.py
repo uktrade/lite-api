@@ -135,7 +135,9 @@ def validate_and_create_goods_on_licence(application_id, licence_id, data):
     good_on_applications = (
         GoodOnApplication.objects.filter(
             application_id=application_id, good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
-        ).distinct().values("id", "quantity")
+        )
+        .distinct()
+        .values("id", "quantity")
     )
     for goa in good_on_applications:
         quantity_key = f"quantity-{goa['id']}"
@@ -146,10 +148,7 @@ def validate_and_create_goods_on_licence(application_id, licence_id, data):
             "licence": licence_id,
             "good": goa["id"],
         }
-        serializer = GoodOnStandardLicenceSerializer(
-            data=good_data,
-            context={"applied_for_quantity": goa["quantity"]},
-        )
+        serializer = GoodOnStandardLicenceSerializer(data=good_data, context={"applied_for_quantity": goa["quantity"]},)
 
         if not serializer.is_valid():
             quantity_error = serializer.errors.get("quantity")

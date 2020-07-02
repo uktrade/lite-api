@@ -552,7 +552,7 @@ class ApplicationFinaliseView(APIView):
         if not action:
             return JsonResponse(
                 data={"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Refusals & NLRs
@@ -588,9 +588,7 @@ class ApplicationFinaliseView(APIView):
             if licence_data["duration"] != default_licence_duration and not request.user.has_permission(
                 GovPermissions.MANAGE_LICENCE_DURATION
             ):
-                raise PermissionDenied(
-                    [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]
-                )
+                raise PermissionDenied([strings.Applications.Finalise.Error.SET_DURATION_PERMISSION])
 
             # Validate date
             try:
@@ -598,9 +596,7 @@ class ApplicationFinaliseView(APIView):
                     year=int(licence_data["year"]), month=int(licence_data["month"]), day=int(licence_data["day"])
                 )
             except ValueError:
-                raise ParseError(
-                    {"year": [strings.Applications.Finalise.Error.INVALID_DATE]}
-                )
+                raise ParseError({"year": [strings.Applications.Finalise.Error.INVALID_DATE]})
 
             # Delete existing draft if one exists
             try:

@@ -34,10 +34,7 @@ class DocumentContextGenerationTests(DataTestClient):
         super().setUp()
         self.standard_case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         self.standard_licence = LicenceFactory(
-            application=self.standard_case,
-            start_date=timezone.now().date(),
-            status=LicenceStatus.ISSUED,
-            duration=100,
+            application=self.standard_case, start_date=timezone.now().date(), status=LicenceStatus.ISSUED, duration=100,
         )
         self.standard_good = GoodOnApplication.objects.get(application=self.standard_case)
         self.standard_good_on_licence = GoodOnLicenceFactory(
