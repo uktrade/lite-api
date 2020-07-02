@@ -54,6 +54,7 @@ class Organisation(TimestampableModel):
 
     def register_open_general_licence(self, open_general_licence, user):
         from open_general_licences.models import OpenGeneralLicenceCase
+        from compliance.helpers import generate_compliance_site_case
 
         if open_general_licence.status == OpenGeneralLicenceStatus.DEACTIVATED:
             raise ValidationError(
@@ -80,6 +81,7 @@ class Organisation(TimestampableModel):
                     submitted_at=timezone.now(),
                     submitted_by=user,
                 )
+                generate_compliance_site_case(case)
                 registrations.append(case.id)
 
         return open_general_licence.id, registrations
