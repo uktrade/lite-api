@@ -44,7 +44,7 @@ class GetComplianceSiteCaseTests(DataTestClient):
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
         open_licence_returns = OpenLicenceReturnsFactory(organisation=self.organisation)
-        licence = self.create_licence(application, status=LicenceStatus.ISSUED.value)
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
         open_licence_returns.licences.set([licence])
 
         url = reverse("cases:case", kwargs={"pk": compliance_case.id})

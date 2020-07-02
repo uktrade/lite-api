@@ -23,6 +23,6 @@ class GetLicenceReferenceCodeTests(DataTestClient):
         Check all amended licences get suffix /A -> /Z
         """
         for letter in ascii_uppercase:
-            self.create_licence(self.application, status=LicenceStatus.ISSUED.value)
+            self.create_licence(self.application, status=LicenceStatus.ISSUED)
             reference_code = get_licence_reference_code(self.application.reference_code)
             self.assertEqual(reference_code, self.application.reference_code + "/" + letter)

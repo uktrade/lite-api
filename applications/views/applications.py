@@ -611,7 +611,7 @@ class ApplicationFinaliseView(APIView):
             # Create Draft Licence object
             licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
             licence_data["application"] = application.id
-            licence_data["status"] = LicenceStatus.DRAFT.value
+            licence_data["status"] = LicenceStatus.DRAFT
             licence_data["reference_code"] = get_licence_reference_code(application.reference_code)
             licence_serializer = LicenceCreateSerializer(data=licence_data)
 

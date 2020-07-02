@@ -17,7 +17,7 @@ class GetCaseLicenceTests(DataTestClient):
         self.licence = LicenceFactory(
             application=self.application,
             start_date=timezone.now().date(),
-            status=LicenceStatus.REVOKED.value,
+            status=LicenceStatus.REVOKED,
             duration=100,
             reference_code="reference",
         )

@@ -69,7 +69,7 @@ def get_document_context(case, licence=None, addressee=None):
         "details": _get_details_context(case),
         "addressee": _get_addressee_context(addressee) if addressee else None,
         "organisation": _get_organisation_context(case.organisation),
-        "licence": _get_licence_context(licence) if licence and licence.status != LicenceStatus.REFUSED.value else None,
+        "licence": _get_licence_context(licence) if licence and licence.status != LicenceStatus.REFUSED else None,
         "end_user": _get_party_context(base_application.end_user.party)
         if base_application and getattr(base_application, "end_user", "")
         else None,

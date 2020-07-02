@@ -24,7 +24,7 @@ class GetLicenceTests(DataTestClient):
             self.open_application,
         ]
         self.licences = {
-            application: self.create_licence(application, status=LicenceStatus.ISSUED.value)
+            application: self.create_licence(application, status=LicenceStatus.ISSUED)
             for application in self.applications
         }
 

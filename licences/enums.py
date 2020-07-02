@@ -1,7 +1,4 @@
-from enum import Enum
-
-
-class LicenceStatus(Enum):
+class LicenceStatus:
     ISSUED = "issued"
     REINSTATED = "reinstated"
     REVOKED = "revoked"
@@ -9,7 +6,16 @@ class LicenceStatus(Enum):
     DRAFT = "draft"
     CANCELLED = "cancelled"
     REFUSED = "refused"
-    NOT_REQUIRED = "not_required"
+
+    choices = [
+        (ISSUED, "Issued"),
+        (REINSTATED, "Reinstated"),
+        (REVOKED, "Revoked"),
+        (SURRENDERED, "Surrendered"),
+        (DRAFT, "Draft"),
+        (CANCELLED, "Cancelled"),
+        (REFUSED, "Refused"),
+    ]
 
     @classmethod
     def values(cls):
@@ -17,14 +23,6 @@ class LicenceStatus(Enum):
 
     @classmethod
     def human_readable(cls, status):
-        status = cls(status)
-        return {
-            cls.ISSUED: "Issued",
-            cls.REINSTATED: "Reinstated",
-            cls.REVOKED: "Revoked",
-            cls.SURRENDERED: "Surrendered",
-            cls.DRAFT: "Draft",
-            cls.CANCELLED: "Cancelled",
-            cls.REFUSED: "Refused",
-            cls.NOT_REQUIRED: "Not Required",
-        }[status]
+        for key, value in cls.choices:
+            if key == status:
+                return value

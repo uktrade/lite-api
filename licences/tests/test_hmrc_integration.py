@@ -60,7 +60,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def test_data_transfer_object_standard_application(self):
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED.value)
+        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
 
         data = HMRCIntegrationLicenceSerializer(self.standard_licence).data
 
@@ -69,7 +69,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def test_data_transfer_object_open_application(self):
         open_application = self.create_open_application_case(self.organisation)
         self.create_advice(self.gov_user, open_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        open_licence = self.create_licence(open_application, status=LicenceStatus.ISSUED.value)
+        open_licence = self.create_licence(open_application, status=LicenceStatus.ISSUED)
 
         data = HMRCIntegrationLicenceSerializer(open_licence).data
 
@@ -161,7 +161,7 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED.value)
+        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
@@ -213,7 +213,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED.value)
+        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
 
     @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
     def test_save_licence_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
@@ -232,7 +232,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED.value)
+        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
 
     @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", False)
     @mock.patch("licences.tasks.send_licence_to_hmrc_integration.now")
@@ -449,7 +449,7 @@ class HMRCIntegrationTests(DataTestClient):
 
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
-        licence = self.create_licence(application, status=LicenceStatus.ISSUED.value)
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
         self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         template = self.create_letter_template(
             name="Template",

@@ -18,7 +18,7 @@ class Licence(TimestampableModel):
         BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licence"
     )
     status = models.CharField(
-        choices=[(tag.value, tag) for tag in LicenceStatus], max_length=32, default=LicenceStatus.DRAFT.value
+        choices=[(tag.value, tag) for tag in LicenceStatus], max_length=32, default=LicenceStatus.DRAFT
     )
     start_date = models.DateField(blank=False, null=True)
     duration = models.PositiveSmallIntegerField(blank=False, null=True)
@@ -31,31 +31,31 @@ class Licence(TimestampableModel):
         ordering = ("-created_at",)
 
     def surrender(self):
-        self.status = LicenceStatus.SURRENDERED.value
+        self.status = LicenceStatus.SURRENDERED
         self.save()
 
     def revoke(self):
-        self.status = LicenceStatus.REVOKED.value
+        self.status = LicenceStatus.REVOKED
         self.save()
 
     def cancel(self):
-        self.status = LicenceStatus.CANCELLED.value
+        self.status = LicenceStatus.CANCELLED
         self.save()
 
     def issue(self):
         try:
             old_licence = Licence.objects.get(
-                application=self.application, status__in=[LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value]
+                application=self.application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
             )
             old_licence.cancel()
         except Licence.DoesNotExist:
             old_licence = None
 
-        self.status = LicenceStatus.ISSUED.value if not old_licence else LicenceStatus.REINSTATED.value
+        self.status = LicenceStatus.ISSUED if not old_licence else LicenceStatus.REINSTATED
         self.save()
 
     def is_complete(self):
-        return self.status in [LicenceStatus.ISSUED.value, LicenceStatus.REINSTATED.value]
+        return self.status in [LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
 
     def save(self, *args, **kwargs):
         super(Licence, self).save(*args, **kwargs)

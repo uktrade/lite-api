@@ -671,7 +671,7 @@ class FinaliseView(UpdateAPIView):
         # Due to a bug where multiple licences were being created, we get the latest one.
         try:
             application_licences = Licence.objects.filter(application=case)
-            licence = application_licences.get(status=LicenceStatus.DRAFT.value)
+            licence = application_licences.get(status=LicenceStatus.DRAFT)
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.issue()
             return_payload["licence"] = licence.id

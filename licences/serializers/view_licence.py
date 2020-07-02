@@ -5,7 +5,6 @@ from applications.models import BaseApplication, PartyOnApplication, GoodOnAppli
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
-from common.serializers import EnumField
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -29,7 +28,7 @@ from static.units.enums import Units
 
 
 class CaseLicenceViewSerializer(serializers.ModelSerializer):
-    status = EnumField(LicenceStatus, required=False)
+    status = KeyValueChoiceField(LicenceStatus.choices, required=False)
 
     class Meta:
         model = Licence

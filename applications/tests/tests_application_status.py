@@ -168,7 +168,7 @@ class ApplicationManageStatusTests(DataTestClient):
     def test_exporter_set_application_status_surrendered_success(self, mock_notify_client):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
-        self.create_licence(self.standard_application, status=LicenceStatus.ISSUED.value)
+        self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
         surrendered_status = get_case_status_by_status("surrendered")
 
         data = {"status": CaseStatusEnum.SURRENDERED}
