@@ -161,9 +161,7 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
 
     def get_goods(self, instance):
         if instance.goods.exists():
-            return get_goods_on_licence(
-                Licence.objects.filter(application=instance).last(), include_control_list_entries=True
-            )
+            return get_goods_on_licence(Licence.objects.get_active_licence(instance), include_control_list_entries=True)
         elif instance.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance)
             return GoodsTypeOnLicenceSerializer(approved_goods_types, many=True).data
@@ -186,6 +184,7 @@ class LicenceSerializer(serializers.ModelSerializer):
         model = Licence
         fields = (
             "application",
+            "reference_code",
             "start_date",
             "duration",
         )

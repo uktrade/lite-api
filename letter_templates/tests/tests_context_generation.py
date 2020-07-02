@@ -382,7 +382,9 @@ class DocumentContextGenerationTests(DataTestClient):
     def test_generate_context_with_licence(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
         licence = self.create_licence(case, status=LicenceStatus.ISSUED)
-        good_on_licence = GoodOnLicenceFactory(good=case.goods.first(), quantity=10, usage=20, value=30, licence=licence)
+        good_on_licence = GoodOnLicenceFactory(
+            good=case.goods.first(), quantity=10, usage=20, value=30, licence=licence
+        )
 
         context = get_document_context(case)
 

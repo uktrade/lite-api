@@ -108,9 +108,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
 
     def get_goods(self, instance):
         if instance.goods.exists():
-            return get_goods_on_licence(
-                Licence.objects.filter(application=instance).first(), include_control_list_entries=True
-            )
+            return get_goods_on_licence(Licence.objects.get_active_licence(instance), include_control_list_entries=True)
         elif instance.goods_type.exists():
             return GoodsTypeOnLicenceListSerializer(instance.goods_type, many=True).data
 

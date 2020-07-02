@@ -23,9 +23,3 @@ class LicenceCreateSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError(strings.Applications.Finalise.Error.DURATION_RANGE)
         return data
-
-
-class LicenceRefuseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Licence
-        fields = ("application", "status")

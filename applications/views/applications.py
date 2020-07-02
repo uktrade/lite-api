@@ -3,7 +3,7 @@ from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F, Sum
+from django.db.models import F
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
@@ -50,7 +50,6 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
-from applications.serializers.good import GoodOnStandardLicenceSerializer, GoodOnLicenceSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
@@ -75,9 +74,9 @@ from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
 from licences.enums import LicenceStatus
-from licences.models import Licence, GoodOnLicence
 from licences.helpers import get_licence_reference_code
-from licences.serializers.create_licence import LicenceCreateSerializer, LicenceRefuseSerializer
+from licences.models import Licence
+from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
 from organisations.enums import OrganisationType
 from organisations.libraries.get_organisation import get_request_user_organisation, get_request_user_organisation_id
