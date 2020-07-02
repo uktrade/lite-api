@@ -600,6 +600,7 @@ class GoodSerializerInternal(serializers.Serializer):
     information_security_details = serializers.CharField()
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
     software_or_technology_details = serializers.CharField()
+    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
