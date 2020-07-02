@@ -26,7 +26,11 @@ class GetCaseLicenceTests(DataTestClient):
             application=self.application, good=self.good, quantity=100.0, value=Decimal("1000.00")
         )
         self.good_on_licence = GoodOnLicenceFactory(
-            good=self.good_on_application, quantity=self.good_on_application.quantity, usage=20.0, licence=self.licence
+            good=self.good_on_application,
+            quantity=self.good_on_application.quantity,
+            usage=20.0,
+            value=20,
+            licence=self.licence,
         )
 
     def test_get_application_licences(self):

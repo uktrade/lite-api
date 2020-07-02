@@ -118,7 +118,7 @@ class FinaliseApplicationTests(DataTestClient):
         response = self.client.put(url, data=data, **self.gov_headers)
         response_data = response.json()
 
-        self.assertEqual(response.status_code,  status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["application"], str(clearance_application.id))
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
@@ -158,7 +158,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json(), {"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}}
+            response.json(), {"errors": {"start_date": [strings.Applications.Finalise.Error.INVALID_DATE]}}
         )
 
     def test_no_action_failure(self):

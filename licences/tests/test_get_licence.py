@@ -3,6 +3,7 @@ from rest_framework import status
 
 from cases.enums import CaseTypeEnum
 from licences.enums import LicenceStatus
+from licences.tests.factories import GoodOnLicenceFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -27,6 +28,12 @@ class GetLicenceTests(DataTestClient):
             application: self.create_licence(application, status=LicenceStatus.ISSUED)
             for application in self.applications
         }
+        GoodOnLicenceFactory(
+            good=self.standard_application.goods.first(),
+            licence=self.licences[self.standard_application],
+            value=10,
+            quantity=10,
+        )
 
     def test_get_licence(self):
         for licence in self.licences.values():

@@ -594,8 +594,8 @@ class ApplicationFinaliseView(APIView):
                 start_date = timezone.datetime(
                     year=int(licence_data["year"]), month=int(licence_data["month"]), day=int(licence_data["day"])
                 )
-            except ValueError:
-                raise ParseError({"year": [strings.Applications.Finalise.Error.INVALID_DATE]})
+            except (KeyError, ValueError):
+                raise ParseError({"start_date": [strings.Applications.Finalise.Error.INVALID_DATE]})
 
             # Delete existing draft if one exists
             try:

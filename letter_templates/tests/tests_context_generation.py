@@ -98,6 +98,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def _assert_good_on_licence(self, context, good_on_licence):
         self._assert_good(context, good_on_licence.good)
+        self.assertTrue(Units.choices_as_dict[good_on_licence.good.unit] in context["quantity"])
         self.assertTrue(str(good_on_licence.quantity) in context["quantity"])
         self.assertTrue(str(good_on_licence.value) in context["value"])
 
@@ -107,7 +108,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_good(goods[0], good_on_application)
         self.assertEqual(goods[0]["reason"], advice.text)
         self.assertEqual(goods[0]["note"], advice.note)
-        self.assertTrue(Units.choices_as_dict[good_on_application.unit] in goods[0]["quantity"])
 
     def _assert_goods_type(self, context, goods_type):
         self.assertTrue(goods_type.description in [item["description"] for item in context["all"]])
@@ -342,10 +342,6 @@ class DocumentContextGenerationTests(DataTestClient):
         final_advice = self.create_advice(
             self.gov_user, case, "good", AdviceType.APPROVE, AdviceLevel.FINAL, advice_text="abc",
         )
-        good = case.goods.first()
-        good.licenced_quantity = 10
-        good.licenced_value = 15
-        good.save()
 
         context = get_document_context(case)
 

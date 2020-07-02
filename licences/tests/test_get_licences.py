@@ -53,7 +53,7 @@ class GetLicencesTests(DataTestClient):
         for application, licence in self.licences.items():
             for good in application.goods.all():
                 FinalAdviceFactory(user=self.gov_user, good=good.good, case=application)
-                GoodOnLicenceFactory(licence=licence, good=good, quantity=good.quantity)
+                GoodOnLicenceFactory(licence=licence, good=good, quantity=good.quantity, value=good.value)
 
     def test_get_all_licences(self):
         response = self.client.get(self.url, **self.exporter_headers)
