@@ -245,10 +245,7 @@ class CaseManager(models.Manager):
             self.submitted()
             .select_related("status", "case_type")
             .prefetch_related(
-                "case_assignments",
-                "case_assignments__user",
-                "case_ecju_query",
-                "case_assignments__queue",
+                "case_assignments", "case_assignments__user", "case_ecju_query", "case_assignments__queue",
             )
         )
 

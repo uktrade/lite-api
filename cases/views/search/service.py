@@ -142,10 +142,13 @@ def populate_organisation(cases: List[Dict]):
 
 def populate_other_flags(cases: List[Dict]):
     from flags.models import Flag
+
     case_ids = [case["id"] for case in cases]
 
     case_flags = Flag.objects.filter(cases__id__in=case_ids).annotate(case_id=F("cases__id"))
-    organisation_flags = Flag.objects.filter(organisations__cases__id__in=case_ids).annotate(case_id=F("organisations__cases__id"))
+    organisation_flags = Flag.objects.filter(organisations__cases__id__in=case_ids).annotate(
+        case_id=F("organisations__cases__id")
+    )
     union_flags = [*case_flags, *organisation_flags]
 
     for case in cases:
