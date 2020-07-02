@@ -66,7 +66,7 @@ def format_user_text(user_text):
 
 
 def generate_preview(
-    layout: str, text: str, case=None, licence=None, additional_contact=None, allow_missing_variables=True
+    layout: str, text: str, case=None, additional_contact=None, allow_missing_variables=True
 ):
     try:
         django_engine = template_engine_factory(allow_missing_variables)
@@ -81,7 +81,7 @@ def generate_preview(
 
         context = {}
         if case:
-            context = get_document_context(case, licence, additional_contact)
+            context = get_document_context(case, additional_contact)
 
         return load_css(layout) + template.render(Context(context))
     except (FileNotFoundError, TemplateDoesNotExist):
