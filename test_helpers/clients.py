@@ -935,6 +935,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             case_type_id=CaseTypeEnum.EUA.id,
             submitted_by=self.exporter_user,
+            submitted_at=datetime.now(timezone.utc),
         )
         end_user_advisory_query.save()
         return end_user_advisory_query
