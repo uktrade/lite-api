@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.http import JsonResponse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 
@@ -75,6 +76,21 @@ class LicenceList(ListAPIView):
             cases = cases.filter(reference_code__contains=reference_code)
 
         return cases
+
+    def get_paginated_response(self, data):
+        date = timezone.now().date()
+        open_licence_returns_year = date.year - 2 if date.month == 1 else date.year - 1
+        organisation = get_case(self.kwargs["pk"]).organisation_id
+        licence_has_open_licence_returns = set(
+            OpenLicenceReturns.objects.filter(
+                year=open_licence_returns_year, organisation_id=organisation
+            ).values_list("licences", flat=True)
+        )
+
+        for licence in data:
+            licence["has_open_licence_returns"] = licence["id"] in licence_has_open_licence_returns
+
+        return super().get_paginated_response(data)
 
 
 class ComplianceManageStatus(UpdateAPIView):
