@@ -129,5 +129,6 @@ class ComplianceCreateTests(DataTestClient):
         )
 
         generate_compliance_site_case(case)
+        compliance_case = ComplianceSiteCase.objects.get()
 
-        self.assertTrue(ComplianceSiteCase.objects.exists())
+        self.assertEqual(compliance_case.site.id, case.site)
