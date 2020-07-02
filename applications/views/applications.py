@@ -536,7 +536,7 @@ class ApplicationFinaliseView(APIView):
         application = get_application(pk)
 
         # Check permissions
-        is_mod_clearance = application.case_type.sub_type not in CaseTypeSubTypeEnum.mod
+        is_mod_clearance = application.case_type.sub_type in CaseTypeSubTypeEnum.mod
         if not can_status_be_set_by_gov_user(
             request.user, application.status.status, CaseStatusEnum.FINALISED, is_mod_clearance
         ):
