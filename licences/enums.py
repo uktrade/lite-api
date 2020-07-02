@@ -18,10 +18,6 @@ class LicenceStatus:
     ]
 
     @classmethod
-    def values(cls):
-        return [tag.value for tag in cls]
-
-    @classmethod
     def human_readable(cls, status):
         for key, value in cls.choices:
             if key == status:

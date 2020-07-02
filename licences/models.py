@@ -18,8 +18,8 @@ class Licence(TimestampableModel):
         BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licence"
     )
     status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
-    start_date = models.DateField(blank=False, null=True)
-    duration = models.PositiveSmallIntegerField(blank=False, null=True)
+    start_date = models.DateField(blank=False, null=False)
+    duration = models.PositiveSmallIntegerField(blank=False, null=False)
     decisions = models.ManyToManyField(Decision, related_name="licence")
     sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
 
@@ -52,13 +52,13 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.ISSUED if not old_licence else LicenceStatus.REINSTATED
         self.save()
 
-    def is_complete(self):
+    def is_active(self):
         return self.status in [LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
 
     def save(self, *args, **kwargs):
         super(Licence, self).save(*args, **kwargs)
 
-        if LITE_HMRC_INTEGRATION_ENABLED and self.is_complete():
+        if LITE_HMRC_INTEGRATION_ENABLED and self.is_active():
             self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
@@ -70,7 +70,6 @@ class Licence(TimestampableModel):
         """
         For avoiding use of 'save()' which would trigger 'send_to_hmrc_integration()' again
         """
-
         self.sent_at = value
         super(Licence, self).save()
 
@@ -80,5 +79,5 @@ class GoodOnLicence(TimestampableModel):
     good = models.ForeignKey(GoodOnApplication, on_delete=models.CASCADE, related_name="licence")
     licence = models.ForeignKey(Licence, on_delete=models.CASCADE, related_name="goods", related_query_name="goods")
     usage = models.FloatField(null=False, blank=False, default=0)
-    quantity = models.FloatField(null=True, blank=True, default=None)
-    value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
+    quantity = models.FloatField(null=False, blank=False)
+    value = models.DecimalField(max_digits=15, decimal_places=2, null=False, blank=False)

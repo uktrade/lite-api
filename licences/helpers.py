@@ -1,5 +1,7 @@
 from string import ascii_uppercase
 
+from django.db import transaction
+
 from cases.enums import AdviceType
 from cases.models import Advice
 from conf.exceptions import NotFoundError
@@ -28,6 +30,7 @@ def get_approved_goods_types(application):
     return application.goods_type.filter(id__in=approved_goods)
 
 
+@transaction.atomic
 def get_licence_reference_code(application_reference):
     # Needs to lock so that 2 Licences don't get the same reference code
     total_reference_codes = (
