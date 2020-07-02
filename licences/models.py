@@ -17,9 +17,7 @@ class Licence(TimestampableModel):
     application = models.ForeignKey(
         BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licence"
     )
-    status = models.CharField(
-        choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT
-    )
+    status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
     start_date = models.DateField(blank=False, null=True)
     duration = models.PositiveSmallIntegerField(blank=False, null=True)
     decisions = models.ManyToManyField(Decision, related_name="licence")
