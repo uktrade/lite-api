@@ -649,6 +649,9 @@ class FinaliseView(UpdateAPIView):
         old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
+        audit_trail_service.create(
+            actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=case,
+        )
 
         gov_notify_service.send_email(
             email_address=case.submitted_by.email,

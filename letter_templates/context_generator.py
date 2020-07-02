@@ -30,7 +30,7 @@ def get_document_context(case, addressee=None):
     Generate universal context dictionary to provide data for all document types.
     """
     date, time = get_date_and_time()
-    licence = Licence.objects.get_draft_or_active_licence(case)
+    licence = Licence.objects.get_draft_or_active_licence(case.pk)
     final_advice = Advice.objects.filter(level=AdviceLevel.FINAL, case_id=case.pk)
     ecju_queries = EcjuQuery.objects.filter(case=case)
     notes = CaseNote.objects.filter(case=case)

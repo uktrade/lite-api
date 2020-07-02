@@ -178,8 +178,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"], str(self.standard_application.id))
-        self.assertEqual(self.standard_application.status, self.finalised_status)
-        self.assertEqual(Audit.objects.count(), 2)
+        self.assertEqual(Audit.objects.count(), 1)
 
 
 class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):

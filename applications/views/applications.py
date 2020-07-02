@@ -556,9 +556,7 @@ class ApplicationFinaliseView(APIView):
 
         # Refusals & NLRs
         if action in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
-            audit_trail_service.create(
-                actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
-            )
+
             return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
 
         # Approvals & Provisos
