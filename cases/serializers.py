@@ -1,4 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from rest_framework import serializers
 
 from applications.helpers import get_application_view_serializer
@@ -24,6 +26,7 @@ from cases.models import (
     Advice,
     GoodCountryDecision,
     CaseType,
+    CaseReviewDate,
 )
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase
 from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
@@ -43,6 +46,7 @@ from queues.models import Queue
 from queues.serializers import CasesQueueViewSerializer
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
+from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
 from users.models import BaseUser, GovUser, ExporterUser, GovNotification
@@ -115,6 +119,7 @@ class CaseListSerializer(serializers.Serializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
+    has_future_review_date = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -128,6 +133,13 @@ class CaseListSerializer(serializers.Serializer):
 
     def get_status(self, instance):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
+
+    def get_has_future_review_date(self, instance):
+        case_review_date = instance.case_review_date.filter(team_id=self.team.id).first()
+        if case_review_date:
+            if case_review_date.next_review_date and case_review_date.next_review_date > timezone.now().date():
+                return True
+        return False
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
@@ -154,6 +166,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     advice = CaseAdviceSerializer(many=True)
     data = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
+    next_review_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -174,6 +187,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "sla_days",
             "sla_remaining_days",
             "data",
+            "next_review_date",
         )
 
     def __init__(self, *args, **kwargs):
@@ -248,6 +262,11 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
+
+    def get_next_review_date(self, instance):
+        next_review_date = CaseReviewDate.objects.filter(case_id=instance.id, team_id=self.team.id)
+        if next_review_date:
+            return next_review_date.get().next_review_date
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
@@ -430,3 +449,28 @@ class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = ("case_officer",)
+
+
+class ReviewDateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for setting and editing the next review date of a case.
+    """
+
+    team = serializers.PrimaryKeyRelatedField(required=True, queryset=Team.objects.all())
+    case = serializers.PrimaryKeyRelatedField(required=True, queryset=Case.objects.all())
+    next_review_date = serializers.DateField(
+        required=False,
+        allow_null=True,
+        error_messages={"invalid": strings.Cases.NextReviewDate.Errors.INVALID_DATE_FORMAT},
+    )
+
+    class Meta:
+        model = CaseReviewDate
+        fields = ("next_review_date", "team", "case")
+
+    def validate_next_review_date(self, value):
+        if value:
+            today = timezone.now().date()
+            if value < today:
+                raise ValidationError(strings.Cases.NextReviewDate.Errors.DATE_IN_PAST)
+        return value
