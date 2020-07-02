@@ -30,7 +30,7 @@ def get_document_context(case, addressee=None):
     Generate universal context dictionary to provide data for all document types.
     """
     date, time = get_date_and_time()
-    licence = Licence.objects.get_draft_or_active_licence()
+    licence = Licence.objects.get_draft_or_active_licence(case)
     final_advice = Advice.objects.filter(level=AdviceLevel.FINAL, case_id=case.pk)
     ecju_queries = EcjuQuery.objects.filter(case=case)
     notes = CaseNote.objects.filter(case=case)
@@ -404,31 +404,32 @@ def _get_good_on_application_context(good_on_application, advice=None):
 
 def _get_good_on_licence_context(good_on_licence, advice=None):
     good_context = _get_good_on_application_context(good_on_licence.good, advice)
-    good_context["quantity"] = _format_quantity(good_on_licence.licenced_quantity, good_on_licence.good.unit)
-    good_context["value"] = f"£{good_on_licence.licenced_value}"
+    good_context["quantity"] = _format_quantity(good_on_licence.quantity, good_on_licence.good.unit)
+    good_context["value"] = f"£{good_on_licence.value}"
 
     return good_context
 
 
 def _get_goods_context(goods, final_advice):
-    final_advice = final_advice.filter(good_id__isnull=False)
-    goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
+    if goods:
+        final_advice = final_advice.filter(good_id__isnull=False)
+        goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
 
-    if isinstance(goods[0], GoodOnLicence):
-        goods_context_function = _get_good_on_licence_context
-    else:
-        goods_context_function = _get_good_on_application_context
+        if isinstance(goods[0], GoodOnLicence):
+            goods_context_function = _get_good_on_licence_context
+        else:
+            goods_context_function = _get_good_on_application_context
 
-    goods_context["all"] = [goods_context_function(good_on_application) for good_on_application in goods]
-    goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods}
+        goods_context["all"] = [goods_context_function(good_on_application) for good_on_application in goods]
+        goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods}
 
-    for advice in final_advice:
-        good_on_application = goods_on_application[advice.good_id]
-        goods_context[advice.type].append(goods_context_function(good_on_application, advice))
+        for advice in final_advice:
+            good_on_application = goods_on_application[advice.good_id]
+            goods_context[advice.type].append(goods_context_function(good_on_application, advice))
 
-    # Move proviso elements into approved because they are treated the same
-    goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))
-    return goods_context
+        # Move proviso elements into approved because they are treated the same
+        goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))
+        return goods_context
 
 
 def _get_goods_type_context(goods_types, case_pk):
