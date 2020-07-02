@@ -464,7 +464,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         uses_information_security=True,
         information_security_details=None,
         software_or_technology_details=None,
-        create_firearm_details=False
+        create_firearm_details=False,
     ) -> Good:
         warnings.warn(
             "create_good is a deprecated function. Use a GoodFactory instead", category=DeprecationWarning, stacklevel=2
@@ -492,7 +492,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 section_certificate_date_of_expiry=None,
                 has_identification_markings=True,
                 identification_markings_details="some marking details",
-                no_identification_markings_details="")
+                no_identification_markings_details="",
+            )
 
         good = Good(
             description=description,
@@ -511,7 +512,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             modified_military_use_details=modified_military_use_details,
             component_details=component_details,
             software_or_technology_details=software_or_technology_details,
-            firearm_details=firearm_details
+            firearm_details=firearm_details,
         )
         good.save()
 

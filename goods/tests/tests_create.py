@@ -1,11 +1,21 @@
 import uuid
 from copy import deepcopy
 
+from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading, GoodStatus, ItemCategory, MilitaryUse, Component
+from goods.enums import (
+    GoodControlled,
+    GoodPvGraded,
+    PvGrading,
+    GoodStatus,
+    ItemCategory,
+    MilitaryUse,
+    Component,
+    FirearmGoodType,
+)
 from goods.models import Good
 from lite_content.lite_api import strings
 from static.control_list_entries.helpers import get_control_list_entry
@@ -37,6 +47,7 @@ REQUEST_DATA = {
     "is_military_use_step": True,
     "is_information_security_step": True,
     "uses_information_security": True,
+    "modified_military_use_details": "",
 }
 
 
@@ -150,6 +161,7 @@ class CreateGoodTests(DataTestClient):
             "validate_only": True,
             "is_pv_graded": GoodPvGraded.NO,
             "is_military_use": MilitaryUse.NO,
+            "modified_military_use_details": "",
         }
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
@@ -165,6 +177,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "is_military_use": MilitaryUse.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
+            "modified_military_use_details": "",
         }
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
@@ -181,6 +194,7 @@ class CreateGoodTests(DataTestClient):
             "is_pv_graded": GoodPvGraded.NO,
             "is_military_use": MilitaryUse.NO,
             "item_category": ItemCategory.GROUP1_DEVICE,
+            "modified_military_use_details": "",
         }
         response = self.client.post(URL, data, **self.exporter_headers)
         errors = response.json()["errors"]
@@ -235,6 +249,7 @@ class CreateGoodTests(DataTestClient):
             "is_military_use": MilitaryUse.NO,
             "is_military_use_step": True,
             "is_component_step": True,
+            "modified_military_use_details": "",
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -264,6 +279,7 @@ class CreateGoodTests(DataTestClient):
             "is_component_step": True,
             "is_component": component,
             details_field: "",
+            "modified_military_use_details": "",
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -285,6 +301,7 @@ class CreateGoodTests(DataTestClient):
             "is_component_step": True,
             "is_component": Component.NO,
             "is_information_security_step": True,
+            "modified_military_use_details": "",
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -308,6 +325,7 @@ class CreateGoodTests(DataTestClient):
             "is_military_use_step": True,
             "is_information_security_step": True,
             "uses_information_security": True,
+            "modified_military_use_details": "",
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -334,6 +352,7 @@ class CreateGoodTests(DataTestClient):
             "is_information_security_step": True,
             "uses_information_security": True,
             "information_security_details": "details about security",
+            "modified_military_use_details": "",
         }
 
         response = self.client.post(URL, data, **self.exporter_headers)
@@ -360,6 +379,7 @@ class CreateGoodTests(DataTestClient):
             "software_or_technology_details": details,
             "is_military_use": MilitaryUse.NO,
             "is_military_use_step": True,
+            "modified_military_use_details": "",
             "is_software_or_technology_step": True,
             "is_information_security_step": True,
             "uses_information_security": True,
@@ -419,6 +439,394 @@ class CreateGoodTests(DataTestClient):
         self.assertEqual(
             errors["software_or_technology_details"], ["Ensure this field has no more than 2000 characters."]
         )
+
+    def test_add_category_two_good_no_type_selected_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": None},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["type"], [strings.Goods.FIREARM_GOOD_NO_TYPE])
+
+    def test_add_category_two_good_no_year_of_manufacture_or_calibre_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": FirearmGoodType.AMMUNITION, "calibre": "", "year_of_manufacture": ""},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["calibre"], [strings.Goods.FIREARM_GOOD_NO_CALIBRE])
+        self.assertEqual(errors["year_of_manufacture"], [strings.Goods.FIREARM_GOOD_NO_YEAR_OF_MANUFACTURE])
+
+    @parameterized.expand(
+        [[str(timezone.now().date().year)], [str(timezone.now().date().year + 1)],]
+    )
+    def test_add_category_two_good_no_year_of_manufacture_not_in_the_past_failure(self, year):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {"type": FirearmGoodType.AMMUNITION, "calibre": "0.5", "year_of_manufacture": year},
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["year_of_manufacture"], [strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_IN_PAST])
+
+    def test_add_category_two_good_no_section_certificate_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": None,
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            errors["is_covered_by_firearm_act_section_one_two_or_five"], [strings.Goods.FIREARM_GOOD_NO_SECTION]
+        )
+
+    def test_add_category_two_good_no_certificate_number_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": None,
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["section_certificate_number"], [strings.Goods.FIREARM_GOOD_NO_CERT_NUM])
+
+    def test_add_category_two_good_no_certificate_expiry_date_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "section_certificate_number": "ABC123",
+                "section_certificate_date_of_expiry": None,
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE])
+
+    def test_add_category_two_good_certificate_number_in_past_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "section_certificate_number": "ABC123",
+                "section_certificate_date_of_expiry": "2012-12-12",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE])
+
+    def test_add_category_two_good_invalid_format_certificate_number_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "section_certificate_number": "ABC123",
+                "section_certificate_date_of_expiry": "20-12-12",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE])
+
+    def test_add_category_two_good_certificate_details_not_set_on_no_success(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "section_certificate_number": "ABC123",
+                "section_certificate_date_of_expiry": "2012-12-12",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(good["firearm_details"]["section_certificate_date_of_expiry"])
+        self.assertIsNone(good["firearm_details"]["section_certificate_number"])
+        self.assertFalse(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+
+    def test_add_category_two_good_no_markings_answer_selected_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "",
+                "has_identification_markings": "",
+                "identification_markings_details": "",
+                "no_identification_markings_details": "",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["has_identification_markings"], [strings.Goods.FIREARM_GOOD_NO_MARKINGS])
+
+    def test_add_category_two_good_no_markings_selected_but_no_details_provided_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "",
+                "has_identification_markings": "False",
+                "identification_markings_details": "",
+                "no_identification_markings_details": "",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            errors["no_identification_markings_details"], [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_NO_MARKINGS]
+        )
+
+    def test_add_category_two_good_yes_markings_selected_but_no_details_provided_failure(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "",
+                "has_identification_markings": "True",
+                "identification_markings_details": "",
+                "no_identification_markings_details": "",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["identification_markings_details"], [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_MARKINGS])
+
+    def test_add_category_two_good_yes_markings_selected_success(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "",
+                "has_identification_markings": "True",
+                "identification_markings_details": "some marking details",
+                "no_identification_markings_details": "",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(good["firearm_details"]["has_identification_markings"])
+        self.assertEquals(
+            good["firearm_details"]["identification_markings_details"],
+            data["firearm_details"]["identification_markings_details"],
+        )
+
+    def test_add_category_two_good_only_correct_markings_details_set_success(self):
+        """ If details are provided for both answers, ensure that only the details for the given answer are stored. """
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "",
+                "has_identification_markings": "True",
+                "identification_markings_details": "some marking details",
+                "no_identification_markings_details": "some non marking details",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(good["firearm_details"]["has_identification_markings"])
+        self.assertEquals(
+            good["firearm_details"]["identification_markings_details"],
+            data["firearm_details"]["identification_markings_details"],
+        )
+        self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
+
+    def test_add_category_two_success(self):
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "section_certificate_number": "ABC123",
+                "section_certificate_date_of_expiry": "2022-12-12",
+                "has_identification_markings": "True",
+                "identification_markings_details": "some marking details",
+                "no_identification_markings_details": "",
+            },
+        }
+
+        response = self.client.post(URL, data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        # good details
+        self.assertEquals(good["description"], data["description"])
+        self.assertEquals(good["is_good_controlled"]["key"], data["is_good_controlled"])
+        self.assertEquals(good["is_pv_graded"]["key"], data["is_pv_graded"])
+        self.assertEquals(good["item_category"]["key"], data["item_category"])
+
+        # good's firearm details
+        self.assertEquals(good["firearm_details"]["type"]["key"], data["firearm_details"]["type"])
+        self.assertEquals(good["firearm_details"]["calibre"], data["firearm_details"]["calibre"])
+        self.assertEquals(
+            str(good["firearm_details"]["year_of_manufacture"]), data["firearm_details"]["year_of_manufacture"]
+        )
+        self.assertTrue(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+        self.assertEquals(
+            good["firearm_details"]["section_certificate_number"], data["firearm_details"]["section_certificate_number"]
+        )
+        self.assertEquals(
+            good["firearm_details"]["section_certificate_date_of_expiry"],
+            data["firearm_details"]["section_certificate_date_of_expiry"],
+        )
+        self.assertTrue(good["firearm_details"]["has_identification_markings"])
+        self.assertEquals(
+            good["firearm_details"]["identification_markings_details"],
+            data["firearm_details"]["identification_markings_details"],
+        )
+        self.assertIsNone(good["firearm_details"]["no_identification_markings_details"])
 
 
 class GoodsCreateControlledGoodTests(DataTestClient):
