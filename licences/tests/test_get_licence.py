@@ -21,7 +21,7 @@ class GetLicenceTests(DataTestClient):
             for application in self.applications
         }
 
-    def test_get_licence(self):
+    def test_get_licence_exporter_view(self):
         for application, licence in self.licences.items():
             url = reverse("licences:licence", kwargs={"pk": str(licence.id)})
             response = self.client.get(url, **self.exporter_headers)

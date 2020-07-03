@@ -56,7 +56,6 @@ from goodstype.helpers import get_goods_type
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
-from licences.enums import LicenceStatus
 from licences.models import Licence
 from licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
@@ -675,7 +674,7 @@ class FinaliseView(UpdateAPIView):
 
         # If a licence object exists, finalise the licence.
         try:
-            licence = Licence.objects.get_draft_licence()
+            licence = Licence.objects.get_draft_licence(pk)
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.issue()
             return_payload["licence"] = licence.id

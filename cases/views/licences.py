@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from conf.authentication import GovAuthentication
 from licences.models import Licence
-from licences.service import get_goods_on_licence
+from licences.serializers.view_licence import LicenceWithGoodsViewSerializer
 
 
 class LicencesView(APIView):
@@ -16,17 +16,5 @@ class LicencesView(APIView):
         if not licence:
             raise NotFound({"non_field_errors": ["No licence found"]})
 
-        # Group by good and aggregate usage information
-        goods = get_goods_on_licence(licence, include_control_list_entries=True)
-
-        data = {
-            "licence": {
-                "id": licence.id,
-                "start_date": licence.start_date,
-                "status": licence.status,
-                "duration": licence.duration,
-            },
-            "goods": goods,
-        }
-
-        return JsonResponse(data=data, status=status.HTTP_200_OK)
+        data = LicenceWithGoodsViewSerializer(instance=licence).data
+        return JsonResponse(data={"licence": data}, status=status.HTTP_200_OK)

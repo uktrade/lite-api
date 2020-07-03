@@ -5,6 +5,7 @@ from applications.models import BaseApplication, PartyOnApplication, GoodOnAppli
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
+from cases.serializers import SimpleAdviceSerializer
 from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from goods.models import Good
 from goodstype.models import GoodsType
@@ -189,6 +190,29 @@ class LicenceSerializer(serializers.ModelSerializer):
             "duration",
         )
         read_only_fields = fields
+
+
+class GoodOnLicenceViewSerializer(serializers.Serializer):
+    good_on_application_id = serializers.UUIDField(source="good.id")
+    usage = serializers.FloatField()
+    units = KeyValueChoiceField(source="good.unit", choices=Units.choices)
+    applied_for_quantity = serializers.FloatField(source="good.quantity")
+    applied_for_value = serializers.FloatField(source="good.value")
+    licenced_quantity = serializers.FloatField(source="quantity")
+    licenced_value = serializers.FloatField(source="value")
+    control_list_entries = ControlListEntrySerializer(source="good.good.control_list_entries", many=True)
+    advice = serializers.SerializerMethodField()
+
+    def get_advice(self, instance):
+        advice = instance.good.good.advice.get(level=AdviceLevel.FINAL)
+        return SimpleAdviceSerializer(instance=advice).data
+
+
+class LicenceWithGoodsViewSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    start_date = serializers.DateField()
+    duration = serializers.IntegerField()
+    goods_on_licence = GoodOnLicenceViewSerializer(source="goods", many=True)
 
 
 class NLRdocumentSerializer(serializers.ModelSerializer):
