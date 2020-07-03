@@ -13,9 +13,7 @@ class GetLicenceTests(DataTestClient):
             self.create_standard_application_case(self.organisation),
             self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.F680),
             self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.GIFTING),
-            self.create_mod_clearance_application_case(
-                self.organisation, CaseTypeEnum.EXHIBITION
-            ),
+            self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.EXHIBITION),
             self.create_open_application_case(self.organisation),
         ]
         self.licences = {
