@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("applications", "0033_auto_20200703_1001"),
+        ("applications", "0033_auto_20200612_1342"),
         ("licences", "0011_map_goodonapplication_to_goodonlicence"),
     ]
 
