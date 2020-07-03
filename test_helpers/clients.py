@@ -44,8 +44,8 @@ from conf.urls import urlpatterns
 from flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from flags.models import Flag, FlaggingRule
 from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component
-from goods.models import Good, GoodDocument, PvGradingDetails
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
+from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
 from letter_templates.models import LetterTemplate
@@ -464,6 +464,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         uses_information_security=True,
         information_security_details=None,
         software_or_technology_details=None,
+        create_firearm_details=False,
     ) -> Good:
         warnings.warn(
             "create_good is a deprecated function. Use a GoodFactory instead", category=DeprecationWarning, stacklevel=2
@@ -478,6 +479,20 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
                 issuing_authority="Issuing Authority",
                 reference="ref123",
                 date_of_issue="2019-12-25",
+            )
+
+        firearm_details = None
+        if create_firearm_details:
+            firearm_details = FirearmGoodDetails.objects.create(
+                type=FirearmGoodType.AMMUNITION,
+                calibre="0.5",
+                year_of_manufacture="1991",
+                is_covered_by_firearm_act_section_one_two_or_five=False,
+                section_certificate_number=None,
+                section_certificate_date_of_expiry=None,
+                has_identification_markings=True,
+                identification_markings_details="some marking details",
+                no_identification_markings_details="",
             )
 
         good = Good(
@@ -497,6 +512,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             modified_military_use_details=modified_military_use_details,
             component_details=component_details,
             software_or_technology_details=software_or_technology_details,
+            firearm_details=firearm_details,
         )
         good.save()
 
