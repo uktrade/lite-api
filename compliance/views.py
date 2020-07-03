@@ -210,8 +210,9 @@ class ComplianceCaseId(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk, *args, **kwargs):
+        case = get_case(pk)
         # Get record holding sites for the case
-        record_holding_sites_id = get_record_holding_sites_for_case(pk)
+        record_holding_sites_id = get_record_holding_sites_for_case(case)
 
         # Get list of record holding sites that do not have a compliance case
         existing_compliance_cases = Case.objects.filter(
