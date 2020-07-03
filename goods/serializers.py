@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -5,11 +6,26 @@ from common.libraries import (
     initialize_good_or_goods_type_control_list_entries_serializer,
     update_good_or_goods_type_control_list_entries_details,
 )
+from conf.helpers import str_to_bool
 from conf.serializers import KeyValueChoiceField, ControlListEntryField
 from documents.libraries.process_document import process_document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component
-from goods.helpers import validate_military_use, validate_component_details
-from goods.models import Good, GoodDocument, PvGradingDetails
+from goods.enums import (
+    GoodStatus,
+    GoodControlled,
+    GoodPvGraded,
+    PvGrading,
+    ItemCategory,
+    MilitaryUse,
+    Component,
+    FirearmGoodType,
+)
+from goods.helpers import (
+    validate_military_use,
+    validate_component_details,
+    validate_identification_markings,
+    validate_section_certificate_number_and_expiry_date,
+)
+from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
@@ -60,6 +76,126 @@ class PvGradingDetailsSerializer(serializers.ModelSerializer):
         return validated_data
 
 
+class FirearmDetailsSerializer(serializers.ModelSerializer):
+    type = KeyValueChoiceField(
+        choices=FirearmGoodType.choices, allow_null=False, error_messages={"null": strings.Goods.FIREARM_GOOD_NO_TYPE},
+    )
+    year_of_manufacture = serializers.IntegerField(
+        error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_YEAR_OF_MANUFACTURE},
+    )
+    calibre = serializers.CharField(error_messages={"blank": strings.Goods.FIREARM_GOOD_NO_CALIBRE}, max_length=15)
+    # this refers specifically to section 1, 2 or 5 of firearms act 1968
+    is_covered_by_firearm_act_section_one_two_or_five = serializers.BooleanField(allow_null=True, required=False)
+    section_certificate_number = serializers.CharField(
+        allow_blank=True, allow_null=True, required=False, max_length=100
+    )
+    section_certificate_date_of_expiry = serializers.DateField(
+        allow_null=True, required=False, error_messages={"invalid": strings.Goods.FIREARM_GOOD_NO_EXPIRY_DATE}
+    )
+    has_identification_markings = serializers.BooleanField(allow_null=True, required=False,)
+    identification_markings_details = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, max_length=2000
+    )
+    no_identification_markings_details = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, max_length=2000
+    )
+
+    class Meta:
+        model = FirearmGoodDetails
+        fields = (
+            "type",
+            "year_of_manufacture",
+            "calibre",
+            "is_covered_by_firearm_act_section_one_two_or_five",
+            "section_certificate_number",
+            "section_certificate_date_of_expiry",
+            "has_identification_markings",
+            "identification_markings_details",
+            "no_identification_markings_details",
+        )
+
+    def validate(self, data):
+        validated_data = super(FirearmDetailsSerializer, self).validate(data)
+
+        # Year of manufacture should be in the past and a valid year
+        year_of_manufacture = validated_data.get("year_of_manufacture")
+        if year_of_manufacture:
+            if year_of_manufacture > timezone.now().date().year:
+                raise serializers.ValidationError(
+                    {"year_of_manufacture": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_IN_PAST}
+                )
+            # Oldest firearm/ammunition in the world could date back to the 9th century - do not allow negative years
+            if year_of_manufacture < 800:
+                raise serializers.ValidationError(
+                    {"year_of_manufacture": strings.Goods.FIREARM_GOOD_YEAR_MUST_BE_VALID}
+                )
+
+        # Firearms act validation - mandatory question
+        if (
+            "is_covered_by_firearm_act_section_one_two_or_five" in data
+            and data.get("is_covered_by_firearm_act_section_one_two_or_five") is None
+        ):
+            raise serializers.ValidationError(
+                {"is_covered_by_firearm_act_section_one_two_or_five": [strings.Goods.FIREARM_GOOD_NO_SECTION]}
+            )
+
+        # Section certificate number and date of expiry are mandatory if the answer to the firearms act question is True
+        if validated_data.get("is_covered_by_firearm_act_section_one_two_or_five"):
+            validate_section_certificate_number_and_expiry_date(validated_data)
+
+        # Identification markings - mandatory question
+        validate_identification_markings(validated_data)
+
+        return validated_data
+
+    def update(self, instance, validated_data):
+        instance.type = validated_data.get("type", instance.type)
+        instance.year_of_manufacture = validated_data.get("year_of_manufacture", instance.year_of_manufacture)
+        instance.calibre = validated_data.get("calibre", instance.calibre)
+
+        is_covered_by_firearms_act = validated_data.get("is_covered_by_firearm_act_section_one_two_or_five")
+        # if the answer to the firearms act has changed, then set the new value and the certificate and date fields
+        if (
+            is_covered_by_firearms_act is not None
+            and is_covered_by_firearms_act != instance.is_covered_by_firearm_act_section_one_two_or_five
+        ):
+            instance.is_covered_by_firearm_act_section_one_two_or_five = is_covered_by_firearms_act
+            # Clear the date and certificate fields if the answer has changed to a No
+            if not instance.is_covered_by_firearm_act_section_one_two_or_five:
+                instance.section_certificate_number = ""
+                instance.section_certificate_date_of_expiry = None
+
+        # Update just the certificate and expiryy date fields if changed
+        instance.section_certificate_number = validated_data.get(
+            "section_certificate_number", instance.section_certificate_number
+        )
+        instance.section_certificate_date_of_expiry = validated_data.get(
+            "section_certificate_date_of_expiry", instance.section_certificate_date_of_expiry
+        )
+
+        has_markings = validated_data.get("has_identification_markings")
+        # if the answer to the identification markings question has changed
+        if has_markings is not None and has_markings != instance.has_identification_markings:
+            instance.has_identification_markings = has_markings
+            # If changed to Yes, clear the no_identification_markings_details field
+            if has_markings:
+                instance.no_identification_markings_details = ""
+                instance.identification_markings_details = validated_data.get("identification_markings_details")
+            else:
+                instance.identification_markings_details = ""
+                instance.no_identification_markings_details = validated_data.get("no_identification_markings_details")
+        # Update just the identification marking details fields value if changed
+        instance.identification_markings_details = validated_data.get(
+            "identification_markings_details", instance.identification_markings_details
+        )
+        instance.no_identification_markings_details = validated_data.get(
+            "no_identification_markings_details", instance.no_identification_markings_details
+        )
+
+        instance.save()
+        return instance
+
+
 class GoodListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     description = serializers.CharField()
@@ -96,7 +232,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     item_category = KeyValueChoiceField(
         choices=ItemCategory.choices, error_messages={"required": strings.Goods.FORM_NO_ITEM_CATEGORY_SELECTED}
     )
-    is_military_use = KeyValueChoiceField(choices=MilitaryUse.choices, required=False, allow_null=True)
+    is_military_use = KeyValueChoiceField(choices=MilitaryUse.choices, required=False)
     is_component = KeyValueChoiceField(choices=Component.choices, allow_null=True, allow_blank=True, required=False,)
     uses_information_security = serializers.BooleanField(allow_null=True, required=False, default=None)
     modified_military_use_details = serializers.CharField(
@@ -109,6 +245,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     software_or_technology_details = serializers.CharField(
         allow_null=True, required=False, allow_blank=True, max_length=2000
     )
+    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
 
     class Meta:
         model = Good
@@ -134,6 +271,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
             "component_details",
             "information_security_details",
             "software_or_technology_details",
+            "firearm_details",
         )
 
     def __init__(self, *args, **kwargs):
@@ -144,6 +282,33 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         else:
             if hasattr(self, "initial_data"):
                 self.initial_data["control_list_entries"] = []
+
+        if self.get_initial().get("is_military_use"):
+            is_military_use = self.get_initial().get("is_military_use")
+            # if military answer is not "yes_modified" then remove the irrelevant details
+            if is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO] and hasattr(self, "initial_data"):
+                self.initial_data.pop("modified_military_use_details")
+
+        if self.get_initial().get("uses_information_security"):
+            # if information security is False then remove the irrelevant details
+            if not str_to_bool(self.get_initial().get("uses_information_security")) and hasattr(self, "initial_data"):
+                self.initial_data.pop("information_security_details")
+
+        if self.get_initial().get("firearm_details"):
+            firearm_details = self.get_initial().get("firearm_details")
+            # Remove the dependent nested fields in the data if irrelevant based on the parent option selected
+            if "is_covered_by_firearm_act_section_one_two_or_five" in firearm_details:
+                # Remove the certificate number and expiry date if the answer is a No
+                if not str_to_bool(firearm_details.get("is_covered_by_firearm_act_section_one_two_or_five")):
+                    firearm_details.pop("section_certificate_number")
+                    firearm_details.pop("section_certificate_date_of_expiry")
+
+            if "has_identification_markings" in firearm_details:
+                # Keep only the details relevant for the yes/no answer
+                if str_to_bool(firearm_details.get("has_identification_markings")):
+                    firearm_details.pop("no_identification_markings_details")
+                else:
+                    firearm_details.pop("identification_markings_details")
 
         self.goods_query_case = (
             GoodsQuery.objects.filter(good=self.instance).first() if isinstance(self.instance, Good) else None
@@ -159,42 +324,46 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         # Get item category from the instance when it is not passed down on editing a good
         item_category = data.get("item_category") if "item_category" in data else self.instance.item_category
 
-        # NB! The order of validation should match the order of the forms so that the appropriate error is raised if the user clicks Back
-        # Validate software/technology details for products in group 3
-        if "software_or_technology_details" in data and not data.get("software_or_technology_details"):
-            raise serializers.ValidationError(
-                {
-                    "software_or_technology_details": [
-                        strings.Goods.FORM_NO_SOFTWARE_DETAILS
-                        if item_category == ItemCategory.GROUP3_SOFTWARE
-                        else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
-                    ]
-                }
-            )
+        if item_category not in ItemCategory.group_two:
+            # NB! The order of validation should match the order of the forms so that the appropriate error is raised if the
+            # user clicks Back
+            # Validate software/technology details for products in group 3
+            if "software_or_technology_details" in data and not data.get("software_or_technology_details"):
+                raise serializers.ValidationError(
+                    {
+                        "software_or_technology_details": [
+                            strings.Goods.FORM_NO_SOFTWARE_DETAILS
+                            if item_category == ItemCategory.GROUP3_SOFTWARE
+                            else strings.Goods.FORM_NO_TECHNOLOGY_DETAILS
+                        ]
+                    }
+                )
 
-        validate_military_use(data)
+            validate_military_use(data)
 
-        # Validate component field on creation (using is_component_step sent by the form), and on editing a good (using is_component)
-        if (
-            item_category in ItemCategory.group_one
-            and ("is_component" in data or "is_component_step" in self.initial_data)
-            and not data.get("is_component")
-        ):
-            raise serializers.ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
+            # Validate component field on creation (using is_component_step sent by the form), and on editing a good
+            # (using is_component)
+            if (
+                item_category in ItemCategory.group_one
+                and ("is_component" in data or "is_component_step" in self.initial_data)
+                and not data.get("is_component")
+            ):
+                raise serializers.ValidationError({"is_component": [strings.Goods.FORM_NO_COMPONENT_SELECTED]})
 
-        # Validate component detail field if the answer was not 'No' using the initial data which contains all details fields as passed by the form
-        if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
-            valid_components = validate_component_details(self.initial_data)
-            if not valid_components["is_valid"]:
-                raise serializers.ValidationError({valid_components["details_field"]: [valid_components["error"]]})
-            # Map the specific details field that was filled in to the single component_details field on the model
-            data["component_details"] = self.initial_data[valid_components["details_field"]]
+            # Validate component detail field if the answer was not 'No' using the initial data which contains all details
+            # fields as passed by the form
+            if data.get("is_component") and data["is_component"] not in [Component.NO, "None"]:
+                valid_components = validate_component_details(self.initial_data)
+                if not valid_components["is_valid"]:
+                    raise serializers.ValidationError({valid_components["details_field"]: [valid_components["error"]]})
+                # Map the specific details field that was filled in to the single component_details field on the model
+                data["component_details"] = self.initial_data[valid_components["details_field"]]
 
-        # Validate information security
-        if "uses_information_security" in data and data.get("uses_information_security") is None:
-            raise serializers.ValidationError(
-                {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
-            )
+            # Validate information security
+            if "uses_information_security" in data and data.get("uses_information_security") is None:
+                raise serializers.ValidationError(
+                    {"uses_information_security": [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]}
+                )
 
         return super().validate(data)
 
@@ -202,6 +371,11 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         if validated_data.get("pv_grading_details"):
             validated_data["pv_grading_details"] = GoodCreateSerializer._create_pv_grading_details(
                 validated_data["pv_grading_details"]
+            )
+
+        if validated_data.get("firearm_details"):
+            validated_data["firearm_details"] = GoodCreateSerializer._create_firearm_details(
+                validated_data["firearm_details"]
             )
 
         return super(GoodCreateSerializer, self).create(validated_data)
@@ -215,6 +389,7 @@ class GoodCreateSerializer(serializers.ModelSerializer):
         instance.part_number = validated_data.get("part_number", instance.part_number)
         instance.status = validated_data.get("status", instance.status)
         instance.is_pv_graded = validated_data.get("is_pv_graded", instance.is_pv_graded)
+
         if validated_data.get("is_pv_graded"):
             instance.pv_grading_details = GoodCreateSerializer._create_update_or_delete_pv_grading_details(
                 is_pv_graded=instance.is_pv_graded == GoodPvGraded.YES,
@@ -222,45 +397,59 @@ class GoodCreateSerializer(serializers.ModelSerializer):
                 instance=instance.pv_grading_details,
             )
 
-        is_military_use = validated_data.get("is_military_use")
-        # if military answer has changed, then set the new value and the details field
-        if is_military_use is not None and is_military_use != instance.is_military_use:
-            instance.is_military_use = is_military_use
-            instance.modified_military_use_details = validated_data.get("modified_military_use_details")
-        instance.modified_military_use_details = validated_data.get(
-            "modified_military_use_details", instance.modified_military_use_details
-        )
-        # if military answer is not "yes_modified" then the details are set to None
-        if instance.is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO]:
-            instance.modified_military_use_details = None
+        if instance.item_category not in ItemCategory.group_two:
+            is_military_use = validated_data.get("is_military_use")
+            # if military answer has changed, then set the new value and the details field
+            if is_military_use is not None and is_military_use != instance.is_military_use:
+                instance.is_military_use = is_military_use
+                instance.modified_military_use_details = validated_data.get("modified_military_use_details")
+            instance.modified_military_use_details = validated_data.get(
+                "modified_military_use_details", instance.modified_military_use_details
+            )
+            # if military answer is not "yes_modified" then the details are set to None
+            if instance.is_military_use in [MilitaryUse.YES_DESIGNED, MilitaryUse.NO]:
+                instance.modified_military_use_details = None
 
-        is_component = validated_data.get("is_component")
-        # if component answer has changed, then set the new value and the details field
-        if is_component is not None and is_component != instance.is_component:
-            instance.is_component = is_component
-            instance.component_details = validated_data.get("component_details")
-        instance.component_details = validated_data.get("component_details", instance.component_details)
+            is_component = validated_data.get("is_component")
+            # if component answer has changed, then set the new value and the details field
+            if is_component is not None and is_component != instance.is_component:
+                instance.is_component = is_component
+                instance.component_details = validated_data.get("component_details")
+            instance.component_details = validated_data.get("component_details", instance.component_details)
 
-        uses_information_security = validated_data.get("uses_information_security")
-        # if information security has changed, then set the new value and the details field
-        if uses_information_security is not None and uses_information_security != instance.uses_information_security:
-            instance.uses_information_security = uses_information_security
+            uses_information_security = validated_data.get("uses_information_security")
+            # if information security has changed, then set the new value and the details field
+            if (
+                uses_information_security is not None
+                and uses_information_security != instance.uses_information_security
+            ):
+                instance.uses_information_security = uses_information_security
+                instance.information_security_details = validated_data.get(
+                    "information_security_details", instance.information_security_details
+                )
+            instance.information_security_details = validated_data.get("information_security_details", "")
+
             # When information security is No, then clear the details field and remove so it is not validated again
             if uses_information_security is False:
                 instance.information_security_details = ""
-                validated_data.pop("information_security_details")
             else:
                 instance.information_security_details = validated_data.get(
                     "information_security_details", instance.information_security_details
                 )
-        # If the information security details have changed
-        instance.information_security_details = validated_data.get(
-            "information_security_details", instance.information_security_details
-        )
+            # If the information security details have changed
+            instance.information_security_details = validated_data.get(
+                "information_security_details", instance.information_security_details
+            )
 
-        software_or_technology_details = validated_data.get("software_or_technology_details")
-        if software_or_technology_details:
-            instance.software_or_technology_details = software_or_technology_details
+            software_or_technology_details = validated_data.get("software_or_technology_details")
+            if software_or_technology_details:
+                instance.software_or_technology_details = software_or_technology_details
+        else:
+            firearm_details = validated_data.get("firearm_details")
+            if firearm_details:
+                instance.firearm_details = GoodCreateSerializer._update_firearm_details(
+                    firearm_details=firearm_details, instance=instance.firearm_details,
+                )
 
         instance.save()
         return instance
@@ -299,6 +488,16 @@ class GoodCreateSerializer(serializers.ModelSerializer):
     def _delete_pv_grading_details(instance):
         instance.delete()
         return None
+
+    @staticmethod
+    def _create_firearm_details(firearm_details):
+        return FirearmDetailsSerializer.create(FirearmDetailsSerializer(), validated_data=firearm_details)
+
+    @staticmethod
+    def _update_firearm_details(firearm_details, instance):
+        return FirearmDetailsSerializer.update(
+            FirearmDetailsSerializer(), validated_data=firearm_details, instance=instance,
+        )
 
 
 class GoodMissingDocumentSerializer(serializers.ModelSerializer):
@@ -392,6 +591,7 @@ class GoodSerializerInternal(serializers.Serializer):
     information_security_details = serializers.CharField()
     missing_document_reason = KeyValueChoiceField(choices=GoodMissingDocumentReasons.choices)
     software_or_technology_details = serializers.CharField()
+    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
 
     def get_documents(self, instance):
         documents = GoodDocument.objects.filter(good=instance)
@@ -399,6 +599,8 @@ class GoodSerializerInternal(serializers.Serializer):
 
 
 class TinyGoodDetailsSerializer(serializers.ModelSerializer):
+    firearm_details = FirearmDetailsSerializer(read_only=True)
+
     class Meta:
         model = Good
         fields = (
@@ -411,6 +613,7 @@ class TinyGoodDetailsSerializer(serializers.ModelSerializer):
             "component_details",
             "information_security_details",
             "software_or_technology_details",
+            "firearm_details",
         )
 
 
@@ -430,6 +633,7 @@ class GoodSerializerExporter(serializers.Serializer):
     information_security_details = serializers.CharField()
     pv_grading_details = PvGradingDetailsSerializer(allow_null=True, required=False)
     software_or_technology_details = serializers.CharField()
+    firearm_details = FirearmDetailsSerializer(allow_null=True, required=False)
 
 
 class GoodSerializerExporterFullDetail(GoodSerializerExporter):
