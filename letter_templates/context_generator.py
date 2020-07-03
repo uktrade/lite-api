@@ -417,11 +417,12 @@ def _get_goods_context(goods, final_advice):
 
         if isinstance(goods[0], GoodOnLicence):
             goods_context_function = _get_good_on_licence_context
+            goods_on_application = {good_on_licence.good.good_id: good_on_licence for good_on_licence in goods}
+            goods_context["all"] = [goods_context_function(good_on_licence) for good_on_licence in goods]
         else:
             goods_context_function = _get_good_on_application_context
-
-        goods_context["all"] = [goods_context_function(good_on_application) for good_on_application in goods]
-        goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods}
+            goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods}
+            goods_context["all"] = [goods_context_function(good) for good in goods]
 
         for advice in final_advice:
             good_on_application = goods_on_application[advice.good_id]

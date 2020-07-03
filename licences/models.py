@@ -24,9 +24,6 @@ class Licence(TimestampableModel):
 
     objects = LicenceManager()
 
-    class Meta:
-        ordering = ("-created_at",)
-
     def surrender(self):
         self.status = LicenceStatus.SURRENDERED
         self.save()

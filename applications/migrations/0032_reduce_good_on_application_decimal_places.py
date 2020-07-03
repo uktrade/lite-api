@@ -12,8 +12,6 @@ def reduce_decimal_places(apps, schema_editor):
     for goodOnApp in GoodOnApplication.objects.all():
         if len(str(goodOnApp.value)) > 15:
             goodOnApp.value = 0
-        if len(str(goodOnApp.licenced_value)) > 15:
-            goodOnApp.licenced_value = 0
         goodOnApp.save()
 
 
