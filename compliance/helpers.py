@@ -4,6 +4,7 @@ import re
 from django.db.models import Q
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
@@ -12,14 +13,14 @@ from cases.models import Case
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
 from conf.exceptions import NotFoundError
 from goods.models import Good
+from licences.models import Licence
 from lite_content.lite_api import strings
+from lite_content.lite_api.strings import Compliance
 from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.enums import SystemUser
 from users.models import BaseUser
-from licences.models import Licence
-from lite_content.lite_api.strings import Compliance
 
 
 def get_compliance_site_case(pk):
@@ -37,9 +38,7 @@ COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML
 
 
 def case_meets_conditions_for_compliance(case: Case):
-    if case.case_type.id == CaseTypeEnum.OIEL.id:
-        return True
-    elif case.case_type.id == CaseTypeEnum.SIEL.id:
+    if case.case_type.id == CaseTypeEnum.SIEL.id:
         if not (
             Good.objects.filter(
                 goods_on_application__application_id=case.id,
@@ -49,7 +48,7 @@ def case_meets_conditions_for_compliance(case: Case):
         ):
             return False
         return True
-    elif case.case_type.id == CaseTypeEnum.OICL.id:
+    elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OGL_ID_LIST]:
         return True
     elif case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
         return True
@@ -59,12 +58,12 @@ def case_meets_conditions_for_compliance(case: Case):
 
 def get_record_holding_sites_for_case(case):
     if case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
-        return {case.site.site_records_located_at.id}
+        return {case.site.site_records_located_at_id}
     else:
         return set(
-            Site.objects.filter(
-                Q(sites_on_application__application_id=case.id) | Q(open_general_licence_cases__in=[case.id])
-            ).values_list("site_records_located_at_id", flat=True)
+            Site.objects.filter(sites_on_application__application_id=case.id).values_list(
+                "site_records_located_at_id", flat=True
+            )
         )
 
 
