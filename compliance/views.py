@@ -72,9 +72,9 @@ class LicenceList(ListAPIView):
             good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
         ).values_list("good", flat=True)
 
-        cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]) | cases.filter(
-            baseapplication__goods__id__in=approved_goods_on_licence,
-        )
+        cases = cases.filter(
+            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
+        ) | cases.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
 
         if reference_code:
             cases = cases.filter(reference_code__contains=reference_code)
