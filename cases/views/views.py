@@ -674,17 +674,15 @@ class FinaliseView(UpdateAPIView):
         )
 
         # If a licence object exists, finalise the licence.
-        # Due to a bug where multiple licences were being created, we get the latest one.
         try:
-            application_licences = Licence.objects.filter(application=case)
-            licence = application_licences.get(status=LicenceStatus.DRAFT)
+            licence = Licence.objects.get_draft_licence()
             licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
             licence.issue()
             return_payload["licence"] = licence.id
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.GRANTED_APPLICATION
-                if application_licences.count() < 2
+                if Licence.objects.filter(application=case).count() < 2
                 else AuditType.REINSTATED_APPLICATION,
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},

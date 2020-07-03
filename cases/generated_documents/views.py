@@ -86,7 +86,8 @@ class GeneratedDocuments(generics.ListAPIView):
 
         visible_to_exporter = str_to_bool(request.data.get("visible_to_exporter"))
         # If the template is not visible to exporter this supersedes what is given for the document
-        if not document.template.visible_to_exporter:
+        # Decision documents are also hidden until finalised (see FinaliseView)
+        if not document.template.visible_to_exporter or request.data.get("advice_type"):
             visible_to_exporter = False
 
         try:
