@@ -1,4 +1,6 @@
-from django.db.models import Count
+import django
+from django.db.models import Count, F, When, DateField
+from django.utils import timezone
 from rest_framework import generics
 
 from cases.libraries.dates import make_date_from_params
@@ -50,6 +52,16 @@ class CasesSearchView(generics.ListAPIView):
                 user=request.user,
                 include_hidden=include_hidden,
                 **filters,
+            ).annotate(
+                next_review_date=django.db.models.Case(
+                    When(
+                        case_review_date__team_id=request.user.team.id,
+                        case_review_date__next_review_date__gte=timezone.now().date(),
+                        then=F("case_review_date__next_review_date"),
+                    ),
+                    default=None,
+                    output_field=DateField(),
+                )
             )
         )
 

@@ -119,7 +119,7 @@ class CaseListSerializer(serializers.Serializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
-    has_future_review_date = serializers.SerializerMethodField()
+    next_review_date = serializers.DateField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
@@ -133,13 +133,6 @@ class CaseListSerializer(serializers.Serializer):
 
     def get_status(self, instance):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
-
-    def get_has_future_review_date(self, instance):
-        case_review_date = instance.case_review_date.filter(team_id=self.team.id).first()
-        if case_review_date:
-            if case_review_date.next_review_date and case_review_date.next_review_date > timezone.now().date():
-                return True
-        return False
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
