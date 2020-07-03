@@ -83,7 +83,7 @@ class ExporterComplianceListSerializer(ListAPIView):
         return super().get_paginated_response(data)
 
 
-class ExporterComplianceSiteDetailSerializer(RetrieveAPIView):
+class ExporterComplianceSiteDetailView(RetrieveAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = ExporterComplianceSiteDetailSerializer
     organisation = None
@@ -107,7 +107,7 @@ class ExporterComplianceSiteDetailSerializer(RetrieveAPIView):
     def get_serializer_context(self):
         context = super().get_serializer_context()
 
-        context["organisation_id"] = self.organisation.id
+        context["organisation"] = self.organisation
         return context
 
 

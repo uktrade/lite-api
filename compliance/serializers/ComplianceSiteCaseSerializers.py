@@ -129,6 +129,7 @@ class ExporterComplianceSiteDetailSerializer(serializers.Serializer):
     address = AddressSerializer(source="site.address")
     review_date = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
+    is_primary_site = serializers.SerializerMethodField()
 
     def get_review_date(self, instance):
         # if review date exists get one in the future (nearest)
@@ -138,9 +139,12 @@ class ExporterComplianceSiteDetailSerializer(serializers.Serializer):
     def get_exporter_user_notification_count(self, instance):
         return get_exporter_user_notification_individual_count_with_compliance_visit(
             exporter_user=self.context.get("request").user,
-            organisation_id=self.context.get("organisation_id"),
+            organisation_id=self.context.get("organisation").id,
             case=instance,
         )
+
+    def get_is_primary_site(self, instance):
+        return instance.site.id == self.context.get("organisation").primary_site_id
 
 
 class ExporterComplianceVisitListSerializer(serializers.Serializer):
