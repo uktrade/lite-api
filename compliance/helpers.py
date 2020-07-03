@@ -50,8 +50,6 @@ def case_meets_conditions_for_compliance(case: Case):
         return True
     elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OGL_ID_LIST]:
         return True
-    elif case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
-        return True
     else:
         return False
 
