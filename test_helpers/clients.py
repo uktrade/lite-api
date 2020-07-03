@@ -32,6 +32,7 @@ from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
 from goods.tests.factories import GoodFactory
 from goodstype.tests.factories import GoodsTypeFactory
+from licences.helpers import get_reference_code
 from licences.models import Licence
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
@@ -43,7 +44,7 @@ from conf.urls import urlpatterns
 from flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from flags.models import Flag, FlaggingRule
 from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component
 from goods.models import Good, GoodDocument, PvGradingDetails
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
@@ -270,7 +271,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         party = Party(**data)
         party.save()
 
-        if application:
+        if application and party_type == PartyType.ADDITIONAL_CONTACT:
+            application.additional_contacts.add(party)
+        elif application:
             # Attach party to application
             application.add_party(party)
         return party
@@ -453,6 +456,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         control_list_entries: Optional[List[str]] = None,
         is_pv_graded: str = GoodPvGraded.YES,
         pv_grading_details: PvGradingDetails = None,
+        item_category=ItemCategory.GROUP1_DEVICE,
+        is_military_use=MilitaryUse.NO,
+        modified_military_use_details=None,
+        component_details=None,
+        is_component=None,
+        uses_information_security=True,
+        information_security_details=None,
+        software_or_technology_details=None,
     ) -> Good:
         warnings.warn(
             "create_good is a deprecated function. Use a GoodFactory instead", category=DeprecationWarning, stacklevel=2
@@ -478,6 +489,14 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             report_summary=None,
             is_pv_graded=is_pv_graded,
             pv_grading_details=pv_grading_details,
+            item_category=item_category,
+            is_military_use=is_military_use,
+            is_component=is_component,
+            uses_information_security=uses_information_security,
+            information_security_details=information_security_details,
+            modified_military_use_details=modified_military_use_details,
+            component_details=component_details,
+            software_or_technology_details=software_or_technology_details,
         )
         good.save()
 
@@ -548,7 +567,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_advice(
-        user, case, advice_field, advice_type, level, pv_grading=None, advice_text="This is some text", good=None
+        user,
+        case,
+        advice_field,
+        advice_type,
+        level,
+        pv_grading=None,
+        advice_text="This is some text",
+        good=None,
+        goods_type=None,
     ):
         advice = Advice(
             user=user,
@@ -566,10 +593,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if advice_field == "end_user":
             advice.end_user = StandardApplication.objects.get(pk=case.id).end_user.party
 
-        if advice_field == "good":
-            advice.good = GoodOnApplication.objects.get(application=case).good
-        elif good:
+        if good:
             advice.good = good
+        elif goods_type:
+            advice.goods_type = goods_type
+        elif advice_field == "good":
+            if case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+                advice.good = GoodOnApplication.objects.filter(application=case).first().good
+            elif case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+                advice.goods_type = GoodsType.objects.filter(application=case).first()
 
         if advice_type == AdviceType.PROVISO:
             advice.proviso = "I am easy to proviso"
@@ -607,10 +639,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         application.save()
 
-    def create_organisation_with_exporter_user(self, name="Organisation", org_type=None, exporter_user=None):
-        if not org_type:
-            org_type = OrganisationType.COMMERCIAL
-
+    def create_organisation_with_exporter_user(
+        self, name="Organisation", org_type=OrganisationType.COMMERCIAL, exporter_user=None
+    ):
         organisation = OrganisationFactory(name=name, type=org_type)
 
         if not exporter_user:
@@ -756,6 +787,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         return application
 
+    def create_mod_clearance_application_case(self, organisation, case_type):
+        draft = self.create_mod_clearance_application(organisation, case_type)
+
+        return self.submit_application(draft, self.exporter_user)
+
     def create_incorporated_good_and_ultimate_end_user_on_application(self, organisation, application):
         good = Good.objects.create(
             is_good_controlled=True, organisation=self.organisation, description="a good", part_number="123456",
@@ -900,6 +936,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             status=get_case_status_by_status(CaseStatusEnum.SUBMITTED),
             case_type_id=CaseTypeEnum.EUA.id,
             submitted_by=self.exporter_user,
+            submitted_at=datetime.now(timezone.utc),
         )
         end_user_advisory_query.save()
         return end_user_advisory_query
@@ -953,15 +990,21 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return ecju_query
 
     @staticmethod
-    def create_licence(application: BaseApplication, is_complete: bool, decisions=None):
+    def create_licence(
+        application: BaseApplication, is_complete: bool, reference_code=None, decisions=None, sent_at=None
+    ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
+        if not reference_code:
+            reference_code = get_reference_code(application.reference_code)
 
         licence = Licence.objects.create(
             application=application,
+            reference_code=reference_code,
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
             is_complete=is_complete,
+            sent_at=sent_at,
         )
         licence.decisions.set(decisions)
         return licence

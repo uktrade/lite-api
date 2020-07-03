@@ -1,4 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from rest_framework import serializers
 
 from applications.helpers import get_application_view_serializer
@@ -24,11 +26,16 @@ from cases.models import (
     Advice,
     GoodCountryDecision,
     CaseType,
+    CaseReviewDate,
 )
+from compliance.models import ComplianceSiteCase, ComplianceVisitCase
+from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
+from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
+from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from organisations.serializers import OrganisationCaseSerializer
@@ -37,6 +44,7 @@ from queues.models import Queue
 from queues.serializers import CasesQueueViewSerializer
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
+from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
 from users.models import BaseUser, GovUser, ExporterUser, GovNotification
@@ -110,6 +118,8 @@ class CaseListSerializer(serializers.Serializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
+    has_future_review_date = serializers.SerializerMethodField()
+    # TODO: update the serializer below to be more efficient, it creates a new query for each case in list to get site
     organisation = PrimaryKeyRelatedSerializerField(
         queryset=Organisation.objects.all(), serializer=OrganisationCaseSerializer
     )
@@ -133,6 +143,13 @@ class CaseListSerializer(serializers.Serializer):
     def get_status(self, instance):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
 
+    def get_has_future_review_date(self, instance):
+        case_review_date = instance.case_review_date.filter(team_id=self.team.id).first()
+        if case_review_date:
+            if case_review_date.next_review_date and case_review_date.next_review_date > timezone.now().date():
+                return True
+        return False
+
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
     class Meta:
@@ -149,8 +166,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     assigned_users = serializers.SerializerMethodField()
     has_advice = serializers.SerializerMethodField()
     flags = serializers.SerializerMethodField()
-    query = QueryViewSerializer(read_only=True)
-    application = serializers.SerializerMethodField()
     all_flags = serializers.SerializerMethodField()
     case_officer = GovUserSimpleSerializer(read_only=True)
     copy_of = serializers.SerializerMethodField()
@@ -158,7 +173,9 @@ class CaseDetailSerializer(serializers.ModelSerializer):
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     advice = CaseAdviceSerializer(many=True)
+    data = serializers.SerializerMethodField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
+    next_review_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -169,8 +186,6 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "queues",
             "queue_names",
             "assigned_users",
-            "application",
-            "query",
             "has_advice",
             "advice",
             "all_flags",
@@ -180,6 +195,8 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             "copy_of",
             "sla_days",
             "sla_remaining_days",
+            "data",
+            "next_review_date",
         )
 
     def __init__(self, *args, **kwargs):
@@ -187,13 +204,23 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-    def get_application(self, instance):
-        # The case has a reference to a BaseApplication but
-        # we need the full details of the application it points to
-        if instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
+    def get_data(self, instance):
+        from licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer
+
+        if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
+            return OpenGeneralLicenceCaseSerializer(get_open_general_export_licence_case(instance.id)).data
+        elif instance.case_type.type == CaseTypeTypeEnum.APPLICATION:
             application = get_application(instance.id)
             serializer = get_application_view_serializer(application)
             return serializer(application).data
+        elif instance.case_type.type == CaseTypeTypeEnum.QUERY:
+            return QueryViewSerializer(instance.query, read_only=True).data
+        elif instance.case_type.sub_type == CaseTypeSubTypeEnum.COMP_SITE:
+            compliance = ComplianceSiteCase.objects.get(id=instance.id)
+            return ComplianceSiteViewSerializer(compliance, context={"team": self.team}).data
+        elif instance.case_type.sub_type == CaseTypeSubTypeEnum.COMP_VISIT:
+            compliance = ComplianceVisitCase.objects.get(id=instance.id)
+            return ComplianceVisitSerializer(compliance).data
 
     def get_flags(self, instance):
         return list(instance.flags.all().values("id", "name", "colour", "label", "priority"))
@@ -241,23 +268,14 @@ class CaseDetailSerializer(serializers.ModelSerializer):
             notification = queryset.first()
             return GovUserNotificationSerializer(notification).data
 
-        return None
-
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:
             return CaseCopyOfSerializer(instance.copy_of).data
 
-    def to_representation(self, value):
-        """
-        Only show 'application' if it has an application inside,
-        and only show 'query' if it has a CLC query inside
-        """
-        repr_dict = super(CaseDetailSerializer, self).to_representation(value)
-        if not repr_dict["application"]:
-            del repr_dict["application"]
-        if not repr_dict["query"]:
-            del repr_dict["query"]
-        return repr_dict
+    def get_next_review_date(self, instance):
+        next_review_date = CaseReviewDate.objects.filter(case_id=instance.id, team_id=self.team.id)
+        if next_review_date:
+            return next_review_date.get().next_review_date
 
 
 class CaseNoteSerializer(serializers.ModelSerializer):
@@ -440,3 +458,28 @@ class CaseOfficerUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = ("case_officer",)
+
+
+class ReviewDateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for setting and editing the next review date of a case.
+    """
+
+    team = serializers.PrimaryKeyRelatedField(required=True, queryset=Team.objects.all())
+    case = serializers.PrimaryKeyRelatedField(required=True, queryset=Case.objects.all())
+    next_review_date = serializers.DateField(
+        required=False,
+        allow_null=True,
+        error_messages={"invalid": strings.Cases.NextReviewDate.Errors.INVALID_DATE_FORMAT},
+    )
+
+    class Meta:
+        model = CaseReviewDate
+        fields = ("next_review_date", "team", "case")
+
+    def validate_next_review_date(self, value):
+        if value:
+            today = timezone.now().date()
+            if value < today:
+                raise ValidationError(strings.Cases.NextReviewDate.Errors.DATE_IN_PAST)
+        return value

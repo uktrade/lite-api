@@ -8,8 +8,24 @@ from conf.serializers import ControlListEntryField, KeyValueChoiceField, Primary
 from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.models import OpenGeneralLicence
+from organisations.serializers import SiteListSerializer
 from static.countries.models import Country
 from static.countries.serializers import CountrySerializer
+from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
+
+
+class OpenGeneralLicenceCaseListSerializer(serializers.Serializer):
+    reference_code = serializers.CharField()
+    site = SiteListSerializer()
+    status = serializers.SerializerMethodField()
+    submitted_at = serializers.DateTimeField()
+
+    def get_status(self, instance):
+        if instance.status:
+            return {
+                "key": instance.status.status,
+                "value": get_status_value_from_case_status_enum(instance.status.status),
+            }
 
 
 class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
@@ -61,6 +77,36 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         error_messages={"invalid": OpenGeneralLicences.serializerErrors.REQUIRED_REGISTRATION_REQUIRED},
     )
     status = KeyValueChoiceField(choices=OpenGeneralLicenceStatus.choices, required=False)
+    registrations = serializers.SerializerMethodField()
+
+    def get_registrations(self, instance):
+        if self.context and "cases" in self.context:
+            cases = self.context["cases"]
+            return [
+                {
+                    "reference_code": case.reference_code,
+                    "site": {
+                        "id": case.site.id,
+                        "name": case.site.name,
+                        "address": {
+                            "address_line_1": case.site.address.address_line_1,
+                            "address_line_2": case.site.address.address_line_2,
+                            "city": case.site.address.city,
+                            "region": case.site.address.region,
+                            "postcode": case.site.address.postcode,
+                            "country": {"name": "United Kingdom",},
+                        },
+                        "records_located_at": {"name": case.records_located_at_name},
+                    },
+                    "status": {
+                        "key": case.status.status,
+                        "value": get_status_value_from_case_status_enum(case.status.status),
+                    },
+                    "submitted_at": case.submitted_at,
+                }
+                for case in cases
+                if case.open_general_licence_id == instance.id
+            ]
 
     class Meta:
         model = OpenGeneralLicence

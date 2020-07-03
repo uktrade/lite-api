@@ -1,4 +1,5 @@
 from copy import deepcopy
+from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
@@ -6,10 +7,9 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied, ErrorDetail
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
-from uuid import UUID
 
 from applications import constants
 from applications.creators import validate_application_ready_for_submission, _validate_agree_to_declaration
@@ -56,7 +56,6 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.generated_documents.helpers import auto_generate_case_document
-from cases.generated_documents.models import GeneratedCaseDocument
 from cases.libraries.get_flags import get_flags
 from cases.models import Advice
 from cases.serializers import SimpleAdviceSerializer
@@ -77,6 +76,7 @@ from goodstype.models import GoodsType
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
+from licences.helpers import get_reference_code
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
@@ -131,7 +131,7 @@ class ApplicationList(ListCreateAPIView):
                 case_type_id=CaseTypeEnum.HMRC.id
             )
 
-        return applications.prefetch_related("status", "case_type")
+        return applications.prefetch_related("status", "case_type").select_subclasses()
 
     def get_paginated_response(self, data):
         data = get_case_notifications(data, self.request)
@@ -143,16 +143,7 @@ class ApplicationList(ListCreateAPIView):
         """
         data = request.data
         if not data.get("application_type"):
-            return JsonResponse(
-                data={
-                    "errors": {
-                        "application_type": [
-                            ErrorDetail(string=strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE, code="invalid")
-                        ]
-                    }
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError({"application_type": [strings.Applications.Generic.SELECT_AN_APPLICATION_TYPE]})
         case_type = data.pop("application_type", None)
         serializer = get_application_create_serializer(case_type)
         serializer = serializer(
@@ -160,20 +151,16 @@ class ApplicationList(ListCreateAPIView):
             case_type_id=CaseTypeEnum.reference_to_id(case_type),
             context=get_request_user_organisation(request),
         )
-
-        if not serializer.is_valid():
-            return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        application = serializer.save()
-
-        return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
+        if serializer.is_valid(raise_exception=True):
+            application = serializer.save()
+            return JsonResponse(data={"id": application.id}, status=status.HTTP_201_CREATED)
 
 
 class ApplicationExisting(APIView):
     """
     This view returns boolean values depending on the type of organisation:
     HMRC - Whether the organisation has existing submitted queries
-    Standard - Whether the organisation has any drafts/applications, or licences
+    Standard - Whether the organisation has any drafts/applications
     """
 
     authentication_classes = (ExporterAuthentication,)
@@ -184,12 +171,8 @@ class ApplicationExisting(APIView):
             has_queries = HmrcQuery.objects.submitted(hmrc_organisation=organisation).exists()
             return JsonResponse(data={"queries": has_queries})
         else:
-            has_licences = Licence.objects.filter(application__organisation=organisation).exists()
             has_applications = BaseApplication.objects.filter(organisation=organisation).exists()
-            has_nlrs = GeneratedCaseDocument.objects.filter(
-                advice_type=AdviceType.NO_LICENCE_REQUIRED, case__organisation=organisation
-            ).exists()
-            return JsonResponse(data={"licences": has_licences, "applications": has_applications, "nlrs": has_nlrs})
+            return JsonResponse(data={"applications": has_applications,})
 
 
 class ApplicationDetail(RetrieveUpdateDestroyAPIView):
@@ -549,15 +532,15 @@ class ApplicationFinaliseView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = deepcopy(request.data)
-        action = data.get("action")
+        licence_data = deepcopy(request.data)
+        action = licence_data.get("action")
 
         if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
             default_licence_duration = get_default_duration(application)
-            data["duration"] = data.get("duration", default_licence_duration)
+            licence_data["duration"] = licence_data.get("duration", default_licence_duration)
 
             # Check change default duration permission
-            if data["duration"] != default_licence_duration and not request.user.has_permission(
+            if licence_data["duration"] != default_licence_duration and not request.user.has_permission(
                 GovPermissions.MANAGE_LICENCE_DURATION
             ):
                 return JsonResponse(
@@ -579,8 +562,10 @@ class ApplicationFinaliseView(APIView):
 
             # Create incomplete Licence object
             try:
-                start_date = timezone.datetime(year=int(data["year"]), month=int(data["month"]), day=int(data["day"]))
-                data["start_date"] = start_date.strftime("%Y-%m-%d")
+                start_date = timezone.datetime(
+                    year=int(licence_data["year"]), month=int(licence_data["month"]), day=int(licence_data["day"])
+                )
+                licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
             except KeyError:
                 return JsonResponse(
                     data={"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}},
@@ -613,8 +598,9 @@ class ApplicationFinaliseView(APIView):
                 if errors:
                     return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            data["application"] = application
-            serializer = LicenceCreateSerializer(data=data)
+            licence_data["application"] = application
+            licence_data["reference_code"] = get_reference_code(application.reference_code)
+            serializer = LicenceCreateSerializer(data=licence_data)
 
             if not serializer.is_valid():
                 return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

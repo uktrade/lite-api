@@ -14,11 +14,12 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from conf.exceptions import BadRequestError
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemCategory
 from goods.goods_paginator import GoodListPaginator
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
@@ -33,6 +34,7 @@ from goods.serializers import (
     GoodSerializerExporter,
     GoodSerializerExporterFullDetail,
     GoodMissingDocumentSerializer,
+    TinyGoodDetailsSerializer,
 )
 from goodstype.helpers import get_goods_type
 from goodstype.serializers import ClcControlGoodTypeSerializer
@@ -144,7 +146,7 @@ class GoodList(ListCreateAPIView):
 
         queryset = queryset.prefetch_related("control_list_entries")
 
-        return queryset
+        return queryset.order_by("-updated_at")
 
     def get_paginated_response(self, data):
         # Get the goods queries for the goods and format in a dict
@@ -177,15 +179,30 @@ class GoodList(ListCreateAPIView):
         return super().get_paginated_response(data)
 
     def post(self, request, *args, **kwargs):
-        """
-        Add a good to to an organisation
-        """
+        """ Add a good to to an organisation. """
         data = request.data
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
 
-        serializer = GoodCreateSerializer(data=data)
+        # TODO: TEMPORARY to prevent invalid goods - to be removed once LT-2704 and LT-2251 are implemented
+        if "item_category" in data:
+            if data["item_category"] in [ItemCategory.GROUP2_FIREARMS]:
+                return JsonResponse(
+                    data={
+                        "errors": {"item_category": ["Not implemented yet, please select an option in category 1 or 3"]}
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
+        # return bad request if trying to edit software_or_technology details outside of category group 3
+        if data.get("item_category") in ItemCategory.group_one and data.get("software_or_technology_details"):
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+        # return bad request if trying to edit component and component details outside of category group 1
+        if data.get("item_category") in ItemCategory.group_three and data.get("is_component_step"):
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+        serializer = GoodCreateSerializer(data=data)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 
 
@@ -218,7 +235,41 @@ class GoodDocumentCriteriaCheck(APIView):
         return JsonResponse(data={"good": good_data}, status=status.HTTP_200_OK)
 
 
-class GoodDetail(APIView):
+class GoodTAUDetails(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def get(self, request, pk):
+        good = get_good(pk)
+
+        if isinstance(request.user, ExporterUser):
+            if good.organisation.id != get_request_user_organisation_id(request):
+                raise Http404
+            else:
+                serializer = TinyGoodDetailsSerializer(good)
+
+        return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        """ Edit the TAU details of a good. This includes military use, component and information security use. """
+        good = get_good(pk)
+        data = request.data.copy()
+
+        # return bad request if trying to edit software_or_technology details outside of category group 3
+        if good.item_category in ItemCategory.group_one and "software_or_technology_details" in data:
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+        # return bad request if trying to edit component and component details outside of category group 1
+        if good.item_category in ItemCategory.group_three and data.get("is_component_step"):
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+        if good.status == GoodStatus.SUBMITTED:
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]})
+
+        serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
+        return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
+
+
+class GoodOverview(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
@@ -251,6 +302,7 @@ class GoodDetail(APIView):
         return JsonResponse(data={"good": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
+        """ Edit details of a good. This includes description, control codes and PV grading. """
         good = get_good(pk)
 
         if good.organisation.id != get_request_user_organisation_id(request):
@@ -271,6 +323,7 @@ class GoodDetail(APIView):
                 good_on_application.delete()
 
         data["organisation"] = get_request_user_organisation_id(request)
+
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
 

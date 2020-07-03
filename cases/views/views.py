@@ -8,13 +8,14 @@ from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import CountryOnApplication, PartyOnApplication
+from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
+from cases.helpers import remove_next_review_date
 from cases.libraries.advice import group_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
@@ -27,7 +28,7 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case
+from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case, CaseReviewDate
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
@@ -38,12 +39,15 @@ from cases.serializers import (
     CaseAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
+    ReviewDateUpdateSerializer,
 )
+from compliance.helpers import generate_compliance_site_case
 from cases.service import get_destinations
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
 from conf.exceptions import NotFoundError, BadRequestError
+from conf.helpers import convert_date_to_string
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
@@ -82,9 +86,17 @@ class CaseDetail(APIView):
         data = CaseDetailSerializer(case, user=request.user, team=request.user.team).data
 
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            data["application"]["destinations"] = get_destinations(case.id)
+            data["data"]["destinations"] = get_destinations(case.id)  # noqa
 
         return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        """
+        Change case status
+        """
+        case = get_case(pk)
+        case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
+        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class SetQueues(APIView):
@@ -193,7 +205,7 @@ class ExporterCaseDocumentDownload(APIView):
         if case.organisation.id != get_request_user_organisation_id(request):
             return HttpResponse(status.HTTP_401_UNAUTHORIZED)
         try:
-            document = CaseDocument.objects.get(id=document_pk, case=case)
+            document = CaseDocument.objects.get(id=document_pk, case=case, visible_to_exporter=True)
             return document_download_stream(document)
         except Document.DoesNotExist:
             raise NotFoundError({"document": Documents.DOCUMENT_NOT_FOUND})
@@ -652,6 +664,7 @@ class FinaliseView(RetrieveUpdateAPIView):
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
             )
+            generate_compliance_site_case(case)
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)
@@ -685,6 +698,7 @@ class AssignedQueues(APIView):
             case = get_case(pk)
 
             if assignments:
+                remove_next_review_date(case, request, pk)
                 queues = [assignment.queue for assignment in assignments]
                 queue_names = [queue.name for queue in queues]
                 assignments.delete()
@@ -725,23 +739,19 @@ class AdditionalContacts(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
 
     def get_queryset(self):
-        return Party.objects.filter(
-            id__in=PartyOnApplication.objects.additional_contacts()
-            .filter(application_id=self.kwargs["pk"])
-            .values_list("party_id", flat=True)
-        )
+        return Party.objects.filter(case__id=self.kwargs["pk"])
 
     def get_serializer_context(self):
         return {"organisation_pk": get_case(self.kwargs["pk"]).organisation.id}
 
     def perform_create(self, serializer):
-        super().perform_create(serializer)
-        party = PartyOnApplication(application_id=get_case(self.kwargs["pk"]).id, party_id=serializer.data["id"])
-        party.save()
+        party = serializer.save()
+        case = get_case(self.kwargs["pk"])
+        case.additional_contacts.add(party)
         audit_trail_service.create(
             actor=self.request.user,
             verb=AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE,
-            target=get_case(self.kwargs["pk"]),
+            target=case,
             payload={"contact": serializer.data["name"]},
         )
 
@@ -752,7 +762,13 @@ class CaseApplicant(APIView):
     def get(self, request, pk):
         case = get_case(pk)
         applicant = case.submitted_by
-        return JsonResponse({"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email})
+        # compliance cases do not contain a person who submit them, as such we return empty details
+        if not applicant:
+            return JsonResponse({"name": "", "email": ""}, status=status.HTTP_200_OK)
+        return JsonResponse(
+            {"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email},
+            status=status.HTTP_200_OK,
+        )
 
 
 class RerunRoutingRules(APIView):
@@ -773,3 +789,58 @@ class RerunRoutingRules(APIView):
         run_routing_rules(case)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class NextReviewDate(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        """
+        Sets a next review date for a case
+        """
+        case = get_case(pk)
+        next_review_date = request.data.get("next_review_date")
+
+        current_review_date = CaseReviewDate.objects.filter(case_id=case.id, team_id=request.user.team.id)
+        data = {"next_review_date": next_review_date, "case": case.id, "team": request.user.team.id}
+
+        if current_review_date.exists():
+            current_review_date = current_review_date.get()
+            old_next_review_date = current_review_date.next_review_date
+            serializer = ReviewDateUpdateSerializer(instance=current_review_date, data=data)
+        else:
+            old_next_review_date = None
+            serializer = ReviewDateUpdateSerializer(data=data)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+
+            team = request.user.team.name
+            if old_next_review_date is None and next_review_date:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ADDED_NEXT_REVIEW_DATE,
+                    target=case,
+                    payload={"next_review_date": convert_date_to_string(next_review_date), "team_name": team},
+                )
+            elif old_next_review_date and next_review_date and str(old_next_review_date) != next_review_date:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.EDITED_NEXT_REVIEW_DATE,
+                    target=case,
+                    payload={
+                        "new_date": convert_date_to_string(next_review_date),
+                        "old_date": convert_date_to_string(old_next_review_date),
+                        "team_name": team,
+                    },
+                )
+            elif old_next_review_date and next_review_date is None:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.REMOVED_NEXT_REVIEW_DATE,
+                    target=case,
+                    payload={"team_name": team},
+                )
+
+            return JsonResponse(data={}, status=status.HTTP_200_OK)

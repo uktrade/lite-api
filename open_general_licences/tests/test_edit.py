@@ -24,7 +24,6 @@ class TestEditOGL(DataTestClient):
             ("name", "edited name"),
             ("description", "edited description"),
             ("url", "https://www.gov.uk/government/publications/open-general-export-licence-low-value-shipments"),
-            ("case_type", CaseTypeEnum.OGTL.id),
             ("countries", ["AO", "AF"]),
             ("control_list_entries", ["ML3a", "5A002a1"]),
             ("registration_required", False),

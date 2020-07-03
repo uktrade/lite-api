@@ -89,12 +89,27 @@ class OrganisationSitesTests(DataTestClient):
         }
 
         response = self.client.post(url, data, **self.gov_headers)
-        site = response.json()["site"]
+        response_data = response.json()["site"]
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
-        # Assert that 'site_records_located_at_name' is set to the site being created
-        self.assertEqual(site["site_records_located_at_name"], data["name"])
+        site = Site.objects.get(name=data["name"])
+        # Assert that "records_located_at" is set to the site being created
+        self.assertEqual(
+            response_data["records_located_at"],
+            {
+                "id": str(site.id),
+                "name": site.name,
+                "address": {
+                    "address_line_1": site.address.address_line_1,
+                    "address_line_2": site.address.address_line_2,
+                    "city": site.address.city,
+                    "country": {"name": site.address.country.name},
+                    "postcode": site.address.postcode,
+                    "region": site.address.region,
+                },
+            },
+        )
         self.assertEqual(Audit.objects.count(), 1)
 
     def test_add_uk_site_no_site_record_location_error(self):
@@ -160,7 +175,7 @@ class OrganisationSitesTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Site.objects.filter(organisation=self.organisation).count(), 2)
-        self.assertEqual(response.json()["site"]["site_records_located_at_name"], self.organisation.primary_site.name)
+        self.assertEqual(response.json()["site"]["records_located_at"]["name"], self.organisation.primary_site.name)
         self.assertEqual(Audit.objects.count(), 1)
 
     def test_add_uk_site_and_assign_users(self):

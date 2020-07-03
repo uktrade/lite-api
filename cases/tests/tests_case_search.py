@@ -283,6 +283,16 @@ class UpdatedCasesQueueTests(DataTestClient):
         self.assertEqual(len(response_data), 2)  # Count is 2 as another case is created in setup
         self.assertEqual(response_data[0]["id"], str(self.case.id))
 
+    def test_get_cases_on_updated_cases_queue_non_team_queue(self):
+        other_team = self.create_team("other_team")
+        self.gov_user.team = other_team
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()["results"]["cases"]
+
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["id"], str(self.case.id))
+
     def test_get_cases_on_updated_cases_queue_when_user_is_not_assigned_to_a_case_returns_no_cases(self):
         other_user = GovUser.objects.create(
             email="test2@mail.com", first_name="John", last_name="Smith", team=self.team
