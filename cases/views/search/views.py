@@ -1,5 +1,5 @@
 import django
-from django.db.models import Count, F, When, DateField
+from django.db.models import F, When, DateField
 from django.utils import timezone
 from rest_framework import generics
 
@@ -25,8 +25,6 @@ class CasesSearchView(generics.ListAPIView):
         queue_id = request.GET.get("queue_id", ALL_CASES_QUEUE_ID)
         is_work_queue = queue_id not in NON_WORK_QUEUES.keys()
         is_system_queue = queue_id in SYSTEM_QUEUES.keys()
-
-        from django.db import connection
 
         context = {
             "queue_id": queue_id,

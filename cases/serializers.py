@@ -16,7 +16,7 @@ from cases.enums import (
     ECJUQueryType,
 )
 from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
-from cases.libraries.get_flags import get_ordered_flags, get_goods_flags, get_destination_flags
+from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
     CaseNote,
@@ -33,14 +33,10 @@ from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteV
 from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
-from flags.models import Flag
-from flags.serializers import CaseListFlagSerializer
 from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
-from organisations.models import Organisation
-from organisations.serializers import OrganisationCaseSerializer
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
 from queues.serializers import CasesQueueViewSerializer
