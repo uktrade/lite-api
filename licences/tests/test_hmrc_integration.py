@@ -18,7 +18,7 @@ from licences.libraries.hmrc_integration_operations import (
 )
 from licences.models import Licence
 from licences.serializers.hmrc_integration import HMRCIntegrationLicenceSerializer
-from licences.service import get_goods_on_licence
+from licences.serializers.view_licence import LicenceWithGoodsViewSerializer
 from licences.tasks import (
     send_licence_to_hmrc_integration,
     TASK_BACK_OFF,
@@ -88,7 +88,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             self._assert_end_user(data, application.end_user.party)
-            self._assert_goods_on_application(data, get_goods_on_licence(licence))
+            self._assert_goods_on_application(data, LicenceWithGoodsViewSerializer(licence).data)
         elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             self._assert_countries(
                 data, Country.objects.filter(countries_on_application__application=application).order_by("name")
