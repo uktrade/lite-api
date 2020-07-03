@@ -47,11 +47,8 @@ from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
-from users.models import BaseUser, GovUser, ExporterUser, GovNotification
-from users.serializers import (
-    BaseUserViewSerializer,
-    ExporterUserViewSerializer,
-)
+from users.models import BaseUser, GovUser, GovNotification
+from users.serializers import BaseUserViewSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):

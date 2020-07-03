@@ -1,7 +1,6 @@
 from django.db.models import Count
 
 from cases.models import Case
-from compliance.models import ComplianceVisitCase
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.models import ExporterNotification, ExporterUser
 
