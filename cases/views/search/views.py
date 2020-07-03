@@ -71,7 +71,7 @@ class CasesSearchView(generics.ListAPIView):
             page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
         ).data
 
-        # Populate certain fields out of the serializer for performance improvements
+        # Populate certain fields outside of the serializer for performance improvements
         service.populate_goods_flags(cases)
         service.populate_destinations_flags(cases)
         service.populate_other_flags(cases)
