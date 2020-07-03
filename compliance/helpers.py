@@ -1,8 +1,6 @@
 import csv
 import re
 
-from django.db.models import Q
-from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 

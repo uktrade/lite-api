@@ -3,6 +3,7 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Case as DjangoCase
 from django.db.models import Count, F, Q, When, UUIDField
 from django.db.models import Value
 from django.db.models.functions import Concat
@@ -42,7 +43,6 @@ def get_advice_types_list():
 
 def populate_goods_flags(cases: List[Dict]):
     from flags.models import Flag
-    from django.db.models import Case
 
     case_ids = [case["id"] for case in cases]
     flags = Flag.objects.filter(
@@ -50,7 +50,7 @@ def populate_goods_flags(cases: List[Dict]):
         | Q(goods_type__application_id__in=case_ids)
         | Q(goods__good__id__in=case_ids)
     ).annotate(
-        case_id=Case(
+        case_id=DjangoCase(
             When(
                 goods__goods_on_application__application_id__in=case_ids,
                 then=F("goods__goods_on_application__application_id"),
@@ -72,7 +72,6 @@ def populate_goods_flags(cases: List[Dict]):
 
 def populate_destinations_flags(cases: List[Dict]):
     from flags.models import Flag
-    from django.db.models import Case
 
     case_ids = [case["id"] for case in cases]
     flags = Flag.objects.filter(
@@ -84,7 +83,7 @@ def populate_destinations_flags(cases: List[Dict]):
         | Q(countries_on_applications__application_id__in=case_ids)
         | Q(countries__countries_on_application__application_id__in=case_ids)
     ).annotate(
-        case_id=Case(
+        case_id=DjangoCase(
             When(
                 parties__parties_on_application__application_id__in=case_ids,
                 then=F("parties__parties_on_application__application_id"),
