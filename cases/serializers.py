@@ -371,9 +371,7 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
 
 class EcjuQueryExporterSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
-    responded_by_user = PrimaryKeyRelatedSerializerField(
-        queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
-    )
+    responded_by_user = serializers.SerializerMethodField()
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
 
     def get_team(self, instance):
@@ -393,6 +391,10 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
             "created_at",
             "responded_at",
         )
+
+    def get_responded_by_user(self, instance):
+        if instance.responded_by_user:
+            return {"id": instance.responded_by_user.id, "name": instance.responded_by_user.get_full_name()}
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):

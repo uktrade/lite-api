@@ -387,8 +387,11 @@ class CaseEcjuQueries(APIView):
         """
         Returns the list of ECJU Queries on a case
         """
-        case = get_case(pk)
-        case_ecju_queries = EcjuQuery.objects.filter(case=case).order_by("created_at")
+        case_ecju_queries = (
+            EcjuQuery.objects.select_related("team", "responded_by_user", "responded_by_user")
+            .filter(case_id=pk)
+            .order_by("created_at")
+        )
 
         if isinstance(request.user, ExporterUser):
             serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)

@@ -13,6 +13,8 @@ from compliance.serializers.ComplianceSiteCaseSerializers import (
     ComplianceLicenceListSerializer,
     ExporterComplianceSiteListSerializer,
     ExporterComplianceVisitListSerializer,
+    ExporterComplianceSiteDetailSerializer,
+    ExporterComplianceVisitDetailSerializer,
 )
 from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
@@ -54,6 +56,7 @@ from conf.authentication import ExporterAuthentication
 
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from users.libraries.notifications import get_compliance_site_case_notifications
 
 
 class ExporterComplianceListSerializer(ListAPIView):
@@ -74,24 +77,37 @@ class ExporterComplianceListSerializer(ListAPIView):
 
         return qs
 
+    def get_paginated_response(self, data):
+        data = get_compliance_site_case_notifications(data, self.request)
+        return super().get_paginated_response(data)
 
-class ExporterComplianceDetailSerializer(RetrieveAPIView):
+
+class ExporterComplianceSiteDetailSerializer(RetrieveAPIView):
     authentication_classes = (ExporterAuthentication,)
-    serializer_class = ExporterComplianceSiteListSerializer
+    serializer_class = ExporterComplianceSiteDetailSerializer
+    organisation = None
 
     def get_queryset(self):
         # filter by organisation
-        organisation = get_request_user_organisation(self.request)
-        qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(organisation_id=organisation.id)
+        self.organisation = get_request_user_organisation(self.request)
+        qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(
+            organisation_id=self.organisation.id
+        )
 
         # if user does not have permission to manage all sites, filter by sites accessible
-        if not check_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_SITES, organisation):
-            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation).values_list(
+        if not check_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_SITES, self.organisation):
+            sites = Site.objects.get_by_user_and_organisation(self.request.user, self.organisation).values_list(
                 "id", flat=True
             )
             qs = qs.filter(site__in=sites)
 
         return qs
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        context["organisation_id"] = self.organisation.id
+        return context
 
 
 class ExporterVisitList(ListAPIView):
@@ -104,6 +120,24 @@ class ExporterVisitList(ListAPIView):
             .filter(site_case_id=self.kwargs["pk"])
             .order_by("created_at")
         )
+
+    def get_paginated_response(self, data):
+        data = get_compliance_site_case_notifications(data, self.request)
+        return super().get_paginated_response(data)
+
+
+class ExporterVisitDetail(RetrieveAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceVisitDetailSerializer
+    queryset = ComplianceVisitCase.objects.all()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        organisation_id = get_request_user_organisation_id(self.request)
+
+        context["organisation_id"] = organisation_id
+        return context
 
 
 class LicenceList(ListAPIView):

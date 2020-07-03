@@ -38,16 +38,16 @@ class GeneratedDocuments(generics.ListAPIView):
     serializer_class = GeneratedCaseDocumentExporterSerializer
 
     def get_queryset(self):
-        case = Case.objects.get(id=self.kwargs["pk"])
+        pk = self.kwargs["pk"]
         user = self.request.user
 
         if user.type == UserType.EXPORTER:
-            documents = GeneratedCaseDocument.objects.filter(case=case, visible_to_exporter=True)
+            documents = GeneratedCaseDocument.objects.filter(case_id=pk, visible_to_exporter=True)
             delete_exporter_notifications(
                 user=user, organisation_id=get_request_user_organisation_id(self.request), objects=documents
             )
         else:
-            documents = GeneratedCaseDocument.objects.filter(case=case)
+            documents = GeneratedCaseDocument.objects.filter(case_id=pk)
 
         return documents
 

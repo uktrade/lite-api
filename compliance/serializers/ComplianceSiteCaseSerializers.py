@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from addresses.serializers import AddressSerializer
@@ -11,6 +12,10 @@ from organisations.serializers import OrganisationDetailSerializer
 from cases.libraries.get_flags import get_ordered_flags
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from teams.helpers import get_team_by_pk
+from users.libraries.notifications import (
+    get_exporter_user_notification_individual_count,
+    get_exporter_user_notification_individual_count_with_compliance_visit,
+)
 
 
 class ComplianceSiteViewSerializer(serializers.ModelSerializer):
@@ -115,9 +120,28 @@ class ExporterComplianceSiteListSerializer(serializers.Serializer):
     review_date = serializers.SerializerMethodField()
 
     def get_review_date(self, instance):
+        return None
+
+
+class ExporterComplianceSiteDetailSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    reference_code = serializers.CharField()
+    site_name = serializers.CharField(source="site.name")
+    address = AddressSerializer(source="site.address")
+    review_date = serializers.SerializerMethodField()
+    exporter_user_notification_count = serializers.SerializerMethodField()
+
+    def get_review_date(self, instance):
         # if review date exists get one in the future (nearest)
         # else determine if serializer is for many or single (if singular get nearest past date if none in future)
         return None
+
+    def get_exporter_user_notification_count(self, instance):
+        return get_exporter_user_notification_individual_count_with_compliance_visit(
+            exporter_user=self.context.get("request").user,
+            organisation_id=self.context.get("organisation_id"),
+            case=instance,
+        )
 
 
 class ExporterComplianceVisitListSerializer(serializers.Serializer):
@@ -126,3 +150,19 @@ class ExporterComplianceVisitListSerializer(serializers.Serializer):
     visit_date = serializers.DateField()
     case_officer_first_name = serializers.CharField(source="case_officer.first_name", default=None)
     case_officer_last_name = serializers.CharField(source="case_officer.last_name", default=None)
+
+
+class ExporterComplianceVisitDetailSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    reference_code = serializers.CharField()
+    visit_date = serializers.DateField()
+    case_officer_first_name = serializers.CharField(source="case_officer.first_name", default=None)
+    case_officer_last_name = serializers.CharField(source="case_officer.last_name", default=None)
+    exporter_user_notification_count = serializers.SerializerMethodField()
+
+    def get_exporter_user_notification_count(self, instance):
+        return get_exporter_user_notification_individual_count(
+            exporter_user=self.context.get("request").user,
+            organisation_id=self.context.get("organisation_id"),
+            case=instance,
+        )
