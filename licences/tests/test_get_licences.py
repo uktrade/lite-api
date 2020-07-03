@@ -91,14 +91,14 @@ class GetLicencesTests(DataTestClient):
                         application_data["destinations"][0]["country"]["id"], destination.country_id,
                     )
 
-                good = licence.application.goods.first().good
+                good_on_application = licence.application.goods.first()
 
                 self.assertEqual(
-                    application_data["goods"][0]["description"], good.description,
+                    application_data["goods"]["goods_on_licence"][0]["good_on_application_id"], str(good_on_application.id)
                 )
                 self.assertEqual(
-                    application_data["goods"][0]["control_list_entries"][0]["rating"],
-                    good.control_list_entries.all()[0].rating,
+                    application_data["goods"]["goods_on_licence"][0]["control_list_entries"][0]["rating"],
+                    good_on_application.good.control_list_entries.all()[0].rating,
                 )
 
     def test_get_standard_licences_only(self):

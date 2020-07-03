@@ -1,9 +1,5 @@
-from django.db.models import Sum, Max, F
-
-from cases.enums import AdviceType, AdviceLevel
-from goods.models import Good
 from licences.enums import LicenceStatus
-from licences.models import GoodOnLicence, Licence
+from licences.models import Licence
 from static.control_list_entries.serializers import ControlListEntrySerializer
 
 

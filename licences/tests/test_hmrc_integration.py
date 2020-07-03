@@ -88,7 +88,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             self._assert_end_user(data, application.end_user.party)
-            self._assert_goods_on_application(data, LicenceWithGoodsViewSerializer(licence).data)
+            self.assertEqual(data["id"], str(licence.id))
         elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             self._assert_countries(
                 data, Country.objects.filter(countries_on_application__application=application).order_by("name")
@@ -130,23 +130,6 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
     def _assert_countries(self, data, countries):
         self.assertEqual(data["countries"], [{"id": country.id, "name": country.name} for country in countries])
-
-    def _assert_goods_on_application(self, data, goods_on_application):
-        self.assertEqual(
-            data["goods"],
-            [
-                {
-                    "id": str(good_on_application.good.id),
-                    "description": good_on_application.good.description,
-                    "usage": good_on_application.usage,
-                    "unit": good_on_application.unit,
-                    "quantity": good_on_application.quantity,
-                    "licenced_quantity": good_on_application.licenced_quantity,
-                    "licenced_value": good_on_application.licenced_value,
-                }
-                for good_on_application in goods_on_application
-            ],
-        )
 
     def _assert_goods_types(self, data, goods):
         self.assertEqual(
