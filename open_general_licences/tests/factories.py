@@ -1,8 +1,12 @@
 import factory
 
+from cases.enums import CaseTypeEnum
+from cases.models import CaseType
 from open_general_licences import models
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from static.control_list_entries.helpers import get_control_list_entry
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.models import CaseStatus
 
 
 class OpenGeneralLicenceFactory(factory.django.DjangoModelFactory):
@@ -39,3 +43,12 @@ class OpenGeneralLicenceFactory(factory.django.DjangoModelFactory):
 
         for country in extracted:
             self.countries.add(country)
+
+
+class OpenGeneralLicenceCaseFactory(factory.django.DjangoModelFactory):
+    # This is intentional as CircleCI fails to find the case status table otherwise
+    status = factory.Iterator(CaseStatus.objects.filter(status=CaseStatusEnum.REGISTERED))
+    case_type = factory.Iterator(CaseType.objects.filter(id=CaseTypeEnum.OGTCL.id))
+
+    class Meta:
+        model = models.OpenGeneralLicenceCase

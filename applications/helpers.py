@@ -5,6 +5,11 @@ from applications.serializers.end_use_details import (
     OpenEndUseDetailsUpdateSerializer,
     StandardEndUseDetailsUpdateSerializer,
 )
+from applications.serializers.exhibition_clearance import (
+    ExhibitionClearanceCreateSerializer,
+    ExhibitionClearanceViewSerializer,
+    ExhibitionClearanceUpdateSerializer,
+)
 from applications.serializers.f680_clearance import (
     F680ClearanceCreateSerializer,
     F680ClearanceViewSerializer,
@@ -29,11 +34,6 @@ from applications.serializers.standard_application import (
     StandardApplicationCreateSerializer,
     StandardApplicationUpdateSerializer,
     StandardApplicationViewSerializer,
-)
-from applications.serializers.exhibition_clearance import (
-    ExhibitionClearanceCreateSerializer,
-    ExhibitionClearanceViewSerializer,
-    ExhibitionClearanceUpdateSerializer,
 )
 from applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum

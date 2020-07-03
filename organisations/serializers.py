@@ -23,19 +23,27 @@ from users.models import GovUser, UserOrganisationRelationship, ExporterUser
 from users.serializers import ExporterUserCreateUpdateSerializer, ExporterUserSimpleSerializer
 
 
-class SiteListSerializer(serializers.ModelSerializer):
+class SiteListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
     address = AddressSerializer()
-    site_records_located_at_name = serializers.SerializerMethodField()
+    records_located_at = serializers.SerializerMethodField()
 
-    def get_site_records_located_at_name(self, instance):
+    def get_records_located_at(self, instance):
         if instance.site_records_located_at:
-            site = Site.objects.filter(id=instance.site_records_located_at.id).values_list("name", flat=True).first()
-            if site:
-                return site
-
-    class Meta:
-        model = Site
-        fields = ("id", "name", "address", "site_records_located_at_name")
+            site = instance.site_records_located_at
+            return {
+                "id": site.id,
+                "name": site.name,
+                "address": {
+                    "address_line_1": site.address.address_line_1,
+                    "address_line_2": site.address.address_line_2,
+                    "region": site.address.region,
+                    "postcode": site.address.postcode,
+                    "city": site.address.city,
+                    "country": {"name": site.address.country.name},
+                },
+            }
 
 
 class SiteViewSerializer(SiteListSerializer):
@@ -67,7 +75,7 @@ class SiteViewSerializer(SiteListSerializer):
             "id",
             "name",
             "address",
-            "site_records_located_at_name",
+            "records_located_at",
             "users",
             "admin_users",
             "is_used_on_application",

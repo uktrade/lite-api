@@ -3,6 +3,8 @@ from audit_trail.enums import AuditType
 
 from cases.enums import CaseTypeEnum
 from cases.models import Case
+from compliance.helpers import compliance_visit_case_complete
+from compliance.models import ComplianceVisitCase
 from queues.models import Queue
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
@@ -22,9 +24,28 @@ def get_next_goods_query_status(case):
     return None
 
 
+def get_next_compliance_visit_status(case):
+    # Awaiting exporter response is the last status before a terminal status (closed) as such we must confirm that
+    #   the case is ready to be closed.
+    if case.status.status == CaseStatusEnum.AWAITING_EXPORTER_RESPONSE:
+        comp_case = ComplianceVisitCase.objects.get(id=case.id)
+        if not compliance_visit_case_complete(comp_case):
+            return None
+        return CaseStatus.objects.get(status=CaseStatusEnum.CLOSED)
+    elif case.status.status == CaseStatusEnum.CLOSED:
+        return None
+    else:
+        current_status_pos = CaseStatusEnum.compliance_visit_statuses.index(case.status.status)
+        # The case status enum was used to get the next status as workflow automation uses some statuses in other
+        #   workflows
+        return CaseStatus.objects.get(status=CaseStatusEnum.compliance_visit_statuses[current_status_pos + 1])
+
+
 def get_next_status_in_workflow_sequence(case):
     if case.case_type.reference == CaseTypeEnum.GOODS.reference:
         return get_next_goods_query_status(case)
+    elif case.case_type.reference == CaseTypeEnum.COMPLIANCE_VISIT.reference:
+        return get_next_compliance_visit_status(case)
     else:
         status = case.status
         if status.workflow_sequence:
