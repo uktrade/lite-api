@@ -84,8 +84,10 @@ class Licences(ListCreateAPIView):
 
 class ViewLicence(RetrieveAPIView):
     authentication_classes = (ExporterAuthentication,)
-    queryset = Licence.objects.all()
     serializer_class = LicenceSerializer
+
+    def get_queryset(self):
+        return Licence.objects.filter(application__organisation_id=get_request_user_organisation_id(self.request))
 
 
 class NLRs(ListAPIView):
