@@ -8,6 +8,10 @@ from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from static.decisions.models import Decision
 
 
+class HMRCLicenceUsageUpdate(TimestampableModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+
 class Licence(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, editable=False)

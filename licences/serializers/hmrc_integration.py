@@ -109,3 +109,18 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data
         else:
             return []
+
+
+class HMRCUsageUpdateGoodSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True)
+    usage = serializers.IntegerField(required=True, min_value=0)
+
+
+class HMRCUsageUpdateLicenceSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True)
+    goods = HMRCUsageUpdateGoodSerializer(many=True)
+
+
+class HMRCLicenceUsageUpdateSerializer(serializers.Serializer):
+    usage_update_id = serializers.UUIDField(required=True)
+    licences = HMRCUsageUpdateLicenceSerializer(many=True)
