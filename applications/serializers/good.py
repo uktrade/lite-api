@@ -72,6 +72,7 @@ class GoodOnApplicationViewSerializer(serializers.ModelSerializer):
             "id",
             "good",
             "application",
+            "usage",
             "quantity",
             "unit",
             "value",
