@@ -1,0 +1,7 @@
+echo "-----> Exporting SWIG path"
+export SWIG_LIB=/home/vcap/deps/0/apt/usr/share/swig3.0
+
+# permanently make the environment variable available in the runtime container
+PROFILE_PATH="$HOME/profile.d/swig.sh"
+mkdir -p $(dirname "$PROFILE_PATH")
+echo 'SWIG_LIB=/home/vcap/deps/0/apt/usr/share/swig3.0' >> $PROFILE_PATH
