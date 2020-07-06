@@ -112,16 +112,18 @@ class CaseListSerializer(serializers.Serializer):
         super().__init__(*args, **kwargs)
 
     def get_assignments(self, instance):
-        return_value = defaultdict(list)
+        return_value = {}
 
         for assignment in instance.case_assignments.all():
-            return_value[assignment.queue.name].append(
-                {
-                    "id": assignment.user.id,
-                    "first_name": assignment.user.first_name,
-                    "last_name": assignment.user.last_name,
-                }
-            )
+            user_id = str(assignment.user.id)
+            if user_id not in return_value:
+                return_value[user_id] = {}
+            return_value[user_id]["first_name"] = assignment.user.first_name
+            return_value[user_id]["last_name"] = assignment.user.last_name
+            return_value[user_id]["email"] = assignment.user.email
+            if "queues" not in return_value[user_id]:
+                return_value[user_id]["queues"] = []
+            return_value[user_id]["queues"].append(assignment.queue.name)
 
         return return_value
 
