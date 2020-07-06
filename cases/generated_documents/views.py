@@ -2,6 +2,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework import status, generics
+from rest_framework.exceptions import ParseError
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
@@ -71,14 +72,14 @@ class GeneratedDocuments(generics.ListAPIView):
                 {"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        if request.data.get("licence_pk") and request.data.get("advice_type") in [
+        if request.data.get("advice_type") in [
             AdviceType.APPROVE,
             AdviceType.PROVISO,
         ]:
             try:
-                licence = Licence.objects.get(application=document.case, id=request.data.get("licence_pk"))
+                licence = Licence.objects.get_draft_licence(pk)
             except Licence.DoesNotExist:
-                pass
+                raise ParseError({"non_field_errors": ["No draft licence to create approval document for"]})
 
         s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key
@@ -92,14 +93,11 @@ class GeneratedDocuments(generics.ListAPIView):
 
         try:
             with transaction.atomic():
-                if licence:
-                    # Unlink any preexisting licence document from the existing Licence (remains a generated document on the case)
-                    try:
-                        existing_licence_document = GeneratedCaseDocument.objects.get(licence=licence)
-                        existing_licence_document.licence = None
-                        existing_licence_document.save()
-                    except GeneratedCaseDocument.DoesNotExist:
-                        pass
+                # Delete any pre-existing decision document if the documents have not been finalised
+                # i.e. They are not visible to the exporter
+                GeneratedCaseDocument.objects.filter(
+                    case=document.case, advice_type=request.data.get("advice_type"), visible_to_exporter=False
+                ).delete()
 
                 generated_doc = GeneratedCaseDocument.objects.create(
                     name=document_name,
