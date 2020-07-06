@@ -171,7 +171,8 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
-            ).count(), 0
+            ).count(),
+            0,
         )
 
     def test_get_document_preview_success(self):

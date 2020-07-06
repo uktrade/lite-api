@@ -94,7 +94,8 @@ class GetLicencesTests(DataTestClient):
                 good_on_application = licence.application.goods.first()
 
                 self.assertEqual(
-                    application_data["goods"]["goods_on_licence"][0]["good_on_application_id"], str(good_on_application.id)
+                    application_data["goods"]["goods_on_licence"][0]["good_on_application_id"],
+                    str(good_on_application.id),
                 )
                 self.assertEqual(
                     application_data["goods"]["goods_on_licence"][0]["control_list_entries"][0]["rating"],

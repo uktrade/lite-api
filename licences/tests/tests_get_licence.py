@@ -31,7 +31,11 @@ class GetLicencesTests(DataTestClient):
             application=self.application, good=good, quantity=100.0, value=1500, unit=Units.KGM
         )
         good_on_licence = GoodOnLicenceFactory(
-            good=good_on_application, quantity=good_on_application.quantity, usage=20.0, value=good_on_application.value, licence=self.licence
+            good=good_on_application,
+            quantity=good_on_application.quantity,
+            usage=20.0,
+            value=good_on_application.value,
+            licence=self.licence,
         )
 
         response = self.client.get(self.url, **self.gov_headers)
@@ -48,9 +52,17 @@ class GetLicencesTests(DataTestClient):
         self.assertEqual(response_data["goods_on_licence"][0]["applied_for_value"], good_on_application.value)
         self.assertEqual(response_data["goods_on_licence"][0]["licenced_quantity"], good_on_licence.quantity)
         self.assertEqual(response_data["goods_on_licence"][0]["licenced_value"], good_on_licence.value)
-        self.assertEqual(response_data["goods_on_licence"][0]["applied_for_value_per_item"], good_on_application.value / good_on_application.quantity)
-        self.assertEqual(response_data["goods_on_licence"][0]["licenced_value_per_item"], good_on_licence.value / good_on_licence.quantity)
-        self.assertEqual(len(response_data["goods_on_licence"][0]["control_list_entries"]), good.control_list_entries.count())
+        self.assertEqual(
+            response_data["goods_on_licence"][0]["applied_for_value_per_item"],
+            good_on_application.value / good_on_application.quantity,
+        )
+        self.assertEqual(
+            response_data["goods_on_licence"][0]["licenced_value_per_item"],
+            good_on_licence.value / good_on_licence.quantity,
+        )
+        self.assertEqual(
+            len(response_data["goods_on_licence"][0]["control_list_entries"]), good.control_list_entries.count()
+        )
         self.assertEqual(response_data["goods_on_licence"][0]["advice"]["type"]["key"], good_advice.type)
         self.assertEqual(response_data["goods_on_licence"][0]["advice"]["text"], good_advice.text)
         self.assertEqual(response_data["goods_on_licence"][0]["advice"]["proviso"], good_advice.proviso)
