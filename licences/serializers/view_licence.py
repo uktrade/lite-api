@@ -210,7 +210,7 @@ class LicenceSerializer(serializers.ModelSerializer):
         if instance.goods.exists():
             return GoodOnLicenceViewSerializer(instance.goods, many=True).data
         elif instance.application.goods_type.exists():
-            approved_goods_types = get_approved_goods_types(instance)
+            approved_goods_types = get_approved_goods_types(instance.application)
             return GoodsTypeOnLicenceSerializer(approved_goods_types, many=True).data
         else:
             return None

@@ -7,6 +7,7 @@ from conf.serializers import CountrySerializerField, KeyValueChoiceField, Contro
 from goods.models import Good
 from goodstype.models import GoodsType
 from licences.enums import LicenceStatus
+from licences.helpers import get_approved_goods_types
 from licences.models import Licence
 from parties.models import Party
 
@@ -129,4 +130,5 @@ class LicenceListSerializer(serializers.ModelSerializer):
             from licences.serializers.view_licence import GoodOnLicenceViewSerializer
             return GoodOnLicenceViewSerializer(instance.goods, many=True).data
         elif instance.application.goods_type.exists():
-            return GoodsTypeOnLicenceListSerializer(instance.goods_type, many=True).data
+            approved_goods_types = get_approved_goods_types(instance.application)
+            return GoodsTypeOnLicenceListSerializer(approved_goods_types, many=True).data
