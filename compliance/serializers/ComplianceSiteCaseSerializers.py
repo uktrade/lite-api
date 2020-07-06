@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from addresses.serializers import AddressSerializer
@@ -119,6 +120,13 @@ class ExporterComplianceSiteListSerializer(serializers.Serializer):
     review_date = serializers.SerializerMethodField()
 
     def get_review_date(self, instance):
+        comp_visit_case = (
+            ComplianceVisitCase.objects.filter(site_case_id=instance.id, visit_date__gte=timezone.now().date())
+            .order_by("visit_date")
+            .first()
+        )
+        if comp_visit_case:
+            return comp_visit_case.visit_date
         return None
 
 
@@ -127,13 +135,22 @@ class ExporterComplianceSiteDetailSerializer(serializers.Serializer):
     reference_code = serializers.CharField()
     site_name = serializers.CharField(source="site.name")
     address = AddressSerializer(source="site.address")
-    review_date = serializers.SerializerMethodField()
+    visit_date = serializers.SerializerMethodField()
     exporter_user_notification_count = serializers.SerializerMethodField()
     is_primary_site = serializers.SerializerMethodField()
 
-    def get_review_date(self, instance):
+    def get_visit_date(self, instance):
         # if review date exists get one in the future (nearest)
-        # else determine if serializer is for many or single (if singular get nearest past date if none in future)
+        # else determine closest in the past
+        visit_cases = ComplianceVisitCase.objects.filter(site_case_id=instance.id).order_by("visit_date")
+        if visit_cases.filter(visit_date__gte=timezone.now().date()).exists():
+            return visit_cases.filter(visit_date__gte=timezone.now().date()).first().visit_date
+
+        visit_case = visit_cases.last()
+
+        if visit_case:
+            return visit_case.visit_date
+
         return None
 
     def get_exporter_user_notification_count(self, instance):

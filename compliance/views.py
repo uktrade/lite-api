@@ -130,7 +130,7 @@ class ExporterVisitList(ListAPIView):
 class ExporterVisitDetail(RetrieveAPIView):
     authentication_classes = (ExporterAuthentication,)
     serializer_class = ExporterComplianceVisitDetailSerializer
-    queryset = ComplianceVisitCase.objects.all()
+    queryset = ComplianceVisitCase.objects.select_related("case_officer").all()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
