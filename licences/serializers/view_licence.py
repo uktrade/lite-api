@@ -194,17 +194,26 @@ class LicenceSerializer(serializers.ModelSerializer):
 class GoodOnLicenceViewSerializer(serializers.Serializer):
     good_on_application_id = serializers.UUIDField(source="good.id")
     usage = serializers.FloatField()
+    description = serializers.CharField(source="good.good.description")
     units = KeyValueChoiceField(source="good.unit", choices=Units.choices)
     applied_for_quantity = serializers.FloatField(source="good.quantity")
     applied_for_value = serializers.FloatField(source="good.value")
     licenced_quantity = serializers.FloatField(source="quantity")
     licenced_value = serializers.FloatField(source="value")
+    applied_for_value_per_item = serializers.SerializerMethodField()
+    licenced_value_per_item = serializers.SerializerMethodField()
     control_list_entries = ControlListEntrySerializer(source="good.good.control_list_entries", many=True)
     advice = serializers.SerializerMethodField()
 
     def get_advice(self, instance):
         advice = instance.good.good.advice.get(level=AdviceLevel.FINAL)
         return SimpleAdviceSerializer(instance=advice).data
+
+    def get_applied_for_value_per_item(self, instance):
+        return float(instance.good.value) / instance.good.quantity
+
+    def get_licenced_value_per_item(self, instance):
+        return float(instance.value) / instance.quantity
 
 
 class LicenceWithGoodsViewSerializer(serializers.Serializer):
