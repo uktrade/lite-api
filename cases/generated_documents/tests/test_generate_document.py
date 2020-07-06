@@ -138,9 +138,7 @@ class GenerateDocumentTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         upload_bytes_file_func.assert_called_once()
         # Ensure the old licence document is deleted
-        self.assertEqual(
-            GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count(), 1
-        )
+        self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count(), 1)
         document = GeneratedCaseDocument.objects.get(advice_type=AdviceType.APPROVE)
         self.assertEqual(document.licence, licence)
         self.assertEqual(response.json()["generated_document"], str(document.id))

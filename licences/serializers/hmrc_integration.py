@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from conf.helpers import add_months
 from licences.helpers import get_approved_goods_types
-from licences.serializers.view_licence import LicenceWithGoodsViewSerializer
+from licences.serializers.view_licence import LicenceWithGoodsViewSerializer, GoodOnLicenceViewSerializer
 from static.countries.models import Country
 
 
@@ -103,7 +103,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
     def get_goods(self, instance):
         if instance.application.goods.exists():
-            return LicenceWithGoodsViewSerializer(instance).data
+            return GoodOnLicenceViewSerializer(instance.goods, many=True).data
         elif instance.application.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance.application)
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data

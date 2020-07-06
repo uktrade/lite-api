@@ -128,6 +128,7 @@ class LicenceListSerializer(serializers.ModelSerializer):
     def get_goods(self, instance):
         if instance.goods.exists():
             from licences.serializers.view_licence import GoodOnLicenceViewSerializer
+
             return GoodOnLicenceViewSerializer(instance.goods, many=True).data
         elif instance.application.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance.application)

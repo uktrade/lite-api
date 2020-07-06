@@ -5,7 +5,6 @@ class LicenceStatus:
     SURRENDERED = "surrendered"
     DRAFT = "draft"
     CANCELLED = "cancelled"
-    REFUSED = "refused"
 
     choices = [
         (ISSUED, "Issued"),
@@ -14,7 +13,6 @@ class LicenceStatus:
         (SURRENDERED, "Surrendered"),
         (DRAFT, "Draft"),
         (CANCELLED, "Cancelled"),
-        (REFUSED, "Refused"),
     ]
 
     @classmethod

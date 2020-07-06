@@ -88,8 +88,7 @@ class CaseDetail(APIView):
         if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             data["data"]["destinations"] = get_destinations(case.id)  # noqa
 
-        if case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            data["licences"] = get_case_licences(case)
+        data["licences"] = get_case_licences(case)
 
         return JsonResponse(data={"case": data}, status=status.HTTP_200_OK)
 
