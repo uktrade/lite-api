@@ -4,7 +4,6 @@ from compliance import views
 
 app_name = "compliance"
 
-# urls will be required in future compliance stories, conf has already been set up
 urlpatterns = [
     path("exporter/", views.ExporterComplianceListSerializer.as_view(), name="exporter_site_list"),
     path("exporter/<uuid:pk>/", views.ExporterComplianceSiteDetailView.as_view(), name="exporter_site_detail"),
