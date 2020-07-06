@@ -19,7 +19,7 @@ from cases.enums import (
 )
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
-from common.models import TimestampableModel
+from common.models import TimestampableModel, CreatedAt
 from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
 from documents.models import Document
@@ -47,7 +47,7 @@ class CaseType(models.Model):
     type = models.CharField(choices=CaseTypeTypeEnum.choices, null=False, blank=False, max_length=35)
     sub_type = models.CharField(choices=CaseTypeSubTypeEnum.choices, null=False, blank=False, max_length=35)
     reference = models.CharField(
-        choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=5,
+        choices=CaseTypeReferenceEnum.choices, unique=True, null=False, blank=False, max_length=6,
     )
 
 
@@ -452,3 +452,13 @@ class EnforcementCheckID(models.Model):
     id = models.AutoField(primary_key=True)
     entity_id = models.UUIDField(unique=True)
     entity_type = models.CharField(choices=EnforcementXMLEntityTypes.choices, max_length=20)
+
+
+class CaseReviewDate(CreatedAt):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    next_review_date = models.DateField(default=None, null=True)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    case = models.ForeignKey(Case, related_name="case_review_date", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = [["case", "team"]]

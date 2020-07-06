@@ -2,7 +2,7 @@ from parameterized import parameterized
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from goods.enums import GoodPvGraded, GoodControlled, PvGrading, MilitaryUse, Component
+from goods.enums import GoodPvGraded, GoodControlled, PvGrading, MilitaryUse, Component, ItemCategory, FirearmGoodType
 from goods.models import Good, PvGradingDetails
 from goods.tests.factories import GoodFactory
 from lite_content.lite_api import strings
@@ -92,7 +92,10 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 1)
 
     def test_edit_military_use_to_designed_success(self):
-        request_data = {"is_military_use": MilitaryUse.YES_DESIGNED}
+        request_data = {
+            "is_military_use": MilitaryUse.YES_DESIGNED,
+            "modified_military_use_details": "",
+        }
 
         response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
         good = response.json()["good"]
@@ -121,7 +124,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
             modified_military_use_details="modified details",
         )
 
-        request_data = {"is_military_use": MilitaryUse.NO}
+        request_data = {"is_military_use": MilitaryUse.NO, "modified_military_use_details": ""}
         url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
 
         response = self.client.put(url, request_data, **self.exporter_headers)
@@ -169,7 +172,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(Good.objects.all().count(), 2)
 
     def test_edit_information_security_to_no_clears_details_field_success(self):
-        request_data = {"uses_information_security": False}
+        request_data = {"uses_information_security": False, "information_security_details": ""}
 
         response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
         good = response.json()["good"]
@@ -199,16 +202,18 @@ class GoodsEditDraftGoodTests(DataTestClient):
         ]
     )
     def test_edit_component_to_yes_option_with_no_details_field_failure(self, component, details_field, error):
+        good = self.create_good("a good", self.organisation, is_component=Component.NO)
         request_data = {"is_component": component, details_field: ""}
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
 
-        response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
+        response = self.client.put(url, request_data, **self.exporter_headers)
         errors = response.json()["errors"]
 
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(errors), 1)
         self.assertEquals(errors[details_field], [error])
-        self.assertEquals(self.good.is_component, Component.NO)
-        self.assertIsNone(self.good.component_details)
+        self.assertEquals(good.is_component, Component.NO)
+        self.assertIsNone(good.component_details)
 
     def test_edit_component_no_selection_failure(self):
         request_data = {"is_component_step": True}
@@ -221,7 +226,7 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(errors["is_component"], [strings.Goods.FORM_NO_COMPONENT_SELECTED])
 
     def test_edit_information_security_no_selection_failure(self):
-        request_data = {"is_information_security_step": True}
+        request_data = {"uses_information_security": ""}
 
         response = self.client.put(self.edit_details_url, request_data, **self.exporter_headers)
         errors = response.json()["errors"]
@@ -231,3 +236,308 @@ class GoodsEditDraftGoodTests(DataTestClient):
         self.assertEquals(
             errors["uses_information_security"], [strings.Goods.FORM_PRODUCT_DESIGNED_FOR_SECURITY_FEATURES]
         )
+
+    @parameterized.expand(
+        [
+            [ItemCategory.GROUP3_SOFTWARE, "new software details"],
+            [ItemCategory.GROUP3_TECHNOLOGY, "new technology details"],
+        ]
+    )
+    def test_edit_software_or_technology_details_success(self, category, details):
+        good = self.create_good(
+            "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
+        )
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"is_software_or_technology_step": True, "software_or_technology_details": details}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(good["software_or_technology_details"], details)
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
+    @parameterized.expand(
+        [
+            [ItemCategory.GROUP3_SOFTWARE, strings.Goods.FORM_NO_SOFTWARE_DETAILS],
+            [ItemCategory.GROUP3_TECHNOLOGY, strings.Goods.FORM_NO_TECHNOLOGY_DETAILS],
+        ]
+    )
+    def test_edit_software_or_technology_details_failure(self, category, error):
+        good = self.create_good(
+            "a good", self.organisation, item_category=category, software_or_technology_details="initial details"
+        )
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"is_software_or_technology_step": True, "software_or_technology_details": ""}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(errors), 1)
+        self.assertEquals(errors["software_or_technology_details"], [error])
+
+    def test_cannot_edit_component_and_component_details_of_non_category_one_good_failure(self):
+        good = self.create_good(
+            "a good",
+            self.organisation,
+            item_category=ItemCategory.GROUP3_TECHNOLOGY,
+            software_or_technology_details="initial details",
+        )
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {
+            "is_component_step": True,
+            "is_component": Component.YES_GENERAL_PURPOSE,
+            "general_details": "some details",
+        }
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])
+
+    def test_cannot_edit_software_technology_details_non_category_three_good_failure(self):
+        good = self.create_good("a good", self.organisation, item_category=ItemCategory.GROUP1_PLATFORM)
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"software_or_technology_details": "some details"}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])
+
+    def test_edit_category_two_product_type_success(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"firearm_details": {"type": FirearmGoodType.FIREARMS}}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        # created good is set as 'ammunition' type
+        self.assertEquals(good["firearm_details"]["type"]["key"], FirearmGoodType.FIREARMS)
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
+    def test_edit_category_two_calibre_and_year_of_manufacture_success(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {"firearm_details": {"calibre": "1.0", "year_of_manufacture": "2019"}}
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        # created good is set as 'ammunition' type
+        self.assertEquals(good["firearm_details"]["calibre"], "1.0")
+        self.assertEquals(good["firearm_details"]["year_of_manufacture"], 2019)
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
+    def test_edit_category_two_section_question_and_details_success(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {
+            "firearm_details": {
+                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "section_certificate_number": "ABC123",
+                "section_certificate_date_of_expiry": "2020-12-12",
+            }
+        }
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        # created good is set as 'ammunition' type
+        self.assertTrue(good["firearm_details"]["is_covered_by_firearm_act_section_one_two_or_five"])
+        self.assertEquals(good["firearm_details"]["section_certificate_number"], "ABC123")
+        self.assertEquals(good["firearm_details"]["section_certificate_date_of_expiry"], "2020-12-12")
+        # 2 due to creating a new good for this test
+        self.assertEquals(Good.objects.all().count(), 2)
+
+    def test_edit_category_two_section_question_and_no_certificate_number_failure(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {
+            "firearm_details": {
+                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": None,
+            }
+        }
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(errors["section_certificate_number"], [strings.Goods.FIREARM_GOOD_NO_CERT_NUM])
+
+    def test_edit_category_two_section_question_and_invalid_expiry_date_failure(self):
+        """Test editing section of firearms question failure by providing an expiry date not in the future. """
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {
+            "firearm_details": {
+                "is_covered_by_firearm_act_section_one_two_or_five": "True",
+                "section_certificate_number": "ABC123",
+                "section_certificate_date_of_expiry": "2019-12-12",
+            }
+        }
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        good.refresh_from_db()
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # assert good didn't get edited
+        self.assertFalse(good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five)
+        self.assertIsNone(good.firearm_details.section_certificate_number)
+        self.assertIsNone(good.firearm_details.section_certificate_date_of_expiry)
+        self.assertEquals(
+            errors["section_certificate_date_of_expiry"], [strings.Goods.FIREARM_GOOD_INVALID_EXPIRY_DATE]
+        )
+
+    def test_edit_category_two_identification_markings_details_success(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {
+            "firearm_details": {
+                "has_identification_markings": "True",
+                "identification_markings_details": "some new details",
+                "no_identification_markings_details": "",
+            }
+        }
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        good = response.json()["good"]
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(good["firearm_details"]["has_identification_markings"])
+        self.assertEquals(good["firearm_details"]["identification_markings_details"], "some new details")
+        self.assertEquals(good["firearm_details"]["no_identification_markings_details"], "")
+
+    def test_edit_category_two_identification_markings_no_details_provided_failure(self):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+        request_data = {
+            "firearm_details": {
+                "has_identification_markings": "True",
+                "identification_markings_details": "",
+                "no_identification_markings_details": "",
+            }
+        }
+
+        response = self.client.put(url, request_data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        good.refresh_from_db()
+
+        # assert good didn't get edited
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(good.firearm_details.has_identification_markings)
+        self.assertEquals(good.firearm_details.identification_markings_details, "some marking details")
+        self.assertEquals(good.firearm_details.no_identification_markings_details, "")
+        self.assertEqual(errors["identification_markings_details"], [strings.Goods.FIREARM_GOOD_NO_DETAILS_ON_MARKINGS])
+
+    @parameterized.expand(
+        [
+            ["True", "identification_markings_details", "no_identification_markings_details"],
+            ["False", "no_identification_markings_details", "identification_markings_details"],
+        ]
+    )
+    def test_edit_category_two_good_has_markings_details_too_long_failure(
+        self, has_identification_markings, details_field, other_details_fields
+    ):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            "firearm_details": {
+                "type": FirearmGoodType.AMMUNITION,
+                "calibre": "0.5",
+                "year_of_manufacture": "1991",
+                "is_covered_by_firearm_act_section_one_two_or_five": "False",
+                "section_certificate_number": "",
+                "section_certificate_date_of_expiry": "",
+                "has_identification_markings": has_identification_markings,
+                details_field: "A" * 2001,
+                other_details_fields: "",
+            },
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors[details_field], ["Ensure this field has no more than 2000 characters."])
+
+    @parameterized.expand(
+        [
+            ["is_military_use", "True"],
+            ["modified_military_use_details", "some details"],
+            ["is_component", "True"],
+            ["designed_details", "some details"],
+            ["modified_details", "some details"],
+            ["general_details", "some details"],
+            ["uses_information_security", "True"],
+            ["information_security_details", "some details"],
+            ["software_or_technology_details", "some details"],
+        ]
+    )
+    def test_edit_category_two_adding_invalid_attributes_failure(self, field, value):
+        good = self.create_good(
+            "a good", self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, create_firearm_details=True
+        )
+
+        url = reverse("goods:good_details", kwargs={"pk": str(good.id)})
+
+        data = {
+            "description": "coffee",
+            "is_good_controlled": GoodControlled.NO,
+            "is_pv_graded": GoodPvGraded.NO,
+            "item_category": ItemCategory.GROUP2_FIREARMS,
+            "validate_only": True,
+            field: value,
+        }
+
+        response = self.client.put(url, data, **self.exporter_headers)
+        errors = response.json()["errors"]
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(errors["non_field_errors"], [strings.Goods.CANNOT_SET_DETAILS_ERROR])

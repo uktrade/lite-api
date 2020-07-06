@@ -69,5 +69,5 @@ class CasesResponseTests(EndPointTests):
 
     def test_export_enforcement_xml(self):
         self.call_endpoint(
-            self.get_gov_user(), self.url + "enforcement-check/" + self.get_queue_id(),
+            self.get_gov_headers(), self.url + "enforcement-check/" + self.get_queue_id(),
         )

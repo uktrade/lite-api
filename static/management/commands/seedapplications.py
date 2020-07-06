@@ -1,4 +1,5 @@
 import random
+import uuid
 
 from applications.models import (
     BaseApplication,
@@ -11,7 +12,7 @@ from organisations.models import Organisation
 from static.management.SeedCommand import SeedCommand
 from static.units.enums import Units
 from test_helpers.clients import DataTestClient
-
+from users.models import GovUser
 
 # helper functions
 def verify_good(good):
@@ -69,6 +70,8 @@ class Command(SeedCommand):
     @classmethod
     def seed_siel_applications(cls, organisation: Organisation, number_of_applications: int, number_of_goods: int):
         tc = DataTestClient()
+        tc.exporter_user = random.choice(organisation.get_users())
+        gov_user = GovUser.objects.first()
 
         # ensure all the required goods exist in the org product list, create if necessary
         goods, goods_added_to_org = cls.ensure_verified_goods_exist(number_of_goods, organisation, tc)
@@ -83,6 +86,11 @@ class Command(SeedCommand):
 
         [add_goods_to_application(choose_some_goods(goods, number_of_goods), draft) for draft in drafts]
         submitted_applications = [tc.submit_application(draft) for draft in drafts]
+
+        [
+            tc.create_case_document(user=gov_user, case=application, name=f"SIEL application.doc")
+            for application in submitted_applications
+        ]
 
         [cls._print_to_console(organisation, application) for application in submitted_applications]
         return organisation, submitted_applications, goods_added_to_org
@@ -99,6 +107,7 @@ class Command(SeedCommand):
         matched_names = existing_names - missing_names
         count_matched = len(matched_names)
         count_names_required = max(0, number_of_goods - count_matched)
+        tc.export_user = random.choice(organisation.get_users())
 
         goods_added = [
             verify_good(
@@ -111,6 +120,17 @@ class Command(SeedCommand):
                 )
             )
             for name in list(missing_names)[:count_names_required]
+        ]
+
+        [
+            tc.create_good_document(
+                organisation=organisation,
+                good=good,
+                name=f"{good.description}.doc",
+                s3_key=str(uuid.uuid4()),
+                user=tc.export_user,
+            )
+            for good in goods_added
         ]
 
         # select goods that match the expected good naming
