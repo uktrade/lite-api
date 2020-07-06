@@ -12,8 +12,9 @@ class LicencesView(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        licence = Licence.objects.get_draft_or_active_licence(pk)
-        if not licence:
+        try:
+            licence = Licence.objects.get_active_licence(pk)
+        except Licence.DoesNotExist:
             raise NotFound({"non_field_errors": ["No licence found"]})
 
         data = LicenceWithGoodsViewSerializer(instance=licence).data
