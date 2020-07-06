@@ -1,3 +1,5 @@
+from __future__ import division
+
 from django.db.models import F
 from rest_framework import serializers
 
