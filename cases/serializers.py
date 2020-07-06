@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -15,7 +17,7 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
 )
-from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
+from cases.fields import HasOpenECJUQueriesRelatedField
 from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
@@ -39,7 +41,6 @@ from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
-from queues.serializers import CasesQueueViewSerializer
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
@@ -93,23 +94,11 @@ class QueueCaseAssignmentUserSerializer(serializers.ModelSerializer):
         )
 
 
-class QueueCaseAssignmentSerializer(serializers.ModelSerializer):
-    user = QueueCaseAssignmentUserSerializer()
-    queue = CasesQueueViewSerializer()
-
-    class Meta:
-        model = CaseAssignment
-        fields = (
-            "user",
-            "queue",
-        )
-
-
 class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
+    assignments = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
@@ -121,6 +110,20 @@ class CaseListSerializer(serializers.Serializer):
         self.team = kwargs.pop("team", None)
         self.include_hidden = kwargs.pop("include_hidden", None)
         super().__init__(*args, **kwargs)
+
+    def get_assignments(self, instance):
+        return_value = defaultdict(list)
+
+        for assignment in instance.case_assignments.all():
+            return_value[assignment.queue.name].append(
+                {
+                    "id": assignment.user.id,
+                    "first_name": assignment.user.first_name,
+                    "last_name": assignment.user.last_name,
+                }
+            )
+
+        return return_value
 
     def get_submitted_at(self, instance):
         # Return the DateTime value manually as otherwise
