@@ -67,13 +67,13 @@ class GenerateDocumentTests(DataTestClient):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
         self.data["visible_to_exporter"] = True
-        self.data["advice_type"] = AdviceType.APPROVE
+        self.data["advice_type"] = AdviceType.NO_LICENCE_REQUIRED
 
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         upload_bytes_file_func.assert_called_once()
-        self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count(), 1)
+        self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.NO_LICENCE_REQUIRED).count(), 1)
         # Ensure decision documents are hidden until complete
         self.assertEqual(
             ExporterNotification.objects.filter(
@@ -90,7 +90,6 @@ class GenerateDocumentTests(DataTestClient):
         upload_bytes_file_func.return_value = None
         self.data["visible_to_exporter"] = True
         self.data["advice_type"] = AdviceType.APPROVE
-        self.data["licence_pk"] = licence.pk
 
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
@@ -109,7 +108,22 @@ class GenerateDocumentTests(DataTestClient):
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_override_licence_document_success(self, upload_bytes_file_func, html_to_pdf_func):
+    def test_generate_licence_document_no_licence_failure(self, upload_bytes_file_func, html_to_pdf_func):
+        html_to_pdf_func.return_value = None
+        upload_bytes_file_func.return_value = None
+        self.data["visible_to_exporter"] = True
+        self.data["advice_type"] = AdviceType.APPROVE
+
+        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"], {"non_field_errors": ["No draft licence to create approval document for"]}
+        )
+
+    @mock.patch("cases.generated_documents.views.html_to_pdf")
+    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
+    def test_generate_new_licence_document_success(self, upload_bytes_file_func, html_to_pdf_func):
         licence = self.create_licence(self.case, status=LicenceStatus.DRAFT)
         self.create_generated_case_document(
             self.case, self.letter_template, advice_type=AdviceType.APPROVE, licence=licence, visible_to_exporter=False
@@ -118,17 +132,18 @@ class GenerateDocumentTests(DataTestClient):
         upload_bytes_file_func.return_value = None
         self.data["visible_to_exporter"] = True
         self.data["advice_type"] = AdviceType.APPROVE
-        self.data["licence_pk"] = licence.pk
 
         response = self.client.post(self.url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         upload_bytes_file_func.assert_called_once()
-        # Ensure the old licence document is unlinked from the licence
+        # Ensure the old licence document is deleted
         self.assertEqual(
-            GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE, licence=licence).count(), 1
+            GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count(), 1
         )
-        self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count(), 2)
+        document = GeneratedCaseDocument.objects.get(advice_type=AdviceType.APPROVE)
+        self.assertEqual(document.licence, licence)
+        self.assertEqual(response.json()["generated_document"], str(document.id))
         # Ensure decision documents are hidden until complete
         self.assertEqual(
             ExporterNotification.objects.filter(

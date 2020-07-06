@@ -22,7 +22,6 @@ from licences.serializers.view_licences import (
 from parties.enums import PartyRole
 from parties.models import Party, PartyDocument
 from static.control_list_entries.serializers import ControlListEntrySerializer
-from static.statuses.serializers import CaseStatusSerializer
 from static.units.enums import Units
 
 
@@ -210,7 +209,7 @@ class LicenceSerializer(serializers.ModelSerializer):
     def get_goods(self, instance):
         if instance.goods.exists():
             return GoodOnLicenceViewSerializer(instance.goods, many=True).data
-        elif instance.goods_type.exists():
+        elif instance.application.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance)
             return GoodsTypeOnLicenceSerializer(approved_goods_types, many=True).data
         else:

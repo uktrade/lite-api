@@ -9,7 +9,6 @@ from goodstype.models import GoodsType
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from parties.models import Party
-from static.statuses.serializers import CaseStatusSerializer
 
 
 class GoodLicenceListSerializer(serializers.ModelSerializer):
@@ -129,5 +128,5 @@ class LicenceListSerializer(serializers.ModelSerializer):
         if instance.goods.exists():
             from licences.serializers.view_licence import GoodOnLicenceViewSerializer
             return GoodOnLicenceViewSerializer(instance.goods, many=True).data
-        elif instance.goods_type.exists():
+        elif instance.application.goods_type.exists():
             return GoodsTypeOnLicenceListSerializer(instance.goods_type, many=True).data
