@@ -42,8 +42,7 @@ class Licences(ListCreateAPIView):
 
         licences = Licence.objects.filter(
             application__organisation_id=get_request_user_organisation_id(self.request),
-            status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
-        )
+        ).exclude(status=LicenceStatus.DRAFT)
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:

@@ -127,13 +127,11 @@ class PartyOnApplicationSerializer(serializers.ModelSerializer):
 
 
 class ApplicationLicenceSerializer(serializers.ModelSerializer):
-    goods = serializers.SerializerMethodField()
     destinations = serializers.SerializerMethodField()
     end_user = PartyOnApplicationSerializer()
     ultimate_end_users = PartyOnApplicationSerializer(many=True)
     consignee = PartyOnApplicationSerializer()
     third_parties = PartyOnApplicationSerializer(many=True)
-    status = CaseStatusSerializer()
     documents = serializers.SerializerMethodField()
     case_type = CaseSubTypeSerializer()
 
@@ -143,14 +141,11 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
             "id",
             "case_type",
             "name",
-            "reference_code",
             "destinations",
-            "goods",
             "end_user",
             "ultimate_end_users",
             "consignee",
             "third_parties",
-            "status",
             "documents",
         )
         read_only_fields = fields
@@ -161,15 +156,6 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
         )
         return DocumentLicenceSerializer(documents, many=True).data
 
-    def get_goods(self, instance):
-        if instance.goods.exists():
-            return LicenceWithGoodsViewSerializer(Licence.objects.get_active_licence(instance)).data
-        elif instance.goods_type.exists():
-            approved_goods_types = get_approved_goods_types(instance)
-            return GoodsTypeOnLicenceSerializer(approved_goods_types, many=True).data
-        else:
-            return None
-
     def get_destinations(self, instance):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
@@ -177,20 +163,6 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
             return CountriesLicenceSerializer(instance.openapplication.application_countries, many=True).data
         else:
             return None
-
-
-class LicenceSerializer(serializers.ModelSerializer):
-    application = ApplicationLicenceSerializer()
-
-    class Meta:
-        model = Licence
-        fields = (
-            "application",
-            "reference_code",
-            "start_date",
-            "duration",
-        )
-        read_only_fields = fields
 
 
 class GoodOnLicenceViewSerializer(serializers.Serializer):
@@ -216,6 +188,33 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
 
     def get_licenced_value_per_item(self, instance):
         return float(instance.value) / instance.quantity
+
+
+class LicenceSerializer(serializers.ModelSerializer):
+    application = ApplicationLicenceSerializer()
+    goods = serializers.SerializerMethodField()
+    status = KeyValueChoiceField(choices=LicenceStatus.choices)
+
+    class Meta:
+        model = Licence
+        fields = (
+            "application",
+            "reference_code",
+            "status",
+            "start_date",
+            "duration",
+            "goods",
+        )
+        read_only_fields = fields
+
+    def get_goods(self, instance):
+        if instance.goods.exists():
+            return GoodOnLicenceViewSerializer(instance.goods, many=True).data
+        elif instance.goods_type.exists():
+            approved_goods_types = get_approved_goods_types(instance)
+            return GoodsTypeOnLicenceSerializer(approved_goods_types, many=True).data
+        else:
+            return None
 
 
 class LicenceWithGoodsViewSerializer(serializers.Serializer):
