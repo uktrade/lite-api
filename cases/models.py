@@ -262,21 +262,26 @@ class CaseAssignment(TimestampableModel):
         from audit_trail import service as audit_trail_service
 
         audit_user = None
+        user = None
         audit_note = None
 
         if "audit_user" in kwargs:
             audit_user = kwargs.pop("audit_user")
 
+        if "user" in kwargs:
+            user = kwargs.pop("user")
+
         if "audit_note" in kwargs:
             audit_note = kwargs.pop("audit_note")
 
         super(CaseAssignment, self).save(*args, **kwargs)
-        if audit_user:
+        if audit_user and user:
             audit_trail_service.create(
                 actor=audit_user,
-                verb=AuditType.ASSIGN_CASE,
+                verb=AuditType.ASSIGN_USER_TO_CASE,
                 action_object=self.case,
-                payload={"assignment": self.queue.name, "additional_text": audit_note},
+                payload={"user": user.first_name + " " + user.last_name,
+                         "queue": self.queue.name, "additional_text": audit_note},
             )
 
 

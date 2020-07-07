@@ -29,6 +29,7 @@ class AuditType(LiteEnum):
     ADD_ADDITIONAL_CONTACT_TO_CASE = autostr()
     MOVE_CASE = autostr()
     ASSIGN_CASE = autostr()
+    ASSIGN_USER_TO_CASE = autostr()
     REMOVE_CASE = autostr()
     REMOVE_CASE_FROM_ALL_QUEUES = autostr()
     REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS = autostr()
