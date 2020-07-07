@@ -1,5 +1,6 @@
 import uuid
 from collections import defaultdict
+from typing import Optional
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
@@ -117,7 +118,7 @@ class Case(TimestampableModel):
 
         return return_value
 
-    def change_status(self, user, status: CaseStatus):
+    def change_status(self, user, status: CaseStatus, note: Optional[str] = ""):
         from cases.helpers import can_has_status
         from audit_trail import service as audit_trail_service
         from applications.libraries.application_helpers import can_status_be_set_by_gov_user
@@ -146,7 +147,8 @@ class Case(TimestampableModel):
             actor=user,
             verb=AuditType.UPDATED_STATUS,
             target=self,
-            payload={"status": {"new": CaseStatusEnum.get_text(self.status.status), "old": old_status}},
+            payload={"status": {"new": CaseStatusEnum.get_text(self.status.status), "old": old_status},
+                     "additional_text": note},
         )
 
         if old_status != self.status.status:
@@ -220,8 +222,8 @@ class CaseNote(TimestampableModel):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    case = models.ForeignKey(Case, related_name="case_note", on_delete=models.CASCADE)
-    user = models.ForeignKey(BaseUser, related_name="case_note", on_delete=models.CASCADE, default=None, null=False,)
+    case = models.ForeignKey(Case, related_name="case_notes", on_delete=models.CASCADE)
+    user = models.ForeignKey(BaseUser, related_name="case_notes", on_delete=models.CASCADE, default=None, null=False,)
     text = models.TextField(default=None, blank=True, null=True, max_length=2200)
     is_visible_to_exporter = models.BooleanField(default=False, blank=False, null=False)
 

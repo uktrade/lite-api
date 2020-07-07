@@ -95,7 +95,9 @@ class CaseDetail(APIView):
         Change case status
         """
         case = get_case(pk)
-        case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
+        case.change_status(
+            request.user, get_case_status_by_status(request.data.get("status")), request.data.get("note")
+        )
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 

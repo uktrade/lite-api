@@ -8,6 +8,26 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
 
 
+class ChangeStatusTests(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.end_user_advisory = self.create_end_user_advisory_case(
+            "end_user_advisory", "my reasons", organisation=self.organisation
+        )
+        self.url = reverse("cases:case", kwargs={"pk": self.end_user_advisory.id})
+
+    def test_optional_note(self):
+        """
+        When changing status, allow for optional notes to be added
+        """
+        data = {"status": CaseStatusEnum.WITHDRAWN, "note": "hello spaceboy"}
+
+        response = self.client.patch(self.url, data, **self.gov_headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(self.end_user_advisory.case_notes.get().text, "hello spaceboy")
+
+
 class EndUserAdvisoryUpdate(DataTestClient):
     def setUp(self):
         super().setUp()
