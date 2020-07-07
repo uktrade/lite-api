@@ -14,7 +14,7 @@ from static.units.enums import Units
 from test_helpers.clients import DataTestClient
 
 
-class GetLicencesTests(DataTestClient):
+class GetLicenceTests(DataTestClient):
     def test_get_licence_gov_view(self):
         application = StandardApplicationFactory()
         licence = LicenceFactory(
@@ -75,8 +75,7 @@ class GetLicencesTests(DataTestClient):
             self.create_open_application_case(self.organisation),
         ]
         licences = {
-            application: self.create_licence(application, status=LicenceStatus.ISSUED)
-            for application in applications
+            application: self.create_licence(application, status=LicenceStatus.ISSUED) for application in applications
         }
 
         for application, licence in licences.items():

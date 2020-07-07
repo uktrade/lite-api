@@ -57,7 +57,8 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference", "").upper()
 
-        # We filter for cases that are completed and have a compliance licence linked to it
+        # We filter for OGLs that have a compliance case or
+        # Completed applications (with licences) that have a compliance case
         cases = Case.objects.select_related("case_type").filter(
             Q(
                 baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],

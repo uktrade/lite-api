@@ -597,16 +597,20 @@ class ApplicationFinaliseView(APIView):
 
             # Delete existing draft if one exists
             try:
-                Licence.objects.get_draft_licence(application).delete()
+                licence = Licence.objects.get_draft_licence(application)
             except Licence.DoesNotExist:
-                pass
+                licence = None
 
             # Create Draft Licence object
             licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
             licence_data["application"] = application.id
             licence_data["status"] = LicenceStatus.DRAFT
             licence_data["reference_code"] = get_licence_reference_code(application.reference_code)
-            licence_serializer = LicenceCreateSerializer(data=licence_data)
+
+            if licence:
+                licence_serializer = LicenceCreateSerializer(instance=licence, data=licence_data)
+            else:
+                licence_serializer = LicenceCreateSerializer(data=licence_data)
 
             if not licence_serializer.is_valid():
                 raise ParseError(licence_serializer.errors)

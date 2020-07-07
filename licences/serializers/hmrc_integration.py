@@ -102,7 +102,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         ).data
 
     def get_goods(self, instance):
-        if instance.application.goods.exists():
+        if instance.goods.exists():
             return GoodOnLicenceViewSerializer(instance.goods, many=True).data
         elif instance.application.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance.application)

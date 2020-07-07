@@ -26,6 +26,7 @@ from licences.tasks import (
     schedule_licence_for_hmrc_integration,
     TASK_QUEUE,
 )
+from licences.tests.factories import GoodOnLicenceFactory
 from static.countries.models import Country
 from static.decisions.models import Decision
 from test_helpers.clients import DataTestClient
@@ -59,8 +60,23 @@ class MockTask:
 class HMRCIntegrationSerializersTests(DataTestClient):
     def test_data_transfer_object_standard_application(self):
         self.standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        self.good_on_application = self.standard_application.goods.first()
+        self.create_advice(
+            self.gov_user,
+            self.standard_application,
+            "good",
+            AdviceType.APPROVE,
+            AdviceLevel.FINAL,
+            good=self.good_on_application.good,
+        )
         self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        GoodOnLicenceFactory(
+            good=self.standard_application.goods.first(),
+            licence=self.standard_licence,
+            quantity=self.good_on_application.quantity,
+            usage=20.0,
+            value=self.good_on_application.value,
+        )
 
         data = HMRCIntegrationLicenceSerializer(self.standard_licence).data
 
@@ -88,6 +104,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             self._assert_end_user(data, application.end_user.party)
+            self._assert_goods_on_licence(data, self.standard_licence.goods.all())
             self.assertEqual(data["id"], str(licence.id))
         elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             self._assert_countries(
@@ -136,6 +153,17 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             data["goods"],
             [{"id": str(good.id), "description": good.description, "usage": good.usage} for good in goods],
         )
+
+    def _assert_goods_on_licence(self, data, goods):
+        data = data["goods"]
+        for i in range(len(goods)):
+            good_on_licence = goods[i]
+            self.assertEqual(data[i]["good_on_application_id"], str(good_on_licence.good.id))
+            self.assertEqual(data[i]["usage"], good_on_licence.usage)
+            self.assertEqual(data[i]["description"], good_on_licence.good.good.description)
+            self.assertEqual(data[i]["units"]["key"], good_on_licence.good.unit)
+            self.assertEqual(data[i]["licenced_quantity"], good_on_licence.quantity)
+            self.assertEqual(data[i]["licenced_value"], good_on_licence.value)
 
 
 @mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
