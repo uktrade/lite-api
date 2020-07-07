@@ -147,8 +147,10 @@ class Case(TimestampableModel):
             actor=user,
             verb=AuditType.UPDATED_STATUS,
             target=self,
-            payload={"status": {"new": CaseStatusEnum.get_text(self.status.status), "old": old_status},
-                     "additional_text": note},
+            payload={
+                "status": {"new": CaseStatusEnum.get_text(self.status.status), "old": old_status},
+                "additional_text": note,
+            },
         )
 
         if old_status != self.status.status:

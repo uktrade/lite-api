@@ -109,6 +109,7 @@ class SetQueues(APIView):
         case = get_case(pk)
         request_queues = set(request.data.get("queues", []))
         queues = Queue.objects.filter(id__in=request_queues)
+        note = request.data.get("note")
 
         if len(request_queues) > len(queues):
             queues_not_found = list(request_queues - set(str(id) for id in queues.values_list("id", flat=True)))
@@ -130,14 +131,14 @@ class SetQueues(APIView):
                 actor=request.user,
                 verb=AuditType.REMOVE_CASE,
                 target=case,
-                payload={"queues": sorted([queue.name for queue in removed_queues])},
+                payload={"queues": sorted([queue.name for queue in removed_queues]), "additional_text": note},
             )
         if new_queues:
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.MOVE_CASE,
                 target=case,
-                payload={"queues": sorted([queue.name for queue in new_queues])},
+                payload={"queues": sorted([queue.name for queue in new_queues]), "additional_text": note},
             )
         return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
@@ -708,8 +709,10 @@ class AssignedQueues(APIView):
                 assignments.delete()
                 user_queue_assignment_workflow(queues, case)
                 audit_trail_service.create(
-                    actor=request.user, verb=AuditType.UNASSIGNED_QUEUES, target=case, payload={"queues": queue_names,
-                                                                                                "additional_text": note},
+                    actor=request.user,
+                    verb=AuditType.UNASSIGNED_QUEUES,
+                    target=case,
+                    payload={"queues": queue_names, "additional_text": note},
                 )
             else:
                 # When users click done without queue assignments
