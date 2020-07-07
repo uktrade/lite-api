@@ -219,7 +219,7 @@ class NotificationViewSet(APIView):
 
         notifications[CaseTypeTypeEnum.COMPLIANCE] = len(
             [
-                notification["case__compliancesitecase__site_id"]
+                notification
                 for notification in notifications_list
                 if (notification["case__compliancesitecase__site_id"] and can_administer_sites)
                 or (notification["case__compliancevisitcase__site_case__site_id"] and can_administer_sites)
