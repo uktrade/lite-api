@@ -79,7 +79,7 @@ class GeneratedDocuments(generics.ListAPIView):
             try:
                 licence = Licence.objects.get_draft_licence(pk)
             except Licence.DoesNotExist:
-                raise ParseError({"non_field_errors": ["No draft licence to create approval document for"]})
+                raise ParseError({"non_field_errors": [strings.Cases.GeneratedDocuments.LICENCE_ERROR]})
 
         s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key

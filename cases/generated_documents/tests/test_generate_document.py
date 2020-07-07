@@ -118,7 +118,7 @@ class GenerateDocumentTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json()["errors"], {"non_field_errors": ["No draft licence to create approval document for"]}
+            response.json()["errors"], {"non_field_errors": [strings.Cases.GeneratedDocuments.LICENCE_ERROR]}
         )
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
