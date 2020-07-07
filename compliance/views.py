@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
@@ -78,17 +80,21 @@ class LicenceList(ListAPIView):
         return cases
 
     def get_paginated_response(self, data):
-        date = timezone.now().date()
-        open_licence_returns_year = date.year - 2 if date.month == 1 else date.year - 1
-        organisation = get_case(self.kwargs["pk"]).organisation_id
-        licence_has_open_licence_returns = set(
-            OpenLicenceReturns.objects.filter(
-                year=open_licence_returns_year, organisation_id=organisation
-            ).values_list("licences", flat=True)
+        current_date = timezone.now().date()
+
+        # We take an OLR as outstanding if it hasn't been added by the end of January, meaning if the
+        # month is currently January we only go back 1 year
+        olr_year = current_date.year - 2 if current_date.month == 1 else current_date.year - 1
+
+        org_id = get_case(self.kwargs["pk"]).organisation_id
+        licences_with_olr = set(
+            OpenLicenceReturns.objects.filter(year=olr_year, organisation_id=org_id).values_list(
+                "licences__application", flat=True
+            )
         )
 
         for licence in data:
-            licence["has_open_licence_returns"] = licence["id"] in licence_has_open_licence_returns
+            licence["has_open_licence_returns"] = UUID(licence["id"]) in licences_with_olr
 
         return super().get_paginated_response(data)
 

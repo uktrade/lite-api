@@ -28,7 +28,7 @@ from cases.models import (
     CaseType,
     CaseReviewDate,
 )
-from compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
+from compliance.models import ComplianceSiteCase, ComplianceVisitCase
 from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceSiteViewSerializer
 from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
