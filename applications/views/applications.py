@@ -556,7 +556,6 @@ class ApplicationFinaliseView(APIView):
 
         # Refusals & NLRs
         if action in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
-
             return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
 
         # Approvals & Provisos
@@ -601,15 +600,16 @@ class ApplicationFinaliseView(APIView):
             except Licence.DoesNotExist:
                 licence = None
 
-            # Create Draft Licence object
             licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
-            licence_data["application"] = application.id
-            licence_data["status"] = LicenceStatus.DRAFT
-            licence_data["reference_code"] = get_licence_reference_code(application.reference_code)
 
             if licence:
-                licence_serializer = LicenceCreateSerializer(instance=licence, data=licence_data)
+                # Update Draft Licence object
+                licence_serializer = LicenceCreateSerializer(instance=licence, data=licence_data, partial=True)
             else:
+                # Create Draft Licence object
+                licence_data["application"] = application.id
+                licence_data["status"] = LicenceStatus.DRAFT
+                licence_data["reference_code"] = get_licence_reference_code(application.reference_code)
                 licence_serializer = LicenceCreateSerializer(data=licence_data)
 
             if not licence_serializer.is_valid():

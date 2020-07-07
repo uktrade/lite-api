@@ -6,13 +6,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('licences', '0011_map_goodonapplication_to_goodonlicence'),
+        ("licences", "0011_map_goodonapplication_to_goodonlicence"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='licence',
-            name='status',
-            field=models.CharField(choices=[('issued', 'Issued'), ('reinstated', 'Reinstated'), ('revoked', 'Revoked'), ('surrendered', 'Surrendered'), ('draft', 'Draft'), ('cancelled', 'Cancelled')], default='draft', max_length=32),
+            model_name="licence",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("issued", "Issued"),
+                    ("reinstated", "Reinstated"),
+                    ("revoked", "Revoked"),
+                    ("surrendered", "Surrendered"),
+                    ("draft", "Draft"),
+                    ("cancelled", "Cancelled"),
+                ],
+                default="draft",
+                max_length=32,
+            ),
         ),
     ]
