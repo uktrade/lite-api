@@ -89,7 +89,7 @@ def sign_pdf(original_pdf: bytes):
     Also uses SIGNING_EMAIL, SIGNING_LOCATION & SIGNING_REASON as key data in the signing process.
     """
     if DOCUMENT_SIGNING_ENABLED:
-        from endesive.pdf.cms import sign
+        from endesive.pdf.cms import sign  # noqa
 
         date = get_local_datetime()
         # Specify signing metadata
