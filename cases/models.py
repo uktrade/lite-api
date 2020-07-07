@@ -25,6 +25,7 @@ from conf.permissions import assert_user_has_permission
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
+from lite_content.lite_api import strings
 from organisations.models import Organisation
 from queues.models import Queue
 from static.countries.models import Country
@@ -117,6 +118,7 @@ class Case(TimestampableModel):
         return return_value
 
     def change_status(self, user, status: CaseStatus):
+        from cases.helpers import can_has_status
         from audit_trail import service as audit_trail_service
         from applications.libraries.application_helpers import can_status_be_set_by_gov_user
         from workflow.automation import run_routing_rules
@@ -127,6 +129,9 @@ class Case(TimestampableModel):
         # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
         if status.status == CaseStatusEnum.FINALISED:
             assert_user_has_permission(user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+
+        if not can_has_status(self, status.status):
+            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
         if not can_status_be_set_by_gov_user(user, old_status, status.status, is_licence_application=False):
             raise ValidationError({"status": ["Status cannot be set by user"]})

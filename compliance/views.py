@@ -83,39 +83,6 @@ class LicenceList(ListAPIView):
         return cases
 
 
-class ComplianceManageStatus(UpdateAPIView):
-    """
-    Modify the status of a Compliance case (site or visit case)
-    """
-
-    authentication_classes = (GovAuthentication,)
-
-    def put(self, request, *args, **kwargs):
-        case = get_case(kwargs["pk"])
-
-        new_status = request.data.get("status")
-
-        if (
-            case.case_type.reference == CaseTypeReferenceEnum.COMP_SITE
-            and new_status not in CaseStatusEnum.compliance_site_statuses
-        ):
-            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
-        elif (
-            case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT
-            and new_status not in CaseStatusEnum.compliance_visit_statuses
-        ):
-            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
-
-        if case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT and CaseStatusEnum.is_terminal(new_status):
-            comp_case = ComplianceVisitCase.objects.get(id=kwargs["pk"])
-            if not compliance_visit_case_complete(comp_case):
-                raise ValidationError({"status": [strings.Statuses.COMPLIANCE_NOT_COMPLETE]})
-
-        case.change_status(request.user, get_case_status_by_status(new_status))
-
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
-
-
 class ComplianceSiteVisits(ListCreateAPIView):
     authentication_classes = (GovAuthentication,)
 

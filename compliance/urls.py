@@ -7,7 +7,6 @@ app_name = "compliance"
 # urls will be required in future compliance stories, conf has already been set up
 urlpatterns = [
     path("<uuid:pk>/licences/", views.LicenceList.as_view(), name="licences",),
-    path("<uuid:pk>/status/", views.ComplianceManageStatus.as_view(), name="manage_status",),
     path("site/<uuid:pk>/visit/", views.ComplianceSiteVisits.as_view(), name="compliance_visit",),
     path("case/<uuid:pk>/", views.ComplianceCaseId.as_view(), name="compliance_case_id"),
     path("visit/<uuid:pk>/", views.ComplianceVisitCaseView.as_view(), name="visit_case"),
