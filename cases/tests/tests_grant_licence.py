@@ -35,7 +35,9 @@ class FinaliseCaseTests(DataTestClient):
     def test_grant_standard_application_success(self, send_exporter_notifications_func, mock_notify_client):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         licence = self.create_licence(self.standard_case, status=LicenceStatus.DRAFT)
-        self.create_generated_case_document(self.standard_case, self.template, advice_type=AdviceType.APPROVE)
+        self.create_generated_case_document(
+            self.standard_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
+        )
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
         self.standard_case.refresh_from_db()
@@ -83,7 +85,7 @@ class FinaliseCaseTests(DataTestClient):
         response = self.client.put(self.url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json(), {"errors": [Cases.Licence.MISSING_DOCUMENTS]})
+        self.assertEqual(response.json(), {"errors": {"decision-approve": [Cases.Licence.MISSING_DOCUMENTS]}})
 
     @mock.patch("gov_notify.service.client")
     @mock.patch("cases.generated_documents.models.GeneratedCaseDocument.send_exporter_notifications")
@@ -95,7 +97,9 @@ class FinaliseCaseTests(DataTestClient):
 
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_CLEARANCE_FINAL_ADVICE.name])
         licence = self.create_licence(clearance_case, status=LicenceStatus.DRAFT)
-        self.create_generated_case_document(clearance_case, self.template, advice_type=AdviceType.APPROVE)
+        self.create_generated_case_document(
+            clearance_case, self.template, advice_type=AdviceType.APPROVE, licence=licence
+        )
 
         response = self.client.put(self.url, data={}, **self.gov_headers)
         clearance_case.refresh_from_db()
