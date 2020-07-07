@@ -27,10 +27,7 @@ from compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsViewSerializer,
 )
 from conf.authentication import GovAuthentication, SharedAuthentication
-from conf.constants import ExporterPermissions
-from conf.permissions import check_user_has_permission
 from lite_content.lite_api import strings
-from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
@@ -53,7 +50,7 @@ from rest_framework.generics import (
 )
 
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
-from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson, ComplianceSiteCase
+from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
 from conf.authentication import ExporterAuthentication
 
 from lite_content.lite_api.strings import Compliance
