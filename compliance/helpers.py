@@ -9,11 +9,14 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
+from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
+from conf.permissions import check_user_has_permission
 from goods.models import Good
 from licences.models import Licence
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance
+from organisations.libraries.get_organisation import get_request_user_organisation
 from organisations.models import Site
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -185,3 +188,16 @@ def compliance_visit_case_complete(case: ComplianceVisitCase) -> bool:
             return False
 
     return CompliancePerson.objects.filter(visit_case_id=case.id).exists()
+
+
+def get_exporter_visible_compliance_site_cases(request):
+    # filter by organisation
+    organisation = get_request_user_organisation(request)
+    qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(organisation_id=organisation.id)
+
+    # if user does not have permission to manage all sites, filter by sites accessible
+    if not check_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, organisation):
+        sites = Site.objects.get_by_user_and_organisation(request.user, organisation).values_list("id", flat=True)
+        qs = qs.filter(site__in=sites)
+
+    return qs

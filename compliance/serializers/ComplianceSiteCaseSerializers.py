@@ -141,7 +141,7 @@ class ExporterComplianceSiteDetailSerializer(serializers.Serializer):
 
     def get_visit_date(self, instance):
         # if review date exists get one in the future (nearest)
-        # else determine closest in the past
+        # else determine most recent
         visit_cases = ComplianceVisitCase.objects.filter(site_case_id=instance.id).order_by("visit_date")
         if visit_cases.filter(visit_date__gte=timezone.now().date()).exists():
             return visit_cases.filter(visit_date__gte=timezone.now().date()).first().visit_date

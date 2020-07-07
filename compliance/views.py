@@ -39,6 +39,7 @@ from compliance.helpers import (
     COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
     get_compliance_site_case,
     compliance_visit_case_complete,
+    get_exporter_visible_compliance_site_cases,
 )
 
 from rest_framework.exceptions import ValidationError
@@ -65,18 +66,7 @@ class ExporterComplianceListSerializer(ListAPIView):
     serializer_class = ExporterComplianceSiteListSerializer
 
     def get_queryset(self):
-        # filter by organisation
-        organisation = get_request_user_organisation(self.request)
-        qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(organisation_id=organisation.id)
-
-        # if user does not have permission to manage all sites, filter by sites accessible
-        if not check_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_SITES, organisation):
-            sites = Site.objects.get_by_user_and_organisation(self.request.user, organisation).values_list(
-                "id", flat=True
-            )
-            qs = qs.filter(site__in=sites)
-
-        return qs
+        return get_exporter_visible_compliance_site_cases(self.request)
 
     def get_paginated_response(self, data):
         data = get_compliance_site_case_notifications(data, self.request)
@@ -89,20 +79,7 @@ class ExporterComplianceSiteDetailView(RetrieveAPIView):
     organisation = None
 
     def get_queryset(self):
-        # filter by organisation
-        self.organisation = get_request_user_organisation(self.request)
-        qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(
-            organisation_id=self.organisation.id
-        )
-
-        # if user does not have permission to manage all sites, filter by sites accessible
-        if not check_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_SITES, self.organisation):
-            sites = Site.objects.get_by_user_and_organisation(self.request.user, self.organisation).values_list(
-                "id", flat=True
-            )
-            qs = qs.filter(site__in=sites)
-
-        return qs
+        return get_exporter_visible_compliance_site_cases(self.request)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
