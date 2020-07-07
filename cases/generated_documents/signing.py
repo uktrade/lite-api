@@ -7,7 +7,6 @@ from OpenSSL.crypto import dump_certificate, FILETYPE_PEM
 from PIL import Image, ImageFont, ImageDraw
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.serialization import pkcs12
-from endesive.pdf.cms import sign
 
 from conf.helpers import get_local_datetime
 from conf.settings import (
@@ -17,6 +16,7 @@ from conf.settings import (
     SIGNING_REASON,
     SIGNING_LOCATION,
     SIGNING_EMAIL,
+    DOCUMENT_SIGNING_ENABLED,
 )
 
 SIGNATURE_TITLE = "Digital Signature"
@@ -88,26 +88,31 @@ def sign_pdf(original_pdf: bytes):
     Relies on a p12 file specified in CERTIFICATE_PATH & CERTIFICATE_PASSWORD.
     Also uses SIGNING_EMAIL, SIGNING_LOCATION & SIGNING_REASON as key data in the signing process.
     """
-    date = get_local_datetime()
-    # Specify signing metadata
-    signing_metadata = {
-        "sigandcertify": True,
-        "signaturebox": SIGNATURE_POSITIONING,
-        "signature_img": _get_signature_image(_get_signature_text(date)),
-        "contact": SIGNING_EMAIL,
-        "location": SIGNING_LOCATION,
-        "signingdate": date.strftime("D:%Y%m%d%H%M%S+00'00'"),
-        "reason": SIGNING_REASON,
-    }
+    if DOCUMENT_SIGNING_ENABLED:
+        from endesive.pdf.cms import sign
 
-    # Load key & certificate
-    key, cert, othercerts = _load_certificate_and_key()
+        date = get_local_datetime()
+        # Specify signing metadata
+        signing_metadata = {
+            "sigandcertify": True,
+            "signaturebox": SIGNATURE_POSITIONING,
+            "signature_img": _get_signature_image(_get_signature_text(date)),
+            "contact": SIGNING_EMAIL,
+            "location": SIGNING_LOCATION,
+            "signingdate": date.strftime("D:%Y%m%d%H%M%S+00'00'"),
+            "reason": SIGNING_REASON,
+        }
 
-    # Add a blank page to the end
-    pdf, num_pages = _add_blank_page(original_pdf)
+        # Load key & certificate
+        key, cert, othercerts = _load_certificate_and_key()
 
-    # Add the signature to the last page
-    signing_metadata["sigpage"] = num_pages - 1
-    signature = sign(pdf, signing_metadata, key, cert, othercerts, "sha256")
+        # Add a blank page to the end
+        pdf, num_pages = _add_blank_page(original_pdf)
 
-    return pdf + signature
+        # Add the signature to the last page
+        signing_metadata["sigpage"] = num_pages - 1
+        signature = sign(pdf, signing_metadata, key, cert, othercerts, "sha256")
+
+        return pdf + signature
+
+    return original_pdf

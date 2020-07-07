@@ -24,6 +24,7 @@ env = Env(
     ENV=(str, "dev"),
     EXPORTER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
+    DOCUMENT_SIGNING_ENABLED=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -268,6 +269,7 @@ EXPORTER_BASE_URL = (
 )
 
 # Document signing
+DOCUMENT_SIGNING_ENABLED = env("DOCUMENT_SIGNING_ENABLED")
 P12_CERTIFICATE = env("P12_CERTIFICATE")
 CERTIFICATE_PASSWORD = env("CERTIFICATE_PASSWORD")
 SIGNING_EMAIL = env("SIGNING_EMAIL")
