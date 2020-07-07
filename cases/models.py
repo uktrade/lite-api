@@ -262,9 +262,13 @@ class CaseAssignment(TimestampableModel):
         from audit_trail import service as audit_trail_service
 
         audit_user = None
+        audit_note = None
 
         if "audit_user" in kwargs:
             audit_user = kwargs.pop("audit_user")
+
+        if "audit_note" in kwargs:
+            audit_note = kwargs.pop("audit_note")
 
         super(CaseAssignment, self).save(*args, **kwargs)
         if audit_user:
@@ -272,7 +276,7 @@ class CaseAssignment(TimestampableModel):
                 actor=audit_user,
                 verb=AuditType.ASSIGN_CASE,
                 action_object=self.case,
-                payload={"assignment": f"{self.user.first_name} {self.user.last_name}"},
+                payload={"assignment": self.queue.name, "additional_text": audit_note},
             )
 
 
