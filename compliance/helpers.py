@@ -190,9 +190,9 @@ def compliance_visit_case_complete(case: ComplianceVisitCase) -> bool:
     return CompliancePerson.objects.filter(visit_case_id=case.id).exists()
 
 
-def get_exporter_visible_compliance_site_cases(request):
-    # filter by organisation
-    organisation = get_request_user_organisation(request)
+def get_exporter_visible_compliance_site_cases(request, organisation):
+    if not organisation:
+        organisation = get_request_user_organisation(request)
     qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(organisation_id=organisation.id)
 
     # if user does not have permission to manage all sites, filter by sites accessible

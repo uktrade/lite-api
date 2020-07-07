@@ -79,7 +79,8 @@ class ExporterComplianceSiteDetailView(RetrieveAPIView):
     organisation = None
 
     def get_queryset(self):
-        return get_exporter_visible_compliance_site_cases(self.request)
+        self.organisation = get_request_user_organisation(self.request)
+        return get_exporter_visible_compliance_site_cases(self.request, self.organisation)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
