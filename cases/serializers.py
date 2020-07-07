@@ -14,7 +14,7 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
 )
-from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
+from cases.fields import HasOpenECJUQueriesRelatedField
 from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
@@ -36,11 +36,8 @@ from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
-from organisations.models import Organisation
-from organisations.serializers import OrganisationCaseSerializer
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
-from queues.serializers import CasesQueueViewSerializer
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
@@ -94,45 +91,38 @@ class QueueCaseAssignmentUserSerializer(serializers.ModelSerializer):
         )
 
 
-class QueueCaseAssignmentSerializer(serializers.ModelSerializer):
-    user = QueueCaseAssignmentUserSerializer()
-    queue = CasesQueueViewSerializer()
-
-    class Meta:
-        model = CaseAssignment
-        fields = (
-            "user",
-            "queue",
-        )
-
-
 class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
+    assignments = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    flags = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
-    has_future_review_date = serializers.SerializerMethodField()
-    # TODO: update the serializer below to be more efficient, it creates a new query for each case in list to get site
-    organisation = PrimaryKeyRelatedSerializerField(
-        queryset=Organisation.objects.all(), serializer=OrganisationCaseSerializer
-    )
+    next_review_date = serializers.DateField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
         self.include_hidden = kwargs.pop("include_hidden", None)
         super().__init__(*args, **kwargs)
 
-    def get_flags(self, instance):
-        """
-        Gets flags for a case and returns in sorted order by team.
-        """
-        return get_ordered_flags(instance, self.team)
+    def get_assignments(self, instance):
+        return_value = {}
+
+        for assignment in instance.case_assignments.all():
+            user_id = str(assignment.user.id)
+            if user_id not in return_value:
+                return_value[user_id] = {}
+            return_value[user_id]["first_name"] = assignment.user.first_name
+            return_value[user_id]["last_name"] = assignment.user.last_name
+            return_value[user_id]["email"] = assignment.user.email
+            if "queues" not in return_value[user_id]:
+                return_value[user_id]["queues"] = []
+            return_value[user_id]["queues"].append(assignment.queue.name)
+
+        return return_value
 
     def get_submitted_at(self, instance):
         # Return the DateTime value manually as otherwise
@@ -141,13 +131,6 @@ class CaseListSerializer(serializers.Serializer):
 
     def get_status(self, instance):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
-
-    def get_has_future_review_date(self, instance):
-        case_review_date = instance.case_review_date.filter(team_id=self.team.id).first()
-        if case_review_date:
-            if case_review_date.next_review_date and case_review_date.next_review_date > timezone.now().date():
-                return True
-        return False
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
