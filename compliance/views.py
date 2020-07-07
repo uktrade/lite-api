@@ -66,7 +66,7 @@ class ExporterComplianceListSerializer(ListAPIView):
     serializer_class = ExporterComplianceSiteListSerializer
 
     def get_queryset(self):
-        return get_exporter_visible_compliance_site_cases(self.request)
+        return get_exporter_visible_compliance_site_cases(self.request, None)
 
     def get_paginated_response(self, data):
         data = get_compliance_site_case_notifications(data, self.request)

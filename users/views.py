@@ -205,27 +205,28 @@ class NotificationViewSet(APIView):
             CaseTypeSubTypeEnum.EUA: case_sub_types.count(CaseTypeSubTypeEnum.EUA),
             CaseTypeSubTypeEnum.GOODS: case_sub_types.count(CaseTypeSubTypeEnum.GOODS),
         }
-        if check_user_has_permission(self.request.user, ExporterPermissions.ADMINISTER_SITES, organisation):
-            notifications[CaseTypeTypeEnum.COMPLIANCE] = len(
-                [
-                    notification["case__compliancesitecase__site_id"]
-                    for notification in notifications_list
-                    if notification["case__compliancesitecase__site_id"]
-                    or notification["case__compliancevisitcase__site_case__site_id"]
-                ]
-            )
-        else:
-            request_user_sites = list(
-                Site.objects.get_by_user_and_organisation(request.user, organisation).values_list("id", flat=True)
-            )
-            notifications[CaseTypeTypeEnum.COMPLIANCE] = len(
-                [
-                    notification["case__compliancesitecase__site_id"]
-                    for notification in notifications_list
-                    if notification["case__compliancesitecase__site_id"] in request_user_sites
-                    or notification["case__compliancevisitcase__site_case__site_id"] in request_user_sites
-                ]
-            )
+
+        # Compliance
+        can_administer_sites = check_user_has_permission(
+            self.request.user, ExporterPermissions.ADMINISTER_SITES, organisation
+        )
+
+        request_user_sites = (
+            list(Site.objects.get_by_user_and_organisation(request.user, organisation).values_list("id", flat=True))
+            if not can_administer_sites
+            else []
+        )
+
+        notifications[CaseTypeTypeEnum.COMPLIANCE] = len(
+            [
+                notification["case__compliancesitecase__site_id"]
+                for notification in notifications_list
+                if (notification["case__compliancesitecase__site_id"] and can_administer_sites)
+                or (notification["case__compliancevisitcase__site_case__site_id"] and can_administer_sites)
+                or notification["case__compliancesitecase__site_id"] in request_user_sites
+                or notification["case__compliancevisitcase__site_case__site_id"] in request_user_sites
+            ]
+        )
 
         return JsonResponse(data={"notifications": notifications}, status=status.HTTP_200_OK)
 

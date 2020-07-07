@@ -1,5 +1,6 @@
 import csv
 import re
+from typing import Optional
 
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -17,7 +18,7 @@ from licences.models import Licence
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation
-from organisations.models import Site
+from organisations.models import Site, Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.enums import SystemUser
@@ -190,7 +191,7 @@ def compliance_visit_case_complete(case: ComplianceVisitCase) -> bool:
     return CompliancePerson.objects.filter(visit_case_id=case.id).exists()
 
 
-def get_exporter_visible_compliance_site_cases(request, organisation):
+def get_exporter_visible_compliance_site_cases(request, organisation: Optional[Organisation]):
     if not organisation:
         organisation = get_request_user_organisation(request)
     qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(organisation_id=organisation.id)
