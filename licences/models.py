@@ -50,7 +50,7 @@ class Licence(TimestampableModel):
     def save(self, *args, **kwargs):
         super(Licence, self).save(*args, **kwargs)
 
-        if LITE_HMRC_INTEGRATION_ENABLED and self.is_active():
+        if LITE_HMRC_INTEGRATION_ENABLED and self.status != LicenceStatus.DRAFT:
             self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
