@@ -4,6 +4,7 @@ from typing import List
 from compat import get_model
 from django.db import models, transaction
 from django.db.models import Q, Case, When, BinaryField
+from django.utils import timezone
 
 from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
@@ -69,15 +70,6 @@ class CaseQuerySet(models.QuerySet):
 
     def is_type(self, case_type):
         return self.filter(case_type=case_type)
-
-    def order_by_status(self, order=""):
-        """
-        :param order: ('', '-')
-        :return:
-        """
-        order = order if order in ["", "-"] else ""
-
-        return self.order_by(f"{order}status__priority")
 
     def with_case_reference_code(self, case_reference):
         return self.filter(reference_code__icontains=case_reference)
@@ -252,29 +244,27 @@ class CaseManager(models.Manager):
         """
         case_qs = (
             self.submitted()
-            .select_related("organisation", "status", "case_type")
+            .select_related("status", "case_type")
             .prefetch_related(
-                "flags",
-                "flags__team",
-                "case_assignments",
-                "case_assignments__user",
-                "case_ecju_query",
-                "case_assignments__queue",
-                "organisation",
-                "organisation__flags",
-                "organisation__flags__team",
-                "organisation__primary_site",
-                "organisation__primary_site__address",
+                "case_ecju_query", "case_assignments", "case_assignments__user", "case_assignments__queue",
             )
         )
 
         if not include_hidden and user:
             EcjuQuery = get_model("cases", "ecjuquery")
+            CaseReviewDate = get_model("cases", "casereviewdate")
 
             case_qs = case_qs.exclude(
                 id__in=EcjuQuery.objects.filter(raised_by_user__team_id=user.team.id, responded_at__isnull=True)
                 .values("case_id")
                 .distinct()
+            )
+
+            # We hide cases that have a next review date that is set in the future (for your team)
+            case_qs = case_qs.exclude(
+                id__in=CaseReviewDate.objects.filter(
+                    team_id=user.team.id, next_review_date__gt=timezone.now().date()
+                ).values("case_id")
             )
 
         if queue_id and user:

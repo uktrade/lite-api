@@ -8,7 +8,6 @@ from organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-from test_helpers.helpers import generate_key_value_pair
 
 
 class InternalListTests(DataTestClient):
@@ -76,7 +75,6 @@ class ExporterListTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.json()["results"]), 1)
         self.assertEquals(len(response.json()["results"][0]["registrations"]), 2)
-
         registration = response.json()["results"][0]["registrations"][0]
         self.assertEqual(registration["reference_code"], self.open_general_licence_case.reference_code)
         self.assertEqual(registration["site"]["id"], str(self.organisation.primary_site.id))

@@ -3,7 +3,6 @@ from django.db.models import Q, Count
 from django.http import JsonResponse, Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 
@@ -15,13 +14,17 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
+from conf.exceptions import BadRequestError
 from conf.helpers import str_to_bool
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.models import Document
-from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, MilitaryUse, ItemCategory
+from goods.enums import GoodStatus, GoodControlled, GoodPvGraded, ItemCategory
 from goods.goods_paginator import GoodListPaginator
-from goods.helpers import validate_component_fields, validate_information_security_field
+from goods.helpers import (
+    check_if_firearm_details_edited_on_unsupported_good,
+    check_if_unsupported_fields_edited_on_firearm_good,
+)
 from goods.libraries.get_goods import get_good, get_good_document
 from goods.libraries.save_good import create_or_update_good
 from goods.models import Good, GoodDocument
@@ -185,26 +188,29 @@ class GoodList(ListCreateAPIView):
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
 
-        # TODO: TEMPORARY to prevent invalid goods - to be removed once LT-2704 and LT-2251 are implemented
-        if "item_category" in data:
-            if data["item_category"] in [
-                ItemCategory.GROUP2_FIREARMS,
-                ItemCategory.GROUP3_SOFTWARE,
-                ItemCategory.GROUP3_TECHNOLOGY,
-            ]:
-                return JsonResponse(
-                    data={"errors": {"item_category": ["Not implemented yet, please select an option in category 1"]}},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        item_category = data.get("item_category")
+        if item_category:
+            # return bad request if trying to edit software_or_technology details outside of category group 3
+            if (item_category in ItemCategory.group_one or item_category in ItemCategory.group_two) and data.get(
+                "software_or_technology_details"
+            ):
+                raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+            # return bad request if trying to edit component and component details outside of category group 1
+            if (item_category in ItemCategory.group_two or item_category in ItemCategory.group_three) and data.get(
+                "is_component_step"
+            ):
+                raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+            # return bad request if trying to edit any details that are not applicable to category 2 goods
+            if item_category in ItemCategory.group_two:
+                check_if_unsupported_fields_edited_on_firearm_good(data)
+
+            # return bad request if adding any of the firearm details on a good that is not in group 2 firearms
+            if data.get("firearm_details") and item_category not in ItemCategory.group_two:
+                check_if_firearm_details_edited_on_unsupported_good(data)
 
         serializer = GoodCreateSerializer(data=data)
-
-        if "is_military_use" in data and data["is_military_use"] == MilitaryUse.YES_MODIFIED:
-            if not data.get("modified_military_use_details"):
-                raise ValidationError({"modified_military_use_details": [strings.Goods.NO_MODIFICATIONS_DETAILS]})
-
-        validate_component_fields(data)
-        validate_information_security_field(data)
 
         return create_or_update_good(serializer, data.get("validate_only"), is_created=True)
 
@@ -255,18 +261,26 @@ class GoodTAUDetails(APIView):
     def put(self, request, pk):
         """ Edit the TAU details of a good. This includes military use, component and information security use. """
         good = get_good(pk)
-
-        if good.status == GoodStatus.SUBMITTED:
-            return JsonResponse(
-                data={"errors": "This good is already on a submitted application"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
         data = request.data.copy()
 
-        validate_component_fields(data)
-        if data.get("uses_information_security") == "None":
-            data["uses_information_security"] = None
-        validate_information_security_field(data)
+        # return bad request if trying to edit software_or_technology details outside of category group 3
+        if good.item_category in ItemCategory.group_one and "software_or_technology_details" in data:
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+        # return bad request if trying to edit component and component details outside of category group 1
+        if good.item_category in ItemCategory.group_three and data.get("is_component_step"):
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_SET_DETAILS_ERROR]})
+
+        # return bad request if editing any of the firearm details on a good that is not in group 2 firearms
+        if good.item_category not in ItemCategory.group_two and data.get("firearm_details"):
+            check_if_firearm_details_edited_on_unsupported_good(data)
+
+        # return bad request if trying to edit any details that are not applicable to category 2 firearm goods
+        if good.item_category in ItemCategory.group_two:
+            check_if_unsupported_fields_edited_on_firearm_good(data)
+
+        if good.status == GoodStatus.SUBMITTED:
+            raise BadRequestError({"non_field_errors": [strings.Goods.CANNOT_EDIT_GOOD]})
 
         serializer = GoodCreateSerializer(instance=good, data=data, partial=True)
         return create_or_update_good(serializer, data.get("validate_only"), is_created=False)
