@@ -690,6 +690,8 @@ class AssignedQueues(APIView):
     @transaction.atomic
     def put(self, request, pk):
         queues = request.data.get("queues")
+        note = request.data.get("note")
+
         if queues:
             queue_names = []
             assignments = (
@@ -706,7 +708,8 @@ class AssignedQueues(APIView):
                 assignments.delete()
                 user_queue_assignment_workflow(queues, case)
                 audit_trail_service.create(
-                    actor=request.user, verb=AuditType.UNASSIGNED_QUEUES, target=case, payload={"queues": queue_names},
+                    actor=request.user, verb=AuditType.UNASSIGNED_QUEUES, target=case, payload={"queues": queue_names,
+                                                                                                "additional_text": note},
                 )
             else:
                 # When users click done without queue assignments
@@ -725,7 +728,7 @@ class AssignedQueues(APIView):
                     )
                 user_queue_assignment_workflow(queues, case)
                 audit_trail_service.create(
-                    actor=request.user, verb=AuditType.UNASSIGNED, target=case,
+                    actor=request.user, verb=AuditType.UNASSIGNED, target=case, payload={"additional_text": note}
                 )
 
             return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
