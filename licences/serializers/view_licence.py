@@ -69,23 +69,6 @@ class GoodsTypeOnLicenceSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class GoodOnLicenceSerializer(serializers.ModelSerializer):
-    good = GoodLicenceListSerializer(read_only=True)
-    unit = KeyValueChoiceField(choices=Units.choices)
-
-    class Meta:
-        model = GoodOnApplication
-        fields = (
-            "good",
-            "quantity",
-            "usage",
-            "unit",
-            "licenced_quantity",
-            "licenced_value",
-        )
-        read_only_fields = fields
-
-
 class CaseSubTypeSerializer(serializers.ModelSerializer):
     sub_type = KeyValueChoiceField(choices=CaseTypeSubTypeEnum.choices)
 
@@ -179,7 +162,7 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
     advice = serializers.SerializerMethodField()
 
     def get_advice(self, instance):
-        advice = instance.good.good.advice.get(level=AdviceLevel.FINAL)
+        advice = instance.good.good.advice.get(level=AdviceLevel.FINAL, case_id=instance.licence.application_id)
         return SimpleAdviceSerializer(instance=advice).data
 
     def get_applied_for_value_per_item(self, instance):

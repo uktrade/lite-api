@@ -14,12 +14,6 @@ from lite_content.lite_api import strings
 from static.units.enums import Units
 
 
-class GoodOnLicenceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GoodOnLicence
-        fields = ("id", "good", "licence")
-
-
 class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
     quantity = serializers.FloatField(
         required=True,

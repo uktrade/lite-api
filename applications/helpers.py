@@ -39,6 +39,7 @@ from applications.serializers.good import GoodOnStandardLicenceSerializer
 from applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
 from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType
 from conf.exceptions import BadRequestError
+from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 
 
@@ -139,16 +140,31 @@ def validate_and_create_goods_on_licence(application_id, licence_id, data):
         .distinct()
         .values("id", "quantity")
     )
+    goods_on_licence = GoodOnLicence.objects.filter(licence_id=licence_id)
     for goa in good_on_applications:
         quantity_key = f"quantity-{goa['id']}"
         value_key = f"value-{goa['id']}"
         good_data = {
             "quantity": data.get(quantity_key),
             "value": data.get(value_key),
-            "licence": licence_id,
-            "good": goa["id"],
         }
-        serializer = GoodOnStandardLicenceSerializer(data=good_data, context={"applied_for_quantity": goa["quantity"]},)
+
+        try:
+            # Update
+            existing_good_on_licence = goods_on_licence.get(good_id=goa["id"])
+            serializer = GoodOnStandardLicenceSerializer(
+                instance=existing_good_on_licence,
+                data=good_data,
+                context={"applied_for_quantity": goa["quantity"]},
+                partial=True,
+            )
+        except GoodOnLicence.DoesNotExist:
+            # Create
+            good_data["licence"] = licence_id
+            good_data["good"] = goa["id"]
+            serializer = GoodOnStandardLicenceSerializer(
+                data=good_data, context={"applied_for_quantity": goa["quantity"]},
+            )
 
         if not serializer.is_valid():
             quantity_error = serializer.errors.get("quantity")

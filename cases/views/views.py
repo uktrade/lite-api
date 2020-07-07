@@ -4,6 +4,7 @@ from django.db.models import F
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -631,20 +632,55 @@ class FinaliseView(UpdateAPIView):
 
         # Check all decision types have documents
         required_decisions = set(Advice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
-
         if AdviceType.PROVISO in required_decisions:
             required_decisions.add(AdviceType.APPROVE)
             required_decisions.remove(AdviceType.PROVISO)
 
+        # Check that each decision has a document
+        # Excluding approve (done in the licence section below)
         generated_document_decisions = set(
             GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case).values_list(
                 "advice_type", flat=True
             )
         )
         if not required_decisions.issubset(generated_document_decisions):
-            return JsonResponse(data={"errors": [Cases.Licence.MISSING_DOCUMENTS]}, status=status.HTTP_400_BAD_REQUEST,)
+            raise ParseError(
+                {
+                    f"decision-{decision}": [Cases.Licence.MISSING_DOCUMENTS]
+                    for decision in required_decisions.difference(generated_document_decisions)
+                }
+            )
 
         return_payload = {"case": pk}
+
+        # If a licence object exists, finalise the licence.
+        try:
+            licence = Licence.objects.get_draft_licence(pk)
+
+            if AdviceType.APPROVE in required_decisions:
+                # Check that a licence document has been created
+                # (new document required for new licence)
+                licence_document_exists = GeneratedCaseDocument.objects.filter(
+                    advice_type=AdviceType.APPROVE, licence=licence
+                ).exists()
+                if not licence_document_exists:
+                    raise ParseError({"decision-approve": [Cases.Licence.MISSING_LICENCE_DOCUMENT]})
+
+            licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
+            licence.issue()
+            return_payload["licence"] = licence.id
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.GRANTED_APPLICATION
+                if Licence.objects.filter(application=case).count() < 2
+                else AuditType.REINSTATED_APPLICATION,
+                target=case,
+                payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
+            )
+            generate_compliance_site_case(case)
+        except Licence.DoesNotExist:
+            # Do nothing if Licence doesn't exist
+            pass
 
         # Finalise Case
         old_status = case.status.status
@@ -670,25 +706,6 @@ class FinaliseView(UpdateAPIView):
             target=case,
             payload={"status": {"new": case.status.status, "old": old_status}},
         )
-
-        # If a licence object exists, finalise the licence.
-        try:
-            licence = Licence.objects.get_draft_licence(pk)
-            licence.decisions.set([Decision.objects.get(name=decision) for decision in required_decisions])
-            licence.issue()
-            return_payload["licence"] = licence.id
-            audit_trail_service.create(
-                actor=request.user,
-                verb=AuditType.GRANTED_APPLICATION
-                if Licence.objects.filter(application=case).count() < 2
-                else AuditType.REINSTATED_APPLICATION,
-                target=case,
-                payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
-            )
-            generate_compliance_site_case(case)
-        except Licence.DoesNotExist:
-            # Do nothing if Licence doesn't exist
-            pass
 
         # Show documents to exporter & notify
         documents = GeneratedCaseDocument.objects.filter(advice_type__isnull=False, case=case)
