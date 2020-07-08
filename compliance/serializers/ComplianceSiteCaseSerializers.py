@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from addresses.serializers import AddressSerializer
@@ -11,6 +12,10 @@ from organisations.serializers import OrganisationDetailSerializer
 from cases.libraries.get_flags import get_ordered_flags
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from teams.helpers import get_team_by_pk
+from users.libraries.notifications import (
+    get_exporter_user_notification_individual_count,
+    get_exporter_user_notification_individual_count_with_compliance_visit,
+)
 
 
 class ComplianceSiteViewSerializer(serializers.ModelSerializer):
@@ -105,3 +110,79 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
         return None
+
+
+class ExporterComplianceSiteListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    reference_code = serializers.CharField()
+    site_name = serializers.CharField(source="site.name")
+    address = AddressSerializer(source="site.address")
+    review_date = serializers.SerializerMethodField()
+
+    def get_review_date(self, instance):
+        comp_visit_case = (
+            ComplianceVisitCase.objects.filter(site_case_id=instance.id, visit_date__gte=timezone.now().date())
+            .order_by("visit_date")
+            .first()
+        )
+        if comp_visit_case:
+            return comp_visit_case.visit_date
+        return None
+
+
+class ExporterComplianceSiteDetailSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    reference_code = serializers.CharField()
+    site_name = serializers.CharField(source="site.name")
+    address = AddressSerializer(source="site.address")
+    visit_date = serializers.SerializerMethodField()
+    exporter_user_notification_count = serializers.SerializerMethodField()
+    is_primary_site = serializers.SerializerMethodField()
+
+    def get_visit_date(self, instance):
+        # if review date exists get one in the future (nearest)
+        # else determine most recent
+        visit_cases = ComplianceVisitCase.objects.filter(site_case_id=instance.id).order_by("visit_date")
+        if visit_cases.filter(visit_date__gte=timezone.now().date()).exists():
+            return visit_cases.filter(visit_date__gte=timezone.now().date()).first().visit_date
+
+        visit_case = visit_cases.last()
+
+        if visit_case:
+            return visit_case.visit_date
+
+        return None
+
+    def get_exporter_user_notification_count(self, instance):
+        return get_exporter_user_notification_individual_count_with_compliance_visit(
+            exporter_user=self.context.get("request").user,
+            organisation_id=self.context.get("organisation").id,
+            case=instance,
+        )
+
+    def get_is_primary_site(self, instance):
+        return instance.site.id == self.context.get("organisation").primary_site_id
+
+
+class ExporterComplianceVisitListSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    reference_code = serializers.CharField()
+    visit_date = serializers.DateField()
+    case_officer_first_name = serializers.CharField(source="case_officer.first_name", default=None)
+    case_officer_last_name = serializers.CharField(source="case_officer.last_name", default=None)
+
+
+class ExporterComplianceVisitDetailSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    reference_code = serializers.CharField()
+    visit_date = serializers.DateField()
+    case_officer_first_name = serializers.CharField(source="case_officer.first_name", default=None)
+    case_officer_last_name = serializers.CharField(source="case_officer.last_name", default=None)
+    exporter_user_notification_count = serializers.SerializerMethodField()
+
+    def get_exporter_user_notification_count(self, instance):
+        return get_exporter_user_notification_individual_count(
+            exporter_user=self.context.get("request").user,
+            organisation_id=self.context.get("organisation_id"),
+            case=instance,
+        )
