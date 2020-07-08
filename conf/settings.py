@@ -3,6 +3,9 @@ import os
 import sys
 
 from environ import Env
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -245,6 +248,16 @@ if "test" not in sys.argv:
     }
 else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}
+
+# Sentry
+if env.str('SENTRY_DSN', ''):
+    sentry_sdk.init(
+        dsn=env.str('SENTRY_DSN'),
+        environment=env.str('SENTRY_ENVIRONMENT'),
+        integrations=[DjangoIntegration()],
+        send_default_pii=True
+    )
+
 
 RECENTLY_UPDATED_WORKING_DAYS = env(
     "RECENTLY_UPDATED_WORKING_DAYS"
