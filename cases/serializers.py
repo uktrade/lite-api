@@ -44,11 +44,8 @@ from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
-from users.models import BaseUser, GovUser, ExporterUser, GovNotification
-from users.serializers import (
-    BaseUserViewSerializer,
-    ExporterUserViewSerializer,
-)
+from users.models import BaseUser, GovUser, GovNotification, ExporterUser
+from users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -371,11 +368,9 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
             return instance.responded_by_user.get_full_name()
 
 
-class EcjuQueryExporterSerializer(serializers.ModelSerializer):
+class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
-    responded_by_user = PrimaryKeyRelatedSerializerField(
-        queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
-    )
+    responded_by_user = serializers.SerializerMethodField()
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
 
     def get_team(self, instance):
@@ -395,6 +390,36 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
             "created_at",
             "responded_at",
         )
+
+    def get_responded_by_user(self, instance):
+        if instance.responded_by_user:
+            return {"id": instance.responded_by_user.id, "name": instance.responded_by_user.get_full_name()}
+
+
+class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
+    team = serializers.SerializerMethodField()
+    responded_by_user = PrimaryKeyRelatedSerializerField(
+        queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
+    )
+    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+
+    class Meta:
+        model = EcjuQuery
+        fields = (
+            "id",
+            "question",
+            "response",
+            "case",
+            "responded_by_user",
+            "team",
+            "created_at",
+            "responded_at",
+        )
+
+    def get_team(self, instance):
+        # If the team is not available, use the user's current team.
+        team = instance.team if instance.team else instance.raised_by_user.team
+        return TeamSerializer(team).data
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):

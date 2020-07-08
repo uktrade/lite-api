@@ -35,11 +35,12 @@ from cases.serializers import (
     EcjuQueryCreateSerializer,
     CaseDetailSerializer,
     EcjuQueryGovSerializer,
-    EcjuQueryExporterSerializer,
     CaseAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
     ReviewDateUpdateSerializer,
+    EcjuQueryExporterViewSerializer,
+    EcjuQueryExporterRespondSerializer,
 )
 from compliance.helpers import generate_compliance_site_case
 from cases.service import get_destinations
@@ -393,11 +394,14 @@ class CaseEcjuQueries(APIView):
         """
         Returns the list of ECJU Queries on a case
         """
-        case = get_case(pk)
-        case_ecju_queries = EcjuQuery.objects.filter(case=case).order_by("created_at")
+        case_ecju_queries = (
+            EcjuQuery.objects.select_related("team", "responded_by_user", "responded_by_user")
+            .filter(case_id=pk)
+            .order_by("created_at")
+        )
 
         if isinstance(request.user, ExporterUser):
-            serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)
+            serializer = EcjuQueryExporterViewSerializer(case_ecju_queries, many=True)
             delete_exporter_notifications(
                 user=request.user, organisation_id=get_request_user_organisation_id(request), objects=case_ecju_queries
             )
@@ -461,7 +465,7 @@ class EcjuQueryDetail(APIView):
         Returns details of an ecju query
         """
         ecju_query = get_ecju_query(ecju_pk)
-        serializer = EcjuQueryExporterSerializer(ecju_query)
+        serializer = EcjuQueryExporterViewSerializer(ecju_query)
         return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk, ecju_pk):
@@ -473,7 +477,7 @@ class EcjuQueryDetail(APIView):
 
         data = {"response": request.data["response"], "responded_by_user": str(request.user.id)}
 
-        serializer = EcjuQueryExporterSerializer(instance=ecju_query, data=data, partial=True)
+        serializer = EcjuQueryExporterRespondSerializer(instance=ecju_query, data=data, partial=True)
 
         if serializer.is_valid():
             if "validate_only" not in request.data or not request.data["validate_only"]:
