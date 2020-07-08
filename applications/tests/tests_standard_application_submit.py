@@ -345,19 +345,24 @@ class StandardApplicationTests(DataTestClient):
     def test_submit_standard_application_adds_system_case_flags_success(self, upload_bytes_file_func, html_to_pdf_func):
         upload_bytes_file_func.return_value = None
         html_to_pdf_func.return_value = None
-
-        self.draft.is_military_end_use_controls = True
-        self.draft.is_informed_wmd = True
-        self.draft.save()
+        firearm_good = self.create_good(
+            description="a good", organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS
+        )
+        draft = self.create_draft_standard_application(organisation=self.organisation, good=firearm_good)
+        draft.is_military_end_use_controls = True
+        draft.is_informed_wmd = True
+        draft.save()
         data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
+        url = reverse("applications:application_submit", kwargs={"pk": draft.id})
 
-        response = self.client.put(self.url, data=data, **self.exporter_headers)
+        response = self.client.put(url, data=data, **self.exporter_headers)
         self.draft.refresh_from_db()
-        case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
+        case_flags = [str(flag_id) for flag_id in draft.flags.values_list("id", flat=True)]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(SystemFlags.MILITARY_END_USE_ID, case_flags)
         self.assertIn(SystemFlags.WMD_END_USE_ID, case_flags)
+        self.assertIn(SystemFlags.FIREARMS_ID, case_flags)
         html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
 
@@ -397,6 +402,10 @@ class StandardApplicationTests(DataTestClient):
         self.assertNotIn(SystemFlags.MILITARY_END_USE_ID, case_flags)
         self.assertNotIn(SystemFlags.WMD_END_USE_ID, case_flags)
         self.assertNotIn(SystemFlags.MARITIME_ANTI_PIRACY_ID, case_flags)
+
+        # only good on the draft not firearms
+        self.assertNotIn(SystemFlags.FIREARMS_ID, case_flags)
+
         html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
 
@@ -514,25 +523,3 @@ class StandardApplicationTests(DataTestClient):
             ).count(),
             1,
         )
-
-    @mock.patch("documents.libraries.s3_operations.upload_bytes_file")
-    @mock.patch("cases.generated_documents.helpers.html_to_pdf")
-    def test_submit_standard_trade_control_application_firearm_good_adds_flag(
-            self, upload_bytes_file_func, html_to_pdf_func
-    ):
-        upload_bytes_file_func.return_value = None
-        html_to_pdf_func.return_value = None
-
-        self.draft.case_type = CaseType.objects.get(id=CaseTypeEnum.SICL.id)
-        self.draft.item_category = ItemCategory.GROUP2_FIREARMS
-        self.draft.save()
-
-        data = {"submit_declaration": True, "agreed_to_declaration": True, "agreed_to_foi": True}
-
-        response = self.client.put(self.url, data=data, **self.exporter_headers)
-
-        self.draft.refresh_from_db()
-        case_flags = [str(flag_id) for flag_id in self.draft.flags.values_list("id", flat=True)]
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn(SystemFlags.FIREARMS_ID, case_flags)

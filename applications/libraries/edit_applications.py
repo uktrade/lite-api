@@ -161,7 +161,7 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
     )
 
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        trade_control_activity = StandardApplication.objects.values_list("trade_control_activity").get(
+        trade_control_activity = StandardApplication.objects.values_list("trade_control_activity", flat=True).get(
             pk=application.pk
         )
 
@@ -179,7 +179,10 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
         )
 
         _add_or_remove_flag(
-            case=case, flag_id=SystemFlags.FIREARMS_ID, is_adding=ItemCategory.GROUP2_FIREARMS in good_item_categories,
+            case=case,
+            flag_id=SystemFlags.FIREARMS_ID,
+            is_adding=ItemCategory.GROUP2_FIREARMS in good_item_categories
+            and application.case_type.id in [CaseTypeEnum.SIEL.id, CaseTypeEnum.SITL.id],
         )
 
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
