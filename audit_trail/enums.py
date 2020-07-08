@@ -1,4 +1,5 @@
 from common.enums import LiteEnum, autostr
+from lite_content.lite_api import audit
 
 
 class AuditType(LiteEnum):
@@ -110,5 +111,7 @@ class AuditType(LiteEnum):
     COMPLIANCE_PEOPLE_PRESENT_DELETED = autostr()
 
     def human_readable(self):
+        if hasattr(audit, self.name):
+            return getattr(audit, self.name)
         value = self.value.replace("_", " ")
         return value.capitalize()
