@@ -209,7 +209,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         return list(instance.queues.values_list("name", flat=True))
 
     def get_assigned_users(self, instance):
-        return instance.get_users()
+        return instance.get_assigned_users()
 
     def get_has_advice(self, instance):
         has_advice = {"user": False, "my_user": False, "team": False, "my_team": False, "final": False}

@@ -103,7 +103,7 @@ class Case(TimestampableModel):
 
         return Case.objects.get(id=self.id)
 
-    def get_users(self):
+    def get_assigned_users(self):
         case_assignments = self.case_assignments.select_related("queue", "user").order_by("queue__name")
         return_value = defaultdict(list)
 
@@ -119,6 +119,10 @@ class Case(TimestampableModel):
         return return_value
 
     def change_status(self, user, status: CaseStatus, note: Optional[str] = ""):
+        """
+        Sets the status for the case, runs validation on various parameters,
+        creates audit entries and also runs flagging and automation rules
+        """
         from cases.helpers import can_set_status
         from audit_trail import service as audit_trail_service
         from applications.libraries.application_helpers import can_status_be_set_by_gov_user
@@ -187,8 +191,7 @@ class Case(TimestampableModel):
 
     def remove_all_case_assignments(self):
         """
-        Will look at a case, and should the case contain any queue or user assignments will remove assignments, and
-            audit the removal of said assignments against the case.
+        Removes all queue and user assignments, and also audits the removal of said assignments against the case
         """
         from audit_trail import service as audit_trail_service
 
