@@ -321,6 +321,8 @@ class FinalAdviceDocuments(APIView):
         # Get all advice
         advice_values = AdviceType.as_dict()
         final_advice = list(Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True))
+        if not final_advice:
+            return JsonResponse(data={"documents": {}}, status=status.HTTP_200_OK)
 
         # Map Proviso -> Approve advice (Proviso results in Approve document)
         if AdviceType.PROVISO in final_advice:
@@ -330,23 +332,24 @@ class FinalAdviceDocuments(APIView):
 
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
-        # Get Licence document (Approve)
-        licence = Licence.objects.get_draft_or_active_licence(pk)
-        # Only cases with Approve/Proviso advice have a Licence
-        if licence:
-            try:
-                licence_document = GeneratedCaseDocument.objects.get(advice_type=AdviceType.APPROVE, licence=licence)
-                advice_documents[AdviceType.APPROVE]["document"] = AdviceDocumentGovSerializer(licence_document).data
-            except GeneratedCaseDocument.DoesNotExist:
-                pass
+        if AdviceType.APPROVE in final_advice:
+            # Get Licence document (Approve)
+            licence = Licence.objects.get_draft_or_active_licence(pk)
+            # Only cases with Approve/Proviso advice have a Licence
+            if licence:
+                try:
+                    licence_document = GeneratedCaseDocument.objects.get(advice_type=AdviceType.APPROVE, licence=licence)
+                    advice_documents[AdviceType.APPROVE]["document"] = AdviceDocumentGovSerializer(licence_document).data
+                except GeneratedCaseDocument.DoesNotExist:
+                    pass
+            # Remove Approve for looking up other decision documents below
+            final_advice.remove(AdviceType.APPROVE)
 
         # Get other decision documents
-        final_advice.remove(AdviceType.APPROVE)
-        if final_advice:
-            generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
-            generated_advice_documents = AdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
-            for document in generated_advice_documents:
-                advice_documents[document["advice_type"]["key"]]["document"] = document
+        generated_advice_documents = GeneratedCaseDocument.objects.filter(advice_type__in=final_advice, case__id=pk)
+        generated_advice_documents = AdviceDocumentGovSerializer(generated_advice_documents, many=True,).data
+        for document in generated_advice_documents:
+            advice_documents[document["advice_type"]["key"]]["document"] = document
 
         return JsonResponse(data={"documents": advice_documents}, status=status.HTTP_200_OK)
 
@@ -686,9 +689,6 @@ class FinaliseView(UpdateAPIView):
         old_status = case.status.status
         case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         case.save()
-        audit_trail_service.create(
-            actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=case,
-        )
 
         gov_notify_service.send_email(
             email_address=case.submitted_by.email,
