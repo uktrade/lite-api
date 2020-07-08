@@ -315,7 +315,7 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
             "month": self.date.month,
             "day": self.date.day,
         }
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.USER)
+        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
 
     def test_approve_success(self):
         good_value = 1
