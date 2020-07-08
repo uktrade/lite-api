@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.urls import reverse
 from django.utils import timezone
 
@@ -44,7 +42,7 @@ class GetComplianceSiteCaseTests(DataTestClient):
             site=self.organisation.primary_site,
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
-        open_licence_returns = OpenLicenceReturnsFactory(organisation=self.organisation, year=datetime.now().year)
+        open_licence_returns = OpenLicenceReturnsFactory(organisation=self.organisation)
         licence = self.create_licence(application, is_complete=True)
         open_licence_returns.licences.set([licence])
 
