@@ -48,6 +48,11 @@ Do this after installing the python packages in the Pipfile;
 
 [Running locally without Docker](docs/without_docker.md)
 
+### Entity Relationship diagrams
+
+ER Diagrams can be viewed in docs/entity-relation-diagrams/.
+
+To regenerate the diagrams run `pipenv run ./manage.py create_er_diagrams`
 
 ## Running Tests
 
