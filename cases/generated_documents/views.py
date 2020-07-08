@@ -14,6 +14,7 @@ from cases.generated_documents.serializers import (
     GeneratedCaseDocumentGovSerializer,
     GeneratedCaseDocumentExporterSerializer,
 )
+from cases.generated_documents.signing import sign_pdf
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.decorators import authorised_to_view_application
@@ -70,6 +71,10 @@ class GeneratedDocuments(generics.ListAPIView):
             return JsonResponse(
                 {"errors": [strings.Cases.GeneratedDocuments.PDF_ERROR]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+        if document.template.include_digital_signature:
+            pdf = sign_pdf(pdf)
+
 
         if request.data.get("advice_type") in [
             AdviceType.APPROVE,
