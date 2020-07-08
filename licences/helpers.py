@@ -2,7 +2,9 @@ from string import ascii_uppercase
 
 from django.db import transaction
 
-from cases.enums import AdviceType
+from applications.models import GoodOnApplication
+from applications.serializers.good import GoodOnApplicationViewSerializer
+from cases.enums import AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice
 from conf.exceptions import NotFoundError
 from licences.models import Licence
@@ -41,3 +43,20 @@ def get_licence_reference_code(application_reference):
         if total_reference_codes != 0
         else application_reference
     )
+
+
+def serialize_goods_on_licence(licence):
+    from licences.serializers.view_licence import GoodOnLicenceViewSerializer
+    from licences.serializers.view_licences import GoodsTypeOnLicenceListSerializer
+
+    if licence.goods.exists():
+        # Standard Application
+        return GoodOnLicenceViewSerializer(licence.goods, many=True).data
+    elif licence.application.goods_type.exists():
+        # Open Application
+        approved_goods_types = get_approved_goods_types(licence.application)
+        return GoodsTypeOnLicenceListSerializer(approved_goods_types, many=True).data
+    elif licence.application.case_type.sub_type != CaseTypeSubTypeEnum.STANDARD:
+        # MOD clearances
+        goods = GoodOnApplication.objects.filter(application=licence.application)
+        return GoodOnApplicationViewSerializer(goods, many=True).data

@@ -12,7 +12,7 @@ from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from goods.models import Good
 from goodstype.models import GoodsType
 from licences.enums import LicenceStatus
-from licences.helpers import get_approved_goods_types
+from licences.helpers import get_approved_goods_types, serialize_goods_on_licence
 from licences.models import Licence
 from licences.serializers.view_licences import (
     PartyLicenceListSerializer,
@@ -190,13 +190,7 @@ class LicenceSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_goods(self, instance):
-        if instance.goods.exists():
-            return GoodOnLicenceViewSerializer(instance.goods, many=True).data
-        elif instance.application.goods_type.exists():
-            approved_goods_types = get_approved_goods_types(instance.application)
-            return GoodsTypeOnLicenceSerializer(approved_goods_types, many=True).data
-        else:
-            return None
+        return serialize_goods_on_licence(instance)
 
 
 class LicenceWithGoodsViewSerializer(serializers.Serializer):
