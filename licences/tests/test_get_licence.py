@@ -74,8 +74,12 @@ class GetLicenceTests(DataTestClient):
             self.create_mod_clearance_application_case(self.organisation, CaseTypeEnum.EXHIBITION),
             self.create_open_application_case(self.organisation),
         ]
+        template = self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id, CaseTypeEnum.OIEL.id, CaseTypeEnum.F680.id, CaseTypeEnum.GIFTING.id, CaseTypeEnum.EXHIBITION.id])
         licences = {
             application: self.create_licence(application, status=LicenceStatus.ISSUED) for application in applications
+        }
+        documents = {
+            application: self.create_generated_case_document(application, template, licence=licences[application]) for application in applications
         }
 
         for application, licence in licences.items():
@@ -88,3 +92,4 @@ class GetLicenceTests(DataTestClient):
             self.assertEqual(response_data["reference_code"], str(licence.reference_code))
             self.assertEqual(response_data["duration"], licence.duration)
             self.assertEqual(response_data["start_date"], licence.start_date.strftime("%Y-%m-%d"))
+            self.assertEqual(response_data["document"]["id"], str(documents[application].id))

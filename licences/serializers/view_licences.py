@@ -98,7 +98,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
     def get_documents(self, instance):
         documents = GeneratedCaseDocument.objects.filter(
             case=instance, advice_type__isnull=False, visible_to_exporter=True
-        )
+        ).order_by("advice_type", "-updated_at").distinct("advice_type")
         return DocumentLicenceListSerializer(documents, many=True).data
 
     def get_destinations(self, instance):

@@ -135,7 +135,7 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
     def get_documents(self, instance):
         documents = GeneratedCaseDocument.objects.filter(
             case=instance, advice_type__isnull=False, visible_to_exporter=True
-        )
+        ).order_by("advice_type", "-updated_at")
         return DocumentLicenceSerializer(documents, many=True).data
 
     def get_destinations(self, instance):
@@ -178,6 +178,7 @@ class LicenceSerializer(serializers.ModelSerializer):
     application = ApplicationLicenceSerializer()
     goods = serializers.SerializerMethodField()
     status = KeyValueChoiceField(choices=LicenceStatus.choices)
+    document = serializers.SerializerMethodField()
 
     class Meta:
         model = Licence
@@ -188,11 +189,16 @@ class LicenceSerializer(serializers.ModelSerializer):
             "start_date",
             "duration",
             "goods",
+            "document",
         )
         read_only_fields = fields
 
     def get_goods(self, instance):
         return serialize_goods_on_licence(instance)
+
+    def get_document(self, instance):
+        document = GeneratedCaseDocument.objects.get(licence=instance)
+        return {"id": document.id}
 
 
 class LicenceWithGoodsViewSerializer(serializers.Serializer):
