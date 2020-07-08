@@ -75,7 +75,6 @@ class GeneratedDocuments(generics.ListAPIView):
         if document.template.include_digital_signature:
             pdf = sign_pdf(pdf)
 
-
         if request.data.get("advice_type") in [
             AdviceType.APPROVE,
             AdviceType.PROVISO,
