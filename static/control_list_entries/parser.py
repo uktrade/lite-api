@@ -1,4 +1,4 @@
-from conf import settings
+from django.conf import settings
 from static.control_list_entries.models import ControlListEntry
 
 
