@@ -1,9 +1,14 @@
 from django.urls import reverse
+from faker import Faker
 from rest_framework import status
 
+from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from cases.models import CaseAssignment
 from queues.models import Queue
 from test_helpers.clients import DataTestClient
+
+faker = Faker()
 
 
 class CaseAssignmentTests(DataTestClient):
@@ -23,7 +28,7 @@ class CaseAssignmentTests(DataTestClient):
         self.url = reverse("queues:case_assignments", kwargs={"pk": self.queue.id})
 
     def test_can_assign_a_single_user_to_case_on_a_queue(self):
-        data = {"case_assignments": [{"case_id": self.case.id, "users": [self.gov_user.id]}]}
+        data = {"case_assignments": [{"case_id": self.case.id, "users": [self.gov_user.id]}], "note": faker.word()}
 
         response = self.client.put(self.url, data, **self.gov_headers)
 
@@ -32,6 +37,7 @@ class CaseAssignmentTests(DataTestClient):
         self.assertEqual(case_assignment.case.id, self.case.id)
         self.assertEqual(case_assignment.queue.id, self.queue.id)
         self.assertEqual(case_assignment.user.id, self.gov_user.id)
+        self.assertEqual(Audit.objects.get(verb=AuditType.ASSIGN_USER_TO_CASE).payload["additional_text"], data["note"])
 
     def test_can_assign_many_users_to_many_cases(self):
         data = {
@@ -41,8 +47,7 @@ class CaseAssignmentTests(DataTestClient):
             ]
         }
 
-        url = reverse("queues:case_assignments", kwargs={"pk": self.queue.id})
-        response = self.client.put(url, data, **self.gov_headers)
+        response = self.client.put(self.url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(CaseAssignment.objects.count(), 6)
