@@ -1,24 +1,28 @@
 import csv
 import re
+from typing import Optional
 
-from rest_framework.exceptions import ValidationError
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
+from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
+from conf.permissions import check_user_has_permission
 from goods.models import Good
+from licences.models import Licence
 from lite_content.lite_api import strings
-from organisations.models import Site
+from lite_content.lite_api.strings import Compliance
+from organisations.libraries.get_organisation import get_request_user_organisation
+from organisations.models import Site, Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.enums import SystemUser
 from users.models import BaseUser
-from licences.models import Licence
-from lite_content.lite_api.strings import Compliance
 
 
 def get_compliance_site_case(pk):
@@ -36,9 +40,7 @@ COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML
 
 
 def case_meets_conditions_for_compliance(case: Case):
-    if case.case_type.id == CaseTypeEnum.OIEL.id:
-        return True
-    elif case.case_type.id == CaseTypeEnum.SIEL.id:
+    if case.case_type.id == CaseTypeEnum.SIEL.id:
         if not (
             Good.objects.filter(
                 goods_on_application__application_id=case.id,
@@ -48,18 +50,21 @@ def case_meets_conditions_for_compliance(case: Case):
         ):
             return False
         return True
-    elif case.case_type.id == CaseTypeEnum.OICL.id:
+    elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OGL_ID_LIST]:
         return True
     else:
         return False
 
 
-def get_record_holding_sites_for_case(case_id):
-    return set(
-        Site.objects.filter(sites_on_application__application_id=case_id).values_list(
-            "site_records_located_at_id", flat=True
+def get_record_holding_sites_for_case(case):
+    if case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
+        return {case.site.site_records_located_at_id}
+    else:
+        return set(
+            Site.objects.filter(sites_on_application__application_id=case.id).values_list(
+                "site_records_located_at_id", flat=True
+            )
         )
-    )
 
 
 def generate_compliance_site_case(case: Case):
@@ -68,12 +73,12 @@ def generate_compliance_site_case(case: Case):
         return
 
     # Get record holding sites for the case
-    record_holding_sites_id = get_record_holding_sites_for_case(case.id)
+    record_holding_sites_id = get_record_holding_sites_for_case(case)
 
     # Get list of record holding sites that do not have a compliance case
     new_compliance_sites = Site.objects.filter(id__in=record_holding_sites_id, compliance__isnull=True).distinct()
 
-    # get a list compliance cases that already exist
+    # Get a list compliance cases that already exist
     existing_compliance_cases = Case.objects.filter(compliancesitecase__site_id__in=record_holding_sites_id).distinct()
 
     audits = []
@@ -184,3 +189,16 @@ def compliance_visit_case_complete(case: ComplianceVisitCase) -> bool:
             return False
 
     return CompliancePerson.objects.filter(visit_case_id=case.id).exists()
+
+
+def get_exporter_visible_compliance_site_cases(request, organisation: Optional[Organisation]):
+    if not organisation:
+        organisation = get_request_user_organisation(request)
+    qs = ComplianceSiteCase.objects.select_related("site", "site__address").filter(organisation_id=organisation.id)
+
+    # if user does not have permission to manage all sites, filter by sites accessible
+    if not check_user_has_permission(request.user, ExporterPermissions.ADMINISTER_SITES, organisation):
+        sites = Site.objects.get_by_user_and_organisation(request.user, organisation).values_list("id", flat=True)
+        qs = qs.filter(site__in=sites)
+
+    return qs

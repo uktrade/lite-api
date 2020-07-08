@@ -8,7 +8,7 @@ from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from conf import constants
 from conf.authentication import GovAuthentication
-from conf.helpers import str_to_bool
+from conf.helpers import str_to_bool, friendly_boolean
 from conf.permissions import assert_user_has_permission
 from letter_templates.helpers import generate_preview, get_paragraphs_as_html
 from letter_templates.models import LetterTemplate
@@ -118,6 +118,9 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
 
         old_paragraphs = list(template_object.letter_paragraphs.values_list("id", "name"))
 
+        old_include_digital_signature = template_object.include_digital_signature
+        new_include_digital_signature = request.data.get("include_digital_signature", old_include_digital_signature)
+
         serializer = self.get_serializer(template_object, data=request.data, partial=True)
 
         if serializer.is_valid():
@@ -216,6 +219,19 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     actor=request.user,
                     verb=AuditType.UPDATED_LETTER_TEMPLATE_PARAGRAPHS_ORDERING,
                     target=serializer.instance,
+                )
+
+            if friendly_boolean(old_include_digital_signature) != friendly_boolean(new_include_digital_signature):
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.UPDATED_LETTER_TEMPLATE_INCLUDE_DIGITAL_SIGNATURE,
+                    target=serializer.instance,
+                    payload={
+                        "old_include_digital_signature": friendly_boolean(old_include_digital_signature),
+                        "new_include_digital_signature": friendly_boolean(
+                            serializer.instance.include_digital_signature
+                        ),
+                    },
                 )
 
             return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
