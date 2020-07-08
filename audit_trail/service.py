@@ -20,6 +20,9 @@ def create(actor, verb, action_object=None, target=None, payload=None, ignore_ca
     if not payload:
         payload = {}
 
+    if "additional_text" in payload and not payload["additional_text"]:
+        del payload["additional_text"]
+
     return Audit.objects.create(
         actor=actor,
         verb=verb.value,
@@ -104,7 +107,11 @@ def filter_object_activity(
         audit_qs = audit_qs.filter(actor_content_type=user_type_content_type)
 
     if audit_type:
-        audit_qs = audit_qs.filter(verb=audit_type)
+        if audit_type == AuditType.CREATED_CASE_NOTE:
+            # Filter payloads differently if they have additional text
+            audit_qs = audit_qs.filter(payload__contains="additional_text")
+        else:
+            audit_qs = audit_qs.filter(verb=audit_type)
 
     if date_from:
         audit_qs = audit_qs.filter(created_at__date__gte=date_from)
@@ -116,7 +123,6 @@ def filter_object_activity(
 
 
 def get_objects_activity_filters(object_id, object_content_type):
-
     audit_qs = Audit.objects.filter(
         Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
         | Q(target_object_id=object_id, target_content_type=object_content_type)
