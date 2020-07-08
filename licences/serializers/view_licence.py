@@ -12,7 +12,7 @@ from conf.serializers import KeyValueChoiceField, CountrySerializerField
 from goods.models import Good
 from goodstype.models import GoodsType
 from licences.enums import LicenceStatus
-from licences.helpers import get_approved_goods_types, serialize_goods_on_licence
+from licences.helpers import serialize_goods_on_licence
 from licences.models import Licence
 from licences.serializers.view_licences import (
     PartyLicenceListSerializer,

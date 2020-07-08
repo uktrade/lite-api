@@ -338,8 +338,12 @@ class FinalAdviceDocuments(APIView):
             # Only cases with Approve/Proviso advice have a Licence
             if licence:
                 try:
-                    licence_document = GeneratedCaseDocument.objects.get(advice_type=AdviceType.APPROVE, licence=licence)
-                    advice_documents[AdviceType.APPROVE]["document"] = AdviceDocumentGovSerializer(licence_document).data
+                    licence_document = GeneratedCaseDocument.objects.get(
+                        advice_type=AdviceType.APPROVE, licence=licence
+                    )
+                    advice_documents[AdviceType.APPROVE]["document"] = AdviceDocumentGovSerializer(
+                        licence_document
+                    ).data
                 except GeneratedCaseDocument.DoesNotExist:
                     pass
             # Remove Approve for looking up other decision documents below
