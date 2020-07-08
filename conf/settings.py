@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "drf_yasg",
+    "core",
     "documents",
     "flags",
     "goods",
@@ -266,3 +267,11 @@ ENV = env("ENV")
 EXPORTER_BASE_URL = (
     env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
 )
+
+if DEBUG:
+    INSTALLED_APPS.append("django_extensions")
+
+    GRAPH_MODELS = {
+        "all_applications": False,
+        "group_models": True,
+    }
