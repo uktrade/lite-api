@@ -280,8 +280,11 @@ class CaseAssignment(TimestampableModel):
                 actor=audit_user,
                 verb=AuditType.ASSIGN_USER_TO_CASE,
                 action_object=self.case,
-                payload={"user": user.first_name + " " + user.last_name,
-                         "queue": self.queue.name, "additional_text": audit_note},
+                payload={
+                    "user": user.first_name + " " + user.last_name,
+                    "queue": self.queue.name,
+                    "additional_text": audit_note,
+                },
             )
 
 

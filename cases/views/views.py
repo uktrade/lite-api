@@ -650,7 +650,10 @@ class FinaliseView(RetrieveUpdateAPIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=case,
-            payload={"status": {"new": case.status.status, "old": old_status}, "additional_text": request.data.get("note")},
+            payload={
+                "status": {"new": case.status.status, "old": old_status},
+                "additional_text": request.data.get("note"),
+            },
         )
 
         # If a licence object exists, finalise the licence.

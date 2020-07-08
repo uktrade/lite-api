@@ -127,7 +127,9 @@ def get_objects_activity_filters(object_id, object_content_type):
         Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
         | Q(target_object_id=object_id, target_content_type=object_content_type)
     )
-    activity_types = audit_qs.order_by("verb").exclude(verb=AuditType.CREATED_CASE_NOTE).values_list("verb", flat=True).distinct()
+    activity_types = (
+        audit_qs.order_by("verb").exclude(verb=AuditType.CREATED_CASE_NOTE).values_list("verb", flat=True).distinct()
+    )
     if audit_qs.filter(payload__contains="additional_text").exists():
         activity_types = list(activity_types)
         activity_types.append(AuditType.CREATED_CASE_NOTE)
