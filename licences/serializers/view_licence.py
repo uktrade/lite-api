@@ -166,10 +166,12 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
         return SimpleAdviceSerializer(instance=advice).data
 
     def get_applied_for_value_per_item(self, instance):
-        return float(instance.good.value) / instance.good.quantity
+        if instance.good.value and instance.good.quantity:
+            return float(instance.good.value) / instance.good.quantity
 
     def get_licenced_value_per_item(self, instance):
-        return float(instance.value) / instance.quantity
+        if instance.value and instance.quantity:
+            return float(instance.value) / instance.quantity
 
 
 class LicenceSerializer(serializers.ModelSerializer):
