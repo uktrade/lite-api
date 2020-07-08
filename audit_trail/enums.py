@@ -111,6 +111,11 @@ class AuditType(LiteEnum):
     COMPLIANCE_PEOPLE_PRESENT_DELETED = autostr()
 
     def human_readable(self):
+        """
+        Return a human readable version of the audit type
+        If a human readable string exists in content return that,
+        else return an auto generated string (i.e. correct capitalisation, no underscores)
+        """
         if hasattr(audit, self.name):
             return getattr(audit, self.name)
         value = self.value.replace("_", " ")

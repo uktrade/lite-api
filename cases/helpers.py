@@ -55,7 +55,10 @@ def remove_next_review_date(case, request, pk):
             case.case_review_date.filter(case__id=pk, team_id=request.user.team_id).delete()
 
 
-def can_has_status(case, status):
+def can_set_status(case, status):
+    """
+    Returns true or false depending on different case conditions
+    """
     from compliance.models import ComplianceVisitCase
     from compliance.helpers import compliance_visit_case_complete
 

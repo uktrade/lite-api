@@ -108,7 +108,7 @@ def filter_object_activity(
 
     if audit_type:
         if audit_type == AuditType.CREATED_CASE_NOTE:
-            # Filter payloads differently if they have additional text
+            # Query based on payload additional text rather than type for case notes
             audit_qs = audit_qs.filter(payload__contains="additional_text")
         else:
             audit_qs = audit_qs.filter(verb=audit_type)
@@ -130,6 +130,7 @@ def get_objects_activity_filters(object_id, object_content_type):
     activity_types = (
         audit_qs.order_by("verb").exclude(verb=AuditType.CREATED_CASE_NOTE).values_list("verb", flat=True).distinct()
     )
+    # Add the created case note audit type if an audit entry exists with additional text
     if audit_qs.filter(payload__contains="additional_text").exists():
         activity_types = list(activity_types)
         activity_types.append(AuditType.CREATED_CASE_NOTE)

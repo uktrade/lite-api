@@ -119,7 +119,7 @@ class Case(TimestampableModel):
         return return_value
 
     def change_status(self, user, status: CaseStatus, note: Optional[str] = ""):
-        from cases.helpers import can_has_status
+        from cases.helpers import can_set_status
         from audit_trail import service as audit_trail_service
         from applications.libraries.application_helpers import can_status_be_set_by_gov_user
         from workflow.automation import run_routing_rules
@@ -131,7 +131,7 @@ class Case(TimestampableModel):
         if status.status == CaseStatusEnum.FINALISED:
             assert_user_has_permission(user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
-        if not can_has_status(self, status.status):
+        if not can_set_status(self, status.status):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
         if not can_status_be_set_by_gov_user(user, old_status, status.status, is_licence_application=False):
