@@ -27,7 +27,13 @@ from compliance.helpers import (
 )
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
-from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceLicenceListSerializer
+from compliance.serializers.ComplianceSiteCaseSerializers import (
+    ComplianceLicenceListSerializer,
+    ExporterComplianceSiteListSerializer,
+    ExporterComplianceVisitListSerializer,
+    ExporterComplianceSiteDetailSerializer,
+    ExporterComplianceVisitDetailSerializer,
+)
 from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
     CompliancePersonSerializer,
@@ -42,10 +48,93 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from licences.enums import LicenceStatus
 from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
-from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+
+from compliance.helpers import (
+    get_record_holding_sites_for_case,
+    COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
+    get_compliance_site_case,
+    compliance_visit_case_complete,
+    get_exporter_visible_compliance_site_cases,
+)
+
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
+)
+
+from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
+from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
+from conf.authentication import ExporterAuthentication
+
+from lite_content.lite_api.strings import Compliance
+from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from users.libraries.notifications import get_compliance_site_case_notifications
+
+
+class ExporterComplianceListSerializer(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceSiteListSerializer
+
+    def get_queryset(self):
+        return get_exporter_visible_compliance_site_cases(self.request, None)
+
+    def get_paginated_response(self, data):
+        data = get_compliance_site_case_notifications(data, self.request)
+        return super().get_paginated_response(data)
+
+
+class ExporterComplianceSiteDetailView(RetrieveAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceSiteDetailSerializer
+    organisation = None
+
+    def get_queryset(self):
+        self.organisation = get_request_user_organisation(self.request)
+        return get_exporter_visible_compliance_site_cases(self.request, self.organisation)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        context["organisation"] = self.organisation
+        return context
+
+
+class ExporterVisitList(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceVisitListSerializer
+
+    def get_queryset(self):
+        return (
+            ComplianceVisitCase.objects.select_related("case_officer")
+            .filter(site_case_id=self.kwargs["pk"])
+            .order_by("created_at")
+        )
+
+    def get_paginated_response(self, data):
+        data = get_compliance_site_case_notifications(data, self.request)
+        return super().get_paginated_response(data)
+
+
+class ExporterVisitDetail(RetrieveAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceVisitDetailSerializer
+    queryset = ComplianceVisitCase.objects.select_related("case_officer").all()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        organisation_id = get_request_user_organisation_id(self.request)
+
+        context["organisation_id"] = organisation_id
+        return context
 
 
 class LicenceList(ListAPIView):
