@@ -55,6 +55,11 @@ A p12 file is also required. Please see https://uktrade.atlassian.net/wiki/space
 
 [Running locally without Docker](docs/without_docker.md)
 
+### Entity Relationship diagrams
+
+ER Diagrams can be viewed in docs/entity-relation-diagrams/.
+
+To regenerate the diagrams run `pipenv run ./manage.py create_er_diagrams`
 
 ## Running Tests
 

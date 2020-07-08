@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "drf_yasg",
+    "core",
     "documents",
     "flags",
     "goods",
@@ -268,6 +269,7 @@ EXPORTER_BASE_URL = (
     env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
 )
 
+<<<<<<< HEAD
 # Document signing
 DOCUMENT_SIGNING_ENABLED = env("DOCUMENT_SIGNING_ENABLED")
 P12_CERTIFICATE = env("P12_CERTIFICATE")
@@ -275,3 +277,12 @@ CERTIFICATE_PASSWORD = env("CERTIFICATE_PASSWORD")
 SIGNING_EMAIL = env("SIGNING_EMAIL")
 SIGNING_LOCATION = env("SIGNING_LOCATION")
 SIGNING_REASON = env("SIGNING_REASON")
+
+# Django Extensions
+if DEBUG:
+    INSTALLED_APPS.append("django_extensions")
+
+    GRAPH_MODELS = {
+        "all_applications": False,
+        "group_models": True,
+    }
