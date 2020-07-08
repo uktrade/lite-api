@@ -37,7 +37,7 @@ from applications.serializers.standard_application import (
 )
 from applications.serializers.good import GoodOnStandardLicenceSerializer
 from applications.serializers.temporary_export_details import TemporaryExportDetailsUpdateSerializer
-from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType
+from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum, AdviceType, AdviceLevel
 from conf.exceptions import BadRequestError
 from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
@@ -135,7 +135,10 @@ def validate_and_create_goods_on_licence(application_id, licence_id, data):
     errors = {}
     good_on_applications = (
         GoodOnApplication.objects.filter(
-            application_id=application_id, good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
+            application_id=application_id,
+            good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
+            good__advice__level=AdviceLevel.FINAL,
+            good__advice__case_id=application_id,
         )
         .distinct()
         .values("id", "quantity")
