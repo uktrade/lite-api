@@ -41,10 +41,7 @@ def get_document_context(case, addressee=None):
     base_application = case.baseapplication if getattr(case, "baseapplication", "") else None
 
     if getattr(base_application, "goods", "") and base_application.goods.exists():
-        if licence:
-            goods = _get_goods_context(licence.goods.all().order_by("good__good__description"), final_advice)
-        else:
-            goods = _get_goods_context(base_application.goods.all().order_by("good__description"), final_advice)
+        goods = _get_goods_context(base_application, final_advice, licence)
     elif getattr(base_application, "goods_type", "") and base_application.goods_type.exists():
         goods = _get_goods_type_context(base_application.goods_type.all(), case.pk)
     else:
@@ -376,6 +373,8 @@ def _get_third_parties_context(third_parties):
 def _format_quantity(quantity, unit):
     if quantity and unit:
         return " ".join([intcomma(quantity), pluralise_unit(Units.choices_as_dict[unit], quantity),])
+    elif unit:
+        return "0 " + pluralise_unit(Units.choices_as_dict[unit], quantity)
 
 
 def _get_good_on_application_context(good_on_application, advice=None):
@@ -410,27 +409,33 @@ def _get_good_on_licence_context(good_on_licence, advice=None):
     return good_context
 
 
-def _get_goods_context(goods, final_advice):
-    if goods:
-        final_advice = final_advice.filter(good_id__isnull=False)
-        goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
+def _get_goods_context(application, final_advice, licence=None):
+    goods_on_application = application.goods.all().order_by("good__description")
+    final_advice = final_advice.filter(good_id__isnull=False)
+    goods_context = {advice_type: [] for advice_type, _ in AdviceType.choices}
 
-        if isinstance(goods[0], GoodOnLicence):
-            goods_context_function = _get_good_on_licence_context
-            goods_on_application = {good_on_licence.good.good_id: good_on_licence for good_on_licence in goods}
-            goods_context["all"] = [goods_context_function(good_on_licence) for good_on_licence in goods]
-        else:
-            goods_context_function = _get_good_on_application_context
-            goods_on_application = {good_on_application.good_id: good_on_application for good_on_application in goods}
-            goods_context["all"] = [goods_context_function(good) for good in goods]
+    goods_on_application_dict = {
+        good_on_application.good_id: good_on_application for good_on_application in goods_on_application
+    }
+    goods_context["all"] = [_get_good_on_application_context(good) for good in goods_on_application]
 
-        for advice in final_advice:
-            good_on_application = goods_on_application[advice.good_id]
-            goods_context[advice.type].append(goods_context_function(good_on_application, advice))
+    if licence:
+        goods_on_licence = licence.goods.all().order_by("good__good__description")
+        if goods_on_licence.exists():
+            goods_context[AdviceType.APPROVE] = [
+                _get_good_on_licence_context(good_on_licence) for good_on_licence in goods_on_licence
+            ]
+        # Remove APPROVE from advice as it is no longer needed
+        # (no need to get approved GoodOnApplications if we have GoodOnLicence)
+        final_advice = final_advice.exclude(type=AdviceType.APPROVE)
 
-        # Move proviso elements into approved because they are treated the same
-        goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))
-        return goods_context
+    for advice in final_advice:
+        good_on_application = goods_on_application_dict[advice.good_id]
+        goods_context[advice.type].append(_get_good_on_application_context(good_on_application, advice))
+
+    # Move proviso elements into approved because they are treated the same
+    goods_context[AdviceType.APPROVE].extend(goods_context.pop(AdviceType.PROVISO))
+    return goods_context
 
 
 def _get_goods_type_context(goods_types, case_pk):

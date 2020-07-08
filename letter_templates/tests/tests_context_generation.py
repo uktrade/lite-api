@@ -386,7 +386,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_licence(context["licence"], licence)
-        self._assert_good_on_licence(context["goods"]["all"][0], good_on_licence)
+        self._assert_good_on_licence(context["goods"]["approve"][0], good_on_licence)
 
     def test_generate_context_with_ecju_query(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
