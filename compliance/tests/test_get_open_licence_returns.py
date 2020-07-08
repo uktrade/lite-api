@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -10,7 +12,7 @@ class GetOpenLicenceReturnsTest(DataTestClient):
         super().setUp()
         application = self.create_standard_application_case(self.organisation)
         self.licence = self.create_licence(application, is_complete=True)
-        self.olr = OpenLicenceReturnsFactory(organisation=self.organisation)
+        self.olr = OpenLicenceReturnsFactory(organisation=self.organisation, year=datetime.now().year)
         self.olr.licences.set([self.licence])
 
     def test_get_open_licence_returns(self):
@@ -25,7 +27,7 @@ class GetOpenLicenceReturnsTest(DataTestClient):
 
     def test_get_open_licence_returns_only_shows_organisations(self):
         organisation, _ = self.create_organisation_with_exporter_user()
-        olr = OpenLicenceReturnsFactory(organisation=organisation)
+        olr = OpenLicenceReturnsFactory(organisation=organisation, year=datetime.now().year)
         olr.licences.set([self.licence])
 
         url = reverse("compliance:open_licence_returns")

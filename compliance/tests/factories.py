@@ -12,7 +12,6 @@ from organisations.tests.factories import OrganisationFactory, SiteFactory
 
 class OpenLicenceReturnsFactory(factory.django.DjangoModelFactory):
     returns_data = "\na,b,c,d,e"
-    year = datetime.now().year - 1
 
     class Meta:
         model = OpenLicenceReturns
