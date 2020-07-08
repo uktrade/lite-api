@@ -1,7 +1,8 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework.views import APIView
 
-from conf.authentication import GovAuthentication
+from cases.generated_documents.signing import get_certificate_data
+from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.exceptions import NotFoundError
 from documents.models import Document
 from documents.serializers import DocumentViewSerializer
@@ -24,3 +25,13 @@ class DocumentDetail(APIView):
             return JsonResponse({"document": serializer.data})
         except Document.DoesNotExist:
             raise NotFoundError({"document": "Document not found"})
+
+
+class DownloadSigningCertificate(APIView):
+    authentication_classes = (SharedAuthentication,)
+
+    def get(self, request):
+        certificate = get_certificate_data()
+        response = HttpResponse(content=certificate, content_type="application/x-x509-ca-cert")
+        response["Content-Disposition"] = f'attachment; filename="LITECertificate.crt"'
+        return response

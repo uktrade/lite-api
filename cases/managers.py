@@ -71,15 +71,6 @@ class CaseQuerySet(models.QuerySet):
     def is_type(self, case_type):
         return self.filter(case_type=case_type)
 
-    def order_by_status(self, order=""):
-        """
-        :param order: ('', '-')
-        :return:
-        """
-        order = order if order in ["", "-"] else ""
-
-        return self.order_by(f"{order}status__priority")
-
     def with_case_reference_code(self, case_reference):
         return self.filter(reference_code__icontains=case_reference)
 
@@ -253,19 +244,9 @@ class CaseManager(models.Manager):
         """
         case_qs = (
             self.submitted()
-            .select_related("organisation", "status", "case_type")
+            .select_related("status", "case_type")
             .prefetch_related(
-                "flags",
-                "flags__team",
-                "case_assignments",
-                "case_assignments__user",
-                "case_ecju_query",
-                "case_assignments__queue",
-                "organisation",
-                "organisation__flags",
-                "organisation__flags__team",
-                "organisation__primary_site",
-                "organisation__primary_site__address",
+                "case_ecju_query", "case_assignments", "case_assignments__user", "case_assignments__queue",
             )
         )
 

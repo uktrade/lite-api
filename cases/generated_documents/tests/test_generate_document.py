@@ -31,7 +31,33 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
+        self.assertTrue(
+            ExporterNotification.objects.filter(
+                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
+            ).count()
+            == 1
+        )
+
+    @mock.patch("cases.generated_documents.views.html_to_pdf")
+    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
+    @mock.patch("cases.generated_documents.views.sign_pdf")
+    def test_generate_document_with_signature_success(self, upload_bytes_file_func, html_to_pdf_func, sign_pdf_func):
+        html_to_pdf_func.return_value = None
+        upload_bytes_file_func.return_value = None
+        sign_pdf_func.return_value = None
+        template = self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id], digital_signature=True)
+        self.data["template"] = str(template.id)
+
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+        response = self.client.post(url, **self.gov_headers, data=self.data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        html_to_pdf_func.assert_called_once()
+        upload_bytes_file_func.assert_called_once()
+        sign_pdf_func.assert_called_once()
         self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
         self.assertTrue(
             ExporterNotification.objects.filter(
@@ -52,6 +78,7 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
         self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
         self.assertEqual(
@@ -74,6 +101,7 @@ class GenerateDocumentTests(DataTestClient):
         response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
         self.assertTrue(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count() == 1)
         self.assertTrue(
