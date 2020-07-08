@@ -127,7 +127,11 @@ def get_objects_activity_filters(object_id, object_content_type):
         Q(action_object_object_id=object_id, action_object_content_type=object_content_type)
         | Q(target_object_id=object_id, target_content_type=object_content_type)
     )
-    activity_types = audit_qs.order_by("verb").values_list("verb", flat=True).distinct()
+    activity_types = audit_qs.order_by("verb").exclude(verb=AuditType.CREATED_CASE_NOTE).values_list("verb", flat=True).distinct()
+    if audit_qs.filter(payload__contains="additional_text").exists():
+        activity_types = list(activity_types)
+        activity_types.append(AuditType.CREATED_CASE_NOTE)
+        activity_types = sorted(activity_types)
     user_ids = audit_qs.order_by("actor_object_id").values_list("actor_object_id", flat=True).distinct()
     users = BaseUser.objects.filter(id__in=list(user_ids)).values("id", "first_name", "last_name")
     teams = Team.objects.filter(users__id__in=list(user_ids)).order_by("id").values("name", "id").distinct()
@@ -141,7 +145,6 @@ def get_objects_activity_filters(object_id, object_content_type):
         ],
         "users": [{"key": str(user["id"]), "value": f"{user['first_name']} {user['last_name']}"} for user in users],
     }
-
     return filters
 
 
