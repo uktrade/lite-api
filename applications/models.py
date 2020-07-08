@@ -176,7 +176,6 @@ class StandardApplication(BaseApplication):
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, blank=True, null=True, default=None, max_length=50,
     )
-    contains_firearm_goods = models.BooleanField(blank=True, default=None, null=True)
     is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
     non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
     temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
