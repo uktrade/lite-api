@@ -24,6 +24,7 @@ from compliance.helpers import (
     COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
     get_compliance_site_case,
     compliance_visit_case_complete,
+    get_exporter_visible_compliance_site_cases,
 )
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
@@ -48,34 +49,10 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from licences.enums import LicenceStatus
 from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
-from organisations.libraries.get_organisation import get_request_user_organisation_id
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-
-from compliance.helpers import (
-    get_record_holding_sites_for_case,
-    COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-    get_compliance_site_case,
-    compliance_visit_case_complete,
-    get_exporter_visible_compliance_site_cases,
-)
-
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import (
-    ListAPIView,
-    RetrieveAPIView,
-    ListCreateAPIView,
-    RetrieveUpdateAPIView,
-    RetrieveUpdateDestroyAPIView,
-    UpdateAPIView,
-)
-
-from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
-from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
-from conf.authentication import ExporterAuthentication
-
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.notifications import get_compliance_site_case_notifications
 
 
