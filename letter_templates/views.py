@@ -221,7 +221,7 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
                     target=serializer.instance,
                 )
 
-            if old_include_digital_signature != new_include_digital_signature:
+            if friendly_boolean(old_include_digital_signature) != friendly_boolean(new_include_digital_signature):
                 audit_trail_service.create(
                     actor=request.user,
                     verb=AuditType.UPDATED_LETTER_TEMPLATE_INCLUDE_DIGITAL_SIGNATURE,
