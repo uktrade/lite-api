@@ -26,9 +26,13 @@ from compliance.helpers import (
 )
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
-from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceLicenceListSerializer, \
-    ExporterComplianceVisitListSerializer, ExporterComplianceVisitDetailSerializer, \
-    ExporterComplianceSiteListSerializer, ExporterComplianceSiteDetailSerializer
+from compliance.serializers.ComplianceSiteCaseSerializers import (
+    ComplianceLicenceListSerializer,
+    ExporterComplianceVisitListSerializer,
+    ExporterComplianceVisitDetailSerializer,
+    ExporterComplianceSiteListSerializer,
+    ExporterComplianceSiteDetailSerializer,
+)
 from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
     CompliancePersonSerializer,
