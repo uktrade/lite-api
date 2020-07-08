@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -9,7 +10,13 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
-from compliance.serializers.ComplianceSiteCaseSerializers import ComplianceLicenceListSerializer
+from compliance.serializers.ComplianceSiteCaseSerializers import (
+    ComplianceLicenceListSerializer,
+    ExporterComplianceSiteListSerializer,
+    ExporterComplianceVisitListSerializer,
+    ExporterComplianceSiteDetailSerializer,
+    ExporterComplianceVisitDetailSerializer,
+)
 from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
     CompliancePersonSerializer,
@@ -29,6 +36,7 @@ from compliance.helpers import (
     COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
     get_compliance_site_case,
     compliance_visit_case_complete,
+    get_exporter_visible_compliance_site_cases,
 )
 
 from rest_framework.exceptions import ValidationError
@@ -46,7 +54,66 @@ from compliance.models import OpenLicenceReturns, ComplianceVisitCase, Complianc
 from conf.authentication import ExporterAuthentication
 
 from lite_content.lite_api.strings import Compliance
-from organisations.libraries.get_organisation import get_request_user_organisation_id
+from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from users.libraries.notifications import get_compliance_site_case_notifications
+
+
+class ExporterComplianceListSerializer(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceSiteListSerializer
+
+    def get_queryset(self):
+        return get_exporter_visible_compliance_site_cases(self.request, None)
+
+    def get_paginated_response(self, data):
+        data = get_compliance_site_case_notifications(data, self.request)
+        return super().get_paginated_response(data)
+
+
+class ExporterComplianceSiteDetailView(RetrieveAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceSiteDetailSerializer
+    organisation = None
+
+    def get_queryset(self):
+        self.organisation = get_request_user_organisation(self.request)
+        return get_exporter_visible_compliance_site_cases(self.request, self.organisation)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        context["organisation"] = self.organisation
+        return context
+
+
+class ExporterVisitList(ListAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceVisitListSerializer
+
+    def get_queryset(self):
+        return (
+            ComplianceVisitCase.objects.select_related("case_officer")
+            .filter(site_case_id=self.kwargs["pk"])
+            .order_by("created_at")
+        )
+
+    def get_paginated_response(self, data):
+        data = get_compliance_site_case_notifications(data, self.request)
+        return super().get_paginated_response(data)
+
+
+class ExporterVisitDetail(RetrieveAPIView):
+    authentication_classes = (ExporterAuthentication,)
+    serializer_class = ExporterComplianceVisitDetailSerializer
+    queryset = ComplianceVisitCase.objects.select_related("case_officer").all()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        organisation_id = get_request_user_organisation_id(self.request)
+
+        context["organisation_id"] = organisation_id
+        return context
 
 
 class LicenceList(ListAPIView):
@@ -60,13 +127,18 @@ class LicenceList(ListAPIView):
 
         # We filter for cases that are completed and have a compliance licence linked to it
         cases = Case.objects.select_related("case_type").filter(
-            baseapplication__licence__is_complete=True,
-            baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
+            Q(
+                baseapplication__licence__is_complete=True,
+                baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
+            )
+            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.kwargs["pk"])
         )
 
         # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
         #   types relevant for compliance cases
-        cases = cases.filter(case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id]) | cases.filter(
+        cases = cases.filter(
+            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
+        ) | cases.filter(
             baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
             baseapplication__goods__licenced_quantity__isnull=False,
         )
@@ -205,8 +277,9 @@ class ComplianceCaseId(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk, *args, **kwargs):
+        case = get_case(pk)
         # Get record holding sites for the case
-        record_holding_sites_id = get_record_holding_sites_for_case(pk)
+        record_holding_sites_id = get_record_holding_sites_for_case(case)
 
         # Get list of record holding sites that do not have a compliance case
         existing_compliance_cases = Case.objects.filter(

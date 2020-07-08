@@ -15,6 +15,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
+from cases.helpers import remove_next_review_date
 from cases.libraries.advice import group_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
@@ -27,17 +28,19 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case
+from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case, CaseReviewDate
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,
     EcjuQueryCreateSerializer,
     CaseDetailSerializer,
     EcjuQueryGovSerializer,
-    EcjuQueryExporterSerializer,
     CaseAdviceSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
+    ReviewDateUpdateSerializer,
+    EcjuQueryExporterViewSerializer,
+    EcjuQueryExporterRespondSerializer,
 )
 from compliance.helpers import generate_compliance_site_case
 from cases.service import get_destinations
@@ -45,6 +48,7 @@ from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
 from conf.exceptions import NotFoundError, BadRequestError
+from conf.helpers import convert_date_to_string
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
@@ -387,11 +391,14 @@ class CaseEcjuQueries(APIView):
         """
         Returns the list of ECJU Queries on a case
         """
-        case = get_case(pk)
-        case_ecju_queries = EcjuQuery.objects.filter(case=case).order_by("created_at")
+        case_ecju_queries = (
+            EcjuQuery.objects.select_related("team", "responded_by_user", "responded_by_user")
+            .filter(case_id=pk)
+            .order_by("created_at")
+        )
 
         if isinstance(request.user, ExporterUser):
-            serializer = EcjuQueryExporterSerializer(case_ecju_queries, many=True)
+            serializer = EcjuQueryExporterViewSerializer(case_ecju_queries, many=True)
             delete_exporter_notifications(
                 user=request.user, organisation_id=get_request_user_organisation_id(request), objects=case_ecju_queries
             )
@@ -455,7 +462,7 @@ class EcjuQueryDetail(APIView):
         Returns details of an ecju query
         """
         ecju_query = get_ecju_query(ecju_pk)
-        serializer = EcjuQueryExporterSerializer(ecju_query)
+        serializer = EcjuQueryExporterViewSerializer(ecju_query)
         return JsonResponse(data={"ecju_query": serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk, ecju_pk):
@@ -467,7 +474,7 @@ class EcjuQueryDetail(APIView):
 
         data = {"response": request.data["response"], "responded_by_user": str(request.user.id)}
 
-        serializer = EcjuQueryExporterSerializer(instance=ecju_query, data=data, partial=True)
+        serializer = EcjuQueryExporterRespondSerializer(instance=ecju_query, data=data, partial=True)
 
         if serializer.is_valid():
             if "validate_only" not in request.data or not request.data["validate_only"]:
@@ -695,6 +702,7 @@ class AssignedQueues(APIView):
             case = get_case(pk)
 
             if assignments:
+                remove_next_review_date(case, request, pk)
                 queues = [assignment.queue for assignment in assignments]
                 queue_names = [queue.name for queue in queues]
                 assignments.delete()
@@ -785,3 +793,58 @@ class RerunRoutingRules(APIView):
         run_routing_rules(case)
 
         return JsonResponse(data={}, status=status.HTTP_200_OK)
+
+
+class NextReviewDate(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    @transaction.atomic
+    def put(self, request, pk):
+        """
+        Sets a next review date for a case
+        """
+        case = get_case(pk)
+        next_review_date = request.data.get("next_review_date")
+
+        current_review_date = CaseReviewDate.objects.filter(case_id=case.id, team_id=request.user.team.id)
+        data = {"next_review_date": next_review_date, "case": case.id, "team": request.user.team.id}
+
+        if current_review_date.exists():
+            current_review_date = current_review_date.get()
+            old_next_review_date = current_review_date.next_review_date
+            serializer = ReviewDateUpdateSerializer(instance=current_review_date, data=data)
+        else:
+            old_next_review_date = None
+            serializer = ReviewDateUpdateSerializer(data=data)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+
+            team = request.user.team.name
+            if old_next_review_date is None and next_review_date:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.ADDED_NEXT_REVIEW_DATE,
+                    target=case,
+                    payload={"next_review_date": convert_date_to_string(next_review_date), "team_name": team},
+                )
+            elif old_next_review_date and next_review_date and str(old_next_review_date) != next_review_date:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.EDITED_NEXT_REVIEW_DATE,
+                    target=case,
+                    payload={
+                        "new_date": convert_date_to_string(next_review_date),
+                        "old_date": convert_date_to_string(old_next_review_date),
+                        "team_name": team,
+                    },
+                )
+            elif old_next_review_date and next_review_date is None:
+                audit_trail_service.create(
+                    actor=request.user,
+                    verb=AuditType.REMOVED_NEXT_REVIEW_DATE,
+                    target=case,
+                    payload={"team_name": team},
+                )
+
+            return JsonResponse(data={}, status=status.HTTP_200_OK)
