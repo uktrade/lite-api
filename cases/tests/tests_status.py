@@ -1,11 +1,16 @@
 from django.urls import reverse
+from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
+from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from cases.models import CaseAssignment
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+
+faker = Faker()
 
 
 class ChangeStatusTests(DataTestClient):
@@ -20,12 +25,11 @@ class ChangeStatusTests(DataTestClient):
         """
         When changing status, allow for optional notes to be added
         """
-        data = {"status": CaseStatusEnum.WITHDRAWN, "note": "hello spaceboy"}
+        data = {"status": CaseStatusEnum.WITHDRAWN, "note": faker.word()}
 
         response = self.client.patch(self.url, data, **self.gov_headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertEqual(self.end_user_advisory.case_notes.get().text, "hello spaceboy")
+        self.assertEqual(Audit.objects.get(verb=AuditType.UPDATED_STATUS).payload["additional_text"], data["note"])
 
 
 class EndUserAdvisoryUpdate(DataTestClient):
