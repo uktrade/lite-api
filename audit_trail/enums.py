@@ -113,6 +113,7 @@ class AuditType(LiteEnum):
     def human_readable(self):
         """
         Return a human readable version of the audit type
+
         If a human readable string exists in content return that,
         else return an auto generated string (i.e. correct capitalisation, no underscores)
         """
