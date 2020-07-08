@@ -258,6 +258,17 @@ if env.str('SENTRY_DSN', ''):
         send_default_pii=True
     )
 
+# Application Performance Monitoring
+if env.str('ELASTIC_APM_SERVER_URL', ''):
+    ELASTIC_APM = {
+        'SERVICE_NAME': env.str('ELASTIC_APM_SERVICE_NAME', 'lite-api'),
+        'SECRET_TOKEN': env.str('ELASTIC_APM_SECRET_TOKEN'),
+        'SERVER_URL': env.str('ELASTIC_APM_SERVER_URL'),
+        'ENVIRONMENT': env.str('SENTRY_ENVIRONMENT'),
+        'DEBUG': DEBUG,
+    }
+    INSTALLED_APPS.append('elasticapm.contrib.django')
+
 
 RECENTLY_UPDATED_WORKING_DAYS = env(
     "RECENTLY_UPDATED_WORKING_DAYS"
@@ -288,3 +299,4 @@ if DEBUG:
         "all_applications": False,
         "group_models": True,
     }
+
