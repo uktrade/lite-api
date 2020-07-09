@@ -8,28 +8,14 @@ from cases.models import Case
 from conf.serializers import KeyValueChoiceField
 from goods.enums import ItemType
 from goods.models import Good
-from goods.serializers import GoodCreateSerializer, GoodSerializerInternal
+from goods.serializers import GoodSerializerInternal
+from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from static.units.enums import Units
 
 
-class GoodOnApplicationLicenceQuantitySerializer(serializers.ModelSerializer):
-    good = GoodCreateSerializer(read_only=True)
-    unit = KeyValueChoiceField(choices=Units.choices)
-
-    class Meta:
-        model = GoodOnApplication
-        fields = (
-            "id",
-            "good",
-            "unit",
-            "quantity",
-            "value",
-        )
-
-
-class GoodOnApplicationLicenceQuantityCreateSerializer(serializers.ModelSerializer):
-    licenced_quantity = serializers.FloatField(
+class GoodOnStandardLicenceSerializer(serializers.ModelSerializer):
+    quantity = serializers.FloatField(
         required=True,
         allow_null=False,
         min_value=0,
@@ -38,7 +24,7 @@ class GoodOnApplicationLicenceQuantityCreateSerializer(serializers.ModelSerializ
             "min_value": strings.Licence.NEGATIVE_QUANTITY_ERROR,
         },
     )
-    licenced_value = serializers.DecimalField(
+    value = serializers.DecimalField(
         max_digits=15,
         decimal_places=2,
         required=True,
@@ -47,18 +33,20 @@ class GoodOnApplicationLicenceQuantityCreateSerializer(serializers.ModelSerializ
         error_messages={"null": strings.Licence.NULL_VALUE_ERROR, "min_value": strings.Licence.NEGATIVE_VALUE_ERROR,},
     )
 
-    def validate(self, data):
-        if data["licenced_quantity"] > self.instance.quantity:
-            raise serializers.ValidationError({"licenced_quantity": strings.Licence.INVALID_QUANTITY_ERROR})
-        return data
-
     class Meta:
-        model = GoodOnApplication
+        model = GoodOnLicence
         fields = (
             "id",
-            "licenced_quantity",
-            "licenced_value",
+            "quantity",
+            "value",
+            "good",
+            "licence",
         )
+
+    def validate(self, data):
+        if data["quantity"] > self.context.get("applied_for_quantity"):
+            raise serializers.ValidationError({"quantity": strings.Licence.INVALID_QUANTITY_ERROR})
+        return data
 
 
 class GoodOnApplicationViewSerializer(serializers.ModelSerializer):

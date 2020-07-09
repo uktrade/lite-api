@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework import serializers
 
-from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from applications.serializers.advice import CaseAdviceSerializer
 from audit_trail.models import Audit
@@ -186,6 +185,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
     def get_data(self, instance):
         from licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer
+        from applications.helpers import get_application_view_serializer
 
         if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
             return OpenGeneralLicenceCaseSerializer(get_open_general_export_licence_case(instance.id)).data

@@ -20,8 +20,6 @@ from cases.enums import (
 from cases.libraries.reference_code import generate_reference_code
 from cases.managers import CaseManager, CaseReferenceCodeManager, AdviceManager
 from common.models import TimestampableModel, CreatedAt
-from conf.constants import GovPermissions
-from conf.permissions import assert_user_has_permission
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
@@ -124,11 +122,7 @@ class Case(TimestampableModel):
 
         old_status = self.status.status
 
-        # Only allow the final decision if the user has the MANAGE_FINAL_ADVICE permission
-        if status.status == CaseStatusEnum.FINALISED:
-            assert_user_has_permission(user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-
-        if not can_status_be_set_by_gov_user(user, old_status, status.status, is_licence_application=False):
+        if not can_status_be_set_by_gov_user(user, old_status, status.status, is_mod=False):
             raise ValidationError({"status": ["Status cannot be set by user"]})
 
         self.status = status
