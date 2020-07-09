@@ -3,12 +3,11 @@ from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied, ValidationError, ParseError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.views import APIView
 
@@ -19,7 +18,6 @@ from applications.helpers import (
     get_application_create_serializer,
     get_application_view_serializer,
     get_application_update_serializer,
-    validate_and_create_goods_on_licence,
 )
 from applications.libraries.application_helpers import (
     optional_str_to_bool,
@@ -50,11 +48,17 @@ from applications.serializers.generic_application import (
     GenericApplicationListSerializer,
     GenericApplicationCopySerializer,
 )
+from applications.serializers.good import (
+    GoodOnApplicationLicenceQuantitySerializer,
+    GoodOnApplicationLicenceQuantityCreateSerializer,
+)
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.generated_documents.helpers import auto_generate_case_document
 from cases.libraries.get_flags import get_flags
+from cases.models import Advice
+from cases.serializers import SimpleAdviceSerializer
 from cases.service import get_destinations
 from cases.sla import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
@@ -68,13 +72,11 @@ from conf.helpers import convert_date_to_string, str_to_bool
 from conf.permissions import assert_user_has_permission
 from flags.enums import FlagStatuses, SystemFlags
 from flags.models import Flag
-from goods.serializers import GoodCreateSerializer
 from goodstype.models import GoodsType
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
-from licences.enums import LicenceStatus
-from licences.helpers import get_licence_reference_code
+from licences.helpers import get_reference_code
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
@@ -428,14 +430,12 @@ class ApplicationManageStatus(APIView):
                 )
 
         if data["status"] == CaseStatusEnum.SURRENDERED:
-            try:
-                licence = Licence.objects.get_active_licence(application=application)
-            except Licence.DoesNotExist:
+            if not Licence.objects.filter(application=application, is_complete=True).exists():
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            licence.surrender()
+            Licence.objects.get(application=application, is_complete=True).delete()
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -490,76 +490,64 @@ class ApplicationManageStatus(APIView):
 
 class ApplicationFinaliseView(APIView):
     authentication_classes = (GovAuthentication,)
+    approved_goods_advice = None
+    approved_goods_on_application = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.approved_goods_advice = Advice.objects.filter(
+            case_id=kwargs["pk"], type__in=[AdviceType.APPROVE, AdviceType.PROVISO], good_id__isnull=False,
+        )
+        self.approved_goods_on_application = GoodOnApplication.objects.filter(
+            application_id=kwargs["pk"], good__in=self.approved_goods_advice.values_list("good", flat=True)
+        )
+        return super(ApplicationFinaliseView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         """
         Get goods to set licenced quantity for, with advice
         """
-        approved_goods_on_application = (
-            GoodOnApplication.objects.filter(
-                application_id=pk,
-                good__advice__type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
-                good__advice__case_id=pk,
-                good__advice__good_id__isnull=False,
-            )
-            .annotate(
-                advice_type=F("good__advice__type"),
-                advice_text=F("good__advice__text"),
-                advice_proviso=F("good__advice__proviso"),
-            )
-            .distinct()
-        )
+        goods_on_application = GoodOnApplicationLicenceQuantitySerializer(
+            self.approved_goods_on_application, many=True
+        ).data
 
-        good_on_applications_with_advice = [
-            {
-                "id": str(goa.id),
-                "good": GoodCreateSerializer(goa.good).data,
-                "unit": goa.unit,
-                "quantity": goa.quantity,
-                "value": goa.value,
-                "advice": {
-                    "type": AdviceType.as_representation(goa.advice_type),
-                    "text": goa.advice_text,
-                    "proviso": goa.advice_proviso,
-                },
-            }
-            for goa in approved_goods_on_application
-        ]
+        for good_advice in self.approved_goods_advice:
+            for good in goods_on_application:
+                if str(good_advice.good.id) == good["good"]["id"]:
+                    good["advice"] = SimpleAdviceSerializer(good_advice).data
 
-        return JsonResponse({"goods": good_on_applications_with_advice})
+        return JsonResponse({"goods": goods_on_application})
 
-    @transaction.atomic  # noqa
+    @transaction.atomic
     def put(self, request, pk):
         """
         Finalise an application
         """
         application = get_application(pk)
-
-        # Check permissions
-        is_mod_clearance = application.case_type.sub_type in CaseTypeSubTypeEnum.mod
+        is_licence_application = application.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION
         if not can_status_be_set_by_gov_user(
-            request.user, application.status.status, CaseStatusEnum.FINALISED, is_mod_clearance
+            request.user, application.status.status, CaseStatusEnum.FINALISED, is_licence_application
         ):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        licence_data = request.data.copy()
-
+        licence_data = deepcopy(request.data)
         action = licence_data.get("action")
-        if not action:
-            return JsonResponse(
-                data={"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
-        # Refusals & NLRs
-        if action in [AdviceType.REFUSE, AdviceType.NO_LICENCE_REQUIRED]:
-            return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
+        if action in [AdviceType.APPROVE, AdviceType.PROVISO]:
+            default_licence_duration = get_default_duration(application)
+            licence_data["duration"] = licence_data.get("duration", default_licence_duration)
 
-        # Approvals & Provisos
-        else:
+            # Check change default duration permission
+            if licence_data["duration"] != default_licence_duration and not request.user.has_permission(
+                GovPermissions.MANAGE_LICENCE_DURATION
+            ):
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Finalise.Error.SET_DURATION_PERMISSION]},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
             # Check if any blocking flags are on the case
             blocking_flags = (
                 get_flags(application.get_case())
@@ -572,58 +560,65 @@ class ApplicationFinaliseView(APIView):
                     [f"{strings.Applications.Finalise.Error.BLOCKING_FLAGS}{','.join(list(blocking_flags))}"]
                 )
 
-            try:
-                active_licence = Licence.objects.get_active_licence(application)
-                default_licence_duration = active_licence.duration
-            except Licence.DoesNotExist:
-                default_licence_duration = get_default_duration(application)
-
-            licence_data["duration"] = licence_data.get("duration", default_licence_duration)
-
-            # Check change default duration permission
-            if licence_data["duration"] != default_licence_duration and not request.user.has_permission(
-                GovPermissions.MANAGE_LICENCE_DURATION
-            ):
-                raise PermissionDenied([strings.Applications.Finalise.Error.SET_DURATION_PERMISSION])
-
-            # Validate date
+            # Create incomplete Licence object
             try:
                 start_date = timezone.datetime(
                     year=int(licence_data["year"]), month=int(licence_data["month"]), day=int(licence_data["day"])
                 )
-            except (KeyError, ValueError):
-                raise ParseError({"start_date": [strings.Applications.Finalise.Error.INVALID_DATE]})
+                licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
+            except KeyError:
+                return JsonResponse(
+                    data={"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-            # Delete existing draft if one exists
-            try:
-                licence = Licence.objects.get_draft_licence(application)
-            except Licence.DoesNotExist:
-                licence = None
-
-            licence_data["start_date"] = start_date.strftime("%Y-%m-%d")
-
-            if licence:
-                # Update Draft Licence object
-                licence_serializer = LicenceCreateSerializer(instance=licence, data=licence_data, partial=True)
-            else:
-                # Create Draft Licence object
-                licence_data["application"] = application.id
-                licence_data["status"] = LicenceStatus.DRAFT
-                licence_data["reference_code"] = get_licence_reference_code(application.reference_code)
-                licence_serializer = LicenceCreateSerializer(data=licence_data)
-
-            if not licence_serializer.is_valid():
-                raise ParseError(licence_serializer.errors)
-
-            licence = licence_serializer.save()
-
-            # Only validate & save GoodsOnLicence (quantities & values) for Standard applications
+            # Check goods have licenced quantity/value
             if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-                errors = validate_and_create_goods_on_licence(pk, licence.id, request.data)
-                if errors:
-                    raise ParseError(errors)
+                errors = {}
+                for good in self.approved_goods_on_application:
+                    good_id = str(good.id)
+                    quantity_key = f"quantity-{good_id}"
+                    value_key = f"value-{good_id}"
+                    good_data = {
+                        "licenced_quantity": request.data.get(quantity_key),
+                        "licenced_value": request.data.get(value_key),
+                    }
+                    serializer = GoodOnApplicationLicenceQuantityCreateSerializer(good, data=good_data, partial=True)
 
-            return JsonResponse(data=LicenceCreateSerializer(licence).data, status=status.HTTP_200_OK)
+                    if serializer.is_valid():
+                        serializer.save()
+                    else:
+                        quantity_error = serializer.errors.get("licenced_quantity")
+                        if quantity_error:
+                            errors[quantity_key] = quantity_error
+                        value_error = serializer.errors.get("licenced_value")
+                        if value_error:
+                            errors[value_key] = value_error
+
+                if errors:
+                    return JsonResponse(data={"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            licence_data["application"] = application
+            licence_data["reference_code"] = get_reference_code(application.reference_code)
+            serializer = LicenceCreateSerializer(data=licence_data)
+
+            if not serializer.is_valid():
+                return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save()
+            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
+
+        elif action == AdviceType.REFUSE:
+            application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+            application.save()
+            audit_trail_service.create(
+                actor=request.user, verb=AuditType.FINALISED_APPLICATION, target=application.get_case(),
+            )
+            return JsonResponse(data={"application": str(application.id)}, status=status.HTTP_200_OK)
+
+        return JsonResponse(
+            data={"errors": [strings.Applications.Finalise.Error.NO_ACTION_GIVEN]}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class ApplicationDurationView(APIView):
@@ -709,6 +704,7 @@ class ApplicationCopy(APIView):
         self.duplicate_f680_clearance_types()
 
         # Remove usage & licenced quantity/ value
+        self.new_application.goods.update(usage=0, licenced_quantity=None, licenced_value=None)
         self.new_application.goods_type.update(usage=0)
 
         # Save

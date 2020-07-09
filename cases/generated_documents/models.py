@@ -3,7 +3,6 @@ from django.db import models
 
 from cases.enums import AdviceType
 from cases.models import CaseDocument
-from licences.models import Licence
 from users.models import ExporterNotification
 from letter_templates.models import LetterTemplate
 from users.models import UserOrganisationRelationship
@@ -15,7 +14,6 @@ class GeneratedCaseDocument(CaseDocument):
 
     notifications = GenericRelation(ExporterNotification, related_query_name="generated_case_document",)
     advice_type = models.CharField(choices=AdviceType.choices, max_length=30, null=True, blank=False)
-    licence = models.ForeignKey(Licence, null=True, on_delete=models.DO_NOTHING)
 
     def send_exporter_notifications(self):
         for user_relationship in UserOrganisationRelationship.objects.filter(organisation=self.case.organisation):

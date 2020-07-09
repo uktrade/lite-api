@@ -6,7 +6,6 @@ from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
-from licences.enums import LicenceStatus
 from licences.models import Licence
 from licences.serializers.view_licence import LicenceSerializer, NLRdocumentSerializer
 from licences.serializers.view_licences import LicenceListSerializer
@@ -41,8 +40,8 @@ class Licences(ListCreateAPIView):
         active_only = self.request.GET.get("active_only") == "True"
 
         licences = Licence.objects.filter(
-            application__organisation_id=get_request_user_organisation_id(self.request),
-        ).exclude(status=LicenceStatus.DRAFT)
+            application__organisation_id=get_request_user_organisation_id(self.request), is_complete=True
+        )
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
@@ -83,10 +82,8 @@ class Licences(ListCreateAPIView):
 
 class ViewLicence(RetrieveAPIView):
     authentication_classes = (ExporterAuthentication,)
+    queryset = Licence.objects.all()
     serializer_class = LicenceSerializer
-
-    def get_queryset(self):
-        return Licence.objects.filter(application__organisation_id=get_request_user_organisation_id(self.request))
 
 
 class NLRs(ListAPIView):

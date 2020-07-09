@@ -2,15 +2,6 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import (
-    ListAPIView,
-    RetrieveAPIView,
-    ListCreateAPIView,
-    RetrieveUpdateAPIView,
-    RetrieveUpdateDestroyAPIView,
-    UpdateAPIView,
-)
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
@@ -19,15 +10,6 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
-from compliance.helpers import (
-    get_record_holding_sites_for_case,
-    COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-    get_compliance_site_case,
-    compliance_visit_case_complete,
-    get_exporter_visible_compliance_site_cases,
-)
-from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
-from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
 from compliance.serializers.ComplianceSiteCaseSerializers import (
     ComplianceLicenceListSerializer,
     ExporterComplianceSiteListSerializer,
@@ -39,20 +21,40 @@ from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
     CompliancePersonSerializer,
 )
-from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsCreateSerializer
 from compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsListSerializer,
+    OpenLicenceReturnsCreateSerializer,
     OpenLicenceReturnsViewSerializer,
 )
-from conf.authentication import ExporterAuthentication
 from conf.authentication import GovAuthentication, SharedAuthentication
-from licences.enums import LicenceStatus
-from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
-from lite_content.lite_api.strings import Compliance
-from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
+
+from compliance.helpers import (
+    get_record_holding_sites_for_case,
+    COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
+    get_compliance_site_case,
+    compliance_visit_case_complete,
+    get_exporter_visible_compliance_site_cases,
+)
+
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
+)
+
+from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
+from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
+from conf.authentication import ExporterAuthentication
+
+from lite_content.lite_api.strings import Compliance
+from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from users.libraries.notifications import get_compliance_site_case_notifications
 
 
@@ -123,11 +125,10 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference", "").upper()
 
-        # We filter for OGLs that have a compliance case or
-        # Completed applications (with licences) that have a compliance case
+        # We filter for cases that are completed and have a compliance licence linked to it
         cases = Case.objects.select_related("case_type").filter(
             Q(
-                baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
+                baseapplication__licence__is_complete=True,
                 baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
             )
             | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.kwargs["pk"])
@@ -135,13 +136,12 @@ class LicenceList(ListAPIView):
 
         # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
         #   types relevant for compliance cases
-        approved_goods_on_licence = GoodOnLicence.objects.filter(
-            good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
-        ).values_list("good", flat=True)
-
         cases = cases.filter(
             case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
-        ) | cases.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
+        ) | cases.filter(
+            baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
+            baseapplication__goods__licenced_quantity__isnull=False,
+        )
 
         if reference_code:
             cases = cases.filter(reference_code__contains=reference_code)

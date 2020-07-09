@@ -7,7 +7,6 @@ from rest_framework.reverse import reverse
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from licences.enums import LicenceStatus
 from lite_content.lite_api import strings
 from test_helpers.clients import DataTestClient
 from users.models import ExporterNotification
@@ -17,10 +16,10 @@ class GenerateDocumentTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.letter_template = self.create_letter_template(name="SIEL", case_types=[CaseTypeEnum.SIEL.id])
+
         self.case = self.create_standard_application_case(self.organisation)
         self.data = {"template": str(self.letter_template.id), "text": "sample", "visible_to_exporter": True}
         self.content_type = ContentType.objects.get_for_model(GeneratedCaseDocument)
-        self.url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
     @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
@@ -28,17 +27,18 @@ class GenerateDocumentTests(DataTestClient):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
 
-        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+        response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
-        self.assertEqual(GeneratedCaseDocument.objects.count(), 1)
-        self.assertEqual(
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
+        self.assertTrue(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
-            ).count(),
-            1,
+            ).count()
+            == 1
         )
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
@@ -74,12 +74,13 @@ class GenerateDocumentTests(DataTestClient):
         template = self.create_letter_template(case_types=[CaseTypeEnum.SIEL.id], visible_to_exporter=False)
         self.data["template"] = str(template.id)
 
-        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+        response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
-        self.assertEqual(GeneratedCaseDocument.objects.count(), 1)
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 1)
         self.assertEqual(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
@@ -93,89 +94,21 @@ class GenerateDocumentTests(DataTestClient):
     def test_generate_decision_document_success(self, upload_bytes_file_func, html_to_pdf_func):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.return_value = None
-        self.data["visible_to_exporter"] = True
-        self.data["advice_type"] = AdviceType.NO_LICENCE_REQUIRED
-
-        response = self.client.post(self.url, **self.gov_headers, data=self.data)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        upload_bytes_file_func.assert_called_once()
-        self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.NO_LICENCE_REQUIRED).count(), 1)
-        # Ensure decision documents are hidden until complete
-        self.assertEqual(
-            ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
-            ).count(),
-            0,
-        )
-
-    @mock.patch("cases.generated_documents.views.html_to_pdf")
-    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_licence_document_success(self, upload_bytes_file_func, html_to_pdf_func):
-        licence = self.create_licence(self.case, status=LicenceStatus.DRAFT)
-        html_to_pdf_func.return_value = None
-        upload_bytes_file_func.return_value = None
-        self.data["visible_to_exporter"] = True
+        self.data["visible_to_exporter"] = False
         self.data["advice_type"] = AdviceType.APPROVE
 
-        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+        response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         html_to_pdf_func.assert_called_once()
         upload_bytes_file_func.assert_called_once()
-        self.assertEqual(
-            GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE, licence=licence).count(), 1
-        )
-        # Ensure decision documents are hidden until complete
-        self.assertEqual(
+        self.assertTrue(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count() == 1)
+        self.assertTrue(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
-            ).count(),
-            0,
-        )
-
-    @mock.patch("cases.generated_documents.views.html_to_pdf")
-    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_licence_document_no_licence_failure(self, upload_bytes_file_func, html_to_pdf_func):
-        html_to_pdf_func.return_value = None
-        upload_bytes_file_func.return_value = None
-        self.data["visible_to_exporter"] = True
-        self.data["advice_type"] = AdviceType.APPROVE
-
-        response = self.client.post(self.url, **self.gov_headers, data=self.data)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["errors"], {"non_field_errors": [strings.Cases.GeneratedDocuments.LICENCE_ERROR]}
-        )
-
-    @mock.patch("cases.generated_documents.views.html_to_pdf")
-    @mock.patch("cases.generated_documents.views.s3_operations.upload_bytes_file")
-    def test_generate_new_licence_document_success(self, upload_bytes_file_func, html_to_pdf_func):
-        licence = self.create_licence(self.case, status=LicenceStatus.DRAFT)
-        self.create_generated_case_document(
-            self.case, self.letter_template, advice_type=AdviceType.APPROVE, licence=licence, visible_to_exporter=False
-        )
-        html_to_pdf_func.return_value = None
-        upload_bytes_file_func.return_value = None
-        self.data["visible_to_exporter"] = True
-        self.data["advice_type"] = AdviceType.APPROVE
-
-        response = self.client.post(self.url, **self.gov_headers, data=self.data)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        upload_bytes_file_func.assert_called_once()
-        # Ensure the old licence document is deleted
-        self.assertEqual(GeneratedCaseDocument.objects.filter(advice_type=AdviceType.APPROVE).count(), 1)
-        document = GeneratedCaseDocument.objects.get(advice_type=AdviceType.APPROVE)
-        self.assertEqual(document.licence, licence)
-        self.assertEqual(response.json()["generated_document"], str(document.id))
-        # Ensure decision documents are hidden until complete
-        self.assertEqual(
-            ExporterNotification.objects.filter(
-                user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
-            ).count(),
-            0,
+            ).count()
+            == 0
         )
 
     @mock.patch("cases.generated_documents.views.html_to_pdf")
@@ -183,17 +116,18 @@ class GenerateDocumentTests(DataTestClient):
     def test_generate_document_when_html_to_pdf_throws_error_failure(self, upload_bytes_file_func, html_to_pdf_func):
         html_to_pdf_func.side_effect = Exception("Failed to convert html to pdf")
 
-        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+        response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [strings.Cases.GeneratedDocuments.PDF_ERROR])
-        self.assertEqual(GeneratedCaseDocument.objects.count(), 0)
-        self.assertEqual(Audit.objects.count(), 1)
-        self.assertEqual(
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
+        self.assertTrue(Audit.objects.count() == 1)
+        self.assertTrue(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
-            ).count(),
-            0,
+            ).count()
+            == 0
         )
         upload_bytes_file_func.assert_not_called()
 
@@ -203,17 +137,18 @@ class GenerateDocumentTests(DataTestClient):
         html_to_pdf_func.return_value = None
         upload_bytes_file_func.side_effect = Exception("Failed to upload document")
 
-        response = self.client.post(self.url, **self.gov_headers, data=self.data)
+        url = reverse("cases:generated_documents:generated_documents", kwargs={"pk": str(self.case.pk)})
+        response = self.client.post(url, **self.gov_headers, data=self.data)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.json()["errors"], [strings.Cases.GeneratedDocuments.UPLOAD_ERROR])
-        self.assertEqual(GeneratedCaseDocument.objects.count(), 0)
-        self.assertEqual(Audit.objects.count(), 1)
-        self.assertEqual(
+        self.assertTrue(GeneratedCaseDocument.objects.count() == 0)
+        self.assertTrue(Audit.objects.count() == 1)
+        self.assertTrue(
             ExporterNotification.objects.filter(
                 user=self.exporter_user, content_type=self.content_type, organisation=self.exporter_user.organisation
-            ).count(),
-            0,
+            ).count()
+            == 0
         )
 
     def test_get_document_preview_success(self):
