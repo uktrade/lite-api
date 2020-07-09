@@ -1,5 +1,6 @@
 from django.urls import path, include
 
+import cases.views.licences
 from cases.views import views, case_notes
 from cases.views.search import views as search_views
 from cases.views.search.activity import CaseActivityView, CaseActivityFiltersView
@@ -41,6 +42,7 @@ urlpatterns = [
     path("<uuid:pk>/ecju-queries/<uuid:ecju_pk>/", views.EcjuQueryDetail.as_view(), name="case_ecju_query",),
     path("<uuid:pk>/generated-documents/", include("cases.generated_documents.urls")),
     path("<uuid:pk>/finalise/", views.FinaliseView.as_view(), name="finalise"),
+    path("<uuid:pk>/licences/", cases.views.licences.LicencesView.as_view(), name="licences"),
     path("<uuid:pk>/assigned-queues/", views.AssignedQueues.as_view(), name="assigned_queues"),
     path("<uuid:pk>/rerun-routing-rules/", views.RerunRoutingRules.as_view(), name="rerun_routing_rules"),
     path("<uuid:pk>/review-date/", views.NextReviewDate.as_view(), name="review_date"),
