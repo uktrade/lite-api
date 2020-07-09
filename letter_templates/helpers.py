@@ -4,7 +4,7 @@ from django.template import Context, Engine, TemplateDoesNotExist
 from django.utils.html import escape
 from markdown import markdown
 
-from conf import settings
+from django.conf import settings
 from conf.exceptions import NotFoundError
 from conf.settings import CSS_ROOT
 from letter_templates.context_generator import get_document_context

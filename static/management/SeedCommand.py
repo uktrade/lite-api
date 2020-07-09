@@ -7,7 +7,7 @@ from django.db import transaction, models, IntegrityError
 from django.db.models import QuerySet
 from django.test import TestCase
 
-from conf import settings
+from django.conf import settings
 
 
 class SeedCommand(ABC, BaseCommand):

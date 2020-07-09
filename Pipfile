@@ -44,6 +44,7 @@ pypdf2 = "~=1.26.0"
 pyOpenSSL = "~=19.1.0"
 sentry-sdk = "~=0.16" 
 elastic-apm = "~=5.8"
+django-staff-sso-client = "~=1.0.0"
 
 [requires]
 python_version = "3.7"
