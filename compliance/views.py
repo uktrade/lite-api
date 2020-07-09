@@ -37,6 +37,7 @@ from compliance.helpers import (
     get_compliance_site_case,
     compliance_visit_case_complete,
     get_exporter_visible_compliance_site_cases,
+    filter_cases_with_compliance_related_licence_attached,
 )
 
 from rest_framework.exceptions import ValidationError
@@ -125,23 +126,8 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference", "").upper()
 
-        # We filter for cases that are completed and have a compliance licence linked to it
-        cases = Case.objects.select_related("case_type").filter(
-            Q(
-                baseapplication__licence__is_complete=True,
-                baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
-            )
-            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.kwargs["pk"])
-        )
-
-        # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
-        #   types relevant for compliance cases
-        cases = cases.filter(
-            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
-        ) | cases.filter(
-            baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-            baseapplication__goods__licenced_quantity__isnull=False,
-        )
+        cases = Case.objects.select_related("case_type")
+        cases = filter_cases_with_compliance_related_licence_attached(cases, self.kwargs["pk"])
 
         if reference_code:
             cases = cases.filter(reference_code__contains=reference_code)

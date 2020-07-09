@@ -9,8 +9,8 @@ from applications.enums import (
 )
 from applications.models import ExternalLocationOnApplication, CountryOnApplication
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
-from compliance.tests.factories import ComplianceVisitCaseFactory
-from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
+from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
+from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType
 from letter_templates.context_generator import get_document_context
 from parties.enums import PartyType
@@ -272,12 +272,9 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["reference"], case.case_type.reference)
         self.assertEqual(context["sub_type"], case.case_type.sub_type)
 
-    def _assert_compliance_site_case_details(self, context, case):
-        pass
-
     def _assert_compliance_visit_case_details(self, context, case):
         self.assertEqual(context["visit_type"], case.visit_type)
-        self.assertEqual(context["visit_date"], case.visit_date)
+        self.assertEqual(context["visit_date"], case.visit_date.strftime(DATE_FORMAT))
         self.assertEqual(context["overall_risk_value"], case.overall_risk_value)
         self.assertEqual(context["licence_risk_value"], case.licence_risk_value)
         self.assertEqual(context["overview"], case.overview)
@@ -567,11 +564,66 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_goods_query_details(context["details"], case)
 
     def test_generate_context_with_compliance_visit_details(self):
-        compliance_case = ComplianceVisitCaseFactory(
-            organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
+        compliance_case = ComplianceSiteCaseFactory(
+            organisation=self.organisation,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            site=self.organisation.primary_site,
         )
+        comp_visit_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            site_case=compliance_case,
+        )
+
+        application = self.create_open_application_case(self.organisation)
+        licence = self.create_licence(application, is_complete=True)
+
+        olr = OpenLicenceReturnsFactory(organisation=self.organisation)
+
+        context = get_document_context(comp_visit_case)
+
+        self.assertEqual(context["case_reference"], comp_visit_case.reference_code)
+        self._assert_compliance_visit_case_details(context["details"], comp_visit_case)
+
+        self._assert_address(context["details"]["site_case"], self.organisation.primary_site.address)
+        self.assertEqual(context["details"]["site_case"]["licences"][0]["reference_code"], application.reference_code)
+        self.assertEqual(context["details"]["site_case"]["open_licence_returns"][0]["year"], olr.year)
+        self.assertEqual(
+            context["details"]["site_case"]["open_licence_returns"][0]["file_name"], f"{olr.year}OpenLicenceReturns.csv"
+        )
+        self.assertEqual(
+            context["details"]["site_case"]["open_licence_returns"][0]["timestamp"],
+            olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
+        )
+
+    def test_generate_context_with_compliance_site_details(self):
+        compliance_case = ComplianceSiteCaseFactory(
+            organisation=self.organisation,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            site=self.organisation.primary_site,
+        )
+        comp_visit_case = ComplianceVisitCaseFactory(
+            organisation=self.organisation,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+            site_case=compliance_case,
+        )
+
+        application = self.create_open_application_case(self.organisation)
+        licence = self.create_licence(application, is_complete=True)
+
+        olr = OpenLicenceReturnsFactory(organisation=self.organisation)
 
         context = get_document_context(compliance_case)
 
         self.assertEqual(context["case_reference"], compliance_case.reference_code)
-        self._assert_compliance_visit_case_details(context["details"], compliance_case)
+        self._assert_compliance_visit_case_details(context["details"]["visit_reports"][0], comp_visit_case)
+        self._assert_address(context["details"], self.organisation.primary_site.address)
+        self.assertEqual(context["details"]["licences"][0]["reference_code"], application.reference_code)
+        self.assertEqual(context["details"]["open_licence_returns"][0]["year"], olr.year)
+        self.assertEqual(
+            context["details"]["open_licence_returns"][0]["file_name"], f"{olr.year}OpenLicenceReturns.csv"
+        )
+        self.assertEqual(
+            context["details"]["open_licence_returns"][0]["timestamp"],
+            olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
+        )

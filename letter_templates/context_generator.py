@@ -1,4 +1,6 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.db.models import F, Value
+from django.db.models.functions import Concat
 
 from applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
 from applications.models import (
@@ -11,10 +13,11 @@ from applications.models import (
     CountryOnApplication,
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
-from cases.models import Advice, EcjuQuery, CaseNote
-from compliance.models import ComplianceVisitCase, CompliancePerson
+from cases.models import Advice, EcjuQuery, CaseNote, Case
+from compliance.helpers import filter_cases_with_compliance_related_licence_attached
+from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
-from goods.enums import PvGrading
+from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
@@ -255,25 +258,39 @@ def _get_goods_query_context(case):
     }
 
 
-def _get_compliance_site_context(case):
-    return None
+def _get_compliance_site_licences(case_id):
+    cases = filter_cases_with_compliance_related_licence_attached(Case.objects.all(), case_id)
+    # TODO: add licence status
+    context = [{"reference_code": case.reference_code,} for case in cases]
+    return context
 
 
-def _get_compliance_visit_context(case):
-    def _get_people_present_compliance_visit_context(case):
-        people = list(CompliancePerson.objects.filter(visit_case=case.id))
-        if people:
-            return [{"name": person.name, "job_title": person.job_title} for person in people]
-        else:
-            return None
+def _get_organisations_open_licence_returns(organisation_id):
+    olrs = OpenLicenceReturns.objects.filter(organisation_id=organisation_id).order_by("-year", "-created_at")
 
-    comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
+    return [
+        {
+            "file_name": f"{olr.year}OpenLicenceReturns.csv",
+            "year": olr.year,
+            "timestamp": olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
+        }
+        for olr in olrs
+    ]
+
+
+def _get_people_present_compliance_visit_context(case):
+    people = list(CompliancePerson.objects.filter(visit_case=case.id))
+    if people:
+        return [{"name": person.name, "job_title": person.job_title} for person in people]
+    else:
+        return None
+
+
+def _convert_compliance_visit_case_to_dict(comp_case):
     return {
-        "site_case_reference": comp_case.site_case.reference_code,
-        "site_name": comp_case.site_case.site.name,
-        "site_address": comp_case.site_case.site.address,
+        "reference_code": comp_case.reference_code,
         "visit_type": comp_case.visit_type,
-        "visit_date": comp_case.visit_date,
+        "visit_date": comp_case.visit_date.strftime(DATE_FORMAT),
         "overall_risk_value": comp_case.overall_risk_value,
         "licence_risk_value": comp_case.licence_risk_value,
         "overview": comp_case.overview,
@@ -286,6 +303,29 @@ def _get_compliance_visit_context(case):
         "products_risk_value": comp_case.products_risk_value,
         "people_present": _get_people_present_compliance_visit_context(comp_case),
     }
+
+
+def _get_compliance_site_context(case, with_visit_reports=True):
+    context = {
+        "reference_code": case.reference_code,
+        "site_name": case.site.name,
+        **_get_address(case.site.address),
+        "open_licence_returns": _get_organisations_open_licence_returns(case.organisation.id),
+        "licences": _get_compliance_site_licences(case.id),
+    }
+    if with_visit_reports:
+        context["visit_reports"] = [
+            _convert_compliance_visit_case_to_dict(visit)
+            for visit in ComplianceVisitCase.objects.filter(site_case_id=case.id)
+        ]
+    return context
+
+
+def _get_compliance_visit_context(case):
+    comp_case = ComplianceVisitCase.objects.select_related("site_case").get(id=case.id)
+    context = _convert_compliance_visit_case_to_dict(comp_case)
+    context["site_case"] = _get_compliance_site_context(comp_case.site_case, with_visit_reports=False)
+    return context
 
 
 def _get_details_context(case):
@@ -386,7 +426,54 @@ def _get_good_context(good_on_application, advice=None):
         else None,
         "applied_for_value": f"£{good_on_application.value}",
         "is_incorporated": friendly_boolean(good_on_application.is_good_incorporated),
+        "item_category": good_on_application.good.item_category,
     }
+
+    # handle item categories for goods and their differences
+    if good_on_application.good.item_category in ItemCategory.group_one:
+        good_context["is_military_use"] = good_on_application.good.is_military_use
+        if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
+            good_context["modified_military_use_details"] = good_on_application.good.modified_military_use_details
+        good_context["is_component"] = good_on_application.good.is_component
+        if good_on_application.good.is_component != Component.NO:
+            good_context["component_details"] = good_on_application.good.component_details
+        good_context["uses_information_security"] = friendly_boolean(good_on_application.good.uses_information_security)
+        if good_on_application.good.uses_information_security:
+            good_context["information_security_details"] = good_on_application.good.information_security_details
+    elif good_on_application.good.item_category in ItemCategory.group_two:
+        good_context["firearm_type"] = good_on_application.good.firearm_details.type
+        good_context["year_of_manufacture"] = good_on_application.good.firearm_details.year_of_manufacture
+        good_context["calibre"] = good_on_application.good.firearm_details.calibre
+        good_context["is_covered_by_firearm_act_section_one_two_or_five"] = friendly_boolean(
+            good_on_application.good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five
+        )
+        if good_on_application.good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five:
+            good_context[
+                "section_certificate_number"
+            ] = good_on_application.good.firearm_details.section_certificate_number
+            good_context[
+                "section_certificate_date_of_expiry"
+            ] = good_on_application.good.firearm_details.section_certificate_date_of_expiry
+        good_context["has_identification_markings"] = friendly_boolean(
+            good_on_application.good.firearm_details.has_identification_markings
+        )
+        if good_on_application.good.firearm_details.has_identification_markings:
+            good_context[
+                "identification_markings_details"
+            ] = good_on_application.good.firearm_details.identification_markings_details
+        else:
+            good_context[
+                "no_identification_markings_details"
+            ] = good_on_application.good.firearm_details.no_identification_markings_details
+    elif good_on_application.good.item_category in ItemCategory.group_three:
+        good_context["is_military_use"] = good_on_application.good.is_military_use
+        if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
+            good_context["modified_military_use_details"] = good_on_application.good.modified_military_use_details
+        good_context["software_or_technology_details"] = good_on_application.good.software_or_technology_details
+        good_context["uses_information_security"] = friendly_boolean(good_on_application.good.uses_information_security)
+        if good_on_application.good.uses_information_security:
+            good_context["information_security_details"] = good_on_application.good.information_security_details
+
     if advice:
         good_context["reason"] = advice.text
         good_context["note"] = advice.note
