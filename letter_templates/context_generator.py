@@ -1,6 +1,4 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.db.models import F, Value
-from django.db.models.functions import Concat
 
 from applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
 from applications.models import (
