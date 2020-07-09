@@ -4,7 +4,7 @@ from unittest.mock import ANY
 from django.urls import reverse
 from rest_framework import status
 
-from licences.apps import LicencesConfig
+from cases.apps import CasesConfig
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from conf.constants import GovPermissions
 from conf.helpers import add_months
@@ -395,7 +395,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         schedule_licence_for_hmrc_integration.return_value = None
 
         # When the application is restarted it will trigger this function
-        LicencesConfig.schedule_not_sent_licences()
+        CasesConfig.schedule_not_sent_licences()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
             str(self.standard_licence.id), self.standard_licence.application.reference_code
