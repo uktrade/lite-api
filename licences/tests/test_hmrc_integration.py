@@ -404,10 +404,11 @@ class HMRCIntegrationTasksTests(DataTestClient):
     @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
     def test_initialize_background_task_already_scheduled(self, schedule_licence_for_hmrc_integration):
         from licences.apps import LicencesConfig
+
         schedule_licence_for_hmrc_integration.return_value = None
 
         # When the application is restarted it will trigger this function
-        LicencesConfig.initialize_background_tasks()
+        LicencesConfig.schedule_not_sent_licences()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
             str(self.standard_licence.id), self.standard_licence.application.reference_code
