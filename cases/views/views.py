@@ -468,7 +468,6 @@ class ECJUQueries(APIView):
                 if case.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
                     # For each licence in compliance case email the user that submitted the application
                     for licence in case.get_licences():
-                        print(licence.reference_code)
                         emails.add(licence.submitted_by.email)
                 else:
                     emails.add(case["email"])

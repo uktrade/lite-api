@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.models import EcjuQuery
-from gov_notify.enums import TemplateType
+from compliance.tests.factories import ComplianceSiteCaseFactory
 from picklists.enums import PicklistType
 from test_helpers.clients import DataTestClient
 
@@ -132,6 +132,7 @@ class CaseEcjuQueriesTests(DataTestClient):
 
 
 class EcjuQueriesCreateTest(DataTestClient):
+
     @mock.patch("gov_notify.service.client")
     def test_gov_user_can_create_ecju_queries(self, mock_client):
         """
@@ -144,13 +145,31 @@ class EcjuQueriesCreateTest(DataTestClient):
         data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
 
         response = self.client.post(url, data, **self.gov_headers)
-        response_data = json.loads(response.content)
+        response_data = response.json()
         ecju_query = EcjuQuery.objects.get(case=case)
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Test ECJU Query question?", ecju_query.question)
         mock_client.send_email.assert_not_called()
+
+    @mock.patch("gov_notify.service.client")
+    def test_query_sends_email_to_each_application_submitter(self, mock_client):
+        """
+        TODO TODO TODO
+        """
+        case = ComplianceSiteCaseFactory()
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+        data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
+
+        response = self.client.post(url, data, **self.gov_headers)
+        response_data = response.json()
+        ecju_query = EcjuQuery.objects.get(case=case)
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
+        self.assertEqual("Test ECJU Query question?", ecju_query.question)
+        mock_client.send_email.assert_called()
 
     @mock.patch("gov_notify.service.client")
     def test_gov_user_can_create_ecju_queries_on_query_cases(self, mock_client):
@@ -165,7 +184,7 @@ class EcjuQueriesCreateTest(DataTestClient):
 
         # Act
         response = self.client.post(url, data, **self.gov_headers)
-        response_data = json.loads(response.content)
+        response_data = response.json()
         ecju_query = EcjuQuery.objects.get(case=case)
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
@@ -211,7 +230,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
 
         # Assert
-        response_data = json.loads(response.content)
+        response_data = response.json()
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(str(ecju_query.id), response_data["ecju_query"]["id"])

@@ -10,7 +10,7 @@ from django.db.models import deletion, Q
 from common.models import CreatedAt, TimestampableModel
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from licences.enums import LicenceStatus
-from licences.models import Licence
+from licences.models import Licence, GoodOnLicence
 from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -47,13 +47,17 @@ class ComplianceSiteCase(Case):
             )
             | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.id)
         )
+
         # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
         # types relevant for compliance cases
+        approved_goods_on_licence = GoodOnLicence.objects.filter(
+            good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+        ).values_list("good", flat=True)
+
         queryset = queryset.filter(
             case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
-        ) | queryset.filter(
-            baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-        )
+        ) | queryset.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
+
         return queryset
 
 
@@ -90,6 +94,31 @@ class ComplianceVisitCase(Case):
     # knowledge of controlled items of business' products
     products_overview = models.TextField(default=None, null=True)
     products_risk_value = models.CharField(choices=ComplianceRiskValues.choices, max_length=10, null=True, default=None)
+
+    def get_licences(self):
+        """
+        Returns a list of licences belonging to the compliance case site
+        """
+        from compliance.helpers import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+        queryset = Case.objects.select_related("case_type").filter(
+            Q(
+                baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
+                baseapplication__application_sites__site__site_records_located_at__compliance__id=self.id,
+            )
+            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.id)
+        )
+
+        # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
+        # types relevant for compliance cases
+        approved_goods_on_licence = GoodOnLicence.objects.filter(
+            good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+        ).values_list("good", flat=True)
+
+        queryset = queryset.filter(
+            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
+        ) | queryset.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
+
+        return queryset
 
 
 class OpenLicenceReturns(CreatedAt):
