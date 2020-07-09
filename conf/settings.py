@@ -6,6 +6,7 @@ from environ import Env
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -250,24 +251,24 @@ else:
     LOGGING = {"version": 1, "disable_existing_loggers": True}
 
 # Sentry
-if env.str('SENTRY_DSN', ''):
+if env.str("SENTRY_DSN", ""):
     sentry_sdk.init(
-        dsn=env.str('SENTRY_DSN'),
-        environment=env.str('SENTRY_ENVIRONMENT'),
+        dsn=env.str("SENTRY_DSN"),
+        environment=env.str("SENTRY_ENVIRONMENT"),
         integrations=[DjangoIntegration()],
-        send_default_pii=True
+        send_default_pii=True,
     )
 
 # Application Performance Monitoring
-if env.str('ELASTIC_APM_SERVER_URL', ''):
+if env.str("ELASTIC_APM_SERVER_URL", ""):
     ELASTIC_APM = {
-        'SERVICE_NAME': env.str('ELASTIC_APM_SERVICE_NAME', 'lite-api'),
-        'SECRET_TOKEN': env.str('ELASTIC_APM_SECRET_TOKEN'),
-        'SERVER_URL': env.str('ELASTIC_APM_SERVER_URL'),
-        'ENVIRONMENT': env.str('SENTRY_ENVIRONMENT'),
-        'DEBUG': DEBUG,
+        "SERVICE_NAME": env.str("ELASTIC_APM_SERVICE_NAME", "lite-api"),
+        "SECRET_TOKEN": env.str("ELASTIC_APM_SECRET_TOKEN"),
+        "SERVER_URL": env.str("ELASTIC_APM_SERVER_URL"),
+        "ENVIRONMENT": env.str("SENTRY_ENVIRONMENT"),
+        "DEBUG": DEBUG,
     }
-    INSTALLED_APPS.append('elasticapm.contrib.django')
+    INSTALLED_APPS.append("elasticapm.contrib.django")
 
 
 RECENTLY_UPDATED_WORKING_DAYS = env(
@@ -300,3 +301,18 @@ if DEBUG:
         "group_models": True,
     }
 
+
+# SSO config
+FEATURE_STAFF_SSO_ENABLED = env.bool("FEATURE_STAFF_SSO_ENABLED", False)
+if FEATURE_STAFF_SSO_ENABLED:
+    INSTALLED_APPS.append("authbroker_client")
+    AUTHENTICATION_BACKENDS = [
+        "django.contrib.auth.backends.ModelBackend",
+        "authbroker_client.backends.AuthbrokerBackend",
+    ]
+    LOGIN_URL = reverse_lazy("authbroker_client:login")
+    LOGIN_REDIRECT_URL = reverse_lazy("admin:index")
+    AUTHBROKER_URL = env.str("STAFF_SSO_AUTHBROKER_URL")
+    AUTHBROKER_CLIENT_ID = env.str("STAFF_SSO_AUTHBROKER_CLIENT_ID")
+    AUTHBROKER_CLIENT_SECRET = env.str("STAFF_SSO_AUTHBROKER_CLIENT_SECRET")
+    ALLOWED_ADMIN_EMAILS = env.list("ALLOWED_ADMIN_EMAILS")
