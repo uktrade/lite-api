@@ -11,8 +11,7 @@ class FlagsUpdateTest(TestCase):
         # when an anonymous user accesses login
         response = self.client.get(reverse("admin:login"))
         # then they are sent to the staff sso login
-        assert response.status_code == 302
-        assert response.url == reverse("authbroker_client:login")
+        self.assertRedirects(response, reverse("authbroker_client:login"), fetch_redirect_response=False)
 
     @override_settings(ALLOWED_ADMIN_EMAILS=[])
     def test_login_authenticated_user_permission_denied(self):
@@ -24,9 +23,7 @@ class FlagsUpdateTest(TestCase):
         response = self.client.get(reverse("admin:login"))
 
         # then they are not shown admin
-        assert response.status_code == 200
-        assert response.template_name
-        assert "not authorized to access this page" in response.content
+        self.assertContains(response, "not authorized to access this page", status_code=200)
 
     @override_settings(ALLOWED_ADMIN_EMAILS=["test@example.com"])
     def test_login_authenticated_user_permission_granted(self):
@@ -38,5 +35,5 @@ class FlagsUpdateTest(TestCase):
         response = self.client.get(reverse("admin:index"))
 
         # then they are shown admin
-        assert response.status_code == 200
-        assert response.template_name == "admin/index.html"
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "admin/index.html")
