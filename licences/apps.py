@@ -8,13 +8,15 @@ from licences.enums import LicenceStatus
 class LicencesConfig(AppConfig):
     name = "licences"
 
-    def initialize_background_tasks(self, **kwargs):
+    @staticmethod
+    def initialize_background_tasks(**kwargs):
         if LITE_HMRC_INTEGRATION_ENABLED:
-            self.schedule_not_sent_licences()
+            LicencesConfig.schedule_not_sent_licences()
 
     @staticmethod
     def schedule_not_sent_licences():
-        # Send licence info to HMRC integration
+        """Send licence info to HMRC integration"""
+
         from licences.models import Licence
         from licences.tasks import schedule_licence_for_hmrc_integration
 
