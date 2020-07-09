@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from compliance.tests.factories import OpenLicenceReturnsFactory
+from licences.enums import LicenceStatus
 from test_helpers.clients import DataTestClient
 
 
@@ -9,7 +10,7 @@ class GetOpenLicenceReturnsTest(DataTestClient):
     def setUp(self):
         super().setUp()
         application = self.create_standard_application_case(self.organisation)
-        self.licence = self.create_licence(application, is_complete=True)
+        self.licence = self.create_licence(application, status=LicenceStatus.ISSUED)
         self.olr = OpenLicenceReturnsFactory(organisation=self.organisation)
         self.olr.licences.set([self.licence])
 
