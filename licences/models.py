@@ -29,7 +29,7 @@ class Licence(TimestampableModel):
     start_date = models.DateField(blank=False, null=False)
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
     decisions = models.ManyToManyField(Decision, related_name="licence")
-    sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
+    hmrc_integration_sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
     hmrc_integration_usage_updates = models.ManyToManyField(
         HMRCIntegrationUsageUpdate, related_name="licences"
     )  # Usage Update IDs from from HMRC Integration
@@ -70,11 +70,11 @@ class Licence(TimestampableModel):
 
         schedule_licence_for_hmrc_integration(str(self.id), self.reference_code)
 
-    def set_sent_at(self, value):
+    def set_hmrc_integration_sent_at(self, value):
         """
         For avoiding use of 'save()' which would trigger 'send_to_hmrc_integration()' again
         """
-        self.sent_at = value
+        self.hmrc_integration_sent_at = value
         super(Licence, self).save()
 
 

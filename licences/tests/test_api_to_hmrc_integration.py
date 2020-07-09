@@ -168,26 +168,26 @@ class HMRCIntegrationOperationsTests(DataTestClient):
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
     def test_send_licence_success_201(self, serializer, requests_post):
         serializer.return_value = MockSerializer(self.standard_licence)
-        original_sent_at = self.standard_licence.sent_at  # Should be None
+        original_hmrc_integration_sent_at = self.standard_licence.hmrc_integration_sent_at  # Should be None
         requests_post.return_value = MockResponse("", 201)
 
         send_licence(self.standard_licence)
 
         requests_post.assert_called_once()
-        self.assertIsNotNone(self.standard_licence.sent_at)
-        self.assertNotEqual(self.standard_licence.sent_at, original_sent_at)
+        self.assertIsNotNone(self.standard_licence.hmrc_integration_sent_at)
+        self.assertNotEqual(self.standard_licence.hmrc_integration_sent_at, original_hmrc_integration_sent_at)
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
     def test_send_licence_success_200(self, serializer, requests_post):
         serializer.return_value = MockSerializer(self.standard_licence)
-        original_sent_at = self.standard_licence.sent_at  # Should not be None
+        original_hmrc_integration_sent_at = self.standard_licence.hmrc_integration_sent_at  # Should not be None
         requests_post.return_value = MockResponse("", 200)
 
         send_licence(self.standard_licence)
 
         requests_post.assert_called_once()
-        self.assertEqual(self.standard_licence.sent_at, original_sent_at)
+        self.assertEqual(self.standard_licence.hmrc_integration_sent_at, original_hmrc_integration_sent_at)
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
@@ -204,7 +204,7 @@ class HMRCIntegrationOperationsTests(DataTestClient):
             f"An unexpected response was received when sending licence '{self.standard_licence.id}' changes "
             f"to HMRC Integration -> status=400, message=Bad request",
         )
-        self.assertIsNone(self.standard_licence.sent_at)
+        self.assertIsNone(self.standard_licence.hmrc_integration_sent_at)
 
 
 @mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)

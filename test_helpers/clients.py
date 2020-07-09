@@ -1022,7 +1022,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_licence(
-        application: BaseApplication, status: LicenceStatus, reference_code=None, decisions=None, sent_at=None
+        application: BaseApplication,
+        status: LicenceStatus,
+        reference_code=None,
+        decisions=None,
+        hmrc_integration_sent_at=None,
     ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
@@ -1035,7 +1039,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
             status=status,
-            sent_at=sent_at,
+            hmrc_integration_sent_at=hmrc_integration_sent_at,
         )
         licence.decisions.set(decisions)
         return licence

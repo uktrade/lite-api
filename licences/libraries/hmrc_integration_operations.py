@@ -42,7 +42,7 @@ def send_licence(licence: Licence):
         )
 
     if response.status_code == status.HTTP_201_CREATED:
-        licence.set_sent_at(timezone.now())
+        licence.set_hmrc_integration_sent_at(timezone.now())
 
     logging.info(f"Successfully sent licence '{licence.id}' changes to HMRC Integration")
 
