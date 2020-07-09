@@ -45,7 +45,7 @@ def case_meets_conditions_for_compliance(case: Case):
             Good.objects.filter(
                 goods_on_application__application_id=case.id,
                 control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-                goods_on_application__licenced_quantity__isnull=False,
+                goods_on_application__licence__quantity__isnull=False,
             ).exists()
         ):
             return False

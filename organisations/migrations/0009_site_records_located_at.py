@@ -6,6 +6,7 @@ from django.db.models import F
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from compliance.helpers import generate_compliance_site_case
+from licences.enums import LicenceStatus
 
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
@@ -22,7 +23,7 @@ def forward_migration(apps, schema_editor):
 
     cases = Case.objects.filter(
         baseapplication__application_sites__site__site_records_located_at__compliance__isnull=True,
-        baseapplication__licence__is_complete=True,
+        baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
     ).distinct()
 
     # Get or create case type & status because seeding may not have run yet

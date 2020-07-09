@@ -6,17 +6,11 @@ from lite_content.lite_api import strings
 
 
 class LicenceCreateSerializer(serializers.ModelSerializer):
-    reference_code = serializers.CharField(max_length=30, required=True)
+    reference_code = serializers.CharField(max_length=30, allow_blank=False, allow_null=False)
 
     class Meta:
         model = Licence
-        fields = (
-            "application",
-            "reference_code",
-            "start_date",
-            "duration",
-            "is_complete",
-        )
+        fields = ("application", "reference_code", "start_date", "duration", "status")
 
     def validate(self, data):
         """

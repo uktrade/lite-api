@@ -5,7 +5,7 @@ from cases.enums import CaseTypeEnum, AdviceType
 from test_helpers.clients import DataTestClient
 
 
-class GetLicencesTests(DataTestClient):
+class GetNLRsTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.url = reverse("licences:nlrs")

@@ -7,6 +7,7 @@ from rest_framework import status
 
 from cases.models import CaseAssignment
 from gov_notify.enums import TemplateType
+from licences.enums import LicenceStatus
 from lite_content.lite_api import strings
 from users.models import UserOrganisationRelationship
 from static.statuses.enums import CaseStatusEnum
@@ -167,7 +168,7 @@ class ApplicationManageStatusTests(DataTestClient):
     def test_exporter_set_application_status_surrendered_success(self, mock_notify_client):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
-        self.create_licence(self.standard_application, is_complete=True)
+        self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
         surrendered_status = get_case_status_by_status("surrendered")
 
         data = {"status": CaseStatusEnum.SURRENDERED}
@@ -248,7 +249,13 @@ class ApplicationManageStatusTests(DataTestClient):
         [
             status
             for status, value in CaseStatusEnum.choices
-            if status not in [CaseStatusEnum.APPLICANT_EDITING, CaseStatusEnum.FINALISED, CaseStatusEnum.SURRENDERED]
+            if status
+            not in [
+                CaseStatusEnum.APPLICANT_EDITING,
+                CaseStatusEnum.FINALISED,
+                CaseStatusEnum.SURRENDERED,
+                CaseStatusEnum.REOPENED_FOR_CHANGES,
+            ]
         ]
     )
     def test_gov_set_status_for_all_except_applicant_editing_and_finalised_success(self, case_status):

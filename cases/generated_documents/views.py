@@ -2,11 +2,12 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework import status, generics
+from rest_framework.exceptions import ParseError
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseDocumentState
+from cases.enums import CaseDocumentState, AdviceType
 from cases.generated_documents.helpers import html_to_pdf, get_generated_document_data
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import (
@@ -19,6 +20,7 @@ from conf.authentication import GovAuthentication, SharedAuthentication
 from conf.decorators import authorised_to_view_application
 from conf.helpers import str_to_bool
 from documents.libraries import s3_operations
+from licences.models import Licence
 from lite_content.lite_api import strings
 from organisations.libraries.get_organisation import get_request_user_organisation_id
 from users.enums import UserType
@@ -57,6 +59,7 @@ class GeneratedDocuments(generics.ListAPIView):
         """
         Create a generated document
         """
+        licence = None
         try:
             document = get_generated_document_data(request.data, pk)
         except AttributeError as e:
@@ -72,17 +75,33 @@ class GeneratedDocuments(generics.ListAPIView):
         if document.template.include_digital_signature:
             pdf = sign_pdf(pdf)
 
+        if request.data.get("advice_type") in [
+            AdviceType.APPROVE,
+            AdviceType.PROVISO,
+        ]:
+            try:
+                licence = Licence.objects.get_draft_licence(pk)
+            except Licence.DoesNotExist:
+                raise ParseError({"non_field_errors": [strings.Cases.GeneratedDocuments.LICENCE_ERROR]})
+
         s3_key = s3_operations.generate_s3_key(document.template.name, "pdf")
         # base the document name on the template name and a portion of the UUID generated for the s3 key
         document_name = f"{s3_key[:len(document.template.name) + 6]}.pdf"
 
         visible_to_exporter = str_to_bool(request.data.get("visible_to_exporter"))
         # If the template is not visible to exporter this supersedes what is given for the document
-        if not document.template.visible_to_exporter:
+        # Decision documents are also hidden until finalised (see FinaliseView)
+        if not document.template.visible_to_exporter or request.data.get("advice_type"):
             visible_to_exporter = False
 
         try:
             with transaction.atomic():
+                # Delete any pre-existing decision document if the documents have not been finalised
+                # i.e. They are not visible to the exporter
+                GeneratedCaseDocument.objects.filter(
+                    case=document.case, advice_type=request.data.get("advice_type"), visible_to_exporter=False
+                ).delete()
+
                 generated_doc = GeneratedCaseDocument.objects.create(
                     name=document_name,
                     user=request.user,
@@ -95,6 +114,7 @@ class GeneratedDocuments(generics.ListAPIView):
                     text=document.text,
                     visible_to_exporter=visible_to_exporter,
                     advice_type=request.data.get("advice_type"),
+                    licence=licence,
                 )
 
                 audit_trail_service.create(
