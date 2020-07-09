@@ -19,10 +19,12 @@
 
 	<h1>Notes</h1>
 	{% for note in notes %}
-		<p>{{ note.text }}</p>
-		<i>(created by {{ note.user }} on {{ note.date }} at {{ note.time }})</i>
-		{% if not forloop.last %}
-			<hr>
+		{% if note.visible_to_exporter %}
+			<p>{{ note.text }}</p>
+			<i>(created by {{ note.user }} on {{ note.date }} at {{ note.time }})</i>
+			{% if not forloop.last %}
+				<hr>
+			{% endif %}
 		{% endif %}
 	{% endfor %}
 </div>
