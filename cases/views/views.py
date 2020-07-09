@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
@@ -13,7 +15,7 @@ from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType, CaseTypeTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from cases.helpers import remove_next_review_date
@@ -415,7 +417,7 @@ class FinalAdvice(APIView):
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
 
-class CaseEcjuQueries(APIView):
+class ECJUQueries(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
@@ -442,12 +444,13 @@ class CaseEcjuQueries(APIView):
         """
         Add a new ECJU query
         """
-        data = JSONParser().parse(request)
+        data = deepcopy(request.data)
         data["case"] = pk
         data["raised_by_user"] = request.user.id
         data["team"] = request.user.team.id
         serializer = EcjuQueryCreateSerializer(data=data)
-        if serializer.is_valid():
+
+        if serializer.is_valid(raise_exception=True):
             if "validate_only" not in data or not data["validate_only"]:
                 serializer.save()
 
@@ -458,19 +461,25 @@ class CaseEcjuQueries(APIView):
                     target=serializer.instance.case,
                     payload={"ecju_query": data["question"]},
                 )
-                if serializer.data["query_type"]["key"] == ECJUQueryType.ECJU:
-                    # Only send email for standard ECJU queries
-                    application_info = (
-                        Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
-                        .values("email", "name", "reference_code")
-                        .get(id=pk)
-                    )
+
+                case = Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name")).get_subclass(id=pk)
+
+                emails = set()
+                if case.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
+                    # For each licence in compliance case email the user that submitted the application
+                    for licence in case.get_licences():
+                        print(licence.reference_code)
+                        emails.add(licence.submitted_by.email)
+                else:
+                    emails.add(case["email"])
+
+                for email in emails:
                     gov_notify_service.send_email(
-                        email_address=application_info["email"],
+                        email_address=email,
                         template_type=TemplateType.ECJU_CREATED,
                         data=EcjuCreatedEmailData(
-                            application_reference=application_info["reference_code"],
-                            ecju_reference=application_info["name"],
+                            application_reference=case.reference_code,
+                            ecju_reference="hello world",
                             link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
                         ),
                     )
@@ -478,7 +487,6 @@ class CaseEcjuQueries(APIView):
                 return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={}, status=status.HTTP_200_OK)
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EcjuQueryDetail(APIView):

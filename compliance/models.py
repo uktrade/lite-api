@@ -5,10 +5,11 @@ from cases.models import Case
 import uuid
 
 from django.db import models
-from django.db.models import deletion
+from django.db.models import deletion, Q
 
 from common.models import CreatedAt, TimestampableModel
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
+from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
@@ -33,6 +34,27 @@ class ComplianceSiteCase(Case):
         )
         visit_case.save()
         return visit_case
+
+    def get_licences(self):
+        """
+        Returns a list of licences belonging to the compliance case site
+        """
+        from compliance.helpers import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+        queryset = Case.objects.select_related("case_type").filter(
+            Q(
+                baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
+                baseapplication__application_sites__site__site_records_located_at__compliance__id=self.id,
+            )
+            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.id)
+        )
+        # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
+        # types relevant for compliance cases
+        queryset = queryset.filter(
+            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
+        ) | queryset.filter(
+            baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
+        )
+        return queryset
 
 
 class ComplianceVisitCase(Case):
