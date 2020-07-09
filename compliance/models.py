@@ -103,9 +103,9 @@ class ComplianceVisitCase(Case):
         queryset = Case.objects.select_related("case_type").filter(
             Q(
                 baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
-                baseapplication__application_sites__site__site_records_located_at__compliance__id=self.id,
+                baseapplication__application_sites__site__site_records_located_at__compliance__id=self.site_case.id,
             )
-            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.id)
+            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.site_case.id)
         )
 
         # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case

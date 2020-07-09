@@ -462,7 +462,7 @@ class ECJUQueries(APIView):
                     payload={"ecju_query": data["question"]},
                 )
 
-                case = Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name")).get_subclass(id=pk)
+                case = Case.objects.annotate(name=F("baseapplication__name")).get_subclass(id=pk)
 
                 emails = set()
                 if case.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
@@ -478,7 +478,7 @@ class ECJUQueries(APIView):
                         template_type=TemplateType.ECJU_CREATED,
                         data=EcjuCreatedEmailData(
                             application_reference=case.reference_code,
-                            ecju_reference="hello world",
+                            ecju_reference=case.name,
                             link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
                         ),
                     )
