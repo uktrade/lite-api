@@ -71,7 +71,7 @@ class GetComplianceLicencesTests(DataTestClient):
         application = self.create_open_application_case(self.organisation)
         application.case_type_id = CaseTypeEnum.OIEL.id
         application.save()
-        licence = self.create_licence(application, is_complete=True)
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
         olr = OpenLicenceReturnsFactory(organisation=self.organisation, year=datetime.now().year - 1)
         olr.licences.set([licence])
 
@@ -90,7 +90,7 @@ class GetComplianceLicencesTests(DataTestClient):
         application = self.create_open_application_case(self.organisation)
         application.case_type_id = CaseTypeEnum.OIEL.id
         application.save()
-        licence = self.create_licence(application, is_complete=True)
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
         olr = OpenLicenceReturnsFactory(organisation=self.organisation, year=datetime.now().year - 2)
         olr.licences.set([licence])
 
