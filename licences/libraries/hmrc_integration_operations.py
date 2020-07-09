@@ -6,13 +6,11 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-from applications.models import GoodOnApplication
-
 # from audit_trail import service as audit_trail_service
 from cases.enums import CaseTypeEnum
 from conf.requests import post
 from conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT, HAWK_LITE_API_CREDENTIALS
-from licences.models import Licence, HMRCIntegrationUsageUpdate
+from licences.models import Licence, HMRCIntegrationUsageUpdate, GoodOnLicence
 from licences.serializers.hmrc_integration import (
     HMRCIntegrationLicenceSerializer,
     HMRCIntegrationUsageUpdateGoodSerializer,
@@ -128,8 +126,8 @@ def _validate_good_on_licence(licence_id: UUID, data: dict) -> dict:
         return data
 
     try:
-        GoodOnApplication.objects.get(application__licence__id=licence_id, good_id=data["id"])
-    except GoodOnApplication.DoesNotExist:
+        GoodOnLicence.objects.get(licence_id=licence_id, good__good_id=data["id"])
+    except GoodOnLicence.DoesNotExist:
         data["errors"] = {"id": ["Good not found on Licence."]}
 
     return data
@@ -145,7 +143,7 @@ def _update_licence(data: dict) -> UUID:
 def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: int):
     """Updates the Usage for a Good on a Licence"""
 
-    GoodOnApplication.objects.filter(application__licence__id=licence_id, good_id=good_id).update(usage=usage)
+    GoodOnLicence.objects.filter(licence_id=licence_id, good__good_id=good_id).update(usage=usage)
 
     # audit_trail_service.create_system_user_audit(
     #     verb=AuditType.UPDATED_STATUS, target=gol.application.get_case(), payload={"status": {"new": "", "old": ""}},

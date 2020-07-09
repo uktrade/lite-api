@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from conf.helpers import add_months
-from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
+from licences.helpers import get_approved_goods_types
 from static.countries.models import Country
 
 
@@ -46,14 +46,13 @@ class HMRCIntegrationEndUserSerializer(serializers.Serializer):
         return {"line_1": instance.address, "country": HMRCIntegrationCountrySerializer(instance.country).data}
 
 
-class HMRCIntegrationGoodOnApplicationSerializer(serializers.Serializer):
-    id = serializers.UUIDField(source="good.id")
-    description = serializers.CharField(source="good.description")
-    usage = serializers.IntegerField()
-    unit = serializers.CharField()
-    quantity = serializers.IntegerField()
-    licenced_quantity = serializers.IntegerField()
-    licenced_value = serializers.IntegerField()
+class HMRCIntegrationGoodOnLicenceSerializer(serializers.Serializer):
+    id = serializers.UUIDField(source="good.good.id")
+    usage = serializers.FloatField()
+    description = serializers.CharField(source="good.good.description")
+    unit = serializers.CharField(source="good.unit")
+    quantity = serializers.FloatField()
+    value = serializers.FloatField()
 
 
 class HMRCIntegrationGoodsTypeSerializer(serializers.Serializer):
@@ -101,9 +100,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         ).data
 
     def get_goods(self, instance):
-        if instance.application.goods.exists():
-            approved_goods = get_approved_goods_on_application(instance.application)
-            return HMRCIntegrationGoodOnApplicationSerializer(approved_goods, many=True).data
+        if instance.goods.exists():
+            return HMRCIntegrationGoodOnLicenceSerializer(instance.goods, many=True).data
         elif instance.application.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance.application)
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data

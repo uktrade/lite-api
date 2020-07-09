@@ -4,12 +4,13 @@ from unittest.mock import ANY
 from django.urls import reverse
 from rest_framework import status
 
-from cases.enums import AdviceType, AdviceLevel, CaseTypeSubTypeEnum
 from cases.apps import CasesConfig
+from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from conf.constants import GovPermissions
 from conf.helpers import add_months
 from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
-from licences.helpers import get_approved_goods_on_application, get_approved_goods_types
+from licences.enums import LicenceStatus
+from licences.helpers import get_approved_goods_types
 from licences.libraries.hmrc_integration_operations import (
     send_licence,
     HMRCIntegrationException,
@@ -24,6 +25,7 @@ from licences.tasks import (
     schedule_licence_for_hmrc_integration,
     TASK_QUEUE,
 )
+from licences.tests.factories import GoodOnLicenceFactory
 from static.countries.models import Country
 from static.decisions.models import Decision
 from test_helpers.clients import DataTestClient
@@ -58,7 +60,15 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def test_data_transfer_object_standard_application(self):
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        good_on_application = self.standard_application.goods.first()
+        GoodOnLicenceFactory(
+            good=good_on_application,
+            licence=self.standard_licence,
+            quantity=good_on_application.quantity,
+            usage=20.0,
+            value=good_on_application.value,
+        )
 
         data = HMRCIntegrationLicenceSerializer(self.standard_licence).data
 
@@ -67,7 +77,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def test_data_transfer_object_open_application(self):
         open_application = self.create_open_application_case(self.organisation)
         self.create_advice(self.gov_user, open_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        open_licence = self.create_licence(open_application, is_complete=True)
+        open_licence = self.create_licence(open_application, status=LicenceStatus.ISSUED)
 
         data = HMRCIntegrationLicenceSerializer(open_licence).data
 
@@ -86,7 +96,8 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
             self._assert_end_user(data, application.end_user.party)
-            self._assert_goods_on_application(data, get_approved_goods_on_application(application))
+            self._assert_goods_on_licence(data, application.licences.first().goods.all())
+            self.assertEqual(data["id"], str(licence.id))
         elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             self._assert_countries(
                 data, Country.objects.filter(countries_on_application__application=application).order_by("name")
@@ -129,28 +140,22 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def _assert_countries(self, data, countries):
         self.assertEqual(data["countries"], [{"id": country.id, "name": country.name} for country in countries])
 
-    def _assert_goods_on_application(self, data, goods_on_application):
-        self.assertEqual(
-            data["goods"],
-            [
-                {
-                    "id": str(good_on_application.good.id),
-                    "description": good_on_application.good.description,
-                    "usage": good_on_application.usage,
-                    "unit": good_on_application.unit,
-                    "quantity": good_on_application.quantity,
-                    "licenced_quantity": good_on_application.licenced_quantity,
-                    "licenced_value": good_on_application.licenced_value,
-                }
-                for good_on_application in goods_on_application
-            ],
-        )
-
     def _assert_goods_types(self, data, goods):
         self.assertEqual(
             data["goods"],
             [{"id": str(good.id), "description": good.description, "usage": good.usage} for good in goods],
         )
+
+    def _assert_goods_on_licence(self, data, goods):
+        data = data["goods"]
+        for i in range(len(goods)):
+            good_on_licence = goods[i]
+            self.assertEqual(data[i]["id"], str(good_on_licence.good.good.id))
+            self.assertEqual(data[i]["usage"], good_on_licence.usage)
+            self.assertEqual(data[i]["description"], good_on_licence.good.good.description)
+            self.assertEqual(data[i]["unit"], good_on_licence.good.unit)
+            self.assertEqual(data[i]["quantity"], good_on_licence.quantity)
+            self.assertEqual(data[i]["value"], good_on_licence.value)
 
 
 @mock.patch("cases.apps.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
@@ -159,7 +164,7 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
@@ -211,7 +216,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
 
     @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
     def test_save_licence_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
@@ -230,7 +235,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
 
     @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", False)
     @mock.patch("licences.tasks.send_licence_to_hmrc_integration.now")
@@ -447,7 +452,7 @@ class HMRCIntegrationTests(DataTestClient):
 
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
-        licence = self.create_licence(application, is_complete=True)
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
         self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         template = self.create_letter_template(
             name="Template",

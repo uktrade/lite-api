@@ -336,6 +336,12 @@ class AdviceType:
     def as_dict(cls):
         return {choice[0]: choice[1] for choice in cls.choices}
 
+    @classmethod
+    def as_representation(cls, choice):
+        for d in cls.to_representation():
+            if d["key"] == choice:
+                return d
+
 
 class AdviceLevel:
     USER = "user"

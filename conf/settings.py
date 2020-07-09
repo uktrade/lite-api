@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     "goodstype",
     "gov_users",
     "letter_templates",
-    "licences",
+    "licences.apps.LicencesConfig",
     "organisations",
     "parties",
     "picklists",
