@@ -577,10 +577,6 @@ class CopyApplicationSuccessTests(DataTestClient):
             self.assertEqual(good_on_app.quantity, new_good_on_app.quantity)
             self.assertEqual(good_on_app.unit, new_good_on_app.unit)
 
-            self.assertEqual(good_on_app.usage, 0)
-            self.assertEqual(good_on_app.licenced_quantity, None)
-            self.assertEqual(good_on_app.licenced_value, None)
-
         self.assertEqual(len(new_goods_on_app), len(original_goods_on_app))
 
     def _validate_f680_clearance_types(self):

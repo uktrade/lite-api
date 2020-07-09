@@ -8,9 +8,9 @@ import django.utils.timezone
 from django.conf import settings as conf_settings
 from django.db import connection
 from django.test import tag
+from faker import Faker
 from rest_framework.test import APITestCase, URLPatternsTestCase, APIClient
 
-from audit_trail import service as audit_trail_service
 from applications.enums import ApplicationExportType, ApplicationExportLicenceOfficialType
 from applications.libraries.edit_applications import set_case_flags_on_submitted_standard_or_open_application
 from applications.libraries.goods_on_applications import add_goods_flags_to_submitted_application
@@ -28,12 +28,8 @@ from applications.models import (
     GiftingClearanceApplication,
     F680ClearanceApplication,
 )
-from audit_trail.enums import AuditType
 from audit_trail import service as audit_trail_service
-from goods.tests.factories import GoodFactory
-from goodstype.tests.factories import GoodsTypeFactory
-from licences.helpers import get_reference_code
-from licences.models import Licence
+from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
@@ -46,12 +42,17 @@ from flags.models import Flag, FlaggingRule
 from flags.tests.factories import FlagFactory
 from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
 from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
+from goods.tests.factories import GoodFactory
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
+from goodstype.tests.factories import GoodsTypeFactory
 from letter_templates.models import LetterTemplate
+from licences.enums import LicenceStatus
+from licences.helpers import get_licence_reference_code
+from licences.models import Licence
 from organisations.enums import OrganisationType
-from organisations.tests.factories import OrganisationFactory, SiteFactory
 from organisations.models import Organisation, ExternalLocation
+from organisations.tests.factories import OrganisationFactory, SiteFactory
 from parties.enums import SubType, PartyType, PartyRole
 from parties.models import Party
 from parties.models import PartyDocument
@@ -77,8 +78,6 @@ from test_helpers import colours
 from users.enums import UserStatuses, SystemUser
 from users.libraries.user_to_token import user_to_token
 from users.models import ExporterUser, UserOrganisationRelationship, BaseUser, GovUser, Role
-from faker import Faker
-
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
 from workflow.routing_rules.enum import RoutingRulesAdditionalFields
 from workflow.routing_rules.models import RoutingRule
@@ -961,7 +960,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return self.create_end_user_advisory(note, reasoning, organisation)
 
     def create_generated_case_document(
-        self, case, template, visible_to_exporter=True, document_name="Generated Doc", advice_type=None
+        self, case, template, visible_to_exporter=True, document_name="Generated Doc", advice_type=None, licence=None
     ):
         generated_case_doc = GeneratedCaseDocument.objects.create(
             name=document_name,
@@ -975,11 +974,18 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             text="Here is some text",
             visible_to_exporter=visible_to_exporter,
             advice_type=advice_type,
+            licence=licence,
         )
         return generated_case_doc
 
     def create_letter_template(
-        self, case_types, name=None, decisions=None, visible_to_exporter=True, letter_paragraph=None
+        self,
+        case_types,
+        name=None,
+        decisions=None,
+        visible_to_exporter=True,
+        letter_paragraph=None,
+        digital_signature=False,
     ):
         if not name:
             name = str(uuid.uuid4())[0:35]
@@ -990,7 +996,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         letter_layout = LetterLayout.objects.get(id=uuid.UUID(int=1))
 
         letter_template = LetterTemplate.objects.create(
-            name=name, layout=letter_layout, visible_to_exporter=visible_to_exporter
+            name=name,
+            layout=letter_layout,
+            visible_to_exporter=visible_to_exporter,
+            include_digital_signature=digital_signature,
         )
         if decisions:
             letter_template.decisions.set(decisions)
@@ -1007,19 +1016,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_licence(
-        application: BaseApplication, is_complete: bool, reference_code=None, decisions=None, sent_at=None
+        application: BaseApplication, status: LicenceStatus, reference_code=None, decisions=None, sent_at=None
     ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
         if not reference_code:
-            reference_code = get_reference_code(application.reference_code)
+            reference_code = get_licence_reference_code(application.reference_code)
 
         licence = Licence.objects.create(
             application=application,
             reference_code=reference_code,
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
-            is_complete=is_complete,
+            status=status,
             sent_at=sent_at,
         )
         licence.decisions.set(decisions)

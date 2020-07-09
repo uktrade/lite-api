@@ -15,7 +15,8 @@ from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.permissions import check_user_has_permission
 from goods.models import Good
-from licences.models import Licence
+from licences.enums import LicenceStatus
+from licences.models import Licence, GoodOnLicence
 from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation
@@ -46,7 +47,7 @@ def case_meets_conditions_for_compliance(case: Case):
             Good.objects.filter(
                 goods_on_application__application_id=case.id,
                 control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-                goods_on_application__licenced_quantity__isnull=False,
+                goods_on_application__licence__quantity__isnull=False,
             ).exists()
         ):
             return False
@@ -210,21 +211,30 @@ def filter_cases_with_compliance_related_licence_attached(queryset, compliance_c
     Given a queryset of cases, and a compliance case id, determines cases which contain a licence connected
         to the site that compliance case is interested in, and that meet the conditions for a compliance case
     """
+
+    # We filter cases to look at if an object contains an active licence (if required), and
     queryset = queryset.filter(
         Q(
-            baseapplication__licence__is_complete=True,
+            baseapplication__licence__status__in=[
+                LicenceStatus.ISSUED,
+                LicenceStatus.REINSTATED,
+                LicenceStatus.REVOKED,
+                LicenceStatus.SURRENDERED,
+                LicenceStatus.CANCELLED,
+            ],
             baseapplication__application_sites__site__site_records_located_at__compliance__id=compliance_case_id,
         )
         | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=compliance_case_id)
     )
 
-    # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
+    # We filter for OIEL, OICL, OGLs, and specific SIELs (dependant on CLC codes present) as these are the only case
     #   types relevant for compliance cases
+    approved_goods_on_licence = GoodOnLicence.objects.filter(
+        good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+    ).values_list("good", flat=True)
+
     queryset = queryset.filter(
         case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
-    ) | queryset.filter(
-        baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-        baseapplication__goods__licenced_quantity__isnull=False,
-    )
+    ) | queryset.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
 
-    return queryset
+    return queryset.distinct()

@@ -2,6 +2,15 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
+)
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
@@ -10,6 +19,15 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
+from compliance.helpers import (
+    get_record_holding_sites_for_case,
+    COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
+    get_compliance_site_case,
+    compliance_visit_case_complete,
+    get_exporter_visible_compliance_site_cases,
+)
+from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
+from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
 from compliance.serializers.ComplianceSiteCaseSerializers import (
     ComplianceLicenceListSerializer,
     ExporterComplianceSiteListSerializer,
@@ -21,12 +39,15 @@ from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
     CompliancePersonSerializer,
 )
+from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsCreateSerializer
 from compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsListSerializer,
-    OpenLicenceReturnsCreateSerializer,
     OpenLicenceReturnsViewSerializer,
 )
+from conf.authentication import ExporterAuthentication
 from conf.authentication import GovAuthentication, SharedAuthentication
+from licences.enums import LicenceStatus
+from licences.models import GoodOnLicence
 from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
@@ -56,6 +77,8 @@ from conf.authentication import ExporterAuthentication
 
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.notifications import get_compliance_site_case_notifications
 
 
@@ -126,7 +149,7 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference", "").upper()
 
-        cases = Case.objects.select_related("case_type")
+        cases = Case.objects.select_related("case_type").prefetch_related("baseapplication__licence")
         cases = filter_cases_with_compliance_related_licence_attached(cases, self.kwargs["pk"])
 
         if reference_code:

@@ -24,6 +24,7 @@ env = Env(
     ENV=(str, "dev"),
     EXPORTER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
+    DOCUMENT_SIGNING_ENABLED=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -46,7 +47,7 @@ INSTALLED_APPS = [
     "applications.apps.ApplicationsConfig",
     "audit_trail",
     "background_task",
-    "cases.app.CasesConfig",
+    "cases.apps.CasesConfig",
     "cases.generated_documents",
     "compliance",
     "django.contrib.admin",
@@ -61,7 +62,7 @@ INSTALLED_APPS = [
     "goodstype",
     "gov_users",
     "letter_templates",
-    "licences",
+    "licences.apps.LicencesConfig",
     "organisations",
     "parties",
     "picklists",
@@ -266,3 +267,11 @@ ENV = env("ENV")
 EXPORTER_BASE_URL = (
     env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
 )
+
+# Document signing
+DOCUMENT_SIGNING_ENABLED = env("DOCUMENT_SIGNING_ENABLED")
+P12_CERTIFICATE = env("P12_CERTIFICATE")
+CERTIFICATE_PASSWORD = env("CERTIFICATE_PASSWORD")
+SIGNING_EMAIL = env("SIGNING_EMAIL")
+SIGNING_LOCATION = env("SIGNING_LOCATION")
+SIGNING_REASON = env("SIGNING_REASON")
