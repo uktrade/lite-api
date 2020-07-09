@@ -1,10 +1,13 @@
-from cases.enums import AdviceType
-from cases.models import Advice
+from string import ascii_uppercase
+
 from django.db import transaction
 
-from licences.models import Licence
-from string import ascii_uppercase
+from applications.models import GoodOnApplication
+from applications.serializers.good import GoodOnApplicationViewSerializer
+from cases.enums import AdviceType, CaseTypeSubTypeEnum
+from cases.models import Advice
 from conf.exceptions import NotFoundError
+from licences.models import Licence
 from open_general_licences.models import OpenGeneralLicenceCase
 
 
@@ -30,7 +33,7 @@ def get_approved_goods_types(application):
 
 
 @transaction.atomic
-def get_reference_code(application_reference):
+def get_licence_reference_code(application_reference):
     # Needs to lock so that 2 Licences don't get the same reference code
     total_reference_codes = (
         Licence.objects.filter(reference_code__icontains=application_reference).select_for_update().count()
@@ -40,3 +43,20 @@ def get_reference_code(application_reference):
         if total_reference_codes != 0
         else application_reference
     )
+
+
+def serialize_goods_on_licence(licence):
+    from licences.serializers.view_licence import GoodOnLicenceViewSerializer
+    from licences.serializers.view_licences import GoodsTypeOnLicenceListSerializer
+
+    if licence.goods.exists():
+        # Standard Application
+        return GoodOnLicenceViewSerializer(licence.goods, many=True).data
+    elif licence.application.goods_type.exists():
+        # Open Application
+        approved_goods_types = get_approved_goods_types(licence.application)
+        return GoodsTypeOnLicenceListSerializer(approved_goods_types, many=True).data
+    elif licence.application.case_type.sub_type != CaseTypeSubTypeEnum.STANDARD:
+        # MOD clearances
+        goods = GoodOnApplication.objects.filter(application=licence.application)
+        return GoodOnApplicationViewSerializer(goods, many=True).data

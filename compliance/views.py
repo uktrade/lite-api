@@ -37,13 +37,15 @@ from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
     CompliancePersonSerializer,
 )
+from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsCreateSerializer
 from compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsListSerializer,
-    OpenLicenceReturnsCreateSerializer,
     OpenLicenceReturnsViewSerializer,
 )
 from conf.authentication import ExporterAuthentication
 from conf.authentication import GovAuthentication, SharedAuthentication
+from licences.enums import LicenceStatus
+from licences.models import GoodOnLicence
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from users.libraries.notifications import get_compliance_site_case_notifications
@@ -116,10 +118,11 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference", "").upper()
 
-        # We filter for cases that are completed and have a compliance licence linked to it
+        # We filter for OGLs that have a compliance case or
+        # Completed applications (with licences) that have a compliance case
         cases = Case.objects.select_related("case_type").filter(
             Q(
-                baseapplication__licence__is_complete=True,
+                baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
                 baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
             )
             | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.kwargs["pk"])
@@ -127,12 +130,13 @@ class LicenceList(ListAPIView):
 
         # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
         #   types relevant for compliance cases
+        approved_goods_on_licence = GoodOnLicence.objects.filter(
+            good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+        ).values_list("good", flat=True)
+
         cases = cases.filter(
             case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
-        ) | cases.filter(
-            baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-            baseapplication__goods__licenced_quantity__isnull=False,
-        )
+        ) | cases.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
 
         if reference_code:
             cases = cases.filter(reference_code__contains=reference_code)

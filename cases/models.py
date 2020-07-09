@@ -138,7 +138,7 @@ class Case(TimestampableModel):
         if not can_set_status(self, status.status):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
-        if not can_status_be_set_by_gov_user(user, old_status, status.status, is_licence_application=False):
+        if not can_status_be_set_by_gov_user(user, old_status, status.status, is_mod=False):
             raise ValidationError({"status": ["Status cannot be set by user"]})
 
         self.status = status

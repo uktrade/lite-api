@@ -299,11 +299,6 @@ class GoodOnApplication(TimestampableModel):
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
     is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
 
-    # Licence values set when the Good is approved
-    usage = models.FloatField(null=False, blank=False, default=0)
-    licenced_quantity = models.FloatField(null=True, blank=True, default=None)
-    licenced_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
-
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)
     other_item_type = models.CharField(max_length=100, null=True, blank=True, default=None)
