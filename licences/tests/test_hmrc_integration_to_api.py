@@ -4,6 +4,8 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_207_MULTI_STATUS, HTTP_208_ALREADY_REPORTED
 
+from audit_trail.enums import AuditType
+from audit_trail.models import Audit
 from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
 from licences.enums import LicenceStatus
 from licences.models import HMRCIntegrationUsageUpdate
@@ -75,6 +77,12 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.json()["licences"]["rejected"], [])
         self.assertEqual(licence.goods.first().usage, original_usage + usage_update)
         self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=licence).exists())
+        self.assertTrue(
+            Audit.objects.filter(
+                verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
+                payload={"good": licence.goods.first().good.good.description, "usage": original_usage + usage_update},
+            ).exists()
+        )
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]

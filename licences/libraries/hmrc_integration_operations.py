@@ -6,7 +6,8 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-# from audit_trail import service as audit_trail_service
+from audit_trail import service as audit_trail_service
+from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from conf.requests import post
 from conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT, HAWK_LITE_API_CREDENTIALS
@@ -140,11 +141,19 @@ def _update_licence(data: dict) -> UUID:
     return data["id"]
 
 
-def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: int):
+def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float):
     """Updates the Usage for a Good on a Licence"""
 
-    GoodOnLicence.objects.filter(licence_id=licence_id, good__good_id=good_id).update(usage=usage)
+    gol = GoodOnLicence.objects.get(licence_id=licence_id, good__good_id=good_id)
+    gol.usage += usage
+    gol.save()
 
-    # audit_trail_service.create_system_user_audit(
-    #     verb=AuditType.UPDATED_STATUS, target=gol.application.get_case(), payload={"status": {"new": "", "old": ""}},
-    # )
+    good_description = gol.good.good.description
+    if len(good_description) > 15:
+        good_description = f"{gol.good.good.description[:15]}..."
+
+    audit_trail_service.create_system_user_audit(
+        verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
+        target=gol.licence.application.get_case(),
+        payload={"good": good_description, "usage": gol.usage},
+    )

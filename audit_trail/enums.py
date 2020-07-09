@@ -109,6 +109,7 @@ class AuditType(LiteEnum):
     COMPLIANCE_PEOPLE_PRESENT_CREATED = autostr()
     COMPLIANCE_PEOPLE_PRESENT_UPDATED = autostr()
     COMPLIANCE_PEOPLE_PRESENT_DELETED = autostr()
+    LICENCE_UPDATED_GOOD_USAGE = autostr()
 
     def human_readable(self):
         value = self.value.replace("_", " ")
