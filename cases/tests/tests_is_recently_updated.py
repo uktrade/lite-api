@@ -4,7 +4,7 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from conf import settings
+from django.conf import settings
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 

@@ -38,7 +38,7 @@ from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSub
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
 from cases.sla import get_application_target_sla
-from conf import settings
+from django.conf import settings
 from conf.constants import Roles
 from conf.urls import urlpatterns
 from flags.enums import SystemFlags, FlagStatuses, FlagLevels

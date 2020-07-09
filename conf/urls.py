@@ -6,8 +6,8 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from django.conf import settings
-from django.views.generic import RedirectView
 from django.urls import reverse
+from django.views.generic import RedirectView
 
 import core.views
 

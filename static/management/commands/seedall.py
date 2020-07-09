@@ -1,6 +1,6 @@
 from django.core.management import call_command
 
-from conf import settings
+from django.conf import settings
 from static.management.SeedCommand import SeedCommand
 
 SEED_COMMANDS = {
