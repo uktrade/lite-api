@@ -10,8 +10,7 @@ from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
 from conf.constants import GovPermissions
 from flags.enums import FlagLevels
 from flags.tests.factories import FlagFactory
-from licences.enums import LicenceStatus
-from licences.models import Licence, GoodOnLicence
+from licences.models import Licence
 from lite_content.lite_api import strings
 from static.statuses.models import CaseStatus
 from test_helpers.clients import DataTestClient
@@ -44,61 +43,13 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["application"], str(self.standard_application.id))
-        self.assertEqual(response_data["reference_code"], self.standard_application.reference_code)
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
-        self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
+        self.assertFalse(response_data["is_complete"])
+        self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
 
         # The case should not be finalised until the case is complete
         self.assertNotEqual(self.standard_application.status, self.finalised_status)
-
-    def test_approve_application_reissue_success(self):
-        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
-        existing_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
-        data = {"action": AdviceType.APPROVE, "duration": existing_licence.duration}
-        data.update(self.post_date)
-
-        response = self.client.put(self.url, data=data, **self.gov_headers)
-        response_data = response.json()
-        self.standard_application.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["application"], str(self.standard_application.id))
-        self.assertEqual(response_data["reference_code"], self.standard_application.reference_code + "/A")
-        self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
-        self.assertEqual(response_data["duration"], data["duration"])
-        self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
-        # Check existing Licence & new draft Licence are present
-        self.assertEqual(Licence.objects.filter(application=self.standard_application).count(), 2)
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.ISSUED).exists()
-        )
-
-    def test_approve_application_override_draft_success(self):
-        self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
-        existing_licence = self.create_licence(self.standard_application, status=LicenceStatus.DRAFT)
-        data = {"action": AdviceType.APPROVE, "duration": existing_licence.duration + 1}
-        data.update(self.post_date)
-
-        response = self.client.put(self.url, data=data, **self.gov_headers)
-        response_data = response.json()
-        self.standard_application.refresh_from_db()
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["application"], str(self.standard_application.id))
-        self.assertEqual(response_data["reference_code"], self.standard_application.reference_code)
-        self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
-        self.assertEqual(response_data["duration"], data["duration"])
-        self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
-        # Check existing draft licence is replaced
-        self.assertEqual(Licence.objects.filter(application=self.standard_application).count(), 1)
-        self.assertEqual(Licence.objects.get(application=self.standard_application).duration, data["duration"])
 
     def test_default_duration_no_permission_finalise_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
@@ -110,9 +61,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["duration"], data["duration"])
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
+        self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
 
     def test_no_duration_finalise_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
@@ -124,9 +73,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["duration"], get_default_duration(self.standard_application))
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
+        self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
 
     def test_no_permissions_finalise_failure(self):
         self._set_user_permission([])
@@ -164,13 +111,11 @@ class FinaliseApplicationTests(DataTestClient):
         response = self.client.put(url, data=data, **self.gov_headers)
         response_data = response.json()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["application"], str(clearance_application.id))
-        self.assertEqual(response_data["reference_code"], clearance_application.reference_code)
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
-        self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
-        self.assertTrue(Licence.objects.filter(application=clearance_application, status=LicenceStatus.DRAFT).exists())
+        self.assertFalse(response_data["is_complete"])
+        self.assertTrue(Licence.objects.filter(application=clearance_application, is_complete=False).exists())
 
     def test_set_duration_permission_denied(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
@@ -205,7 +150,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.json(), {"errors": {"start_date": [strings.Applications.Finalise.Error.INVALID_DATE]}}
+            response.json(), {"errors": {"start_date": [strings.Applications.Finalise.Error.MISSING_DATE]}}
         )
 
     def test_no_action_failure(self):
@@ -225,7 +170,8 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["application"], str(self.standard_application.id))
-        self.assertEqual(Audit.objects.count(), 1)
+        self.assertEqual(self.standard_application.status, self.finalised_status)
+        self.assertEqual(Audit.objects.count(), 2)
 
 
 class FinaliseApplicationGetApprovedGoodsTests(DataTestClient):
@@ -315,35 +261,21 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
             "month": self.date.month,
             "day": self.date.day,
         }
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.USER)
 
     def test_approve_success(self):
-        good_value = 1
-
-        self.assertEqual(GoodOnLicence.objects.count(), 0)
-        self.assertEqual(Licence.objects.count(), 0)
-
         self.data[f"quantity-{self.good_on_application.id}"] = self.good_on_application.quantity
-        self.data[f"value-{self.good_on_application.id}"] = good_value
+        self.data[f"value-{self.good_on_application.id}"] = 1
 
         response = self.client.put(self.url, data=self.data, **self.gov_headers)
         response_data = response.json()
-
-        self.assertEqual(GoodOnLicence.objects.count(), 1)
-        self.assertEqual(Licence.objects.count(), 1)
+        self.good_on_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["application"], str(self.standard_application.id))
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
-
-        # validate licence
-        licence = Licence.objects.get(application=self.standard_application.id)
-        good_licence = GoodOnLicence.objects.get(licence=licence)
-
-        self.assertEqual(good_licence.quantity, self.good_on_application.quantity)
-        self.assertEqual(good_licence.value, good_value)
+        self.assertTrue(Licence.objects.filter(application=self.standard_application, is_complete=False).exists())
+        self.assertEqual(self.good_on_application.licenced_quantity, self.good_on_application.quantity)
+        self.assertEqual(self.good_on_application.licenced_value, 1)
 
     def test_approve_no_value_failure(self):
         self.data[f"quantity-{self.good_on_application.id}"] = self.good_on_application.quantity
