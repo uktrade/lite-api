@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -16,15 +15,15 @@ from rest_framework.views import APIView
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
-from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
+from cases.enums import CaseTypeReferenceEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.helpers import (
     get_record_holding_sites_for_case,
-    COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
     get_compliance_site_case,
     compliance_visit_case_complete,
     get_exporter_visible_compliance_site_cases,
+    filter_cases_with_compliance_related_licence_attached,
 )
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
@@ -44,37 +43,8 @@ from compliance.serializers.OpenLicenceReturns import (
     OpenLicenceReturnsListSerializer,
     OpenLicenceReturnsViewSerializer,
 )
-from conf.authentication import ExporterAuthentication
-from conf.authentication import GovAuthentication, SharedAuthentication
-from licences.enums import LicenceStatus
-from licences.models import GoodOnLicence
+from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from lite_content.lite_api import strings
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
-
-from compliance.helpers import (
-    get_record_holding_sites_for_case,
-    COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-    get_compliance_site_case,
-    compliance_visit_case_complete,
-    get_exporter_visible_compliance_site_cases,
-    filter_cases_with_compliance_related_licence_attached,
-)
-
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import (
-    ListAPIView,
-    RetrieveAPIView,
-    ListCreateAPIView,
-    RetrieveUpdateAPIView,
-    RetrieveUpdateDestroyAPIView,
-    UpdateAPIView,
-)
-
-from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
-from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
-from conf.authentication import ExporterAuthentication
-
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from static.statuses.enums import CaseStatusEnum
