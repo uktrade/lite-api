@@ -3,6 +3,9 @@ from rest_framework import status
 
 from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
+from cases.tests.factories import FinalAdviceFactory
+from licences.enums import LicenceStatus
+from licences.tests.factories import GoodOnLicenceFactory
 from licences.views.main import LicenceType
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
@@ -43,8 +46,16 @@ class GetLicencesTests(DataTestClient):
             for application in self.applications
         ]
         self.licences = {
-            application: self.create_licence(application, is_complete=True) for application in self.applications
+            application: self.create_licence(application, status=LicenceStatus.ISSUED)
+            for application in self.applications
         }
+
+        for application, licence in self.licences.items():
+            for good in application.goods.all():
+                FinalAdviceFactory(user=self.gov_user, good=good.good, case=application)
+                GoodOnLicenceFactory(licence=licence, good=good, quantity=good.quantity, value=good.value)
+            for goods_type in application.goods_type.all():
+                FinalAdviceFactory(user=self.gov_user, goods_type=goods_type, case=application)
 
     def test_get_all_licences(self):
         response = self.client.get(self.url, **self.exporter_headers)
@@ -55,42 +66,43 @@ class GetLicencesTests(DataTestClient):
         self.assertEqual(len(response_data), len(self.applications))
         for i in range(len(self.applications)):
             licence = response_data[i]
-            self.assertEqual(licence["id"], str(list(self.licences.values())[i].id))
+            licence_object = list(self.licences.values())[i]
+            self.assertEqual(licence["id"], str(licence_object.id))
             self.assertEqual(licence["application"]["id"], str(self.applications[i].id))
-            self.assertEqual(licence["application"]["reference_code"], self.applications[i].reference_code)
-            self.assertEqual(licence["application"]["status"]["id"], str(self.applications[i].status_id))
+            self.assertEqual(licence["reference_code"], licence_object.reference_code)
+            self.assertEqual(licence["status"]["key"], licence_object.status)
             self.assertEqual(licence["application"]["documents"][0]["id"], str(self.documents[i].id))
-
         # Assert correct information is returned
         for licence in self.licences.values():
             licence_data = node_by_id(response_data, licence.id)
-            application_data = licence_data["application"]
 
             if licence.application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
                 destination = licence.application.application_countries.first()
                 good = licence.application.goods_type.first()
 
-                self.assertEqual(node_by_id(application_data["goods"], good.id)["description"], good.description)
+                self.assertEqual(licence_data["goods"][0]["description"], good.description)
                 self.assertEqual(
-                    application_data["goods"][0]["control_list_entries"][0]["text"],
+                    licence_data["goods"][0]["control_list_entries"][0]["text"],
                     good.control_list_entries.all()[0].text,
                 )
-                self.assertEqual(application_data["destinations"][0]["country"]["id"], destination.country_id)
+                self.assertEqual(
+                    licence_data["application"]["destinations"][0]["country"]["id"], destination.country_id
+                )
             else:
                 if licence.application.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION:
                     destination = licence.application.end_user.party
                     self.assertEqual(
-                        application_data["destinations"][0]["country"]["id"], destination.country_id,
+                        licence_data["application"]["destinations"][0]["country"]["id"], destination.country_id,
                     )
 
-                good = licence.application.goods.first().good
+                good_on_application = licence.application.goods.first()
 
                 self.assertEqual(
-                    application_data["goods"][0]["good"]["description"], good.description,
+                    licence_data["goods"][0]["good_on_application_id"], str(good_on_application.id),
                 )
                 self.assertEqual(
-                    application_data["goods"][0]["good"]["control_list_entries"][0]["rating"],
-                    good.control_list_entries.all()[0].rating,
+                    licence_data["goods"][0]["control_list_entries"][0]["rating"],
+                    good_on_application.good.control_list_entries.all()[0].rating,
                 )
 
     def test_get_standard_licences_only(self):
@@ -121,8 +133,8 @@ class GetLicencesFilterTests(DataTestClient):
         self.url = reverse("licences:licences")
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.open_application = self.create_open_application_case(self.organisation)
-        self.standard_application_licence = self.create_licence(self.standard_application, is_complete=True)
-        self.open_application_licence = self.create_licence(self.open_application, is_complete=True)
+        self.standard_application_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+        self.open_application_licence = self.create_licence(self.open_application, status=LicenceStatus.ISSUED)
 
     def test_only_my_organisations_licences_are_returned(self):
         self.standard_application.organisation = self.create_organisation_with_exporter_user()[0]
@@ -135,8 +147,8 @@ class GetLicencesFilterTests(DataTestClient):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["id"], str(self.open_application_licence.id))
 
-    def test_incomplete_licences_ignored(self):
-        self.open_application_licence.is_complete = False
+    def test_draft_licences_ignored(self):
+        self.open_application_licence.status = LicenceStatus.DRAFT
         self.open_application_licence.save()
 
         response = self.client.get(self.url, **self.exporter_headers)

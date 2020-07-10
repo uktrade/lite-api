@@ -22,10 +22,9 @@ class CaseNoteList(APIView):
     def get(self, request, pk):
         """ Gets all case notes. """
         is_user_exporter = isinstance(request.user, ExporterUser)
-        case = get_case(pk, is_user_exporter)
-        case_notes = get_case_notes_from_case(case, only_show_notes_visible_to_exporter=is_user_exporter)
+        case_notes = get_case_notes_from_case(pk, only_show_notes_visible_to_exporter=is_user_exporter)
 
-        if isinstance(request.user, ExporterUser):
+        if is_user_exporter:
             delete_exporter_notifications(
                 user=request.user, organisation_id=get_request_user_organisation_id(request), objects=case_notes
             )
