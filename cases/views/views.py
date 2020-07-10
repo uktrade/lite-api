@@ -448,7 +448,7 @@ class ECJUQueries(APIView):
             **request.data,
             "case": pk,
             "raised_by_user": request.user.id,
-            "team": request.user.tema.id
+            "team": request.user.team.id
         }
         serializer = EcjuQueryCreateSerializer(data=data)
 
