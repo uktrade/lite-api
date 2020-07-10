@@ -54,7 +54,7 @@ class CaseAssignments(views.APIView):
             # Create a new case assignment object between that case and those users
             for user in users:
                 try:
-                    return CaseAssignment.objects.get(case=case, queue=queue, user=user), False
+                    CaseAssignment.objects.get(case=case, queue=queue, user=user)
                 except CaseAssignment.DoesNotExist:
                     case_assignment = CaseAssignment(case=case, queue=queue, user=user)
                     case_assignment.save(audit_user=request.user)
