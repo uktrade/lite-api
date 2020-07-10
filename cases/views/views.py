@@ -22,6 +22,7 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
+from cases.libraries.get_goods_type_countries_decisions import good_type_to_country_decisions
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -519,36 +520,8 @@ class GoodsCountriesDecisions(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        goods_countries = GoodCountryDecision.objects.filter(case=pk)
-        serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
-
-        return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
-
-    def post(self, request, pk):
-        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        data = request.data.get("good_countries")
-
-        if not data:
-            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
-
-        country_count = CountryOnApplication.objects.filter(application=get_case(data[0]["case"])).count()
-
-        if len(data) != country_count:
-            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
-
-        serializer = GoodCountryDecisionSerializer(data=data, many=True)
-
-        if serializer.is_valid(raise_exception=True):
-            for item in data:
-                GoodCountryDecision(
-                    good=get_goods_type(item["good"]),
-                    case=get_case(item["case"]),
-                    country=get_country(item["country"]),
-                    decision=item["decision"],
-                ).save()
-
-            return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
+        approved, refused = good_type_to_country_decisions(pk)
+        return JsonResponse({"approved": list(approved.values()), "refused": list(refused.values())})
 
 
 class Destination(APIView):
