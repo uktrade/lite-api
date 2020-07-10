@@ -473,9 +473,6 @@ class ECJUQueries(APIView):
             )
 
             emails = set()
-            print(application_info["case_type__type"])
-            print(application_info["case_type__type"])
-            print(application_info["case_type__type"])
             if application_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
                 # For each licence in a compliance case, email the user that submitted the application
                 for licence in filter_cases_with_compliance_related_licence_attached(Case.objects.all(), application_info["id"]):
