@@ -6,6 +6,7 @@ from cases.models import Case
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
 from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField
+from licences.enums import LicenceStatus
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 
@@ -105,13 +106,8 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
         return get_ordered_flags(case=instance, team=self.team, limit=3)
 
     def get_status(self, instance):
-        # Temporarily display the case status, until licence status story is played.
-        if instance.status:
-            return {
-                "key": instance.status.status,
-                "value": get_status_value_from_case_status_enum(instance.status.status),
-            }
-        return None
+        # The latest non draft licence should be the only active licence on a case or the licence that was active
+        return instance.baseapplication.licence.exclude(status=LicenceStatus.DRAFT).order_by("created_at").last().status
 
     def get_case_type(self, instance):
         from cases.serializers import CaseTypeSerializer
