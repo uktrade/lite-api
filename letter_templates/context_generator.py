@@ -12,7 +12,6 @@ from applications.models import (
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote, Case
-from compliance.helpers import filter_cases_with_compliance_related_licence_attached
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse
@@ -257,7 +256,7 @@ def _get_goods_query_context(case):
 
 
 def _get_compliance_site_licences(case_id):
-    cases = filter_cases_with_compliance_related_licence_attached(Case.objects.all(), case_id)
+    cases = Case.objects.filter_cases_with_compliance_related_licence_attached(case_id)
     context = [
         {
             "reference_code": case.reference_code,

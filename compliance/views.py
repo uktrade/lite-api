@@ -23,7 +23,6 @@ from compliance.helpers import (
     get_record_holding_sites_for_case,
     get_compliance_site_case,
     get_exporter_visible_compliance_site_cases,
-    filter_cases_with_compliance_related_licence_attached,
 )
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
@@ -34,16 +33,13 @@ from compliance.serializers.ComplianceSiteCaseSerializers import (
     ExporterComplianceSiteListSerializer,
     ExporterComplianceSiteDetailSerializer,
 )
-from compliance.serializers.ComplianceVisitCaseSerializers import (
-    ComplianceVisitSerializer,
-    CompliancePersonSerializer,
-)
-from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsCreateSerializer
+from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisitSerializer, CompliancePersonSerializer
 from compliance.serializers.OpenLicenceReturns import (
+    OpenLicenceReturnsCreateSerializer,
     OpenLicenceReturnsListSerializer,
     OpenLicenceReturnsViewSerializer,
 )
-from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
+from conf.authentication import GovAuthentication, ExporterAuthentication, SharedAuthentication
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
 from users.libraries.notifications import get_compliance_site_case_notifications
@@ -116,8 +112,11 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference", "").upper()
 
-        cases = Case.objects.select_related("case_type")
-        cases = filter_cases_with_compliance_related_licence_attached(cases, self.kwargs["pk"])
+        cases = (
+            Case.objects.select_related("case_type")
+            .prefetch_related("baseapplication__licence")
+            .filter_cases_with_compliance_related_licence_attached(self.kwargs["pk"])
+        )
 
         if reference_code:
             cases = cases.filter(reference_code__contains=reference_code)

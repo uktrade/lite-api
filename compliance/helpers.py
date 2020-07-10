@@ -2,7 +2,6 @@ import csv
 import re
 from typing import Optional
 
-from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -203,28 +202,3 @@ def get_exporter_visible_compliance_site_cases(request, organisation: Optional[O
         qs = qs.filter(site__in=sites)
 
     return qs
-
-
-def filter_cases_with_compliance_related_licence_attached(queryset, compliance_case_id):
-    """
-    Given a queryset of cases, and a compliance case id, determines cases which contain a licence connected
-        to the site that compliance case is interested in, and that meet the conditions for a compliance case
-    """
-    queryset = queryset.filter(
-        Q(
-            baseapplication__licence__is_complete=True,
-            baseapplication__application_sites__site__site_records_located_at__compliance__id=compliance_case_id,
-        )
-        | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=compliance_case_id)
-    )
-
-    # We filter for OIEL, OICL and specific SIELs (dependant on CLC codes present) as these are the only case
-    #   types relevant for compliance cases
-    queryset = queryset.filter(
-        case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
-    ) | queryset.filter(
-        baseapplication__goods__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
-        baseapplication__goods__licenced_quantity__isnull=False,
-    )
-
-    return queryset
