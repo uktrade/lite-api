@@ -8,10 +8,12 @@ from applications.enums import (
     ServiceEquipmentType,
 )
 from applications.models import ExternalLocationOnApplication, CountryOnApplication
+from applications.tests.factories import GoodOnApplicationFactory
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
 from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
-from goods.enums import PvGrading, ItemType
+from goods.enums import PvGrading, ItemType, MilitaryUse, Component, ItemCategory, FirearmGoodType
+from goods.tests.factories import GoodFactory, FirearmFactory
 from letter_templates.context_generator import get_document_context
 from licences.enums import LicenceStatus
 from licences.tests.factories import GoodOnLicenceFactory
@@ -90,11 +92,74 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["part_number"], good_on_application.good.part_number)
         self.assertTrue(str(good_on_application.quantity) in context["applied_for_quantity"])
         self.assertTrue(Units.choices_as_dict[good_on_application.unit] in context["applied_for_quantity"])
-        self.assertEqual(context["applied_for_value"], f"£{good_on_application.value}")
+        self.assertEqual(context["applied_for_value"], f"£{good_on_application.value:.2f}")
         self.assertEqual(context["is_incorporated"], friendly_boolean(good_on_application.is_good_incorporated))
         if context.get("item_type"):
             self.assertEqual(context["item_type"], good_on_application.item_type)
             self.assertEqual(context["other_item_type"], good_on_application.other_item_type)
+
+        # TAU
+        self.assertEqual(context["item_category"], good_on_application.good.item_category)
+
+        if good_on_application.good.item_category in ItemCategory.group_one:
+            self.assertEqual(context["is_military_use"], good_on_application.good.is_military_use)
+            self.assertEqual(
+                context["modified_military_use_details"], good_on_application.good.modified_military_use_details
+            )
+            self.assertEqual(context["is_component"], good_on_application.good.is_component)
+            self.assertEqual(context["component_details"], good_on_application.good.component_details)
+            self.assertEqual(
+                context["uses_information_security"],
+                friendly_boolean(good_on_application.good.uses_information_security),
+            )
+            self.assertEqual(
+                context["information_security_details"], good_on_application.good.information_security_details
+            )
+        elif good_on_application.good.item_category in ItemCategory.group_two:
+            self.assertEqual(context["firearm_type"], good_on_application.good.firearm_details.type)
+            self.assertEqual(
+                context["year_of_manufacture"], good_on_application.good.firearm_details.year_of_manufacture
+            )
+
+            self.assertEqual(context["calibre"], good_on_application.good.firearm_details.calibre)
+            self.assertEqual(
+                context["is_covered_by_firearm_act_section_one_two_or_five"],
+                friendly_boolean(
+                    good_on_application.good.firearm_details.is_covered_by_firearm_act_section_one_two_or_five
+                ),
+            )
+            self.assertEqual(
+                context["section_certificate_number"],
+                good_on_application.good.firearm_details.section_certificate_number,
+            )
+            self.assertEqual(
+                context["section_certificate_date_of_expiry"],
+                good_on_application.good.firearm_details.section_certificate_date_of_expiry,
+            )
+            self.assertEqual(
+                context["has_identification_markings"],
+                friendly_boolean(good_on_application.good.firearm_details.has_identification_markings),
+            )
+            self.assertEqual(
+                context["identification_markings_details"],
+                good_on_application.good.firearm_details.identification_markings_details,
+            )
+
+        elif good_on_application.good.item_category in ItemCategory.group_three:
+            self.assertEqual(context["is_military_use"], good_on_application.good.is_military_use)
+            self.assertEqual(
+                context["modified_military_use_details"], good_on_application.good.modified_military_use_details
+            )
+            self.assertEqual(
+                context["software_or_technology_details"], good_on_application.good.software_or_technology_details
+            )
+            self.assertEqual(
+                context["uses_information_security"],
+                friendly_boolean(good_on_application.good.uses_information_security),
+            )
+            self.assertEqual(
+                context["information_security_details"], good_on_application.good.information_security_details
+            )
 
     def _assert_good_on_licence(self, context, good_on_licence):
         self._assert_good(context, good_on_licence.good)
@@ -632,3 +697,64 @@ class DocumentContextGenerationTests(DataTestClient):
             context["details"]["open_licence_returns"][0]["timestamp"],
             olr.created_at.strftime(f"{DATE_FORMAT} {TIME_FORMAT}"),
         )
+
+    def test_generate_context_with_category_1_good_details(self):
+        application = self.create_standard_application_case(self.organisation)
+        application.goods.all().delete()
+        good = GoodFactory(
+            organisation=self.organisation,
+            is_military_use=MilitaryUse.YES_MODIFIED,
+            is_component=Component.YES_MODIFIED,
+            component_details="many details",
+            uses_information_security=True,
+            information_security_details="information security details",
+            modified_military_use_details="modified reasons",
+        )
+        application.goods.all().delete()
+        goa = GoodOnApplicationFactory(
+            application=application, good=good, quantity=100.0, value=1500.00, unit=Units.NAR
+        )
+
+        context = get_document_context(application)
+
+        self.assertEqual(context["case_reference"], application.reference_code)
+        self._assert_good(context["goods"]["all"][0], goa)
+
+    def test_generate_context_with_category_3_good_details(self):
+        application = self.create_standard_application_case(self.organisation)
+        application.goods.all().delete()
+        good = GoodFactory(
+            organisation=self.organisation,
+            item_category=ItemCategory.GROUP3_SOFTWARE,
+            is_military_use=MilitaryUse.YES_MODIFIED,
+            modified_military_use_details="modified reasons",
+            software_or_technology_details="software and technology details",
+            uses_information_security=True,
+            information_security_details="information security details",
+        )
+        application.goods.all().delete()
+        goa = GoodOnApplicationFactory(
+            application=application, good=good, quantity=100.0, value=1500.00, unit=Units.NAR
+        )
+
+        context = get_document_context(application)
+
+        self.assertEqual(context["case_reference"], application.reference_code)
+        self._assert_good(context["goods"]["all"][0], goa)
+
+    def test_generate_context_with_category_2_good_details(self):
+        application = self.create_standard_application_case(self.organisation)
+        application.goods.all().delete()
+        firearm_details = FirearmFactory()
+        good = GoodFactory(
+            organisation=self.organisation, item_category=ItemCategory.GROUP2_FIREARMS, firearm_details=firearm_details
+        )
+        application.goods.all().delete()
+        goa = GoodOnApplicationFactory(
+            application=application, good=good, quantity=100.0, value=1500.00, unit=Units.NAR
+        )
+
+        context = get_document_context(application)
+
+        self.assertEqual(context["case_reference"], application.reference_code)
+        self._assert_good(context["goods"]["all"][0], goa)
