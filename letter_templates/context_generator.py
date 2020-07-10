@@ -491,6 +491,10 @@ def _get_good_on_application_context(good_on_application, advice=None):
         good_context["item_type"] = good_on_application.item_type
         good_context["other_item_type"] = good_on_application.other_item_type
 
+    # Potential missing scope
+    #
+    # pvgrading details?
+
     return good_context
 
 
