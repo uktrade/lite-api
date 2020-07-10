@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -134,6 +135,7 @@ class CaseEcjuQueriesTests(DataTestClient):
         self.assertEqual(len(response.json().get("ecju_queries")), 0)
 
 
+@tag("only")
 class EcjuQueriesCreateTest(DataTestClient):
 
     @mock.patch("gov_notify.service.client")

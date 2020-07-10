@@ -47,7 +47,7 @@ from cases.serializers import (
 )
 from cases.service import get_destinations
 from compliance.helpers import generate_compliance_site_case
-from compliance.models import filter_cases_with_compliance_related_licence_attached
+from compliance.models import filter_cases_with_compliance_related_licence_attached, ComplianceVisitCase
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
@@ -468,14 +468,18 @@ class ECJUQueries(APIView):
             # Send an email to the user(s) that submitted the application
             application_info = (
                 Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
-                    .values("id", "email", "name", "reference_code", "case_type__type")
+                    .values("id", "email", "name", "reference_code", "case_type__type", "case_type__reference")
                     .get(id=pk)
             )
 
             emails = set()
             if application_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
                 # For each licence in a compliance case, email the user that submitted the application
-                for licence in filter_cases_with_compliance_related_licence_attached(Case.objects.all(), application_info["id"]):
+                case_id = application_info["id"]
+                if application_info["case_type__reference"] == CaseTypeSubTypeEnum.COMP_VISIT:
+                    case_id = ComplianceVisitCase.objects.get(pk=case_id).site_case.id
+
+                for licence in filter_cases_with_compliance_related_licence_attached(Case.objects.all(), case_id):
                     emails.add(licence.submitted_by.email)
             else:
                 emails.add(application_info["email"])
