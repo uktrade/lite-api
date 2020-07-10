@@ -188,7 +188,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         self.assertEqual(mock_client.send_email.call_count, 2)
 
     @mock.patch("gov_notify.service.client")
-    def test_query_sends_email_to_each_application_submitter(self, mock_client):
+    def test_query_sends_email_to_each_application_submitter_site(self, mock_client):
         """
         TODO TODO TODO
         """
