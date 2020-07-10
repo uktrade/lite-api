@@ -424,7 +424,7 @@ class EcjuQuery(TimestampableModel):
             super(EcjuQuery, self).save(*args, **kwargs)
 
 
-class GoodsTypeCountryDecision(TimestampableModel):
+class GoodCountryDecision(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
     goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)

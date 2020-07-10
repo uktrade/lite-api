@@ -32,7 +32,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseDocumentState, CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodsTypeCountryDecision, EcjuQuery, CaseType, Advice
+from cases.models import CaseNote, Case, CaseDocument, CaseAssignment, GoodCountryDecision, EcjuQuery, CaseType, Advice
 from cases.tasks import get_application_target_sla
 from conf import settings
 from conf.constants import Roles
@@ -635,7 +635,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_good_country_decision(case, goods_type, country, decision):
-        GoodsTypeCountryDecision(case=case, goods_type=goods_type, country=country, decision=decision).save()
+        GoodCountryDecision(case=case, goods_type=goods_type, country=country, decision=decision).save()
 
     @staticmethod
     def add_additional_information(application):
