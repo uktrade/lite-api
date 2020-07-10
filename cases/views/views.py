@@ -444,10 +444,12 @@ class ECJUQueries(APIView):
         """
         Add a new ECJU query
         """
-        data = deepcopy(request.data)
-        data["case"] = pk
-        data["raised_by_user"] = request.user.id
-        data["team"] = request.user.team.id
+        data = {
+            **request.data,
+            "case": pk,
+            "raised_by_user": request.user.id,
+            "team": request.user.tema.id
+        }
         serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
@@ -467,7 +469,7 @@ class ECJUQueries(APIView):
 
             emails = set()
             if case.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
-                # For each licence in compliance case email the user that submitted the application
+                # For each licence in compliance case, email the user that submitted the application
                 for licence in case.get_licences():
                     emails.add(licence.submitted_by.email)
             else:
