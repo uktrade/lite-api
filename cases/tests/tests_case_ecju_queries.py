@@ -1,11 +1,16 @@
 import json
 from unittest import mock
 
+from django.conf import settings
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
 from cases.models import EcjuQuery
+from compliance.helpers import generate_compliance_site_case
+from compliance.models import ComplianceSiteCase
 from compliance.tests.factories import ComplianceSiteCaseFactory
+from gov_notify.enums import TemplateType
 from picklists.enums import PicklistType
 from test_helpers.clients import DataTestClient
 
@@ -131,6 +136,7 @@ class CaseEcjuQueriesTests(DataTestClient):
         self.assertEqual(len(response.json().get("ecju_queries")), 0)
 
 
+@tag("only")
 class EcjuQueriesCreateTest(DataTestClient):
 
     @mock.patch("gov_notify.service.client")
@@ -158,7 +164,9 @@ class EcjuQueriesCreateTest(DataTestClient):
         """
         TODO TODO TODO
         """
-        case = ComplianceSiteCaseFactory()
+        generate_compliance_site_case(self.create_open_application_case(self.organisation))
+        case = ComplianceSiteCase.objects.get()
+
         url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
         data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
 
@@ -169,7 +177,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Test ECJU Query question?", ecju_query.question)
-        mock_client.send_email.assert_called()
+        mock_client.send_email.assert_not_called()
 
     @mock.patch("gov_notify.service.client")
     def test_gov_user_can_create_ecju_queries_on_query_cases(self, mock_client):

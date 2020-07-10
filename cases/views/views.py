@@ -451,41 +451,40 @@ class ECJUQueries(APIView):
         serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
-            if "validate_only" not in data or not data["validate_only"]:
-                serializer.save()
+            serializer.save()
 
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.ECJU_QUERY,
-                    action_object=serializer.instance,
-                    target=serializer.instance.case,
-                    payload={"ecju_query": data["question"]},
+            # Audit the creation of the query
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.ECJU_QUERY,
+                action_object=serializer.instance,
+                target=serializer.instance.case,
+                payload={"ecju_query": data["question"]},
+            )
+
+            # Send an email to the user(s) that submitted the application
+            case = Case.objects.annotate(name=F("baseapplication__name")).get_subclass(id=pk)
+
+            emails = set()
+            if case.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
+                # For each licence in compliance case email the user that submitted the application
+                for licence in case.get_licences():
+                    emails.add(licence.submitted_by.email)
+            else:
+                emails.add(case.email)
+
+            for email in emails:
+                gov_notify_service.send_email(
+                    email_address=email,
+                    template_type=TemplateType.ECJU_CREATED,
+                    data=EcjuCreatedEmailData(
+                        application_reference=case.reference_code,
+                        ecju_reference=case.name,
+                        link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
+                    ),
                 )
 
-                case = Case.objects.annotate(name=F("baseapplication__name")).get_subclass(id=pk)
-
-                emails = set()
-                if case.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
-                    # For each licence in compliance case email the user that submitted the application
-                    for licence in case.get_licences():
-                        emails.add(licence.submitted_by.email)
-                else:
-                    emails.add(case["email"])
-
-                for email in emails:
-                    gov_notify_service.send_email(
-                        email_address=email,
-                        template_type=TemplateType.ECJU_CREATED,
-                        data=EcjuCreatedEmailData(
-                            application_reference=case.reference_code,
-                            ecju_reference=case.name,
-                            link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
-                        ),
-                    )
-
-                return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
-            else:
-                return JsonResponse(data={}, status=status.HTTP_200_OK)
+            return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
 
 
 class EcjuQueryDetail(APIView):
