@@ -10,10 +10,10 @@ class CasesConfig(AppConfig):
     @staticmethod
     def initialize_background_tasks(**kwargs):
         from background_task.models import Task
-        from cases.sla import update_cases_sla
+        from cases.tasks import update_cases_sla
 
         # Update cases SLA
-        if not Task.objects.filter(task_name="cases.sla.update_cases_sla").exists():
+        if not Task.objects.filter(task_name="cases.tasks.update_cases_sla").exists():
             update_cases_sla(repeat=Task.DAILY, repeat_until=None)  # noqa
 
     def ready(self):
