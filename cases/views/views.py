@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -47,6 +47,7 @@ from cases.serializers import (
 )
 from cases.service import get_destinations
 from compliance.helpers import generate_compliance_site_case
+from compliance.models import filter_cases_with_compliance_related_licence_attached
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
@@ -465,23 +466,30 @@ class ECJUQueries(APIView):
             )
 
             # Send an email to the user(s) that submitted the application
-            case = Case.objects.annotate(name=F("baseapplication__name")).get_subclass(id=pk)
+            application_info = (
+                Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
+                    .values("id", "email", "name", "reference_code", "case_type__type")
+                    .get(id=pk)
+            )
 
             emails = set()
-            if case.case_type.type == CaseTypeTypeEnum.COMPLIANCE:
-                # For each licence in compliance case, email the user that submitted the application
-                for licence in case.get_licences():
+            print(application_info["case_type__type"])
+            print(application_info["case_type__type"])
+            print(application_info["case_type__type"])
+            if application_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
+                # For each licence in a compliance case, email the user that submitted the application
+                for licence in filter_cases_with_compliance_related_licence_attached(Case.objects.all(), application_info["id"]):
                     emails.add(licence.submitted_by.email)
             else:
-                emails.add(case.email)
+                emails.add(application_info["email"])
 
             for email in emails:
                 gov_notify_service.send_email(
                     email_address=email,
                     template_type=TemplateType.ECJU_CREATED,
                     data=EcjuCreatedEmailData(
-                        application_reference=case.reference_code,
-                        ecju_reference=case.name,
+                        application_reference=application_info["reference_code"],
+                        ecju_reference=application_info["name"],
                         link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
                     ),
                 )

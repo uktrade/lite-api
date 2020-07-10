@@ -19,6 +19,13 @@ class EcjuCreatedEmailData(EmailData):
 
 
 @dataclass(frozen=True)
+class EcjuComplianceCreatedEmailData(EmailData):
+    ecju_reference: str
+    application_reference: str
+    link: str
+
+
+@dataclass(frozen=True)
 class ApplicationStatusEmailData(EmailData):
     case_reference: str
     application_reference: str
