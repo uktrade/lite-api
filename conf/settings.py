@@ -294,7 +294,6 @@ EXPORTER_BASE_URL = (
     env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
 )
 
-<<<<<<< HEAD
 # Document signing
 DOCUMENT_SIGNING_ENABLED = env("DOCUMENT_SIGNING_ENABLED")
 P12_CERTIFICATE = env("P12_CERTIFICATE")
