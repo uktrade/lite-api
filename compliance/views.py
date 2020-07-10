@@ -23,7 +23,6 @@ from compliance.helpers import (
     get_compliance_site_case,
     compliance_visit_case_complete,
     get_exporter_visible_compliance_site_cases,
-    filter_cases_with_compliance_related_licence_attached,
 )
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
@@ -119,8 +118,11 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference", "").upper()
 
-        cases = Case.objects.select_related("case_type").prefetch_related("baseapplication__licence")
-        cases = filter_cases_with_compliance_related_licence_attached(cases, self.kwargs["pk"])
+        cases = (
+            Case.objects.select_related("case_type")
+            .prefetch_related("baseapplication__licence")
+            .filter_cases_with_compliance_related_licence_attached(self.kwargs["pk"])
+        )
 
         if reference_code:
             cases = cases.filter(reference_code__contains=reference_code)
