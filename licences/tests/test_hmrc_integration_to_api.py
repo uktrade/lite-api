@@ -80,7 +80,10 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertTrue(
             Audit.objects.filter(
                 verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
-                payload={"good": licence.goods.first().good.good.description, "usage": original_usage + usage_update},
+                payload={
+                    "good_description": licence.goods.first().good.good.description,
+                    "usage": original_usage + usage_update,
+                },
             ).exists()
         )
 

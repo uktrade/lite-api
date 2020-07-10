@@ -137,7 +137,7 @@ def _validate_good_on_licence(licence_id: UUID, data: dict) -> dict:
 def _update_licence(data: dict) -> UUID:
     """Updates the Usage for Goods on a Licence"""
 
-    [_update_good_on_licence_usage(data["id"], good["id"], good["usage"]) for good in data["goods"]]
+    [_update_good_on_licence_usage(data["id"], good["id"], float(good["usage"])) for good in data["goods"]]
     return data["id"]
 
 
@@ -145,7 +145,7 @@ def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float)
     """Updates the Usage for a Good on a Licence"""
 
     gol = GoodOnLicence.objects.get(licence_id=licence_id, good__good_id=good_id)
-    gol.usage += float(usage)
+    gol.usage += usage
     gol.save()
 
     good_description = gol.good.good.description
