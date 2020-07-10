@@ -145,7 +145,7 @@ def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float)
     """Updates the Usage for a Good on a Licence"""
 
     gol = GoodOnLicence.objects.get(licence_id=licence_id, good__good_id=good_id)
-    gol.usage += usage
+    gol.usage += float(usage)
     gol.save()
 
     good_description = gol.good.good.description
