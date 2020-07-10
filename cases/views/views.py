@@ -30,7 +30,7 @@ from cases.libraries.post_advice import (
     check_if_user_cannot_manage_team_advice,
     case_advice_contains_refusal,
 )
-from cases.models import CaseDocument, EcjuQuery, Advice, GoodCountryDecision, CaseAssignment, Case, CaseReviewDate
+from cases.models import CaseDocument, EcjuQuery, Advice, GoodsTypeCountryDecision, CaseAssignment, Case, CaseReviewDate
 from cases.serializers import (
     CaseDocumentViewSerializer,
     CaseDocumentCreateSerializer,

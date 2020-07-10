@@ -23,7 +23,7 @@ from cases.models import (
     CaseDocument,
     EcjuQuery,
     Advice,
-    GoodCountryDecision,
+    GoodsTypeCountryDecision,
     CaseType,
     CaseReviewDate,
 )
@@ -450,7 +450,7 @@ class GoodCountryDecisionSerializer(serializers.ModelSerializer):
     decision = KeyValueChoiceField(choices=AdviceType.choices)
 
     class Meta:
-        model = GoodCountryDecision
+        model = GoodsTypeCountryDecision
         fields = "__all__"
 
 

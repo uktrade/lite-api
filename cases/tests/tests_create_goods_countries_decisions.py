@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from applications.models import CountryOnApplication
-from cases.models import GoodCountryDecision
+from cases.models import GoodsTypeCountryDecision
 from conf import constants
 from goodstype.models import GoodsType
 from static.countries.helpers import get_country
@@ -49,7 +49,7 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         response = self.client.post(self.goods_countries_url, data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(GoodCountryDecision.objects.count(), len(data["good_countries"]))
+        self.assertEqual(GoodsTypeCountryDecision.objects.count(), len(data["good_countries"]))
         self.assertEqual(len(response.json()["data"]), len(data["good_countries"]))
 
     def test_saving_overwrites_previous_assignment(self):
@@ -63,4 +63,4 @@ class CreateGoodsCountriesDecisions(DataTestClient):
 
         self.client.post(self.goods_countries_url, data, **self.gov_headers)
 
-        self.assertEqual(GoodCountryDecision.objects.count(), 1)
+        self.assertEqual(GoodsTypeCountryDecision.objects.count(), 1)
