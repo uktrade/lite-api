@@ -400,6 +400,7 @@ class ApplicationManageStatus(APIView):
     def put(self, request, pk):
         application = get_application(pk)
         is_licence_application = application.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION
+        is_hmrc = application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
 
         data = deepcopy(request.data)
 
@@ -420,7 +421,7 @@ class ApplicationManageStatus(APIView):
                 )
         else:
             if not can_status_be_set_by_gov_user(
-                request.user, application.status.status, data["status"], is_licence_application
+                request.user, application.status.status, data["status"], is_licence_application, is_hmrc
             ):
                 return JsonResponse(
                     data={"errors": [strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS]},
@@ -537,8 +538,9 @@ class ApplicationFinaliseView(APIView):
 
         # Check permissions
         is_mod_clearance = application.case_type.sub_type in CaseTypeSubTypeEnum.mod
+        is_hmrc = application.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
         if not can_status_be_set_by_gov_user(
-            request.user, application.status.status, CaseStatusEnum.FINALISED, is_mod_clearance
+            request.user, application.status.status, CaseStatusEnum.FINALISED, is_mod_clearance, is_hmrc
         ):
             return JsonResponse(
                 data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},

@@ -33,7 +33,7 @@ def can_status_be_set_by_exporter_user(original_status: str, new_status: str) ->
     return True
 
 
-def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, is_mod: bool) -> bool:
+def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, is_mod: bool, is_hmrc: bool) -> bool:
     """ Check that a status can be set by a gov user. Gov users can not set a case's status to
     `Applicant editing`. They also cannot set a case's status to `Finalised` or open a closed case
     without additional permissions.
@@ -44,6 +44,9 @@ def can_status_be_set_by_gov_user(user, original_status: str, new_status: str, i
     elif CaseStatusEnum.is_terminal(original_status) and not assert_user_has_permission(
         user, GovPermissions.REOPEN_CLOSED_CASES
     ):
+        return False
+
+    if is_hmrc and new_status not in [CaseStatusEnum.CLOSED, CaseStatusEnum.SUBMITTED, CaseStatusEnum.RESUBMITTED]:
         return False
 
     if new_status == CaseStatusEnum.FINALISED:
