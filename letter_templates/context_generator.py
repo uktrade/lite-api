@@ -16,6 +16,7 @@ from compliance.helpers import filter_cases_with_compliance_related_licence_atta
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse
+from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
@@ -257,8 +258,16 @@ def _get_goods_query_context(case):
 
 def _get_compliance_site_licences(case_id):
     cases = filter_cases_with_compliance_related_licence_attached(Case.objects.all(), case_id)
-    # TODO: add licence status
-    context = [{"reference_code": case.reference_code,} for case in cases]
+    context = [
+        {
+            "reference_code": case.reference_code,
+            "status": case.baseapplication.licence.exclude(status=LicenceStatus.DRAFT)
+            .order_by("created_at")
+            .last()
+            .status,
+        }
+        for case in cases
+    ]
     return context
 
 
