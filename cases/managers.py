@@ -5,7 +5,6 @@ from compat import get_model
 from django.db import models, transaction
 from django.db.models import Q, Case, When, BinaryField
 from django.utils import timezone
-from model_utils.managers import InheritanceQuerySet
 
 from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
@@ -22,7 +21,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 
-class CaseQuerySet(InheritanceQuerySet):
+class CaseQuerySet(models.QuerySet):
     """
     Custom queryset for the Case model. This allows us to chain application specific
     filtering logic in a reusable way.
