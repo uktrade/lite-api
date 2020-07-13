@@ -8,6 +8,8 @@ from cases.enums import CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.models import Case
 from flags.enums import SystemFlags
 from conf.helpers import str_to_bool, convert_date_to_string
+from goods.enums import ItemCategory
+from goods.models import Good
 from lite_content.lite_api.strings import Applications as strings
 from static.trade_control.enums import TradeControlActivity
 
@@ -159,9 +161,9 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
     )
 
     if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-        contains_firearm_goods, trade_control_activity = StandardApplication.objects.values_list(
-            "contains_firearm_goods", "trade_control_activity"
-        ).get(pk=application.pk)
+        trade_control_activity = StandardApplication.objects.values_list("trade_control_activity", flat=True).get(
+            pk=application.pk
+        )
 
         _add_or_remove_flag(
             case=case,
@@ -170,11 +172,16 @@ def set_case_flags_on_submitted_standard_or_open_application(application: BaseAp
             and trade_control_activity == TradeControlActivity.MARITIME_ANTI_PIRACY,
         )
 
-        # set firearms flag for SIEL, SITL
+        good_item_categories = (
+            Good.objects.filter(id__in=application.goods.all().values_list("good_id", flat=True))
+            .values_list("item_category", flat=True)
+            .distinct()
+        )
+
         _add_or_remove_flag(
             case=case,
             flag_id=SystemFlags.FIREARMS_ID,
-            is_adding=contains_firearm_goods
+            is_adding=ItemCategory.GROUP2_FIREARMS in good_item_categories
             and application.case_type.id in [CaseTypeEnum.SIEL.id, CaseTypeEnum.SITL.id],
         )
 
