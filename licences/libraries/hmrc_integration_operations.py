@@ -155,5 +155,5 @@ def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float)
     audit_trail_service.create_system_user_audit(
         verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
         target=gol.licence.application.get_case(),
-        payload={"good_description": good_description, "usage": gol.usage},
+        payload={"good_description": good_description, "usage": gol.usage, "licence": gol.licence.reference_code},
     )

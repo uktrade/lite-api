@@ -83,6 +83,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
                 payload={
                     "good_description": licence.goods.first().good.good.description,
                     "usage": original_usage + usage_update,
+                    "licence": licence.reference_code,
                 },
             ).exists()
         )
