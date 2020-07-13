@@ -10,6 +10,7 @@ from applications.enums import (
 from applications.models import ExternalLocationOnApplication, CountryOnApplication
 from applications.tests.factories import GoodOnApplicationFactory
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
 from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType, MilitaryUse, Component, ItemCategory, FirearmGoodType
@@ -119,7 +120,9 @@ class DocumentContextGenerationTests(DataTestClient):
                     context["information_security_details"], good_on_application.good.information_security_details
                 )
         elif good_on_application.good.item_category in ItemCategory.group_two:
-            self.assertEqual(context["firearm_type"], good_on_application.good.firearm_details.type)
+            self.assertEqual(
+                context["firearm_type"], FirearmGoodType.to_str(good_on_application.good.firearm_details.type)
+            )
             self.assertEqual(
                 context["year_of_manufacture"], good_on_application.good.firearm_details.year_of_manufacture
             )
@@ -149,7 +152,7 @@ class DocumentContextGenerationTests(DataTestClient):
             )
 
         elif good_on_application.good.item_category in ItemCategory.group_three:
-            self.assertEqual(context["is_military_use"], good_on_application.good.is_military_use)
+            self.assertEqual(context["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
             self.assertEqual(
                 context["modified_military_use_details"], good_on_application.good.modified_military_use_details
             )
@@ -346,18 +349,22 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["sub_type"], case.case_type.sub_type)
 
     def _assert_compliance_visit_case_details(self, context, case):
-        self.assertEqual(context["visit_type"], case.visit_type)
+        self.assertEqual(context["visit_type"], ComplianceVisitTypes.human_readable(case.visit_type))
         self.assertEqual(context["visit_date"], case.visit_date.strftime(DATE_FORMAT))
-        self.assertEqual(context["overall_risk_value"], case.overall_risk_value)
+        self.assertEqual(context["overall_risk_value"], ComplianceRiskValues.human_readable(case.overall_risk_value))
         self.assertEqual(context["licence_risk_value"], case.licence_risk_value)
         self.assertEqual(context["overview"], case.overview)
         self.assertEqual(context["inspection"], case.inspection)
         self.assertEqual(context["compliance_overview"], case.compliance_overview)
-        self.assertEqual(context["compliance_risk_value"], case.compliance_risk_value)
+        self.assertEqual(
+            context["compliance_risk_value"], ComplianceRiskValues.human_readable(case.compliance_risk_value)
+        )
         self.assertEqual(context["individuals_overview"], case.individuals_overview)
-        self.assertEqual(context["individuals_risk_value"], case.individuals_risk_value)
+        self.assertEqual(
+            context["individuals_risk_value"], ComplianceRiskValues.human_readable(case.individuals_risk_value)
+        )
         self.assertEqual(context["products_overview"], case.products_overview)
-        self.assertEqual(context["products_risk_value"], case.products_risk_value)
+        self.assertEqual(context["products_risk_value"], ComplianceRiskValues.human_readable(case.products_risk_value))
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types
