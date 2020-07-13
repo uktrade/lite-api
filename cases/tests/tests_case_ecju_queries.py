@@ -156,7 +156,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
         self.assertEqual("Test ECJU Query question?", ecju_query.question)
-        mock_client.send_email.assert_not_called()
+        mock_client.send_email.assert_called()
 
     @mock.patch("gov_notify.service.client")
     def test_query_sends_email_to_each_application_submitter(self, mock_client):
@@ -270,7 +270,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(str(ecju_query.id), response_data["ecju_query_id"])
         self.assertEqual(ecju_query.question, data["question"])
-        mock_client.send_email.assert_not_called()
+        mock_client.send_email.assert_called()
 
     def test_bad_data_create_fail(self):
         """
