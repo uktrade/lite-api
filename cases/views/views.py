@@ -9,7 +9,6 @@ from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -41,7 +40,6 @@ from cases.serializers import (
     CaseDetailSerializer,
     EcjuQueryGovSerializer,
     CaseAdviceSerializer,
-    GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
     ReviewDateUpdateSerializer,
     EcjuQueryExporterViewSerializer,
@@ -52,13 +50,12 @@ from compliance.helpers import generate_compliance_site_case
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
-from conf.exceptions import NotFoundError, BadRequestError
+from conf.exceptions import NotFoundError
 from conf.helpers import convert_date_to_string
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
-from goodstype.helpers import get_goods_type
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
@@ -70,7 +67,6 @@ from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
-from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
