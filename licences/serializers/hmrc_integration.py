@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from conf.helpers import add_months
+from licences.enums import LicenceStatus
 from licences.helpers import get_approved_goods_types
 from static.countries.models import Country
 
@@ -65,7 +66,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference = serializers.CharField(source="reference_code")
     type = serializers.CharField(source="application.case_type.reference")
-    action = serializers.SerializerMethodField()  # `insert/cancel` on later story
+    action = serializers.SerializerMethodField()  # `insert or cancel`
     start_date = serializers.DateField()
     end_date = serializers.SerializerMethodField()
     organisation = HMRCIntegrationOrganisationSerializer(source="application.organisation")
@@ -85,8 +86,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         ):
             self.fields.pop("countries")
 
-    def get_action(self, _):
-        return "insert"
+    def get_action(self, instance):
+        return LicenceStatus.lite_to_hmrc_intergration.get(instance.status)
 
     def get_end_date(self, instance):
         return add_months(instance.start_date, instance.duration, "%Y-%m-%d")

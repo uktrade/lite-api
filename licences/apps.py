@@ -23,7 +23,9 @@ class LicencesConfig(AppConfig):
         )
 
         for licence in licences_not_sent:
-            schedule_licence_for_hmrc_integration(str(licence.id), licence.application.reference_code)
+            schedule_licence_for_hmrc_integration(
+                str(licence.id), LicenceStatus.lite_to_hmrc_intergration.get(licence.status)
+            )
 
     def ready(self):
         if BACKGROUND_TASK_ENABLED:
