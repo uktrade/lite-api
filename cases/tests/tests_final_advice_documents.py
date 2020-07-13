@@ -2,8 +2,10 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.enums import AdviceType, CaseTypeEnum, AdviceLevel
-from cases.models import Advice
+from cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
+from goodstype.tests.factories import GoodsTypeFactory
 from licences.tests.factories import LicenceFactory
+from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
@@ -69,3 +71,28 @@ class AdviceDocumentsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["value"], AdviceType.get_text(AdviceType.APPROVE))
         self.assertEqual(response_data["document"]["id"], str(document.pk))
+
+
+class OpenApplicationAdviceDocumentsTests(DataTestClient):
+    def test_get_final_advice_documents_refuse_good_on_country(self):
+        case = self.create_open_application_case(self.organisation)
+        url = reverse("cases:final_advice_documents", kwargs={"pk": case.id})
+        country = Country.objects.first()
+        goods_type = GoodsTypeFactory(application=case)
+        goods_type.countries.set([country])
+        FinalAdviceFactory(
+            user=self.gov_user,
+            team=self.team,
+            case=case,
+            goods_type=goods_type,
+            type=AdviceType.APPROVE,
+        )
+        GoodCountryDecisionFactory(case=case, country=country, approve=False)
+
+        response = self.client.get(url, **self.gov_headers)
+        response_data = response.json()["documents"]
+
+        # GoodCountryDecision overrides the approve final advice with a rejection
+        # So no required documents come through
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data, {})

@@ -334,6 +334,14 @@ class FinalAdviceDocuments(APIView):
                 final_advice.append(AdviceType.APPROVE)
             final_advice.remove(AdviceType.PROVISO)
 
+        # If Open application, use GoodCountryDecision to override whether approve is needed.
+        # Only approve can be changed to refuse so the only possible change from
+        # final advice is no approve decision
+        if get_case(pk).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            has_approve_decision = GoodCountryDecision.objects.filter(case_id=pk, approve=True).exists()
+            if not has_approve_decision and AdviceType.APPROVE in final_advice:
+                final_advice.remove(AdviceType.APPROVE)
+
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
         if AdviceType.APPROVE in final_advice:
@@ -660,6 +668,14 @@ class FinaliseView(UpdateAPIView):
         if AdviceType.PROVISO in required_decisions:
             required_decisions.add(AdviceType.APPROVE)
             required_decisions.remove(AdviceType.PROVISO)
+
+        # If Open application, use GoodCountryDecision to override whether approve is needed.
+        # Only approve can be changed to refuse so the only possible change from
+        # final advice is no approve decision
+        if get_case(pk).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            has_approve_decision = GoodCountryDecision.objects.filter(case_id=pk, approve=True).exists()
+            if not has_approve_decision:
+                required_decisions.remove(AdviceType.APPROVE)
 
         # Check that each decision has a document
         # Excluding approve (done in the licence section below)
