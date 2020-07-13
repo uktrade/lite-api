@@ -115,13 +115,13 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
             .last()
         )
 
-        # not all case types contain a licence, for example OGLs do not. As a result we display the case status
         if last_licence:
             return {
                 "key": last_licence.status,
                 "value": LicenceStatus.human_readable(last_licence.status),
             }
         else:
+            # not all case types contain a licence, for example OGLs do not. As a result we display the case status
             return {
                 "key": instance.status.status,
                 "value": get_status_value_from_case_status_enum(instance.status.status),

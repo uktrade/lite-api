@@ -413,8 +413,7 @@ class CaseManager(models.Manager):
 
     def filter_cases_with_compliance_related_licence_attached(self, compliance_case_id):
         """
-        Given a queryset of cases, and a compliance case id, determines cases which contain a licence connected
-            to the site that compliance case is interested in, and that meet the conditions for a compliance case
+        :return a list of cases in a queryset object which are linked to the compliance case id given.
         """
 
         # We filter cases to look at if an object contains an active licence (if required), and
