@@ -46,8 +46,8 @@ def get_next_status_in_workflow_sequence(case):
         return get_next_goods_query_status(case)
     elif case.case_type.reference == CaseTypeEnum.COMPLIANCE_VISIT.reference:
         return get_next_compliance_visit_status(case)
-    # elif hmrc:
-    #
+    elif case.case_type.reference == CaseTypeEnum.HMRC.reference:
+        return None
     else:
         status = case.status
         if status.workflow_sequence:
