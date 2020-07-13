@@ -636,7 +636,7 @@ class CopyApplicationSuccessTests(DataTestClient):
 
     def _validate_case_data(self):
         self.assertEqual(list(self.copied_application.case_ecju_query.all()), [])
-        self.assertEqual(list(self.copied_application.case_note.all()), [])
+        self.assertEqual(list(self.copied_application.case_notes.all()), [])
         self.assertEqual(list(self.copied_application.goodcountrydecision_set.all()), [])
         self.assertEqual(list(self.copied_application.get_case().advice.all()), [])
         self.assertEqual(list(self.copied_application.applicationdocument_set.all()), [])

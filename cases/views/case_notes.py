@@ -55,7 +55,7 @@ class CaseNoteList(APIView):
                 actor=request.user,
                 action_object=serializer.instance,
                 target=case,
-                payload={"case_note": serializer.instance.text},
+                payload={"additional_text": serializer.instance.text},
                 ignore_case_status=True,
             )
             return JsonResponse(data={"case_note": serializer.data}, status=status.HTTP_201_CREATED)
