@@ -18,6 +18,7 @@ from static.statuses.libraries.get_case_status import get_case_status_by_status
 
 def filter_cases_with_compliance_related_licence_attached(queryset, compliance_case_id):
     """
+    TODO! Moving this to a queryset manager at a future date
     Given a queryset of cases, and a compliance case id, determines cases which contain a licence connected
         to the site that compliance case is interested in, and that meet the conditions for a compliance case
     """
