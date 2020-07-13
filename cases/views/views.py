@@ -15,7 +15,14 @@ from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType, CaseTypeTypeEnum
+from cases.enums import (
+    CaseTypeSubTypeEnum,
+    AdviceType,
+    AdviceLevel,
+    ECJUQueryType,
+    CaseTypeTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from cases.helpers import remove_next_review_date
@@ -471,7 +478,9 @@ class ECJUQueries(APIView):
             if application_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
                 # For each licence in a compliance case, email the user that submitted the application
                 case_id = application_info["id"]
-                if application_info["case_type__reference"] == CaseTypeSubTypeEnum.COMP_VISIT:
+
+                if application_info["case_type__reference"] == CaseTypeReferenceEnum.COMP_VISIT:
+                    # If the case is a compliance visit case, use the parent compliance site case ID instead
                     case_id = ComplianceVisitCase.objects.get(pk=case_id).site_case.id
 
                 for licence in filter_cases_with_compliance_related_licence_attached(Case.objects.all(), case_id):
