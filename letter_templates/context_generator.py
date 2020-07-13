@@ -14,7 +14,7 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote, Case
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
-from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse
+from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
@@ -391,15 +391,20 @@ def _get_licence_context(licence):
 
 
 def _get_party_context(party):
-    return {
+    context = {
         "name": party.name,
         "type": party.sub_type,
         "address": party.address,
         "descriptors": party.descriptors,
         "country": {"name": party.country.name, "code": party.country.id},
         "website": party.website,
-        "clearance_level": PvGrading.to_str(party.clearance_level),
     }
+    if party.clearance_level:
+        context["clearance_level"] = PvGrading.to_str(party.clearance_level)
+    else:
+        context["clearance_level"] = None
+
+    return context
 
 
 def _get_third_parties_context(third_parties):
@@ -449,7 +454,7 @@ def _get_good_on_application_context(good_on_application, advice=None):
         if good_on_application.good.uses_information_security:
             good_context["information_security_details"] = good_on_application.good.information_security_details
     elif good_on_application.good.item_category in ItemCategory.group_two:
-        good_context["firearm_type"] = good_on_application.good.firearm_details.type
+        good_context["firearm_type"] = FirearmGoodType.to_str(good_on_application.good.firearm_details.type)
         good_context["year_of_manufacture"] = good_on_application.good.firearm_details.year_of_manufacture
         good_context["calibre"] = good_on_application.good.firearm_details.calibre
         good_context["is_covered_by_firearm_act_section_one_two_or_five"] = friendly_boolean(

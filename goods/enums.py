@@ -87,7 +87,7 @@ class PvGrading:
 
     @classmethod
     def to_str(cls, obj):
-        return [grading[1] for grading in PvGrading.choices if grading[0] == obj][0]
+        return [grading[1] for grading in cls.choices if grading[0] == obj][0]
 
 
 class ItemCategory:
