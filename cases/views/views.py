@@ -523,10 +523,13 @@ class GoodsCountriesDecisions(APIView):
     authentication_classes = (GovAuthentication,)
 
     def get(self, request, pk):
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         approved, refused = good_type_to_country_decisions(pk)
         return JsonResponse({"approved": list(approved.values()), "refused": list(refused.values())})
 
+    @transaction.atomic
     def post(self, request, pk):
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         required_decisions = get_required_good_type_to_country_combinations(pk)
         required_decision_ids = set()
         for goods_type, country_list in required_decisions.items():
@@ -536,6 +539,22 @@ class GoodsCountriesDecisions(APIView):
         if not required_decision_ids.issubset(request.data):
             missing_ids = required_decision_ids.difference(request.data)
             raise ParseError({missing_id: ["Please select a value"] for missing_id in missing_ids})
+
+        for id in required_decision_ids:
+            goods_type_id, country_id = id.split(".")
+            value = request.data[id] == "approve"
+            try:
+                goodcountrydecision = GoodCountryDecision.objects.get(
+                    case_id=pk, goods_type_id=goods_type_id, country_id=country_id
+                )
+                goodcountrydecision.approve = value
+                goodcountrydecision.save()
+            except GoodCountryDecision.DoesNotExist:
+                GoodCountryDecision.objects.create(
+                    case_id=pk, goods_type_id=goods_type_id, country_id=country_id, approve=value
+                )
+
+        return JsonResponse(data={"good_country_decisions": list(required_decision_ids)})
 
 
 class Destination(APIView):
