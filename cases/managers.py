@@ -196,40 +196,6 @@ class CaseQuerySet(models.QuerySet):
 
         return self
 
-    def filter_cases_with_compliance_related_licence_attached(self, compliance_case_id):
-        """
-        Given a queryset of cases, and a compliance case id, determines cases which contain a licence connected
-            to the site that compliance case is interested in, and that meet the conditions for a compliance case
-        """
-
-        # We filter cases to look at if an object contains an active licence (if required), and
-        queryset = self.filter(
-            Q(
-                baseapplication__licence__status__in=[
-                    LicenceStatus.ISSUED,
-                    LicenceStatus.REINSTATED,
-                    LicenceStatus.REVOKED,
-                    LicenceStatus.SURRENDERED,
-                    LicenceStatus.CANCELLED,
-                ],
-                baseapplication__application_sites__site__site_records_located_at__compliance__id=compliance_case_id,
-            )
-            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=compliance_case_id)
-        )
-
-        # We filter for OIEL, OICL, OGLs, and specific SIELs (dependant on CLC codes present) as these are the only case
-        #   types relevant for compliance cases
-        GoodOnLicence = get_model("licences", "GoodOnLicence")
-        approved_goods_on_licence = GoodOnLicence.objects.filter(
-            good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
-        ).values_list("good", flat=True)
-
-        queryset = queryset.filter(
-            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
-        ) | queryset.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
-
-        return queryset.distinct()
-
 
 class CaseManager(models.Manager):
     """
@@ -444,6 +410,40 @@ class CaseManager(models.Manager):
             return query
 
         return case
+
+    def filter_cases_with_compliance_related_licence_attached(self, compliance_case_id):
+        """
+        Given a queryset of cases, and a compliance case id, determines cases which contain a licence connected
+            to the site that compliance case is interested in, and that meet the conditions for a compliance case
+        """
+
+        # We filter cases to look at if an object contains an active licence (if required), and
+        queryset = self.filter(
+            Q(
+                baseapplication__licence__status__in=[
+                    LicenceStatus.ISSUED,
+                    LicenceStatus.REINSTATED,
+                    LicenceStatus.REVOKED,
+                    LicenceStatus.SURRENDERED,
+                    LicenceStatus.CANCELLED,
+                ],
+                baseapplication__application_sites__site__site_records_located_at__compliance__id=compliance_case_id,
+            )
+            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=compliance_case_id)
+        )
+
+        # We filter for OIEL, OICL, OGLs, and specific SIELs (dependant on CLC codes present) as these are the only case
+        #   types relevant for compliance cases
+        GoodOnLicence = get_model("licences", "GoodOnLicence")
+        approved_goods_on_licence = GoodOnLicence.objects.filter(
+            good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+        ).values_list("good", flat=True)
+
+        queryset = queryset.filter(
+            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
+        ) | queryset.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
+
+        return queryset.distinct()
 
 
 class CaseReferenceCodeManager(models.Manager):

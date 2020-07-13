@@ -118,11 +118,7 @@ class LicenceList(ListAPIView):
         #   and the licence status (not added), and returns completed (not added).
         reference_code = self.request.GET.get("reference", "").upper()
 
-        cases = (
-            Case.objects.select_related("case_type")
-            .prefetch_related("baseapplication__licence")
-            .filter_cases_with_compliance_related_licence_attached(self.kwargs["pk"])
-        )
+        cases = Case.objects.filter_cases_with_compliance_related_licence_attached(self.kwargs["pk"])
 
         if reference_code:
             cases = cases.filter(reference_code__contains=reference_code)

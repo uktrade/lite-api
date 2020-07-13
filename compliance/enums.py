@@ -15,6 +15,12 @@ class ComplianceVisitTypes:
         (REVISIT, "Revisit"),
     ]
 
+    @classmethod
+    def human_readable(cls, status):
+        for key, value in cls.choices:
+            if key == status:
+                return value
+
 
 class ComplianceRiskValues:
     VERY_LOW = "very_low"
@@ -30,3 +36,9 @@ class ComplianceRiskValues:
         (HIGHER, "Higher risk"),
         (HIGHEST, "Highest risk"),
     ]
+
+    @classmethod
+    def human_readable(cls, status):
+        for key, value in cls.choices:
+            if key == status:
+                return value

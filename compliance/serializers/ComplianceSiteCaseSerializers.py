@@ -7,6 +7,7 @@ from compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicen
 from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from licences.enums import LicenceStatus
+from licences.models import Licence
 from organisations.models import Organisation
 from organisations.serializers import OrganisationDetailSerializer
 
@@ -105,7 +106,24 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
 
     def get_status(self, instance):
         # The latest non draft licence should be the only active licence on a case or the licence that was active
-        return instance.baseapplication.licence.exclude(status=LicenceStatus.DRAFT).order_by("created_at").last().status
+        last_licence = (
+            Licence.objects.filter(application_id=instance.id)
+            .exclude(status=LicenceStatus.DRAFT)
+            .order_by("created_at")
+            .last()
+        )
+
+        # not all case types contain a licence, for example OGLs do not. As a result we display the case status
+        if last_licence:
+            return {
+                "key": last_licence.status,
+                "value": LicenceStatus.human_readable(last_licence.status),
+            }
+        else:
+            return {
+                "key": instance.status.status,
+                "value": get_status_value_from_case_status_enum(instance.status.status),
+            }
 
 
 class ExporterComplianceSiteListSerializer(serializers.Serializer):

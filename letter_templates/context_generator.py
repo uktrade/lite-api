@@ -12,6 +12,7 @@ from applications.models import (
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice, EcjuQuery, CaseNote, Case
+from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType
@@ -23,6 +24,7 @@ from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
+from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from static.units.enums import Units
 
 
@@ -256,17 +258,23 @@ def _get_goods_query_context(case):
     }
 
 
+def _get_compliance_licence_status(case):
+    # The latest non draft licence should be the only active licence on a case or the licence that was active
+    last_licence = (
+        Licence.objects.filter(application_id=case.id).exclude(status=LicenceStatus.DRAFT).order_by("created_at").last()
+    )
+
+    # not all case types contain a licence, for example OGLs do not. As a result we display the case status
+    if last_licence:
+        return LicenceStatus.human_readable(last_licence.status)
+    else:
+        return get_status_value_from_case_status_enum(case.status.status)
+
+
 def _get_compliance_site_licences(case_id):
     cases = Case.objects.filter_cases_with_compliance_related_licence_attached(case_id)
     context = [
-        {
-            "reference_code": case.reference_code,
-            "status": case.baseapplication.licence.exclude(status=LicenceStatus.DRAFT)
-            .order_by("created_at")
-            .last()
-            .status,
-        }
-        for case in cases
+        {"reference_code": case.reference_code, "status": _get_compliance_licence_status(case),} for case in cases
     ]
     return context
 
@@ -295,18 +303,26 @@ def _get_people_present_compliance_visit_context(case):
 def _convert_compliance_visit_case_to_dict(comp_case):
     return {
         "reference_code": comp_case.reference_code,
-        "visit_type": comp_case.visit_type,
-        "visit_date": comp_case.visit_date.strftime(DATE_FORMAT),
-        "overall_risk_value": comp_case.overall_risk_value,
+        "visit_type": ComplianceVisitTypes.human_readable(comp_case.visit_type) if comp_case.visit_type else None,
+        "visit_date": comp_case.visit_date.strftime(DATE_FORMAT) if comp_case.visit_date else None,
+        "overall_risk_value": ComplianceRiskValues.human_readable(comp_case.overall_risk_value)
+        if comp_case.overall_risk_value
+        else None,
         "licence_risk_value": comp_case.licence_risk_value,
         "overview": comp_case.overview,
         "inspection": comp_case.inspection,
         "compliance_overview": comp_case.compliance_overview,
-        "compliance_risk_value": comp_case.compliance_risk_value,
+        "compliance_risk_value": ComplianceRiskValues.human_readable(comp_case.compliance_risk_value)
+        if comp_case.overall_risk_value
+        else None,
         "individuals_overview": comp_case.individuals_overview,
-        "individuals_risk_value": comp_case.individuals_risk_value,
+        "individuals_risk_value": ComplianceRiskValues.human_readable(comp_case.individuals_risk_value)
+        if comp_case.overall_risk_value
+        else None,
         "products_overview": comp_case.products_overview,
-        "products_risk_value": comp_case.products_risk_value,
+        "products_risk_value": ComplianceRiskValues.human_readable(comp_case.products_risk_value)
+        if comp_case.overall_risk_value
+        else None,
         "people_present": _get_people_present_compliance_visit_context(comp_case),
     }
 
@@ -314,8 +330,8 @@ def _convert_compliance_visit_case_to_dict(comp_case):
 def _get_compliance_site_context(case, with_visit_reports=True):
     context = {
         "reference_code": case.reference_code,
-        "site_name": case.site.name,
-        **_get_address(case.site.address),
+        "site_name": case.compliancesitecase.site.name,
+        **_get_address(case.compliancesitecase.site.address),
         "open_licence_returns": _get_organisations_open_licence_returns(case.organisation.id),
         "licences": _get_compliance_site_licences(case.id),
     }
