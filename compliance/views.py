@@ -12,31 +12,29 @@ from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateAPIView,
     RetrieveUpdateDestroyAPIView,
-    UpdateAPIView,
 )
 from rest_framework.views import APIView
 
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
-from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
+from cases.enums import CaseTypeEnum
 from cases.libraries.get_case import get_case
 from cases.models import Case
 from compliance.helpers import (
     get_record_holding_sites_for_case,
     COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES,
     get_compliance_site_case,
-    compliance_visit_case_complete,
     get_exporter_visible_compliance_site_cases,
 )
 from compliance.helpers import read_and_validate_csv, fetch_and_validate_licences
 from compliance.models import OpenLicenceReturns, ComplianceVisitCase, CompliancePerson
 from compliance.serializers.ComplianceSiteCaseSerializers import (
     ComplianceLicenceListSerializer,
-    ExporterComplianceSiteListSerializer,
     ExporterComplianceVisitListSerializer,
-    ExporterComplianceSiteDetailSerializer,
     ExporterComplianceVisitDetailSerializer,
+    ExporterComplianceSiteListSerializer,
+    ExporterComplianceSiteDetailSerializer,
 )
 from compliance.serializers.ComplianceVisitCaseSerializers import (
     ComplianceVisitSerializer,
@@ -51,11 +49,8 @@ from conf.authentication import ExporterAuthentication
 from conf.authentication import GovAuthentication, SharedAuthentication
 from licences.enums import LicenceStatus
 from licences.models import GoodOnLicence
-from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Compliance
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
-from static.statuses.enums import CaseStatusEnum
-from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.notifications import get_compliance_site_case_notifications
 
 
@@ -169,39 +164,6 @@ class LicenceList(ListAPIView):
             licence["has_open_licence_returns"] = UUID(licence["id"]) in licences_with_olr
 
         return super().get_paginated_response(data)
-
-
-class ComplianceManageStatus(UpdateAPIView):
-    """
-    Modify the status of a Compliance case (site or visit case)
-    """
-
-    authentication_classes = (GovAuthentication,)
-
-    def put(self, request, *args, **kwargs):
-        case = get_case(kwargs["pk"])
-
-        new_status = request.data.get("status")
-
-        if (
-            case.case_type.reference == CaseTypeReferenceEnum.COMP_SITE
-            and new_status not in CaseStatusEnum.compliance_site_statuses
-        ):
-            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
-        elif (
-            case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT
-            and new_status not in CaseStatusEnum.compliance_visit_statuses
-        ):
-            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
-
-        if case.case_type.reference == CaseTypeReferenceEnum.COMP_VISIT and CaseStatusEnum.is_terminal(new_status):
-            comp_case = ComplianceVisitCase.objects.get(id=kwargs["pk"])
-            if not compliance_visit_case_complete(comp_case):
-                raise ValidationError({"status": [strings.Statuses.COMPLIANCE_NOT_COMPLETE]})
-
-        case.change_status(request.user, get_case_status_by_status(new_status))
-
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class ComplianceSiteVisits(ListCreateAPIView):
