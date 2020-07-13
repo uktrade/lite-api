@@ -5,22 +5,16 @@ from conf.settings import LITE_HMRC_INTEGRATION_ENABLED, BACKGROUND_TASK_ENABLED
 from licences.enums import LicenceStatus
 
 
-class CasesConfig(AppConfig):
-    name = "cases"
+class LicencesConfig(AppConfig):
+    name = "licences"
 
-    @staticmethod
-    def initialize_background_tasks(**kwargs):
-        from background_task.models import Task
-        from cases.sla import update_cases_sla
-
-        if not Task.objects.filter(task_name="cases.sla.update_cases_sla").exists():
-            update_cases_sla(repeat=Task.DAILY, repeat_until=None)  # noqa
-
+    def initialize_background_tasks(self, **kwargs):
         if LITE_HMRC_INTEGRATION_ENABLED:
-            CasesConfig.schedule_not_sent_licences()
+            self.schedule_not_sent_licences()
 
     @staticmethod
     def schedule_not_sent_licences():
+        # Send licence info to HMRC integration
         from licences.models import Licence
         from licences.tasks import schedule_licence_for_hmrc_integration
 
