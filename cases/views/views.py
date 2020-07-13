@@ -543,16 +543,9 @@ class GoodsCountriesDecisions(APIView):
         for id in required_decision_ids:
             goods_type_id, country_id = id.split(".")
             value = request.data[id] == "approve"
-            try:
-                goodcountrydecision = GoodCountryDecision.objects.get(
-                    case_id=pk, goods_type_id=goods_type_id, country_id=country_id
-                )
-                goodcountrydecision.approve = value
-                goodcountrydecision.save()
-            except GoodCountryDecision.DoesNotExist:
-                GoodCountryDecision.objects.create(
-                    case_id=pk, goods_type_id=goods_type_id, country_id=country_id, approve=value
-                )
+            GoodCountryDecision.objects.update_or_create(
+                case_id=pk, goods_type_id=goods_type_id, country_id=country_id, defaults={"approve": value}
+            )
 
         return JsonResponse(data={"good_country_decisions": list(required_decision_ids)})
 
