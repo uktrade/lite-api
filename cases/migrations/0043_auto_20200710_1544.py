@@ -6,7 +6,7 @@ from cases.enums import AdviceType
 
 
 def convert_good_country_decision(apps, schema_editor):
-    GoodCountryDecision = apps.get_model("applications", "GoodCountryDecision")
+    GoodCountryDecision = apps.get_model("cases", "GoodCountryDecision")
     for goodCountryDecision in GoodCountryDecision.objects.all():
         if goodCountryDecision.decision == AdviceType.APPROVE or goodCountryDecision.decision == AdviceType.PROVISO:
             goodCountryDecision.approve = True
@@ -16,7 +16,7 @@ def convert_good_country_decision(apps, schema_editor):
 
 
 def reverse_good_country_decision(apps, schema_editor):
-    GoodCountryDecision = apps.get_model("applications", "GoodCountryDecision")
+    GoodCountryDecision = apps.get_model("cases", "GoodCountryDecision")
     for goodCountryDecision in GoodCountryDecision.objects.all():
         if goodCountryDecision.approve:
             goodCountryDecision.decision = AdviceType.APPROVE
