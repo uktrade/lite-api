@@ -27,4 +27,4 @@ class Units:
 
     @classmethod
     def to_str(cls, obj):
-        return [grading[1] for grading in cls.choices if grading[0] == obj][0]
+        return next(grading[1] for grading in cls.choices if grading[0] == obj)
