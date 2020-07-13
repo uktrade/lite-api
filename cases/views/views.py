@@ -555,9 +555,7 @@ class GoodsCountriesDecisions(APIView):
             )
 
         audit_trail_service.create(
-            actor=request.user,
-            verb=AuditType.UPDATED_GOOD_ON_DESTINATION_MATRIX,
-            target=get_case(pk),
+            actor=request.user, verb=AuditType.UPDATED_GOOD_ON_DESTINATION_MATRIX, target=get_case(pk),
         )
 
         return JsonResponse(

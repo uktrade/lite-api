@@ -81,11 +81,7 @@ class OpenApplicationAdviceDocumentsTests(DataTestClient):
         goods_type = GoodsTypeFactory(application=case)
         goods_type.countries.set([country])
         FinalAdviceFactory(
-            user=self.gov_user,
-            team=self.team,
-            case=case,
-            goods_type=goods_type,
-            type=AdviceType.APPROVE,
+            user=self.gov_user, team=self.team, case=case, goods_type=goods_type, type=AdviceType.APPROVE,
         )
         GoodCountryDecisionFactory(case=case, country=country, approve=False)
 
