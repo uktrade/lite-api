@@ -19,17 +19,17 @@ class LoggingMiddleware:
             correlation = request.META["HTTP_X_CORRELATION_ID"]
         request.correlation = correlation or uuid.uuid4().hex
         response = self.get_response(request)
-        # logging.info(
-        #     {
-        #         "user": request.user.id if request.user else None,
-        #         "message": "liteolog api",
-        #         "corrID": request.correlation,
-        #         "type": "http response",
-        #         "method": request.method,
-        #         "url": request.path,
-        #         "elapsed_time": time.time() - start,
-        #     }
-        # )
+        logging.info(
+            {
+                "user": request.user.id if request.user else None,
+                "message": "liteolog api",
+                "corrID": request.correlation,
+                "type": "http response",
+                "method": request.method,
+                "url": request.path,
+                "elapsed_time": time.time() - start,
+            }
+        )
 
         return response
 
@@ -80,17 +80,17 @@ class DBLoggingMiddleware:
         final_queries = connection.queries
 
         elapsed_time = time.time() - start
-        # logging.info(
-        #     {
-        #         "message": "liteolog db",
-        #         "corrID": request.correlation,
-        #         "type": "db details",
-        #         "elapsed_time": elapsed_time,
-        #         "initial query count": len(initial_queries),
-        #         "final query count": len(final_queries),
-        #         "query set": final_queries,
-        #         "method": "DB-QUERY-SET",
-        #     }
-        # )
+        logging.info(
+            {
+                "message": "liteolog db",
+                "corrID": request.correlation,
+                "type": "db details",
+                "elapsed_time": elapsed_time,
+                "initial query count": len(initial_queries),
+                "final query count": len(final_queries),
+                "query set": final_queries,
+                "method": "DB-QUERY-SET",
+            }
+        )
 
         return response

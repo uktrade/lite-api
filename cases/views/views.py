@@ -1,14 +1,11 @@
-from copy import deepcopy
-
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F, Q
+from django.db.models import F
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.models import CountryOnApplication
@@ -19,7 +16,6 @@ from cases.enums import (
     CaseTypeSubTypeEnum,
     AdviceType,
     AdviceLevel,
-    ECJUQueryType,
     CaseTypeTypeEnum,
     CaseTypeReferenceEnum,
 )
