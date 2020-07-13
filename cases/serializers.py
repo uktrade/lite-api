@@ -424,7 +424,8 @@ class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):
     """
-    Create serializer for GOV users which does not take a response as they cannot respond to their own queries
+    Query CREATE serializer for GOV users
+    Does not take a response as they cannot respond to their own queries
     """
 
     question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
