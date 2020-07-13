@@ -16,10 +16,8 @@ class ComplianceVisitTypes:
     ]
 
     @classmethod
-    def human_readable(cls, status):
-        for key, value in cls.choices:
-            if key == status:
-                return value
+    def human_readable(cls, visit_type):
+        return next(choice[1] for choice in cls.choices if choice[0] == visit_type)
 
 
 class ComplianceRiskValues:
@@ -38,7 +36,5 @@ class ComplianceRiskValues:
     ]
 
     @classmethod
-    def human_readable(cls, status):
-        for key, value in cls.choices:
-            if key == status:
-                return value
+    def human_readable(cls, risk_value):
+        return next(choice[1] for choice in cls.choices if choice[0] == risk_value)

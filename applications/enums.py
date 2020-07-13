@@ -101,7 +101,7 @@ class MTCRAnswers:
 
     @classmethod
     def to_str(cls, obj):
-        return next(grading[1] for grading in cls.choices if grading[0] == obj)
+        return next(choice[1] for choice in cls.choices if choice[0] == obj)
 
 
 class ServiceEquipmentType:
@@ -117,7 +117,7 @@ class ServiceEquipmentType:
 
     @classmethod
     def to_str(cls, obj):
-        return next(grading[1] for grading in cls.choices if grading[0] == obj)
+        return next(choice[1] for choice in cls.choices if choice[0] == obj)
 
     def to_representation(self):
         return {

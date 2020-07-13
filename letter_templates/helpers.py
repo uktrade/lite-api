@@ -36,7 +36,7 @@ def template_engine_factory(allow_missing_variables):
             "django.template.defaulttags",
             "django.template.defaultfilters",
             "django.template.loader_tags",
-            "conf.custom_tags",
+            "letter_templates.custom_tags",
         ],
         dirs=[os.path.join(settings.LETTER_TEMPLATES_DIRECTORY)],
         libraries={"static": "django.templatetags.static"},

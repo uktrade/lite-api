@@ -17,6 +17,4 @@ class LicenceStatus:
 
     @classmethod
     def human_readable(cls, status):
-        for key, value in cls.choices:
-            if key == status:
-                return value
+        return next(choice[1] for choice in cls.choices if choice[0] == status)
