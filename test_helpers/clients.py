@@ -682,8 +682,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         site=True,
         case_type_id=CaseTypeEnum.SIEL.id,
         add_a_good=True,
+        user: ExporterUser = None,
         good=None,
     ):
+        if not user:
+            user = UserOrganisationRelationship.objects.filter(organisation_id=organisation.id).first().user
+
         application = StandardApplication(
             name=reference_name,
             export_type=ApplicationExportType.PERMANENT,
@@ -703,7 +707,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
             status_id="00000000-0000-0000-0000-000000000000",
-            submitted_by=self.exporter_user,
+            submitted_by=user,
         )
 
         application.save()
@@ -933,7 +937,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates a complete standard application case
         """
-        draft = self.create_draft_standard_application(organisation, reference_name, parties=parties, site=site)
+        draft = self.create_draft_standard_application(
+            organisation, reference_name, parties=parties, site=site, user=user
+        )
 
         return self.submit_application(draft, self.exporter_user)
 
@@ -1017,7 +1023,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_licence(
-        application: BaseApplication, status: LicenceStatus, reference_code=None, decisions=None, sent_at=None
+        application: BaseApplication,
+        status: LicenceStatus,
+        reference_code=None,
+        decisions=None,
+        hmrc_integration_sent_at=None,
     ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
@@ -1030,7 +1040,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),
             status=status,
-            sent_at=sent_at,
+            hmrc_integration_sent_at=hmrc_integration_sent_at,
         )
         licence.decisions.set(decisions)
         return licence

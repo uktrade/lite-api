@@ -23,7 +23,7 @@ def forward_migration(apps, schema_editor):
 
     cases = Case.objects.filter(
         baseapplication__application_sites__site__site_records_located_at__compliance__isnull=True,
-        baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
+        baseapplication__licences__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
     ).distinct()
 
     # Get or create case type & status because seeding may not have run yet
