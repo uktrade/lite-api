@@ -125,7 +125,7 @@ class LicenceList(ListAPIView):
         # Completed applications (with licences) that have a compliance case
         cases = Case.objects.select_related("case_type").filter(
             Q(
-                baseapplication__licence__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
+                baseapplication__licences__status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED],
                 baseapplication__application_sites__site__site_records_located_at__compliance__id=self.kwargs["pk"],
             )
             | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=self.kwargs["pk"])
