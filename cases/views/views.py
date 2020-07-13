@@ -550,6 +550,20 @@ class GoodsCountriesDecisions(APIView):
         return JsonResponse(data={"good_country_decisions": list(required_decision_ids)})
 
 
+class OpenLicenceDecision(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        return JsonResponse(
+            data={
+                "decision": AdviceType.APPROVE
+                if GoodCountryDecision.objects.filter(case_id=pk, approve=True).exists()
+                else AdviceType.REFUSE
+            }
+        )
+
+
 class Destination(APIView):
     authentication_classes = (GovAuthentication,)
 
