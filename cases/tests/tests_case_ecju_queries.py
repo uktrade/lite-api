@@ -162,7 +162,7 @@ class ECJUQueriesViewTests(DataTestClient):
 
 
 @tag("only")
-class EcjuQueriesCreateTest(DataTestClient):
+class ECJUQueriesCreateTest(DataTestClient):
     @parameterized.expand([ECJUQueryType.ECJU, ECJUQueryType.PRE_VISIT_QUESTIONNAIRE, ECJUQueryType.COMPLIANCE_ACTIONS])
     def test_gov_user_can_create_ecju_queries(self, query_type):
         """
@@ -278,7 +278,7 @@ class EcjuQueriesCreateTest(DataTestClient):
         self.assertEqual(mock_client.send_email.call_count, 1)
 
     @parameterized.expand([[""], [None], ["a" * 5001]])
-    def test_bad_data_create_fail(self, data):
+    def test_submit_invalid_data_failure(self, data):
         """
         When a gov user submits a query with invalid data
         Then the request fails due to the invalid data
