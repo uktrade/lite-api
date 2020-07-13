@@ -1,7 +1,8 @@
 from unittest import mock
-from unittest.mock import ANY
+from unittest.mock import ANY, call
 
 from django.urls import reverse
+from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 
@@ -29,6 +30,7 @@ from licences.tasks import (
 from licences.tests.factories import GoodOnLicenceFactory
 from static.countries.models import Country
 from static.decisions.models import Decision
+from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
 
 
@@ -427,10 +429,12 @@ class HMRCIntegrationTests(DataTestClient):
         response = self.client.put(url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        expected_insert_json = HMRCIntegrationLicenceSerializer(standard_licence).data
+        expected_insert_json["action"] = LicenceStatus.lite_to_hmrc_intergration.get(LicenceStatus.ISSUED)
         request.assert_called_with(
             "POST",
             f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
-            json=ANY,
+            json={"licence": expected_insert_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
@@ -444,23 +448,63 @@ class HMRCIntegrationTests(DataTestClient):
         response = self.client.put(url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        expected_insert_json = HMRCIntegrationLicenceSerializer(open_licence).data
+        expected_insert_json["action"] = LicenceStatus.lite_to_hmrc_intergration.get(LicenceStatus.ISSUED)
         request.assert_called_with(
             "POST",
             f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
-            json=ANY,
+            json={"licence": expected_insert_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
+    @mock.patch("conf.requests.requests.request")
+    def test_reissue_licence_success(self, request):
+        request.return_value = MockResponse("", 201)
+        standard_application, standard_licence_1 = self._create_licence_for_submission(
+            self.create_standard_application_case
+        )
+        _, standard_licence_2 = self._create_licence_for_submission(self.create_standard_application_case)
+        Licence.objects.filter(id=standard_licence_1.id).update(status=LicenceStatus.ISSUED)
+        Licence.objects.filter(id=standard_licence_2.id).update(application=standard_application)
+
+        url = reverse("cases:finalise", kwargs={"pk": standard_application.id})
+        response = self.client.put(url, data={}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        expected_cancel_json = HMRCIntegrationLicenceSerializer(standard_licence_1).data
+        expected_cancel_json["action"] = LicenceStatus.lite_to_hmrc_intergration.get(LicenceStatus.CANCELLED)
+        expected_insert_json = HMRCIntegrationLicenceSerializer(standard_licence_2).data
+        expected_insert_json["action"] = LicenceStatus.lite_to_hmrc_intergration.get(LicenceStatus.ISSUED)
+        calls = [
+            call(
+                "POST",
+                f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+                json={"licence": expected_cancel_json},
+                headers=ANY,
+                timeout=LITE_HMRC_REQUEST_TIMEOUT,
+            ),
+            call(
+                "POST",
+                f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+                json={"licence": expected_insert_json},
+                headers=ANY,
+                timeout=LITE_HMRC_REQUEST_TIMEOUT,
+            ),
+        ]
+        request.assert_has_calls(calls)
+
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
-        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
+        licence = self.create_licence(application, status=LicenceStatus.DRAFT)
         self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         template = self.create_letter_template(
-            name="Template",
+            name=f"{timezone.now()}",
             case_types=[application.case_type],
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
-        self.create_generated_case_document(application, template, advice_type=AdviceType.APPROVE)
+        self.create_generated_case_document(
+            application.get_case(), template, advice_type=AdviceType.APPROVE, licence=licence
+        )
 
         return application, licence
