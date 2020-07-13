@@ -1,7 +1,8 @@
 from django.urls import reverse
+from rest_framework import status
 
 from cases.enums import AdviceType
-from cases.libraries.get_goods_type_countries_decisions import get_required_good_type_to_country_combinations
+from cases.models import GoodCountryDecision
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from conf.constants import GovPermissions
 from goodstype.tests.factories import GoodsTypeFactory
@@ -60,12 +61,14 @@ class GoodsCountriesDecisionsTests(DataTestClient):
         self.assertEqual(data["decision"], decision)
         self.assertEqual(data["name"], country.name)
 
-    def test_get_required_decisions(self):
+    def test_get_required_goods_countries_decisions(self):
         GoodCountryDecisionFactory(
             case=self.case, goods_type=self.approved_goods_type, country=self.countries[0], approve=True
         )
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Only one goods type has an approved combination
         # Both have a refused combination
@@ -98,6 +101,29 @@ class GoodsCountriesDecisionsTests(DataTestClient):
         self._assert_country(response_data["refused"][1]["countries"][0], self.approved_country, AdviceType.APPROVE)
         self._assert_country(response_data["refused"][1]["countries"][1], self.refused_country, AdviceType.REFUSE)
 
-    def test_def(self):
-        x = get_required_good_type_to_country_combinations(self.case.id)
-        y = 1
+    def test_goods_countries_decisions_missing_decision_failure(self):
+        response = self.client.post(self.url, **self.gov_headers, data={})
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response_data["errors"],
+            {f"{self.approved_goods_type.id}.{self.approved_country.id}": ["Please select a value"]},
+        )
+
+    def test_goods_countries_decisions_success(self):
+        data = {f"{self.approved_goods_type.id}.{self.approved_country.id}": "approve"}
+
+        response = self.client.post(self.url, **self.gov_headers, data=data)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            response_data["good_country_decisions"], [f"{self.approved_goods_type.id}.{self.approved_country.id}"],
+        )
+        self.assertEqual(
+            GoodCountryDecision.objects.filter(
+                case=self.case, goods_type=self.approved_goods_type, country=self.approved_country, approve=True
+            ).count(),
+            1,
+        )

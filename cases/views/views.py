@@ -547,7 +547,9 @@ class GoodsCountriesDecisions(APIView):
                 case_id=pk, goods_type_id=goods_type_id, country_id=country_id, defaults={"approve": value}
             )
 
-        return JsonResponse(data={"good_country_decisions": list(required_decision_ids)})
+        return JsonResponse(
+            data={"good_country_decisions": list(required_decision_ids)}, status=status.HTTP_201_CREATED
+        )
 
 
 class OpenLicenceDecision(APIView):
