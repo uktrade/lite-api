@@ -202,7 +202,7 @@ class ECJUQueriesCreateTest(DataTestClient):
 class ECJUQueriesComplianceCreateTest(DataTestClient):
     def setUp(self):
         super().setUp()
-        compliance_case = self.compliance_case = ComplianceSiteCaseFactory(
+        self.compliance_case = ComplianceSiteCaseFactory(
             organisation=self.organisation,
             site=self.organisation.primary_site,
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
@@ -214,6 +214,7 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
         application.submitted_by = ExporterUserFactory()
         application.save()
         self.create_licence(application, status=LicenceStatus.ISSUED)
+        self.data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
 
     @mock.patch("gov_notify.service.client")
     def test_query_sends_email_to_each_application_submitter(self, mock_client):
@@ -224,15 +225,14 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
         on that site which has a licence
         """
         url = reverse("cases:case_ecju_queries", kwargs={"pk": self.compliance_case.id})
-        data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
 
-        response = self.client.post(url, data, **self.gov_headers)
+        response = self.client.post(url, self.data, **self.gov_headers)
         response_data = response.json()
         ecju_query = EcjuQuery.objects.get()
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
-        self.assertEqual(ecju_query.question, data["question"])
+        self.assertEqual(ecju_query.question, self.data["question"])
         self.assertEqual(mock_client.send_email.call_count, 2)
 
     @mock.patch("gov_notify.service.client")
@@ -250,15 +250,14 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
         )
 
         url = reverse("cases:case_ecju_queries", kwargs={"pk": compliance_site_case.id})
-        data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
 
-        response = self.client.post(url, data, **self.gov_headers)
+        response = self.client.post(url, self.data, **self.gov_headers)
         response_data = response.json()
         ecju_query = EcjuQuery.objects.get()
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
-        self.assertEqual(ecju_query.question, data["question"])
+        self.assertEqual(ecju_query.question, self.data["question"])
         self.assertEqual(mock_client.send_email.call_count, 2)
 
     @mock.patch("gov_notify.service.client")
@@ -273,13 +272,12 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
             application.submitted_by = self.exporter_user
             application.save()
         url = reverse("cases:case_ecju_queries", kwargs={"pk": self.compliance_case.id})
-        data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
 
-        response = self.client.post(url, data, **self.gov_headers)
+        response = self.client.post(url, self.data, **self.gov_headers)
         response_data = response.json()
         ecju_query = EcjuQuery.objects.get()
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
         self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
-        self.assertEqual(ecju_query.question, data["question"])
+        self.assertEqual(ecju_query.question, self.data["question"])
         self.assertEqual(mock_client.send_email.call_count, 1)
