@@ -1,6 +1,19 @@
 from cases.enums import AdviceLevel, AdviceType
-from cases.models import Advice
+from cases.models import Advice, GoodCountryDecision
 from goodstype.models import GoodsType
+
+
+def _get_country_on_goods_type_context(country, goods_type, approved, goods_type_countries_decisions):
+    existing_decision = goods_type_countries_decisions.get(f"{goods_type.id}.{country.id}")
+    if existing_decision is not None:
+        existing_decision = AdviceType.APPROVE if existing_decision else AdviceType.REFUSE
+
+    return {
+        "id": country.id,
+        "name": country.name,
+        "decision": AdviceType.APPROVE if approved else AdviceType.REFUSE,
+        "value": existing_decision,
+    }
 
 
 def good_type_to_country_decisions(application_pk):
@@ -28,9 +41,18 @@ def good_type_to_country_decisions(application_pk):
     refused_countries_ids = [item["country_id"] for item in countries_advice if item["type"] == AdviceType.REFUSE]
     approved_and_refused_countries_ids = approved_countries_ids + refused_countries_ids
 
-    goods_types = GoodsType.objects.filter(
-        application_id=application_pk, id__in=approved_and_refused_goods_types
-    ).prefetch_related("control_list_entries", "countries").order_by("description")
+    goods_types = (
+        GoodsType.objects.filter(application_id=application_pk, id__in=approved_and_refused_goods_types)
+        .prefetch_related("control_list_entries", "countries")
+        .order_by("description")
+    )
+
+    goods_type_countries_decisions = GoodCountryDecision.objects.filter(case_id=application_pk).values(
+        "goods_type_id", "country_id", "approve"
+    )
+    goods_type_countries_decisions = {
+        f"{item['goods_type_id']}.{item['country_id']}": item["approve"] for item in goods_type_countries_decisions
+    }
 
     approved_goods_types_on_destinations = {}
     refused_goods_types_on_destinations = {}
@@ -52,20 +74,16 @@ def good_type_to_country_decisions(application_pk):
                     "control_list_entries": [clc.rating for clc in goods_type.control_list_entries.all()],
                     "description": goods_type.description,
                     "countries": [
-                        {
-                            "id": country.id,
-                            "name": country.name,
-                            "decision": AdviceType.APPROVE if country_approved else AdviceType.REFUSE,
-                        }
+                        _get_country_on_goods_type_context(
+                            country, goods_type, country_approved, goods_type_countries_decisions
+                        )
                     ],
                 }
             else:
                 dictionary[goods_type.id]["countries"].append(
-                    {
-                        "id": country.id,
-                        "name": country.name,
-                        "decision": AdviceType.APPROVE if country_approved else AdviceType.REFUSE,
-                    }
+                    _get_country_on_goods_type_context(
+                        country, goods_type, country_approved, goods_type_countries_decisions
+                    )
                 )
 
     return approved_goods_types_on_destinations, refused_goods_types_on_destinations

@@ -2,7 +2,7 @@ from django.urls import reverse
 
 from cases.enums import AdviceType
 from cases.libraries.get_goods_type_countries_decisions import get_required_good_type_to_country_combinations
-from cases.tests.factories import FinalAdviceFactory
+from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from conf.constants import GovPermissions
 from goodstype.tests.factories import GoodsTypeFactory
 from static.countries.models import Country
@@ -15,11 +15,11 @@ class FinaliseCaseTests(DataTestClient):
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.case = self.create_open_application_case(self.organisation)
         self.url = reverse("cases:goods_countries_decisions", kwargs={"pk": self.case.id})
-        countries = [Country.objects.first(), Country.objects.last()]
+        self.countries = [Country.objects.first(), Country.objects.last()]
         self.approved_goods_type = GoodsTypeFactory(application=self.case)
-        self.approved_goods_type.countries.set(countries)
+        self.approved_goods_type.countries.set(self.countries)
         self.refused_goods_type = GoodsTypeFactory(application=self.case)
-        self.refused_goods_type.countries.set(countries)
+        self.refused_goods_type.countries.set(self.countries)
         FinalAdviceFactory(
             user=self.gov_user,
             team=self.team,
@@ -35,13 +35,16 @@ class FinaliseCaseTests(DataTestClient):
             type=AdviceType.REFUSE,
         )
         FinalAdviceFactory(
-            user=self.gov_user, team=self.team, case=self.case, country=countries[0], type=AdviceType.APPROVE
+            user=self.gov_user, team=self.team, case=self.case, country=self.countries[0], type=AdviceType.APPROVE
         )
         FinalAdviceFactory(
-            user=self.gov_user, team=self.team, case=self.case, country=countries[1], type=AdviceType.REFUSE
+            user=self.gov_user, team=self.team, case=self.case, country=self.countries[1], type=AdviceType.REFUSE
         )
 
     def test_abc(self):
+        GoodCountryDecisionFactory(
+            case=self.case, goods_type=self.approved_goods_type, country=self.countries[0], approve=True
+        )
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 
