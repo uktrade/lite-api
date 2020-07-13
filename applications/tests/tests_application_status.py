@@ -358,7 +358,7 @@ class ApplicationManageStatusTests(DataTestClient):
         self.hmrc_query.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.json().get("errors")[0], strings.Statuses.BAD_STATUS)
+        self.assertEqual(response.json().get('errors')["status"][0], strings.Statuses.BAD_STATUS)
         self.assertEqual(
             self.standard_application.status, get_case_status_by_status(CaseStatusEnum.SUBMITTED),
         )
