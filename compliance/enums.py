@@ -1,3 +1,7 @@
+# SIEL type compliance cases require a specific control code prefixes. currently: (0 to 9)D, (0 to 9)E, ML21, ML22.
+COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
+
+
 class ComplianceVisitTypes:
     FIRST_CONTACT = "first_contact"
     FIRST_VISIT = "first_visit"

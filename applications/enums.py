@@ -99,7 +99,9 @@ class MTCRAnswers:
         (UNKNOWN, "Unknown"),
     )
 
-    choices_as_dict = {key: value for key, value in choices}
+    @classmethod
+    def to_str(cls, obj):
+        return [grading[1] for grading in cls.choices if grading[0] == obj][0]
 
 
 class ServiceEquipmentType:
@@ -113,7 +115,9 @@ class ServiceEquipmentType:
         (PRIVATE_VENTURE, "Private venture"),
     )
 
-    choices_as_dict = {key: value for key, value in choices}
+    @classmethod
+    def to_str(cls, obj):
+        return [grading[1] for grading in cls.choices if grading[0] == obj][0]
 
     def to_representation(self):
         return {

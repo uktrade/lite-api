@@ -85,8 +85,6 @@ class PvGrading:
         (UK_TOP_SECRET, "UK top secret"),
     ]
 
-    choices_as_dict = {key: value for key, value in choices}
-
     @classmethod
     def to_str(cls, obj):
         return [grading[1] for grading in PvGrading.choices if grading[0] == obj][0]
@@ -115,6 +113,10 @@ class ItemCategory:
     group_two = [GROUP2_FIREARMS]
     group_three = [GROUP3_SOFTWARE, GROUP3_TECHNOLOGY]
 
+    @classmethod
+    def to_str(cls, obj):
+        return [grading[1] for grading in cls.choices if grading[0] == obj][0]
+
 
 class MilitaryUse:
     YES_DESIGNED = "yes_designed"
@@ -126,6 +128,10 @@ class MilitaryUse:
         (YES_MODIFIED, "Yes, modified for military use"),
         (NO, "No"),
     ]
+
+    @classmethod
+    def to_str(cls, obj):
+        return [grading[1] for grading in cls.choices if grading[0] == obj][0]
 
 
 class Component:
@@ -141,6 +147,10 @@ class Component:
         (NO, "No"),
     ]
 
+    @classmethod
+    def to_str(cls, obj):
+        return [grading[1] for grading in cls.choices if grading[0] == obj][0]
+
 
 class FirearmGoodType:
     FIREARMS = "firearms"
@@ -154,3 +164,7 @@ class FirearmGoodType:
         (AMMUNITION, "Ammunition"),
         (COMPONENTS_FOR_AMMUNITION, "Components for ammunition"),
     ]
+
+    @classmethod
+    def to_str(cls, obj):
+        return [grading[1] for grading in cls.choices if grading[0] == obj][0]
