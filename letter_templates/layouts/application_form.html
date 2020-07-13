@@ -276,18 +276,18 @@
 						</dd>
 					</div>
 
-					{% if good.item_category != 'group2_firearms' %}
-						{% if good.item_category in 'group3_software,group3_technology' %}
-							<div class="govuk-summary-list__row">
-								<dt class="govuk-summary-list__key">
-									{% exporter_lcs "goods.GoodsDetailSummary.PURPOSE_SOFTWARE_TECHNOLOGY" %}
-								</dt>
-								<dd class="govuk-summary-list__value">
-									{{ good.software_or_technology_details|default_na }}
-								</dd>
-							</div>
-						{% endif %}
+					{% if good.software_or_technology_details %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs "goods.GoodsDetailSummary.PURPOSE_SOFTWARE_TECHNOLOGY" %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.software_or_technology_details|default_na }}
+							</dd>
+						</div>
+					{% endif %}
 
+					{% if good.is_military_use %}
 						<div class="govuk-summary-list__row">
 							<dt class="govuk-summary-list__key">
 								{% exporter_lcs 'goods.GoodsDetailSummary.MILITARY' %}
@@ -299,31 +299,29 @@
 								{% endif %}
 							</dd>
 						</div>
+					{% endif %}
 
-						{% if good.item_category not in 'group3_software,group3_technology' %}
-							<div class="govuk-summary-list__row">
-								<dt class="govuk-summary-list__key">
-									{% exporter_lcs 'goods.GoodsDetailSummary.COMPONENT' %}
-								</dt>
-								<dd class="govuk-summary-list__value">
-									{{ good.is_component|default_na }}
-									{% if good.component_details %}
-										<span class="govuk-hint"> {{ good.component_details }} </span>
-									{% endif %}
-								</dd>
-							</div>
-						{% endif %}
+					{% if good.is_component %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodsDetailSummary.COMPONENT' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.is_component|default_na }}
+								{% if good.component_details %}
+									<span class="govuk-hint"> {{ good.component_details }} </span>
+								{% endif %}
+							</dd>
+						</div>
+					{% endif %}
 
+					{% if good.uses_information_security %}
 						<div class="govuk-summary-list__row">
 							<dt class="govuk-summary-list__key">
 								{% exporter_lcs 'goods.GoodsDetailSummary.DESIGNED_FOR_INFORMATION_SECURITY' %}
 							</dt>
 							<dd class="govuk-summary-list__value">
-								{% if good.uses_information_security is not None %}
-									{{ good.uses_information_security }}
-								{% else %}
-									{{ good.uses_information_security|default_na }}
-								{% endif %}
+								{{ good.uses_information_security }}
 								{% if good.information_security_details %}
 									<span class="govuk-hint"> {{ good.information_security_details }} </span>
 								{% endif %}
@@ -331,7 +329,7 @@
 						</div>
 					{% endif %}
 
-					{% if good.item_category == 'group2_firearms' %}
+					{% if good.firearm_type %}
 						<div class="govuk-summary-list__row">
 							<dt class="govuk-summary-list__key">
 								{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.PRODUCT_TYPE" %}
@@ -359,39 +357,40 @@
 							</dd>
 						</div>
 
-
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.COVERED_BY_THE_FIREARMS_ACT_1968" %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{% if good.is_covered_by_firearm_act_section_one_two_or_five is not None %}
-									{{ good.is_covered_by_firearm_act_section_one_two_or_five}}
+						{% if good.is_covered_by_firearm_act_section_one_two_or_five %}
+							<div class="govuk-summary-list__row">
+								<dt class="govuk-summary-list__key">
+									{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.COVERED_BY_THE_FIREARMS_ACT_1968" %}
+								</dt>
+								<dd class="govuk-summary-list__value">
 									{% if good.is_covered_by_firearm_act_section_one_two_or_five %}
-										- certificate number {{ good.section_certificate_number|default_na }} expires on
-										{{ good.section_certificate_date_of_expiry }}
-									{% endif %}
-								{% endif %}
-							</dd>
-						</div>
-
-						<div class="govuk-summary-list__row">
-							<dt class="govuk-summary-list__key">
-								{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.IDENTIFICATION_MARKINGS" %}
-							</dt>
-							<dd class="govuk-summary-list__value">
-								{% if good.has_identification_markings is not None %}
-									{{ good.has_identification_markings }}
-									<span class="govuk-hint">
-										{% if good.has_identification_markings %}
-											{{ good.identification_markings_details|default_na }}
-										{% else %}
-											{{ good.no_identification_markings_details|default_na }}
+										{{ good.is_covered_by_firearm_act_section_one_two_or_five}}
+										{% if good.is_covered_by_firearm_act_section_one_two_or_five %}
+											- certificate number {{ good.section_certificate_number|default_na }} expires on
+											{{ good.section_certificate_date_of_expiry }}
 										{% endif %}
-									</span>
-								{% endif %}
-							</dd>
-						</div>
+									{% endif %}
+								</dd>
+							</div>
+						{% endif %}
+
+						{% if good.has_identification_markings is not None %}
+							<div class="govuk-summary-list__row">
+								<dt class="govuk-summary-list__key">
+									{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.IDENTIFICATION_MARKINGS" %}
+								</dt>
+								<dd class="govuk-summary-list__value">
+										{{ good.has_identification_markings }}
+										<span class="govuk-hint">
+											{% if good.has_identification_markings %}
+												{{ good.identification_markings_details|default_na }}
+											{% else %}
+												{{ good.no_identification_markings_details|default_na }}
+											{% endif %}
+										</span>
+								</dd>
+							</div>
+						{% endif %}
 					{% endif %}
 
 					<div class="govuk-summary-list__row">
