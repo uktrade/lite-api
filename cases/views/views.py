@@ -22,7 +22,10 @@ from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
-from cases.libraries.get_goods_type_countries_decisions import good_type_to_country_decisions
+from cases.libraries.get_goods_type_countries_decisions import (
+    good_type_to_country_decisions,
+    get_required_good_type_to_country_combinations,
+)
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -522,6 +525,17 @@ class GoodsCountriesDecisions(APIView):
     def get(self, request, pk):
         approved, refused = good_type_to_country_decisions(pk)
         return JsonResponse({"approved": list(approved.values()), "refused": list(refused.values())})
+
+    def post(self, request, pk):
+        required_decisions = get_required_good_type_to_country_combinations(pk)
+        required_decision_ids = set()
+        for goods_type, country_list in required_decisions.items():
+            for country in country_list:
+                required_decision_ids.add(f"{goods_type}.{country}")
+
+        if not required_decision_ids.issubset(request.data):
+            missing_ids = required_decision_ids.difference(request.data)
+            raise ParseError({missing_id: ["Please select a value"] for missing_id in missing_ids})
 
 
 class Destination(APIView):
