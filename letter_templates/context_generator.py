@@ -201,15 +201,15 @@ def _get_f680_clearance_context(case):
             "foreign_technology_description": f680.foreign_technology_description,
             "locally_manufactured": friendly_boolean(f680.locally_manufactured),
             "locally_manufactured_description": f680.locally_manufactured_description,
-            "mtcr_type": MTCRAnswers.choices_as_dict.get(f680.mtcr_type) if f680.mtcr_type else None,
+            "mtcr_type": MTCRAnswers.to_str(f680.mtcr_type) if f680.mtcr_type else None,
             "electronic_warfare_requirement": friendly_boolean(f680.electronic_warfare_requirement),
             "uk_service_equipment": friendly_boolean(f680.uk_service_equipment),
             "uk_service_equipment_description": f680.uk_service_equipment_description,
-            "uk_service_equipment_type": ServiceEquipmentType.choices_as_dict.get(f680.uk_service_equipment_type)
+            "uk_service_equipment_type": ServiceEquipmentType.to_str(f680.uk_service_equipment_type)
             if f680.uk_service_equipment_type
             else None,
             "prospect_value": f680.prospect_value,
-            "clearance_level": PvGrading.choices_as_dict.get(f680.clearance_level),
+            "clearance_level": PvGrading.to_str(f680.clearance_level),
         }
     )
     return context
@@ -397,7 +397,7 @@ def _get_party_context(party):
         "descriptors": party.descriptors,
         "country": {"name": party.country.name, "code": party.country.id},
         "website": party.website,
-        "clearance_level": PvGrading.choices_as_dict.get(party.clearance_level),
+        "clearance_level": PvGrading.to_str(party.clearance_level),
     }
 
 
@@ -417,9 +417,9 @@ def _get_third_parties_context(third_parties):
 
 def _format_quantity(quantity, unit):
     if quantity and unit:
-        return " ".join([intcomma(quantity), pluralise_unit(Units.choices_as_dict[unit], quantity),])
+        return " ".join([intcomma(quantity), pluralise_unit(Units.to_str(unit), quantity),])
     elif unit:
-        return "0 " + pluralise_unit(Units.choices_as_dict[unit], quantity)
+        return "0 " + pluralise_unit(Units.to_str(unit), quantity)
 
 
 def _get_good_on_application_context(good_on_application, advice=None):
@@ -433,15 +433,15 @@ def _get_good_on_application_context(good_on_application, advice=None):
         else None,
         "applied_for_value": f"£{good_on_application.value}",
         "is_incorporated": friendly_boolean(good_on_application.is_good_incorporated),
-        "item_category": good_on_application.good.item_category,
+        "item_category": ItemCategory.to_str(good_on_application.good.item_category),
     }
 
     # handle item categories for goods and their differences
     if good_on_application.good.item_category in ItemCategory.group_one:
-        good_context["is_military_use"] = good_on_application.good.is_military_use
+        good_context["is_military_use"] = MilitaryUse.to_str(good_on_application.good.is_military_use)
         if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
             good_context["modified_military_use_details"] = good_on_application.good.modified_military_use_details
-        good_context["is_component"] = good_on_application.good.is_component
+        good_context["is_component"] = Component.to_str(good_on_application.good.is_component)
         if good_on_application.good.is_component != Component.NO:
             good_context["component_details"] = good_on_application.good.component_details
         good_context["uses_information_security"] = friendly_boolean(good_on_application.good.uses_information_security)
@@ -473,7 +473,7 @@ def _get_good_on_application_context(good_on_application, advice=None):
                 "no_identification_markings_details"
             ] = good_on_application.good.firearm_details.no_identification_markings_details
     elif good_on_application.good.item_category in ItemCategory.group_three:
-        good_context["is_military_use"] = good_on_application.good.is_military_use
+        good_context["is_military_use"] = MilitaryUse.to_str(good_on_application.good.is_military_use)
         if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
             good_context["modified_military_use_details"] = good_on_application.good.modified_military_use_details
         good_context["software_or_technology_details"] = good_on_application.good.software_or_technology_details

@@ -9,9 +9,8 @@ from django.utils import timezone
 from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from common.enums import SortOrder
-from compliance.helpers import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+from compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
 from licences.enums import LicenceStatus
-from licences.models import GoodOnLicence
 from queues.constants import (
     ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
@@ -220,6 +219,7 @@ class CaseQuerySet(models.QuerySet):
 
         # We filter for OIEL, OICL, OGLs, and specific SIELs (dependant on CLC codes present) as these are the only case
         #   types relevant for compliance cases
+        GoodOnLicence = get_model("licences", "GoodOnLicence")
         approved_goods_on_licence = GoodOnLicence.objects.filter(
             good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
         ).values_list("good", flat=True)

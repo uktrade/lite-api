@@ -72,7 +72,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["descriptors"], party.descriptors)
         self.assertEqual(context["type"], party.sub_type)
         if party.clearance_level:
-            self.assertEqual(context["clearance_level"], PvGrading.choices_as_dict[party.clearance_level])
+            self.assertEqual(context["clearance_level"], PvGrading.to_str(party.clearance_level))
 
     def _assert_third_party(self, context, third_party):
         self.assertEqual(len(context["all"]), 1)
@@ -89,7 +89,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["is_controlled"], good_on_application.good.is_good_controlled)
         self.assertEqual(context["part_number"], good_on_application.good.part_number)
         self.assertTrue(str(good_on_application.quantity) in context["applied_for_quantity"])
-        self.assertTrue(Units.choices_as_dict[good_on_application.unit] in context["applied_for_quantity"])
+        self.assertTrue(Units.to_str(good_on_application.unit) in context["applied_for_quantity"])
         self.assertEqual(context["applied_for_value"], f"£{good_on_application.value:.2f}")
         self.assertEqual(context["is_incorporated"], friendly_boolean(good_on_application.is_good_incorporated))
         if context.get("item_type"):
@@ -161,7 +161,7 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def _assert_good_on_licence(self, context, good_on_licence):
         self._assert_good(context, good_on_licence.good)
-        self.assertTrue(Units.choices_as_dict[good_on_licence.good.unit] in context["quantity"])
+        self.assertTrue(Units.to_str(good_on_licence.good.unit) in context["quantity"])
         self.assertTrue(str(good_on_licence.quantity) in context["quantity"])
         self.assertTrue(str(good_on_licence.value) in context["value"])
 
@@ -303,17 +303,17 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["foreign_technology_description"], case.foreign_technology_description)
         self.assertEqual(context["locally_manufactured"], friendly_boolean(case.locally_manufactured))
         self.assertEqual(context["locally_manufactured_description"], case.locally_manufactured_description)
-        self.assertEqual(context["mtcr_type"], MTCRAnswers.choices_as_dict[case.mtcr_type])
+        self.assertEqual(context["mtcr_type"], MTCRAnswers.to_str(case.mtcr_type))
         self.assertEqual(
             context["electronic_warfare_requirement"], friendly_boolean(case.electronic_warfare_requirement)
         )
         self.assertEqual(context["uk_service_equipment"], friendly_boolean(case.uk_service_equipment))
         self.assertEqual(context["uk_service_equipment_description"], case.uk_service_equipment_description)
         self.assertEqual(
-            context["uk_service_equipment_type"], ServiceEquipmentType.choices_as_dict[case.uk_service_equipment_type]
+            context["uk_service_equipment_type"], ServiceEquipmentType.to_str(case.uk_service_equipment_type)
         )
         self.assertEqual(context["prospect_value"], case.prospect_value)
-        self.assertEqual(context["clearance_level"], PvGrading.choices_as_dict[case.clearance_level])
+        self.assertEqual(context["clearance_level"], PvGrading.to_str(case.clearance_level))
 
     def _assert_end_user_advisory_details(self, context, case):
         self.assertEqual(context["note"], case.note)
