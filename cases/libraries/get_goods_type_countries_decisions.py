@@ -66,3 +66,22 @@ def good_type_to_country_decisions(application_pk):
                 )
 
     return approved_goods_types_on_destinations, refused_goods_types_on_destinations
+
+
+def get_required_good_type_to_country_combinations(application_pk):
+    approved_goods_types_ids = Advice.objects.filter(
+        case_id=application_pk, level=AdviceLevel.FINAL, goods_type__isnull=False, type=AdviceType.APPROVE,
+    ).values_list("goods_type_id", flat=True)
+
+    approved_countries_ids = Advice.objects.filter(
+        case_id=application_pk, level=AdviceLevel.FINAL, country__isnull=False, type=AdviceType.APPROVE
+    ).values_list("country_id", flat=True)
+
+    goods_types = GoodsType.objects.filter(
+        application_id=application_pk, id__in=approved_goods_types_ids
+    ).prefetch_related("countries")
+
+    return {
+        goods_type.id: list(goods_type.countries.filter(id__in=approved_countries_ids).values_list("id", flat=True))
+        for goods_type in goods_types
+    }

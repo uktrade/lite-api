@@ -1,7 +1,8 @@
 from django.urls import reverse
 
 from cases.enums import AdviceType, AdviceLevel
-from cases.libraries.get_goods_type_countries_decisions import good_type_to_country_decisions
+from cases.libraries.get_goods_type_countries_decisions import good_type_to_country_decisions, \
+    get_required_good_type_to_country_combinations
 from cases.tests.factories import FinalAdviceFactory
 from goodstype.tests.factories import GoodsTypeFactory
 from static.countries.models import Country
@@ -43,4 +44,8 @@ class FinaliseCaseTests(DataTestClient):
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
 
+        y = 1
+
+    def test_def(self):
+        x = get_required_good_type_to_country_combinations(self.case.id)
         y = 1
