@@ -9,7 +9,7 @@ from rest_framework import status
 
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum
 from cases.models import Case, EcjuQuery
-from cases.sla import (
+from cases.tasks import (
     update_cases_sla,
     STANDARD_APPLICATION_TARGET_DAYS,
     OPEN_APPLICATION_TARGET_DAYS,
@@ -47,8 +47,8 @@ class SlaCaseTests(DataTestClient):
             CaseTypeSubTypeEnum.EUA: self.create_end_user_advisory("abc", "abc", self.organisation),
         }
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_sla_update_standard_application(
         self,
         mock_is_weekend,
@@ -69,8 +69,8 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_sla_update_open_application(
         self,
         mock_is_weekend,
@@ -91,8 +91,8 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_sla_update_hmrc_query(
         self,
         mock_is_weekend,
@@ -113,8 +113,8 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_sla_update_exhibition_mod(
         self,
         mock_is_weekend,
@@ -135,8 +135,8 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_sla_update_F680_mod(
         self,
         mock_is_weekend,
@@ -157,8 +157,8 @@ class SlaCaseTests(DataTestClient):
         self.assertEqual(case.sla_days, 1)
         self.assertEqual(case.sla_remaining_days, target - 1)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_sla_update_gifting_mod(
         self,
         mock_is_weekend,
@@ -196,8 +196,8 @@ class SlaCaseTests(DataTestClient):
 
 
 class SlaRulesTests(DataTestClient):
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_sla_cutoff_window(self, mock_is_weekend, mock_is_bank_holiday):
         mock_is_weekend.return_value = False
         mock_is_bank_holiday.return_value = False
@@ -243,8 +243,8 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, 0)
         self.assertEqual(case.sla_days, 0)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_unanswered_ecju_queries_today_before_cutoff(
         self,
         mock_is_weekend,
@@ -260,7 +260,7 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+            "cases.tasks.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
         ):
             results = update_cases_sla.now()
         case.refresh_from_db()
@@ -268,8 +268,8 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_unanswered_ecju_queries_today_after_cutoff(
         self,
         mock_is_weekend,
@@ -285,7 +285,7 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+            "cases.tasks.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
         ):
             results = update_cases_sla.now()
         case.refresh_from_db()
@@ -293,8 +293,8 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_unanswered_ecju_queries_yesterday_before_cutoff(
         self,
         mock_is_weekend,
@@ -310,7 +310,7 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+            "cases.tasks.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
         ):
             results = update_cases_sla.now()
         case.refresh_from_db()
@@ -318,8 +318,8 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_unanswered_ecju_queries_yesterday_after_cutoff(
         self,
         mock_is_weekend,
@@ -335,7 +335,7 @@ class SlaRulesTests(DataTestClient):
         EcjuQuery.objects.all().update(created_at=created_at)
 
         with patch(
-            "cases.sla.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
+            "cases.tasks.today", return_value=datetime.combine(TODAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc)
         ):
             results = update_cases_sla.now()
         case.refresh_from_db()
@@ -343,8 +343,8 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_answered_ecju_queries_today_before_cutoff(
         self,
         mock_is_weekend,
@@ -362,7 +362,7 @@ class SlaRulesTests(DataTestClient):
         query.save()
 
         with patch(
-            "cases.sla.yesterday",
+            "cases.tasks.yesterday",
             return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
             results = update_cases_sla.now()
@@ -371,8 +371,8 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_answered_ecju_queries_today_after_cutoff(
         self,
         mock_is_weekend,
@@ -390,7 +390,7 @@ class SlaRulesTests(DataTestClient):
         query.save()
 
         with patch(
-            "cases.sla.yesterday",
+            "cases.tasks.yesterday",
             return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
             results = update_cases_sla.now()
@@ -399,8 +399,8 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_answered_ecju_queries_yesterday_before_cutoff(
         self,
         mock_is_weekend,
@@ -418,7 +418,7 @@ class SlaRulesTests(DataTestClient):
         query.save()
 
         with patch(
-            "cases.sla.yesterday",
+            "cases.tasks.yesterday",
             return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
             results = update_cases_sla.now()
@@ -427,8 +427,8 @@ class SlaRulesTests(DataTestClient):
         self.assertEqual(results, expected_results)
         self.assertEqual(case.sla_days, expected_results)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_answered_ecju_queries_yesterday_after_cutoff(
         self,
         mock_is_weekend,
@@ -446,7 +446,7 @@ class SlaRulesTests(DataTestClient):
         query.save()
 
         with patch(
-            "cases.sla.yesterday",
+            "cases.tasks.yesterday",
             return_value=datetime.combine(YESTERDAY, time=SLA_UPDATE_CUTOFF_TIME, tzinfo=timezone.utc),
         ):
             results = update_cases_sla.now()
@@ -457,8 +457,8 @@ class SlaRulesTests(DataTestClient):
 
 
 class WorkingDayTests(DataTestClient):
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_weekends_ignored(self, weekend_func, bank_holiday_func):
         weekend_func.return_value = True
         bank_holiday_func.return_value = False
@@ -467,8 +467,8 @@ class WorkingDayTests(DataTestClient):
 
         self.assertFalse(result)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_bank_holidays_ignored(self, weekend_func, bank_holiday_func):
         weekend_func.return_value = False
         bank_holiday_func.return_value = True
@@ -477,8 +477,8 @@ class WorkingDayTests(DataTestClient):
 
         self.assertFalse(result)
 
-    @mock.patch("cases.sla.is_weekend")
-    @mock.patch("cases.sla.is_bank_holiday")
+    @mock.patch("cases.tasks.is_weekend")
+    @mock.patch("cases.tasks.is_bank_holiday")
     def test_bank_holiday_weekend_ignored(self, weekend_func, bank_holiday_func):
         weekend_func.return_value = False
         bank_holiday_func.return_value = False
