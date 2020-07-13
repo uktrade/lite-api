@@ -1,9 +1,9 @@
 from django.urls import reverse
 
-from cases.enums import AdviceType, AdviceLevel
-from cases.libraries.get_goods_type_countries_decisions import good_type_to_country_decisions, \
-    get_required_good_type_to_country_combinations
+from cases.enums import AdviceType
+from cases.libraries.get_goods_type_countries_decisions import get_required_good_type_to_country_combinations
 from cases.tests.factories import FinalAdviceFactory
+from conf.constants import GovPermissions
 from goodstype.tests.factories import GoodsTypeFactory
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
@@ -12,6 +12,7 @@ from test_helpers.clients import DataTestClient
 class FinaliseCaseTests(DataTestClient):
     def setUp(self):
         super().setUp()
+        self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
         self.case = self.create_open_application_case(self.organisation)
         self.url = reverse("cases:goods_countries_decisions", kwargs={"pk": self.case.id})
         countries = [Country.objects.first(), Country.objects.last()]

@@ -5,29 +5,32 @@ from goodstype.models import GoodsType
 
 def good_type_to_country_decisions(application_pk):
     goods_types_advice = Advice.objects.filter(
-        case_id=application_pk, level=AdviceLevel.FINAL, goods_type__isnull=False,
-    )
-    # TODO reduce queries
-    approved_goods_types_ids = goods_types_advice.filter(type=AdviceType.APPROVE).values_list(
-        "goods_type_id", flat=True
-    )
-    refused_goods_types_ids = goods_types_advice.filter(type=AdviceType.REFUSE).values_list("goods_type_id", flat=True)
-    approved_and_refused_goods_types = approved_goods_types_ids | refused_goods_types_ids
+        case_id=application_pk,
+        level=AdviceLevel.FINAL,
+        goods_type__isnull=False,
+        type__in=[AdviceType.APPROVE, AdviceType.REFUSE],
+    ).values("goods_type_id", "type")
+    approved_goods_types_ids = [
+        item["goods_type_id"] for item in goods_types_advice if item["type"] == AdviceType.APPROVE
+    ]
+    refused_goods_types_ids = [
+        item["goods_type_id"] for item in goods_types_advice if item["type"] == AdviceType.REFUSE
+    ]
+    approved_and_refused_goods_types = approved_goods_types_ids + refused_goods_types_ids
 
-    approved_countries_advice = Advice.objects.filter(
-        case_id=application_pk, level=AdviceLevel.FINAL, country__isnull=False,
-    )
-    approved_countries_ids = approved_countries_advice.filter(type=AdviceType.APPROVE).values_list(
-        "country_id", flat=True
-    )
-    refused_countries_ids = approved_countries_advice.filter(type=AdviceType.REFUSE).values_list(
-        "country_id", flat=True
-    )
-    approved_and_refused_countries_ids = approved_countries_ids | refused_countries_ids
+    countries_advice = Advice.objects.filter(
+        case_id=application_pk,
+        level=AdviceLevel.FINAL,
+        country__isnull=False,
+        type__in=[AdviceType.APPROVE, AdviceType.REFUSE],
+    ).values("country_id", "type")
+    approved_countries_ids = [item["country_id"] for item in countries_advice if item["type"] == AdviceType.APPROVE]
+    refused_countries_ids = [item["country_id"] for item in countries_advice if item["type"] == AdviceType.REFUSE]
+    approved_and_refused_countries_ids = approved_countries_ids + refused_countries_ids
 
     goods_types = GoodsType.objects.filter(
         application_id=application_pk, id__in=approved_and_refused_goods_types
-    ).prefetch_related("control_list_entries", "countries")
+    ).prefetch_related("control_list_entries", "countries").order_by("description")
 
     approved_goods_types_on_destinations = {}
     refused_goods_types_on_destinations = {}
