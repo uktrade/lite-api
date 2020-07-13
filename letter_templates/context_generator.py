@@ -11,7 +11,7 @@ from applications.models import (
     CountryOnApplication,
 )
 from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
-from cases.models import Advice, EcjuQuery, CaseNote
+from cases.models import Advice, EcjuQuery, CaseNote, GoodCountryDecision
 from compliance.models import ComplianceVisitCase, CompliancePerson
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading
@@ -20,7 +20,6 @@ from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
-from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.units.enums import Units
 
@@ -437,46 +436,42 @@ def _get_goods_context(application, final_advice, licence=None):
     return goods_context
 
 
-def _get_goods_type_context(goods_types, case_pk):
-    goods_type_context = {
-        "all": [
-            {
-                "description": good.description,
-                "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
-                "is_controlled": friendly_boolean(good.is_good_controlled),
-            }
-            for good in goods_types
-        ],
-        "countries": {},
+def _get_goods_type(goods_type):
+    return {
+        "description": goods_type.description,
+        "control_list_entries": [clc.rating for clc in goods_type.control_list_entries.all()],
+        "is_controlled": friendly_boolean(goods_type.is_good_controlled),
     }
 
-    countries = set(goods_types.values_list("countries", "countries__name"))
-    default_countries = set(
-        Country.include_special_countries.filter(countries_on_application__application_id=case_pk).values_list(
-            "id", "name"
+
+def _get_goods_type_decision_context(good_country_decisions):
+    context = {}
+    for decision in good_country_decisions:
+        if decision.country.name not in context:
+            context[decision.country.name] = [_get_goods_type(decision.goods_type)]
+        else:
+            context[decision.country.name].append(_get_goods_type(decision.goods_type))
+    return context
+
+
+def _get_goods_type_context(goods_types, case_pk):
+    goods_type_context = {"all": [_get_goods_type(goods_type) for goods_type in goods_types]}
+
+    approved_goods_type_on_country_decisions = GoodCountryDecision.objects.filter(
+        case_id=case_pk, approve=True
+    ).prefetch_related("goods_type", "country")
+    if approved_goods_type_on_country_decisions:
+        goods_type_context[AdviceType.APPROVE] = _get_goods_type_decision_context(
+            approved_goods_type_on_country_decisions
         )
-    )
 
-    for country_id, country_name in countries:
-        if country_id:
-            goods = goods_types.filter(countries=country_id)
-            goods_type_context["countries"][country_name] = [
-                {
-                    "description": good.description,
-                    "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
-                }
-                for good in goods
-            ]
-
-    for country_id, country_name in default_countries:
-        # Default countries apply to all goods types
-        goods_type_context["countries"][country_name] = [
-            {
-                "description": good.description,
-                "control_list_entries": [clc.rating for clc in good.control_list_entries.all()],
-            }
-            for good in goods_types
-        ]
+    refused_goods_type_on_country_decisions = GoodCountryDecision.objects.filter(
+        case_id=case_pk, approve=False
+    ).prefetch_related("goods_type", "country")
+    if refused_goods_type_on_country_decisions:
+        goods_type_context[AdviceType.REFUSE] = _get_goods_type_decision_context(
+            refused_goods_type_on_country_decisions
+        )
 
     return goods_type_context
 

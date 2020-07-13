@@ -9,6 +9,7 @@ from applications.enums import (
 )
 from applications.models import ExternalLocationOnApplication, CountryOnApplication
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
+from cases.tests.factories import GoodCountryDecisionFactory
 from compliance.tests.factories import ComplianceVisitCaseFactory
 from conf.helpers import add_months, DATE_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType
@@ -110,22 +111,9 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(goods[0]["note"], advice.note)
 
     def _assert_goods_type(self, context, goods_type):
-        self.assertTrue(goods_type.description in [item["description"] for item in context["all"]])
-        self.assertTrue(
-            friendly_boolean(goods_type.is_good_controlled) in [item["is_controlled"] for item in context["all"]]
-        )
-        self.assertTrue(
-            goods_type.description
-            in [item["description"] for item in context["countries"][goods_type.countries.first().name]]
-        )
-        self.assertTrue(
-            [clc.rating for clc in goods_type.control_list_entries.all()]
-            in [item["control_list_entries"] for item in context["all"]]
-        )
-        self.assertTrue(
-            [clc.rating for clc in goods_type.control_list_entries.all()]
-            in [item["control_list_entries"] for item in context["countries"][goods_type.countries.first().name]]
-        )
+        self.assertEqual(goods_type.description, context["description"])
+        self.assertEqual([clc.rating for clc in goods_type.control_list_entries.all()], context["control_list_entries"])
+        self.assertEqual(friendly_boolean(goods_type.is_good_controlled), context["is_controlled"])
 
     def _assert_ecju_query(self, context, ecju_query):
         self.assertEqual(context["question"]["text"], ecju_query.question)
@@ -367,12 +355,28 @@ class DocumentContextGenerationTests(DataTestClient):
         case = self.create_open_application_case(self.organisation)
         case.goods_type.first().countries.set([Country.objects.first()])
         case.goods_type.last().countries.set([Country.objects.last()])
+        GoodCountryDecisionFactory(
+            case=case, country=Country.objects.first(), goods_type=case.goods_type.first(), approve=True
+        )
+        GoodCountryDecisionFactory(
+            case=case, country=Country.objects.last(), goods_type=case.goods_type.last(), approve=False
+        )
 
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
-        self._assert_goods_type(context["goods"], case.goods_type.first())
-        self._assert_goods_type(context["goods"], case.goods_type.last())
+
+        # Both goods types should be in all
+        self.assertEqual(len(context["goods"]["all"]), 2)
+        self.assertEqual(len(context["goods"]["approve"]), 1)
+        self.assertEqual(len(context["goods"]["approve"][Country.objects.first().name]), 1)
+        self.assertEqual(len(context["goods"]["refuse"]), 1)
+        self.assertEqual(len(context["goods"]["refuse"][Country.objects.last().name]), 1)
+
+        self._assert_goods_type(context["goods"]["all"][0], case.goods_type.first())
+        self._assert_goods_type(context["goods"]["all"][1], case.goods_type.last())
+        self._assert_goods_type(context["goods"]["approve"][Country.objects.first().name][0], case.goods_type.first())
+        self._assert_goods_type(context["goods"]["refuse"][Country.objects.last().name][0], case.goods_type.last())
 
     def test_generate_context_with_licence(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
