@@ -16,6 +16,8 @@ from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType, MilitaryUse, Component, ItemCategory, FirearmGoodType
 from goods.tests.factories import GoodFactory, FirearmFactory
 from letter_templates.context_generator import get_document_context
+from licences.enums import LicenceStatus
+from licences.tests.factories import GoodOnLicenceFactory
 from parties.enums import PartyType
 from parties.models import Party
 from static.countries.models import Country
@@ -177,9 +179,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_good(goods[0], good_on_application)
         self.assertEqual(goods[0]["reason"], advice.text)
         self.assertEqual(goods[0]["note"], advice.note)
-        self.assertTrue(str(good_on_application.licenced_quantity) in goods[0]["quantity"])
-        self.assertTrue(Units.choices_as_dict[good_on_application.unit] in goods[0]["quantity"])
-        self.assertEqual(goods[0]["value"], f"£{good_on_application.licenced_value}")
 
     def _assert_goods_type(self, context, goods_type):
         self.assertTrue(goods_type.description in [item["description"] for item in context["all"]])
@@ -261,7 +260,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["export_type"], case.export_type)
         self.assertEqual(context["reference_number_on_information_form"], case.reference_number_on_information_form)
         self.assertEqual(context["has_been_informed"], case.have_you_been_informed)
-        self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods))
         self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading))
         self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details)
         self.assertEqual(context["proposed_return_date"], case.proposed_return_date.strftime(DATE_FORMAT))
@@ -454,12 +452,17 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def test_generate_context_with_licence(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        licence = self.create_licence(case, is_complete=True)
+
+        licence = self.create_licence(case, status=LicenceStatus.ISSUED)
+        good_on_licence = GoodOnLicenceFactory(
+            good=case.goods.first(), quantity=10, usage=20, value=30, licence=licence
+        )
 
         context = get_document_context(case)
 
         self.assertEqual(context["case_reference"], case.reference_code)
         self._assert_licence(context["licence"], licence)
+        self._assert_good_on_licence(context["goods"]["approve"][0], good_on_licence)
 
     def test_generate_context_with_ecju_query(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
@@ -533,7 +536,6 @@ class DocumentContextGenerationTests(DataTestClient):
         case.export_type = ApplicationExportType.TEMPORARY
         case.reference_number_on_information_form = "123"
         case.has_you_been_informed = ApplicationExportLicenceOfficialType.YES
-        case.contains_firearm_goods = True
         case.shipped_waybill_or_lading = False
         case.non_waybill_or_lading_route_details = "abc"
         case.proposed_return_date = date(year=2020, month=1, day=1)
@@ -657,7 +659,8 @@ class DocumentContextGenerationTests(DataTestClient):
         )
 
         application = self.create_open_application_case(self.organisation)
-        licence = self.create_licence(application, is_complete=True)
+
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
 
         olr = OpenLicenceReturnsFactory(organisation=self.organisation)
 
@@ -690,7 +693,8 @@ class DocumentContextGenerationTests(DataTestClient):
         )
 
         application = self.create_open_application_case(self.organisation)
-        licence = self.create_licence(application, is_complete=True)
+
+        licence = self.create_licence(application, status=LicenceStatus.ISSUED)
 
         olr = OpenLicenceReturnsFactory(organisation=self.organisation)
 
