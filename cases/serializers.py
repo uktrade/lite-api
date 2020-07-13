@@ -426,6 +426,7 @@ class EcjuQueryCreateSerializer(serializers.ModelSerializer):
     """
     Create serializer for GOV users which does not take a response as they cannot respond to their own queries
     """
+
     question = serializers.CharField(max_length=5000, allow_blank=False, allow_null=False)
     case = serializers.PrimaryKeyRelatedField(queryset=Case.objects.all())
     query_type = KeyValueChoiceField(choices=ECJUQueryType.choices)

@@ -445,12 +445,7 @@ class ECJUQueries(APIView):
         """
         Add a new ECJU query
         """
-        data = {
-            **request.data,
-            "case": pk,
-            "raised_by_user": request.user.id,
-            "team": request.user.team.id
-        }
+        data = {**request.data, "case": pk, "raised_by_user": request.user.id, "team": request.user.team.id}
         serializer = EcjuQueryCreateSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
@@ -468,8 +463,8 @@ class ECJUQueries(APIView):
             # Send an email to the user(s) that submitted the application
             application_info = (
                 Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
-                    .values("id", "email", "name", "reference_code", "case_type__type", "case_type__reference")
-                    .get(id=pk)
+                .values("id", "email", "name", "reference_code", "case_type__type", "case_type__reference")
+                .get(id=pk)
             )
 
             emails = set()

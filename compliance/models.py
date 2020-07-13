@@ -38,6 +38,7 @@ def filter_cases_with_compliance_related_licence_attached(queryset, compliance_c
     # We filter for OIEL, OICL, OGLs, and specific SIELs (dependant on CLC codes present) as these are the only case
     #   types relevant for compliance cases
     from compliance.helpers import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+
     approved_goods_on_licence = GoodOnLicence.objects.filter(
         good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
     ).values_list("good", flat=True)
