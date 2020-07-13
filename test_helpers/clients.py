@@ -40,7 +40,7 @@ from conf.urls import urlpatterns
 from flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from flags.models import Flag, FlaggingRule
 from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, FirearmGoodType
 from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from goods.tests.factories import GoodFactory
 from goodstype.document.models import GoodsTypeDocument
@@ -1016,17 +1016,24 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_licence(
-        application: BaseApplication, status: LicenceStatus, reference_code=None, decisions=None, sent_at=None
+        application: BaseApplication,
+        status: LicenceStatus,
+        reference_code=None,
+        decisions=None,
+        sent_at=None,
+        start_date=None,
     ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
         if not reference_code:
             reference_code = get_licence_reference_code(application.reference_code)
+        if not start_date:
+            start_date = django.utils.timezone.now().date()
 
         licence = Licence.objects.create(
             application=application,
             reference_code=reference_code,
-            start_date=django.utils.timezone.now().date(),
+            start_date=start_date,
             duration=get_default_duration(application),
             status=status,
             sent_at=sent_at,

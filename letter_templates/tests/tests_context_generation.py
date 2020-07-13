@@ -1,5 +1,7 @@
 from datetime import date
 
+from parameterized import parameterized
+
 from applications.enums import (
     ApplicationExportType,
     ApplicationExportLicenceOfficialType,
@@ -375,9 +377,10 @@ class DocumentContextGenerationTests(DataTestClient):
         self._assert_goods_type(context["goods"], case.goods_type.first())
         self._assert_goods_type(context["goods"], case.goods_type.last())
 
-    def test_generate_context_with_licence(self):
+    @parameterized.expand([(date(2020, 1, 31),), (date(2020, 4, 30),), (date(2020, 10, 13),)])
+    def test_generate_context_with_licence(self, start_date):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)
-        licence = self.create_licence(case, status=LicenceStatus.ISSUED)
+        licence = self.create_licence(case, status=LicenceStatus.ISSUED, start_date=start_date)
         good_on_licence = GoodOnLicenceFactory(
             good=case.goods.first(), quantity=10, usage=20, value=30, licence=licence
         )
