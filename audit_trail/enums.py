@@ -1,4 +1,5 @@
 from common.enums import LiteEnum, autostr
+from lite_content.lite_api import audit
 
 
 class AuditType(LiteEnum):
@@ -29,6 +30,7 @@ class AuditType(LiteEnum):
     ADD_ADDITIONAL_CONTACT_TO_CASE = autostr()
     MOVE_CASE = autostr()
     ASSIGN_CASE = autostr()
+    ASSIGN_USER_TO_CASE = autostr()
     REMOVE_CASE = autostr()
     REMOVE_CASE_FROM_ALL_QUEUES = autostr()
     REMOVE_CASE_FROM_ALL_USER_ASSIGNMENTS = autostr()
@@ -111,5 +113,13 @@ class AuditType(LiteEnum):
     COMPLIANCE_PEOPLE_PRESENT_DELETED = autostr()
 
     def human_readable(self):
+        """
+        Return a human readable version of the audit type
+
+        If a human readable string exists in content return that,
+        else return an auto generated string (i.e. correct capitalisation, no underscores)
+        """
+        if hasattr(audit, self.name):
+            return getattr(audit, self.name)
         value = self.value.replace("_", " ")
         return value.capitalize()

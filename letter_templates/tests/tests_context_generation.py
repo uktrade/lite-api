@@ -191,7 +191,6 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["export_type"], case.export_type)
         self.assertEqual(context["reference_number_on_information_form"], case.reference_number_on_information_form)
         self.assertEqual(context["has_been_informed"], case.have_you_been_informed)
-        self.assertEqual(context["contains_firearm_goods"], friendly_boolean(case.contains_firearm_goods))
         self.assertEqual(context["shipped_waybill_or_lading"], friendly_boolean(case.is_shipped_waybill_or_lading))
         self.assertEqual(context["non_waybill_or_lading_route_details"], case.non_waybill_or_lading_route_details)
         self.assertEqual(context["proposed_return_date"], case.proposed_return_date.strftime(DATE_FORMAT))
@@ -463,7 +462,6 @@ class DocumentContextGenerationTests(DataTestClient):
         case.export_type = ApplicationExportType.TEMPORARY
         case.reference_number_on_information_form = "123"
         case.has_you_been_informed = ApplicationExportLicenceOfficialType.YES
-        case.contains_firearm_goods = True
         case.shipped_waybill_or_lading = False
         case.non_waybill_or_lading_route_details = "abc"
         case.proposed_return_date = date(year=2020, month=1, day=1)
