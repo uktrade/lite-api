@@ -554,6 +554,12 @@ class GoodsCountriesDecisions(APIView):
                 case_id=pk, goods_type_id=goods_type_id, country_id=country_id, defaults={"approve": value}
             )
 
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.UPDATED_GOOD_ON_DESTINATION_MATRIX,
+            target=get_case(pk),
+        )
+
         return JsonResponse(
             data={"good_country_decisions": list(required_decision_ids)}, status=status.HTTP_201_CREATED
         )
