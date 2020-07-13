@@ -103,7 +103,9 @@ class CaseDetail(APIView):
         Change case status
         """
         case = get_case(pk)
-        case.change_status(request.user, get_case_status_by_status(request.data.get("status")))
+        case.change_status(
+            request.user, get_case_status_by_status(request.data.get("status")), request.data.get("note")
+        )
         return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
@@ -115,6 +117,7 @@ class SetQueues(APIView):
         case = get_case(pk)
         request_queues = set(request.data.get("queues", []))
         queues = Queue.objects.filter(id__in=request_queues)
+        note = request.data.get("note")
 
         if len(request_queues) > len(queues):
             queues_not_found = list(request_queues - set(str(id) for id in queues.values_list("id", flat=True)))
@@ -136,14 +139,14 @@ class SetQueues(APIView):
                 actor=request.user,
                 verb=AuditType.REMOVE_CASE,
                 target=case,
-                payload={"queues": sorted([queue.name for queue in removed_queues])},
+                payload={"queues": sorted([queue.name for queue in removed_queues]), "additional_text": note},
             )
         if new_queues:
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.MOVE_CASE,
                 target=case,
-                payload={"queues": sorted([queue.name for queue in new_queues])},
+                payload={"queues": sorted([queue.name for queue in new_queues]), "additional_text": note},
             )
         return JsonResponse(data={"queues": list(request_queues)}, status=status.HTTP_200_OK)
 
@@ -547,7 +550,9 @@ class GoodsCountriesDecisions(APIView):
                 case_id=pk, goods_type_id=goods_type_id, country_id=country_id, defaults={"approve": value}
             )
 
-        return JsonResponse(data={"good_country_decisions": list(required_decision_ids)})
+        return JsonResponse(
+            data={"good_country_decisions": list(required_decision_ids)}, status=status.HTTP_201_CREATED
+        )
 
 
 class OpenLicenceDecision(APIView):
@@ -725,7 +730,10 @@ class FinaliseView(UpdateAPIView):
             actor=request.user,
             verb=AuditType.UPDATED_STATUS,
             target=case,
-            payload={"status": {"new": case.status.status, "old": old_status}},
+            payload={
+                "status": {"new": case.status.status, "old": old_status},
+                "additional_text": request.data.get("note"),
+            },
         )
 
         # Show documents to exporter & notify
@@ -750,6 +758,8 @@ class AssignedQueues(APIView):
     @transaction.atomic
     def put(self, request, pk):
         queues = request.data.get("queues")
+        note = request.data.get("note")
+
         if queues:
             queue_names = []
             assignments = (
@@ -766,7 +776,10 @@ class AssignedQueues(APIView):
                 assignments.delete()
                 user_queue_assignment_workflow(queues, case)
                 audit_trail_service.create(
-                    actor=request.user, verb=AuditType.UNASSIGNED_QUEUES, target=case, payload={"queues": queue_names},
+                    actor=request.user,
+                    verb=AuditType.UNASSIGNED_QUEUES,
+                    target=case,
+                    payload={"queues": queue_names, "additional_text": note},
                 )
             else:
                 # When users click done without queue assignments
@@ -785,7 +798,7 @@ class AssignedQueues(APIView):
                     )
                 user_queue_assignment_workflow(queues, case)
                 audit_trail_service.create(
-                    actor=request.user, verb=AuditType.UNASSIGNED, target=case,
+                    actor=request.user, verb=AuditType.UNASSIGNED, target=case, payload={"additional_text": note}
                 )
 
             return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
