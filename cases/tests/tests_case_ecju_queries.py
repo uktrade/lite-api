@@ -165,7 +165,7 @@ class ECJUQueriesCreateTest(DataTestClient):
     @parameterized.expand([ECJUQueryType.ECJU, ECJUQueryType.PRE_VISIT_QUESTIONNAIRE, ECJUQueryType.COMPLIANCE_ACTIONS])
     def test_gov_user_can_create_ecju_queries(self, query_type):
         """
-        When a GOV user adds a valid query to a case
+        When a GOV user submits a valid query to a case
         Then the request is successful and the query is saved
         And an email is sent to the user
         """
@@ -186,7 +186,7 @@ class ECJUQueriesCreateTest(DataTestClient):
     @parameterized.expand([[""], [None], ["a" * 5001]])
     def test_submit_invalid_data_failure(self, data):
         """
-        When a gov user submits a query with invalid data
+        When a GOV user submits a query with invalid data to a case
         Then the request fails due to the invalid data
         And no query is created
         """
@@ -218,7 +218,7 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
     @mock.patch("gov_notify.service.client")
     def test_query_sends_email_to_each_application_submitter(self, mock_client):
         """
-        When a GOV user adds a valid query to a compliance case
+        When a GOV user submits a valid query to a compliance case
         Then the request is successful and the query is saved
         And an email is sent to each user that submitted a valid application
         on that site which has a licence
@@ -238,7 +238,7 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
     @mock.patch("gov_notify.service.client")
     def test_query_sends_email_to_each_application_submitter_site(self, mock_client):
         """
-        When a GOV user adds a valid query to a compliance visit case
+        When a GOV user submits a valid query to a compliance visit case
         Then the request is successful and the query is saved
         And an email is sent to each user that submitted a valid application
         on that site which has a licence
@@ -264,7 +264,7 @@ class ECJUQueriesComplianceCreateTest(DataTestClient):
     @mock.patch("gov_notify.service.client")
     def test_query_sends_email_to_each_application_submitter_no_duplicates(self, mock_client):
         """
-        When a GOV user adds a valid query to a compliance case
+        When a GOV user submits a valid query to a compliance case
         Then the request is successful and the query is saved
         And an email is sent to each user that submitted a valid application
         on that site which has a licence, without duplicates
