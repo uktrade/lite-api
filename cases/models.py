@@ -138,8 +138,7 @@ class Case(TimestampableModel):
         if not can_set_status(self, status.status):
             raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
-        is_hmrc = self.case_type.sub_type == CaseTypeSubTypeEnum.HMRC
-        if not can_status_be_set_by_gov_user(user, old_status, status.status, is_mod=False, is_hmrc=is_hmrc):
+        if not can_status_be_set_by_gov_user(user, old_status, status.status, is_mod=False):
             raise ValidationError({"status": ["Status cannot be set by user"]})
 
         self.status = status
