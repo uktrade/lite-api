@@ -508,6 +508,7 @@ def _get_case_note_context(note):
         "user": " ".join([note.user.first_name, note.user.last_name]),
         "date": note.created_at.strftime(DATE_FORMAT),
         "time": note.created_at.strftime(TIME_FORMAT),
+        "visible_to_exporter": note.is_visible_to_exporter,
     }
 
 
