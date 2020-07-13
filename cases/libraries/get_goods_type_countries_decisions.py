@@ -44,7 +44,7 @@ def good_type_to_country_decisions(application_pk):
     goods_types = (
         GoodsType.objects.filter(application_id=application_pk, id__in=approved_and_refused_goods_types)
         .prefetch_related("control_list_entries", "countries")
-        .order_by("description")
+        .order_by("created_at")
     )
 
     goods_type_countries_decisions = GoodCountryDecision.objects.filter(case_id=application_pk).values(
@@ -58,7 +58,7 @@ def good_type_to_country_decisions(application_pk):
     refused_goods_types_on_destinations = {}
 
     for goods_type in goods_types:
-        for country in goods_type.countries.filter(id__in=approved_and_refused_countries_ids):
+        for country in goods_type.countries.filter(id__in=approved_and_refused_countries_ids).order_by("name"):
             goods_type_approved = goods_type.id in approved_goods_types_ids
             country_approved = country.id in approved_countries_ids
 

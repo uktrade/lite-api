@@ -6,23 +6,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('countries', '0001_initial'),
-        ('goodstype', '0004_auto_20200423_1456'),
-        ('cases', '0043_auto_20200710_1544'),
+        ("countries", "0001_initial"),
+        ("goodstype", "0004_auto_20200423_1456"),
+        ("cases", "0043_auto_20200710_1544"),
     ]
 
     operations = [
-        migrations.RenameField(
-            model_name='goodcountrydecision',
-            old_name='good',
-            new_name='goods_type',
-        ),
+        migrations.RenameField(model_name="goodcountrydecision", old_name="good", new_name="goods_type",),
         migrations.AlterUniqueTogether(
-            name='goodcountrydecision',
-            unique_together={('case', 'goods_type', 'country')},
+            name="goodcountrydecision", unique_together={("case", "goods_type", "country")},
         ),
-        migrations.RemoveField(
-            model_name='goodcountrydecision',
-            name='decision',
-        ),
+        migrations.RemoveField(model_name="goodcountrydecision", name="decision",),
     ]

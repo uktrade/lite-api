@@ -10,7 +10,7 @@ from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
-class FinaliseCaseTests(DataTestClient):
+class GoodsCountriesDecisionsTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.gov_user.role.permissions.set([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name])
@@ -21,10 +21,12 @@ class FinaliseCaseTests(DataTestClient):
         self.approved_country = self.countries[0]
         self.refused_country = self.countries[1]
         self.approved_goods_type = GoodsTypeFactory(application=self.case)
-        self.approved_goods_type.control_list_entries.set([ControlListEntry.objects.first()])
+        self.approved_goods_type_clcs = [ControlListEntry.objects.first()]
+        self.approved_goods_type.control_list_entries.set(self.approved_goods_type_clcs)
         self.approved_goods_type.countries.set(self.countries)
         self.refused_goods_type = GoodsTypeFactory(application=self.case)
-        self.refused_goods_type.control_list_entries.set([ControlListEntry.objects.last()])
+        self.refused_goods_type_clcs = [ControlListEntry.objects.last()]
+        self.refused_goods_type.control_list_entries.set(self.refused_goods_type_clcs)
         self.refused_goods_type.countries.set(self.countries)
         FinalAdviceFactory(
             user=self.gov_user,
@@ -47,6 +49,17 @@ class FinaliseCaseTests(DataTestClient):
             user=self.gov_user, team=self.team, case=self.case, country=self.refused_country, type=AdviceType.REFUSE
         )
 
+    def _assert_goods_type(self, data, goods_type, decision, clcs):
+        self.assertEqual(data["id"], str(goods_type.id))
+        self.assertEqual(data["decision"], decision)
+        self.assertEqual(data["description"], goods_type.description)
+        self.assertEqual(data["control_list_entries"], [clc.rating for clc in clcs])
+
+    def _assert_country(self, data, country, decision):
+        self.assertEqual(data["id"], str(country.id))
+        self.assertEqual(data["decision"], decision)
+        self.assertEqual(data["name"], country.name)
+
     def test_get_required_decisions(self):
         GoodCountryDecisionFactory(
             case=self.case, goods_type=self.approved_goods_type, country=self.countries[0], approve=True
@@ -60,11 +73,30 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(len(response_data["refused"]), 2)
 
         # Check approved combination
-        self.assertEqual(response_data["approved"][0]["id"], str(self.approved_goods_type.id))
-        self.assertEqual(response_data["approved"][0]["decision"], AdviceType.APPROVE)
-        self.assertEqual(response_data["approved"][0]["control_list_entries"], AdviceType.APPROVE)
+        self._assert_goods_type(
+            response_data["approved"][0], self.approved_goods_type, AdviceType.APPROVE, self.approved_goods_type_clcs
+        )
+        # Only one country for this goods type was approved
+        self.assertEqual(len(response_data["approved"][0]["countries"]), 1)
+        self._assert_country(response_data["approved"][0]["countries"][0], self.approved_country, AdviceType.APPROVE)
+        # Check existing answer is populated
+        self.assertEqual(response_data["approved"][0]["countries"][0]["value"], AdviceType.APPROVE)
 
-        y = 1
+        # Check refused combinations
+        self._assert_goods_type(
+            response_data["refused"][0], self.approved_goods_type, AdviceType.APPROVE, self.approved_goods_type_clcs
+        )
+        # Only one country for this goods type was refused
+        self.assertEqual(len(response_data["refused"][0]["countries"]), 1)
+        self._assert_country(response_data["refused"][0]["countries"][0], self.refused_country, AdviceType.REFUSE)
+
+        self._assert_goods_type(
+            response_data["refused"][1], self.refused_goods_type, AdviceType.REFUSE, self.refused_goods_type_clcs
+        )
+        # Both countries should appear as the goods type is refused
+        self.assertEqual(len(response_data["refused"][1]["countries"]), 2)
+        self._assert_country(response_data["refused"][1]["countries"][0], self.approved_country, AdviceType.APPROVE)
+        self._assert_country(response_data["refused"][1]["countries"][1], self.refused_country, AdviceType.REFUSE)
 
     def test_def(self):
         x = get_required_good_type_to_country_combinations(self.case.id)

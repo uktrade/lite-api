@@ -28,12 +28,9 @@ def reverse_good_country_decision(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0042_goodcountrydecision_approve'),
+        ("cases", "0042_goodcountrydecision_approve"),
     ]
 
     operations = [
-        migrations.RunPython(
-            convert_good_country_decision,
-            reverse_code=reverse_good_country_decision
-        ),
+        migrations.RunPython(convert_good_country_decision, reverse_code=reverse_good_country_decision),
     ]
