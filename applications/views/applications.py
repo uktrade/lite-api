@@ -411,10 +411,7 @@ class ApplicationManageStatus(APIView):
             )
 
         if not can_set_status(application, data["status"]):
-            return JsonResponse(
-                data={"errors": [strings.Statuses.BAD_STATUS]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return JsonResponse(data={"errors": [strings.Statuses.BAD_STATUS]}, status=status.HTTP_400_BAD_REQUEST,)
 
         if isinstance(request.user, ExporterUser):
             if get_request_user_organisation_id(request) != application.organisation.id:
