@@ -412,7 +412,7 @@ class ApplicationManageStatus(APIView):
 
         if not can_set_status(application, data["status"]):
             return JsonResponse(
-                data={"errors": [strings.Applications.Generic.Finalise.Error.GOV_SET_STATUS]},
+                data={"errors": [strings.Statuses.BAD_STATUS]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
