@@ -57,7 +57,7 @@ class CaseAssignments(views.APIView):
                     CaseAssignment.objects.get(case=case, queue=queue, user=user)
                 except CaseAssignment.DoesNotExist:
                     case_assignment = CaseAssignment(case=case, queue=queue, user=user)
-                    case_assignment.save(audit_user=request.user)
+                    case_assignment.save(audit_user=request.user, user=user, audit_note=data.get("note"))
 
             # Add to queue
             case.queues.add(queue)
