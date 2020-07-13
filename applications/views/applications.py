@@ -1,3 +1,4 @@
+import logging
 from copy import deepcopy
 from uuid import UUID
 
@@ -375,6 +376,20 @@ class ApplicationSubmission(APIView):
         ]:
             if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
                 application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
+
+        # If the user hasn't visited the optional goods to country mapping page, then no goods to country mappings will
+        # have been saved before this point.  So save mappings for all goods to all countries, which is the default
+        # position
+        if (
+            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
+            and not GoodsType.objects.filter(application=application, countries__isnull=False).exists()
+        ):
+            countries_on_application = CountryOnApplication.objects.filter(application=application).values_list(
+                "country", flat=True
+            )
+
+            for goods_type in GoodsType.objects.filter(application=application):
+                goods_type.countries.set(countries_on_application)
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)
