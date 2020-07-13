@@ -63,7 +63,7 @@ class GoodsCountriesDecisionsTests(DataTestClient):
 
     def test_get_required_goods_countries_decisions(self):
         GoodCountryDecisionFactory(
-            case=self.case, goods_type=self.approved_goods_type, country=self.countries[0], approve=True
+            case=self.case, goods_type=self.approved_goods_type, country=self.approved_country, approve=True
         )
         response = self.client.get(self.url, **self.gov_headers)
         response_data = response.json()
@@ -124,6 +124,26 @@ class GoodsCountriesDecisionsTests(DataTestClient):
         self.assertEqual(
             GoodCountryDecision.objects.filter(
                 case=self.case, goods_type=self.approved_goods_type, country=self.approved_country, approve=True
+            ).count(),
+            1,
+        )
+
+    def test_goods_countries_decisions_overwrite_success(self):
+        GoodCountryDecisionFactory(
+            case=self.case, goods_type=self.approved_goods_type, country=self.approved_country, approve=True
+        )
+        data = {f"{self.approved_goods_type.id}.{self.approved_country.id}": "refuse"}
+
+        response = self.client.post(self.url, **self.gov_headers, data=data)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            response_data["good_country_decisions"], [f"{self.approved_goods_type.id}.{self.approved_country.id}"],
+        )
+        self.assertEqual(
+            GoodCountryDecision.objects.filter(
+                case=self.case, goods_type=self.approved_goods_type, country=self.approved_country, approve=False
             ).count(),
             1,
         )
