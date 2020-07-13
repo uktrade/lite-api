@@ -126,7 +126,6 @@ def _get_standard_application_context(case):
             "export_type": standard_application.export_type,
             "reference_number_on_information_form": standard_application.reference_number_on_information_form,
             "has_been_informed": standard_application.have_you_been_informed,
-            "contains_firearm_goods": friendly_boolean(standard_application.contains_firearm_goods),
             "shipped_waybill_or_lading": friendly_boolean(standard_application.is_shipped_waybill_or_lading),
             "non_waybill_or_lading_route_details": standard_application.non_waybill_or_lading_route_details,
             "proposed_return_date": standard_application.proposed_return_date.strftime(DATE_FORMAT)

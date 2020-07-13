@@ -85,12 +85,14 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
 class ComplianceLicenceListSerializer(serializers.ModelSerializer):
     flags = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    case_type = serializers.SerializerMethodField()
     team = None
 
     class Meta:
         model = Case
         fields = (
             "id",
+            "case_type",
             "reference_code",
             "status",
             "flags",
@@ -124,6 +126,11 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
                 "key": instance.status.status,
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
+
+    def get_case_type(self, instance):
+        from cases.serializers import CaseTypeSerializer
+
+        return CaseTypeSerializer(instance.case_type).data
 
 
 class ExporterComplianceSiteListSerializer(serializers.Serializer):

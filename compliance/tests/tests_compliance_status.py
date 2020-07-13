@@ -18,9 +18,9 @@ class ComplianceManageStatusTests(DataTestClient):
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
-        url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
+        url = reverse("cases:case", kwargs={"pk": compliance_case.id})
         data = {"status": CaseStatusEnum.CLOSED}
-        response = self.client.put(url, data=data, **self.gov_headers)
+        response = self.client.patch(url, data=data, **self.gov_headers)
 
         compliance_case.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -35,9 +35,9 @@ class ComplianceManageStatusTests(DataTestClient):
             status=get_case_status_by_status(CaseStatusEnum.CLOSED),
         )
 
-        url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
+        url = reverse("cases:case", kwargs={"pk": compliance_case.id})
         data = {"status": CaseStatusEnum.OPEN}
-        response = self.client.put(url, data=data, **self.gov_headers)
+        response = self.client.patch(url, data=data, **self.gov_headers)
 
         compliance_case.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -50,9 +50,9 @@ class ComplianceManageStatusTests(DataTestClient):
             status=get_case_status_by_status(CaseStatusEnum.OPEN),
         )
 
-        url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
+        url = reverse("cases:case", kwargs={"pk": compliance_case.id})
         data = {"status": CaseStatusEnum.WITHDRAWN}
-        response = self.client.put(url, data=data, **self.gov_headers)
+        response = self.client.patch(url, data=data, **self.gov_headers)
 
         compliance_case.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -64,9 +64,9 @@ class ComplianceManageStatusTests(DataTestClient):
             organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
         )
         PeoplePresentFactory(visit_case=compliance_case)
-        url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
+        url = reverse("cases:case", kwargs={"pk": compliance_case.id})
         data = {"status": status_to_set}
-        response = self.client.put(url, data=data, **self.gov_headers)
+        response = self.client.patch(url, data=data, **self.gov_headers)
 
         compliance_case.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -76,13 +76,15 @@ class ComplianceManageStatusTests(DataTestClient):
         [status[0] for status in CaseStatusEnum.choices if status[0] not in CaseStatusEnum.compliance_visit_statuses]
     )
     def test_compliance_visit_case_other_statuses_can_not_be_set(self, status_to_set):
+        self.gov_user.role = self.super_user_role
+        self.gov_user.save()
         compliance_case = ComplianceVisitCaseFactory(
             organisation=self.organisation, status=get_case_status_by_status(CaseStatusEnum.OPEN)
         )
 
-        url = reverse("compliance:manage_status", kwargs={"pk": compliance_case.id})
+        url = reverse("cases:case", kwargs={"pk": compliance_case.id})
         data = {"status": status_to_set}
-        response = self.client.put(url, data=data, **self.gov_headers)
+        response = self.client.patch(url, data=data, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json().get("errors")["status"][0], strings.Statuses.BAD_STATUS)
