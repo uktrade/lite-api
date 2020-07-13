@@ -99,22 +99,25 @@ class DocumentContextGenerationTests(DataTestClient):
             self.assertEqual(context["other_item_type"], good_on_application.other_item_type)
 
         # TAU
-        self.assertEqual(context["item_category"], good_on_application.good.item_category)
+        self.assertEqual(context["item_category"], ItemCategory.to_str(good_on_application.good.item_category))
 
         if good_on_application.good.item_category in ItemCategory.group_one:
-            self.assertEqual(context["is_military_use"], good_on_application.good.is_military_use)
-            self.assertEqual(
-                context["modified_military_use_details"], good_on_application.good.modified_military_use_details
-            )
-            self.assertEqual(context["is_component"], good_on_application.good.is_component)
-            self.assertEqual(context["component_details"], good_on_application.good.component_details)
+            self.assertEqual(context["is_military_use"], MilitaryUse.to_str(good_on_application.good.is_military_use))
+            if good_on_application.good.is_military_use == MilitaryUse.YES_MODIFIED:
+                self.assertEqual(
+                    context["modified_military_use_details"], good_on_application.good.modified_military_use_details
+                )
+            self.assertEqual(context["is_component"], Component.to_str(good_on_application.good.is_component))
+            if good_on_application.good.is_component != Component.NO:
+                self.assertEqual(context["component_details"], good_on_application.good.component_details)
             self.assertEqual(
                 context["uses_information_security"],
                 friendly_boolean(good_on_application.good.uses_information_security),
             )
-            self.assertEqual(
-                context["information_security_details"], good_on_application.good.information_security_details
-            )
+            if good_on_application.good.uses_information_security:
+                self.assertEqual(
+                    context["information_security_details"], good_on_application.good.information_security_details
+                )
         elif good_on_application.good.item_category in ItemCategory.group_two:
             self.assertEqual(context["firearm_type"], good_on_application.good.firearm_details.type)
             self.assertEqual(
