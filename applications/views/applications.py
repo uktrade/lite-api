@@ -461,7 +461,8 @@ class ApplicationManageStatus(APIView):
                 "status": {
                     "new": CaseStatusEnum.get_text(case_status.status),
                     "old": CaseStatusEnum.get_text(old_status.status),
-                }
+                },
+                "additional_text": data.get("note"),
             },
         )
 
