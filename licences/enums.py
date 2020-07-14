@@ -16,5 +16,5 @@ class LicenceStatus:
     ]
 
     @classmethod
-    def human_readable(cls, status):
+    def to_str(cls, status):
         return next(choice[1] for choice in cls.choices if choice[0] == status)

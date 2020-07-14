@@ -265,7 +265,7 @@ def _get_compliance_licence_status(case):
 
     # not all case types contain a licence, for example OGLs do not. As a result we display the case status
     if last_licence:
-        return LicenceStatus.human_readable(last_licence.status)
+        return LicenceStatus.to_str(last_licence.status)
     else:
         return get_status_value_from_case_status_enum(case.status.status)
 
@@ -302,24 +302,24 @@ def _get_people_present_compliance_visit_context(case):
 def _convert_compliance_visit_case_to_dict(comp_case):
     return {
         "reference_code": comp_case.reference_code,
-        "visit_type": ComplianceVisitTypes.human_readable(comp_case.visit_type) if comp_case.visit_type else None,
+        "visit_type": ComplianceVisitTypes.to_str(comp_case.visit_type) if comp_case.visit_type else None,
         "visit_date": comp_case.visit_date.strftime(DATE_FORMAT) if comp_case.visit_date else None,
-        "overall_risk_value": ComplianceRiskValues.human_readable(comp_case.overall_risk_value)
+        "overall_risk_value": ComplianceRiskValues.to_str(comp_case.overall_risk_value)
         if comp_case.overall_risk_value
         else None,
         "licence_risk_value": comp_case.licence_risk_value,
         "overview": comp_case.overview,
         "inspection": comp_case.inspection,
         "compliance_overview": comp_case.compliance_overview,
-        "compliance_risk_value": ComplianceRiskValues.human_readable(comp_case.compliance_risk_value)
+        "compliance_risk_value": ComplianceRiskValues.to_str(comp_case.compliance_risk_value)
         if comp_case.overall_risk_value
         else None,
         "individuals_overview": comp_case.individuals_overview,
-        "individuals_risk_value": ComplianceRiskValues.human_readable(comp_case.individuals_risk_value)
+        "individuals_risk_value": ComplianceRiskValues.to_str(comp_case.individuals_risk_value)
         if comp_case.overall_risk_value
         else None,
         "products_overview": comp_case.products_overview,
-        "products_risk_value": ComplianceRiskValues.human_readable(comp_case.products_risk_value)
+        "products_risk_value": ComplianceRiskValues.to_str(comp_case.products_risk_value)
         if comp_case.overall_risk_value
         else None,
         "people_present": _get_people_present_compliance_visit_context(comp_case),

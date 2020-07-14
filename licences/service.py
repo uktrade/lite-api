@@ -11,7 +11,7 @@ def get_case_licences(case):
         {
             "id": str(licence.id),
             "reference_code": licence.reference_code,
-            "status": LicenceStatus.human_readable(licence.status),
+            "status": LicenceStatus.to_str(licence.status),
             "goods": [
                 {
                     "description": licence_good.good.good.description,

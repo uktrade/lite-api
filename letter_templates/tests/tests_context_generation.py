@@ -348,22 +348,18 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["sub_type"], case.case_type.sub_type)
 
     def _assert_compliance_visit_case_details(self, context, case):
-        self.assertEqual(context["visit_type"], ComplianceVisitTypes.human_readable(case.visit_type))
+        self.assertEqual(context["visit_type"], ComplianceVisitTypes.to_str(case.visit_type))
         self.assertEqual(context["visit_date"], case.visit_date.strftime(DATE_FORMAT))
-        self.assertEqual(context["overall_risk_value"], ComplianceRiskValues.human_readable(case.overall_risk_value))
+        self.assertEqual(context["overall_risk_value"], ComplianceRiskValues.to_str(case.overall_risk_value))
         self.assertEqual(context["licence_risk_value"], case.licence_risk_value)
         self.assertEqual(context["overview"], case.overview)
         self.assertEqual(context["inspection"], case.inspection)
         self.assertEqual(context["compliance_overview"], case.compliance_overview)
-        self.assertEqual(
-            context["compliance_risk_value"], ComplianceRiskValues.human_readable(case.compliance_risk_value)
-        )
+        self.assertEqual(context["compliance_risk_value"], ComplianceRiskValues.to_str(case.compliance_risk_value))
         self.assertEqual(context["individuals_overview"], case.individuals_overview)
-        self.assertEqual(
-            context["individuals_risk_value"], ComplianceRiskValues.human_readable(case.individuals_risk_value)
-        )
+        self.assertEqual(context["individuals_risk_value"], ComplianceRiskValues.to_str(case.individuals_risk_value))
         self.assertEqual(context["products_overview"], case.products_overview)
-        self.assertEqual(context["products_risk_value"], ComplianceRiskValues.human_readable(case.products_risk_value))
+        self.assertEqual(context["products_risk_value"], ComplianceRiskValues.to_str(case.products_risk_value))
 
     def test_generate_context_with_parties(self):
         # Standard application with all party types

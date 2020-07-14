@@ -28,7 +28,7 @@ class CasesAuditTrailSearchTestCase(DataTestClient):
 
         case_filters = get_objects_activity_filters(self.case.id, self.content_type)
 
-        actions = [{"key": audit.verb.value, "value": audit.verb.human_readable()}]
+        actions = [{"key": audit.verb.value, "value": audit.verb.to_str()}]
         teams = [{"value": self.team.name, "key": str(self.team.id)}]
         users = [{"value": f"{self.gov_user.first_name} {self.gov_user.last_name}", "key": str(self.gov_user.id)}]
         user_types = [

@@ -125,7 +125,7 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
 
         return {
             "key": last_licence.status,
-            "value": LicenceStatus.human_readable(last_licence.status),
+            "value": LicenceStatus.to_str(last_licence.status),
         }
 
     def get_case_type(self, instance):
