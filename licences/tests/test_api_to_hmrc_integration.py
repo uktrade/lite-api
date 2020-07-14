@@ -68,7 +68,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         ],
     )
     def test_standard_application(self, status):
-        action = LicenceStatus.hmrc_intergration_action.get(status)
+        action = LicenceStatus.hmrc_integration_action.get(status)
         standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         standard_licence = self.create_licence(standard_application, status=status)
@@ -99,7 +99,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         ],
     )
     def test_open_application(self, status):
-        action = LicenceStatus.hmrc_intergration_action.get(status)
+        action = LicenceStatus.hmrc_integration_action.get(status)
         open_application = self.create_open_application_case(self.organisation)
         self.create_advice(self.gov_user, open_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         open_licence = self.create_licence(open_application, status=status)
@@ -122,7 +122,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         self.assertEqual(data["id"], str(licence.id))
         self.assertEqual(data["reference"], licence.reference_code)
         self.assertEqual(data["type"], licence.application.case_type.reference)
-        self.assertEqual(data["action"], LicenceStatus.hmrc_intergration_action.get(licence.status))
+        self.assertEqual(data["action"], LicenceStatus.hmrc_integration_action.get(licence.status))
         self.assertEqual(data["start_date"], licence.start_date.strftime("%Y-%m-%d"))
         self.assertEqual(data["end_date"], add_months(licence.start_date, licence.duration, "%Y-%m-%d"))
 
@@ -198,7 +198,7 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         status = LicenceStatus.ISSUED
-        self.hmrc_integration_status = LicenceStatus.hmrc_intergration_action.get(status)
+        self.hmrc_integration_status = LicenceStatus.hmrc_integration_action.get(status)
         self.standard_licence = self.create_licence(self.standard_application, status=status)
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
@@ -259,7 +259,7 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence.save()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), LicenceStatus.hmrc_intergration_action.get(self.standard_licence.status),
+            str(self.standard_licence.id), LicenceStatus.hmrc_integration_action.get(self.standard_licence.status),
         )
 
 
@@ -269,7 +269,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         status = LicenceStatus.ISSUED
-        self.hmrc_integration_status = LicenceStatus.hmrc_intergration_action.get(status)
+        self.hmrc_integration_status = LicenceStatus.hmrc_integration_action.get(status)
         self.standard_licence = self.create_licence(self.standard_application, status=status)
 
     @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", False)

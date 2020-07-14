@@ -88,8 +88,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         ):
             self.fields.pop("countries")
 
-        self.action = LicenceStatus.hmrc_intergration_action.get(self.instance.status)
-        if self.action != LicenceStatus.hmrc_intergration_action.get(LicenceStatus.REINSTATED):
+        self.action = LicenceStatus.hmrc_integration_action.get(self.instance.status)
+        if self.action != LicenceStatus.hmrc_integration_action.get(LicenceStatus.REINSTATED):
             self.fields.pop("old_id")
 
     def get_action(self, _):

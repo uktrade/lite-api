@@ -21,7 +21,7 @@ class LicenceStatus:
         (CANCELLED, "Cancelled"),
     ]
 
-    hmrc_intergration_action = {
+    hmrc_integration_action = {
         ISSUED: HMRCIntegrationActionEnum.INSERT,
         REINSTATED: HMRCIntegrationActionEnum.UPDATE,
         REVOKED: HMRCIntegrationActionEnum.CANCEL,
