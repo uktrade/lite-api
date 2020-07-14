@@ -397,7 +397,7 @@ class ApplicationManageStatus(APIView):
     authentication_classes = (SharedAuthentication,)
 
     @transaction.atomic
-    def put(self, request, pk):  # noqa
+    def put(self, request, pk):
         application = get_application(pk)
         is_licence_application = application.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION
 
@@ -427,19 +427,7 @@ class ApplicationManageStatus(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        if data["status"] in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.REVOKED]:
-            try:
-                licence = Licence.objects.get_active_licence(application=application)
-            except Licence.DoesNotExist:
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            if data["status"] == CaseStatusEnum.SURRENDERED:
-                licence.surrender()
-            elif data["status"] == CaseStatusEnum.REVOKED:
-                licence.revoke()
+        self._cancel_licence_if_existing(data, application)
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -491,6 +479,22 @@ class ApplicationManageStatus(APIView):
             data["destinations"] = get_destinations(application.id, user_type=request.user.type)
 
         return JsonResponse(data={"data": data}, status=status.HTTP_200_OK,)
+
+    @staticmethod
+    def _cancel_licence_if_existing(data, application):
+        if data["status"] in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.REVOKED]:
+            try:
+                licence = Licence.objects.get_active_licence(application=application)
+            except Licence.DoesNotExist:
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if data["status"] == CaseStatusEnum.SURRENDERED:
+                licence.surrender()
+            elif data["status"] == CaseStatusEnum.REVOKED:
+                licence.revoke()
 
 
 class ApplicationFinaliseView(APIView):
