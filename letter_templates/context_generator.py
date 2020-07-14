@@ -15,7 +15,7 @@ from cases.models import Advice, EcjuQuery, CaseNote, Case
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
-from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType
+from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
@@ -447,7 +447,7 @@ def _get_good_on_application_context(good_on_application, advice=None):
     good_context = {
         "description": good_on_application.good.description,
         "control_list_entries": [clc.rating for clc in good_on_application.good.control_list_entries.all()],
-        "is_controlled": good_on_application.good.is_good_controlled,
+        "is_controlled": GoodControlled.to_str(good_on_application.good.is_good_controlled),
         "part_number": good_on_application.good.part_number,
         "applied_for_quantity": _format_quantity(good_on_application.quantity, good_on_application.unit)
         if good_on_application.quantity
