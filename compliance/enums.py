@@ -1,3 +1,7 @@
+# SIEL type compliance cases require a specific control code prefixes. currently: (0 to 9)D, (0 to 9)E, ML21, ML22.
+COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
+
+
 class ComplianceVisitTypes:
     FIRST_CONTACT = "first_contact"
     FIRST_VISIT = "first_visit"
@@ -10,6 +14,10 @@ class ComplianceVisitTypes:
         (ROUTINE_VISIT, "Routine visit"),
         (REVISIT, "Revisit"),
     ]
+
+    @classmethod
+    def to_str(cls, visit_type):
+        return next(choice[1] for choice in cls.choices if choice[0] == visit_type)
 
 
 class ComplianceRiskValues:
@@ -26,3 +34,7 @@ class ComplianceRiskValues:
         (HIGHER, "Higher risk"),
         (HIGHEST, "Highest risk"),
     ]
+
+    @classmethod
+    def to_str(cls, risk_value):
+        return next(choice[1] for choice in cls.choices if choice[0] == risk_value)
