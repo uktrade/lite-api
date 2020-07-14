@@ -40,24 +40,32 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.SURRENDERED
         self.save()
 
-    def cancel(self):
-        self.status = LicenceStatus.CANCELLED
+    def revoke(self):
+        self.status = LicenceStatus.REVOKED
         self.save()
 
+    def cancel(self, is_being_re_issued=False):
+        self.status = LicenceStatus.CANCELLED
+
+        if is_being_re_issued:
+            # If the licence is being re-issued, we want to send the re-issued licence only;
+            # Don't use 'self.save()' which would trigger 'send_to_hmrc_integration()' again
+            super(Licence, self).save()
+        else:
+            self.save()
+
     def issue(self):
+        # re-issue the licence if an older version exists
         try:
             old_licence = Licence.objects.get(
                 application=self.application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
             )
-            old_licence.cancel()
+            old_licence.cancel(is_being_re_issued=True)
         except Licence.DoesNotExist:
             old_licence = None
 
         self.status = LicenceStatus.ISSUED if not old_licence else LicenceStatus.REINSTATED
         self.save()
-
-    def is_active(self):
-        return self.status in [LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
 
     def save(self, *args, **kwargs):
         super(Licence, self).save(*args, **kwargs)
@@ -68,11 +76,11 @@ class Licence(TimestampableModel):
     def send_to_hmrc_integration(self):
         from licences.tasks import schedule_licence_for_hmrc_integration
 
-        schedule_licence_for_hmrc_integration(str(self.id), self.reference_code)
+        schedule_licence_for_hmrc_integration(str(self.id), LicenceStatus.hmrc_integration_action.get(self.status))
 
     def set_hmrc_integration_sent_at(self, value):
         """
-        For avoiding use of 'save()' which would trigger 'send_to_hmrc_integration()' again
+        Don't use 'self.save()' which would trigger 'send_to_hmrc_integration()' again
         """
         self.hmrc_integration_sent_at = value
         super(Licence, self).save()

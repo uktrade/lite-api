@@ -25,10 +25,10 @@ class HMRCIntegrationException(APIException):
     """Exceptions to raise when sending requests to the HMRC Integration service."""
 
 
-def send_licence(licence: Licence):
+def send_licence(licence: Licence, action: str):
     """Sends licence information to HMRC Integration"""
 
-    logging.info(f"Sending licence '{licence.id}' changes to HMRC Integration")
+    logging.info(f"Sending licence '{licence.id}', action '{action}' to HMRC Integration")
 
     url = f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}"
     data = {"licence": HMRCIntegrationLicenceSerializer(licence).data}
@@ -37,14 +37,14 @@ def send_licence(licence: Licence):
 
     if response.status_code not in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
         raise HMRCIntegrationException(
-            f"An unexpected response was received when sending licence '{licence.id}' changes to HMRC Integration -> "
-            f"status={response.status_code}, message={response.text}"
+            f"An unexpected response was received when sending licence '{licence.id}', action '{action}' to HMRC "
+            f"Integration -> status={response.status_code}, message={response.text}"
         )
 
     if response.status_code == status.HTTP_201_CREATED:
         licence.set_hmrc_integration_sent_at(timezone.now())
 
-    logging.info(f"Successfully sent licence '{licence.id}' changes to HMRC Integration")
+    logging.info(f"Successfully sent licence '{licence.id}', action '{action}' to HMRC Integration")
 
 
 def save_licence_usage_updates(usage_update_id: UUID, valid_licences: list):
