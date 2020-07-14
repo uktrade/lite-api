@@ -63,11 +63,12 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
+from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData, EcjuComplianceCreatedEmailData
 from licences.models import Licence
 from licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
 from organisations.libraries.get_organisation import get_request_user_organisation_id
+from organisations.models import Site
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
@@ -464,33 +465,47 @@ class ECJUQueries(APIView):
             )
 
             # Send an email to the user(s) that submitted the application
-            application_info = (
+            case_info = (
                 Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
                 .values("id", "email", "name", "reference_code", "case_type__type", "case_type__reference")
                 .get(id=pk)
             )
 
-            emails = set()
-            if application_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
-                # For each licence in a compliance case, email the user that submitted the application
-                case_id = application_info["id"]
+            # For each licence in a compliance case, email the user that submitted the application
+            if case_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
+                emails = set()
+                case_id = case_info["id"]
+                link = f"{settings.EXPORTER_BASE_URL}/compliance/{pk}/ecju-queries/"
 
-                if application_info["case_type__reference"] == CaseTypeReferenceEnum.COMP_VISIT:
+                if case_info["case_type__reference"] == CaseTypeReferenceEnum.COMP_VISIT:
                     # If the case is a compliance visit case, use the parent compliance site case ID instead
+                    link = f"{settings.EXPORTER_BASE_URL}/compliance/{pk}/visit/{case_id}/ecju-queries/"
                     case_id = ComplianceVisitCase.objects.get(pk=case_id).site_case.id
+
+                site = Site.objects.get(compliance__id=case_id)
 
                 for licence in Case.objects.filter_for_cases_related_to_compliance_case(case_id):
                     emails.add(licence.submitted_by.email)
-            else:
-                emails.add(application_info["email"])
 
-            for email in emails:
+                for email in emails:
+                    gov_notify_service.send_email(
+                        email_address=email,
+                        template_type=TemplateType.ECJU_COMPLIANCE_CREATED,
+                        data=EcjuComplianceCreatedEmailData(
+                            query=serializer.data["question"],
+                            case_reference=case_info["reference_code"],
+                            site_name=site.name,
+                            site_address=str(site.address),
+                            link=link,
+                        ),
+                    )
+            else:
                 gov_notify_service.send_email(
-                    email_address=email,
+                    email_address=case_info["email"],
                     template_type=TemplateType.ECJU_CREATED,
                     data=EcjuCreatedEmailData(
-                        application_reference=application_info["reference_code"],
-                        ecju_reference=application_info["name"],
+                        application_reference=case_info["name"] or "",
+                        case_reference=case_info["reference_code"],
                         link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
                     ),
                 )
