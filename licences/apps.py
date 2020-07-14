@@ -24,7 +24,7 @@ class LicencesConfig(AppConfig):
 
         for licence in licences_not_sent:
             schedule_licence_for_hmrc_integration(
-                str(licence.id), LicenceStatus.lite_to_hmrc_intergration.get(licence.status)
+                str(licence.id), LicenceStatus.hmrc_intergration_action.get(licence.status)
             )
 
     def ready(self):

@@ -40,9 +40,15 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.SURRENDERED
         self.save()
 
-    def cancel(self):
+    def cancel(self, is_being_re_issued=False):
         self.status = LicenceStatus.CANCELLED
-        self.save()
+
+        if is_being_re_issued:
+            # For avoiding use of 'save()' which would trigger 'send_to_hmrc_integration()' again
+            # If the licence is being re-issued, we want to send the re-issue licence
+            super(Licence, self).save()
+        else:
+            self.save()
 
     def issue(self):
         # re-issue the licence if an older version exists
@@ -50,7 +56,7 @@ class Licence(TimestampableModel):
             old_licence = Licence.objects.get(
                 application=self.application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
             )
-            old_licence.cancel()
+            old_licence.cancel(is_being_re_issued=True)
         except Licence.DoesNotExist:
             old_licence = None
 
@@ -66,7 +72,7 @@ class Licence(TimestampableModel):
     def send_to_hmrc_integration(self):
         from licences.tasks import schedule_licence_for_hmrc_integration
 
-        schedule_licence_for_hmrc_integration(str(self.id), LicenceStatus.lite_to_hmrc_intergration.get(self.status))
+        schedule_licence_for_hmrc_integration(str(self.id), LicenceStatus.hmrc_intergration_action.get(self.status))
 
     def set_hmrc_integration_sent_at(self, value):
         """

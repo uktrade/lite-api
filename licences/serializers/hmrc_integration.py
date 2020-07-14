@@ -3,6 +3,7 @@ from rest_framework import serializers
 from conf.helpers import add_months
 from licences.enums import LicenceStatus
 from licences.helpers import get_approved_goods_types
+from licences.models import Licence
 from static.countries.models import Country
 
 
@@ -66,7 +67,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference = serializers.CharField(source="reference_code")
     type = serializers.CharField(source="application.case_type.reference")
-    action = serializers.SerializerMethodField()  # `insert or cancel`
+    action = serializers.SerializerMethodField()  # 'insert', 'cancel' or 'update'
+    old_id = serializers.SerializerMethodField()  # only required if action='update'
     start_date = serializers.DateField()
     end_date = serializers.SerializerMethodField()
     organisation = HMRCIntegrationOrganisationSerializer(source="application.organisation")
@@ -86,8 +88,20 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         ):
             self.fields.pop("countries")
 
-    def get_action(self, instance):
-        return LicenceStatus.lite_to_hmrc_intergration.get(instance.status)
+        self.action = LicenceStatus.hmrc_intergration_action.get(self.instance.status)
+        if self.action != LicenceStatus.hmrc_intergration_action.get(LicenceStatus.REINSTATED):
+            self.fields.pop("old_id")
+
+    def get_action(self, _):
+        return self.action
+
+    def get_old_id(self, instance):
+        return str(
+            Licence.objects.filter(application=instance.application, status=LicenceStatus.CANCELLED)
+            .order_by("created_at")
+            .values_list("id", flat=True)
+            .last()
+        )
 
     def get_end_date(self, instance):
         return add_months(instance.start_date, instance.duration, "%Y-%m-%d")

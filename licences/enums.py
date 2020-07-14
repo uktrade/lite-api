@@ -1,3 +1,9 @@
+class HMRCIntegrationActionEnum:
+    INSERT = "insert"
+    CANCEL = "cancel"
+    UPDATE = "update"
+
+
 class LicenceStatus:
     ISSUED = "issued"
     REINSTATED = "reinstated"
@@ -15,12 +21,12 @@ class LicenceStatus:
         (CANCELLED, "Cancelled"),
     ]
 
-    lite_to_hmrc_intergration = {
-        ISSUED: "insert",
-        REINSTATED: "insert",
-        REVOKED: "cancel",
-        SURRENDERED: "cancel",
-        CANCELLED: "cancel",
+    hmrc_intergration_action = {
+        ISSUED: HMRCIntegrationActionEnum.INSERT,
+        REINSTATED: HMRCIntegrationActionEnum.UPDATE,
+        REVOKED: HMRCIntegrationActionEnum.CANCEL,
+        SURRENDERED: HMRCIntegrationActionEnum.CANCEL,
+        CANCELLED: HMRCIntegrationActionEnum.CANCEL,
     }
 
     @classmethod
