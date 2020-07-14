@@ -18,6 +18,7 @@ from cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from cases.helpers import remove_next_review_date
 from cases.libraries.advice import group_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
+from cases.libraries.finalise import get_required_decision_document_types
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
@@ -324,26 +325,10 @@ class FinalAdviceDocuments(APIView):
         """
         # Get all advice
         advice_values = AdviceType.as_dict()
-        final_advice = set(Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True))
+
+        final_advice = get_required_decision_document_types(get_case(pk))
         if not final_advice:
             return JsonResponse(data={"documents": {}}, status=status.HTTP_200_OK)
-
-        # Map Proviso -> Approve advice (Proviso results in Approve document)
-        if AdviceType.PROVISO in final_advice:
-            final_advice.add(AdviceType.APPROVE)
-            final_advice.discard(AdviceType.PROVISO)
-
-        # If Open application, use GoodCountryDecision to override whether approve is needed.
-        # Only approve can be changed to refuse so the only possible change from
-        # final advice is no approve decision
-        if get_case(pk).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            final_advice.discard(AdviceType.APPROVE)
-            final_advice.discard(AdviceType.REFUSE)
-            decisions = GoodCountryDecision.objects.filter(case_id=pk).values_list("approve", flat=True)
-            if True in decisions:
-                final_advice.add(AdviceType.APPROVE)
-            if False in decisions:
-                final_advice.add(AdviceType.REFUSE)
 
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
@@ -679,19 +664,7 @@ class FinaliseView(UpdateAPIView):
         else:
             assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
-        # Check all decision types have documents
-        required_decisions = set(Advice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
-        if AdviceType.PROVISO in required_decisions:
-            required_decisions.add(AdviceType.APPROVE)
-            required_decisions.remove(AdviceType.PROVISO)
-
-        # If Open application, use GoodCountryDecision to override whether approve is needed.
-        # Only approve can be changed to refuse so the only possible change from
-        # final advice is no approve decision
-        if get_case(pk).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            has_approve_decision = GoodCountryDecision.objects.filter(case_id=pk, approve=True).exists()
-            if not has_approve_decision:
-                required_decisions.remove(AdviceType.APPROVE)
+        required_decisions = get_required_decision_document_types(case)
 
         # Check that each decision has a document
         # Excluding approve (done in the licence section below)
