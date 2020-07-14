@@ -44,8 +44,8 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.CANCELLED
 
         if is_being_re_issued:
-            # For avoiding use of 'save()' which would trigger 'send_to_hmrc_integration()' again
-            # If the licence is being re-issued, we want to send the re-issue licence
+            # If the licence is being re-issued, we want to send the re-issued licence only;
+            # Don't use 'self.save()' which would trigger 'send_to_hmrc_integration()' again
             super(Licence, self).save()
         else:
             self.save()
@@ -76,7 +76,7 @@ class Licence(TimestampableModel):
 
     def set_hmrc_integration_sent_at(self, value):
         """
-        For avoiding use of 'save()' which would trigger 'send_to_hmrc_integration()' again
+        Don't use 'self.save()' which would trigger 'send_to_hmrc_integration()' again
         """
         self.hmrc_integration_sent_at = value
         super(Licence, self).save()
