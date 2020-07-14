@@ -25,7 +25,7 @@ def filter_cases_with_compliance_related_licence_attached(queryset, compliance_c
     # We filter cases to look at if an object contains an non draft licence (if required)
     queryset = queryset.filter(
         Q(
-            baseapplication__licence__status__in=[
+            baseapplication__licences__status__in=[
                 LicenceStatus.ISSUED,
                 LicenceStatus.REINSTATED,
                 LicenceStatus.REVOKED,
