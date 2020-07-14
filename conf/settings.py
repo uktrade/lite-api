@@ -141,6 +141,7 @@ HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
 HAWK_ALGORITHM = "sha256"
 HAWK_LITE_API_CREDENTIALS = "lite-api"
 HAWK_LITE_PERFORMANCE_CREDENTIALS = "lite-performance"
+HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS = "hmrc-integration"
 HAWK_CREDENTIALS = {
     "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
     "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
@@ -149,8 +150,8 @@ HAWK_CREDENTIALS = {
         "key": env("LITE_ACTIVITY_STREAM_HAWK_KEY"),
         "algorithm": HAWK_ALGORITHM,
     },
-    "hmrc-integration": {
-        "id": "hmrc-integration",
+    HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS: {
+        "id": HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS,
         "key": env("LITE_HMRC_INTEGRATION_HAWK_KEY"),
         "algorithm": HAWK_ALGORITHM,
     },

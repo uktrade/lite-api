@@ -10,17 +10,29 @@ from licences.managers import LicenceManager
 from static.decisions.models import Decision
 
 
+class HMRCIntegrationUsageUpdate(TimestampableModel):
+    """
+    A history of when a Licence was updated via a Usage Update from HMRC Integration
+    This is to prevent the same update from being processed multiple times
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+
 class Licence(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, editable=False)
     application = models.ForeignKey(
-        BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licence"
+        BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licences"
     )
     status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
     start_date = models.DateField(blank=False, null=False)
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
     decisions = models.ManyToManyField(Decision, related_name="licence")
-    sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
+    hmrc_integration_sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
+    hmrc_integration_usage_updates = models.ManyToManyField(
+        HMRCIntegrationUsageUpdate, related_name="licences"
+    )  # Usage Update IDs from from HMRC Integration
 
     objects = LicenceManager()
 
@@ -58,11 +70,11 @@ class Licence(TimestampableModel):
 
         schedule_licence_for_hmrc_integration(str(self.id), self.reference_code)
 
-    def set_sent_at(self, value):
+    def set_hmrc_integration_sent_at(self, value):
         """
         For avoiding use of 'save()' which would trigger 'send_to_hmrc_integration()' again
         """
-        self.sent_at = value
+        self.hmrc_integration_sent_at = value
         super(Licence, self).save()
 
 
