@@ -16,7 +16,7 @@ class ComplianceVisitTypes:
     ]
 
     @classmethod
-    def human_readable(cls, visit_type):
+    def to_str(cls, visit_type):
         return next(choice[1] for choice in cls.choices if choice[0] == visit_type)
 
 
@@ -36,5 +36,5 @@ class ComplianceRiskValues:
     ]
 
     @classmethod
-    def human_readable(cls, risk_value):
+    def to_str(cls, risk_value):
         return next(choice[1] for choice in cls.choices if choice[0] == risk_value)

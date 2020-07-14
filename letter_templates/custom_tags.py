@@ -62,7 +62,8 @@ def remove_underscores(value):
 @mark_safe
 def get_exporter_lite_content_string(value):
     """
-    Template tag for accessing constants from LITE content library (not for Python use - only HTML)
+    Template tag for accessing constants from the exporter section of LITE content library
+    (not for Python use - only HTML)
     """
 
     def get(object_to_search, nested_properties_list):

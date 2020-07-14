@@ -35,7 +35,15 @@ class GoodControlled:
     NO = "no"
     UNSURE = "unsure"
 
-    choices = [(YES, "Yes"), (NO, "No"), (UNSURE, "I don't know")]
+    choices = [
+        (YES, "Yes"),
+        (NO, "No"),
+        (UNSURE, "I don't know"),
+    ]
+
+    @classmethod
+    def to_str(cls, obj):
+        return next(choice[1] for choice in cls.choices if choice[0] == obj)
 
 
 class GoodPvGraded:

@@ -411,12 +411,12 @@ class CaseManager(models.Manager):
 
         return case
 
-    def filter_cases_with_compliance_related_licence_attached(self, compliance_case_id):
+    def filter_for_cases_related_to_compliance_case(self, compliance_case_id):
         """
         :return a list of cases in a queryset object which are linked to the compliance case id given.
         """
 
-        # We filter cases to look at if an object contains an active licence (if required), and
+        # We filter cases to look at if an object contains an active licence (if required)
         queryset = self.filter(
             Q(
                 baseapplication__licence__status__in=[

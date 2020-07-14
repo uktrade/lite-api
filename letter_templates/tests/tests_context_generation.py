@@ -13,7 +13,7 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
 from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
-from goods.enums import PvGrading, ItemType, MilitaryUse, Component, ItemCategory, FirearmGoodType
+from goods.enums import PvGrading, ItemType, MilitaryUse, Component, ItemCategory, FirearmGoodType, GoodControlled
 from goods.tests.factories import GoodFactory, FirearmFactory
 from letter_templates.context_generator import get_document_context
 from licences.enums import LicenceStatus
@@ -89,7 +89,7 @@ class DocumentContextGenerationTests(DataTestClient):
             context["control_list_entries"],
             [clc.rating for clc in good_on_application.good.control_list_entries.all()],
         )
-        self.assertEqual(context["is_controlled"], good_on_application.good.is_good_controlled)
+        self.assertEqual(context["is_controlled"], GoodControlled.to_str(good_on_application.good.is_good_controlled))
         self.assertEqual(context["part_number"], good_on_application.good.part_number)
         self.assertTrue(str(good_on_application.quantity) in context["applied_for_quantity"])
         self.assertTrue(Units.to_str(good_on_application.unit) in context["applied_for_quantity"])
