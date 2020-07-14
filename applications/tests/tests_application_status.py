@@ -97,6 +97,11 @@ class ApplicationManageStatusTests(DataTestClient):
         case_assignment = CaseAssignment.objects.create(
             case=self.standard_application, queue=self.queue, user=self.gov_user
         )
+        if case_status == CaseStatusEnum.REVOKED:
+            self.standard_application.licences.add(
+                self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+            )
+
         data = {"status": case_status}
 
         with mock.patch("gov_notify.service.client") as mock_notify_client:
@@ -197,6 +202,7 @@ class ApplicationManageStatusTests(DataTestClient):
         """ Test failure in exporter user setting a case status to surrendered when the case
         does not have a licence duration
         """
+        self.standard_application.licences.update(duration=None)
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
 
@@ -259,6 +265,11 @@ class ApplicationManageStatusTests(DataTestClient):
         ]
     )
     def test_gov_set_status_for_all_except_applicant_editing_and_finalised_success(self, case_status):
+        if case_status == CaseStatusEnum.REVOKED:
+            self.standard_application.licences.add(
+                self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+            )
+
         data = {"status": case_status}
 
         with mock.patch("gov_notify.service.client") as mock_notify_client:
