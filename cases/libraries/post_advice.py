@@ -7,6 +7,7 @@ from applications.serializers.advice import CaseAdviceSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceLevel, AdviceType
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.libraries.get_case import get_case
 from cases.models import Advice, GoodCountryDecision
 from conf import constants
@@ -100,6 +101,10 @@ def post_advice(request, case, level, team=False):
         if level == AdviceLevel.FINAL:
             # Remove GoodCountryDecision if changing approve decision for applicable country/goods type
             update_good_country_decisions(data)
+            # Remove outdated draft decision documents if advice changes
+            GeneratedCaseDocument.objects.filter(
+                case_id=case.id, advice_type__isnull=False, visible_to_exporter=False
+            ).delete()
         return JsonResponse({"advice": serializer.data}, status=status.HTTP_201_CREATED)
 
     errors = {}

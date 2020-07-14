@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import AdviceType, AdviceLevel
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.libraries.advice import get_serialized_entities_from_final_advice_on_case
 from cases.models import Advice, GoodCountryDecision
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
@@ -12,6 +13,7 @@ from goods.serializers import GoodCreateSerializer
 from goodstype.tests.factories import GoodsTypeFactory
 from parties.serializers import PartySerializer
 from static.countries.models import Country
+from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
@@ -416,6 +418,29 @@ class CreateCaseAdviceTests(DataTestClient):
         entity_field.remove("good")
         for field in entity_field:
             self.assertIsNone(getattr(serialized_entities, field, None))
+
+    def test_updating_final_advice_removes_draft_decision_documents(self):
+        good = self.standard_application.goods.first().good
+        FinalAdviceFactory(
+            user=self.gov_user, team=self.team, case=self.standard_case, good=good, type=AdviceType.APPROVE,
+        )
+        template = self.create_letter_template(
+            case_types=[self.standard_case.case_type], decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
+        )
+        self.create_generated_case_document(
+            self.standard_case, template, advice_type=AdviceType.APPROVE, visible_to_exporter=False
+        )
+
+        data = {
+            "text": "I Am Easy to Find",
+            "note": "I Am Easy to Find",
+            "type": AdviceType.APPROVE,
+            "good": str(good.id),
+        }
+        response = self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(GeneratedCaseDocument.objects.filter(case=self.standard_case).exists())
 
 
 class CreateFinalAdviceOpenApplicationTests(DataTestClient):
