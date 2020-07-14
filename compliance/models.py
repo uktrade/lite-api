@@ -1,52 +1,17 @@
+import uuid
+
+from django.db import models
+from django.db.models import deletion
 from django.utils import timezone
 
 from cases.enums import CaseTypeEnum
 from cases.models import Case
-import uuid
-
-from django.db import models
-from django.db.models import deletion, Q
-
 from common.models import CreatedAt, TimestampableModel
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
-from licences.enums import LicenceStatus
 from licences.models import Licence, GoodOnLicence
 from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
-
-
-def filter_cases_with_compliance_related_licence_attached(queryset, compliance_case_id):
-    """
-    TODO! Moving this to a queryset manager at a future date
-    Given a queryset of cases, and a compliance case id, determines cases which contain a licence connected
-        to the site that compliance case is interested in, and that meet the conditions for a compliance case
-    """
-    # We filter cases to look at if an object contains an non draft licence (if required)
-    queryset = queryset.filter(
-        Q(
-            baseapplication__licences__status__in=[
-                LicenceStatus.ISSUED,
-                LicenceStatus.REINSTATED,
-                LicenceStatus.REVOKED,
-                LicenceStatus.SURRENDERED,
-                LicenceStatus.CANCELLED,
-            ],
-            baseapplication__application_sites__site__site_records_located_at__compliance__id=compliance_case_id,
-        )
-        | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=compliance_case_id)
-    )
-    # We filter for OIEL, OICL, OGLs, and specific SIELs (dependant on CLC codes present) as these are the only case
-    #   types relevant for compliance cases
-    from compliance.helpers import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
-
-    approved_goods_on_licence = GoodOnLicence.objects.filter(
-        good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
-    ).values_list("good", flat=True)
-    queryset = queryset.filter(
-        case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
-    ) | queryset.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
-    return queryset.distinct()
 
 
 class ComplianceSiteCase(Case):

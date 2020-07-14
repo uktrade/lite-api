@@ -50,7 +50,7 @@ from cases.serializers import (
 )
 from cases.service import get_destinations
 from compliance.helpers import generate_compliance_site_case
-from compliance.models import filter_cases_with_compliance_related_licence_attached, ComplianceVisitCase
+from compliance.models import ComplianceVisitCase
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
@@ -479,7 +479,7 @@ class ECJUQueries(APIView):
                     # If the case is a compliance visit case, use the parent compliance site case ID instead
                     case_id = ComplianceVisitCase.objects.get(pk=case_id).site_case.id
 
-                for licence in filter_cases_with_compliance_related_licence_attached(Case.objects.all(), case_id):
+                for licence in Case.objects.filter_for_cases_related_to_compliance_case(case_id):
                     emails.add(licence.submitted_by.email)
             else:
                 emails.add(application_info["email"])
