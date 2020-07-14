@@ -7,6 +7,7 @@ from cases.models import GoodCountryDecision
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from conf.constants import GovPermissions
 from goodstype.tests.factories import GoodsTypeFactory
+from lite_content.lite_api.strings import Cases
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
 from test_helpers.clients import DataTestClient
@@ -109,7 +110,7 @@ class GoodsCountriesDecisionsTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response_data["errors"],
-            {f"{self.approved_goods_type.id}.{self.approved_country.id}": ["Please select a value"]},
+            {f"{self.approved_goods_type.id}.{self.approved_country.id}": [Cases.GoodCountryMatrix.MISSING_ITEM]},
         )
 
     def test_goods_countries_decisions_success(self):
