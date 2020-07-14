@@ -10,7 +10,7 @@ from applications.models import (
     HmrcQuery,
     CountryOnApplication,
 )
-from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum
+from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryType
 from cases.models import Advice, EcjuQuery, CaseNote, Case
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
@@ -602,6 +602,7 @@ def _get_ecju_query_context(query):
             "user": " ".join([query.raised_by_user.first_name, query.raised_by_user.last_name]),
             "date": query.created_at.strftime(DATE_FORMAT),
             "time": query.created_at.strftime(TIME_FORMAT),
+            "type": ECJUQueryType.to_str(query.query_type),
         }
     }
 
