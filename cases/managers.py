@@ -416,7 +416,7 @@ class CaseManager(models.Manager):
         :return a list of cases in a queryset object which are linked to the compliance case id given.
         """
 
-        # We filter cases to look at if an object contains an active licence (if required)
+        # We filter cases to look at if an object contains an non-draft licence (if required)
         queryset = self.filter(
             Q(
                 baseapplication__licence__status__in=[

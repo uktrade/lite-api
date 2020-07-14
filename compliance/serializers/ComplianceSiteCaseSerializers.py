@@ -115,7 +115,7 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
                 "value": get_status_value_from_case_status_enum(instance.status.status),
             }
 
-        # The latest non draft licence should be the only active licence on a case or the licence that was active
+        # The latest non draft licence should be the only non-draft licence on a case or the licence that was active
         last_licence = (
             Licence.objects.filter(application_id=instance.id)
             .exclude(status=LicenceStatus.DRAFT)
