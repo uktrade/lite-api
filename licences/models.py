@@ -40,6 +40,10 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.SURRENDERED
         self.save()
 
+    def revoke(self):
+        self.status = LicenceStatus.REVOKED
+        self.save()
+
     def cancel(self, is_being_re_issued=False):
         self.status = LicenceStatus.CANCELLED
 
