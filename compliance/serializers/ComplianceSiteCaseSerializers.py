@@ -2,6 +2,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from addresses.serializers import AddressSerializer
+from cases.enums import CaseTypeEnum
 from cases.models import Case
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, OpenLicenceReturns
 from compliance.serializers.OpenLicenceReturns import OpenLicenceReturnsListSerializer
@@ -107,6 +108,13 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
         return get_ordered_flags(case=instance, team=self.team, limit=3)
 
     def get_status(self, instance):
+        # Not all case types contain a licence, for example OGLs do not. As a result we display the case status
+        if instance.case_type.id in CaseTypeEnum.OGL_ID_LIST:
+            return {
+                "key": instance.status.status,
+                "value": get_status_value_from_case_status_enum(instance.status.status),
+            }
+
         # The latest non draft licence should be the only active licence on a case or the licence that was active
         last_licence = (
             Licence.objects.filter(application_id=instance.id)
@@ -115,17 +123,10 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
             .last()
         )
 
-        if last_licence:
-            return {
-                "key": last_licence.status,
-                "value": LicenceStatus.human_readable(last_licence.status),
-            }
-        else:
-            # not all case types contain a licence, for example OGLs do not. As a result we display the case status
-            return {
-                "key": instance.status.status,
-                "value": get_status_value_from_case_status_enum(instance.status.status),
-            }
+        return {
+            "key": last_licence.status,
+            "value": LicenceStatus.human_readable(last_licence.status),
+        }
 
     def get_case_type(self, instance):
         from cases.serializers import CaseTypeSerializer
