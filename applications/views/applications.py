@@ -427,7 +427,13 @@ class ApplicationManageStatus(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        self._cancel_licence_if_existing(data, application)
+        try:
+            self._cancel_licence_if_existing(data, application)
+        except Licence.DoesNotExist:
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -483,13 +489,7 @@ class ApplicationManageStatus(APIView):
     @staticmethod
     def _cancel_licence_if_existing(data, application):
         if data["status"] in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.REVOKED]:
-            try:
-                licence = Licence.objects.get_active_licence(application=application)
-            except Licence.DoesNotExist:
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            licence = Licence.objects.get_active_licence(application=application)
 
             if data["status"] == CaseStatusEnum.SURRENDERED:
                 licence.surrender()

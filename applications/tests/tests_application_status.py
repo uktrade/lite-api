@@ -202,6 +202,7 @@ class ApplicationManageStatusTests(DataTestClient):
         """ Test failure in exporter user setting a case status to surrendered when the case
         does not have a licence duration
         """
+        self.standard_application.licences.update(duration=None)
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
 
