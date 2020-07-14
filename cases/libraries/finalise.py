@@ -3,6 +3,9 @@ from cases.models import Advice, GoodCountryDecision
 
 
 def get_required_decision_document_types(case):
+    """
+    Gets the list of required decision document types for advice
+    """
     required_decisions = set(
         Advice.objects.filter(case=case, level=AdviceLevel.FINAL).distinct("type").values_list("type", flat=True)
     )

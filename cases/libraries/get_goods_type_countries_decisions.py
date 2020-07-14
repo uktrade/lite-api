@@ -4,6 +4,9 @@ from goodstype.models import GoodsType
 
 
 def get_existing_good_type_to_country_decisions(case_pk):
+    """
+    Get all existing GoodCountryDecisions for a case
+    """
     goods_type_countries_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).values(
         "goods_type_id", "country_id", "approve"
     )
@@ -11,6 +14,11 @@ def get_existing_good_type_to_country_decisions(case_pk):
 
 
 def _get_country_on_goods_type_context(country, goods_type, approved, goods_type_countries_decisions):
+    """
+    Get the dictionary context for a country on a good.
+    This includes the country name, decision for the country
+    and value if a decision for this combination already exists
+    """
     existing_decision = goods_type_countries_decisions.get(f"{goods_type.id}.{country.id}")
     if existing_decision is not None:
         existing_decision = AdviceType.APPROVE if existing_decision else AdviceType.REFUSE
@@ -24,6 +32,13 @@ def _get_country_on_goods_type_context(country, goods_type, approved, goods_type
 
 
 def good_type_to_country_decisions(application_pk):
+    """
+    Get data for the Good on Country matrix page.
+    This divides all good on country combinations into approved
+    (where both good & country are approved at the final advice level)
+    and refused (good and/or country is refused).
+    Returns the approved and refused dictionaries
+    """
     goods_types_advice = Advice.objects.filter(
         case_id=application_pk,
         level=AdviceLevel.FINAL,
@@ -63,6 +78,7 @@ def good_type_to_country_decisions(application_pk):
             goods_type_approved = goods_type.id in approved_goods_types_ids
             country_approved = country.id in approved_countries_ids
 
+            # Add to approve or refuse dictionary depending on whether both good & country is approved
             if goods_type_approved and country_approved:
                 dictionary = approved_goods_types_on_destinations
             else:
@@ -91,6 +107,10 @@ def good_type_to_country_decisions(application_pk):
 
 
 def get_required_good_type_to_country_combinations(application_pk):
+    """
+    Get all required good on country combinations.
+    (both good & country are approved at the final advice level)
+    """
     approved_goods_types_ids = Advice.objects.filter(
         case_id=application_pk, level=AdviceLevel.FINAL, goods_type__isnull=False, type=AdviceType.APPROVE,
     ).values_list("goods_type_id", flat=True)

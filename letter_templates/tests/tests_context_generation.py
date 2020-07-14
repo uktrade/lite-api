@@ -368,14 +368,15 @@ class DocumentContextGenerationTests(DataTestClient):
 
         # Both goods types should be in all
         self.assertEqual(len(context["goods"]["all"]), 2)
-        self.assertEqual(len(context["goods"]["approve"]), 1)
-        self.assertEqual(len(context["goods"]["approve"][Country.objects.first().name]), 1)
-        self.assertEqual(len(context["goods"]["refuse"]), 1)
-        self.assertEqual(len(context["goods"]["refuse"][Country.objects.last().name]), 1)
-
         self._assert_goods_type(context["goods"]["all"][0], case.goods_type.first())
         self._assert_goods_type(context["goods"]["all"][1], case.goods_type.last())
+
+        self.assertEqual(len(context["goods"]["approve"]), 1)
+        self.assertEqual(len(context["goods"]["approve"][Country.objects.first().name]), 1)
         self._assert_goods_type(context["goods"]["approve"][Country.objects.first().name][0], case.goods_type.first())
+
+        self.assertEqual(len(context["goods"]["refuse"]), 1)
+        self.assertEqual(len(context["goods"]["refuse"][Country.objects.last().name]), 1)
         self._assert_goods_type(context["goods"]["refuse"][Country.objects.last().name][0], case.goods_type.last())
 
     def test_generate_context_with_licence(self):

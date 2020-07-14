@@ -529,6 +529,7 @@ class GoodsCountriesDecisions(APIView):
 
         data = {k: v for k, v in request.data.items() if v is not None}
 
+        # Get list of all required item id's
         required_decisions = get_required_good_type_to_country_combinations(pk)
         required_decision_ids = set()
         for goods_type, country_list in required_decisions.items():
@@ -537,7 +538,7 @@ class GoodsCountriesDecisions(APIView):
 
         if not required_decision_ids.issubset(data):
             missing_ids = required_decision_ids.difference(request.data)
-            raise ParseError({missing_id: ["Please select a value"] for missing_id in missing_ids})
+            raise ParseError({missing_id: [Cases.GoodCountryMatrix.MISSING_ITEM] for missing_id in missing_ids})
 
         # Delete existing decision documents if decision changes
         existing_decisions = get_existing_good_type_to_country_decisions(pk)
@@ -548,6 +549,7 @@ class GoodsCountriesDecisions(APIView):
                 ).delete()
                 break
 
+        # Update or create GoodCountryDecisions
         for id in required_decision_ids:
             goods_type_id, country_id = id.split(".")
             value = data[id] == "approve"

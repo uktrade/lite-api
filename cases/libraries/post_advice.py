@@ -53,7 +53,7 @@ def check_refusal_errors(advice):
 def update_good_country_decisions(data):
     """
     Delete any GoodCountryDecision's that may now be invalid
-    (the country or goods type is no longer approved)
+    (the country or goods type are no longer approved)
     """
     refused_good_types_ids = [
         advice["goods_type"] for advice in data if advice.get("goods_type") and advice["type"] != AdviceType.APPROVE

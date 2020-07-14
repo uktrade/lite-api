@@ -377,8 +377,7 @@ class ApplicationSubmission(APIView):
                 application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
         # If the user hasn't visited the optional goods to country mapping page, then no goods to country mappings will
-        # have been saved before this point.  So save mappings for all goods to all countries, which is the default
-        # position
+        # have been saved before this point. So save mappings for all goods to all countries, which is the default
         if (
             application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
             and not GoodsType.objects.filter(application=application, countries__isnull=False).exists()
