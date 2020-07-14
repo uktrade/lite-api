@@ -4,12 +4,14 @@ from rest_framework import status
 
 from cases.enums import AdviceType, AdviceLevel
 from cases.libraries.advice import get_serialized_entities_from_final_advice_on_case
-from cases.models import Advice
-from cases.tests.factories import FinalAdviceFactory
+from cases.models import Advice, GoodCountryDecision
+from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from conf import constants
 from goods.enums import PvGrading
 from goods.serializers import GoodCreateSerializer
+from goodstype.tests.factories import GoodsTypeFactory
 from parties.serializers import PartySerializer
+from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from teams.models import Team
@@ -414,3 +416,28 @@ class CreateCaseAdviceTests(DataTestClient):
         entity_field.remove("good")
         for field in entity_field:
             self.assertIsNone(getattr(serialized_entities, field, None))
+
+
+class CreateFinalAdviceOpenApplicationTests(DataTestClient):
+    def test_change_approve_final_advice_deletes_good_country_decisions(self):
+        self.gov_user.role.permissions.set(
+            [constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE.name,]
+        )
+        case = self.create_open_application_case(self.organisation)
+        url = reverse("cases:case_final_advice", kwargs={"pk": case.id})
+        goods_type = GoodsTypeFactory(application=case)
+        FinalAdviceFactory(
+            user=self.gov_user, team=self.team, case=case, goods_type=goods_type, type=AdviceType.APPROVE,
+        )
+        GoodCountryDecisionFactory(case=case, goods_type=goods_type, country=Country.objects.first())
+
+        data = {
+            "text": "Changed my mind. Reject this",
+            "type": AdviceType.REFUSE,
+            "goods_type": str(goods_type.id),
+        }
+        response = self.client.post(url, **self.gov_headers, data=[data])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["advice"][0]["goods_type"], str(goods_type.id))
+        self.assertFalse(GoodCountryDecision.objects.filter(goods_type=goods_type).exists())
