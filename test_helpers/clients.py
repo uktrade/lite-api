@@ -40,7 +40,7 @@ from conf.urls import urlpatterns
 from flags.enums import SystemFlags, FlagStatuses, FlagLevels
 from flags.models import Flag, FlaggingRule
 from flags.tests.factories import FlagFactory
-from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, FirearmGoodType
+from goods.enums import GoodControlled, GoodPvGraded, PvGrading, ItemCategory, MilitaryUse, Component, FirearmGoodType
 from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetails
 from goods.tests.factories import GoodFactory
 from goodstype.document.models import GoodsTypeDocument
@@ -682,8 +682,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         site=True,
         case_type_id=CaseTypeEnum.SIEL.id,
         add_a_good=True,
+        user: ExporterUser = None,
         good=None,
     ):
+        if not user:
+            user = UserOrganisationRelationship.objects.filter(organisation_id=organisation.id).first().user
+
         application = StandardApplication(
             name=reference_name,
             export_type=ApplicationExportType.PERMANENT,
@@ -703,7 +707,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             is_shipped_waybill_or_lading=True,
             non_waybill_or_lading_route_details=None,
             status_id="00000000-0000-0000-0000-000000000000",
-            submitted_by=self.exporter_user,
+            submitted_by=user,
         )
 
         application.save()
@@ -933,7 +937,9 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         """
         Creates a complete standard application case
         """
-        draft = self.create_draft_standard_application(organisation, reference_name, parties=parties, site=site)
+        draft = self.create_draft_standard_application(
+            organisation, reference_name, parties=parties, site=site, user=user
+        )
 
         return self.submit_application(draft, self.exporter_user)
 
@@ -1021,7 +1027,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         status: LicenceStatus,
         reference_code=None,
         decisions=None,
-        sent_at=None,
+        hmrc_integration_sent_at=None,
         start_date=None,
     ):
         if not decisions:
@@ -1037,7 +1043,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             start_date=start_date,
             duration=get_default_duration(application),
             status=status,
-            sent_at=sent_at,
+            hmrc_integration_sent_at=hmrc_integration_sent_at,
         )
         licence.decisions.set(decisions)
         return licence

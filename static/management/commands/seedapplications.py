@@ -7,6 +7,7 @@ from applications.models import (
 )
 from goods.enums import GoodPvGraded, GoodControlled, GoodStatus
 from goods.models import Good
+from organisations.enums import OrganisationType
 from organisations.models import Organisation
 from static.management.SeedCommand import SeedCommand
 from static.units.enums import Units
@@ -58,7 +59,12 @@ class Command(SeedCommand):
         org_id = options.get("org_id") or None
         count = options.get("count") or 1
         goods = options.get("goods") or 1
-        organisations = [Organisation.objects.get(id=org_id)] if org_id is not None else Organisation.objects.all()
+        # Seed applications for Non-HMRC organisations
+        organisations = (
+            [Organisation.objects.exclude(type=OrganisationType.HMRC).get(id=org_id)]
+            if org_id is not None
+            else Organisation.objects.exclude(type=OrganisationType.HMRC)
+        )
         [self.seed_siel_applications(org, count, goods) for org in organisations]
 
     @classmethod
