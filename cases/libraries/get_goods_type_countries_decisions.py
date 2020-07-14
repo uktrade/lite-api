@@ -3,6 +3,15 @@ from cases.models import Advice, GoodCountryDecision
 from goodstype.models import GoodsType
 
 
+def get_existing_good_type_to_country_decisions(case_pk):
+    goods_type_countries_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).values(
+        "goods_type_id", "country_id", "approve"
+    )
+    return {
+        f"{item['goods_type_id']}.{item['country_id']}": item["approve"] for item in goods_type_countries_decisions
+    }
+
+
 def _get_country_on_goods_type_context(country, goods_type, approved, goods_type_countries_decisions):
     existing_decision = goods_type_countries_decisions.get(f"{goods_type.id}.{country.id}")
     if existing_decision is not None:
@@ -47,13 +56,7 @@ def good_type_to_country_decisions(application_pk):
         .order_by("created_at")
     )
 
-    goods_type_countries_decisions = GoodCountryDecision.objects.filter(case_id=application_pk).values(
-        "goods_type_id", "country_id", "approve"
-    )
-    goods_type_countries_decisions = {
-        f"{item['goods_type_id']}.{item['country_id']}": item["approve"] for item in goods_type_countries_decisions
-    }
-
+    goods_type_countries_decisions = get_existing_good_type_to_country_decisions(application_pk)
     approved_goods_types_on_destinations = {}
     refused_goods_types_on_destinations = {}
 

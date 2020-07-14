@@ -24,7 +24,7 @@ from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.get_goods_type_countries_decisions import (
     good_type_to_country_decisions,
     get_required_good_type_to_country_combinations,
-)
+    get_existing_good_type_to_country_decisions)
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -324,23 +324,26 @@ class FinalAdviceDocuments(APIView):
         """
         # Get all advice
         advice_values = AdviceType.as_dict()
-        final_advice = list(Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True))
+        final_advice = set(Advice.objects.filter(case__id=pk).distinct("type").values_list("type", flat=True))
         if not final_advice:
             return JsonResponse(data={"documents": {}}, status=status.HTTP_200_OK)
 
         # Map Proviso -> Approve advice (Proviso results in Approve document)
         if AdviceType.PROVISO in final_advice:
-            if AdviceType.APPROVE not in final_advice:
-                final_advice.append(AdviceType.APPROVE)
-            final_advice.remove(AdviceType.PROVISO)
+            final_advice.add(AdviceType.APPROVE)
+            final_advice.discard(AdviceType.PROVISO)
 
         # If Open application, use GoodCountryDecision to override whether approve is needed.
         # Only approve can be changed to refuse so the only possible change from
         # final advice is no approve decision
         if get_case(pk).case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            has_approve_decision = GoodCountryDecision.objects.filter(case_id=pk, approve=True).exists()
-            if not has_approve_decision and AdviceType.APPROVE in final_advice:
-                final_advice.remove(AdviceType.APPROVE)
+            final_advice.discard(AdviceType.APPROVE)
+            final_advice.discard(AdviceType.REFUSE)
+            decisions = GoodCountryDecision.objects.filter(case_id=pk).values_list("approve", flat=True)
+            if True in decisions:
+                final_advice.add(AdviceType.APPROVE)
+            if False in decisions:
+                final_advice.add(AdviceType.REFUSE)
 
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
@@ -546,6 +549,15 @@ class GoodsCountriesDecisions(APIView):
         if not required_decision_ids.issubset(request.data):
             missing_ids = required_decision_ids.difference(request.data)
             raise ParseError({missing_id: ["Please select a value"] for missing_id in missing_ids})
+
+        # Delete existing decision documents if decision changes
+        existing_decisions = get_existing_good_type_to_country_decisions(pk)
+        for decision_id in required_decision_ids:
+            if (request.data.get(decision_id) == AdviceType.APPROVE) != existing_decisions.get(decision_id):
+                GeneratedCaseDocument.objects.filter(
+                    case_id=pk, advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE], visible_to_exporter=False
+                ).delete()
+                break
 
         for id in required_decision_ids:
             goods_type_id, country_id = id.split(".")
