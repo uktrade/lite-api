@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from cases.enums import AdviceType
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import GoodCountryDecision
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from conf.constants import GovPermissions
@@ -129,6 +130,10 @@ class GoodsCountriesDecisionsTests(DataTestClient):
         )
 
     def test_goods_countries_decisions_overwrite_success(self):
+        template = self.create_letter_template(case_types=[self.case.case_type])
+        self.create_generated_case_document(
+            case=self.case, template=template, advice_type=AdviceType.APPROVE, visible_to_exporter=False
+        )
         GoodCountryDecisionFactory(
             case=self.case, goods_type=self.approved_goods_type, country=self.approved_country, approve=True
         )
@@ -147,3 +152,5 @@ class GoodsCountriesDecisionsTests(DataTestClient):
             ).count(),
             1,
         )
+        # Check existing case documents are removed
+        self.assertFalse(GeneratedCaseDocument.objects.filter(case=self.case).exists())

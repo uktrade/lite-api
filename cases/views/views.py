@@ -25,7 +25,8 @@ from cases.libraries.get_ecju_queries import get_ecju_query
 from cases.libraries.get_goods_type_countries_decisions import (
     good_type_to_country_decisions,
     get_required_good_type_to_country_combinations,
-    get_existing_good_type_to_country_decisions)
+    get_existing_good_type_to_country_decisions,
+)
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -525,20 +526,23 @@ class GoodsCountriesDecisions(APIView):
     @transaction.atomic
     def post(self, request, pk):
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+
+        data = {k: v for k, v in request.data.items() if v is not None}
+
         required_decisions = get_required_good_type_to_country_combinations(pk)
         required_decision_ids = set()
         for goods_type, country_list in required_decisions.items():
             for country in country_list:
                 required_decision_ids.add(f"{goods_type}.{country}")
 
-        if not required_decision_ids.issubset(request.data):
+        if not required_decision_ids.issubset(data):
             missing_ids = required_decision_ids.difference(request.data)
             raise ParseError({missing_id: ["Please select a value"] for missing_id in missing_ids})
 
         # Delete existing decision documents if decision changes
         existing_decisions = get_existing_good_type_to_country_decisions(pk)
         for decision_id in required_decision_ids:
-            if (request.data.get(decision_id) == AdviceType.APPROVE) != existing_decisions.get(decision_id):
+            if (data.get(decision_id) == AdviceType.APPROVE) != existing_decisions.get(decision_id):
                 GeneratedCaseDocument.objects.filter(
                     case_id=pk, advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE], visible_to_exporter=False
                 ).delete()
@@ -546,7 +550,7 @@ class GoodsCountriesDecisions(APIView):
 
         for id in required_decision_ids:
             goods_type_id, country_id = id.split(".")
-            value = request.data[id] == "approve"
+            value = data[id] == "approve"
             GoodCountryDecision.objects.update_or_create(
                 case_id=pk, goods_type_id=goods_type_id, country_id=country_id, defaults={"approve": value}
             )
