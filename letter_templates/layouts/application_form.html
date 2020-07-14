@@ -295,6 +295,7 @@
 							<dd class="govuk-summary-list__value">
 								{{ good.is_military_use }}
 								{% if good.modified_military_use_details %}
+									<br>
 									<span class="govuk-hint"> {{ good.modified_military_use_details }} </span>
 								{% endif %}
 							</dd>
@@ -309,6 +310,7 @@
 							<dd class="govuk-summary-list__value">
 								{{ good.is_component|default_na }}
 								{% if good.component_details %}
+									<br>
 									<span class="govuk-hint"> {{ good.component_details }} </span>
 								{% endif %}
 							</dd>
@@ -323,6 +325,7 @@
 							<dd class="govuk-summary-list__value">
 								{{ good.uses_information_security }}
 								{% if good.information_security_details %}
+									<br>
 									<span class="govuk-hint"> {{ good.information_security_details }} </span>
 								{% endif %}
 							</dd>
@@ -382,6 +385,7 @@
 								<dd class="govuk-summary-list__value">
 										{{ good.has_identification_markings }}
 										<span class="govuk-hint">
+										<br>
 											{% if good.has_identification_markings %}
 												{{ good.identification_markings_details|default_na }}
 											{% else %}
