@@ -271,7 +271,7 @@ def _get_compliance_licence_status(case):
 
 
 def _get_compliance_site_licences(case_id):
-    cases = Case.objects.filter_cases_with_compliance_related_licence_attached(case_id)
+    cases = Case.objects.filter_for_cases_related_to_compliance_case(case_id)
     context = [
         {"reference_code": case.reference_code, "status": _get_compliance_licence_status(case),} for case in cases
     ]
