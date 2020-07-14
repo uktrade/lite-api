@@ -9,6 +9,7 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum
 from cases.models import Case
+from compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
 from compliance.models import ComplianceSiteCase, ComplianceVisitCase, CompliancePerson
 from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
@@ -33,10 +34,6 @@ def get_compliance_site_case(pk):
         return ComplianceSiteCase.objects.get(pk=pk)
     except ComplianceSiteCase.DoesNotExist:
         raise NotFoundError({"case": strings.Cases.CASE_NOT_FOUND})
-
-
-# SIEL type compliance cases require a specific control code prefixes. currently: (0 to 9)D, (0 to 9)E, ML21, ML22.
-COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES = "(^[0-9][DE].*$)|(^ML21.*$)|(^ML22.*$)"
 
 
 def case_meets_conditions_for_compliance(case: Case):

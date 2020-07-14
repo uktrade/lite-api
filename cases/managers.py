@@ -9,6 +9,8 @@ from django.utils import timezone
 from cases.enums import AdviceLevel, CaseTypeEnum
 from cases.helpers import get_updated_case_ids, get_assigned_to_user_case_ids, get_assigned_as_case_officer_case_ids
 from common.enums import SortOrder
+from compliance.enums import COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+from licences.enums import LicenceStatus
 from queues.constants import (
     ALL_CASES_QUEUE_ID,
     MY_TEAMS_QUEUES_CASES_ID,
@@ -408,6 +410,39 @@ class CaseManager(models.Manager):
             return query
 
         return case
+
+    def filter_for_cases_related_to_compliance_case(self, compliance_case_id):
+        """
+        :return a list of cases in a queryset object which are linked to the compliance case id given.
+        """
+
+        # We filter cases to look at if an object contains an non-draft licence (if required)
+        queryset = self.filter(
+            Q(
+                baseapplication__licences__status__in=[
+                    LicenceStatus.ISSUED,
+                    LicenceStatus.REINSTATED,
+                    LicenceStatus.REVOKED,
+                    LicenceStatus.SURRENDERED,
+                    LicenceStatus.CANCELLED,
+                ],
+                baseapplication__application_sites__site__site_records_located_at__compliance__id=compliance_case_id,
+            )
+            | Q(opengenerallicencecase__site__site_records_located_at__compliance__id=compliance_case_id)
+        )
+
+        # We filter for OIEL, OICL, OGLs, and specific SIELs (dependant on CLC codes present) as these are the only case
+        #   types relevant for compliance cases
+        GoodOnLicence = get_model("licences", "GoodOnLicence")
+        approved_goods_on_licence = GoodOnLicence.objects.filter(
+            good__good__control_list_entries__rating__regex=COMPLIANCE_CASE_ACCEPTABLE_GOOD_CONTROL_CODES
+        ).values_list("good", flat=True)
+
+        queryset = queryset.filter(
+            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
+        ) | queryset.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
+
+        return queryset.distinct()
 
 
 class CaseReferenceCodeManager(models.Manager):
