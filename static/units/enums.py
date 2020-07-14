@@ -25,4 +25,6 @@ class Units:
         (ITG, "Intangible"),
     ]
 
-    choices_as_dict = {key: value for key, value in choices}
+    @classmethod
+    def to_str(cls, obj):
+        return next(choice[1] for choice in cls.choices if choice[0] == obj)
