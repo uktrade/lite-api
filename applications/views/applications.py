@@ -397,7 +397,7 @@ class ApplicationManageStatus(APIView):
     authentication_classes = (SharedAuthentication,)
 
     @transaction.atomic
-    def put(self, request, pk):
+    def put(self, request, pk):  # noqa
         application = get_application(pk)
         is_licence_application = application.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION
 
