@@ -480,7 +480,7 @@ class ECJUQueries(APIView):
                 if case_info["case_type__reference"] == CaseTypeReferenceEnum.COMP_VISIT:
                     # If the case is a compliance visit case, use the parent compliance site case ID instead
                     case_id = ComplianceVisitCase.objects.get(pk=case_id).site_case.id
-                    link = f"{settings.EXPORTER_BASE_URL}/compliance/{pk}/visit/{case_id}/ecju-queries/"
+                    link = f"{settings.EXPORTER_BASE_URL}/compliance/{case_id}/visit/{pk}/ecju-queries/"
 
                 site = Site.objects.get(compliance__id=case_id)
 
