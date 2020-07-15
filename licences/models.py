@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from applications.models import BaseApplication, GoodOnApplication
+from cases.models import Case
 from common.models import TimestampableModel
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from licences.enums import LicenceStatus
@@ -22,9 +23,7 @@ class HMRCIntegrationUsageUpdate(TimestampableModel):
 class Licence(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, editable=False)
-    application = models.ForeignKey(
-        BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licences"
-    )
+    application = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
     status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
     start_date = models.DateField(blank=False, null=False)
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
