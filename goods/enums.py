@@ -51,7 +51,15 @@ class GoodPvGraded:
     NO = "no"
     GRADING_REQUIRED = "grading_required"
 
-    choices = [(YES, "Yes"), (NO, "No"), (GRADING_REQUIRED, "Good needs to be graded")]
+    choices = [
+        (YES, "Yes"),
+        (NO, "No"),
+        (GRADING_REQUIRED, "Good needs to be graded"),
+    ]
+
+    @classmethod
+    def to_str(cls, option):
+        return next(choice[1] for choice in cls.choices if choice[0] == option)
 
 
 class PvGrading:
