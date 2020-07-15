@@ -135,43 +135,46 @@ def _validate_good_on_licence(licence_id: UUID, data: dict) -> dict:
     return data
 
 
-def _update_licence(data: dict) -> UUID:
+def _update_licence(data: dict) -> str:
     """Updates the Usage for Goods on a Licence"""
 
-    if data["action"] == "open":
-        gols = [_update_good_on_licence_usage(data["id"], good["id"], float(good["usage"])) for good in data["goods"]]
+    licence = Licence.objects.get(id=data["id"])
+    gols = [_update_good_on_licence_usage(licence.id, good["id"], float(good["usage"])) for good in data["goods"]]
+    action = data["action"]
+    change_status = None
 
+    if action == HMRCIntegrationActionEnum.EXHAUST:
+        change_status = licence.exhaust
+    elif action == HMRCIntegrationActionEnum.CANCEL:
+        change_status = licence.cancel
+    elif action == HMRCIntegrationActionEnum.SURRENDER:
+        change_status = licence.surrender
+    elif action == HMRCIntegrationActionEnum.EXPIRE:
+        change_status = licence.expire
+
+    if gols and data["action"] != HMRCIntegrationActionEnum.EXHAUST:
         exhausted_goods_count = 0
         for gol in gols:
             if gol["status"] == HMRCIntegrationActionEnum.EXHAUST:
                 exhausted_goods_count += 1
 
         # If all Goods have been Exhausted; Exhaust the Licence
-        if exhausted_goods_count >= len(data["goods"]):
-            licence = Licence.objects.get(id=data["id"])
-            licence.exhaust()
-    else:
-        licence = Licence.objects.get(id=data["id"])
+        if exhausted_goods_count >= licence.goods.count():
+            action = HMRCIntegrationActionEnum.EXHAUST
+            change_status = licence.exhaust
 
-        if data["action"] == HMRCIntegrationActionEnum.EXHAUST:
-            licence.exhaust()
-        elif data["action"] == HMRCIntegrationActionEnum.CANCEL:
-            licence.cancel()
-        elif data["action"] == HMRCIntegrationActionEnum.SURRENDER:
-            licence.surrender()
-        elif data["action"] == HMRCIntegrationActionEnum.EXPIRE:
-            licence.expire()
-
+    if change_status:
+        change_status()
         audit_trail_service.create_system_user_audit(
             verb=AuditType.LICENCE_UPDATED_STATUS,
             target=licence.application.get_case(),
             payload={
                 "licence": licence.reference_code,
-                "status": hmrc_integration_action_to_licence_status.get(data["action"]),
+                "status": hmrc_integration_action_to_licence_status.get(action),
             },
         )
 
-    return data["id"]
+    return str(licence.id)
 
 
 def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float) -> dict:

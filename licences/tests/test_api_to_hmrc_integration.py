@@ -7,7 +7,6 @@ from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
-from cases.models import CaseAssignment
 from conf.constants import GovPermissions
 from conf.helpers import add_months
 from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
@@ -260,6 +259,56 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         schedule_licence_for_hmrc_integration.return_value = None
 
         self.standard_licence.save()
+
+        schedule_licence_for_hmrc_integration.assert_called_with(
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+        )
+
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_licence_surrender_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
+        schedule_licence_for_hmrc_integration.return_value = None
+
+        self.standard_licence.surrender()
+
+        schedule_licence_for_hmrc_integration.assert_called_with(
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+        )
+
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_licence_cancel_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
+        schedule_licence_for_hmrc_integration.return_value = None
+
+        self.standard_licence.cancel()
+
+        schedule_licence_for_hmrc_integration.assert_called_with(
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+        )
+
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_licence_revoke_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
+        schedule_licence_for_hmrc_integration.return_value = None
+
+        self.standard_licence.revoke()
+
+        schedule_licence_for_hmrc_integration.assert_called_with(
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+        )
+
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_licence_expire_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
+        schedule_licence_for_hmrc_integration.return_value = None
+
+        self.standard_licence.revoke()
+
+        schedule_licence_for_hmrc_integration.assert_called_with(
+            str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
+        )
+
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_licence_exhaust_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
+        schedule_licence_for_hmrc_integration.return_value = None
+
+        self.standard_licence.exhaust()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
             str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),

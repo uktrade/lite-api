@@ -6,13 +6,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('licences', '0013_auto_20200709_1520'),
+        ("licences", "0013_auto_20200709_1520"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='licence',
-            name='status',
-            field=models.CharField(choices=[('issued', 'Issued'), ('issued', 'Issued'), ('reinstated', 'Reinstated'), ('revoked', 'Revoked'), ('surrendered', 'Surrendered'), ('exhausted', 'Exhausted'), ('expired', 'Expired'), ('draft', 'Draft'), ('cancelled', 'Cancelled')], default='draft', max_length=32),
+            model_name="licence",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("issued", "Issued"),
+                    ("issued", "Issued"),
+                    ("reinstated", "Reinstated"),
+                    ("revoked", "Revoked"),
+                    ("surrendered", "Surrendered"),
+                    ("exhausted", "Exhausted"),
+                    ("expired", "Expired"),
+                    ("draft", "Draft"),
+                    ("cancelled", "Cancelled"),
+                ],
+                default="draft",
+                max_length=32,
+            ),
         ),
     ]

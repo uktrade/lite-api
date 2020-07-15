@@ -132,13 +132,13 @@ class HMRCIntegrationUsageUpdateGoodSerializer(serializers.Serializer):
 class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True, allow_null=False)
     action = serializers.CharField(required=True, allow_null=False)
-    goods = serializers.ListField(required=True, allow_null=False, allow_empty=False)
+    goods = serializers.ListField(required=True, allow_null=False, allow_empty=True)
 
     def validate_action(self, value):
         valid_actions = HMRCIntegrationActionEnum.from_hmrc
 
         if value not in valid_actions:
-            raise serializers.ValidationError({"action": [f"Must be one of {valid_actions}"]})
+            raise serializers.ValidationError([f"Must be one of {valid_actions}"])
 
         return value
 

@@ -5,10 +5,10 @@ class HMRCIntegrationActionEnum:
     OPEN = "open"
     EXHAUST = "exhaust"
     EXPIRE = "expire"
-    SURRENDER = "expire"
+    SURRENDER = "surrender"
 
     to_hmrc = [INSERT, CANCEL, UPDATE]
-    from_hmrc = [OPEN, EXHAUST, EXPIRE, SURRENDER]
+    from_hmrc = [OPEN, EXHAUST, EXPIRE, SURRENDER, CANCEL]
 
 
 class LicenceStatus:
