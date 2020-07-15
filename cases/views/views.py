@@ -6,14 +6,19 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, ECJUQueryType
+from cases.enums import (
+    CaseTypeSubTypeEnum,
+    AdviceType,
+    AdviceLevel,
+    CaseTypeTypeEnum,
+    CaseTypeReferenceEnum,
+)
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from cases.helpers import remove_next_review_date
@@ -45,6 +50,7 @@ from cases.serializers import (
 )
 from cases.service import get_destinations
 from compliance.helpers import generate_compliance_site_case
+from compliance.models import ComplianceVisitCase
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
@@ -57,11 +63,12 @@ from documents.models import Document
 from goodstype.helpers import get_goods_type
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
-from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
+from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData, EcjuComplianceCreatedEmailData
 from licences.models import Licence
 from licences.service import get_case_licences
 from lite_content.lite_api.strings import Documents, Cases
 from organisations.libraries.get_organisation import get_request_user_organisation_id
+from organisations.models import Site
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
@@ -415,7 +422,7 @@ class FinalAdvice(APIView):
         return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
 
 
-class CaseEcjuQueries(APIView):
+class ECJUQueries(APIView):
     authentication_classes = (SharedAuthentication,)
 
     def get(self, request, pk):
@@ -442,43 +449,68 @@ class CaseEcjuQueries(APIView):
         """
         Add a new ECJU query
         """
-        data = JSONParser().parse(request)
-        data["case"] = pk
-        data["raised_by_user"] = request.user.id
-        data["team"] = request.user.team.id
+        data = {**request.data, "case": pk, "raised_by_user": request.user.id, "team": request.user.team.id}
         serializer = EcjuQueryCreateSerializer(data=data)
-        if serializer.is_valid():
-            if "validate_only" not in data or not data["validate_only"]:
-                serializer.save()
 
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.ECJU_QUERY,
-                    action_object=serializer.instance,
-                    target=serializer.instance.case,
-                    payload={"ecju_query": data["question"]},
-                )
-                if serializer.data["query_type"]["key"] == ECJUQueryType.ECJU:
-                    # Only send email for standard ECJU queries
-                    application_info = (
-                        Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
-                        .values("email", "name", "reference_code")
-                        .get(id=pk)
-                    )
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+
+            # Audit the creation of the query
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.ECJU_QUERY,
+                action_object=serializer.instance,
+                target=serializer.instance.case,
+                payload={"ecju_query": data["question"]},
+            )
+
+            # Send an email to the user(s) that submitted the application
+            case_info = (
+                Case.objects.annotate(email=F("submitted_by__email"), name=F("baseapplication__name"))
+                .values("id", "email", "name", "reference_code", "case_type__type", "case_type__reference")
+                .get(id=pk)
+            )
+
+            # For each licence in a compliance case, email the user that submitted the application
+            if case_info["case_type__type"] == CaseTypeTypeEnum.COMPLIANCE:
+                emails = set()
+                case_id = case_info["id"]
+                link = f"{settings.EXPORTER_BASE_URL}/compliance/{pk}/ecju-queries/"
+
+                if case_info["case_type__reference"] == CaseTypeReferenceEnum.COMP_VISIT:
+                    # If the case is a compliance visit case, use the parent compliance site case ID instead
+                    case_id = ComplianceVisitCase.objects.get(pk=case_id).site_case.id
+                    link = f"{settings.EXPORTER_BASE_URL}/compliance/{case_id}/visit/{pk}/ecju-queries/"
+
+                site = Site.objects.get(compliance__id=case_id)
+
+                for licence in Case.objects.filter_for_cases_related_to_compliance_case(case_id):
+                    emails.add(licence.submitted_by.email)
+
+                for email in emails:
                     gov_notify_service.send_email(
-                        email_address=application_info["email"],
-                        template_type=TemplateType.ECJU_CREATED,
-                        data=EcjuCreatedEmailData(
-                            application_reference=application_info["reference_code"],
-                            ecju_reference=application_info["name"],
-                            link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
+                        email_address=email,
+                        template_type=TemplateType.ECJU_COMPLIANCE_CREATED,
+                        data=EcjuComplianceCreatedEmailData(
+                            query=serializer.data["question"],
+                            case_reference=case_info["reference_code"],
+                            site_name=site.name,
+                            site_address=str(site.address),
+                            link=link,
                         ),
                     )
-
-                return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
             else:
-                return JsonResponse(data={}, status=status.HTTP_200_OK)
-        return JsonResponse(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                gov_notify_service.send_email(
+                    email_address=case_info["email"],
+                    template_type=TemplateType.ECJU_CREATED,
+                    data=EcjuCreatedEmailData(
+                        application_reference=case_info["name"] or "",
+                        case_reference=case_info["reference_code"],
+                        link=f"{settings.EXPORTER_BASE_URL}/applications/{pk}/ecju-queries/",
+                    ),
+                )
+
+            return JsonResponse(data={"ecju_query_id": serializer.data["id"]}, status=status.HTTP_201_CREATED)
 
 
 class EcjuQueryDetail(APIView):

@@ -38,7 +38,7 @@ urlpatterns = [
         views.GoodsCountriesDecisions.as_view(),
         name="goods_countries_decisions",
     ),
-    path("<uuid:pk>/ecju-queries/", views.CaseEcjuQueries.as_view(), name="case_ecju_queries",),
+    path("<uuid:pk>/ecju-queries/", views.ECJUQueries.as_view(), name="case_ecju_queries",),
     path("<uuid:pk>/ecju-queries/<uuid:ecju_pk>/", views.EcjuQueryDetail.as_view(), name="case_ecju_query",),
     path("<uuid:pk>/generated-documents/", include("cases.generated_documents.urls")),
     path("<uuid:pk>/finalise/", views.FinaliseView.as_view(), name="finalise"),
