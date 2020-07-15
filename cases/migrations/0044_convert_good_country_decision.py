@@ -6,6 +6,11 @@ from cases.enums import AdviceType
 
 
 def convert_good_country_decision(apps, schema_editor):
+    """
+    Maps the decision AdviceTypes to a boolean as GoodCountryDecision
+    can only be approved (True) or refused (false).
+    Other AdviceTypes do not apply
+    """
     GoodCountryDecision = apps.get_model("cases", "GoodCountryDecision")
     for goodCountryDecision in GoodCountryDecision.objects.all():
         if goodCountryDecision.decision == AdviceType.APPROVE or goodCountryDecision.decision == AdviceType.PROVISO:

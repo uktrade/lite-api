@@ -571,17 +571,23 @@ def _get_goods_type_decision_context(good_country_decisions):
 def _get_goods_type_context(goods_types, case_pk):
     goods_type_context = {"all": [_get_goods_type(goods_type) for goods_type in goods_types]}
 
-    approved_goods_type_on_country_decisions = GoodCountryDecision.objects.filter(
-        case_id=case_pk, approve=True
-    ).prefetch_related("goods_type", "country")
+    goods_type_on_country_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).prefetch_related(
+        "goods_type", "country"
+    )
+    approved_goods_type_on_country_decisions = []
+    refused_goods_type_on_country_decisions = []
+
+    for goods_type_on_country_decision in goods_type_on_country_decisions:
+        if goods_type_on_country_decision.approve:
+            approved_goods_type_on_country_decisions.append(goods_type_on_country_decision)
+        else:
+            refused_goods_type_on_country_decisions.append(goods_type_on_country_decision)
+
     if approved_goods_type_on_country_decisions:
         goods_type_context[AdviceType.APPROVE] = _get_goods_type_decision_context(
             approved_goods_type_on_country_decisions
         )
 
-    refused_goods_type_on_country_decisions = GoodCountryDecision.objects.filter(
-        case_id=case_pk, approve=False
-    ).prefetch_related("goods_type", "country")
     if refused_goods_type_on_country_decisions:
         goods_type_context[AdviceType.REFUSE] = _get_goods_type_decision_context(
             refused_goods_type_on_country_decisions

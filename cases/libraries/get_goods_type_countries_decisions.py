@@ -1,3 +1,5 @@
+from django.db.models import Q
+
 from cases.enums import AdviceLevel, AdviceType
 from cases.models import Advice, GoodCountryDecision
 from goodstype.models import GoodsType
@@ -45,13 +47,15 @@ def good_type_to_country_decisions(application_pk):
         goods_type__isnull=False,
         type__in=[AdviceType.APPROVE, AdviceType.REFUSE],
     ).values("goods_type_id", "type")
-    approved_goods_types_ids = [
-        item["goods_type_id"] for item in goods_types_advice if item["type"] == AdviceType.APPROVE
-    ]
-    refused_goods_types_ids = [
-        item["goods_type_id"] for item in goods_types_advice if item["type"] == AdviceType.REFUSE
-    ]
-    approved_and_refused_goods_types = approved_goods_types_ids + refused_goods_types_ids
+
+    approved_and_refused_goods_types = []
+    approved_goods_types_ids = []
+
+    for item in goods_types_advice:
+        goods_type_id = item["goods_type_id"]
+        approved_and_refused_goods_types.append(goods_type_id)
+        if item["type"] == AdviceType.APPROVE:
+            approved_goods_types_ids.append(goods_type_id)
 
     countries_advice = Advice.objects.filter(
         case_id=application_pk,
@@ -59,9 +63,15 @@ def good_type_to_country_decisions(application_pk):
         country__isnull=False,
         type__in=[AdviceType.APPROVE, AdviceType.REFUSE],
     ).values("country_id", "type")
-    approved_countries_ids = [item["country_id"] for item in countries_advice if item["type"] == AdviceType.APPROVE]
-    refused_countries_ids = [item["country_id"] for item in countries_advice if item["type"] == AdviceType.REFUSE]
-    approved_and_refused_countries_ids = approved_countries_ids + refused_countries_ids
+
+    approved_countries_ids = []
+    approved_and_refused_countries_ids = []
+
+    for item in countries_advice:
+        country_id = item["country_id"]
+        approved_and_refused_countries_ids.append(country_id)
+        if item["type"] == AdviceType.APPROVE:
+            approved_countries_ids.append(country_id)
 
     goods_types = (
         GoodsType.objects.filter(application_id=application_pk, id__in=approved_and_refused_goods_types)
@@ -113,13 +123,21 @@ def get_required_good_type_to_country_combinations(application_pk):
     Get all required good on country combinations.
     (both good & country are approved at the final advice level)
     """
-    approved_goods_types_ids = Advice.objects.filter(
-        case_id=application_pk, level=AdviceLevel.FINAL, goods_type__isnull=False, type=AdviceType.APPROVE,
-    ).values_list("goods_type_id", flat=True)
+    approved_ids = Advice.objects.filter(
+        Q(goods_type__isnull=False) | Q(country__isnull=False),
+        case_id=application_pk,
+        level=AdviceLevel.FINAL,
+        type=AdviceType.APPROVE,
+    ).values("goods_type_id", "country_id")
 
-    approved_countries_ids = Advice.objects.filter(
-        case_id=application_pk, level=AdviceLevel.FINAL, country__isnull=False, type=AdviceType.APPROVE
-    ).values_list("country_id", flat=True)
+    approved_goods_types_ids = []
+    approved_countries_ids = []
+
+    for item in approved_ids:
+        if item.get("goods_type_id"):
+            approved_goods_types_ids.append(item["goods_type_id"])
+        else:
+            approved_countries_ids.append(item["country_id"])
 
     goods_types = GoodsType.objects.filter(
         application_id=application_pk, id__in=approved_goods_types_ids
