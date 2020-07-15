@@ -381,13 +381,13 @@ class ApplicationSubmission(APIView):
         # have been saved before this point. So save mappings for all goods to all countries, which is the default
         if (
             application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and not GoodsType.objects.filter(application=application, countries__isnull=False).exists()
+            and GoodsType.objects.filter(application=application, countries__isnull=True).exists()
         ):
             countries_on_application = CountryOnApplication.objects.filter(application=application).values_list(
                 "country", flat=True
             )
 
-            for goods_type in GoodsType.objects.filter(application=application):
+            for goods_type in GoodsType.objects.filter(application=application, countries__isnull=True):
                 goods_type.countries.set(countries_on_application)
 
         # Serialize for the response message
