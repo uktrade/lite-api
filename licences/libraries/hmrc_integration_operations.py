@@ -11,6 +11,7 @@ from audit_trail.enums import AuditType
 from cases.enums import CaseTypeEnum
 from conf.requests import post
 from conf.settings import LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT, HAWK_LITE_API_CREDENTIALS
+from licences.enums import HMRCIntegrationActionEnum, hmrc_integration_action_to_licence_status
 from licences.models import Licence, HMRCIntegrationUsageUpdate, GoodOnLicence
 from licences.serializers.hmrc_integration import (
     HMRCIntegrationLicenceSerializer,
@@ -137,11 +138,43 @@ def _validate_good_on_licence(licence_id: UUID, data: dict) -> dict:
 def _update_licence(data: dict) -> UUID:
     """Updates the Usage for Goods on a Licence"""
 
-    [_update_good_on_licence_usage(data["id"], good["id"], float(good["usage"])) for good in data["goods"]]
+    if data["action"] == "open":
+        gols = [_update_good_on_licence_usage(data["id"], good["id"], float(good["usage"])) for good in data["goods"]]
+
+        exhausted_goods_count = 0
+        for gol in gols:
+            if gol["status"] == HMRCIntegrationActionEnum.EXHAUST:
+                exhausted_goods_count += 1
+
+        # If all Goods have been Exhausted; Exhaust the Licence
+        if exhausted_goods_count >= len(data["goods"]):
+            licence = Licence.objects.get(id=data["id"])
+            licence.exhaust()
+    else:
+        licence = Licence.objects.get(id=data["id"])
+
+        if data["action"] == HMRCIntegrationActionEnum.EXHAUST:
+            licence.exhaust()
+        elif data["action"] == HMRCIntegrationActionEnum.CANCEL:
+            licence.cancel()
+        elif data["action"] == HMRCIntegrationActionEnum.SURRENDER:
+            licence.surrender()
+        elif data["action"] == HMRCIntegrationActionEnum.EXPIRE:
+            licence.expire()
+
+        audit_trail_service.create_system_user_audit(
+            verb=AuditType.LICENCE_UPDATED_STATUS,
+            target=licence.application.get_case(),
+            payload={
+                "licence": licence.reference_code,
+                "status": hmrc_integration_action_to_licence_status.get(data["action"]),
+            },
+        )
+
     return data["id"]
 
 
-def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float):
+def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float) -> dict:
     """Updates the Usage for a Good on a Licence"""
 
     gol = GoodOnLicence.objects.get(licence_id=licence_id, good__good_id=good_id)
@@ -157,3 +190,8 @@ def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float)
         target=gol.licence.application.get_case(),
         payload={"good_description": good_description, "usage": gol.usage, "licence": gol.licence.reference_code},
     )
+
+    return {
+        "id": str(gol.id),
+        "status": HMRCIntegrationActionEnum.EXHAUST if gol.usage >= gol.quantity else HMRCIntegrationActionEnum.OPEN,
+    }

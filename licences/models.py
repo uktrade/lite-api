@@ -5,7 +5,7 @@ from django.db import models
 from applications.models import BaseApplication, GoodOnApplication
 from common.models import TimestampableModel
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
-from licences.enums import LicenceStatus
+from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 from licences.managers import LicenceManager
 from static.decisions.models import Decision
 
@@ -44,6 +44,14 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.REVOKED
         self.save()
 
+    def exhaust(self):
+        self.status = LicenceStatus.EXHAUSTED
+        self.save()
+
+    def expire(self):
+        self.status = LicenceStatus.EXPIRED
+        self.save()
+
     def cancel(self, is_being_re_issued=False):
         self.status = LicenceStatus.CANCELLED
 
@@ -76,7 +84,7 @@ class Licence(TimestampableModel):
     def send_to_hmrc_integration(self):
         from licences.tasks import schedule_licence_for_hmrc_integration
 
-        schedule_licence_for_hmrc_integration(str(self.id), LicenceStatus.hmrc_integration_action.get(self.status))
+        schedule_licence_for_hmrc_integration(str(self.id), licence_status_to_hmrc_integration_action.get(self.status))
 
     def set_hmrc_integration_sent_at(self, value):
         """

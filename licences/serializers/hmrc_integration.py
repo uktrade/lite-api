@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from conf.helpers import add_months
-from licences.enums import LicenceStatus
+from licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action
 from licences.helpers import get_approved_goods_types
 from licences.models import Licence
 from static.countries.models import Country
@@ -88,8 +88,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         ):
             self.fields.pop("countries")
 
-        self.action = LicenceStatus.hmrc_integration_action.get(self.instance.status)
-        if self.action != LicenceStatus.hmrc_integration_action.get(LicenceStatus.REINSTATED):
+        self.action = licence_status_to_hmrc_integration_action.get(self.instance.status)
+        if self.action != licence_status_to_hmrc_integration_action.get(LicenceStatus.REINSTATED):
             self.fields.pop("old_id")
 
     def get_action(self, _):
@@ -131,7 +131,16 @@ class HMRCIntegrationUsageUpdateGoodSerializer(serializers.Serializer):
 
 class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True, allow_null=False)
+    action = serializers.CharField(required=True, allow_null=False)
     goods = serializers.ListField(required=True, allow_null=False, allow_empty=False)
+
+    def validate_action(self, value):
+        valid_actions = HMRCIntegrationActionEnum.from_hmrc
+
+        if value not in valid_actions:
+            raise serializers.ValidationError({"action": [f"Must be one of {valid_actions}"]})
+
+        return value
 
 
 class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):

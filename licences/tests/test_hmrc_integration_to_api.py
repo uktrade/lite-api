@@ -7,7 +7,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_207_MULTI_STATUS, H
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
-from licences.enums import LicenceStatus
+from licences.enums import LicenceStatus, HMRCIntegrationActionEnum
 from licences.models import HMRCIntegrationUsageUpdate
 from licences.tests.factories import GoodOnLicenceFactory
 from test_helpers.clients import DataTestClient
@@ -65,6 +65,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         usage_update = 10
         licence_update = {
             "id": str(licence.id),
+            "action": HMRCIntegrationActionEnum.OPEN,
             "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update}],
         }
 
@@ -97,6 +98,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         usage_update = 10
         licence_update = {
             "id": str(licence.id),
+            "action": HMRCIntegrationActionEnum.OPEN,
             "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update}],
         }
         self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": [licence_update]})
@@ -122,6 +124,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
                 "licences": [
                     {
                         "id": str(licence.id),
+                        "action": HMRCIntegrationActionEnum.OPEN,
                         "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update}],
                     }
                 ],
@@ -159,7 +162,10 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence = create_licence(self)
         usage_update_id = str(uuid.uuid4())
         usage_update = 10
-        licence_update = {"goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update}]}
+        licence_update = {
+            "action": HMRCIntegrationActionEnum.OPEN,
+            "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update}],
+        }
 
         response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": [licence_update]})
 
@@ -182,7 +188,11 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {
                 "usage_update_id": usage_update_id,
                 "licences": [
-                    {"id": str(uuid.uuid4()), "goods": [{"id": str(licence.goods.first().good.good.id), "usage": 10}],}
+                    {
+                        "action": HMRCIntegrationActionEnum.OPEN,
+                        "id": str(uuid.uuid4()),
+                        "goods": [{"id": str(licence.goods.first().good.good.id), "usage": 10}],
+                    }
                 ],
             },
         )
@@ -202,7 +212,11 @@ class HMRCIntegrationUsageTests(DataTestClient):
         usage_update_id = str(uuid.uuid4())
 
         response = self.client.put(
-            self.url, {"usage_update_id": usage_update_id, "licences": [{"id": str(licence.id)}]}
+            self.url,
+            {
+                "usage_update_id": usage_update_id,
+                "licences": [{"id": str(licence.id), "action": HMRCIntegrationActionEnum.OPEN}],
+            },
         )
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
@@ -221,7 +235,12 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
         response = self.client.put(
             self.url,
-            {"usage_update_id": usage_update_id, "licences": [{"id": str(licence.id), "goods": [{"usage": 10}]}]},
+            {
+                "usage_update_id": usage_update_id,
+                "licences": [
+                    {"id": str(licence.id), "action": HMRCIntegrationActionEnum.OPEN, "goods": [{"usage": 10}]}
+                ],
+            },
         )
 
         self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
@@ -243,7 +262,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
             self.url,
             {
                 "usage_update_id": usage_update_id,
-                "licences": [{"id": str(licence.id), "goods": [{"id": str(uuid.uuid4()), "usage": 10}]}],
+                "licences": [
+                    {
+                        "id": str(licence.id),
+                        "action": HMRCIntegrationActionEnum.OPEN,
+                        "goods": [{"id": str(uuid.uuid4()), "usage": 10}],
+                    }
+                ],
             },
         )
 
@@ -267,7 +292,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
             self.url,
             {
                 "usage_update_id": usage_update_id,
-                "licences": [{"id": str(licence.id), "goods": [{"id": str(licence.goods.first().good.good.id)}]}],
+                "licences": [
+                    {
+                        "id": str(licence.id),
+                        "action": HMRCIntegrationActionEnum.OPEN,
+                        "goods": [{"id": str(licence.goods.first().good.good.id)}],
+                    }
+                ],
             },
         )
 
@@ -292,6 +323,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
                 "licences": [
                     {
                         "id": str(licence.id),
+                        "action": HMRCIntegrationActionEnum.OPEN,
                         "goods": [{"id": str(licence.application.goods_type.first().id), "usage": 10}],
                     }
                 ],
@@ -316,9 +348,14 @@ class HMRCIntegrationUsageTests(DataTestClient):
         usage_update = 10
         invalid_licence_id = str(uuid.uuid4())
         licence_updates = [
-            {"id": str(licence.id), "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update}],},
+            {
+                "id": str(licence.id),
+                "action": HMRCIntegrationActionEnum.OPEN,
+                "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update,}],
+            },
             {
                 "id": invalid_licence_id,
+                "action": HMRCIntegrationActionEnum.OPEN,
                 "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update}],
             },
         ]
@@ -348,9 +385,14 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence_updates = [
             {
                 "id": str(licence_1.id),
+                "action": HMRCIntegrationActionEnum.OPEN,
                 "goods": [{"id": str(licence_1.goods.first().good.good.id), "usage": usage_update}],
             },
-            {"id": str(licence_2.id), "goods": [{"id": str(uuid.uuid4()), "usage": usage_update}]},
+            {
+                "id": str(licence_2.id),
+                "action": HMRCIntegrationActionEnum.OPEN,
+                "goods": [{"id": str(uuid.uuid4()), "usage": usage_update}],
+            },
         ]
 
         response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": licence_updates})
@@ -382,7 +424,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
             self.url,
             {
                 "usage_update_id": usage_update_id,
-                "licences": [{"id": str(licence.id), "goods": [accepted_good, rejected_good]}],
+                "licences": [
+                    {
+                        "id": str(licence.id),
+                        "action": HMRCIntegrationActionEnum.OPEN,
+                        "goods": [accepted_good, rejected_good],
+                    }
+                ],
             },
         )
 
@@ -412,9 +460,14 @@ class HMRCIntegrationUsageTests(DataTestClient):
         licence_updates = [
             {
                 "id": str(licence_1.id),
+                "action": HMRCIntegrationActionEnum.OPEN,
                 "goods": [{"id": str(licence_1.goods.first().good.good.id), "usage": usage_update}],
             },
-            {"id": str(licence_2.id), "goods": [expected_accepted_good, expected_rejected_good]},
+            {
+                "id": str(licence_2.id),
+                "action": HMRCIntegrationActionEnum.OPEN,
+                "goods": [expected_accepted_good, expected_rejected_good],
+            },
         ]
 
         response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": licence_updates})

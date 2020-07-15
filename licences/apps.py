@@ -2,7 +2,7 @@ from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED, BACKGROUND_TASK_ENABLED
-from licences.enums import LicenceStatus
+from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 
 
 class LicencesConfig(AppConfig):
@@ -24,7 +24,7 @@ class LicencesConfig(AppConfig):
 
         for licence in licences_not_sent:
             schedule_licence_for_hmrc_integration(
-                str(licence.id), LicenceStatus.hmrc_integration_action.get(licence.status)
+                str(licence.id), licence_status_to_hmrc_integration_action.get(licence.status)
             )
 
     def ready(self):
