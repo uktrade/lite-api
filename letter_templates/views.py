@@ -62,6 +62,14 @@ class LetterTemplatesList(generics.ListCreateAPIView):
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
+
+            audit_trail_service.create(
+                actor=request.user,
+                verb=AuditType.CREATED_DOCUMENT_TEMPLATE,
+                target=serializer.instance,
+                payload={"template_name": data["name"]},
+            )
+
             return JsonResponse(data=serializer.data, status=status.HTTP_201_CREATED)
 
 
