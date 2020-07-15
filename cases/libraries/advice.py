@@ -96,4 +96,3 @@ def construct_coalesced_advice_values(
         footnote=break_text.join(fields["footnote"]),
         footnote_required=len(fields["footnote"]) > 0,
     )
-
