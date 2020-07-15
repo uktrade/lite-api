@@ -41,8 +41,6 @@ from cases.serializers import (
     EcjuQueryCreateSerializer,
     CaseDetailSerializer,
     EcjuQueryGovSerializer,
-    CaseAdviceSerializer,
-    EcjuQueryExporterSerializer,
     AdviceViewSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
