@@ -403,7 +403,7 @@
 							{% exporter_lcs 'goods.CreateGoodForm.IsGraded.TITLE' %}
 						</dt>
 						<dd class="govuk-summary-list__value">
-							{{ good.is_pv_graded|default_na }}
+							{{ good.is_pv_graded }}
 						</dd>
 					</div>
 
@@ -422,7 +422,7 @@
 								{% exporter_lcs 'goods.GoodGradingForm.GRADING' %}
 							</dt>
 							<dd class="govuk-summary-list__value">
-								{{ good.pv_grading.grading|default_na }}
+								{{ good.pv_grading.grading }}
 							</dd>
 						</div>
 
@@ -440,7 +440,7 @@
 								{% exporter_lcs 'goods.GoodGradingForm.ISSUING_AUTHORITY' %}
 							</dt>
 							<dd class="govuk-summary-list__value">
-								{{ good.pv_grading.issuing_authority|default_na }}
+								{{ good.pv_grading.issuing_authority }}
 							</dd>
 						</div>
 
@@ -449,7 +449,7 @@
 								{% exporter_lcs 'goods.GoodGradingForm.REFERENCE' %}
 							</dt>
 							<dd class="govuk-summary-list__value">
-								{{ good.pv_grading.reference|default_na }}
+								{{ good.pv_grading.reference }}
 							</dd>
 						</div>
 
@@ -458,7 +458,7 @@
 								{% exporter_lcs 'goods.GoodGradingForm.DATE_OF_ISSUE' %}
 							</dt>
 							<dd class="govuk-summary-list__value">
-								{{ good.pv_grading.date_of_issue|default_na }}
+								{{ good.pv_grading.date_of_issue }}
 							</dd>
 						</div>
 					{% endif %}
