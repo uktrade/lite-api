@@ -1,16 +1,22 @@
-import json
 from unittest import mock
 
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
+from applications.models import BaseApplication
+from cases.enums import ECJUQueryType
 from cases.models import EcjuQuery
-from gov_notify.enums import TemplateType
+from compliance.tests.factories import ComplianceSiteCaseFactory, ComplianceVisitCaseFactory
+from licences.enums import LicenceStatus
 from picklists.enums import PicklistType
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
+from users.tests.factories import ExporterUserFactory
 
 
-class CaseEcjuQueriesTests(DataTestClient):
+class ECJUQueriesViewTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
@@ -130,71 +136,6 @@ class CaseEcjuQueriesTests(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json().get("ecju_queries")), 0)
 
-
-class EcjuQueriesCreateTest(DataTestClient):
-    @mock.patch("gov_notify.service.client")
-    def test_gov_user_can_create_ecju_queries(self, mock_client):
-        """
-        Given a Case
-        When a gov user adds an ECJU query to the case with valid data
-        Then the request is successful and the ECJU query is saved
-        """
-        case = self.create_standard_application_case(self.organisation)
-        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
-        data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
-
-        response = self.client.post(url, data, **self.gov_headers)
-        response_data = json.loads(response.content)
-        ecju_query = EcjuQuery.objects.get(case=case)
-
-        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
-        self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
-        self.assertEqual("Test ECJU Query question?", ecju_query.question)
-        mock_client.send_email.assert_not_called()
-
-    @mock.patch("gov_notify.service.client")
-    def test_gov_user_can_create_ecju_queries_on_query_cases(self, mock_client):
-        """
-        Given a query case
-        When a gov user adds an ECJU query to the case with valid data
-        Then the request is successful and the ECJU query is saved
-        """
-        case = self.create_clc_query("Query", self.organisation)
-        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
-        data = {"question": "Test ECJU Query question?", "query_type": PicklistType.COMPLIANCE_ACTIONS}
-
-        # Act
-        response = self.client.post(url, data, **self.gov_headers)
-        response_data = json.loads(response.content)
-        ecju_query = EcjuQuery.objects.get(case=case)
-
-        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
-        self.assertEqual(str(ecju_query.id), response_data["ecju_query_id"])
-        self.assertEqual(ecju_query.question, data["question"])
-        mock_client.send_email.assert_not_called()
-
-    def test_bad_data_create_fail(self):
-        """
-        Given a Case
-        When a gov user adds an ECJU query to the case with invalid data
-        Then the request fails
-        """
-        # Not possible to parameterize due to need to refer to self.case
-        case = self.create_standard_application_case(self.organisation)
-        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
-        test_data_list = [
-            {"question": ""},
-            {"question": None},
-            {"question": "a" * 5001},
-        ]
-
-        for test_data in test_data_list:
-            # Act
-            response = self.client.post(url, test_data, **self.gov_headers)
-
-            # Assert
-            self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
-
     def test_gov_user_can_get_an_individual_ecju_query(self):
         """
         Given an ECJU query
@@ -211,10 +152,132 @@ class EcjuQueriesCreateTest(DataTestClient):
         response = self.client.get(url, **self.gov_headers)
 
         # Assert
-        response_data = json.loads(response.content)
+        response_data = response.json()
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(str(ecju_query.id), response_data["ecju_query"]["id"])
         self.assertEqual(str(ecju_query.question), response_data["ecju_query"]["question"])
         self.assertEqual(ecju_query.response, None)
         self.assertEqual(str(ecju_query.case.id), response_data["ecju_query"]["case"])
+
+
+class ECJUQueriesCreateTest(DataTestClient):
+    @parameterized.expand([ECJUQueryType.ECJU, ECJUQueryType.PRE_VISIT_QUESTIONNAIRE, ECJUQueryType.COMPLIANCE_ACTIONS])
+    def test_gov_user_can_create_ecju_queries(self, query_type):
+        """
+        When a GOV user submits a valid query to a case
+        Then the request is successful and the query is saved
+        And an email is sent to the user
+        """
+        case = self.create_standard_application_case(self.organisation)
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+        data = {"question": "Test ECJU Query question?", "query_type": query_type}
+
+        with mock.patch("gov_notify.service.client") as mock_notify_client:
+            response = self.client.post(url, data, **self.gov_headers)
+        response_data = response.json()
+        ecju_query = EcjuQuery.objects.get(case=case)
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
+        self.assertEqual("Test ECJU Query question?", ecju_query.question)
+        mock_notify_client.send_email.assert_called()
+
+    @parameterized.expand([[""], [None], ["a" * 5001]])
+    def test_submit_invalid_data_failure(self, data):
+        """
+        When a GOV user submits a query with invalid data to a case
+        Then the request fails due to the invalid data
+        And no query is created
+        """
+        case = self.create_standard_application_case(self.organisation)
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": case.id})
+
+        response = self.client.post(url, {"question": data}, **self.gov_headers)
+
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertFalse(EcjuQuery.objects.exists())
+
+
+class ECJUQueriesComplianceCreateTest(DataTestClient):
+    def setUp(self):
+        super().setUp()
+        self.compliance_case = ComplianceSiteCaseFactory(
+            organisation=self.organisation,
+            site=self.organisation.primary_site,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+        )
+
+        self.create_licence(self.create_open_application_case(self.organisation), status=LicenceStatus.ISSUED)
+
+        application = self.create_open_application_case(self.organisation)
+        application.submitted_by = ExporterUserFactory()
+        application.save()
+        self.create_licence(application, status=LicenceStatus.ISSUED)
+        self.data = {"question": "Test ECJU Query question?", "query_type": PicklistType.PRE_VISIT_QUESTIONNAIRE}
+
+    @mock.patch("gov_notify.service.client")
+    def test_query_sends_email_to_each_application_submitter(self, mock_client):
+        """
+        When a GOV user submits a valid query to a compliance case
+        Then the request is successful and the query is saved
+        And an email is sent to each user that submitted a valid application
+        on that site which has a licence
+        """
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": self.compliance_case.id})
+
+        response = self.client.post(url, self.data, **self.gov_headers)
+        response_data = response.json()
+        ecju_query = EcjuQuery.objects.get()
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
+        self.assertEqual(ecju_query.question, self.data["question"])
+        self.assertEqual(mock_client.send_email.call_count, 2)
+
+    @mock.patch("gov_notify.service.client")
+    def test_query_sends_email_to_each_application_submitter_site(self, mock_client):
+        """
+        When a GOV user submits a valid query to a compliance visit case
+        Then the request is successful and the query is saved
+        And an email is sent to each user that submitted a valid application
+        on that site which has a licence
+        """
+        compliance_site_case = ComplianceVisitCaseFactory(
+            site_case=self.compliance_case,
+            organisation=self.organisation,
+            status=get_case_status_by_status(CaseStatusEnum.OPEN),
+        )
+
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": compliance_site_case.id})
+
+        response = self.client.post(url, self.data, **self.gov_headers)
+        response_data = response.json()
+        ecju_query = EcjuQuery.objects.get()
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
+        self.assertEqual(ecju_query.question, self.data["question"])
+        self.assertEqual(mock_client.send_email.call_count, 2)
+
+    @mock.patch("gov_notify.service.client")
+    def test_query_sends_email_to_each_application_submitter_no_duplicates(self, mock_client):
+        """
+        When a GOV user submits a valid query to a compliance case
+        Then the request is successful and the query is saved
+        And an email is sent to each user that submitted a valid application
+        on that site which has a licence, without duplicates
+        """
+        for application in BaseApplication.objects.all():
+            application.submitted_by = self.exporter_user
+            application.save()
+        url = reverse("cases:case_ecju_queries", kwargs={"pk": self.compliance_case.id})
+
+        response = self.client.post(url, self.data, **self.gov_headers)
+        response_data = response.json()
+        ecju_query = EcjuQuery.objects.get()
+
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(response_data["ecju_query_id"], str(ecju_query.id))
+        self.assertEqual(ecju_query.question, self.data["question"])
+        self.assertEqual(mock_client.send_email.call_count, 1)
