@@ -575,7 +575,8 @@ class GoodsCountriesDecisions(APIView):
         # Delete existing decision documents if decision changes
         existing_decisions = get_existing_good_type_to_country_decisions(pk)
         for decision_id in required_decision_ids:
-            if (data.get(decision_id) == AdviceType.APPROVE) != existing_decisions.get(decision_id):
+            if (data.get(decision_id) != AdviceType.REFUSE) != existing_decisions.get(decision_id):
+                # Proviso N/A as there is no proviso document type
                 GeneratedCaseDocument.objects.filter(
                     case_id=pk, advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE], visible_to_exporter=False
                 ).delete()
@@ -584,7 +585,7 @@ class GoodsCountriesDecisions(APIView):
         # Update or create GoodCountryDecisions
         for id in required_decision_ids:
             goods_type_id, country_id = id.split(".")
-            value = data[id] == "approve"
+            value = data[id] == AdviceType.APPROVE
             GoodCountryDecision.objects.update_or_create(
                 case_id=pk, goods_type_id=goods_type_id, country_id=country_id, defaults={"approve": value}
             )

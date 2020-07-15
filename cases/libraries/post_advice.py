@@ -56,10 +56,14 @@ def update_good_country_decisions(data):
     (the country or goods type are no longer approved)
     """
     refused_good_types_ids = [
-        advice["goods_type"] for advice in data if advice.get("goods_type") and advice["type"] != AdviceType.APPROVE
+        advice["goods_type"]
+        for advice in data
+        if advice.get("goods_type") and advice["type"] not in [AdviceType.APPROVE, AdviceType.PROVISO]
     ]
     refused_country_ids = [
-        advice["country"] for advice in data if advice.get("country") and advice["type"] != AdviceType.APPROVE
+        advice["country"]
+        for advice in data
+        if advice.get("country") and advice["type"] not in [AdviceType.APPROVE, AdviceType.PROVISO]
     ]
     GoodCountryDecision.objects.filter(
         Q(country_id__in=refused_country_ids) | Q(goods_type_id__in=refused_good_types_ids)

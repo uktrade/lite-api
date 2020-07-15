@@ -1,9 +1,10 @@
+from django.db.models import Q
 from django.urls import reverse
 from rest_framework import status
 
 from cases.enums import AdviceType
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.models import GoodCountryDecision
+from cases.models import GoodCountryDecision, Advice
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from conf.constants import GovPermissions
 from goodstype.tests.factories import GoodsTypeFactory
@@ -102,6 +103,24 @@ class GoodsCountriesDecisionsTests(DataTestClient):
         self.assertEqual(len(response_data["refused"][1]["countries"]), 2)
         self._assert_country(response_data["refused"][1]["countries"][0], self.approved_country, AdviceType.APPROVE)
         self._assert_country(response_data["refused"][1]["countries"][1], self.refused_country, AdviceType.REFUSE)
+
+    def test_get_required_goods_countries_decisions_with_provisos(self):
+        # Update advice to proviso
+        Advice.objects.filter(Q(goods_type=self.approved_goods_type) | Q(country=self.approved_country)).update(
+            type=AdviceType.PROVISO
+        )
+
+        response = self.client.get(self.url, **self.gov_headers)
+        response_data = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(len(response_data["approved"]), 1)
+        self._assert_goods_type(
+            response_data["approved"][0], self.approved_goods_type, AdviceType.PROVISO, self.approved_goods_type_clcs
+        )
+        self.assertEqual(len(response_data["approved"][0]["countries"]), 1)
+        self._assert_country(response_data["approved"][0]["countries"][0], self.approved_country, AdviceType.PROVISO)
 
     def test_goods_countries_decisions_missing_decision_failure(self):
         response = self.client.post(self.url, **self.gov_headers, data={})

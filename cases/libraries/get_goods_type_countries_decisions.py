@@ -15,21 +15,20 @@ def get_existing_good_type_to_country_decisions(case_pk):
     return {f"{item['goods_type_id']}.{item['country_id']}": item["approve"] for item in goods_type_countries_decisions}
 
 
-def _get_country_on_goods_type_context(country, goods_type, approved, goods_type_countries_decisions):
+def _get_country_on_goods_type_context(country, decision, existing_choice):
     """
     Get the dictionary context for a country on a good.
     This includes the country name, decision for the country
     and value if a decision for this combination already exists
     """
-    existing_decision = goods_type_countries_decisions.get(f"{goods_type.id}.{country.id}")
-    if existing_decision is not None:
-        existing_decision = AdviceType.APPROVE if existing_decision else AdviceType.REFUSE
+    if existing_choice is not None:
+        existing_choice = AdviceType.APPROVE if existing_choice else AdviceType.REFUSE
 
     return {
         "id": country.id,
         "name": country.name,
-        "decision": AdviceType.APPROVE if approved else AdviceType.REFUSE,
-        "value": existing_decision,
+        "decision": decision,
+        "value": existing_choice,
     }
 
 
@@ -45,33 +44,33 @@ def good_type_to_country_decisions(application_pk):
         case_id=application_pk,
         level=AdviceLevel.FINAL,
         goods_type__isnull=False,
-        type__in=[AdviceType.APPROVE, AdviceType.REFUSE],
+        type__in=[AdviceType.APPROVE, AdviceType.PROVISO, AdviceType.REFUSE],
     ).values("goods_type_id", "type")
 
     approved_and_refused_goods_types = []
-    approved_goods_types_ids = []
+    approved_goods_types = {}
 
     for item in goods_types_advice:
         goods_type_id = item["goods_type_id"]
         approved_and_refused_goods_types.append(goods_type_id)
-        if item["type"] == AdviceType.APPROVE:
-            approved_goods_types_ids.append(goods_type_id)
+        if item["type"] != AdviceType.REFUSE:
+            approved_goods_types[goods_type_id] = item["type"]
 
     countries_advice = Advice.objects.filter(
         case_id=application_pk,
         level=AdviceLevel.FINAL,
         country__isnull=False,
-        type__in=[AdviceType.APPROVE, AdviceType.REFUSE],
+        type__in=[AdviceType.APPROVE, AdviceType.PROVISO, AdviceType.REFUSE],
     ).values("country_id", "type")
 
-    approved_countries_ids = []
     approved_and_refused_countries_ids = []
+    approved_countries = {}
 
     for item in countries_advice:
         country_id = item["country_id"]
         approved_and_refused_countries_ids.append(country_id)
-        if item["type"] == AdviceType.APPROVE:
-            approved_countries_ids.append(country_id)
+        if item["type"] != AdviceType.REFUSE:
+            approved_countries[country_id] = item["type"]
 
     goods_types = (
         GoodsType.objects.filter(application_id=application_pk, id__in=approved_and_refused_goods_types)
@@ -82,6 +81,8 @@ def good_type_to_country_decisions(application_pk):
     goods_type_countries_decisions = get_existing_good_type_to_country_decisions(application_pk)
     approved_goods_types_on_destinations = {}
     refused_goods_types_on_destinations = {}
+    approved_goods_types_ids = approved_goods_types.keys()
+    approved_countries_ids = approved_countries.keys()
 
     for goods_type in goods_types:
         for country in goods_type.countries.filter(id__in=approved_and_refused_countries_ids).order_by("name"):
@@ -97,21 +98,25 @@ def good_type_to_country_decisions(application_pk):
             if goods_type.id not in dictionary.keys():
                 dictionary[goods_type.id] = {
                     "id": goods_type.id,
-                    "decision": AdviceType.APPROVE if goods_type_approved else AdviceType.REFUSE,
+                    "decision": approved_goods_types.get(goods_type.id) or AdviceType.REFUSE,
                     "control_list_entries": [
                         {"rating": clc.rating, "text": clc.text} for clc in goods_type.control_list_entries.all()
                     ],
                     "description": goods_type.description,
                     "countries": [
                         _get_country_on_goods_type_context(
-                            country, goods_type, country_approved, goods_type_countries_decisions
+                            country,
+                            approved_countries.get(country.id) or AdviceType.REFUSE,
+                            goods_type_countries_decisions.get(f"{goods_type.id}.{country.id}")
                         )
                     ],
                 }
             else:
                 dictionary[goods_type.id]["countries"].append(
                     _get_country_on_goods_type_context(
-                        country, goods_type, country_approved, goods_type_countries_decisions
+                        country,
+                        approved_countries.get(country.id) or AdviceType.REFUSE,
+                        goods_type_countries_decisions.get(f"{goods_type.id}.{country.id}"),
                     )
                 )
 
