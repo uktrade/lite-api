@@ -3,8 +3,6 @@ from collections import defaultdict
 from cases.enums import AdviceType
 from cases.models import Advice
 from goods.enums import PvGrading
-from parties.serializers import PartySerializer
-from static.countries.serializers import CountrySerializer
 
 
 def group_advice(case, advice, user, new_level):
