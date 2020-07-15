@@ -54,6 +54,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.generated_documents.helpers import auto_generate_case_document
+from cases.helpers import can_set_status
 from cases.libraries.get_flags import get_flags
 from cases.service import get_destinations
 from cases.tasks import get_application_target_sla
@@ -421,6 +422,9 @@ class ApplicationManageStatus(APIView):
                 data={"errors": [strings.Applications.Generic.Finalise.Error.SET_FINALISED]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        if not can_set_status(application, data["status"]):
+            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
 
         if isinstance(request.user, ExporterUser):
             if get_request_user_organisation_id(request) != application.organisation.id:
