@@ -54,6 +54,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.generated_documents.helpers import auto_generate_case_document
+from cases.helpers import can_set_status
 from cases.libraries.get_flags import get_flags
 from cases.service import get_destinations
 from cases.tasks import get_application_target_sla
@@ -409,6 +410,9 @@ class ApplicationManageStatus(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if not can_set_status(application, data["status"]):
+            raise ValidationError({"status": [strings.Statuses.BAD_STATUS]})
+
         if isinstance(request.user, ExporterUser):
             if get_request_user_organisation_id(request) != application.organisation.id:
                 raise PermissionDenied()
@@ -427,15 +431,13 @@ class ApplicationManageStatus(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        if data["status"] == CaseStatusEnum.SURRENDERED:
-            try:
-                licence = Licence.objects.get_active_licence(application=application)
-            except Licence.DoesNotExist:
-                return JsonResponse(
-                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            licence.surrender()
+        try:
+            self._cancel_licence_if_existing(data, application)
+        except Licence.DoesNotExist:
+            return JsonResponse(
+                data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -487,6 +489,16 @@ class ApplicationManageStatus(APIView):
             data["destinations"] = get_destinations(application.id, user_type=request.user.type)
 
         return JsonResponse(data={"data": data}, status=status.HTTP_200_OK,)
+
+    @staticmethod
+    def _cancel_licence_if_existing(data, application):
+        if data["status"] in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.REVOKED]:
+            licence = Licence.objects.get_active_licence(application=application)
+
+            if data["status"] == CaseStatusEnum.SURRENDERED:
+                licence.surrender()
+            elif data["status"] == CaseStatusEnum.REVOKED:
+                licence.revoke()
 
 
 class ApplicationFinaliseView(APIView):

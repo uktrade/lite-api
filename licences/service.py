@@ -4,14 +4,18 @@ from static.control_list_entries.serializers import ControlListEntrySerializer
 
 
 def get_case_licences(case):
-    licences = Licence.objects.prefetch_related(
-        "goods", "goods__good", "goods__good__good", "goods__good__good__control_list_entries"
-    ).filter(application=case)
+    licences = (
+        Licence.objects.prefetch_related(
+            "goods", "goods__good", "goods__good__good", "goods__good__good__control_list_entries"
+        )
+        .filter(application=case)
+        .order_by("created_at")
+    )
     return [
         {
             "id": str(licence.id),
             "reference_code": licence.reference_code,
-            "status": LicenceStatus.human_readable(licence.status),
+            "status": LicenceStatus.to_str(licence.status),
             "goods": [
                 {
                     "description": licence_good.good.good.description,

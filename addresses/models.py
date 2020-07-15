@@ -20,3 +20,21 @@ class Address(models.Model):
 
     class Meta:
         db_table = "address"
+
+    def __str__(self):
+        if self.address_line_1:
+            address = [
+                self.address_line_1,
+                self.address_line_2,
+                self.city,
+                self.region,
+                self.postcode,
+            ]
+        else:
+            address = [
+                self.address,
+            ]
+
+        address.append(self.country.name)
+
+        return ", ".join(x for x in address if x)

@@ -74,4 +74,11 @@ def can_set_status(case, status):
         if not compliance_visit_case_complete(comp_case):
             return False
 
+    if reference_type == CaseTypeReferenceEnum.CRE and status not in [
+        CaseStatusEnum.CLOSED,
+        CaseStatusEnum.SUBMITTED,
+        CaseStatusEnum.RESUBMITTED,
+    ]:
+        return False
+
     return True

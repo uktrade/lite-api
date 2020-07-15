@@ -1,4 +1,5 @@
 <div class="document">
+	<b>OFFICIAL-SENSITIVE</b>
 	<table class="govuk-table">
 			<tr class="govuk-table__row">
 				<th scope="row" class="govuk-table__header">
@@ -41,7 +42,7 @@
 				Type
 			</th>
 			<td class="govuk-table__cell">
-				{% if case_type.reference == "siel" or case_type.reference == "sitl" or case_type.reference == "sicl"%}
+				{% if case_type.reference in "siel,sitl,sicl" %}
 					Standard Licence
 				{% elif case_type.reference == "oiel" or case_type.reference == "oicl"%}
 					Open Licence
@@ -218,54 +219,215 @@
 
 	{% if goods %}
 		<h2 class="govuk-heading-m">Products</h2>
-		<table class="govuk-table">
-			<thead class="govuk-table__head">
-				<tr class="govuk-table__row">
-					<th scope="col" class="govuk-table__header">#</th>
-					<th scope="col" class="govuk-table__header">Description</th>
-					{% if goods.all.0.part_number %}
-						<th scope="col" class="govuk-table__header">Part number</th>
+		{% for good in goods.all %}
+			<h2 class="govuk-heading-m"> {% exporter_lcs 'goods.GoodsDetailSummary.HEADING' %} {{ forloop.counter }} </h2>
+			<dl class="govuk-summary-list" id="good-detail-summary{{ forloop.counter }}">
+{#	goods without an item_category are on open applications, and therefore goodstypes, which allows us to split that logic out #}
+				{% if not good.item_category%}
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% exporter_lcs "goods.GoodPage.Table.DESCRIPTION" %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.description }}
+						</dd>
+					</div>
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% exporter_lcs 'goods.GoodsDetailSummary.CONTROLLED' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.is_controlled }} - {{ good.control_list_entries|join:", "|default_na }}
+						</dd>
+					</div>
+
+				{% else %}
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% exporter_lcs 'goods.GoodsDetailSummary.SELECT_CATEGORY' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.item_category }}
+						</dd>
+					</div>
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% exporter_lcs "goods.GoodPage.Table.DESCRIPTION" %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.description }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% exporter_lcs 'goods.GoodsDetailSummary.PART_NUMBER' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.part_number|default_na }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% exporter_lcs 'goods.GoodsDetailSummary.CONTROLLED' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.is_controlled }} - {{ good.control_list_entries|join:", "|default_na }}
+						</dd>
+					</div>
+
+					{% if good.software_or_technology_details %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs "goods.GoodsDetailSummary.PURPOSE_SOFTWARE_TECHNOLOGY" %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.software_or_technology_details|default_na }}
+							</dd>
+						</div>
 					{% endif %}
-					<th scope="col" class="govuk-table__header">Controlled</th>
-					<th scope="col" class="govuk-table__header">Control list entries</th>
-					{% if case_type.reference == "exhc" %}
-						<th scope="col" class="govuk-table__header">Product type</th>
-					{% elif goods.all.0.applied_for_quantity %}
-						<th scope="col" class="govuk-table__header">Quantity</th>
-						<th scope="col" class="govuk-table__header">Value</th>
+
+					{% if good.is_military_use %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodsDetailSummary.MILITARY' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.is_military_use }}
+								{% if good.modified_military_use_details %}
+									<br>
+									<span class="govuk-hint"> {{ good.modified_military_use_details }} </span>
+								{% endif %}
+							</dd>
+						</div>
 					{% endif %}
-				{% if case_type.reference != "cre" and case_type.reference != "oiel" and case_type.reference != "oicl" %}
-					<th scope="col" class="govuk-table__header">Incorporated</th>
+
+					{% if good.is_component %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodsDetailSummary.COMPONENT' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.is_component|default_na }}
+								{% if good.component_details %}
+									<br>
+									<span class="govuk-hint"> {{ good.component_details }} </span>
+								{% endif %}
+							</dd>
+						</div>
+					{% endif %}
+
+					{% if good.uses_information_security %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodsDetailSummary.DESIGNED_FOR_INFORMATION_SECURITY' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.uses_information_security }}
+								{% if good.information_security_details %}
+									<br>
+									<span class="govuk-hint"> {{ good.information_security_details }} </span>
+								{% endif %}
+							</dd>
+						</div>
+					{% endif %}
+
+					{% if good.firearm_type %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.PRODUCT_TYPE" %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.firearm_type|default_na }}
+							</dd>
+						</div>
+
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.YEAR_OF_MANUFACTURE" %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.year_of_manufacture|default_na }}
+							</dd>
+						</div>
+
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.CALIBRE" %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.calibre|default_na }}
+							</dd>
+						</div>
+
+						{% if good.is_covered_by_firearm_act_section_one_two_or_five %}
+							<div class="govuk-summary-list__row">
+								<dt class="govuk-summary-list__key">
+									{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.COVERED_BY_THE_FIREARMS_ACT_1968" %}
+								</dt>
+								<dd class="govuk-summary-list__value">
+									{% if good.is_covered_by_firearm_act_section_one_two_or_five %}
+										{{ good.is_covered_by_firearm_act_section_one_two_or_five}}
+										{% if good.is_covered_by_firearm_act_section_one_two_or_five %}
+											- certificate number {{ good.section_certificate_number|default_na }} expires on
+											{{ good.section_certificate_date_of_expiry }}
+										{% endif %}
+									{% endif %}
+								</dd>
+							</div>
+						{% endif %}
+
+						{% if good.has_identification_markings is not None %}
+							<div class="govuk-summary-list__row">
+								<dt class="govuk-summary-list__key">
+									{% exporter_lcs "goods.GoodsDetailSummary.FirearmDetails.IDENTIFICATION_MARKINGS" %}
+								</dt>
+								<dd class="govuk-summary-list__value">
+										{{ good.has_identification_markings }}
+										<span class="govuk-hint">
+										<br>
+											{% if good.has_identification_markings %}
+												{{ good.identification_markings_details|default_na }}
+											{% else %}
+												{{ good.no_identification_markings_details|default_na }}
+											{% endif %}
+										</span>
+								</dd>
+							</div>
+						{% endif %}
+					{% endif %}
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% exporter_lcs 'goods.GoodsDetailSummary.INCORPORATED' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.is_incorporated|default_na }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% exporter_lcs 'goods.AddGoodToApplicationForm.Quantity.TITLE' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.applied_for_quantity }}
+						</dd>
+					</div>
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
+							{% exporter_lcs 'goods.AddGoodToApplicationForm.Value.TITLE' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.applied_for_value|default_na }}
+						</dd>
+					</div>
+
 				{% endif %}
-				</tr>
-			</thead>
-			<tbody class="govuk-table__body">
-				{% for good in goods.all %}
-					<tr class="govuk-table__row">
-						<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
-						<td class="govuk-table__cell">{{ good.description }}</td>
-						{% if good.part_number %}
-							<td class="govuk-table__cell">{{ good.part_number }}</td>
-						{% endif %}
-						<td class="govuk-table__cell">{{ good.is_controlled|title }}</td>
-						<td class="govuk-table__cell">{{ good.control_list_entries|join:", "|default_na }}</td>
-						{% if case_type.reference == "exhc" %}
-							{% if good.other_item_type %}
-								<td class="govuk-table__cell">{{ good.other_item_type }}</td>
-							{% else %}
-								<td class="govuk-table__cell">{{ good.item_type|title }}</td>
-							{% endif %}
-						{% elif good.applied_for_quantity %}
-							<td class="govuk-table__cell">{{ good.applied_for_quantity }}</td>
-							<td class="govuk-table__cell">{{ good.applied_for_value }}</td>
-						{% endif %}
-						{% if case_type.reference != "cre" and case_type.reference != "oiel" and case_type.reference != "oicl" %}
-							<td class="govuk-table__cell">{{ good.is_incorporated }}</td>
-						{% endif %}
-					</tr>
-				{% endfor %}
-			</tbody>
-		</table>
+			</dl>
+		{% endfor %}
 	{% endif %}
 
 	{% if case_type.reference == "f680" %}

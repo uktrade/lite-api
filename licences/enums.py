@@ -1,3 +1,9 @@
+class HMRCIntegrationActionEnum:
+    INSERT = "insert"
+    CANCEL = "cancel"
+    UPDATE = "update"
+
+
 class LicenceStatus:
     ISSUED = "issued"
     REINSTATED = "reinstated"
@@ -15,8 +21,14 @@ class LicenceStatus:
         (CANCELLED, "Cancelled"),
     ]
 
+    hmrc_integration_action = {
+        ISSUED: HMRCIntegrationActionEnum.INSERT,
+        REINSTATED: HMRCIntegrationActionEnum.UPDATE,
+        REVOKED: HMRCIntegrationActionEnum.CANCEL,
+        SURRENDERED: HMRCIntegrationActionEnum.CANCEL,
+        CANCELLED: HMRCIntegrationActionEnum.CANCEL,
+    }
+
     @classmethod
-    def human_readable(cls, status):
-        for key, value in cls.choices:
-            if key == status:
-                return value
+    def to_str(cls, status):
+        return next(choice[1] for choice in cls.choices if choice[0] == status)

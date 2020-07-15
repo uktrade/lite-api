@@ -374,6 +374,10 @@ class ECJUQueryType:
         (COMPLIANCE_ACTIONS, "Compliance action"),
     ]
 
+    @classmethod
+    def to_str(cls, obj):
+        return next(choice[1] for choice in cls.choices if choice[0] == obj)
+
 
 class EnforcementXMLEntityTypes:
     APPLICATION = "application"
