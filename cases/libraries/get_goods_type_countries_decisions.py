@@ -88,7 +88,9 @@ def good_type_to_country_decisions(application_pk):
                 dictionary[goods_type.id] = {
                     "id": goods_type.id,
                     "decision": AdviceType.APPROVE if goods_type_approved else AdviceType.REFUSE,
-                    "control_list_entries": [clc.rating for clc in goods_type.control_list_entries.all()],
+                    "control_list_entries": [
+                        {"rating": clc.rating, "text": clc.text} for clc in goods_type.control_list_entries.all()
+                    ],
                     "description": goods_type.description,
                     "countries": [
                         _get_country_on_goods_type_context(

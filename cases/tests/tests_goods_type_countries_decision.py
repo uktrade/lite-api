@@ -56,7 +56,7 @@ class GoodsCountriesDecisionsTests(DataTestClient):
         self.assertEqual(data["id"], str(goods_type.id))
         self.assertEqual(data["decision"], decision)
         self.assertEqual(data["description"], goods_type.description)
-        self.assertEqual(data["control_list_entries"], [clc.rating for clc in clcs])
+        self.assertEqual(data["control_list_entries"], [{"rating": clc.rating, "text": clc.text} for clc in clcs])
 
     def _assert_country(self, data, country, decision):
         self.assertEqual(data["id"], str(country.id))
