@@ -21,7 +21,8 @@ class Document(TimestampableModel):
 
     def delete_s3(self):
         """Removes the document's file from S3."""
-
+        self.safe = False
+        self.save()
         s3_operations.delete_file(self.id, self.s3_key)
 
     def scan_for_viruses(self):
