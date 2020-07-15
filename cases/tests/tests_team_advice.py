@@ -130,7 +130,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         # Ensure that proviso details aren't added unless the type sent is PROVISO
         if advice_type != AdviceType.PROVISO:
-            self.assertTrue("proviso" not in response_data)
+            self.assertEqual(response_data["proviso"], None)
             self.assertEqual(advice_object.proviso, None)
         else:
             self.assertEqual(response_data["proviso"], data["proviso"])
@@ -138,7 +138,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         # Ensure that refusal details aren't added unless the type sent is REFUSE
         if advice_type != AdviceType.REFUSE:
-            self.assertTrue("denial_reasons" not in response_data)
+            self.assertEqual(response_data["denial_reasons"], [])
             self.assertEqual(advice_object.denial_reasons.count(), 0)
         else:
             self.assertCountEqual(response_data["denial_reasons"], data["denial_reasons"])
@@ -287,7 +287,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        self.assertEquals(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+        self.assertEquals(
+            PvGrading.to_str(pv_grading), Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        )
 
     def test_merge_user_advice_same_advice_type_different_pv_gradings(self):
         """
@@ -306,7 +308,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        self.assertIn("\n-------\n", Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading)
 
     def test_merge_user_advice_different_advice_type_different_pv_gradings(self):
         """
@@ -325,7 +327,7 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        self.assertIn("\n-------\n", Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading)
 
     def test_merge_user_advice_different_advice_type_same_pv_gradings(self):
         """
@@ -343,7 +345,9 @@ class CreateCaseTeamAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertNotIn("\n-------\n", response_data[0]["text"])
-        self.assertEquals(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+        self.assertEquals(
+            PvGrading.to_str(pv_grading), Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        )
 
     def test_when_user_advice_exists_combine_team_advice_with_confirm_own_advice_success(self,):
         self.role.permissions.set([constants.GovPermissions.MANAGE_TEAM_CONFIRM_OWN_ADVICE.name])

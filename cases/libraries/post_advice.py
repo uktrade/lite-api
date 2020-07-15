@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from applications.serializers.advice import CaseAdviceSerializer
+from applications.serializers.advice import AdviceCreateSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceLevel, AdviceType
@@ -71,7 +71,7 @@ def post_advice(request, case, level, team=False):
     # we only need to know if the user has the permission if not final advice
     footnote_permission = request.user.has_permission(GovPermissions.MAINTAIN_FOOTNOTES) and level != AdviceLevel.FINAL
 
-    serializer = CaseAdviceSerializer(data=data, many=True, context={"footnote_permission": footnote_permission})
+    serializer = AdviceCreateSerializer(data=data, many=True, context={"footnote_permission": footnote_permission})
 
     if serializer.is_valid() and not refusal_error:
         serializer.save()

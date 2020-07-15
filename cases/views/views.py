@@ -42,6 +42,8 @@ from cases.serializers import (
     CaseDetailSerializer,
     EcjuQueryGovSerializer,
     CaseAdviceSerializer,
+    EcjuQueryExporterSerializer,
+    AdviceViewSerializer,
     GoodCountryDecisionSerializer,
     CaseOfficerUpdateSerializer,
     ReviewDateUpdateSerializer,
@@ -237,7 +239,6 @@ class UserAdvice(APIView):
 
         return super(UserAdvice, self).dispatch(request, *args, **kwargs)
 
-    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -288,10 +289,9 @@ class TeamAdviceView(APIView):
         else:
             team_advice = self.team_advice
 
-        serializer = CaseAdviceSerializer(team_advice, many=True)
+        serializer = AdviceViewSerializer(team_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case
@@ -399,10 +399,9 @@ class FinalAdvice(APIView):
         else:
             final_advice = self.final_advice
 
-        serializer = CaseAdviceSerializer(final_advice, many=True)
+        serializer = AdviceViewSerializer(final_advice, many=True)
         return JsonResponse(data={"advice": serializer.data}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CaseAdviceSerializer, responses={400: "JSON parse error"})
     def post(self, request, pk):
         """
         Creates advice for a case
