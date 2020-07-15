@@ -17,8 +17,12 @@ def get_required_decision_document_types(case):
 
     # If Open application, use GoodCountryDecision to override whether approve/refuse is needed.
     if case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-        has_approval = GoodCountryDecision.objects.filter(case=case, approve=True).exists()
-        if not has_approval:
-            required_decisions.discard(AdviceType.APPROVE)
+        # Approve is only applicable if there is an approved GoodCountryDecision
+        required_decisions.discard(AdviceType.APPROVE)
+        decisions = GoodCountryDecision.objects.filter(case=case).values_list("approve", flat=True)
+        if True in decisions:
+            required_decisions.add(AdviceType.APPROVE)
+        if False in decisions:
+            required_decisions.add(AdviceType.REFUSE)
 
     return required_decisions
