@@ -876,8 +876,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         GoodsTypeFactory(application=application, is_good_controlled=True)
         GoodsTypeFactory(application=application, is_good_controlled=True)
 
-        # Add a country to the application
-        CountryOnApplication(application=application, country=get_country("GB")).save()
+        # Add a country to the application - GB cannot be a destination on licences!
+        CountryOnApplication(application=application, country=get_country("FR")).save()
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()

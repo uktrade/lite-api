@@ -31,7 +31,7 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         self.goods_type_1 = self.goods_types[0]
         self.goods_type_2 = self.goods_types[1]
 
-        # Add a country to the draft
+        # Add a country to the draft in addition to the one already on
         CountryOnApplication(application=self.open_draft, country=get_country("US")).save()
 
         self.case = self.submit_application(self.open_draft)
@@ -43,6 +43,8 @@ class CreateGoodsCountriesDecisions(DataTestClient):
             "good_countries": [
                 {"good": str(self.goods_type_1.id), "country": "US", "decision": "approve", "case": str(self.case.id)},
                 {"good": str(self.goods_type_2.id), "country": "US", "decision": "approve", "case": str(self.case.id)},
+                {"good": str(self.goods_type_1.id), "country": "FR", "decision": "approve", "case": str(self.case.id)},
+                {"good": str(self.goods_type_2.id), "country": "FR", "decision": "refuse", "case": str(self.case.id)},
             ]
         }
 
@@ -51,6 +53,19 @@ class CreateGoodsCountriesDecisions(DataTestClient):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(GoodCountryDecision.objects.count(), len(data["good_countries"]))
         self.assertEqual(len(response.json()["data"]), len(data["good_countries"]))
+
+    def test_make_goods_countries_decisions_failure_not_all_countries_selected(self):
+        data = {
+            "good_countries": [
+                {"good": str(self.goods_type_1.id), "country": "US", "decision": "approve", "case": str(self.case.id)},
+                {"good": str(self.goods_type_2.id), "country": "US", "decision": "approve", "case": str(self.case.id)},
+            ]
+        }
+
+        response = self.client.post(self.goods_countries_url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"]["good_countries"], ["Select a decision for each good and country"])
 
     def test_saving_overwrites_previous_assignment(self):
         self.create_good_country_decision(self.case, self.goods_type_1, get_country("US"), "approve")

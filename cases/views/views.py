@@ -568,7 +568,7 @@ class GoodsCountriesDecisions(APIView):
         if not data:
             raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
         application = get_case(data[0]["case"])
-        country_count = CountryOnApplication.objects.filter(application=application).count()
+        country_count = CountryOnApplication.objects.filter(application=application).exclude(country__id="GB").count()
         good_count = GoodsType.objects.filter(application=application).count()
 
         if len(data) != country_count * good_count:
