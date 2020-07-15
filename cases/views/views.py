@@ -55,6 +55,7 @@ from documents.libraries.delete_documents_on_bad_request import delete_documents
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
 from goodstype.helpers import get_goods_type
+from goodstype.models import GoodsType
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData
@@ -534,10 +535,11 @@ class GoodsCountriesDecisions(APIView):
 
         if not data:
             raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
+        application = get_case(data[0]["case"])
+        country_count = CountryOnApplication.objects.filter(application=application).count()
+        good_count = GoodsType.objects.filter(application=application).count()
 
-        country_count = CountryOnApplication.objects.filter(application=get_case(data[0]["case"])).count()
-
-        if len(data) != country_count:
+        if len(data) != country_count * good_count:
             raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
 
         serializer = GoodCountryDecisionSerializer(data=data, many=True)
