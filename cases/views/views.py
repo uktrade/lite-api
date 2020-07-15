@@ -329,7 +329,9 @@ class FinalAdviceDocuments(APIView):
         """
         # Get all advice
         advice_values = AdviceType.as_dict()
-        final_advice = list(Advice.objects.filter(case__id=pk).order_by("type").distinct("type").values_list("type", flat=True))
+        final_advice = list(
+            Advice.objects.filter(case__id=pk).order_by("type").distinct("type").values_list("type", flat=True)
+        )
         if not final_advice:
             return JsonResponse(data={"documents": {}}, status=status.HTTP_200_OK)
 
@@ -674,7 +676,9 @@ class FinaliseView(UpdateAPIView):
             assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
         # Check all decision types have documents
-        required_decisions = set(Advice.objects.filter(case=case).distinct("type").values_list("type", flat=True))
+        required_decisions = set(
+            Advice.objects.filter(case=case).order_by("type").distinct("type").values_list("type", flat=True)
+        )
         if AdviceType.PROVISO in required_decisions:
             required_decisions.add(AdviceType.APPROVE)
             required_decisions.remove(AdviceType.PROVISO)
