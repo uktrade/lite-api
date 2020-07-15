@@ -24,6 +24,7 @@ env = Env(
     ENV=(str, "dev"),
     EXPORTER_BASE_URL=(str, ""),
     GOV_NOTIFY_ENABLED=(bool, False),
+    DOCUMENT_SIGNING_ENABLED=(bool, False),
 )
 
 # Quick-start development settings - unsuitable for production
@@ -46,7 +47,7 @@ INSTALLED_APPS = [
     "applications.apps.ApplicationsConfig",
     "audit_trail",
     "background_task",
-    "cases.app.CasesConfig",
+    "cases",
     "cases.generated_documents",
     "compliance",
     "django.contrib.admin",
@@ -140,6 +141,7 @@ HAWK_RECEIVER_NONCE_EXPIRY_SECONDS = 60
 HAWK_ALGORITHM = "sha256"
 HAWK_LITE_API_CREDENTIALS = "lite-api"
 HAWK_LITE_PERFORMANCE_CREDENTIALS = "lite-performance"
+HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS = "hmrc-integration"
 HAWK_CREDENTIALS = {
     "exporter-frontend": {"id": "exporter-frontend", "key": env("LITE_EXPORTER_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
     "internal-frontend": {"id": "internal-frontend", "key": env("LITE_INTERNAL_HAWK_KEY"), "algorithm": HAWK_ALGORITHM},
@@ -148,8 +150,8 @@ HAWK_CREDENTIALS = {
         "key": env("LITE_ACTIVITY_STREAM_HAWK_KEY"),
         "algorithm": HAWK_ALGORITHM,
     },
-    "hmrc-integration": {
-        "id": "hmrc-integration",
+    HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS: {
+        "id": HAWK_LITE_HMRC_INTEGRATION_CREDENTIALS,
         "key": env("LITE_HMRC_INTEGRATION_HAWK_KEY"),
         "algorithm": HAWK_ALGORITHM,
     },
@@ -266,3 +268,11 @@ ENV = env("ENV")
 EXPORTER_BASE_URL = (
     env("EXPORTER_BASE_URL") if env("EXPORTER_BASE_URL") else f"https://exporter.lite.service.{ENV}.uktrade.digital"
 )
+
+# Document signing
+DOCUMENT_SIGNING_ENABLED = env("DOCUMENT_SIGNING_ENABLED")
+P12_CERTIFICATE = env("P12_CERTIFICATE")
+CERTIFICATE_PASSWORD = env("CERTIFICATE_PASSWORD")
+SIGNING_EMAIL = env("SIGNING_EMAIL")
+SIGNING_LOCATION = env("SIGNING_LOCATION")
+SIGNING_REASON = env("SIGNING_REASON")

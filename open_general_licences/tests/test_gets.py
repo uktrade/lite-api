@@ -8,7 +8,6 @@ from organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from test_helpers.clients import DataTestClient
-from test_helpers.helpers import generate_key_value_pair
 
 
 class InternalListTests(DataTestClient):
@@ -76,27 +75,28 @@ class ExporterListTests(DataTestClient):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.json()["results"]), 1)
         self.assertEquals(len(response.json()["results"][0]["registrations"]), 2)
-        self.assertIn(
-            {
-                "reference_code": self.open_general_licence_case.reference_code,
-                "site": {
-                    "address": {
-                        "address_line_1": self.organisation.primary_site.address.address_line_1,
-                        "address_line_2": self.organisation.primary_site.address.address_line_2,
-                        "city": self.organisation.primary_site.address.city,
-                        "country": {"name": "United Kingdom"},
-                        "postcode": self.organisation.primary_site.address.postcode,
-                        "region": self.organisation.primary_site.address.region,
-                    },
-                    "id": str(self.organisation.primary_site.id),
-                    "name": self.organisation.primary_site.name,
-                    "records_located_at": {"name": self.organisation.primary_site.site_records_located_at.name},
-                },
-                "status": generate_key_value_pair(self.open_general_licence_case.status.status, CaseStatusEnum.choices),
-                "submitted_at": self.open_general_licence_case.submitted_at,
-            },
-            response.json()["results"][0]["registrations"],
+        registration = response.json()["results"][0]["registrations"][0]
+        self.assertEqual(registration["reference_code"], self.open_general_licence_case.reference_code)
+        self.assertEqual(registration["site"]["id"], str(self.organisation.primary_site.id))
+        self.assertEqual(registration["site"]["name"], self.organisation.primary_site.name)
+        self.assertEqual(
+            registration["site"]["address"]["address_line_1"], self.organisation.primary_site.address.address_line_1
         )
+        self.assertEqual(
+            registration["site"]["address"]["address_line_2"], self.organisation.primary_site.address.address_line_2
+        )
+        self.assertEqual(registration["site"]["address"]["city"], self.organisation.primary_site.address.city)
+        self.assertEqual(
+            registration["site"]["address"]["country"]["name"], self.organisation.primary_site.address.country.name
+        )
+        self.assertEqual(registration["site"]["address"]["postcode"], self.organisation.primary_site.address.postcode)
+        self.assertEqual(registration["site"]["address"]["region"], self.organisation.primary_site.address.region)
+        self.assertEqual(
+            registration["site"]["records_located_at"]["name"],
+            self.organisation.primary_site.site_records_located_at.name,
+        )
+        self.assertEqual(registration["status"]["key"], self.open_general_licence_case.status.status)
+        self.assertEqual(registration["submitted_at"], self.open_general_licence_case.submitted_at)
 
     def test_exporter_view_site_licences_success(self):
         response = self.client.get(

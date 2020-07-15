@@ -2,14 +2,17 @@ from unittest import mock
 from unittest.mock import ANY
 
 from django.urls import reverse
+from django.utils import timezone
+from parameterized import parameterized
 from rest_framework import status
 
-from cases.enums import AdviceType, AdviceLevel, CaseTypeSubTypeEnum
-from cases.app import CasesConfig
+from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
 from conf.constants import GovPermissions
 from conf.helpers import add_months
 from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
-from licences.helpers import get_approved_goods_on_application, get_approved_goods_types
+from licences.apps import LicencesConfig
+from licences.enums import LicenceStatus, HMRCIntegrationActionEnum
+from licences.helpers import get_approved_goods_types
 from licences.libraries.hmrc_integration_operations import (
     send_licence,
     HMRCIntegrationException,
@@ -24,6 +27,7 @@ from licences.tasks import (
     schedule_licence_for_hmrc_integration,
     TASK_QUEUE,
 )
+from licences.tests.factories import GoodOnLicenceFactory
 from static.countries.models import Country
 from static.decisions.models import Decision
 from test_helpers.clients import DataTestClient
@@ -53,45 +57,86 @@ class MockTask:
         return self._exists
 
 
-@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
 class HMRCIntegrationSerializersTests(DataTestClient):
-    def test_data_transfer_object_standard_application(self):
-        self.standard_application = self.create_standard_application_case(self.organisation)
-        self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED],
+            [LicenceStatus.REINSTATED],
+            [LicenceStatus.SURRENDERED],
+            [LicenceStatus.REVOKED],
+            [LicenceStatus.CANCELLED],
+        ],
+    )
+    def test_standard_application(self, status):
+        action = LicenceStatus.hmrc_integration_action.get(status)
+        standard_application = self.create_standard_application_case(self.organisation)
+        self.create_advice(self.gov_user, standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        standard_licence = self.create_licence(standard_application, status=status)
+        good_on_application = standard_application.goods.first()
+        GoodOnLicenceFactory(
+            good=good_on_application,
+            licence=standard_licence,
+            quantity=good_on_application.quantity,
+            usage=20.0,
+            value=good_on_application.value,
+        )
+        old_licence = None
+        if action == HMRCIntegrationActionEnum.UPDATE:
+            old_licence = self.create_licence(standard_application, status=LicenceStatus.CANCELLED)
+            standard_application.licences.add(old_licence)
 
-        data = HMRCIntegrationLicenceSerializer(self.standard_licence).data
+        data = HMRCIntegrationLicenceSerializer(standard_licence).data
 
-        self._assert_dto(data, self.standard_application, self.standard_licence)
+        self._assert_dto(data, standard_licence, old_licence=old_licence)
 
-    def test_data_transfer_object_open_application(self):
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED],
+            [LicenceStatus.REINSTATED],
+            [LicenceStatus.SURRENDERED],
+            [LicenceStatus.REVOKED],
+            [LicenceStatus.CANCELLED],
+        ],
+    )
+    def test_open_application(self, status):
+        action = LicenceStatus.hmrc_integration_action.get(status)
         open_application = self.create_open_application_case(self.organisation)
         self.create_advice(self.gov_user, open_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        open_licence = self.create_licence(open_application, is_complete=True)
+        open_licence = self.create_licence(open_application, status=status)
+        old_licence = None
+        if action == HMRCIntegrationActionEnum.UPDATE:
+            old_licence = self.create_licence(open_application, status=LicenceStatus.CANCELLED)
+            open_application.licences.add(old_licence)
 
         data = HMRCIntegrationLicenceSerializer(open_licence).data
 
-        self._assert_dto(data, open_application, open_licence)
+        self._assert_dto(data, open_licence, old_licence)
 
-    def _assert_dto(self, data, application, licence):
-        self.assertEqual(len(data), 9)
+    def _assert_dto(self, data, licence, old_licence=None):
+        if old_licence:
+            self.assertEqual(len(data), 10)
+            self.assertEqual(data["old_id"], str(old_licence.id))
+        else:
+            self.assertEqual(len(data), 9)
+
         self.assertEqual(data["id"], str(licence.id))
-        self.assertEqual(data["reference"], application.reference_code)
-        self.assertEqual(data["type"], application.case_type.reference)
-        self.assertEqual(data["action"], "insert")  # `insert/cancel` on later story
+        self.assertEqual(data["reference"], licence.reference_code)
+        self.assertEqual(data["type"], licence.application.case_type.reference)
+        self.assertEqual(data["action"], LicenceStatus.hmrc_integration_action.get(licence.status))
         self.assertEqual(data["start_date"], licence.start_date.strftime("%Y-%m-%d"))
         self.assertEqual(data["end_date"], add_months(licence.start_date, licence.duration, "%Y-%m-%d"))
 
-        self._assert_organisation(data, application.organisation)
+        self._assert_organisation(data, licence.application.organisation)
 
-        if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            self._assert_end_user(data, application.end_user.party)
-            self._assert_goods_on_application(data, get_approved_goods_on_application(application))
-        elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+        if licence.application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            self._assert_end_user(data, licence.application.end_user.party)
+            self._assert_goods_on_licence(data, licence.goods.all())
+            self.assertEqual(data["id"], str(licence.id))
+        elif licence.application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             self._assert_countries(
-                data, Country.objects.filter(countries_on_application__application=application).order_by("name")
+                data, Country.objects.filter(countries_on_application__application=licence.application).order_by("name")
             )
-            self._assert_goods_types(data, get_approved_goods_types(application))
+            self._assert_goods_types(data, get_approved_goods_types(licence.application))
 
     def _assert_organisation(self, data, organisation):
         self.assertEqual(
@@ -129,62 +174,57 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def _assert_countries(self, data, countries):
         self.assertEqual(data["countries"], [{"id": country.id, "name": country.name} for country in countries])
 
-    def _assert_goods_on_application(self, data, goods_on_application):
-        self.assertEqual(
-            data["goods"],
-            [
-                {
-                    "id": str(good_on_application.good.id),
-                    "description": good_on_application.good.description,
-                    "usage": good_on_application.usage,
-                    "unit": good_on_application.unit,
-                    "quantity": good_on_application.quantity,
-                    "licenced_quantity": good_on_application.licenced_quantity,
-                    "licenced_value": good_on_application.licenced_value,
-                }
-                for good_on_application in goods_on_application
-            ],
-        )
-
     def _assert_goods_types(self, data, goods):
         self.assertEqual(
             data["goods"],
             [{"id": str(good.id), "description": good.description, "usage": good.usage} for good in goods],
         )
 
+    def _assert_goods_on_licence(self, data, goods):
+        data = data["goods"]
+        for i in range(len(goods)):
+            good_on_licence = goods[i]
+            self.assertEqual(data[i]["id"], str(good_on_licence.good.good.id))
+            self.assertEqual(data[i]["usage"], good_on_licence.usage)
+            self.assertEqual(data[i]["description"], good_on_licence.good.good.description)
+            self.assertEqual(data[i]["unit"], good_on_licence.good.unit)
+            self.assertEqual(data[i]["quantity"], good_on_licence.quantity)
+            self.assertEqual(data[i]["value"], good_on_licence.value)
 
-@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
+
 class HMRCIntegrationOperationsTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+        status = LicenceStatus.ISSUED
+        self.hmrc_integration_status = LicenceStatus.hmrc_integration_action.get(status)
+        self.standard_licence = self.create_licence(self.standard_application, status=status)
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
     def test_send_licence_success_201(self, serializer, requests_post):
         serializer.return_value = MockSerializer(self.standard_licence)
-        original_sent_at = self.standard_licence.sent_at  # Should be None
+        original_hmrc_integration_sent_at = self.standard_licence.hmrc_integration_sent_at  # Should be None
         requests_post.return_value = MockResponse("", 201)
 
-        send_licence(self.standard_licence)
+        send_licence(self.standard_licence, self.hmrc_integration_status)
 
         requests_post.assert_called_once()
-        self.assertIsNotNone(self.standard_licence.sent_at)
-        self.assertNotEqual(self.standard_licence.sent_at, original_sent_at)
+        self.assertIsNotNone(self.standard_licence.hmrc_integration_sent_at)
+        self.assertNotEqual(self.standard_licence.hmrc_integration_sent_at, original_hmrc_integration_sent_at)
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
     def test_send_licence_success_200(self, serializer, requests_post):
         serializer.return_value = MockSerializer(self.standard_licence)
-        original_sent_at = self.standard_licence.sent_at  # Should not be None
+        original_hmrc_integration_sent_at = self.standard_licence.hmrc_integration_sent_at  # Should not be None
         requests_post.return_value = MockResponse("", 200)
 
-        send_licence(self.standard_licence)
+        send_licence(self.standard_licence, self.hmrc_integration_status)
 
         requests_post.assert_called_once()
-        self.assertEqual(self.standard_licence.sent_at, original_sent_at)
+        self.assertEqual(self.standard_licence.hmrc_integration_sent_at, original_hmrc_integration_sent_at)
 
     @mock.patch("licences.libraries.hmrc_integration_operations.post")
     @mock.patch("licences.libraries.hmrc_integration_operations.HMRCIntegrationLicenceSerializer")
@@ -193,25 +233,24 @@ class HMRCIntegrationOperationsTests(DataTestClient):
         requests_post.return_value = MockResponse("Bad request", 400)
 
         with self.assertRaises(HMRCIntegrationException) as error:
-            send_licence(self.standard_licence)
+            send_licence(self.standard_licence, self.hmrc_integration_status)
 
         requests_post.assert_called_once()
         self.assertEqual(
             str(error.exception),
-            f"An unexpected response was received when sending licence '{self.standard_licence.id}' changes "
-            f"to HMRC Integration -> status=400, message=Bad request",
+            f"An unexpected response was received when sending licence '{self.standard_licence.id}', "
+            f"action '{self.hmrc_integration_status}' to HMRC Integration -> status=400, message=Bad request",
         )
-        self.assertIsNone(self.standard_licence.sent_at)
+        self.assertIsNone(self.standard_licence.hmrc_integration_sent_at)
 
 
-@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
 @mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
 class HMRCIntegrationLicenceTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+        self.standard_licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
 
     @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
     def test_save_licence_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
@@ -220,17 +259,18 @@ class HMRCIntegrationLicenceTests(DataTestClient):
         self.standard_licence.save()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), self.standard_licence.application.reference_code
+            str(self.standard_licence.id), LicenceStatus.hmrc_integration_action.get(self.standard_licence.status),
         )
 
 
-@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
 class HMRCIntegrationTasksTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.standard_application = self.create_standard_application_case(self.organisation)
         self.create_advice(self.gov_user, self.standard_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
-        self.standard_licence = self.create_licence(self.standard_application, is_complete=True)
+        status = LicenceStatus.ISSUED
+        self.hmrc_integration_status = LicenceStatus.hmrc_integration_action.get(status)
+        self.standard_licence = self.create_licence(self.standard_application, status=status)
 
     @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", False)
     @mock.patch("licences.tasks.send_licence_to_hmrc_integration.now")
@@ -238,13 +278,11 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence_to_hmrc_integration_now.return_value = None
 
         schedule_licence_for_hmrc_integration(
-            str(self.standard_licence.id), self.standard_licence.application.reference_code
+            str(self.standard_licence.id), self.hmrc_integration_status,
         )
 
         send_licence_to_hmrc_integration_now.assert_called_with(
-            str(self.standard_licence.id),
-            self.standard_licence.application.reference_code,
-            scheduled_as_background_task=False,
+            str(self.standard_licence.id), self.hmrc_integration_status, scheduled_as_background_task=False,
         )
 
     @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", True)
@@ -256,17 +294,12 @@ class HMRCIntegrationTasksTests(DataTestClient):
         task_filter.return_value = MockTask(0, exists=False)
         send_licence_to_hmrc_integration.return_value = None
 
-        schedule_licence_for_hmrc_integration(
-            str(self.standard_licence.id), self.standard_licence.application.reference_code
-        )
+        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), self.hmrc_integration_status)
 
         task_filter.assert_called_with(
-            queue=TASK_QUEUE,
-            task_params=f'[["{self.standard_licence.id}", "{self.standard_licence.application.reference_code}"], {{}}]',
+            queue=TASK_QUEUE, task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
         )
-        send_licence_to_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), self.standard_licence.application.reference_code
-        )
+        send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id), self.hmrc_integration_status)
 
     @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", True)
     @mock.patch("licences.tasks.send_licence_to_hmrc_integration")
@@ -277,13 +310,10 @@ class HMRCIntegrationTasksTests(DataTestClient):
         task_filter.return_value = MockTask(0, exists=True)
         send_licence_to_hmrc_integration.return_value = None
 
-        schedule_licence_for_hmrc_integration(
-            str(self.standard_licence.id), self.standard_licence.application.reference_code
-        )
+        schedule_licence_for_hmrc_integration(str(self.standard_licence.id), self.hmrc_integration_status)
 
         task_filter.assert_called_with(
-            queue=TASK_QUEUE,
-            task_params=f'[["{self.standard_licence.id}", "{self.standard_licence.application.reference_code}"], {{}}]',
+            queue=TASK_QUEUE, task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
         )
         send_licence_to_hmrc_integration.assert_not_called()
 
@@ -292,11 +322,9 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence.return_value = None
 
         # Note: Using `.now()` operation to test code synchronously
-        send_licence_to_hmrc_integration.now(
-            str(self.standard_licence.id), self.standard_licence.application.reference_code
-        )
+        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), self.hmrc_integration_status)
 
-        send_licence.assert_called_with(self.standard_licence)
+        send_licence.assert_called_with(self.standard_licence, self.hmrc_integration_status)
 
     @mock.patch("licences.tasks.Task.objects.get")
     @mock.patch("licences.tasks.hmrc_integration_operations.send_licence")
@@ -306,12 +334,10 @@ class HMRCIntegrationTasksTests(DataTestClient):
 
         # Note: Using `.now()` operation to test code synchronously
         send_licence_to_hmrc_integration.now(
-            str(self.standard_licence.id),
-            self.standard_licence.application.reference_code,
-            scheduled_as_background_task=False,
+            str(self.standard_licence.id), self.hmrc_integration_status, scheduled_as_background_task=False,
         )
 
-        send_licence.assert_called_with(self.standard_licence)
+        send_licence.assert_called_with(self.standard_licence, self.hmrc_integration_status)
         task_get.assert_not_called()
 
     @mock.patch("licences.tasks.hmrc_integration_operations.send_licence")
@@ -319,9 +345,7 @@ class HMRCIntegrationTasksTests(DataTestClient):
         send_licence.return_value = None
 
         # Note: Using `.now()` operation to test code synchronously
-        send_licence_to_hmrc_integration.now(
-            str(self.standard_licence.id), self.standard_licence.application.reference_code
-        )
+        send_licence_to_hmrc_integration.now(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence.assert_called_once()
 
@@ -337,18 +361,17 @@ class HMRCIntegrationTasksTests(DataTestClient):
 
         with self.assertRaises(Exception) as error:
             # Note: Using `.now()` operation to test code synchronously
-            send_licence_to_hmrc_integration.now(
-                str(self.standard_licence.id), self.standard_licence.application.reference_code
-            )
+            send_licence_to_hmrc_integration.now(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence.assert_called_once()
         task_get.assert_called_with(
-            queue=TASK_QUEUE,
-            task_params=f'[["{self.standard_licence.id}", "{self.standard_licence.application.reference_code}"], {{}}]',
+            queue=TASK_QUEUE, task_params=f'[["{self.standard_licence.id}", "{ self.hmrc_integration_status}"], {{}}]',
         )
         schedule_max_tried_task_as_new_task.assert_not_called()
         self.assertEqual(
-            str(error.exception), f"Failed to send licence '{self.standard_licence.id}' changes to HMRC Integration",
+            str(error.exception),
+            f"Failed to send licence '{self.standard_licence.id}', action '{self.hmrc_integration_status}' "
+            f"to HMRC Integration",
         )
 
     @mock.patch("licences.tasks.schedule_max_tried_task_as_new_task")
@@ -364,29 +387,30 @@ class HMRCIntegrationTasksTests(DataTestClient):
         with self.assertRaises(Exception) as error:
             # Note: Using `.now()` operation to test code synchronously
             send_licence_to_hmrc_integration.now(
-                str(self.standard_licence.id), self.standard_licence.application.reference_code
+                str(self.standard_licence.id), self.hmrc_integration_status,
             )
 
         send_licence.assert_called_once()
         task_get.assert_called_with(
-            queue=TASK_QUEUE,
-            task_params=f'[["{self.standard_licence.id}", "{self.standard_licence.application.reference_code}"], {{}}]',
+            queue=TASK_QUEUE, task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
         )
         schedule_max_tried_task_as_new_task.assert_called_with(
-            str(self.standard_licence.id), self.standard_licence.reference_code
+            str(self.standard_licence.id), self.hmrc_integration_status,
         )
         self.assertEqual(
-            str(error.exception), f"Failed to send licence '{self.standard_licence.id}' changes to HMRC Integration",
+            str(error.exception),
+            f"Failed to send licence '{self.standard_licence.id}', action "
+            f"'{self.hmrc_integration_status}' to HMRC Integration",
         )
 
     @mock.patch("licences.tasks.send_licence_to_hmrc_integration")
     def test_schedule_max_tried_task_as_new_task(self, send_licence_to_hmrc_integration):
         send_licence_to_hmrc_integration.return_value = None
 
-        schedule_max_tried_task_as_new_task(str(self.standard_licence.id), self.standard_licence.reference_code)
+        schedule_max_tried_task_as_new_task(str(self.standard_licence.id), self.hmrc_integration_status)
 
         send_licence_to_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), self.standard_licence.reference_code, schedule=TASK_BACK_OFF
+            str(self.standard_licence.id), self.hmrc_integration_status, schedule=TASK_BACK_OFF
         )
 
     @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
@@ -394,14 +418,13 @@ class HMRCIntegrationTasksTests(DataTestClient):
         schedule_licence_for_hmrc_integration.return_value = None
 
         # When the application is restarted it will trigger this function
-        CasesConfig.schedule_not_sent_licences()
+        LicencesConfig.schedule_not_sent_licences()
 
         schedule_licence_for_hmrc_integration.assert_called_with(
-            str(self.standard_licence.id), self.standard_licence.application.reference_code
+            str(self.standard_licence.id), self.hmrc_integration_status
         )
 
 
-@mock.patch("cases.app.LITE_HMRC_INTEGRATION_ENABLED", False)  # Disable task from being run on app initialization
 @mock.patch("licences.tasks.BACKGROUND_TASK_ENABLED", False)
 @mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
 class HMRCIntegrationTests(DataTestClient):
@@ -415,6 +438,8 @@ class HMRCIntegrationTests(DataTestClient):
         standard_application, standard_licence = self._create_licence_for_submission(
             self.create_standard_application_case
         )
+        expected_insert_json = HMRCIntegrationLicenceSerializer(standard_licence).data
+        expected_insert_json["action"] = HMRCIntegrationActionEnum.INSERT
 
         url = reverse("cases:finalise", kwargs={"pk": standard_application.id})
         response = self.client.put(url, data={}, **self.gov_headers)
@@ -423,7 +448,7 @@ class HMRCIntegrationTests(DataTestClient):
         request.assert_called_with(
             "POST",
             f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
-            json=ANY,
+            json={"licence": expected_insert_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
@@ -432,6 +457,8 @@ class HMRCIntegrationTests(DataTestClient):
     def test_approve_open_application_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         open_application, open_licence = self._create_licence_for_submission(self.create_open_application_case)
+        expected_insert_json = HMRCIntegrationLicenceSerializer(open_licence).data
+        expected_insert_json["action"] = HMRCIntegrationActionEnum.INSERT
 
         url = reverse("cases:finalise", kwargs={"pk": open_application.id})
         response = self.client.put(url, data={}, **self.gov_headers)
@@ -440,20 +467,56 @@ class HMRCIntegrationTests(DataTestClient):
         request.assert_called_with(
             "POST",
             f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
-            json=ANY,
+            json={"licence": expected_insert_json},
+            headers=ANY,
+            timeout=LITE_HMRC_REQUEST_TIMEOUT,
+        )
+
+    @mock.patch("conf.requests.requests.request")
+    def test_reinstate_licence_success(self, request):
+        request.return_value = MockResponse("", 201)
+        standard_application, standard_licence_1 = self._create_licence_for_submission(
+            self.create_standard_application_case
+        )
+        _, standard_licence_2 = self._create_licence_for_submission(self.create_standard_application_case)
+        # Use queryset update instead of ORM (ORM saving will trigger the request to HMRC Integration)
+        Licence.objects.filter(id=standard_licence_1.id).update(status=LicenceStatus.ISSUED)
+        # Manipulate licence_2 so it is serialized exactly as it would be when `/cases/finalise/` is called
+        Licence.objects.filter(id=standard_licence_2.id).update(
+            application=standard_application, status=LicenceStatus.REINSTATED
+        )
+        standard_licence_1.refresh_from_db()
+        standard_licence_2.refresh_from_db()
+        # Serialize licence_2 and overwrite the data we want to validate with the request (action and old_id)
+        expected_reinstate_json = HMRCIntegrationLicenceSerializer(standard_licence_2).data
+        expected_reinstate_json["action"] = HMRCIntegrationActionEnum.UPDATE
+        expected_reinstate_json["old_id"] = str(standard_licence_1.id)  # This request should contain the old licence id
+        # Set licence_2 back to a status required for `/cases/finalise/`
+        Licence.objects.filter(id=standard_licence_2.id).update(status=LicenceStatus.DRAFT)
+
+        url = reverse("cases:finalise", kwargs={"pk": standard_application.id})
+        response = self.client.put(url, data={}, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        request.assert_called_once_with(
+            "POST",
+            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            json={"licence": expected_reinstate_json},
             headers=ANY,
             timeout=LITE_HMRC_REQUEST_TIMEOUT,
         )
 
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
-        licence = self.create_licence(application, is_complete=True)
+        licence = self.create_licence(application, status=LicenceStatus.DRAFT)
         self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         template = self.create_letter_template(
-            name="Template",
+            name=f"{timezone.now()}",
             case_types=[application.case_type],
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
-        self.create_generated_case_document(application, template, advice_type=AdviceType.APPROVE)
+        self.create_generated_case_document(
+            application.get_case(), template, advice_type=AdviceType.APPROVE, licence=licence
+        )
 
         return application, licence

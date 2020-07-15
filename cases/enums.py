@@ -44,6 +44,10 @@ class CaseTypeReferenceEnum:
         (COMP_VISIT, "Compliance Visit Case"),
     ]
 
+    STANDARD_LICENCES = [SIEL, SICL, SITL]
+    OPEN_LICENCES = [OIEL, OICL, OGEL, OGTCL, OGTL]
+    MOD_LICENCES = [F680, EXHC, GIFT]
+
     @classmethod
     def as_list(cls):
         return [{"key": choice[0], "value": choice[1]} for choice in cls.choices]
@@ -246,6 +250,9 @@ class CaseTypeEnum:
     ]
 
     OGL_ID_LIST = [OGEL.id, OGTCL.id, OGTL.id]
+    STANDARD_LICENCE_IDS = [SIEL, SICL, SITL]
+    OPEN_LICENCE_IDS = [OIEL.id, OICL.id, OGEL.id, OGTCL.id, OGTL.id]
+    MOD_LICENCE_IDS = [F680.id, EXHIBITION.id, GIFTING.id]
 
     @classmethod
     def case_types_to_representation(cls):
@@ -329,6 +336,12 @@ class AdviceType:
     def as_dict(cls):
         return {choice[0]: choice[1] for choice in cls.choices}
 
+    @classmethod
+    def as_representation(cls, choice):
+        for d in cls.to_representation():
+            if d["key"] == choice:
+                return d
+
 
 class AdviceLevel:
     USER = "user"
@@ -360,6 +373,10 @@ class ECJUQueryType:
         (PRE_VISIT_QUESTIONNAIRE, "Pre-visit question"),
         (COMPLIANCE_ACTIONS, "Compliance action"),
     ]
+
+    @classmethod
+    def to_str(cls, obj):
+        return next(choice[1] for choice in cls.choices if choice[0] == obj)
 
 
 class EnforcementXMLEntityTypes:

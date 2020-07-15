@@ -176,7 +176,6 @@ class StandardApplication(BaseApplication):
     have_you_been_informed = models.CharField(
         choices=ApplicationExportLicenceOfficialType.choices, blank=True, null=True, default=None, max_length=50,
     )
-    contains_firearm_goods = models.BooleanField(blank=True, default=None, null=True)
     is_shipped_waybill_or_lading = models.BooleanField(blank=True, default=None, null=True)
     non_waybill_or_lading_route_details = models.TextField(default=None, blank=True, null=True, max_length=2000)
     temp_export_details = models.CharField(blank=True, default=None, null=True, max_length=2200)
@@ -298,11 +297,6 @@ class GoodOnApplication(TimestampableModel):
     unit = models.CharField(choices=Units.choices, max_length=50, null=True, blank=True, default=None)
     value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
     is_good_incorporated = models.BooleanField(null=True, blank=True, default=None)
-
-    # Licence values set when the Good is approved
-    usage = models.FloatField(null=False, blank=False, default=0)
-    licenced_quantity = models.FloatField(null=True, blank=True, default=None)
-    licenced_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, default=None)
 
     # Exhibition applications are the only applications that contain the following as such may be null
     item_type = models.CharField(choices=ItemType.choices, max_length=10, null=True, blank=True, default=None)

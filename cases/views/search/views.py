@@ -1,4 +1,6 @@
-from django.db.models import Count
+import django
+from django.db.models import F, When, DateField
+from django.utils import timezone
 from rest_framework import generics
 
 from cases.libraries.dates import make_date_from_params
@@ -48,8 +50,19 @@ class CasesSearchView(generics.ListAPIView):
                 user=request.user,
                 include_hidden=include_hidden,
                 **filters,
+            ).annotate(
+                next_review_date=django.db.models.Case(
+                    When(
+                        case_review_date__team_id=request.user.team.id,
+                        case_review_date__next_review_date__gte=timezone.now().date(),
+                        then=F("case_review_date__next_review_date"),
+                    ),
+                    default=None,
+                    output_field=DateField(),
+                )
             )
         )
+
         queues = get_system_queues(
             include_team_info=False, include_case_count=True, user=request.user
         ) + get_team_queues(team_id=request.user.team_id, include_team_info=False, include_case_count=True)
@@ -58,6 +71,11 @@ class CasesSearchView(generics.ListAPIView):
             page, context=context, team=request.user.team, include_hidden=include_hidden, many=True
         ).data
 
+        # Populate certain fields outside of the serializer for performance improvements
+        service.populate_goods_flags(cases)
+        service.populate_destinations_flags(cases)
+        service.populate_other_flags(cases)
+        service.populate_organisation(cases)
         service.populate_is_recently_updated(cases)
         service.get_hmrc_sla_hours(cases)
 
@@ -65,7 +83,7 @@ class CasesSearchView(generics.ListAPIView):
         # If this fails (i.e. I'm on a non team queue) fetch the queue data
         queue = (
             next((q for q in queues if str(q["id"]) == str(queue_id)), None)
-            or Queue.objects.filter(id=queue_id).annotate(case_count=Count("cases")).values()[0]
+            or Queue.objects.filter(id=queue_id).values()[0]
         )
 
         statuses = service.get_case_status_list()

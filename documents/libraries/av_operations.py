@@ -50,9 +50,9 @@ def scan_file_for_viruses(document_id, filename, file):
             response = requests.post(
                 # Assumes HTTP Basic auth in URL
                 # see: https://github.com/uktrade/dit-clamav-rest
-                settings.AV_SERVICE_URL,
+                settings.AV_SERVICE_URL.strip(),
                 data=encoder,
-                auth=(settings.AV_SERVICE_USERNAME, settings.AV_SERVICE_PASSWORD),
+                auth=(settings.AV_SERVICE_USERNAME.strip(), settings.AV_SERVICE_PASSWORD.strip()),
                 headers={"Content-Type": encoder.content_type},
                 timeout=AV_REQUEST_TIMEOUT,
             )

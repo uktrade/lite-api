@@ -320,7 +320,7 @@ class OrganisationDetailSerializer(serializers.ModelSerializer):
 
 class OrganisationCaseSerializer(serializers.Serializer):
     name = serializers.CharField()
-    primary_site = PrimaryKeyRelatedSerializerField(queryset=Site.objects.all(), serializer=SiteListSerializer)
+    primary_site = SiteListSerializer()
 
 
 class ExternalLocationSerializer(serializers.ModelSerializer):

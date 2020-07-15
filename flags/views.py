@@ -54,7 +54,7 @@ class FlagsListCreateView(ListCreateAPIView):
         priority = self.request.GET.get("priority")
         team = self.request.GET.get("team")
         status = self.request.GET.get("status", FlagStatuses.ACTIVE)
-        include_system_flags = str_to_bool(self.request.GET.get("include_system_flags"))  # True, False
+        include_system_flags = str_to_bool(self.request.GET.get("include_system_flags"))
         blocks_approval = str_to_bool(self.request.GET.get("blocks_approval"))
 
         if case:

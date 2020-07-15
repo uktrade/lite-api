@@ -1,30 +1,5 @@
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from conf.serializers import PrimaryKeyRelatedSerializerField
-
-
-class CaseAssignmentRelatedSerializerField(PrimaryKeyRelatedSerializerField):
-    """
-    Custom field serializer required for optional query filtering based on current queue
-    """
-
-    def __init__(self, **kwargs):
-        from cases.serializers import QueueCaseAssignmentSerializer
-
-        self.serializer = QueueCaseAssignmentSerializer
-        self.many = True
-
-        super().__init__(**kwargs)
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        queue = self.context["queue_id"] if not self.context["is_system_queue"] else None
-
-        if queue:
-            return queryset.filter(queue=queue)
-        else:
-            return queryset.all()
-
 
 class HasOpenECJUQueriesRelatedField(PrimaryKeyRelatedField):
     """

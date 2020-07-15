@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
 from conf.helpers import add_months
-from licences.helpers import get_approved_goods_types, get_approved_goods_on_application
+from licences.enums import LicenceStatus
+from licences.helpers import get_approved_goods_types
+from licences.models import Licence
 from static.countries.models import Country
 
 
@@ -46,14 +48,13 @@ class HMRCIntegrationEndUserSerializer(serializers.Serializer):
         return {"line_1": instance.address, "country": HMRCIntegrationCountrySerializer(instance.country).data}
 
 
-class HMRCIntegrationGoodsOnApplicationSerializer(serializers.Serializer):
-    id = serializers.UUIDField(source="good.id")
-    description = serializers.CharField(source="good.description")
-    usage = serializers.IntegerField()
-    unit = serializers.CharField()
-    quantity = serializers.IntegerField()
-    licenced_quantity = serializers.IntegerField()
-    licenced_value = serializers.IntegerField()
+class HMRCIntegrationGoodOnLicenceSerializer(serializers.Serializer):
+    id = serializers.UUIDField(source="good.good.id")
+    usage = serializers.FloatField()
+    description = serializers.CharField(source="good.good.description")
+    unit = serializers.CharField(source="good.unit")
+    quantity = serializers.FloatField()
+    value = serializers.FloatField()
 
 
 class HMRCIntegrationGoodsTypeSerializer(serializers.Serializer):
@@ -66,7 +67,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference = serializers.CharField(source="reference_code")
     type = serializers.CharField(source="application.case_type.reference")
-    action = serializers.SerializerMethodField()  # `insert/cancel` on later story
+    action = serializers.SerializerMethodField()  # 'insert', 'cancel' or 'update'
+    old_id = serializers.SerializerMethodField()  # only required if action='update'
     start_date = serializers.DateField()
     end_date = serializers.SerializerMethodField()
     organisation = HMRCIntegrationOrganisationSerializer(source="application.organisation")
@@ -86,8 +88,20 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         ):
             self.fields.pop("countries")
 
+        self.action = LicenceStatus.hmrc_integration_action.get(self.instance.status)
+        if self.action != LicenceStatus.hmrc_integration_action.get(LicenceStatus.REINSTATED):
+            self.fields.pop("old_id")
+
     def get_action(self, _):
-        return "insert"
+        return self.action
+
+    def get_old_id(self, instance):
+        return str(
+            Licence.objects.filter(application=instance.application, status=LicenceStatus.CANCELLED)
+            .order_by("created_at")
+            .values_list("id", flat=True)
+            .last()
+        )
 
     def get_end_date(self, instance):
         return add_months(instance.start_date, instance.duration, "%Y-%m-%d")
@@ -101,11 +115,25 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         ).data
 
     def get_goods(self, instance):
-        if instance.application.goods.exists():
-            approved_goods = get_approved_goods_on_application(instance.application)
-            return HMRCIntegrationGoodsOnApplicationSerializer(approved_goods, many=True).data
+        if instance.goods.exists():
+            return HMRCIntegrationGoodOnLicenceSerializer(instance.goods, many=True).data
         elif instance.application.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance.application)
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data
         else:
             return []
+
+
+class HMRCIntegrationUsageUpdateGoodSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True, allow_null=False)
+    usage = serializers.FloatField(required=True, allow_null=False, min_value=0)
+
+
+class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True, allow_null=False)
+    goods = serializers.ListField(required=True, allow_null=False, allow_empty=False)
+
+
+class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):
+    usage_update_id = serializers.UUIDField(required=True, allow_null=False)
+    licences = serializers.ListField(required=True, allow_null=False, allow_empty=False)

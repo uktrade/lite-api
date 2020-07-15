@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from rest_framework import serializers
 
-from applications.helpers import get_application_view_serializer
 from applications.libraries.get_applications import get_application
 from applications.serializers.advice import CaseAdviceSerializer
 from audit_trail.models import Audit
@@ -15,7 +14,7 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
 )
-from cases.fields import CaseAssignmentRelatedSerializerField, HasOpenECJUQueriesRelatedField
+from cases.fields import HasOpenECJUQueriesRelatedField
 from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
@@ -37,21 +36,15 @@ from goodstype.models import GoodsType
 from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
 from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
-from organisations.models import Organisation
-from organisations.serializers import OrganisationCaseSerializer
 from queries.serializers import QueryViewSerializer
 from queues.models import Queue
-from queues.serializers import CasesQueueViewSerializer
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from teams.models import Team
 from teams.serializers import TeamSerializer
 from users.enums import UserStatuses
-from users.models import BaseUser, GovUser, ExporterUser, GovNotification
-from users.serializers import (
-    BaseUserViewSerializer,
-    ExporterUserViewSerializer,
-)
+from users.models import BaseUser, GovUser, GovNotification, ExporterUser
+from users.serializers import BaseUserViewSerializer, ExporterUserViewSerializer
 
 
 class CaseTypeSerializer(serializers.ModelSerializer):
@@ -95,45 +88,38 @@ class QueueCaseAssignmentUserSerializer(serializers.ModelSerializer):
         )
 
 
-class QueueCaseAssignmentSerializer(serializers.ModelSerializer):
-    user = QueueCaseAssignmentUserSerializer()
-    queue = CasesQueueViewSerializer()
-
-    class Meta:
-        model = CaseAssignment
-        fields = (
-            "user",
-            "queue",
-        )
-
-
 class CaseListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_code = serializers.CharField()
     case_type = PrimaryKeyRelatedSerializerField(queryset=CaseType.objects.all(), serializer=CaseTypeSerializer)
-    assignments = CaseAssignmentRelatedSerializerField(source="case_assignments")
+    assignments = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    flags = serializers.SerializerMethodField()
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
     has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
-    has_future_review_date = serializers.SerializerMethodField()
-    # TODO: update the serializer below to be more efficient, it creates a new query for each case in list to get site
-    organisation = PrimaryKeyRelatedSerializerField(
-        queryset=Organisation.objects.all(), serializer=OrganisationCaseSerializer
-    )
+    next_review_date = serializers.DateField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)
         self.include_hidden = kwargs.pop("include_hidden", None)
         super().__init__(*args, **kwargs)
 
-    def get_flags(self, instance):
-        """
-        Gets flags for a case and returns in sorted order by team.
-        """
-        return get_ordered_flags(instance, self.team)
+    def get_assignments(self, instance):
+        return_value = {}
+
+        for assignment in instance.case_assignments.all():
+            user_id = str(assignment.user.id)
+            if user_id not in return_value:
+                return_value[user_id] = {}
+            return_value[user_id]["first_name"] = assignment.user.first_name
+            return_value[user_id]["last_name"] = assignment.user.last_name
+            return_value[user_id]["email"] = assignment.user.email
+            if "queues" not in return_value[user_id]:
+                return_value[user_id]["queues"] = []
+            return_value[user_id]["queues"].append(assignment.queue.name)
+
+        return return_value
 
     def get_submitted_at(self, instance):
         # Return the DateTime value manually as otherwise
@@ -142,13 +128,6 @@ class CaseListSerializer(serializers.Serializer):
 
     def get_status(self, instance):
         return {"key": instance.status.status, "value": CaseStatusEnum.get_text(instance.status.status)}
-
-    def get_has_future_review_date(self, instance):
-        case_review_date = instance.case_review_date.filter(team_id=self.team.id).first()
-        if case_review_date:
-            if case_review_date.next_review_date and case_review_date.next_review_date > timezone.now().date():
-                return True
-        return False
 
 
 class CaseCopyOfSerializer(serializers.ModelSerializer):
@@ -206,6 +185,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
 
     def get_data(self, instance):
         from licences.serializers.open_general_licences import OpenGeneralLicenceCaseSerializer
+        from applications.helpers import get_application_view_serializer
 
         if instance.case_type.type == CaseTypeTypeEnum.REGISTRATION:
             return OpenGeneralLicenceCaseSerializer(get_open_general_export_licence_case(instance.id)).data
@@ -229,7 +209,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         return list(instance.queues.values_list("name", flat=True))
 
     def get_assigned_users(self, instance):
-        return instance.get_users()
+        return instance.get_assigned_users()
 
     def get_has_advice(self, instance):
         has_advice = {"user": False, "my_user": False, "team": False, "my_team": False, "final": False}
@@ -388,11 +368,9 @@ class EcjuQueryGovSerializer(serializers.ModelSerializer):
             return instance.responded_by_user.get_full_name()
 
 
-class EcjuQueryExporterSerializer(serializers.ModelSerializer):
+class EcjuQueryExporterViewSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()
-    responded_by_user = PrimaryKeyRelatedSerializerField(
-        queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
-    )
+    responded_by_user = serializers.SerializerMethodField()
     response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
 
     def get_team(self, instance):
@@ -412,6 +390,36 @@ class EcjuQueryExporterSerializer(serializers.ModelSerializer):
             "created_at",
             "responded_at",
         )
+
+    def get_responded_by_user(self, instance):
+        if instance.responded_by_user:
+            return {"id": instance.responded_by_user.id, "name": instance.responded_by_user.get_full_name()}
+
+
+class EcjuQueryExporterRespondSerializer(serializers.ModelSerializer):
+    team = serializers.SerializerMethodField()
+    responded_by_user = PrimaryKeyRelatedSerializerField(
+        queryset=ExporterUser.objects.all(), serializer=ExporterUserViewSerializer
+    )
+    response = serializers.CharField(max_length=2200, allow_blank=False, allow_null=False)
+
+    class Meta:
+        model = EcjuQuery
+        fields = (
+            "id",
+            "question",
+            "response",
+            "case",
+            "responded_by_user",
+            "team",
+            "created_at",
+            "responded_at",
+        )
+
+    def get_team(self, instance):
+        # If the team is not available, use the user's current team.
+        team = instance.team if instance.team else instance.raised_by_user.team
+        return TeamSerializer(team).data
 
 
 class EcjuQueryCreateSerializer(serializers.ModelSerializer):

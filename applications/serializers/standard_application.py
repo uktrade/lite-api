@@ -16,7 +16,7 @@ from applications.serializers.generic_application import (
 from applications.serializers.good import GoodOnApplicationViewSerializer
 from licences.serializers.view_licence import CaseLicenceViewSerializer
 from applications.serializers.serializer_helper import validate_field
-from cases.enums import CaseTypeEnum, CaseTypeReferenceEnum
+from cases.enums import CaseTypeEnum
 from conf.serializers import KeyValueChoiceField
 from licences.models import Licence
 from lite_content.lite_api import strings
@@ -64,7 +64,6 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
                 "proposed_return_date",
                 "trade_control_activity",
                 "trade_control_product_categories",
-                "contains_firearm_goods",
             )
         )
 
@@ -100,7 +99,6 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
         choices=ApplicationExportLicenceOfficialType.choices, error_messages={"required": strings.Goods.INFORMED},
     )
     reference_number_on_information_form = CharField(allow_blank=True)
-    contains_firearm_goods = serializers.BooleanField(required=False)
     trade_control_activity = KeyValueChoiceField(
         choices=TradeControlActivity.choices,
         error_messages={"required": strings.Applications.Generic.TRADE_CONTROL_ACTIVITY_ERROR},
@@ -125,7 +123,6 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             "trade_control_activity",
             "trade_control_activity_other",
             "trade_control_product_categories",
-            "contains_firearm_goods",
         )
 
     def __init__(self, case_type_id, **kwargs):
@@ -151,14 +148,6 @@ class StandardApplicationCreateSerializer(GenericApplicationCreateSerializer):
             validated_data["export_type"] = ApplicationExportType.PERMANENT
 
         return super().create(validated_data)
-
-    def validate(self, data):
-        if data.get("case_type").reference in [CaseTypeReferenceEnum.SIEL, CaseTypeReferenceEnum.SITL]:
-            if "contains_firearm_goods" not in data:
-                raise serializers.ValidationError(
-                    {"contains_firearm_goods": strings.Applications.Generic.NO_ANSWER_FIREARMS}
-                )
-        return data
 
 
 class StandardApplicationUpdateSerializer(GenericApplicationUpdateSerializer):

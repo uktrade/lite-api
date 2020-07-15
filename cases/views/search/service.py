@@ -3,7 +3,8 @@ from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Case as DjangoCase
+from django.db.models import Count, F, Q, When, UUIDField
 from django.db.models import Value
 from django.db.models.functions import Concat
 from django.utils import timezone
@@ -13,6 +14,8 @@ from audit_trail.models import Audit
 from cases.enums import CaseTypeEnum, CaseTypeSubTypeEnum, AdviceType
 from cases.models import Case
 from common.dates import working_days_in_range, number_of_days_since, working_hours_in_range
+from flags.serializers import CaseListFlagSerializer
+from organisations.models import Organisation
 from static.statuses.enums import CaseStatusEnum
 from users.enums import UserStatuses
 from users.models import GovUser
@@ -36,6 +39,123 @@ def get_gov_users_list():
 
 def get_advice_types_list():
     return AdviceType.to_representation()
+
+
+def populate_other_flags(cases: List[Dict]):
+    from flags.models import Flag
+
+    case_ids = [case["id"] for case in cases]
+
+    case_flags = Flag.objects.filter(cases__id__in=case_ids).annotate(case_id=F("cases__id"))
+    organisation_flags = Flag.objects.filter(organisations__cases__id__in=case_ids).annotate(
+        case_id=F("organisations__cases__id")
+    )
+    union_flags = [*case_flags, *organisation_flags]
+
+    for case in cases:
+        case["flags"] = CaseListFlagSerializer(
+            {flag for flag in union_flags if str(flag.case_id) == str(case["id"])}, many=True
+        ).data
+
+    return cases
+
+
+def populate_goods_flags(cases: List[Dict]):
+    from flags.models import Flag
+
+    case_ids = [case["id"] for case in cases]
+    flags = Flag.objects.filter(
+        Q(goods__goods_on_application__application_id__in=case_ids)
+        | Q(goods_type__application_id__in=case_ids)
+        | Q(goods__good__id__in=case_ids)
+    ).annotate(
+        case_id=DjangoCase(
+            When(
+                goods__goods_on_application__application_id__in=case_ids,
+                then=F("goods__goods_on_application__application_id"),
+            ),
+            When(goods_type__application_id__in=case_ids, then=F("goods_type__application_id")),
+            When(goods__good__id__in=case_ids, then=F("goods__good__id")),
+            default=None,
+            output_field=UUIDField(),
+        )
+    )
+
+    for case in cases:
+        case["goods_flags"] = CaseListFlagSerializer(
+            {flag for flag in flags if str(flag.case_id) == str(case["id"])}, many=True
+        ).data
+
+    return cases
+
+
+def populate_destinations_flags(cases: List[Dict]):
+    from flags.models import Flag
+
+    case_ids = [case["id"] for case in cases]
+    flags = Flag.objects.filter(
+        Q(parties__parties_on_application__application_id__in=case_ids)
+        | Q(
+            parties__parties_on_application__application_id__in=case_ids,
+            parties__parties_on_application__deleted_at__isnull=True,
+        )
+        | Q(countries_on_applications__application_id__in=case_ids)
+        | Q(countries__countries_on_application__application_id__in=case_ids)
+    ).annotate(
+        case_id=DjangoCase(
+            When(
+                parties__parties_on_application__application_id__in=case_ids,
+                then=F("parties__parties_on_application__application_id"),
+            ),
+            When(
+                parties__parties_on_application__application_id__in=case_ids,
+                then=F("parties__parties_on_application__application_id"),
+            ),
+            When(
+                countries_on_applications__application_id__in=case_ids,
+                then=F("countries_on_applications__application_id"),
+            ),
+            When(
+                countries__countries_on_application__application_id__in=case_ids,
+                then=F("countries__countries_on_application__application_id"),
+            ),
+            default=None,
+            output_field=UUIDField(),
+        )
+    )
+
+    for case in cases:
+        case["destinations_flags"] = CaseListFlagSerializer(
+            {flag for flag in flags if str(flag.case_id) == str(case["id"])}, many=True
+        ).data
+
+    return cases
+
+
+def populate_organisation(cases: List[Dict]):
+    from organisations.serializers import OrganisationCaseSerializer
+
+    case_ids = [case["id"] for case in cases]
+    organisations = (
+        Organisation.objects.filter(cases__id__in=case_ids)
+        .annotate(case_id=F("cases__id"))
+        .select_related("primary_site")
+        .prefetch_related(
+            "primary_site__address",
+            "primary_site__address__country",
+            "primary_site__site_records_located_at",
+            "primary_site__site_records_located_at__address",
+            "primary_site__site_records_located_at__address__country",
+        )
+    )
+
+    for case in cases:
+        organisation = next(
+            organisation for organisation in organisations if str(organisation.case_id) == str(case["id"])
+        )
+        case["organisation"] = OrganisationCaseSerializer(organisation).data
+
+    return cases
 
 
 def populate_is_recently_updated(cases: List[Dict]):
