@@ -155,7 +155,8 @@ class CaseGetTests(DataTestClient):
         at.save()
         pt = CountryOnApplication(application=open_application, country=get_country("PT"))
         pt.save()
-        uk = CountryOnApplication.objects.get(application=open_application, country_id="GB")
+        # FR already on draft open application
+        fr = CountryOnApplication.objects.get(application=open_application, country_id="FR")
 
         case = self.submit_application(open_application)
 
@@ -167,7 +168,7 @@ class CaseGetTests(DataTestClient):
         ordered_countries = [destination["id"] for destination in case_application["destinations"]["data"]]
 
         # Countries are ordered by flag priority and for countries without flags, they are alphabetised
-        self.assertEqual(ordered_countries, [str(pt.id), str(ad.id), str(bj.id), str(at.id), str(uk.id)])
+        self.assertEqual(ordered_countries, [str(pt.id), str(ad.id), str(bj.id), str(at.id), str(fr.id)])
 
     def test_countries_ordered_as_expected_on_standard_application(self):
         highest_priority_flag = FlagFactory(
