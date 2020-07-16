@@ -10,12 +10,13 @@ from applications.enums import (
 from applications.models import ExternalLocationOnApplication, CountryOnApplication
 from applications.tests.factories import GoodOnApplicationFactory
 from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
-from cases.tests.factories import GoodCountryDecisionFactory
+from cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
 from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
 from goods.enums import PvGrading, ItemType, MilitaryUse, Component, ItemCategory, FirearmGoodType, GoodControlled
 from goods.tests.factories import GoodFactory, FirearmFactory
+from goodstype.tests.factories import GoodsTypeFactory
 from letter_templates.context_generator import get_document_context
 from licences.enums import LicenceStatus
 from licences.tests.factories import GoodOnLicenceFactory
@@ -425,31 +426,73 @@ class DocumentContextGenerationTests(DataTestClient):
 
     def test_generate_context_with_goods_types(self):
         case = self.create_open_application_case(self.organisation)
-        case.goods_type.first().countries.set([Country.objects.first()])
-        case.goods_type.last().countries.set([Country.objects.last()])
+        approved_goods_type = case.goods_type.last()
+        refused_goods_type = case.goods_type.first()
+        refused_with_final_advice_goods_type = GoodsTypeFactory(application=case)
+        approved_country = Country.objects.first()
+        refused_country = Country.objects.last()
+        refused_with_final_advice_country = Country.objects.all()[1]
+
+        # Add a country refused at final advice level
+        FinalAdviceFactory(
+            user=self.gov_user,
+            team=self.team,
+            case=case,
+            country=refused_with_final_advice_country,
+            type=AdviceType.REFUSE,
+        )
+
+        # Add a goods type refused at final advice level
+        refused_with_final_advice_goods_type.countries.set([approved_country])
+        FinalAdviceFactory(
+            user=self.gov_user,
+            team=self.team,
+            case=case,
+            goods_type=refused_with_final_advice_goods_type,
+            type=AdviceType.REFUSE,
+        )
+
+        # Add approve & refuse GoodCountryDecisions
+        approved_goods_type.countries.set([refused_with_final_advice_country, approved_country])
+        refused_goods_type.countries.set([refused_country])
         GoodCountryDecisionFactory(
-            case=case, country=Country.objects.first(), goods_type=case.goods_type.first(), approve=True
+            case=case, country=approved_country, goods_type=approved_goods_type, approve=True
         )
         GoodCountryDecisionFactory(
-            case=case, country=Country.objects.last(), goods_type=case.goods_type.last(), approve=False
+            case=case, country=refused_country, goods_type=refused_goods_type, approve=False
         )
 
         context = get_document_context(case)
-
         self.assertEqual(context["case_reference"], case.reference_code)
 
-        # Both goods types should be in all
-        self.assertEqual(len(context["goods"]["all"]), 2)
-        self._assert_goods_type(context["goods"]["all"][0], case.goods_type.first())
-        self._assert_goods_type(context["goods"]["all"][1], case.goods_type.last())
+        # All goods types should be in all
+        self.assertEqual(len(context["goods"]["all"]), 3)
+        self._assert_goods_type(context["goods"]["all"][0], approved_goods_type)
+        self._assert_goods_type(context["goods"]["all"][1], refused_goods_type)
+        self._assert_goods_type(context["goods"]["all"][2], refused_with_final_advice_goods_type)
 
+        # Only the approved goods type with the approved country should be in approved
         self.assertEqual(len(context["goods"]["approve"]), 1)
-        self.assertEqual(len(context["goods"]["approve"][Country.objects.first().name]), 1)
-        self._assert_goods_type(context["goods"]["approve"][Country.objects.first().name][0], case.goods_type.first())
+        self.assertEqual(len(context["goods"]["approve"][approved_country.name]), 1)
+        self._assert_goods_type(context["goods"]["approve"][approved_country.name][0], approved_goods_type)
 
-        self.assertEqual(len(context["goods"]["refuse"]), 1)
-        self.assertEqual(len(context["goods"]["refuse"][Country.objects.last().name]), 1)
-        self._assert_goods_type(context["goods"]["refuse"][Country.objects.last().name][0], case.goods_type.last())
+        self.assertEqual(len(context["goods"]["refuse"]), 3)
+
+        # Rejected GoodCountryDecision
+        self.assertEqual(len(context["goods"]["refuse"][refused_country.name]), 1)
+        self._assert_goods_type(context["goods"]["refuse"][refused_country.name][0], refused_goods_type)
+
+        # Rejected goods type at final advice level
+        self.assertEqual(len(context["goods"]["refuse"][approved_country.name]), 1)
+        self._assert_goods_type(
+            context["goods"]["refuse"][approved_country.name][0], refused_with_final_advice_goods_type
+        )
+
+        # Rejected country at final advice level (on approved goods type)
+        self.assertEqual(len(context["goods"]["refuse"][refused_with_final_advice_country.name]), 1)
+        self._assert_goods_type(
+            context["goods"]["refuse"][refused_with_final_advice_country.name][0], approved_goods_type
+        )
 
     def test_generate_context_with_licence(self):
         case = self.create_standard_application_case(self.organisation, user=self.exporter_user)

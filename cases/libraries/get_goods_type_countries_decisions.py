@@ -107,7 +107,7 @@ def good_type_to_country_decisions(application_pk):
                         _get_country_on_goods_type_context(
                             country,
                             approved_countries.get(country.id) or AdviceType.REFUSE,
-                            goods_type_countries_decisions.get(f"{goods_type.id}.{country.id}")
+                            goods_type_countries_decisions.get(f"{goods_type.id}.{country.id}"),
                         )
                     ],
                 }
@@ -132,7 +132,7 @@ def get_required_good_type_to_country_combinations(application_pk):
         Q(goods_type__isnull=False) | Q(country__isnull=False),
         case_id=application_pk,
         level=AdviceLevel.FINAL,
-        type=AdviceType.APPROVE,
+        type__in=[AdviceType.APPROVE, AdviceType.PROVISO],
     ).values("goods_type_id", "country_id")
 
     approved_goods_types_ids = []

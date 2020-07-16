@@ -1,4 +1,5 @@
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.db.models import Q
 
 from applications.enums import GoodsTypeCategory, MTCRAnswers, ServiceEquipmentType
 from applications.models import (
@@ -16,12 +17,14 @@ from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled
+from goodstype.models import GoodsType
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
+from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from static.units.enums import Units
@@ -45,7 +48,12 @@ def get_document_context(case, addressee=None):
     if getattr(base_application, "goods", "") and base_application.goods.exists():
         goods = _get_goods_context(base_application, final_advice, licence)
     elif getattr(base_application, "goods_type", "") and base_application.goods_type.exists():
-        goods = _get_goods_type_context(base_application.goods_type.all(), case.pk)
+        goods = _get_goods_type_context(
+            base_application.goods_type.all()
+            .order_by("created_at")
+            .prefetch_related("countries", "control_list_entries"),
+            case.pk,
+        )
     else:
         goods = None
 
@@ -558,40 +566,77 @@ def _get_goods_type(goods_type):
     }
 
 
-def _get_goods_type_decision_context(good_country_decisions):
-    context = {}
-    for decision in good_country_decisions:
-        if decision.country.name not in context:
-            context[decision.country.name] = [_get_goods_type(decision.goods_type)]
-        else:
-            context[decision.country.name].append(_get_goods_type(decision.goods_type))
-    return context
-
-
 def _get_goods_type_context(goods_types, case_pk):
     goods_type_context = {"all": [_get_goods_type(goods_type) for goods_type in goods_types]}
 
+    # Get GoodCountryDecisions
     goods_type_on_country_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).prefetch_related(
-        "goods_type", "country"
+        "goods_type", "goods_type__control_list_entries", "country"
     )
     approved_goods_type_on_country_decisions = []
     refused_goods_type_on_country_decisions = []
-
     for goods_type_on_country_decision in goods_type_on_country_decisions:
         if goods_type_on_country_decision.approve:
             approved_goods_type_on_country_decisions.append(goods_type_on_country_decision)
         else:
             refused_goods_type_on_country_decisions.append(goods_type_on_country_decision)
 
+    # Approved goods types on country
     if approved_goods_type_on_country_decisions:
-        goods_type_context[AdviceType.APPROVE] = _get_goods_type_decision_context(
-            approved_goods_type_on_country_decisions
-        )
+        context = {}
+        for decision in approved_goods_type_on_country_decisions:
+            if decision.country.name not in context:
+                context[decision.country.name] = [_get_goods_type(decision.goods_type)]
+            else:
+                context[decision.country.name].append(_get_goods_type(decision.goods_type))
+        goods_type_context[AdviceType.APPROVE] = context
 
+    # Get Refused Final advice on Country & GoodsType
+    rejected_entities = Advice.objects.filter(
+        Q(goods_type__isnull=False) | Q(country__isnull=False),
+        case_id=case_pk,
+        level=AdviceLevel.FINAL,
+        type=AdviceType.REFUSE,
+    ).prefetch_related("goods_type", "country")
+    refused_final_advice_countries = []
+    refused_final_advice_goods_types = []
+    for rejected_entity in rejected_entities:
+        if rejected_entity.goods_type:
+            refused_final_advice_goods_types.append(rejected_entity.goods_type)
+        else:
+            refused_final_advice_countries.append(rejected_entity.country)
+
+    # Refused goods types on country from GoodCountryDecisions
+    context = {}
     if refused_goods_type_on_country_decisions:
-        goods_type_context[AdviceType.REFUSE] = _get_goods_type_decision_context(
-            refused_goods_type_on_country_decisions
-        )
+        for decision in refused_goods_type_on_country_decisions:
+            if decision.country.name not in context:
+                context[decision.country.name] = {decision.goods_type.id: _get_goods_type(decision.goods_type)}
+            else:
+                context[decision.country.name][decision.goods_type.id] = _get_goods_type(decision.goods_type)
+
+    # Countries refused for all goods types at final advice level
+    if refused_final_advice_countries:
+        for country in refused_final_advice_countries:
+            goods_type_for_country = goods_types.filter(countries=country)
+            for goods_type in goods_type_for_country:
+                if country.name not in context:
+                    context[country.name] = {goods_type.id: _get_goods_type(goods_type)}
+                elif goods_type.id not in context[country.name]:
+                    context[country.name][goods_type.id] = _get_goods_type(goods_type)
+
+    # Goods types refused for all countries at final advice level
+    if refused_final_advice_goods_types:
+        for goods_type in refused_final_advice_goods_types:
+            for country in goods_type.countries.all():
+                if country.name not in context:
+                    context[country.name] = {goods_type.id: _get_goods_type(goods_type)}
+                elif goods_type.id not in context[country.name]:
+                    context[country.name][goods_type.id] = _get_goods_type(goods_type)
+
+    if context:
+        # Remove ID's used to avoid duplication
+        goods_type_context[AdviceType.REFUSE] = {key: list(context[key].values()) for key in context}
 
     return goods_type_context
 
