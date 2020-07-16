@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import generics, status
 
@@ -42,7 +43,9 @@ class LetterTemplatesList(generics.ListCreateAPIView):
         if decision:
             case = get_case(pk=case)
             decision = Decision.objects.get(name=decision)
-            return queryset.filter(case_types=case.case_type, decisions=decision)
+            return queryset.filter(
+                Q(case_types=case.case_type, decisions=decision) | Q(case_types=case.case_type, decisions__isnull=True)
+            )
         elif case:
             case = get_case(pk=case)
             return queryset.filter(case_types=case.case_type, decisions__isnull=True)
