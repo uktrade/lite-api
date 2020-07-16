@@ -25,7 +25,7 @@ from licences.tasks import (
     TASK_BACK_OFF,
     schedule_max_tried_task_as_new_task,
     schedule_licence_for_hmrc_integration,
-    TASK_QUEUE,
+    HMRC_INTEGRATION_QUEUE,
 )
 from licences.tests.factories import GoodOnLicenceFactory
 from static.countries.models import Country
@@ -349,7 +349,8 @@ class HMRCIntegrationTasksTests(DataTestClient):
         schedule_licence_for_hmrc_integration(str(self.standard_licence.id), self.hmrc_integration_status)
 
         task_filter.assert_called_with(
-            queue=TASK_QUEUE, task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
+            queue=HMRC_INTEGRATION_QUEUE,
+            task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
         )
         send_licence_to_hmrc_integration.assert_called_with(str(self.standard_licence.id), self.hmrc_integration_status)
 
@@ -365,7 +366,8 @@ class HMRCIntegrationTasksTests(DataTestClient):
         schedule_licence_for_hmrc_integration(str(self.standard_licence.id), self.hmrc_integration_status)
 
         task_filter.assert_called_with(
-            queue=TASK_QUEUE, task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
+            queue=HMRC_INTEGRATION_QUEUE,
+            task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
         )
         send_licence_to_hmrc_integration.assert_not_called()
 
@@ -417,7 +419,8 @@ class HMRCIntegrationTasksTests(DataTestClient):
 
         send_licence.assert_called_once()
         task_get.assert_called_with(
-            queue=TASK_QUEUE, task_params=f'[["{self.standard_licence.id}", "{ self.hmrc_integration_status}"], {{}}]',
+            queue=HMRC_INTEGRATION_QUEUE,
+            task_params=f'[["{self.standard_licence.id}", "{ self.hmrc_integration_status}"], {{}}]',
         )
         schedule_max_tried_task_as_new_task.assert_not_called()
         self.assertEqual(
@@ -444,7 +447,8 @@ class HMRCIntegrationTasksTests(DataTestClient):
 
         send_licence.assert_called_once()
         task_get.assert_called_with(
-            queue=TASK_QUEUE, task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
+            queue=HMRC_INTEGRATION_QUEUE,
+            task_params=f'[["{self.standard_licence.id}", "{self.hmrc_integration_status}"], {{}}]',
         )
         schedule_max_tried_task_as_new_task.assert_called_with(
             str(self.standard_licence.id), self.hmrc_integration_status,

@@ -22,6 +22,8 @@ def expire_licences():
 
     try:
         with transaction.atomic():
+            logging.info(f"Expiring Licences")
+
             expired_licence_ids = Licence.objects.filter(
                 status__in=LicenceStatus.open_statuses, end_date__lt=timezone.now()
             ).values_list("id", flat=True)
@@ -34,10 +36,9 @@ def expire_licences():
             for licence_id in expired_licence_ids:
                 schedule_licence_for_hmrc_integration(licence_id, LicenceStatus.EXPIRED)
 
-            logging.error(f"Expired Licences '{expired_licence_ids}'")
+            logging.info(f"Licences expired: {expired_licence_ids}")
     except Exception as exc:  # noqa
         logging.error(f"An unexpected error occurred when expiring Licences -> {type(exc).__name__}: {exc}")
-    pass
 
 
 @background(queue=HMRC_INTEGRATION_QUEUE, schedule=0)
