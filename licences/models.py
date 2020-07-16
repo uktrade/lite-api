@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from applications.models import BaseApplication, GoodOnApplication
+from applications.models import GoodOnApplication
 from cases.models import Case
 from common.models import TimestampableModel
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
