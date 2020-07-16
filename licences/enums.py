@@ -23,7 +23,6 @@ class LicenceStatus:
 
     choices = [
         (ISSUED, "Issued"),
-        (ISSUED, "Issued"),
         (REINSTATED, "Reinstated"),
         (REVOKED, "Revoked"),
         (SURRENDERED, "Surrendered"),
