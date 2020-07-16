@@ -455,12 +455,8 @@ class DocumentContextGenerationTests(DataTestClient):
         # Add approve & refuse GoodCountryDecisions
         approved_goods_type.countries.set([refused_with_final_advice_country, approved_country])
         refused_goods_type.countries.set([refused_country])
-        GoodCountryDecisionFactory(
-            case=case, country=approved_country, goods_type=approved_goods_type, approve=True
-        )
-        GoodCountryDecisionFactory(
-            case=case, country=refused_country, goods_type=refused_goods_type, approve=False
-        )
+        GoodCountryDecisionFactory(case=case, country=approved_country, goods_type=approved_goods_type, approve=True)
+        GoodCountryDecisionFactory(case=case, country=refused_country, goods_type=refused_goods_type, approve=False)
 
         context = get_document_context(case)
         self.assertEqual(context["case_reference"], case.reference_code)
