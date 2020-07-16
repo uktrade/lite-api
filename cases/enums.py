@@ -303,7 +303,7 @@ class AdviceType:
     choices = [
         (APPROVE, "Approve"),
         (PROVISO, "Proviso"),
-        (REFUSE, "Reject"),
+        (REFUSE, "Refuse"),
         (NO_LICENCE_REQUIRED, "No Licence Required"),
         (NOT_APPLICABLE, "Not Applicable"),
         (CONFLICTING, "Conflicting"),
