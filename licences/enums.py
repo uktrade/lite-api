@@ -33,6 +33,8 @@ class LicenceStatus:
         (CANCELLED, "Cancelled"),
     ]
 
+    open_statuses = [ISSUED, REINSTATED]
+
     @classmethod
     def to_str(cls, status):
         return next(choice[1] for choice in cls.choices if choice[0] == status)

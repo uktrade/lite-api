@@ -574,7 +574,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {
                 "id": str(licence.id),
                 "action": HMRCIntegrationActionEnum.OPEN,
-                "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update,}],
+                "goods": [{"id": str(licence.goods.first().good.good.id), "usage": usage_update}],
             },
             {
                 "id": invalid_licence_id,

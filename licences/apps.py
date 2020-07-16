@@ -9,12 +9,25 @@ class LicencesConfig(AppConfig):
     name = "licences"
 
     def initialize_background_tasks(self, **kwargs):
+        self.schedule_expire_licences_task()
+
         if LITE_HMRC_INTEGRATION_ENABLED:
             self.schedule_not_sent_licences()
 
     @staticmethod
+    def schedule_expire_licences_task():
+        """Schedule Task to expire Licences"""
+
+        from background_task.models import Task
+        from licences.tasks import expire_licences
+
+        if not Task.objects.filter(task_name="licences.tasks.expire_licences").exists():
+            expire_licences(repeat=Task.DAILY, repeat_until=None)  # noqa
+
+    @staticmethod
     def schedule_not_sent_licences():
-        # Send licence info to HMRC integration
+        """Send licence info to HMRC integration"""
+
         from licences.models import Licence
         from licences.tasks import schedule_licence_for_hmrc_integration
 

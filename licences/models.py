@@ -4,6 +4,7 @@ from django.db import models
 
 from applications.models import BaseApplication, GoodOnApplication
 from common.models import TimestampableModel
+from conf.helpers import add_months
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
 from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 from licences.managers import LicenceManager
@@ -27,6 +28,7 @@ class Licence(TimestampableModel):
     )
     status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
     start_date = models.DateField(blank=False, null=False)
+    end_date = models.DateField(blank=False, null=False)
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
     decisions = models.ManyToManyField(Decision, related_name="licence")
     hmrc_integration_sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
@@ -76,6 +78,7 @@ class Licence(TimestampableModel):
         self.save()
 
     def save(self, *args, **kwargs):
+        self.end_date = add_months(self.start_date, self.duration, "%Y-%m-%d")
         super(Licence, self).save(*args, **kwargs)
 
         if LITE_HMRC_INTEGRATION_ENABLED and self.status != LicenceStatus.DRAFT:
