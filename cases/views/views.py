@@ -8,7 +8,6 @@ from rest_framework.exceptions import ParseError
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.views import APIView
 
-from applications.models import CountryOnApplication
 from applications.serializers.advice import CountryWithFlagsSerializer
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
@@ -24,9 +23,15 @@ from cases.generated_documents.serializers import AdviceDocumentGovSerializer
 from cases.helpers import remove_next_review_date
 from cases.libraries.advice import group_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
+from cases.libraries.finalise import get_required_decision_document_types
 from cases.libraries.get_case import get_case, get_case_document
 from cases.libraries.get_destination import get_destination
 from cases.libraries.get_ecju_queries import get_ecju_query
+from cases.libraries.get_goods_type_countries_decisions import (
+    good_type_to_country_decisions,
+    get_required_good_type_to_country_combinations,
+    get_existing_good_type_to_country_decisions,
+)
 from cases.libraries.post_advice import (
     post_advice,
     check_if_final_advice_exists,
@@ -43,6 +48,7 @@ from cases.serializers import (
     EcjuQueryGovSerializer,
     AdviceViewSerializer,
     GoodCountryDecisionSerializer,
+    CaseAdviceSerializer,
     CaseOfficerUpdateSerializer,
     ReviewDateUpdateSerializer,
     EcjuQueryExporterViewSerializer,
@@ -54,13 +60,12 @@ from compliance.models import ComplianceVisitCase
 from conf import constants
 from conf.authentication import GovAuthentication, SharedAuthentication, ExporterAuthentication
 from conf.constants import GovPermissions
-from conf.exceptions import NotFoundError, BadRequestError
+from conf.exceptions import NotFoundError
 from conf.helpers import convert_date_to_string
 from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
-from goodstype.helpers import get_goods_type
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData, EcjuComplianceCreatedEmailData
@@ -73,7 +78,6 @@ from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
-from static.countries.helpers import get_country
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
@@ -329,17 +333,10 @@ class FinalAdviceDocuments(APIView):
         """
         # Get all advice
         advice_values = AdviceType.as_dict()
-        final_advice = list(
-            Advice.objects.filter(case__id=pk).order_by("type").distinct("type").values_list("type", flat=True)
-        )
+
+        final_advice = get_required_decision_document_types(get_case(pk))
         if not final_advice:
             return JsonResponse(data={"documents": {}}, status=status.HTTP_200_OK)
-
-        # Map Proviso -> Approve advice (Proviso results in Approve document)
-        if AdviceType.PROVISO in final_advice:
-            if AdviceType.APPROVE not in final_advice:
-                final_advice.append(AdviceType.APPROVE)
-            final_advice.remove(AdviceType.PROVISO)
 
         advice_documents = {advice_type: {"value": advice_values[advice_type]} for advice_type in final_advice}
 
@@ -415,6 +412,8 @@ class FinalAdvice(APIView):
         """
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         self.final_advice.delete()
+        # Delete GoodCountryDecisions as final advice is no longer applicable
+        GoodCountryDecision.objects.filter(case_id=pk).delete()
         audit_trail_service.create(
             actor=request.user, verb=AuditType.CLEARED_FINAL_ADVICE, target=self.case,
         )
@@ -554,35 +553,65 @@ class GoodsCountriesDecisions(APIView):
 
     def get(self, request, pk):
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        goods_countries = GoodCountryDecision.objects.filter(case=pk)
-        serializer = GoodCountryDecisionSerializer(goods_countries, many=True)
+        approved, refused = good_type_to_country_decisions(pk)
+        return JsonResponse({"approved": list(approved.values()), "refused": list(refused.values())})
 
-        return JsonResponse(data={"data": serializer.data}, status=status.HTTP_200_OK)
-
+    @transaction.atomic
     def post(self, request, pk):
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
-        data = request.data.get("good_countries")
 
-        if not data:
-            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
+        data = {k: v for k, v in request.data.items() if v is not None}
 
-        country_count = CountryOnApplication.objects.filter(application=get_case(data[0]["case"])).count()
+        # Get list of all required item id's
+        required_decisions = get_required_good_type_to_country_combinations(pk)
+        required_decision_ids = set()
+        for goods_type, country_list in required_decisions.items():
+            for country in country_list:
+                required_decision_ids.add(f"{goods_type}.{country}")
 
-        if len(data) != country_count:
-            raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
+        if not required_decision_ids.issubset(data):
+            missing_ids = required_decision_ids.difference(request.data)
+            raise ParseError({missing_id: [Cases.GoodCountryMatrix.MISSING_ITEM] for missing_id in missing_ids})
 
-        serializer = GoodCountryDecisionSerializer(data=data, many=True)
+        # Delete existing decision documents if decision changes
+        existing_decisions = get_existing_good_type_to_country_decisions(pk)
+        for decision_id in required_decision_ids:
+            if (data.get(decision_id) != AdviceType.REFUSE) != existing_decisions.get(decision_id):
+                # Proviso N/A as there is no proviso document type
+                GeneratedCaseDocument.objects.filter(
+                    case_id=pk, advice_type__in=[AdviceType.APPROVE, AdviceType.REFUSE], visible_to_exporter=False
+                ).delete()
+                break
 
-        if serializer.is_valid(raise_exception=True):
-            for item in data:
-                GoodCountryDecision(
-                    good=get_goods_type(item["good"]),
-                    case=get_case(item["case"]),
-                    country=get_country(item["country"]),
-                    decision=item["decision"],
-                ).save()
+        # Update or create GoodCountryDecisions
+        for id in required_decision_ids:
+            goods_type_id, country_id = id.split(".")
+            value = data[id] == AdviceType.APPROVE
+            GoodCountryDecision.objects.update_or_create(
+                case_id=pk, goods_type_id=goods_type_id, country_id=country_id, defaults={"approve": value}
+            )
 
-            return JsonResponse(data={"data": data}, status=status.HTTP_200_OK)
+        audit_trail_service.create(
+            actor=request.user, verb=AuditType.UPDATED_GOOD_ON_DESTINATION_MATRIX, target=get_case(pk),
+        )
+
+        return JsonResponse(
+            data={"good_country_decisions": list(required_decision_ids)}, status=status.HTTP_201_CREATED
+        )
+
+
+class OpenLicenceDecision(APIView):
+    authentication_classes = (GovAuthentication,)
+
+    def get(self, request, pk):
+        assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
+        return JsonResponse(
+            data={
+                "decision": AdviceType.APPROVE
+                if GoodCountryDecision.objects.filter(case_id=pk, approve=True).exists()
+                else AdviceType.REFUSE
+            }
+        )
 
 
 class Destination(APIView):
@@ -675,13 +704,7 @@ class FinaliseView(UpdateAPIView):
         else:
             assert_user_has_permission(request.user, GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
 
-        # Check all decision types have documents
-        required_decisions = set(
-            Advice.objects.filter(case=case).order_by("type").distinct("type").values_list("type", flat=True)
-        )
-        if AdviceType.PROVISO in required_decisions:
-            required_decisions.add(AdviceType.APPROVE)
-            required_decisions.remove(AdviceType.PROVISO)
+        required_decisions = get_required_decision_document_types(case)
 
         # Check that each decision has a document
         # Excluding approve (done in the licence section below)
