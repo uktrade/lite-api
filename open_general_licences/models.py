@@ -1,14 +1,12 @@
 import uuid
 
 from django.db import models
-from django.utils import timezone
 
 from cases.models import CaseType, Case
 from common.models import TimestampableModel
-from licences.enums import LicenceStatus
 from licences.models import Licence
 from open_general_licences.enums import OpenGeneralLicenceStatus
-from open_general_licences.helpers import get_open_general_licence_duration
+from open_general_licences.helpers import issue_open_general_licence
 from organisations.models import Site
 from static.control_list_entries.models import ControlListEntry
 from static.countries.models import Country
@@ -55,10 +53,4 @@ class OpenGeneralLicenceCase(Case):
         super(OpenGeneralLicenceCase, self).save(*args, **kwargs)
 
         if creating:
-            Licence.objects.create(
-                reference_code=self.reference_code,
-                application=self,
-                status=LicenceStatus.ISSUED,
-                start_date=timezone.now().date(),
-                duration=get_open_general_licence_duration(),
-            )
+            issue_open_general_licence(self, reissue=False)

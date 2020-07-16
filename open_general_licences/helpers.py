@@ -3,6 +3,8 @@ import datetime
 from django.utils import timezone
 
 from conf.exceptions import NotFoundError
+from licences.enums import LicenceStatus
+from licences.models import Licence
 
 
 def get_open_general_licence(pk):
@@ -22,3 +24,13 @@ def get_open_general_licence_duration():
     start_date = timezone.now().date()
     end_date = datetime.date(2076, 12, 31)
     return (end_date.year - start_date.year) * 12 + end_date.month - start_date.month
+
+
+def issue_open_general_licence(ogel, reissue: bool):
+    return Licence.objects.create(
+        reference_code=ogel.reference_code,
+        application=ogel,
+        status=LicenceStatus.REINSTATED if reissue else LicenceStatus.ISSUED,
+        start_date=timezone.now().date(),
+        duration=get_open_general_licence_duration(),
+    )
