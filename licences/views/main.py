@@ -43,7 +43,7 @@ class Licences(ListCreateAPIView):
         # and they shouldn't be viewed
         licences = Licence.objects.filter(
             application__organisation_id=get_request_user_organisation_id(self.request),
-        ).exclude(application__case_type__reference=CaseTypeReferenceEnum.OGEL, status=LicenceStatus.DRAFT)
+        ).exclude(Q(application__case_type__reference=CaseTypeReferenceEnum.OGEL) | Q(status=LicenceStatus.DRAFT))
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:

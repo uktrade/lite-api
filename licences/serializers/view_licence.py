@@ -236,6 +236,7 @@ class NLRdocumentSerializer(serializers.ModelSerializer):
             .values("party_name", "country_name")
         )
 
+
 # Licence list serializers
 
 
