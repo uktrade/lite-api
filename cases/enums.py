@@ -250,9 +250,10 @@ class CaseTypeEnum:
     ]
 
     OGL_ID_LIST = [OGEL.id, OGTCL.id, OGTL.id]
-    STANDARD_LICENCE_IDS = [SIEL, SICL, SITL]
+    STANDARD_LICENCE_IDS = [SIEL.id, SICL.id, SITL.id]
     OPEN_LICENCE_IDS = [OIEL.id, OICL.id, OGEL.id, OGTCL.id, OGTL.id]
     MOD_LICENCE_IDS = [F680.id, EXHIBITION.id, GIFTING.id]
+    LICENCE_IDS = OGL_ID_LIST + STANDARD_LICENCE_IDS + OPEN_LICENCE_IDS + MOD_LICENCE_IDS
 
     @classmethod
     def case_types_to_representation(cls):
