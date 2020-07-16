@@ -53,11 +53,13 @@ def serialize_goods_on_licence(licence):
     if licence.goods.exists():
         # Standard Application
         return GoodOnLicenceViewSerializer(licence.goods, many=True).data
-    elif licence.application.goods_type.exists():
-        # Open Application
-        approved_goods_types = get_approved_goods_types(licence.application)
-        return GoodsTypeOnLicenceListSerializer(approved_goods_types, many=True).data
-    elif licence.application.case_type.sub_type != CaseTypeSubTypeEnum.STANDARD:
-        # MOD clearances
-        goods = GoodOnApplication.objects.filter(application=licence.application)
-        return GoodOnApplicationViewSerializer(goods, many=True).data
+    elif hasattr(licence, "baseapplication"):
+        application = licence.baseapplication
+        if application.goods_type.exists():
+            # Open Application
+            approved_goods_types = get_approved_goods_types(application)
+            return GoodsTypeOnLicenceListSerializer(approved_goods_types, many=True).data
+        elif application.case_type.sub_type != CaseTypeSubTypeEnum.STANDARD:
+            # MOD clearances
+            goods = GoodOnApplication.objects.filter(application=application)
+            return GoodOnApplicationViewSerializer(goods, many=True).data
