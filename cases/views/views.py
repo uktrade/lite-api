@@ -576,17 +576,6 @@ class GoodsCountriesDecisions(APIView):
             missing_ids = required_decision_ids.difference(request.data)
             raise ParseError({missing_id: [Cases.GoodCountryMatrix.MISSING_ITEM] for missing_id in missing_ids})
 
-        # BEGIN
-        # if not data:
-        #     raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
-        # application = get_case(data[0]["case"])
-        # country_count = CountryOnApplication.objects.filter(application=application).exclude(country__id="GB").count()
-        # good_count = GoodsType.objects.filter(application=application).count()
-        #
-        # if len(data) != country_count * good_count:
-        #     raise BadRequestError({"good_countries": ["Select a decision for each good and country"]})
-        # # END
-
         # Delete existing decision documents if decision changes
         existing_decisions = get_existing_good_type_to_country_decisions(pk)
         for decision_id in required_decision_ids:
