@@ -4,7 +4,6 @@ from django.db import models
 
 from cases.models import CaseType, Case
 from common.models import TimestampableModel
-from licences.models import Licence
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.helpers import issue_open_general_licence
 from organisations.models import Site
