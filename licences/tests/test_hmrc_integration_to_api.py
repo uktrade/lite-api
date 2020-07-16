@@ -1,4 +1,5 @@
 import uuid
+from unittest import mock
 
 from django.urls import reverse
 from parameterized import parameterized
@@ -258,6 +259,87 @@ class HMRCIntegrationUsageTests(DataTestClient):
                 payload={"licence": licence.reference_code, "status": LicenceStatus.EXHAUSTED},
             ).exists()
         )
+
+    @mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_update_usages__all_goods_exhausted_when_action_is_exhaust_doesnt_create_task_to_inform_hmrc_of_licence(
+        self, schedule_licence_for_hmrc_integration
+    ):
+        schedule_licence_for_hmrc_integration.return_value = None
+        licence = self.create_siel_licence()
+        gol = licence.goods.first()
+        original_usage = gol.usage
+        usage_update_id = str(uuid.uuid4())
+        usage_update = 10
+        gol.quantity = original_usage + usage_update
+        gol.save()
+        licence_update = {
+            "id": str(licence.id),
+            "action": HMRCIntegrationActionEnum.EXHAUST,
+            "goods": [{"id": str(gol.good.good.id), "usage": usage_update}],
+        }
+
+        response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": [licence_update]})
+        licence.refresh_from_db()
+
+        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
+        self.assertEqual(
+            response.json()["licences"]["accepted"], [licence_update],
+        )
+        self.assertEqual(response.json()["licences"]["rejected"], [])
+        self.assertEqual(licence.goods.first().usage, original_usage + usage_update)
+        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=licence).exists())
+        self.assertEqual(licence.status, LicenceStatus.EXHAUSTED)
+        self.assertTrue(
+            Audit.objects.filter(
+                verb=AuditType.LICENCE_UPDATED_STATUS,
+                payload={"licence": licence.reference_code, "status": LicenceStatus.EXHAUSTED},
+            ).exists()
+        )
+        # If HMRC has sent an action to update the Licence status;
+        # Assert that the licence being set to Exhausted via all good lines being exhausted does not trigger the
+        # task to inform HMRC that the status has changed
+        schedule_licence_for_hmrc_integration.assert_not_called()
+
+    @mock.patch("licences.models.LITE_HMRC_INTEGRATION_ENABLED", True)
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_update_usages_all_goods_exhausted_when_action_is_open_does_inform_hmrc_of_licence(
+        self, schedule_licence_for_hmrc_integration
+    ):
+        schedule_licence_for_hmrc_integration.return_value = None
+        licence = self.create_siel_licence()
+        gol = licence.goods.first()
+        original_usage = gol.usage
+        usage_update_id = str(uuid.uuid4())
+        usage_update = 10
+        gol.quantity = original_usage + usage_update
+        gol.save()
+        licence_update = {
+            "id": str(licence.id),
+            "action": HMRCIntegrationActionEnum.OPEN,
+            "goods": [{"id": str(gol.good.good.id), "usage": usage_update}],
+        }
+
+        response = self.client.put(self.url, {"usage_update_id": usage_update_id, "licences": [licence_update]})
+        licence.refresh_from_db()
+
+        self.assertEqual(response.status_code, HTTP_207_MULTI_STATUS)
+        self.assertEqual(
+            response.json()["licences"]["accepted"], [licence_update],
+        )
+        self.assertEqual(response.json()["licences"]["rejected"], [])
+        self.assertEqual(licence.goods.first().usage, original_usage + usage_update)
+        self.assertTrue(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id, licences=licence).exists())
+        self.assertEqual(licence.status, LicenceStatus.EXHAUSTED)
+        self.assertTrue(
+            Audit.objects.filter(
+                verb=AuditType.LICENCE_UPDATED_STATUS,
+                payload={"licence": licence.reference_code, "status": LicenceStatus.EXHAUSTED},
+            ).exists()
+        )
+        # Assert that the licence being set to Exhausted via all good lines being exhausted does trigger the
+        # task to inform HMRC that the status has changed
+        schedule_licence_for_hmrc_integration.assert_called_once()
 
     @parameterized.expand(
         [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]

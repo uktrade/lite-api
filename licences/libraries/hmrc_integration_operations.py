@@ -43,7 +43,8 @@ def send_licence(licence: Licence, action: str):
         )
 
     if response.status_code == status.HTTP_201_CREATED:
-        licence.set_hmrc_integration_sent_at(timezone.now())
+        licence.hmrc_integration_sent_at = timezone.now()
+        licence.save()
 
     logging.info(f"Successfully sent licence '{licence.id}', action '{action}' to HMRC Integration")
 
@@ -142,6 +143,7 @@ def _update_licence(data: dict) -> str:
     gols = [_update_good_on_licence_usage(licence.id, good["id"], float(good["usage"])) for good in data["goods"]]
     action = data["action"]
     change_status = None
+    send_status_change_to_hmrc = False
 
     if action == HMRCIntegrationActionEnum.EXHAUST:
         change_status = licence.exhaust
@@ -152,7 +154,7 @@ def _update_licence(data: dict) -> str:
     elif action == HMRCIntegrationActionEnum.EXPIRE:
         change_status = licence.expire
 
-    if gols and data["action"] != HMRCIntegrationActionEnum.EXHAUST:
+    if gols and action != HMRCIntegrationActionEnum.EXHAUST:
         exhausted_goods_count = 0
         for gol in gols:
             if gol["status"] == HMRCIntegrationActionEnum.EXHAUST:
@@ -160,11 +162,12 @@ def _update_licence(data: dict) -> str:
 
         # If all Goods have been Exhausted; Exhaust the Licence
         if exhausted_goods_count >= licence.goods.count():
+            send_status_change_to_hmrc = action == HMRCIntegrationActionEnum.OPEN
             action = HMRCIntegrationActionEnum.EXHAUST
             change_status = licence.exhaust
 
     if change_status:
-        change_status()
+        change_status(send_status_change_to_hmrc=send_status_change_to_hmrc)
         audit_trail_service.create_system_user_audit(
             verb=AuditType.LICENCE_UPDATED_STATUS,
             target=licence.application.get_case(),

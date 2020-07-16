@@ -258,11 +258,21 @@ class HMRCIntegrationLicenceTests(DataTestClient):
     def test_save_licence_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
         schedule_licence_for_hmrc_integration.return_value = None
 
-        self.standard_licence.save()
+        self.standard_licence.save(send_status_change_to_hmrc=True)
 
         schedule_licence_for_hmrc_integration.assert_called_with(
             str(self.standard_licence.id), licence_status_to_hmrc_integration_action.get(self.standard_licence.status),
         )
+
+    @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
+    def test_save_licence_does_not_call_schedule_licence_for_hmrc_integration(
+        self, schedule_licence_for_hmrc_integration
+    ):
+        schedule_licence_for_hmrc_integration.return_value = None
+
+        self.standard_licence.save()
+
+        schedule_licence_for_hmrc_integration.assert_not_called()
 
     @mock.patch("licences.tasks.schedule_licence_for_hmrc_integration")
     def test_licence_surrender_calls_schedule_licence_for_hmrc_integration(self, schedule_licence_for_hmrc_integration):
@@ -537,9 +547,8 @@ class HMRCIntegrationTests(DataTestClient):
         # Set Case to Finalised so it can be surrendered
         standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         standard_application.save()
-        # Use queryset instead of ORM to update Licence status to "issued"
-        # (using the ORM would trigger a request to HMRC Integration)
-        Licence.objects.filter(id=standard_licence.id).update(status=LicenceStatus.ISSUED)
+        standard_licence.status = LicenceStatus.ISSUED
+        standard_licence.save()
         expected_insert_json = HMRCIntegrationLicenceSerializer(standard_licence).data
         expected_insert_json["action"] = HMRCIntegrationActionEnum.CANCEL
 
@@ -566,9 +575,8 @@ class HMRCIntegrationTests(DataTestClient):
         standard_application.save()
         # Give Gov User permission to change status of a Finalised Case
         self.gov_user.role.permissions.add(GovPermissions.REOPEN_CLOSED_CASES.name)
-        # Use queryset instead of ORM to update Licence status to Issued
-        # (using the ORM would trigger a request to HMRC Integration)
-        Licence.objects.filter(id=standard_licence.id).update(status=LicenceStatus.ISSUED)
+        standard_licence.status = LicenceStatus.ISSUED
+        standard_licence.save()
         expected_insert_json = HMRCIntegrationLicenceSerializer(standard_licence).data
         expected_insert_json["action"] = HMRCIntegrationActionEnum.CANCEL
 
@@ -591,24 +599,22 @@ class HMRCIntegrationTests(DataTestClient):
         standard_application, standard_licence_1 = self._create_licence_for_submission(
             self.create_standard_application_case
         )
+        standard_licence_1.status = LicenceStatus.ISSUED
+        standard_licence_1.save()
         # Create second Licence for Case
         _, standard_licence_2 = self._create_licence_for_submission(self.create_standard_application_case)
-        # Use queryset instead of ORM to update first Licence status to "issued"
-        # (using the ORM would trigger a request to HMRC Integration)
-        Licence.objects.filter(id=standard_licence_1.id).update(status=LicenceStatus.ISSUED)
         # Temporarily manipulate second Licence so it can be used to build 'expected data' in the request
-        Licence.objects.filter(id=standard_licence_2.id).update(
-            application=standard_application, status=LicenceStatus.REINSTATED
-        )
-        standard_licence_1.refresh_from_db()
-        standard_licence_2.refresh_from_db()
+        standard_licence_2.application = standard_application
+        standard_licence_2.status = LicenceStatus.REINSTATED
+        standard_licence_2.save()
         # Build the 'expected data' from second Licence
         expected_reinstate_json = HMRCIntegrationLicenceSerializer(standard_licence_2).data
         expected_reinstate_json["action"] = HMRCIntegrationActionEnum.UPDATE
         # The request to HMRC Integration should contain the old Licence's ID
         expected_reinstate_json["old_id"] = str(standard_licence_1.id)
         # Revert second Licence back to a status required for `/cases/finalise/`
-        Licence.objects.filter(id=standard_licence_2.id).update(status=LicenceStatus.DRAFT)
+        standard_licence_2.status = LicenceStatus.DRAFT
+        standard_licence_2.save()
 
         url = reverse("cases:finalise", kwargs={"pk": standard_application.id})
         response = self.client.put(url, data={}, **self.gov_headers)
