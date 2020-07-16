@@ -64,8 +64,6 @@ from conf.permissions import assert_user_has_permission
 from documents.libraries.delete_documents_on_bad_request import delete_documents_on_bad_request
 from documents.libraries.s3_operations import document_download_stream
 from documents.models import Document
-from goodstype.helpers import get_goods_type
-from goodstype.models import GoodsType
 from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import EcjuCreatedEmailData, ApplicationStatusEmailData, EcjuComplianceCreatedEmailData
