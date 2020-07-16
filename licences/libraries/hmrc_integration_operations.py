@@ -2,6 +2,7 @@ import logging
 from uuid import UUID
 
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import APIException
@@ -140,7 +141,7 @@ def _update_licence(data: dict) -> str:
     """Updates the Usage for Goods on a Licence"""
 
     licence = Licence.objects.get(id=data["id"])
-    gols = [_update_good_on_licence_usage(licence.id, good["id"], float(good["usage"])) for good in data["goods"]]
+    [_update_good_on_licence_usage(licence.id, good["id"], float(good["usage"])) for good in data["goods"]]
     action = data["action"]
     change_status = None
     send_status_change_to_hmrc = False
@@ -154,14 +155,9 @@ def _update_licence(data: dict) -> str:
     elif action == HMRCIntegrationActionEnum.EXPIRE:
         change_status = licence.expire
 
-    if gols and action != HMRCIntegrationActionEnum.EXHAUST:
-        exhausted_goods_count = 0
-        for gol in gols:
-            if gol["status"] == HMRCIntegrationActionEnum.EXHAUST:
-                exhausted_goods_count += 1
-
+    if action != HMRCIntegrationActionEnum.EXHAUST:
         # If all Goods have been Exhausted; Exhaust the Licence
-        if exhausted_goods_count >= licence.goods.count():
+        if not licence.goods.filter(usage__lt=F("quantity")).exists():
             send_status_change_to_hmrc = action == HMRCIntegrationActionEnum.OPEN
             action = HMRCIntegrationActionEnum.EXHAUST
             change_status = licence.exhaust
@@ -180,7 +176,7 @@ def _update_licence(data: dict) -> str:
     return str(licence.id)
 
 
-def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float) -> dict:
+def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float):
     """Updates the Usage for a Good on a Licence"""
 
     gol = GoodOnLicence.objects.get(licence_id=licence_id, good__good_id=good_id)
@@ -196,8 +192,3 @@ def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float)
         target=gol.licence.application.get_case(),
         payload={"good_description": good_description, "usage": gol.usage, "licence": gol.licence.reference_code},
     )
-
-    return {
-        "id": str(gol.id),
-        "status": HMRCIntegrationActionEnum.EXHAUST if gol.usage >= gol.quantity else HMRCIntegrationActionEnum.OPEN,
-    }
