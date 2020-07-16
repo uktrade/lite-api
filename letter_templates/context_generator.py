@@ -17,14 +17,12 @@ from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
 from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled
-from goodstype.models import GoodsType
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
 from parties.enums import PartyRole
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
-from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
 from static.statuses.libraries.get_case_status import get_status_value_from_case_status_enum
 from static.units.enums import Units
@@ -566,21 +564,7 @@ def _get_goods_type(goods_type):
     }
 
 
-def _get_goods_type_context(goods_types, case_pk):
-    goods_type_context = {"all": [_get_goods_type(goods_type) for goods_type in goods_types]}
-
-    # Get GoodCountryDecisions
-    goods_type_on_country_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).prefetch_related(
-        "goods_type", "goods_type__control_list_entries", "country"
-    )
-    approved_goods_type_on_country_decisions = []
-    refused_goods_type_on_country_decisions = []
-    for goods_type_on_country_decision in goods_type_on_country_decisions:
-        if goods_type_on_country_decision.approve:
-            approved_goods_type_on_country_decisions.append(goods_type_on_country_decision)
-        else:
-            refused_goods_type_on_country_decisions.append(goods_type_on_country_decision)
-
+def _get_approved_goods_type_context(approved_goods_type_on_country_decisions):
     # Approved goods types on country
     if approved_goods_type_on_country_decisions:
         context = {}
@@ -589,8 +573,10 @@ def _get_goods_type_context(goods_types, case_pk):
                 context[decision.country.name] = [_get_goods_type(decision.goods_type)]
             else:
                 context[decision.country.name].append(_get_goods_type(decision.goods_type))
-        goods_type_context[AdviceType.APPROVE] = context
+        return context
 
+
+def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_country_decisions):
     # Get Refused Final advice on Country & GoodsType
     rejected_entities = Advice.objects.filter(
         Q(goods_type__isnull=False) | Q(country__isnull=False),
@@ -634,9 +620,34 @@ def _get_goods_type_context(goods_types, case_pk):
                 elif goods_type.id not in context[country.name]:
                     context[country.name][goods_type.id] = _get_goods_type(goods_type)
 
-    if context:
-        # Remove ID's used to avoid duplication
-        goods_type_context[AdviceType.REFUSE] = {key: list(context[key].values()) for key in context}
+    # Remove ID's used to avoid duplication
+    return {key: list(context[key].values()) for key in context} if context else None
+
+
+def _get_goods_type_context(goods_types, case_pk):
+    goods_type_context = {"all": [_get_goods_type(goods_type) for goods_type in goods_types]}
+
+    # Get GoodCountryDecisions
+    goods_type_on_country_decisions = GoodCountryDecision.objects.filter(case_id=case_pk).prefetch_related(
+        "goods_type", "goods_type__control_list_entries", "country"
+    )
+    approved_goods_type_on_country_decisions = []
+    refused_goods_type_on_country_decisions = []
+    for goods_type_on_country_decision in goods_type_on_country_decisions:
+        if goods_type_on_country_decision.approve:
+            approved_goods_type_on_country_decisions.append(goods_type_on_country_decision)
+        else:
+            refused_goods_type_on_country_decisions.append(goods_type_on_country_decision)
+
+    approved_goods_type_context = _get_approved_goods_type_context(approved_goods_type_on_country_decisions)
+    if approved_goods_type_context:
+        goods_type_context[AdviceType.APPROVE] = approved_goods_type_context
+
+    refused_goods_type_context = _get_refused_goods_type_context(
+        case_pk, goods_types, refused_goods_type_on_country_decisions
+    )
+    if refused_goods_type_context:
+        goods_type_context[AdviceType.REFUSE] = refused_goods_type_context
 
     return goods_type_context
 
