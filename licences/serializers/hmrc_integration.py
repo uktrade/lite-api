@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from conf.helpers import add_months
-from licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action
+from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 from licences.helpers import get_approved_goods_types
 from licences.models import Licence
 from static.countries.models import Country
