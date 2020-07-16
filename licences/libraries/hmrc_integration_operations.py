@@ -137,12 +137,12 @@ def _validate_good_on_licence(licence_id: UUID, data: dict) -> dict:
     return data
 
 
-def _update_licence(data: dict) -> str:
+def _update_licence(validated_data: dict) -> str:
     """Updates the Usage for Goods on a Licence"""
 
-    licence = Licence.objects.get(id=data["id"])
-    [_update_good_on_licence_usage(licence.id, good["id"], float(good["usage"])) for good in data["goods"]]
-    action = data["action"]
+    licence = Licence.objects.get(id=validated_data["id"])
+    [_update_good_on_licence_usage(licence.id, good["id"], float(good["usage"])) for good in validated_data["goods"]]
+    action = validated_data["action"]
     change_status = None
     send_status_change_to_hmrc = False
 

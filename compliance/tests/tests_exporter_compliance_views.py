@@ -20,7 +20,7 @@ class ComplianceExporterViewTests(DataTestClient):
         self.assertEqual(data["address"]["postcode"], site.address.postcode)
         self.assertEqual(data["address"]["country"]["id"], site.address.country.id)
 
-    def test_get_exporter_compliance_case_list(self):
+    def test_get_exporter_compliance_case_list_1(self):
         comp_case_1 = ComplianceSiteCaseFactory(
             organisation=self.organisation,
             site=self.organisation.primary_site,
@@ -52,7 +52,7 @@ class ComplianceExporterViewTests(DataTestClient):
         self.compare_compliance_case_in_list(response_data[1], comp_case_2, site_2)
         self.compare_compliance_case_in_list(response_data[2], comp_case_3, site_3)
 
-    def test_get_exporter_compliance_case_list(self):
+    def test_get_exporter_compliance_case_list_2(self):
         user_org_relationship = UserOrganisationRelationship.objects.get(user=self.exporter_user)
         comp_case_1 = ComplianceSiteCaseFactory(
             organisation=self.organisation,
