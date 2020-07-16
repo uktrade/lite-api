@@ -72,14 +72,14 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     start_date = serializers.DateField()
     end_date = serializers.SerializerMethodField()
     organisation = HMRCIntegrationOrganisationSerializer(source="application.organisation")
-    end_user = HMRCIntegrationEndUserSerializer(source="application.end_user.party")
+    end_user = HMRCIntegrationEndUserSerializer(source="application.baseapplication.end_user.party")
     countries = serializers.SerializerMethodField()
     goods = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if not self.instance.application.end_user:
+        if not self.instance.application.baseapplication.end_user:
             self.fields.pop("end_user")
 
         if not (
@@ -117,8 +117,11 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     def get_goods(self, instance):
         if instance.goods.exists():
             return HMRCIntegrationGoodOnLicenceSerializer(instance.goods, many=True).data
-        elif instance.application.goods_type.exists():
-            approved_goods_types = get_approved_goods_types(instance.application)
+        elif (
+            hasattr(instance.application, "baseapplication")
+            and instance.application.baseapplication.goods_type.exists()
+        ):
+            approved_goods_types = get_approved_goods_types(instance.application.baseapplication)
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data
         else:
             return []

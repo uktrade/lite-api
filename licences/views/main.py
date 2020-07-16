@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView
 
 from applications.models import CountryOnApplication
-from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeReferenceEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
@@ -39,9 +39,11 @@ class Licences(ListCreateAPIView):
         end_user = self.request.GET.get("end_user")
         active_only = self.request.GET.get("active_only") == "True"
 
+        # OGEL's are always hidden as we don't treat them as a licence
+        # and they shouldn't be viewed
         licences = Licence.objects.filter(
             application__organisation_id=get_request_user_organisation_id(self.request),
-        ).exclude(status=LicenceStatus.DRAFT)
+        ).exclude(application__case_type__reference=CaseTypeReferenceEnum.OGEL, status=LicenceStatus.DRAFT)
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
@@ -49,18 +51,22 @@ class Licences(ListCreateAPIView):
 
         if reference:
             licences = licences.filter(
-                Q(application__name__icontains=reference) | Q(application__reference_code__icontains=reference)
+                Q(application__baseapplication__name__icontains=reference)
+                | Q(application__reference_code__icontains=reference)
             )
 
         if clc:
             licences = licences.filter(
-                Q(application__goods__good__control_list_entries__rating=clc)
-                | Q(application__goods_type__control_list_entries__rating=clc)
+                Q(application__baseapplication__goods__good__control_list_entries__rating=clc)
+                | Q(application__baseapplication__goods_type__control_list_entries__rating=clc)
             ).distinct()
 
         if country:
             licences = licences.filter(
-                Q(application__parties__party__country_id=country, application__parties__party__type=PartyType.END_USER)
+                Q(
+                    application__baseapplication__parties__party__country_id=country,
+                    application__baseapplication__parties__party__type=PartyType.END_USER,
+                )
                 | Q(
                     application__id__in=CountryOnApplication.objects.filter(country_id=country).values_list(
                         "application", flat=True
@@ -70,8 +76,8 @@ class Licences(ListCreateAPIView):
 
         if end_user:
             licences = licences.filter(
-                application__parties__party__name__icontains=end_user,
-                application__parties__party__type=PartyType.END_USER,
+                application__baseapplication__parties__party__name__icontains=end_user,
+                application__baseapplication__parties__party__type=PartyType.END_USER,
             )
 
         if active_only:

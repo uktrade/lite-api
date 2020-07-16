@@ -53,8 +53,8 @@ def serialize_goods_on_licence(licence):
     if licence.goods.exists():
         # Standard Application
         return GoodOnLicenceViewSerializer(licence.goods, many=True).data
-    elif hasattr(licence, "baseapplication"):
-        application = licence.baseapplication
+    elif hasattr(licence.application, "baseapplication"):
+        application = licence.application.baseapplication
         if application.goods_type.exists():
             # Open Application
             approved_goods_types = get_approved_goods_types(application)
