@@ -413,6 +413,8 @@ class FinalAdvice(APIView):
         """
         assert_user_has_permission(request.user, constants.GovPermissions.MANAGE_LICENCE_FINAL_ADVICE)
         self.final_advice.delete()
+        # Delete GoodCountryDecisions as final advice is no longer applicable
+        GoodCountryDecision.objects.filter(case_id=pk).delete()
         audit_trail_service.create(
             actor=request.user, verb=AuditType.CLEARED_FINAL_ADVICE, target=self.case,
         )
