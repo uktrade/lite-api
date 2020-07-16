@@ -576,14 +576,15 @@ def _get_approved_goods_type_context(approved_goods_type_on_country_decisions):
         return context
 
 
-def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_country_decisions):
+def _get_entities_refused_at_the_final_advice_level(case_pk):
     # Get Refused Final advice on Country & GoodsType
     rejected_entities = Advice.objects.filter(
         Q(goods_type__isnull=False) | Q(country__isnull=False),
         case_id=case_pk,
         level=AdviceLevel.FINAL,
         type=AdviceType.REFUSE,
-    ).prefetch_related("goods_type", "country")
+    ).prefetch_related("goods_type", "goods_type__control_list_entries", "country")
+
     refused_final_advice_countries = []
     refused_final_advice_goods_types = []
     for rejected_entity in rejected_entities:
@@ -592,6 +593,10 @@ def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_
         else:
             refused_final_advice_countries.append(rejected_entity.country)
 
+    return refused_final_advice_countries, refused_final_advice_goods_types
+
+
+def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_country_decisions):
     # Refused goods types on country from GoodCountryDecisions
     context = {}
     if refused_goods_type_on_country_decisions:
@@ -600,6 +605,10 @@ def _get_refused_goods_type_context(case_pk, goods_types, refused_goods_type_on_
                 context[decision.country.name] = {decision.goods_type.id: _get_goods_type(decision.goods_type)}
             else:
                 context[decision.country.name][decision.goods_type.id] = _get_goods_type(decision.goods_type)
+
+    refused_final_advice_countries, refused_final_advice_goods_types = _get_entities_refused_at_the_final_advice_level(
+        case_pk
+    )
 
     # Countries refused for all goods types at final advice level
     if refused_final_advice_countries:
