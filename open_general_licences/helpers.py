@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from conf.exceptions import NotFoundError
 from licences.enums import LicenceStatus
+from licences.helpers import get_licence_reference_code
 from licences.models import Licence
 
 
@@ -28,7 +29,7 @@ def get_open_general_licence_duration():
 
 def issue_open_general_licence(ogel, reissue: bool):
     return Licence.objects.create(
-        reference_code=ogel.reference_code,
+        reference_code=get_licence_reference_code(ogel.reference_code),
         application=ogel,
         status=LicenceStatus.REINSTATED if reissue else LicenceStatus.ISSUED,
         start_date=timezone.now().date(),
