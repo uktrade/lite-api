@@ -85,7 +85,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         if not (
             hasattr(self.instance.case, "openapplication")
             and self.instance.case.openapplication.application_countries.exists()
-        ):
+        ) and not hasattr(self.instance.case, "opengenerallicencecase"):
             self.fields.pop("countries")
 
         self.action = LicenceStatus.hmrc_integration_action.get(self.instance.status)
@@ -107,12 +107,14 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         return add_months(instance.start_date, instance.duration, "%Y-%m-%d")
 
     def get_countries(self, instance):
-        return HMRCIntegrationCountrySerializer(
-            Country.objects.filter(countries_on_application__application=instance.case.openapplication).order_by(
-                "name"
-            ),
-            many=True,
-        ).data
+        if hasattr(instance.case, "openapplication"):
+            countries = Country.objects.filter(
+                countries_on_application__application=instance.case.openapplication
+            ).order_by("name")
+        else:
+            countries = instance.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
+
+        return HMRCIntegrationCountrySerializer(countries, many=True,).data
 
     def get_goods(self, instance):
         if instance.goods.exists():

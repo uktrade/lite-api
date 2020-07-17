@@ -38,4 +38,3 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(add_ogl_licence, reverse_code=reverse_add_ogl_licence),
     ]
-
