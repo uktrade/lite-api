@@ -1,6 +1,7 @@
 from string import ascii_uppercase
 
 from django.db import transaction
+from rest_framework.exceptions import ParseError
 
 from applications.models import GoodOnApplication
 from applications.serializers.good import GoodOnApplicationViewSerializer
@@ -8,6 +9,7 @@ from cases.enums import AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice
 from conf.exceptions import NotFoundError
 from licences.models import Licence
+from lite_content.lite_api import strings
 from static.statuses.enums import CaseStatusEnum
 
 
@@ -57,10 +59,15 @@ def serialize_goods_on_licence(licence):
         return GoodOnApplicationViewSerializer(goods, many=True).data
 
 
-def cancel_licence_if_applicable_status(licence, status):
-    if status == CaseStatusEnum.SURRENDERED:
-        licence.surrender()
-    elif status == CaseStatusEnum.SUSPENDED:
-        licence.suspend()
-    elif status == CaseStatusEnum.REVOKED:
-        licence.revoke()
+def cancel_licence_if_applicable_status(case, status):
+    if status in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.SUSPENDED, CaseStatusEnum.REVOKED]:
+        try:
+            licence = Licence.objects.get_active_licence(case)
+            if status == CaseStatusEnum.SURRENDERED:
+                licence.surrender()
+            elif status == CaseStatusEnum.SUSPENDED:
+                licence.suspend()
+            elif status == CaseStatusEnum.REVOKED:
+                licence.revoke()
+        except Licence.DoesNotExist:
+            raise ParseError({"status": [strings.Applications.Generic.Finalise.Error.SURRENDER]})

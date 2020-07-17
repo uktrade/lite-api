@@ -26,6 +26,7 @@ from conf.permissions import assert_user_has_permission
 from documents.models import Document
 from flags.models import Flag
 from goods.enums import PvGrading
+from licences.helpers import cancel_licence_if_applicable_status
 from lite_content.lite_api import strings
 from organisations.models import Organisation
 from queues.models import Queue
@@ -146,15 +147,7 @@ class Case(TimestampableModel):
         self.save()
 
         # Suspend / revoke licence
-        if status.status in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.SUSPENDED, CaseStatusEnum.REVOKED]:
-            from licences.helpers import cancel_licence_if_applicable_status
-            from licences.models import Licence
-
-            try:
-                licence = Licence.objects.get_active_licence(self)
-                cancel_licence_if_applicable_status(licence, status.status)
-            except Licence.DoesNotExist:
-                pass
+        cancel_licence_if_applicable_status(self, status.status)
 
         if CaseStatusEnum.is_terminal(old_status) and not CaseStatusEnum.is_terminal(self.status.status):
             apply_flagging_rules_to_case(self)
