@@ -100,11 +100,12 @@ def _validate_licence(data: dict) -> dict:
         data["errors"] = {"action": [f"Must be one of {HMRCIntegrationActionEnum.from_hmrc}"]}
         return data
 
-    valid_goods, invalid_goods = _validate_goods_on_licence(licence, data["goods"])
+    if licence.application.case_type_id not in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
+        valid_goods, invalid_goods = _validate_goods_on_licence(licence, data["goods"])
 
-    if invalid_goods:
-        data["goods"] = {"accepted": valid_goods, "rejected": invalid_goods}
-        data["errors"] = {"goods": ["One or more Goods were rejected."]}
+        if invalid_goods:
+            data["goods"] = {"accepted": valid_goods, "rejected": invalid_goods}
+            data["errors"] = {"goods": ["One or more Goods were rejected."]}
 
     return data
 
