@@ -66,6 +66,7 @@ class AuditType(LiteEnum):
     FINALISED_APPLICATION = autostr()
     UNASSIGNED_QUEUES = autostr()
     UNASSIGNED = autostr()
+    CREATED_DOCUMENT_TEMPLATE = autostr()
     UPDATED_LETTER_TEMPLATE_NAME = autostr()
     ADDED_LETTER_TEMPLATE_CASE_TYPES = autostr()
     UPDATED_LETTER_TEMPLATE_CASE_TYPES = autostr()
