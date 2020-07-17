@@ -47,14 +47,14 @@ def case_meets_conditions_for_compliance(case: Case):
         ):
             return False
         return True
-    elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OGL_ID_LIST]:
+    elif case.case_type.id in [CaseTypeEnum.OIEL.id, CaseTypeEnum.OICL.id, *CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS]:
         return True
     else:
         return False
 
 
 def get_record_holding_sites_for_case(case):
-    if case.case_type.id in CaseTypeEnum.OGL_ID_LIST:
+    if case.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
         return {case.site.site_records_located_at_id}
     else:
         return set(

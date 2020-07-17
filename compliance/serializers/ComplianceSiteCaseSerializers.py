@@ -109,7 +109,7 @@ class ComplianceLicenceListSerializer(serializers.ModelSerializer):
 
     def get_status(self, instance):
         # Not all case types contain a licence, for example OGLs do not. As a result we display the case status
-        if instance.case_type.id in CaseTypeEnum.OGL_ID_LIST:
+        if instance.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
             return {
                 "key": instance.status.status,
                 "value": get_status_value_from_case_status_enum(instance.status.status),

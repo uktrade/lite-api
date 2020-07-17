@@ -5,8 +5,9 @@ from django.db import models
 from applications.models import GoodOnApplication
 from cases.models import Case
 from common.models import TimestampableModel
+from conf.helpers import add_months
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
-from licences.enums import LicenceStatus
+from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 from licences.managers import LicenceManager
 from static.decisions.models import Decision
 
@@ -26,6 +27,7 @@ class Licence(TimestampableModel):
     case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
     status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
     start_date = models.DateField(blank=False, null=False)
+    end_date = models.DateField(blank=False, null=False)
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
     decisions = models.ManyToManyField(Decision, related_name="licence")
     hmrc_integration_sent_at = models.DateTimeField(blank=True, null=True)  # When licence was sent to HMRC Integration
@@ -35,58 +37,55 @@ class Licence(TimestampableModel):
 
     objects = LicenceManager()
 
-    def surrender(self):
+    def surrender(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.SURRENDERED
-        self.save()
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
-    def suspend(self):
+    def suspend(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.SUSPENDED
-        self.save()
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
-    def revoke(self):
+    def revoke(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.REVOKED
-        self.save()
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
-    def cancel(self, is_being_re_issued=False):
+    def exhaust(self, send_status_change_to_hmrc=True):
+        self.status = LicenceStatus.EXHAUSTED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+
+    def expire(self, send_status_change_to_hmrc=True):
+        self.status = LicenceStatus.EXPIRED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+
+    def cancel(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.CANCELLED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
-        if is_being_re_issued:
-            # If the licence is being re-issued, we want to send the re-issued licence only;
-            # Don't use 'self.save()' which would trigger 'send_to_hmrc_integration()' again
-            super(Licence, self).save()
-        else:
-            self.save()
-
-    def issue(self):
+    def issue(self, send_status_change_to_hmrc=True):
         # re-issue the licence if an older version exists
         try:
             old_licence = Licence.objects.get(
                 case=self.case, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
             )
-            old_licence.cancel(is_being_re_issued=True)
+            old_licence.cancel(send_status_change_to_hmrc=False)
         except Licence.DoesNotExist:
             old_licence = None
 
         self.status = LicenceStatus.ISSUED if not old_licence else LicenceStatus.REINSTATED
-        self.save()
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def save(self, *args, **kwargs):
+        self.end_date = add_months(self.start_date, self.duration, "%Y-%m-%d")
+        send_status_change_to_hmrc = kwargs.pop("send_status_change_to_hmrc", False)
         super(Licence, self).save(*args, **kwargs)
 
-        if LITE_HMRC_INTEGRATION_ENABLED and self.status != LicenceStatus.DRAFT:
+        if LITE_HMRC_INTEGRATION_ENABLED and send_status_change_to_hmrc and self.status != LicenceStatus.DRAFT:
             self.send_to_hmrc_integration()
 
     def send_to_hmrc_integration(self):
         from licences.tasks import schedule_licence_for_hmrc_integration
 
-        schedule_licence_for_hmrc_integration(str(self.id), LicenceStatus.hmrc_integration_action.get(self.status))
-
-    def set_hmrc_integration_sent_at(self, value):
-        """
-        Don't use 'self.save()' which would trigger 'send_to_hmrc_integration()' again
-        """
-        self.hmrc_integration_sent_at = value
-        super(Licence, self).save()
+        schedule_licence_for_hmrc_integration(str(self.id), licence_status_to_hmrc_integration_action.get(self.status))
 
 
 class GoodOnLicence(TimestampableModel):
