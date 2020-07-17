@@ -74,8 +74,6 @@ from organisations.models import Site
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
-from static.countries.helpers import get_country
-from queues.serializers import TinyQueueSerializer
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
