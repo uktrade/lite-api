@@ -18,6 +18,7 @@ audit_type_format = {
     AuditType.ADD_FLAGS: strings.Audit.ADD_FLAGS,
     AuditType.REMOVE_FLAGS: strings.Audit.REMOVE_FLAGS,
     AuditType.GOOD_REVIEWED: strings.Audit.GOOD_REVIEWED,
+    AuditType.GOOD_REVIEWED_WITH_COMMENT: strings.Audit.GOOD_REVIEWED_WITH_COMMENT,
     AuditType.GOOD_ADD_FLAGS: strings.Audit.GOOD_ADD_FLAGS,
     AuditType.GOOD_REMOVE_FLAGS: strings.Audit.GOOD_REMOVE_FLAGS,
     AuditType.GOOD_ADD_REMOVE_FLAGS: strings.Audit.GOOD_ADD_REMOVE_FLAGS,

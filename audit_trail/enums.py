@@ -10,6 +10,7 @@ class AuditType(LiteEnum):
     ADD_FLAGS = autostr()
     REMOVE_FLAGS = autostr()
     GOOD_REVIEWED = autostr()
+    GOOD_REVIEWED_WITH_COMMENT = autostr()
     GOOD_ADD_FLAGS = autostr()
     GOOD_REMOVE_FLAGS = autostr()
     GOOD_ADD_REMOVE_FLAGS = autostr()
