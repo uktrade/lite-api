@@ -124,6 +124,27 @@ class ApplicationManageStatusTests(DataTestClient):
             },
         )
 
+    @parameterized.expand(
+        [
+            (CaseStatusEnum.SUSPENDED, LicenceStatus.SUSPENDED,),
+            (CaseStatusEnum.SURRENDERED, LicenceStatus.SURRENDERED,),
+            (CaseStatusEnum.REVOKED, LicenceStatus.REVOKED,),
+        ]
+    )
+    def test_certain_case_statuses_changes_licence_status(self, case_status, licence_status):
+        licence = self.create_licence(self.standard_application, status=LicenceStatus.ISSUED)
+
+        data = {"status": case_status}
+        response = self.client.put(self.url, data=data, **self.gov_headers)
+
+        self.standard_application.refresh_from_db()
+        licence.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["data"]["status"]["key"], case_status)
+        self.assertEqual(self.standard_application.status.status, case_status)
+        self.assertEqual(licence.status, licence_status)
+
     def test_exporter_set_application_status_withdrawn_when_application_terminal_failure(self):
         self.standard_application.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         self.standard_application.save()
@@ -260,6 +281,7 @@ class ApplicationManageStatusTests(DataTestClient):
                 CaseStatusEnum.APPLICANT_EDITING,
                 CaseStatusEnum.FINALISED,
                 CaseStatusEnum.SURRENDERED,
+                CaseStatusEnum.SUSPENDED,
                 CaseStatusEnum.REOPENED_FOR_CHANGES,
             ]
         ]
