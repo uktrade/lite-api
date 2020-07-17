@@ -70,7 +70,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     action = serializers.SerializerMethodField()  # 'insert', 'cancel' or 'update'
     old_id = serializers.SerializerMethodField()  # only required if action='update'
     start_date = serializers.DateField()
-    end_date = serializers.SerializerMethodField()
+    end_date = serializers.DateField()
     organisation = HMRCIntegrationOrganisationSerializer(source="application.organisation")
     end_user = HMRCIntegrationEndUserSerializer(source="application.end_user.party")
     countries = serializers.SerializerMethodField()
@@ -102,9 +102,6 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             .values_list("id", flat=True)
             .last()
         )
-
-    def get_end_date(self, instance):
-        return add_months(instance.start_date, instance.duration, "%Y-%m-%d")
 
     def get_countries(self, instance):
         return HMRCIntegrationCountrySerializer(
