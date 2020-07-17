@@ -19,7 +19,7 @@ class ChangeStatusTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.case = StandardApplicationFactory()
-        self.url =reverse("cases:case", kwargs={"pk": self.case.id})
+        self.url = reverse("cases:case", kwargs={"pk": self.case.id})
 
     def test_optional_note(self):
         """

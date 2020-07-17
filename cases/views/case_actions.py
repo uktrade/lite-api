@@ -88,6 +88,8 @@ class AssignedQueues(APIView):
 
 
 class OpenGeneralLicenceReissue(APIView):
+    authentication_classes = (GovAuthentication,)
+
     def post(self, request, pk):
         """
         Reissue an OGEL licence
@@ -102,7 +104,7 @@ class OpenGeneralLicenceReissue(APIView):
         ogel.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         ogel.save()
 
-        audit_trail_service.create(actor=request.user, verb=AuditType.OGEL_REISSUED, target=ogel)
+        audit_trail_service.create(actor=request.user, verb=AuditType.OGEL_REISSUED, target=ogel.get_case())
 
         return JsonResponse(data={"licence": str(licence.pk)})
 
