@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("licences", "0013_auto_20200709_1520"),
+        ("licences", "0014_licence_expiry_and_end_date"),
     ]
 
     operations = [

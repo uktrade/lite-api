@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("open_general_licences", "0004_auto_20200610_1547"),
-        ("licences", "0015_auto_20200717_0952"),
+        ("licences", "0015_auto_20200715_1529"),
     ]
 
     operations = [
