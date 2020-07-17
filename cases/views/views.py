@@ -739,7 +739,7 @@ class FinaliseView(UpdateAPIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.GRANTED_APPLICATION
-                if Licence.objects.filter(application=case).count() < 2
+                if Licence.objects.filter(case=case).count() < 2
                 else AuditType.REINSTATED_APPLICATION,
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},

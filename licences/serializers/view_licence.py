@@ -157,7 +157,7 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
     advice = serializers.SerializerMethodField()
 
     def get_advice(self, instance):
-        advice = instance.good.good.advice.get(level=AdviceLevel.FINAL, case_id=instance.licence.application_id)
+        advice = instance.good.good.advice.get(level=AdviceLevel.FINAL, case_id=instance.licence.case_id)
         return SimpleAdviceSerializer(instance=advice).data
 
     def get_applied_for_value_per_item(self, instance):
@@ -170,7 +170,7 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
 
 
 class LicenceSerializer(serializers.ModelSerializer):
-    application = ApplicationLicenceSerializer(source="application.baseapplication")
+    application = ApplicationLicenceSerializer(source="case.baseapplication")
     goods = serializers.SerializerMethodField()
     status = KeyValueChoiceField(choices=LicenceStatus.choices)
     document = serializers.SerializerMethodField()
@@ -339,7 +339,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
 
 
 class LicenceListSerializer(serializers.ModelSerializer):
-    application = ApplicationLicenceListSerializer(source="application.baseapplication")
+    application = ApplicationLicenceListSerializer(source="case.baseapplication")
     goods = serializers.SerializerMethodField()
     status = KeyValueChoiceField(choices=LicenceStatus.choices)
 

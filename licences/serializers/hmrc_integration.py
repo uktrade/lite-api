@@ -66,25 +66,25 @@ class HMRCIntegrationGoodsTypeSerializer(serializers.Serializer):
 class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference = serializers.CharField(source="reference_code")
-    type = serializers.CharField(source="application.case_type.reference")
+    type = serializers.CharField(source="case.case_type.reference")
     action = serializers.SerializerMethodField()  # 'insert', 'cancel' or 'update'
     old_id = serializers.SerializerMethodField()  # only required if action='update'
     start_date = serializers.DateField()
     end_date = serializers.SerializerMethodField()
-    organisation = HMRCIntegrationOrganisationSerializer(source="application.organisation")
-    end_user = HMRCIntegrationEndUserSerializer(source="application.baseapplication.end_user.party")
+    organisation = HMRCIntegrationOrganisationSerializer(source="case.organisation")
+    end_user = HMRCIntegrationEndUserSerializer(source="case.baseapplication.end_user.party")
     countries = serializers.SerializerMethodField()
     goods = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if not self.instance.application.baseapplication.end_user:
+        if not self.instance.case.baseapplication.end_user:
             self.fields.pop("end_user")
 
         if not (
-            hasattr(self.instance.application, "openapplication")
-            and self.instance.application.openapplication.application_countries.exists()
+            hasattr(self.instance.case, "openapplication")
+            and self.instance.case.openapplication.application_countries.exists()
         ):
             self.fields.pop("countries")
 
@@ -97,7 +97,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
     def get_old_id(self, instance):
         return str(
-            Licence.objects.filter(application=instance.application, status=LicenceStatus.CANCELLED)
+            Licence.objects.filter(case=instance.case, status=LicenceStatus.CANCELLED)
             .order_by("created_at")
             .values_list("id", flat=True)
             .last()
@@ -108,7 +108,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
     def get_countries(self, instance):
         return HMRCIntegrationCountrySerializer(
-            Country.objects.filter(countries_on_application__application=instance.application.openapplication).order_by(
+            Country.objects.filter(countries_on_application__application=instance.case.openapplication).order_by(
                 "name"
             ),
             many=True,
@@ -117,8 +117,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     def get_goods(self, instance):
         if instance.goods.exists():
             return HMRCIntegrationGoodOnLicenceSerializer(instance.goods, many=True).data
-        elif instance.application.baseapplication.goods_type.exists():
-            approved_goods_types = get_approved_goods_types(instance.application.baseapplication)
+        elif instance.case.baseapplication.goods_type.exists():
+            approved_goods_types = get_approved_goods_types(instance.case.baseapplication)
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data
         else:
             return []

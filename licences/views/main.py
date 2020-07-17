@@ -42,33 +42,33 @@ class Licences(ListCreateAPIView):
         # OGEL's are always hidden as we don't treat them as a licence
         # and they shouldn't be viewed from this endpoint
         licences = Licence.objects.filter(
-            application__organisation_id=get_request_user_organisation_id(self.request),
-        ).exclude(Q(application__case_type__reference=CaseTypeReferenceEnum.OGEL) | Q(status=LicenceStatus.DRAFT))
+            case__organisation_id=get_request_user_organisation_id(self.request),
+        ).exclude(Q(case__case_type__reference=CaseTypeReferenceEnum.OGEL) | Q(status=LicenceStatus.DRAFT))
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
-            licences = licences.filter(application__case_type__in=LicenceType.ids[licence_type])
+            licences = licences.filter(case__case_type__in=LicenceType.ids[licence_type])
 
         if reference:
             licences = licences.filter(
-                Q(application__baseapplication__name__icontains=reference)
-                | Q(application__reference_code__icontains=reference)
+                Q(case__baseapplication__name__icontains=reference)
+                | Q(case__reference_code__icontains=reference)
             )
 
         if clc:
             licences = licences.filter(
-                Q(application__baseapplication__goods__good__control_list_entries__rating=clc)
-                | Q(application__baseapplication__goods_type__control_list_entries__rating=clc)
+                Q(case__baseapplication__goods__good__control_list_entries__rating=clc)
+                | Q(case__baseapplication__goods_type__control_list_entries__rating=clc)
             ).distinct()
 
         if country:
             licences = licences.filter(
                 Q(
-                    application__baseapplication__parties__party__country_id=country,
-                    application__baseapplication__parties__party__type=PartyType.END_USER,
+                    case__baseapplication__parties__party__country_id=country,
+                    case__baseapplication__parties__party__type=PartyType.END_USER,
                 )
                 | Q(
-                    application__id__in=CountryOnApplication.objects.filter(country_id=country).values_list(
+                    case__id__in=CountryOnApplication.objects.filter(country_id=country).values_list(
                         "application", flat=True
                     )
                 )
@@ -76,12 +76,12 @@ class Licences(ListCreateAPIView):
 
         if end_user:
             licences = licences.filter(
-                application__baseapplication__parties__party__name__icontains=end_user,
-                application__baseapplication__parties__party__type=PartyType.END_USER,
+                case__baseapplication__parties__party__name__icontains=end_user,
+                case__baseapplication__parties__party__type=PartyType.END_USER,
             )
 
         if active_only:
-            licences = licences.exclude(application__status__in=self.non_active_states)
+            licences = licences.exclude(case__status__in=self.non_active_states)
 
         return licences.order_by("created_at").reverse()
 
@@ -91,7 +91,7 @@ class ViewLicence(RetrieveAPIView):
     serializer_class = LicenceSerializer
 
     def get_queryset(self):
-        return Licence.objects.filter(application__organisation_id=get_request_user_organisation_id(self.request))
+        return Licence.objects.filter(case__organisation_id=get_request_user_organisation_id(self.request))
 
 
 class NLRs(ListAPIView):

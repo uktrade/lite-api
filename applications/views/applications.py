@@ -633,7 +633,7 @@ class ApplicationFinaliseView(APIView):
                 licence_serializer = LicenceCreateSerializer(instance=licence, data=licence_data, partial=True)
             else:
                 # Create Draft Licence object
-                licence_data["application"] = application.id
+                licence_data["case"] = application.id
                 licence_data["status"] = LicenceStatus.DRAFT
                 licence_data["reference_code"] = get_licence_reference_code(application.reference_code)
                 licence_serializer = LicenceCreateSerializer(data=licence_data)

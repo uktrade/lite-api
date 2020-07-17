@@ -149,7 +149,7 @@ def fetch_and_validate_licences(references, organisation_id):
         raise ValidationError({"file": [Compliance.OpenLicenceReturns.INVALID_LICENCES]})
 
     licence_ids = list(
-        Licence.objects.filter(reference_code__in=references, application__organisation_id=organisation_id).values_list(
+        Licence.objects.filter(reference_code__in=references, case__organisation_id=organisation_id).values_list(
             "id", flat=True
         )
     )

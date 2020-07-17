@@ -292,7 +292,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
                 "licences": [
                     {
                         "id": str(licence.id),
-                        "goods": [{"id": str(licence.application.goods_type.first().id), "usage": 10}],
+                        "goods": [{"id": str(licence.case.goods_type.first().id), "usage": 10}],
                     }
                 ],
             },
@@ -302,7 +302,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.assertEqual(response.json()["licences"]["accepted"], [])
         self.assertEqual(
             response.json()["licences"]["rejected"][0]["errors"],
-            {"id": [f"A '{licence.application.case_type.reference}' Licence cannot be updated."]},
+            {"id": [f"A '{licence.case.case_type.reference}' Licence cannot be updated."]},
         )
         self.assertFalse(HMRCIntegrationUsageUpdate.objects.filter(id=usage_update_id).exists())
 

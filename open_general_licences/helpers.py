@@ -30,7 +30,7 @@ def get_open_general_licence_duration():
 def issue_open_general_licence(ogel, reissue: bool):
     return Licence.objects.create(
         reference_code=get_licence_reference_code(ogel.reference_code),
-        application=ogel,
+        case=ogel,
         status=LicenceStatus.REINSTATED if reissue else LicenceStatus.ISSUED,
         start_date=timezone.now().date(),
         duration=get_open_general_licence_duration(),

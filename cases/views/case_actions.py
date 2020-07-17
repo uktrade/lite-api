@@ -93,7 +93,7 @@ class OpenGeneralLicenceReissue(APIView):
         ogel = get_object_or_404(OpenGeneralLicenceCase, id=pk)
 
         if Licence.objects.filter(
-            application=ogel, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
+            case=ogel, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
         ).exists():
             raise PermissionDenied({"confirm": ["Cannot reissue an OGEL with an active Licence"]})
 

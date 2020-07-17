@@ -1031,7 +1031,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             reference_code = get_licence_reference_code(application.reference_code)
 
         licence = Licence.objects.create(
-            application=application,
+            case=application,
             reference_code=reference_code,
             start_date=django.utils.timezone.now().date(),
             duration=get_default_duration(application),

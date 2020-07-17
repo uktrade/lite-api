@@ -88,8 +88,8 @@ def _validate_licence(data: dict) -> dict:
         data["errors"] = {"id": ["Licence not found."]}
         return data
 
-    if licence.application.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
-        data["errors"] = {"id": [f"A '{licence.application.case_type.reference}' Licence cannot be updated."]}
+    if licence.case.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
+        data["errors"] = {"id": [f"A '{licence.case.case_type.reference}' Licence cannot be updated."]}
         return data
 
     valid_goods, invalid_goods = _validate_goods_on_licence(licence.id, data["goods"])
@@ -154,6 +154,6 @@ def _update_good_on_licence_usage(licence_id: UUID, good_id: UUID, usage: float)
 
     audit_trail_service.create_system_user_audit(
         verb=AuditType.LICENCE_UPDATED_GOOD_USAGE,
-        target=gol.licence.application.get_case(),
+        target=gol.licence.case.get_case(),
         payload={"good_description": good_description, "usage": gol.usage, "licence": gol.licence.reference_code},
     )

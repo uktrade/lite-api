@@ -23,7 +23,7 @@ class HMRCIntegrationUsageUpdate(TimestampableModel):
 class Licence(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, editable=False)
-    application = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
     status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
     start_date = models.DateField(blank=False, null=False)
     duration = models.PositiveSmallIntegerField(blank=False, null=False)
@@ -57,7 +57,7 @@ class Licence(TimestampableModel):
         # re-issue the licence if an older version exists
         try:
             old_licence = Licence.objects.get(
-                application=self.application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
+                case=self.case, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
             )
             old_licence.cancel(is_being_re_issued=True)
         except Licence.DoesNotExist:

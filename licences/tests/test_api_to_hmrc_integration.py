@@ -121,22 +121,22 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         self.assertEqual(data["id"], str(licence.id))
         self.assertEqual(data["reference"], licence.reference_code)
-        self.assertEqual(data["type"], licence.application.case_type.reference)
+        self.assertEqual(data["type"], licence.case.case_type.reference)
         self.assertEqual(data["action"], LicenceStatus.hmrc_integration_action.get(licence.status))
         self.assertEqual(data["start_date"], licence.start_date.strftime("%Y-%m-%d"))
         self.assertEqual(data["end_date"], add_months(licence.start_date, licence.duration, "%Y-%m-%d"))
 
-        self._assert_organisation(data, licence.application.organisation)
+        self._assert_organisation(data, licence.case.organisation)
 
-        if licence.application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            self._assert_end_user(data, licence.application.end_user.party)
+        if licence.case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            self._assert_end_user(data, licence.case.end_user.party)
             self._assert_goods_on_licence(data, licence.goods.all())
             self.assertEqual(data["id"], str(licence.id))
-        elif licence.application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+        elif licence.case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             self._assert_countries(
-                data, Country.objects.filter(countries_on_application__application=licence.application).order_by("name")
+                data, Country.objects.filter(countries_on_application__application=licence.case).order_by("name")
             )
-            self._assert_goods_types(data, get_approved_goods_types(licence.application))
+            self._assert_goods_types(data, get_approved_goods_types(licence.case))
 
     def _assert_organisation(self, data, organisation):
         self.assertEqual(
@@ -483,7 +483,7 @@ class HMRCIntegrationTests(DataTestClient):
         Licence.objects.filter(id=standard_licence_1.id).update(status=LicenceStatus.ISSUED)
         # Manipulate licence_2 so it is serialized exactly as it would be when `/cases/finalise/` is called
         Licence.objects.filter(id=standard_licence_2.id).update(
-            application=standard_application, status=LicenceStatus.REINSTATED
+            case=standard_application, status=LicenceStatus.REINSTATED
         )
         standard_licence_1.refresh_from_db()
         standard_licence_2.refresh_from_db()

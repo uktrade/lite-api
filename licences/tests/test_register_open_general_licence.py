@@ -36,7 +36,7 @@ class RegisterOpenGeneralLicenceTests(DataTestClient):
         self.assertTrue(
             Licence.objects.filter(
                 reference_code=ogl_case.reference_code,
-                application=ogl_case,
+                case=ogl_case,
                 status=LicenceStatus.ISSUED,
                 start_date=timezone.now().date(),
                 duration__isnull=False,
