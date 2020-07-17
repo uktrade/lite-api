@@ -55,7 +55,10 @@ def run_routing_rules(case: Case, keep_status: bool = False):
                         )
                         # Only assign active users to the case
                         if rule.user and rule.user.status == UserStatuses.ACTIVE:
-                            CaseAssignment(user=rule.user, queue=rule.queue, case=case).save(audit_user=system_user)
+                            # Two rules of the same user, queue, and case assignment may exist with
+                            # difference conditions, we should ensure these do not overlap
+                            if not CaseAssignment.objects.filter(user=rule.user, queue=rule.queue, case=case).exists():
+                                CaseAssignment(user=rule.user, queue=rule.queue, case=case).save(audit_user=system_user)
                         team_rule_tier = rule.tier
                         rules_have_been_applied = True
                         break
