@@ -508,6 +508,7 @@ class HMRCIntegrationTests(DataTestClient):
 
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
+        application = application.get_case()
         licence = self.create_licence(application, status=LicenceStatus.DRAFT)
         self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         template = self.create_letter_template(
@@ -516,7 +517,7 @@ class HMRCIntegrationTests(DataTestClient):
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
         self.create_generated_case_document(
-            application.get_case(), template, advice_type=AdviceType.APPROVE, licence=licence
+            application, template, advice_type=AdviceType.APPROVE, licence=licence
         )
 
         return application, licence

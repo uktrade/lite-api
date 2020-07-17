@@ -1019,7 +1019,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_licence(
-        application: BaseApplication,
+        application: Case,
         status: LicenceStatus,
         reference_code=None,
         decisions=None,
