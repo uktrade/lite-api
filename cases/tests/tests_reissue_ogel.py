@@ -8,6 +8,7 @@ from cases.models import CaseType
 from conf.constants import GovPermissions
 from licences.enums import LicenceStatus
 from licences.models import Licence
+from lite_content.lite_api.strings import Cases
 from open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from static.statuses.enums import CaseStatusEnum
 from test_helpers.clients import DataTestClient
@@ -37,7 +38,7 @@ class ReissueOGELTests(DataTestClient):
         response = self.client.post(self.url, {}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.json()["errors"]["confirm"], ["Cannot reissue an OGEL with an active Licence"])
+        self.assertEqual(response.json()["errors"]["confirm"], [Cases.ReissueOGEL.ERROR])
 
     def test_reissue_with_no_active_licence_success(self):
         # Suspend the current case/licence
