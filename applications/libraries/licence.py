@@ -12,8 +12,10 @@ def get_default_duration(application):
     # MOD clearance application do not have an export type
     if hasattr(application.baseapplication, "openapplication"):
         export_type = application.baseapplication.openapplication.export_type
-    else:
+    elif hasattr(application.baseapplication, "standardapplication"):
         export_type = application.baseapplication.standardapplication.export_type
+    else:
+        export_type = None
 
     if CaseTypeSubTypeEnum.is_mod_clearance(application.case_type.sub_type):
         return DefaultDuration.TEMPORARY.value
