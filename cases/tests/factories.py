@@ -1,9 +1,7 @@
 import factory
 
 from cases.enums import AdviceLevel, AdviceType
-from cases.models import Advice, GoodCountryDecision
-from goodstype.tests.factories import GoodsTypeFactory
-from static.countries.factories import CountryFactory
+from cases.models import Advice
 
 
 class UserAdviceFactory(factory.django.DjangoModelFactory):
@@ -34,12 +32,3 @@ class FinalAdviceFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Advice
-
-
-class GoodCountryDecisionFactory(factory.django.DjangoModelFactory):
-    goods_type = factory.SubFactory(GoodsTypeFactory, application=factory.SelfAttribute("..case"))
-    country = factory.SubFactory(CountryFactory)
-    approve = True
-
-    class Meta:
-        model = GoodCountryDecision

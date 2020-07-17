@@ -634,6 +634,10 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
     @staticmethod
+    def create_good_country_decision(case, goods_type, country, decision):
+        GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
+
+    @staticmethod
     def add_additional_information(application):
         additional_information = {
             "expedited": False,
