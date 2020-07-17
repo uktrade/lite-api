@@ -113,6 +113,7 @@ class AuditType(LiteEnum):
     COMPLIANCE_PEOPLE_PRESENT_DELETED = autostr()
     UPDATED_GOOD_ON_DESTINATION_MATRIX = autostr()
     LICENCE_UPDATED_GOOD_USAGE = autostr()
+    OGEL_REISSUED = autostr()
 
     def human_readable(self):
         """

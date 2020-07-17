@@ -290,10 +290,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
             {
                 "usage_update_id": usage_update_id,
                 "licences": [
-                    {
-                        "id": str(licence.id),
-                        "goods": [{"id": str(licence.case.goods_type.first().id), "usage": 10}],
-                    }
+                    {"id": str(licence.id), "goods": [{"id": str(licence.case.goods_type.first().id), "usage": 10}],}
                 ],
             },
         )

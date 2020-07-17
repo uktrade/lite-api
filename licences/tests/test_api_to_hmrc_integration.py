@@ -516,8 +516,6 @@ class HMRCIntegrationTests(DataTestClient):
             case_types=[application.case_type],
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
-        self.create_generated_case_document(
-            application, template, advice_type=AdviceType.APPROVE, licence=licence
-        )
+        self.create_generated_case_document(application, template, advice_type=AdviceType.APPROVE, licence=licence)
 
         return application, licence

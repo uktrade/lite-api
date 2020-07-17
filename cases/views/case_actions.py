@@ -18,6 +18,8 @@ from open_general_licences.helpers import issue_open_general_licence
 from open_general_licences.models import OpenGeneralLicenceCase
 from queues.models import Queue
 from queues.serializers import TinyQueueSerializer
+from static.statuses.enums import CaseStatusEnum
+from static.statuses.libraries.get_case_status import get_case_status_by_status
 from workflow.automation import run_routing_rules
 from workflow.user_queue_assignment import user_queue_assignment_workflow
 
@@ -92,12 +94,15 @@ class OpenGeneralLicenceReissue(APIView):
         """
         ogel = get_object_or_404(OpenGeneralLicenceCase, id=pk)
 
-        if Licence.objects.filter(
-            case=ogel, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
-        ).exists():
+        if Licence.objects.filter(case=ogel, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]).exists():
             raise PermissionDenied({"confirm": ["Cannot reissue an OGEL with an active Licence"]})
 
         licence = issue_open_general_licence(ogel, reissue=True)
+
+        ogel.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        ogel.save()
+
+        audit_trail_service.create(actor=request.user, verb=AuditType.OGEL_REISSUED, target=ogel)
 
         return JsonResponse(data={"licence": str(licence.pk)})
 

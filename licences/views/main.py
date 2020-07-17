@@ -51,8 +51,7 @@ class Licences(ListCreateAPIView):
 
         if reference:
             licences = licences.filter(
-                Q(case__baseapplication__name__icontains=reference)
-                | Q(case__reference_code__icontains=reference)
+                Q(case__baseapplication__name__icontains=reference) | Q(case__reference_code__icontains=reference)
             )
 
         if clc:
