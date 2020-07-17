@@ -24,8 +24,11 @@ class ExistingParties(generics.ListCreateAPIView):
     serializer_class = PartySerializer
 
     def get_queryset(self):
+        request_data = dict(self.request.GET)
         # Assemble the supplied filters, ready to be used in querysets below
-        params = {f"{key}__contains": value[0] for key, value in dict(self.request.GET).items() if key != "page"}
+        params = {
+            f"{key}__contains": value[0] for key, value in request_data.items() if key not in ["page", "party_type"]
+        }
         # Rename country to country__name for filter
         if "country__contains" in params:
             params["country__name__contains"] = params.pop("country__contains")
@@ -35,6 +38,14 @@ class ExistingParties(generics.ListCreateAPIView):
 
         uncopied_parties = self.get_uncopied_parties(application.organisation, params)
         newest_copied_parties = self.get_newest_copied_parties(application.organisation, params)
+
+        # Exclude the UK if standard transhipment
+        from cases.enums import CaseTypeEnum
+
+        if application.case_type.id == CaseTypeEnum.SITL.id:
+            if "party_type" in request_data and request_data["party_type"][0] == "end_user":
+                uncopied_parties = uncopied_parties.exclude(country__id="GB")
+                newest_copied_parties = newest_copied_parties.exclude(country__id="GB")
 
         return uncopied_parties.union(newest_copied_parties).order_by("name")
 
