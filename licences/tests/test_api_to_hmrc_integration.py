@@ -142,7 +142,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             self._assert_countries(
                 data, Country.objects.filter(countries_on_application__application=licence.case).order_by("name")
             )
-            self._assert_goods_types(data, get_approved_goods_types(licence.case))
+            self._assert_goods_types(data, get_approved_goods_types(licence.case.baseapplication))
 
     def _assert_organisation(self, data, organisation):
         self.assertEqual(

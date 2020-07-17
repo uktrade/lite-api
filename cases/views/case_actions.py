@@ -99,7 +99,7 @@ class OpenGeneralLicenceReissue(APIView):
         if Licence.objects.filter(case=ogel, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]).exists():
             raise PermissionDenied({"confirm": [Cases.ReissueOGEL.ERROR]})
 
-        licence = issue_open_general_licence(ogel, reissue=True)
+        licence = issue_open_general_licence(ogel)
 
         ogel.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         ogel.save()

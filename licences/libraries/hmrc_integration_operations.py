@@ -138,7 +138,7 @@ def _validate_good_on_licence(licence: Licence, data: dict) -> dict:
     if licence.case.case_type_id not in CaseTypeEnum.OPEN_LICENCE_IDS:
         gol = GoodOnLicence.objects.filter(licence=licence, good__good_id=data["id"])
     else:
-        gol = get_approved_goods_types(licence.case).filter(id=data["id"])
+        gol = get_approved_goods_types(licence.case.baseapplication).filter(id=data["id"])
 
     if not gol.exists():
         data["errors"] = {"id": ["Good not found on Licence."]}
@@ -192,7 +192,7 @@ def _update_good_on_licence_usage(licence: Licence, validated_good_id: UUID, val
     """Updates the Usage for a Good on a Licence"""
 
     if licence.case.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
-        gol = get_approved_goods_types(licence.case).get(id=validated_good_id)
+        gol = get_approved_goods_types(licence.case.baseapplication).get(id=validated_good_id)
         good_description = gol.description
     else:
         gol = GoodOnLicence.objects.get(licence=licence, good__good_id=validated_good_id)

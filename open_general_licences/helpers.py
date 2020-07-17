@@ -28,11 +28,12 @@ def get_open_general_licence_duration():
     return (end_date.year - start_date.year) * 12 + end_date.month - start_date.month
 
 
-def issue_open_general_licence(ogel: OpenGeneralLicenceCase, reissue: bool):
-    return Licence.objects.create(
+def issue_open_general_licence(ogel: OpenGeneralLicenceCase):
+    licence = Licence.objects.create(
         reference_code=get_licence_reference_code(ogel.reference_code),
         case_id=ogel.id,
-        status=LicenceStatus.REINSTATED if reissue else LicenceStatus.ISSUED,
         start_date=timezone.now().date(),
         duration=get_open_general_licence_duration(),
     )
+    licence.issue()
+    return licence

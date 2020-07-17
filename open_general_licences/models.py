@@ -53,4 +53,4 @@ class OpenGeneralLicenceCase(Case):
         super(OpenGeneralLicenceCase, self).save(*args, **kwargs)
 
         if creating:
-            issue_open_general_licence(self, reissue=False)
+            issue_open_general_licence(self)

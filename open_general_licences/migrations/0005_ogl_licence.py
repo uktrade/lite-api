@@ -21,7 +21,7 @@ def add_ogl_licence(apps, schema_editor):
     ogels_without_licences = OpenGeneralLicenceCase.objects.all().exclude(id__in=ogels_with_licences)
 
     for ogel in ogels_without_licences:
-        issue_open_general_licence(ogel, reissue=False)
+        issue_open_general_licence(ogel)
 
 
 def reverse_add_ogl_licence(apps, schema_editor):
