@@ -1019,7 +1019,12 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_licence(
-        application: Case, status: LicenceStatus, reference_code=None, decisions=None, hmrc_integration_sent_at=None, start_date=None,
+        application: Case,
+        status: LicenceStatus,
+        reference_code=None,
+        decisions=None,
+        hmrc_integration_sent_at=None,
+        start_date=None,
     ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
