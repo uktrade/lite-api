@@ -145,6 +145,17 @@ class Case(TimestampableModel):
         self.status = status
         self.save()
 
+        # Suspend / revoke licence
+        if status.status in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.SUSPENDED, CaseStatusEnum.REVOKED]:
+            from licences.helpers import cancel_licence_if_applicable_status
+            from licences.models import Licence
+
+            try:
+                licence = Licence.objects.get_active_licence(self)
+                cancel_licence_if_applicable_status(licence, status.status)
+            except Licence.DoesNotExist:
+                pass
+
         if CaseStatusEnum.is_terminal(old_status) and not CaseStatusEnum.is_terminal(self.status.status):
             apply_flagging_rules_to_case(self)
 

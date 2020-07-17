@@ -75,7 +75,7 @@ from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
 from licences.enums import LicenceStatus
-from licences.helpers import get_licence_reference_code
+from licences.helpers import get_licence_reference_code, cancel_licence_if_applicable_status
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
@@ -444,13 +444,15 @@ class ApplicationManageStatus(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        try:
-            self._cancel_licence_if_existing(data, application)
-        except Licence.DoesNotExist:
-            return JsonResponse(
-                data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        if data["status"] in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.SUSPENDED, CaseStatusEnum.REVOKED]:
+            try:
+                licence = Licence.objects.get_active_licence(case)
+                cancel_licence_if_applicable_status(licence, data["status"])
+            except Licence.DoesNotExist:
+                return JsonResponse(
+                    data={"errors": [strings.Applications.Generic.Finalise.Error.SURRENDER]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)
@@ -502,16 +504,6 @@ class ApplicationManageStatus(APIView):
             data["destinations"] = get_destinations(application.id, user_type=request.user.type)
 
         return JsonResponse(data={"data": data}, status=status.HTTP_200_OK,)
-
-    @staticmethod
-    def _cancel_licence_if_existing(data, application):
-        if data["status"] in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.REVOKED]:
-            licence = Licence.objects.get_active_licence(application=application)
-
-            if data["status"] == CaseStatusEnum.SURRENDERED:
-                licence.surrender()
-            elif data["status"] == CaseStatusEnum.REVOKED:
-                licence.revoke()
 
 
 class ApplicationFinaliseView(APIView):

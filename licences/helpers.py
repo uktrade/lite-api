@@ -8,6 +8,7 @@ from cases.enums import AdviceType, CaseTypeSubTypeEnum
 from cases.models import Advice
 from conf.exceptions import NotFoundError
 from licences.models import Licence
+from static.statuses.enums import CaseStatusEnum
 
 
 def get_open_general_export_licence_case(pk):
@@ -61,3 +62,12 @@ def serialize_goods_on_licence(licence):
         # MOD clearances
         goods = GoodOnApplication.objects.filter(application=licence.case.baseapplication)
         return GoodOnApplicationViewSerializer(goods, many=True).data
+
+
+def cancel_licence_if_applicable_status(licence, status):
+    if status == CaseStatusEnum.SURRENDERED:
+        licence.surrender()
+    elif status == CaseStatusEnum.SUSPENDED:
+        licence.cancel()
+    elif status == CaseStatusEnum.REVOKED:
+        licence.revoke()
