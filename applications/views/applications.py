@@ -446,7 +446,7 @@ class ApplicationManageStatus(APIView):
 
         if data["status"] in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.SUSPENDED, CaseStatusEnum.REVOKED]:
             try:
-                licence = Licence.objects.get_active_licence(case)
+                licence = Licence.objects.get_active_licence(application)
                 cancel_licence_if_applicable_status(licence, data["status"])
             except Licence.DoesNotExist:
                 return JsonResponse(

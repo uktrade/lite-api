@@ -9,6 +9,7 @@ class LicenceStatus:
     REINSTATED = "reinstated"
     REVOKED = "revoked"
     SURRENDERED = "surrendered"
+    SUSPENDED = "suspended"
     DRAFT = "draft"
     CANCELLED = "cancelled"
 
@@ -17,6 +18,7 @@ class LicenceStatus:
         (REINSTATED, "Reinstated"),
         (REVOKED, "Revoked"),
         (SURRENDERED, "Surrendered"),
+        (SUSPENDED, "Suspended"),
         (DRAFT, "Draft"),
         (CANCELLED, "Cancelled"),
     ]

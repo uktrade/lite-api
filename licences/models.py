@@ -39,6 +39,10 @@ class Licence(TimestampableModel):
         self.status = LicenceStatus.SURRENDERED
         self.save()
 
+    def suspend(self):
+        self.status = LicenceStatus.SUSPENDED
+        self.save()
+
     def revoke(self):
         self.status = LicenceStatus.REVOKED
         self.save()
