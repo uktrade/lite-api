@@ -40,7 +40,7 @@ class Licences(ListCreateAPIView):
         active_only = self.request.GET.get("active_only") == "True"
 
         # OGEL's are always hidden as we don't treat them as a licence
-        # and they shouldn't be viewed
+        # and they shouldn't be viewed from this endpoint
         licences = Licence.objects.filter(
             application__organisation_id=get_request_user_organisation_id(self.request),
         ).exclude(Q(application__case_type__reference=CaseTypeReferenceEnum.OGEL) | Q(status=LicenceStatus.DRAFT))
