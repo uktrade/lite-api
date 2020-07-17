@@ -176,7 +176,7 @@ class CaseDocuments(APIView):
         for document in data:
             document["case"] = pk
             document["user"] = request.user.id
-            document["visible_to_exporter"] = True
+            document["visible_to_exporter"] = False
 
         serializer = CaseDocumentCreateSerializer(data=data, many=True)
         if serializer.is_valid():
