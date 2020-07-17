@@ -3,10 +3,13 @@ from rest_framework import status
 
 from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
+from cases.models import CaseType
 from cases.tests.factories import FinalAdviceFactory
 from licences.enums import LicenceStatus
+from licences.models import Licence
 from licences.tests.factories import GoodOnLicenceFactory
 from licences.views.main import LicenceType
+from open_general_licences.tests.factories import OpenGeneralLicenceCaseFactory, OpenGeneralLicenceFactory
 from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.models import CaseStatus
@@ -125,6 +128,30 @@ class GetLicencesTests(DataTestClient):
         self.assertTrue(str(self.licences[self.exhibition_application].id) in ids)
         self.assertTrue(str(self.licences[self.f680_application].id) in ids)
         self.assertTrue(str(self.licences[self.gifting_application].id) in ids)
+
+    def test_draft_licences_are_not_included(self):
+        draft_licence = self.create_licence(self.standard_application, status=LicenceStatus.DRAFT)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(str(draft_licence.id) not in [licence["id"] for licence in response_data])
+
+    def test_ogel_licences_are_not_included(self):
+        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
+        open_general_licence_case = OpenGeneralLicenceCaseFactory(
+            open_general_licence=open_general_licence,
+            site=self.organisation.primary_site,
+            organisation=self.organisation,
+        )
+        ogel_licence = Licence.objects.get(case=open_general_licence_case)
+
+        response = self.client.get(self.url, **self.exporter_headers)
+        response_data = response.json()["results"]
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(str(ogel_licence.id) not in [licence["id"] for licence in response_data])
 
 
 class GetLicencesFilterTests(DataTestClient):

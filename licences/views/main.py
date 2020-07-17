@@ -39,11 +39,20 @@ class Licences(ListCreateAPIView):
         end_user = self.request.GET.get("end_user")
         active_only = self.request.GET.get("active_only") == "True"
 
-        # OGEL's are always hidden as we don't treat them as a licence
+        # OGL's are always hidden as we don't treat them as a licence
         # and they shouldn't be viewed from this endpoint
         licences = Licence.objects.filter(
             case__organisation_id=get_request_user_organisation_id(self.request),
-        ).exclude(Q(case__case_type__reference=CaseTypeReferenceEnum.OGEL) | Q(status=LicenceStatus.DRAFT))
+        ).exclude(
+            Q(
+                case__case_type__reference__in=[
+                    CaseTypeReferenceEnum.OGEL,
+                    CaseTypeReferenceEnum.OGTCL,
+                    CaseTypeReferenceEnum.OGTL,
+                ]
+            )
+            | Q(status=LicenceStatus.DRAFT)
+        )
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:
