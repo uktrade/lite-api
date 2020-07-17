@@ -6,7 +6,8 @@ from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
+from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
+from cases.models import CaseType
 from conf.constants import GovPermissions
 from conf.helpers import add_months
 from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
@@ -28,6 +29,7 @@ from licences.tasks import (
     TASK_QUEUE,
 )
 from licences.tests.factories import GoodOnLicenceFactory
+from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from static.countries.models import Country
 from static.decisions.models import Decision
 from test_helpers.clients import DataTestClient
@@ -466,6 +468,27 @@ class HMRCIntegrationTests(DataTestClient):
         response = self.client.put(url, data={}, **self.gov_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        request.assert_called_with(
+            "POST",
+            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            json={"licence": expected_insert_json},
+            headers=ANY,
+            timeout=LITE_HMRC_REQUEST_TIMEOUT,
+        )
+
+    @mock.patch("conf.requests.requests.request")
+    def test_create_ogel_licence_success(self, request):
+        request.return_value = MockResponse("", 201)
+        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
+        open_general_licence_case = OpenGeneralLicenceCaseFactory(
+            open_general_licence=open_general_licence,
+            site=self.organisation.primary_site,
+            organisation=self.organisation,
+        )
+        open_general_licence_licence = Licence.objects.get(case=open_general_licence_case)
+        expected_insert_json = HMRCIntegrationLicenceSerializer(open_general_licence_licence).data
+        expected_insert_json["action"] = HMRCIntegrationActionEnum.INSERT
+
         request.assert_called_with(
             "POST",
             f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",

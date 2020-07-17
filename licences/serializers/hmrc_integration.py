@@ -79,7 +79,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if not self.instance.case.baseapplication.end_user:
+        if not (hasattr(self.instance.case, "baseapplication") and self.instance.case.baseapplication.end_user):
             self.fields.pop("end_user")
 
         if not (
@@ -117,7 +117,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     def get_goods(self, instance):
         if instance.goods.exists():
             return HMRCIntegrationGoodOnLicenceSerializer(instance.goods, many=True).data
-        elif instance.case.baseapplication.goods_type.exists():
+        elif hasattr(instance.case, "baseapplication") and instance.case.baseapplication.goods_type.exists():
             approved_goods_types = get_approved_goods_types(instance.case.baseapplication)
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data
         else:
