@@ -242,7 +242,7 @@ class CopyApplicationSuccessTests(DataTestClient):
         self.original_application.temp_export_details = "temporary export details"
         self.original_application.is_temp_direct_control = True
         self.original_application.proposed_return_date = "2025-05-11"
-        coa = CountryOnApplication.objects.get(application=self.original_application, country_id="GB")
+        coa = CountryOnApplication.objects.get(application=self.original_application, country_id="FR")
         coa.contract_types = ["navy", "army"]
         coa.save()
 
