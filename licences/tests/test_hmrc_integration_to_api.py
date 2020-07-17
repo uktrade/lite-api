@@ -103,7 +103,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
 
     def test_update_usages_accepted_licence_open_application(self):
         licence = self.create_open_licence()
-        good = GoodsType.objects.filter(application=licence.application).first()
+        good = GoodsType.objects.filter(application=licence.case).first()
         original_usage = good.usage
         usage_update_id = str(uuid.uuid4())
         usage_update = 10

@@ -100,7 +100,7 @@ def _validate_licence(data: dict) -> dict:
         data["errors"] = {"action": [f"Must be one of {HMRCIntegrationActionEnum.from_hmrc}"]}
         return data
 
-    if licence.application.case_type_id not in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
+    if licence.case.case_type_id not in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
         valid_goods, invalid_goods = _validate_goods_on_licence(licence, data["goods"])
 
         if invalid_goods:
@@ -135,10 +135,10 @@ def _validate_good_on_licence(licence: Licence, data: dict) -> dict:
         data["errors"] = serializer.errors
         return data
 
-    if licence.application.case_type_id not in CaseTypeEnum.OPEN_LICENCE_IDS:
+    if licence.case.case_type_id not in CaseTypeEnum.OPEN_LICENCE_IDS:
         gol = GoodOnLicence.objects.filter(licence=licence, good__good_id=data["id"])
     else:
-        gol = get_approved_goods_types(licence.application).filter(id=data["id"])
+        gol = get_approved_goods_types(licence.case).filter(id=data["id"])
 
     if not gol.exists():
         data["errors"] = {"id": ["Good not found on Licence."]}
@@ -166,7 +166,7 @@ def _update_licence(validated_data: dict) -> str:
 
     if (
         action != HMRCIntegrationActionEnum.EXHAUST
-        and licence.application.case_type_id not in CaseTypeEnum.OPEN_LICENCE_IDS
+        and licence.case.case_type_id not in CaseTypeEnum.OPEN_LICENCE_IDS
     ):
         # If all Goods have been Exhausted; Exhaust the Licence
         if not licence.goods.filter(usage__lt=F("quantity")).exists():
@@ -178,7 +178,7 @@ def _update_licence(validated_data: dict) -> str:
         change_status(send_status_change_to_hmrc=send_status_change_to_hmrc)
         audit_trail_service.create_system_user_audit(
             verb=AuditType.LICENCE_UPDATED_STATUS,
-            target=licence.application.get_case(),
+            target=licence.case.get_case(),
             payload={
                 "licence": licence.reference_code,
                 "status": hmrc_integration_action_to_licence_status.get(action),
@@ -191,8 +191,8 @@ def _update_licence(validated_data: dict) -> str:
 def _update_good_on_licence_usage(licence: Licence, validated_good_id: UUID, validated_usage: float):
     """Updates the Usage for a Good on a Licence"""
 
-    if licence.application.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
-        gol = get_approved_goods_types(licence.application).get(id=validated_good_id)
+    if licence.case.case_type_id in CaseTypeEnum.OPEN_LICENCE_IDS:
+        gol = get_approved_goods_types(licence.case).get(id=validated_good_id)
         good_description = gol.description
     else:
         gol = GoodOnLicence.objects.get(licence=licence, good__good_id=validated_good_id)

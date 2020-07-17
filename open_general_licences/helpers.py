@@ -6,6 +6,7 @@ from conf.exceptions import NotFoundError
 from licences.enums import LicenceStatus
 from licences.helpers import get_licence_reference_code
 from licences.models import Licence
+from open_general_licences.models import OpenGeneralLicenceCase
 
 
 def get_open_general_licence(pk):
@@ -27,7 +28,7 @@ def get_open_general_licence_duration():
     return (end_date.year - start_date.year) * 12 + end_date.month - start_date.month
 
 
-def issue_open_general_licence(ogel, reissue: bool):
+def issue_open_general_licence(ogel: OpenGeneralLicenceCase, reissue: bool):
     return Licence.objects.create(
         reference_code=get_licence_reference_code(ogel.reference_code),
         case_id=ogel.id,
