@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView
 
 from applications.models import CountryOnApplication
-from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeReferenceEnum
+from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel, CaseTypeEnum
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
 from conf.authentication import ExporterAuthentication
@@ -43,16 +43,7 @@ class Licences(ListCreateAPIView):
         # and they shouldn't be viewed from this endpoint
         licences = Licence.objects.filter(
             case__organisation_id=get_request_user_organisation_id(self.request),
-        ).exclude(
-            Q(
-                case__case_type__reference__in=[
-                    CaseTypeReferenceEnum.OGEL,
-                    CaseTypeReferenceEnum.OGTCL,
-                    CaseTypeReferenceEnum.OGTL,
-                ]
-            )
-            | Q(status=LicenceStatus.DRAFT)
-        )
+        ).exclude(Q(case__case_type__id__in=CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS) | Q(status=LicenceStatus.DRAFT))
 
         # Apply filters
         if licence_type in [LicenceType.LICENCE, LicenceType.CLEARANCE]:

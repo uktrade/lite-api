@@ -29,6 +29,7 @@ from licences.tasks import (
     HMRC_INTEGRATION_QUEUE,
 )
 from licences.tests.factories import GoodOnLicenceFactory
+from open_general_licences.helpers import issue_open_general_licence
 from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from static.countries.models import Country
 from static.decisions.models import Decision
@@ -118,6 +119,33 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         self._assert_dto(data, open_licence, old_licence)
 
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED],
+            [LicenceStatus.REINSTATED],
+            [LicenceStatus.SUSPENDED],
+            [LicenceStatus.SURRENDERED],
+            [LicenceStatus.REVOKED],
+            [LicenceStatus.CANCELLED],
+        ],
+    )
+    def test_ogl_application(self, status):
+        action = licence_status_to_hmrc_integration_action.get(status)
+        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
+        open_general_licence_case = OpenGeneralLicenceCaseFactory(
+            open_general_licence=open_general_licence,
+            site=self.organisation.primary_site,
+            organisation=self.organisation,
+        )
+        open_general_licence_licence = Licence.objects.get(case=open_general_licence_case)
+        old_licence = None
+        if action == HMRCIntegrationActionEnum.UPDATE:
+            old_licence = issue_open_general_licence(open_general_licence_case)
+
+        data = HMRCIntegrationLicenceSerializer(open_general_licence_licence).data
+
+        self._assert_dto(data, open_general_licence_licence, old_licence=old_licence)
+
     def _assert_dto(self, data, licence, old_licence=None):
         if old_licence:
             self.assertEqual(len(data), 10)
@@ -138,6 +166,10 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             self._assert_end_user(data, licence.case.end_user.party)
             self._assert_goods_on_licence(data, licence.goods.all())
             self.assertEqual(data["id"], str(licence.id))
+        elif licence.case.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
+            self._assert_countries(
+                data, licence.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
+            )
         elif licence.case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             self._assert_countries(
                 data, Country.objects.filter(countries_on_application__application=licence.case).order_by("name")

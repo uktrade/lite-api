@@ -75,7 +75,7 @@ from gov_notify import service as gov_notify_service
 from gov_notify.enums import TemplateType
 from gov_notify.payloads import ApplicationStatusEmailData
 from licences.enums import LicenceStatus
-from licences.helpers import get_licence_reference_code, cancel_licence_if_applicable_status
+from licences.helpers import get_licence_reference_code, update_licence_status
 from licences.models import Licence
 from licences.serializers.create_licence import LicenceCreateSerializer
 from lite_content.lite_api import strings
@@ -444,7 +444,7 @@ class ApplicationManageStatus(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        cancel_licence_if_applicable_status(application, data["status"])
+        update_licence_status(application, data["status"])
 
         case_status = get_case_status_by_status(data["status"])
         data["status"] = str(case_status.pk)

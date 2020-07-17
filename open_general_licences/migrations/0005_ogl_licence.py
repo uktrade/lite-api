@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-from cases.enums import CaseTypeReferenceEnum
+from cases.enums import CaseTypeEnum
 
 
 def add_ogl_licence(apps, schema_editor):
@@ -12,11 +12,7 @@ def add_ogl_licence(apps, schema_editor):
     OpenGeneralLicenceCase = apps.get_model("open_general_licences", "OpenGeneralLicenceCase")
 
     ogels_with_licences = Licence.objects.filter(
-        case__case_type__reference__in=[
-            CaseTypeReferenceEnum.OGEL,
-            CaseTypeReferenceEnum.OGTCL,
-            CaseTypeReferenceEnum.OGTL,
-        ]
+        case__case_type__id__in=CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS
     ).values_list("case_id", flat=True)
     ogels_without_licences = OpenGeneralLicenceCase.objects.all().exclude(id__in=ogels_with_licences)
 

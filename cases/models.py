@@ -129,7 +129,7 @@ class Case(TimestampableModel):
         from applications.libraries.application_helpers import can_status_be_set_by_gov_user
         from workflow.automation import run_routing_rules
         from workflow.flagging_rules_automation import apply_flagging_rules_to_case
-        from licences.helpers import cancel_licence_if_applicable_status
+        from licences.helpers import update_licence_status
 
         old_status = self.status.status
 
@@ -147,7 +147,7 @@ class Case(TimestampableModel):
         self.save()
 
         # Suspend / revoke licence
-        cancel_licence_if_applicable_status(self, status.status)
+        update_licence_status(self, status.status)
 
         if CaseStatusEnum.is_terminal(old_status) and not CaseStatusEnum.is_terminal(self.status.status):
             apply_flagging_rules_to_case(self)

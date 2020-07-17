@@ -53,13 +53,13 @@ def serialize_goods_on_licence(licence):
         # Open Application
         approved_goods_types = get_approved_goods_types(licence.case.baseapplication)
         return GoodsTypeOnLicenceListSerializer(approved_goods_types, many=True).data
-    elif licence.case.baseapplication.case_type.sub_type != CaseTypeSubTypeEnum.STANDARD:
+    elif licence.case.case_type.sub_type != CaseTypeSubTypeEnum.STANDARD:
         # MOD clearances
         goods = GoodOnApplication.objects.filter(application=licence.case.baseapplication)
         return GoodOnApplicationViewSerializer(goods, many=True).data
 
 
-def cancel_licence_if_applicable_status(case, status):
+def update_licence_status(case, status):
     if status in [CaseStatusEnum.SURRENDERED, CaseStatusEnum.SUSPENDED, CaseStatusEnum.REVOKED]:
         try:
             licence = Licence.objects.get_active_licence(case)
