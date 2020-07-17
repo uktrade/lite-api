@@ -68,6 +68,6 @@ def cancel_licence_if_applicable_status(licence, status):
     if status == CaseStatusEnum.SURRENDERED:
         licence.surrender()
     elif status == CaseStatusEnum.SUSPENDED:
-        licence.cancel()
+        licence.suspend()
     elif status == CaseStatusEnum.REVOKED:
         licence.revoke()

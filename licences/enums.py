@@ -27,6 +27,7 @@ class LicenceStatus:
         ISSUED: HMRCIntegrationActionEnum.INSERT,
         REINSTATED: HMRCIntegrationActionEnum.UPDATE,
         REVOKED: HMRCIntegrationActionEnum.CANCEL,
+        SUSPENDED: HMRCIntegrationActionEnum.CANCEL,
         SURRENDERED: HMRCIntegrationActionEnum.CANCEL,
         CANCELLED: HMRCIntegrationActionEnum.CANCEL,
     }

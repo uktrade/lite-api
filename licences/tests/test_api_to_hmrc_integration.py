@@ -62,6 +62,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         [
             [LicenceStatus.ISSUED],
             [LicenceStatus.REINSTATED],
+            [LicenceStatus.SUSPENDED],
             [LicenceStatus.SURRENDERED],
             [LicenceStatus.REVOKED],
             [LicenceStatus.CANCELLED],
@@ -93,6 +94,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         [
             [LicenceStatus.ISSUED],
             [LicenceStatus.REINSTATED],
+            [LicenceStatus.SUSPENDED],
             [LicenceStatus.SURRENDERED],
             [LicenceStatus.REVOKED],
             [LicenceStatus.CANCELLED],
