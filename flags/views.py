@@ -212,7 +212,7 @@ class AssignFlags(APIView):
         else:
             return
 
-        payload = {"flag_name": added_flags}
+        payload = {"flag_name": added_flags if added_flags else removed_flags}
         if note:
             payload["note"] = note
 
