@@ -13,7 +13,7 @@ class AdviceDocumentsTests(DataTestClient):
     def setUp(self):
         super().setUp()
         self.case = self.create_standard_application_case(self.organisation)
-        self.licence = LicenceFactory(application=self.case)
+        self.licence = LicenceFactory(case=self.case)
         self.template = self.create_letter_template(name="Template", case_types=[CaseTypeEnum.SIEL.id])
         self.url = reverse("cases:final_advice_documents", kwargs={"pk": self.case.id})
 

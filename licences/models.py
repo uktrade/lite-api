@@ -2,7 +2,8 @@ import uuid
 
 from django.db import models
 
-from applications.models import BaseApplication, GoodOnApplication
+from applications.models import GoodOnApplication
+from cases.models import Case
 from common.models import TimestampableModel
 from conf.helpers import add_months
 from conf.settings import LITE_HMRC_INTEGRATION_ENABLED
@@ -23,9 +24,7 @@ class HMRCIntegrationUsageUpdate(TimestampableModel):
 class Licence(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_code = models.CharField(max_length=30, unique=True, editable=False)
-    application = models.ForeignKey(
-        BaseApplication, on_delete=models.CASCADE, null=False, blank=False, related_name="licences"
-    )
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, null=False, blank=False, related_name="licences")
     status = models.CharField(choices=LicenceStatus.choices, max_length=32, default=LicenceStatus.DRAFT)
     start_date = models.DateField(blank=False, null=False)
     end_date = models.DateField(blank=False, null=False)
@@ -40,6 +39,10 @@ class Licence(TimestampableModel):
 
     def surrender(self, send_status_change_to_hmrc=True):
         self.status = LicenceStatus.SURRENDERED
+        self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
+
+    def suspend(self, send_status_change_to_hmrc=True):
+        self.status = LicenceStatus.SUSPENDED
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def revoke(self, send_status_change_to_hmrc=True):
@@ -60,15 +63,15 @@ class Licence(TimestampableModel):
 
     def issue(self, send_status_change_to_hmrc=True):
         # re-issue the licence if an older version exists
-        try:
-            old_licence = Licence.objects.get(
-                application=self.application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
-            )
+        status = LicenceStatus.ISSUED
+        old_licence = (
+            Licence.objects.filter(case=self.case).exclude(status=LicenceStatus.DRAFT).order_by("-created_at").first()
+        )
+        if old_licence:
             old_licence.cancel(send_status_change_to_hmrc=False)
-        except Licence.DoesNotExist:
-            old_licence = None
+            status = LicenceStatus.REINSTATED
 
-        self.status = LicenceStatus.ISSUED if not old_licence else LicenceStatus.REINSTATED
+        self.status = status
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def save(self, *args, **kwargs):

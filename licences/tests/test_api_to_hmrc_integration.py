@@ -6,13 +6,15 @@ from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 
-from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel
+from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
+from cases.models import CaseType
+from cases.tests.factories import GoodCountryDecisionFactory
 from conf.constants import GovPermissions
 from conf.helpers import add_months
 from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
 from licences.apps import LicencesConfig
 from licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action
-from licences.helpers import get_approved_goods_types
+from licences.helpers import get_approved_goods_types, get_approved_countries
 from licences.libraries.hmrc_integration_operations import (
     send_licence,
     HMRCIntegrationException,
@@ -28,6 +30,8 @@ from licences.tasks import (
     HMRC_INTEGRATION_QUEUE,
 )
 from licences.tests.factories import GoodOnLicenceFactory
+from open_general_licences.helpers import issue_open_general_licence
+from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
@@ -64,6 +68,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         [
             [LicenceStatus.ISSUED],
             [LicenceStatus.REINSTATED],
+            [LicenceStatus.SUSPENDED],
             [LicenceStatus.SURRENDERED],
             [LicenceStatus.REVOKED],
             [LicenceStatus.CANCELLED],
@@ -95,6 +100,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
         [
             [LicenceStatus.ISSUED],
             [LicenceStatus.REINSTATED],
+            [LicenceStatus.SUSPENDED],
             [LicenceStatus.SURRENDERED],
             [LicenceStatus.REVOKED],
             [LicenceStatus.CANCELLED],
@@ -103,7 +109,13 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def test_open_application(self, status):
         action = licence_status_to_hmrc_integration_action.get(status)
         open_application = self.create_open_application_case(self.organisation)
-        self.create_advice(self.gov_user, open_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        open_application.goods_type.first().countries.set([Country.objects.first()])
+        GoodCountryDecisionFactory(
+            case=open_application,
+            country=Country.objects.first(),
+            goods_type=open_application.goods_type.first(),
+            approve=True,
+        )
         open_licence = self.create_licence(open_application, status=status)
         old_licence = None
         if action == HMRCIntegrationActionEnum.UPDATE:
@@ -114,6 +126,36 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         self._assert_dto(data, open_licence, old_licence)
 
+    @parameterized.expand(
+        [
+            [LicenceStatus.ISSUED],
+            [LicenceStatus.REINSTATED],
+            [LicenceStatus.SUSPENDED],
+            [LicenceStatus.SURRENDERED],
+            [LicenceStatus.REVOKED],
+            [LicenceStatus.CANCELLED],
+        ],
+    )
+    def test_ogl_application(self, status):
+        action = licence_status_to_hmrc_integration_action.get(status)
+        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
+        open_general_licence_case = OpenGeneralLicenceCaseFactory(
+            open_general_licence=open_general_licence,
+            site=self.organisation.primary_site,
+            organisation=self.organisation,
+        )
+        open_general_licence_licence = Licence.objects.get(case=open_general_licence_case)
+
+        if action == HMRCIntegrationActionEnum.UPDATE:
+            # Cancel the original & issue a new OGL Licence
+            open_general_licence_licence.cancel()
+            new_licence = issue_open_general_licence(open_general_licence_case)
+            data = HMRCIntegrationLicenceSerializer(new_licence).data
+            self._assert_dto(data, new_licence, old_licence=open_general_licence_licence)
+        else:
+            data = HMRCIntegrationLicenceSerializer(open_general_licence_licence).data
+            self._assert_dto(data, open_general_licence_licence)
+
     def _assert_dto(self, data, licence, old_licence=None):
         if old_licence:
             self.assertEqual(len(data), 10)
@@ -123,22 +165,24 @@ class HMRCIntegrationSerializersTests(DataTestClient):
 
         self.assertEqual(data["id"], str(licence.id))
         self.assertEqual(data["reference"], licence.reference_code)
-        self.assertEqual(data["type"], licence.application.case_type.reference)
+        self.assertEqual(data["type"], licence.case.case_type.reference)
         self.assertEqual(data["action"], licence_status_to_hmrc_integration_action.get(licence.status))
         self.assertEqual(data["start_date"], licence.start_date.strftime("%Y-%m-%d"))
         self.assertEqual(data["end_date"], add_months(licence.start_date, licence.duration, "%Y-%m-%d"))
 
-        self._assert_organisation(data, licence.application.organisation)
+        self._assert_organisation(data, licence.case.organisation)
 
-        if licence.application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
-            self._assert_end_user(data, licence.application.end_user.party)
+        if licence.case.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
+            self._assert_end_user(data, licence.case.end_user.party)
             self._assert_goods_on_licence(data, licence.goods.all())
             self.assertEqual(data["id"], str(licence.id))
-        elif licence.application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+        elif licence.case.case_type.id in CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS:
             self._assert_countries(
-                data, Country.objects.filter(countries_on_application__application=licence.application).order_by("name")
+                data, licence.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
             )
-            self._assert_goods_types(data, get_approved_goods_types(licence.application))
+        elif licence.case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            self._assert_countries(data, get_approved_countries(licence.case.baseapplication))
+            self._assert_goods_types(data, get_approved_goods_types(licence.case.baseapplication))
 
     def _assert_organisation(self, data, organisation):
         self.assertEqual(
@@ -593,6 +637,27 @@ class HMRCIntegrationTests(DataTestClient):
         )
 
     @mock.patch("conf.requests.requests.request")
+    def test_create_ogel_licence_success(self, request):
+        request.return_value = MockResponse("", 201)
+        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
+        open_general_licence_case = OpenGeneralLicenceCaseFactory(
+            open_general_licence=open_general_licence,
+            site=self.organisation.primary_site,
+            organisation=self.organisation,
+        )
+        open_general_licence_licence = Licence.objects.get(case=open_general_licence_case)
+        expected_insert_json = HMRCIntegrationLicenceSerializer(open_general_licence_licence).data
+        expected_insert_json["action"] = HMRCIntegrationActionEnum.INSERT
+
+        request.assert_called_with(
+            "POST",
+            f"{LITE_HMRC_INTEGRATION_URL}{SEND_LICENCE_ENDPOINT}",
+            json={"licence": expected_insert_json},
+            headers=ANY,
+            timeout=LITE_HMRC_REQUEST_TIMEOUT,
+        )
+
+    @mock.patch("conf.requests.requests.request")
     def test_reinstate_licence_success(self, request):
         request.return_value = MockResponse("", 201)
         # Create Case with Licence
@@ -604,7 +669,7 @@ class HMRCIntegrationTests(DataTestClient):
         # Create second Licence for Case
         _, standard_licence_2 = self._create_licence_for_submission(self.create_standard_application_case)
         # Temporarily manipulate second Licence so it can be used to build 'expected data' in the request
-        standard_licence_2.application = standard_application
+        standard_licence_2.case = standard_application
         standard_licence_2.status = LicenceStatus.REINSTATED
         standard_licence_2.save()
         # Build the 'expected data' from second Licence
@@ -630,6 +695,7 @@ class HMRCIntegrationTests(DataTestClient):
 
     def _create_licence_for_submission(self, create_application_case_callback):
         application = create_application_case_callback(self.organisation)
+        application = application.get_case()
         licence = self.create_licence(application, status=LicenceStatus.DRAFT)
         self.create_advice(self.gov_user, application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         template = self.create_letter_template(
@@ -637,8 +703,6 @@ class HMRCIntegrationTests(DataTestClient):
             case_types=[application.case_type],
             decisions=[Decision.objects.get(name=AdviceType.APPROVE)],
         )
-        self.create_generated_case_document(
-            application.get_case(), template, advice_type=AdviceType.APPROVE, licence=licence
-        )
+        self.create_generated_case_document(application, template, advice_type=AdviceType.APPROVE, licence=licence)
 
         return application, licence

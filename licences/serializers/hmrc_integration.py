@@ -1,9 +1,8 @@
 from rest_framework import serializers
 
-from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
-from licences.helpers import get_approved_goods_types
+from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action, HMRCIntegrationActionEnum
+from licences.helpers import get_approved_goods_types, get_approved_countries
 from licences.models import Licence
-from static.countries.models import Country
 
 
 class HMRCIntegrationCountrySerializer(serializers.Serializer):
@@ -65,30 +64,34 @@ class HMRCIntegrationGoodsTypeSerializer(serializers.Serializer):
 class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference = serializers.CharField(source="reference_code")
-    type = serializers.CharField(source="application.case_type.reference")
+    type = serializers.CharField(source="case.case_type.reference")
     action = serializers.SerializerMethodField()  # 'insert', 'cancel' or 'update'
     old_id = serializers.SerializerMethodField()  # only required if action='update'
     start_date = serializers.DateField()
     end_date = serializers.DateField()
-    organisation = HMRCIntegrationOrganisationSerializer(source="application.organisation")
-    end_user = HMRCIntegrationEndUserSerializer(source="application.end_user.party")
+    organisation = HMRCIntegrationOrganisationSerializer(source="case.organisation")
+    end_user = HMRCIntegrationEndUserSerializer(source="case.baseapplication.end_user.party")
     countries = serializers.SerializerMethodField()
     goods = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if not self.instance.application.end_user:
+        if not (hasattr(self.instance.case, "baseapplication") and self.instance.case.baseapplication.end_user):
             self.fields.pop("end_user")
 
-        if not (
-            hasattr(self.instance.application, "openapplication")
-            and self.instance.application.openapplication.application_countries.exists()
+        if (
+            hasattr(self.instance.case, "baseapplication")
+            and not (
+                hasattr(self.instance.case.baseapplication, "openapplication")
+                and self.instance.case.baseapplication.openapplication.application_countries.exists()
+            )
+            and not hasattr(self.instance.case, "opengenerallicencecase")
         ):
             self.fields.pop("countries")
 
         self.action = licence_status_to_hmrc_integration_action.get(self.instance.status)
-        if self.action != licence_status_to_hmrc_integration_action.get(LicenceStatus.REINSTATED):
+        if self.action != HMRCIntegrationActionEnum.UPDATE:
             self.fields.pop("old_id")
 
     def get_action(self, _):
@@ -96,25 +99,25 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
     def get_old_id(self, instance):
         return str(
-            Licence.objects.filter(application=instance.application, status=LicenceStatus.CANCELLED)
+            Licence.objects.filter(case=instance.case, status=LicenceStatus.CANCELLED)
             .order_by("created_at")
             .values_list("id", flat=True)
             .last()
         )
 
     def get_countries(self, instance):
-        return HMRCIntegrationCountrySerializer(
-            Country.objects.filter(countries_on_application__application=instance.application.openapplication).order_by(
-                "name"
-            ),
-            many=True,
-        ).data
+        if hasattr(instance.case, "baseapplication") and hasattr(instance.case.baseapplication, "openapplication"):
+            countries = get_approved_countries(instance.case.baseapplication)
+        else:
+            countries = instance.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
+
+        return HMRCIntegrationCountrySerializer(countries, many=True,).data
 
     def get_goods(self, instance):
         if instance.goods.exists():
             return HMRCIntegrationGoodOnLicenceSerializer(instance.goods, many=True).data
-        elif instance.application.goods_type.exists():
-            approved_goods_types = get_approved_goods_types(instance.application)
+        elif hasattr(instance.case, "baseapplication") and instance.case.baseapplication.goods_type.exists():
+            approved_goods_types = get_approved_goods_types(instance.case.baseapplication)
             return HMRCIntegrationGoodsTypeSerializer(approved_goods_types, many=True).data
         else:
             return []
