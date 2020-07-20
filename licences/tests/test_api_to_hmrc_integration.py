@@ -181,9 +181,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
                 data, licence.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
             )
         elif licence.case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-            self._assert_countries(
-                data, get_approved_countries(licence.case.baseapplication)
-            )
+            self._assert_countries(data, get_approved_countries(licence.case.baseapplication))
             self._assert_goods_types(data, get_approved_goods_types(licence.case.baseapplication))
 
     def _assert_organisation(self, data, organisation):

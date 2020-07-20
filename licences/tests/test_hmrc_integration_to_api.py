@@ -68,10 +68,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         country = Country.objects.first()
         for good in goods:
             GoodCountryDecisionFactory(
-                case=open_application,
-                country=country,
-                goods_type=good,
-                approve=True,
+                case=open_application, country=country, goods_type=good, approve=True,
             )
         licence = self.create_licence(open_application, status=LicenceStatus.ISSUED)
         return licence
