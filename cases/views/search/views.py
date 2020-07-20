@@ -60,9 +60,11 @@ class CasesSearchView(generics.ListAPIView):
                     default=None,
                     output_field=DateField(),
                 ),
-                has_open_queries=Exists(EcjuQuery.objects.filter(case=OuterRef('pk'),
-                                                                 raised_by_user__team_id=request.user.team.id,
-                                                                 responded_at__isnull=True))
+                has_open_queries=Exists(
+                    EcjuQuery.objects.filter(
+                        case=OuterRef("pk"), raised_by_user__team_id=request.user.team.id, responded_at__isnull=True
+                    )
+                ),
             )
         )
 
@@ -85,8 +87,8 @@ class CasesSearchView(generics.ListAPIView):
         # Get queue from system & my queues.
         # If this fails (i.e. I'm on a non team queue) fetch the queue data
         queue = (
-                next((q for q in queues if str(q["id"]) == str(queue_id)), None)
-                or Queue.objects.filter(id=queue_id).values()[0]
+            next((q for q in queues if str(q["id"]) == str(queue_id)), None)
+            or Queue.objects.filter(id=queue_id).values()[0]
         )
 
         statuses = service.get_case_status_list()
