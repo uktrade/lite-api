@@ -1,10 +1,10 @@
 import django
-from django.db.models import F, When, DateField
+from django.db.models import F, When, DateField, Exists, OuterRef
 from django.utils import timezone
 from rest_framework import generics
 
 from cases.libraries.dates import make_date_from_params
-from cases.models import Case
+from cases.models import Case, EcjuQuery
 from cases.serializers import CaseListSerializer
 from cases.views.search import service
 from conf.authentication import GovAuthentication
@@ -59,7 +59,10 @@ class CasesSearchView(generics.ListAPIView):
                     ),
                     default=None,
                     output_field=DateField(),
-                )
+                ),
+                has_open_queries=Exists(EcjuQuery.objects.filter(case=OuterRef('pk'),
+                                                                 raised_by_user__team_id=request.user.team.id,
+                                                                 responded_at__isnull=True))
             )
         )
 
@@ -82,8 +85,8 @@ class CasesSearchView(generics.ListAPIView):
         # Get queue from system & my queues.
         # If this fails (i.e. I'm on a non team queue) fetch the queue data
         queue = (
-            next((q for q in queues if str(q["id"]) == str(queue_id)), None)
-            or Queue.objects.filter(id=queue_id).values()[0]
+                next((q for q in queues if str(q["id"]) == str(queue_id)), None)
+                or Queue.objects.filter(id=queue_id).values()[0]
         )
 
         statuses = service.get_case_status_list()
