@@ -8,12 +8,13 @@ from rest_framework import status
 
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, AdviceLevel, CaseTypeEnum
 from cases.models import CaseType
+from cases.tests.factories import GoodCountryDecisionFactory
 from conf.constants import GovPermissions
 from conf.helpers import add_months
 from conf.settings import MAX_ATTEMPTS, LITE_HMRC_INTEGRATION_URL, LITE_HMRC_REQUEST_TIMEOUT
 from licences.apps import LicencesConfig
 from licences.enums import LicenceStatus, HMRCIntegrationActionEnum, licence_status_to_hmrc_integration_action
-from licences.helpers import get_approved_goods_types
+from licences.helpers import get_approved_goods_types, get_approved_countries
 from licences.libraries.hmrc_integration_operations import (
     send_licence,
     HMRCIntegrationException,
@@ -108,7 +109,13 @@ class HMRCIntegrationSerializersTests(DataTestClient):
     def test_open_application(self, status):
         action = licence_status_to_hmrc_integration_action.get(status)
         open_application = self.create_open_application_case(self.organisation)
-        self.create_advice(self.gov_user, open_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
+        open_application.goods_type.first().countries.set([Country.objects.first()])
+        GoodCountryDecisionFactory(
+            case=open_application,
+            country=Country.objects.first(),
+            goods_type=open_application.goods_type.first(),
+            approve=True,
+        )
         open_licence = self.create_licence(open_application, status=status)
         old_licence = None
         if action == HMRCIntegrationActionEnum.UPDATE:
@@ -175,7 +182,7 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             )
         elif licence.case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
             self._assert_countries(
-                data, Country.objects.filter(countries_on_application__application=licence.case).order_by("name")
+                data, get_approved_countries(licence.case.baseapplication)
             )
             self._assert_goods_types(data, get_approved_goods_types(licence.case.baseapplication))
 

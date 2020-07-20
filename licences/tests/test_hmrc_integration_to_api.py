@@ -9,11 +9,13 @@ from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
 from cases.models import CaseType
+from cases.tests.factories import GoodCountryDecisionFactory
 from goodstype.models import GoodsType
 from licences.enums import LicenceStatus, HMRCIntegrationActionEnum
 from licences.models import HMRCIntegrationUsageUpdate, Licence
 from licences.tests.factories import GoodOnLicenceFactory
 from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
+from static.countries.models import Country
 from test_helpers.clients import DataTestClient
 
 
@@ -63,9 +65,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
     def create_open_licence(self):
         open_application = self.create_open_application_case(self.organisation, CaseTypeEnum.EXHIBITION)
         goods = GoodsType.objects.filter(application=open_application)
+        country = Country.objects.first()
         for good in goods:
-            self.create_advice(
-                self.gov_user, open_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL, goods_type=good
+            GoodCountryDecisionFactory(
+                case=open_application,
+                country=country,
+                goods_type=good,
+                approve=True,
             )
         licence = self.create_licence(open_application, status=LicenceStatus.ISSUED)
         return licence
