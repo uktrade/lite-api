@@ -43,8 +43,7 @@ def get_licence_reference_code(application_reference):
 
 
 def serialize_goods_on_licence(licence):
-    from licences.serializers.view_licence import GoodOnLicenceViewSerializer
-    from licences.serializers.view_licence import GoodsTypeOnLicenceListSerializer
+    from licences.serializers.view_licence import GoodOnLicenceViewSerializer, GoodsTypeOnLicenceListSerializer
 
     if licence.goods.exists():
         # Standard Application
