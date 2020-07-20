@@ -103,19 +103,19 @@ class GoodsListControlCode(APIView):
 
                 if new_control_list_entries != old_control_list_entries:
                     good.flags.clear()
+                    comment = data.get("comment")
                     audit_trail_service.create(
                         actor=request.user,
-                        verb=AuditType.GOOD_REVIEWED,
+                        verb=AuditType.GOOD_REVIEWED_WITH_COMMENT if comment else AuditType.GOOD_REVIEWED,
                         action_object=good,
                         target=case,
                         payload={
                             "good_name": good.description,
                             "new_control_list_entry": new_control_list_entries,
                             "old_control_list_entry": old_control_list_entries,
+                            "comment": comment,
                         },
                     )
-
-                    # TODO: Add with comment audit
 
         apply_good_flagging_rules_for_case(case)
 
