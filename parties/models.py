@@ -33,8 +33,8 @@ class PartyManager(models.Manager):
 
 class Party(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.TextField(default=None, blank=True)
-    address = models.TextField(default=None, blank=True)
+    name = models.CharField(default=None, blank=True, max_length=100)
+    address = models.TextField(default=None, blank=True, max_length=256)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     website = models.URLField(default=None, blank=True, null=True)
     type = models.CharField(choices=PartyType.choices, max_length=20)
@@ -54,7 +54,7 @@ class Party(TimestampableModel):
     copy_of = models.ForeignKey("self", null=True, on_delete=models.SET_NULL)
     phone_number = models.CharField(null=True, blank=True, max_length=50)
     email = models.EmailField(null=True, blank=True)
-    details = models.TextField(null=True, blank=True)
+    details = models.TextField(null=True, blank=True, max_length=256)
 
     objects = PartyManager()
 
