@@ -65,10 +65,10 @@ class OpenMediaTests(DataTestClient):
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(
-            CountryOnApplication.objects.filter(application=OpenApplication.objects.first()).count(),
-            Country.objects.count(),
-        )
+        returned_coa = CountryOnApplication.objects.filter(application=OpenApplication.objects.first())
+        # Ensure the UK is not in the list of media destinations
+        self.assertNotIn(get_country("GB"), returned_coa)
+        self.assertEqual(returned_coa.count(), Country.objects.count() - 1)
 
     def test_cannot_add_goodstypes_on_media_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)

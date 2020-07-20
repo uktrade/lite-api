@@ -113,6 +113,7 @@ class Case(TimestampableModel):
                     "id": assignment.user.id,
                     "first_name": assignment.user.first_name,
                     "last_name": assignment.user.last_name,
+                    "email": assignment.user.email,
                 }
             )
 
@@ -457,14 +458,12 @@ class EcjuQuery(TimestampableModel):
 class GoodCountryDecision(TimestampableModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case = models.ForeignKey(Case, on_delete=models.CASCADE)
-    good = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)
+    goods_type = models.ForeignKey("goodstype.GoodsType", on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    decision = models.CharField(choices=AdviceType.choices, max_length=30)
+    approve = models.BooleanField(blank=False, null=False)
 
-    def save(self, *args, **kwargs):
-        GoodCountryDecision.objects.filter(case=self.case, good=self.good, country=self.country).delete()
-
-        super(GoodCountryDecision, self).save(*args, **kwargs)
+    class Meta:
+        unique_together = [["case", "goods_type", "country"]]
 
 
 class EnforcementCheckID(models.Model):

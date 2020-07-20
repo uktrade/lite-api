@@ -630,10 +630,6 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         )
 
     @staticmethod
-    def create_good_country_decision(case, goods_type, country, decision):
-        GoodCountryDecision(case=case, good=goods_type, country=country, decision=decision).save()
-
-    @staticmethod
     def add_additional_information(application):
         additional_information = {
             "expedited": False,
@@ -872,8 +868,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         GoodsTypeFactory(application=application, is_good_controlled=True)
         GoodsTypeFactory(application=application, is_good_controlled=True)
 
-        # Add a country to the application
-        CountryOnApplication(application=application, country=get_country("GB")).save()
+        # Add a country to the application - GB cannot be a destination on licences!
+        CountryOnApplication(application=application, country=get_country("FR")).save()
 
         # Add a site to the application
         SiteOnApplication(site=organisation.primary_site, application=application).save()
@@ -1024,16 +1020,19 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         reference_code=None,
         decisions=None,
         hmrc_integration_sent_at=None,
+        start_date=None,
     ):
         if not decisions:
             decisions = [Decision.objects.get(name=AdviceType.APPROVE)]
         if not reference_code:
             reference_code = get_licence_reference_code(application.reference_code)
+        if not start_date:
+            start_date = django.utils.timezone.now().date()
 
         licence = Licence.objects.create(
             application=application,
             reference_code=reference_code,
-            start_date=django.utils.timezone.now().date(),
+            start_date=start_date,
             duration=get_default_duration(application),
             status=status,
             hmrc_integration_sent_at=hmrc_integration_sent_at,

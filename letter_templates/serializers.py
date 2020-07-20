@@ -83,3 +83,4 @@ class LetterTemplateListSerializer(serializers.Serializer):
     name = serializers.CharField()
     case_types = CaseTypeReferenceListSerializer(many=True)
     layout = LetterLayoutReadOnlySerializer()
+    updated_at = serializers.DateTimeField()

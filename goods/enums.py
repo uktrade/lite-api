@@ -43,7 +43,7 @@ class GoodControlled:
 
     @classmethod
     def to_str(cls, obj):
-        return next(choice[1] for choice in cls.choices if choice[0] == obj)
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
 
 
 class GoodPvGraded:
@@ -103,7 +103,7 @@ class PvGrading:
 
     @classmethod
     def to_str(cls, obj):
-        return next(choice[1] for choice in cls.choices if choice[0] == obj)
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
 
 
 class ItemCategory:
@@ -131,7 +131,7 @@ class ItemCategory:
 
     @classmethod
     def to_str(cls, obj):
-        return next(choice[1] for choice in cls.choices if choice[0] == obj)
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
 
 
 class MilitaryUse:
@@ -147,7 +147,7 @@ class MilitaryUse:
 
     @classmethod
     def to_str(cls, obj):
-        return next(choice[1] for choice in cls.choices if choice[0] == obj)
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
 
 
 class Component:
@@ -165,7 +165,7 @@ class Component:
 
     @classmethod
     def to_str(cls, obj):
-        return next(choice[1] for choice in cls.choices if choice[0] == obj)
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
 
 
 class FirearmGoodType:
@@ -183,4 +183,4 @@ class FirearmGoodType:
 
     @classmethod
     def to_str(cls, obj):
-        return next(choice[1] for choice in cls.choices if choice[0] == obj)
+        return next(choice[1] for choice in cls.choices if choice[0] == obj) if obj else None
