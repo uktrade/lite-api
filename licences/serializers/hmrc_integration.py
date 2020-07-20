@@ -3,7 +3,6 @@ from rest_framework import serializers
 from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action, HMRCIntegrationActionEnum
 from licences.helpers import get_approved_goods_types, get_approved_countries
 from licences.models import Licence
-from static.countries.models import Country
 
 
 class HMRCIntegrationCountrySerializer(serializers.Serializer):
