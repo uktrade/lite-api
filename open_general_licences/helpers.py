@@ -20,7 +20,7 @@ def get_open_general_licence(pk):
 def get_open_general_licence_duration():
     """
     Should calculate a duration equivalent to ending in
-    December 2067 as this is what spire did
+    December 2076 as this is what spire did
     """
     start_date = timezone.now().date()
     end_date = datetime.date(2076, 12, 31)
