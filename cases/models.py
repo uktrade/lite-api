@@ -146,7 +146,7 @@ class Case(TimestampableModel):
         self.status = status
         self.save()
 
-        # Suspend / revoke licence
+        # Update licence status if applicable case status change
         update_licence_status(self, status.status)
 
         if CaseStatusEnum.is_terminal(old_status) and not CaseStatusEnum.is_terminal(self.status.status):
