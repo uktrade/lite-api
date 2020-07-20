@@ -116,9 +116,10 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response_data[0].get("type").get("key"), "proviso")
         self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
-        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        self.assertIn("\n-------\n", pv_gradings)
         for _, pv_grading in inputs:
-            self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+            self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
     def test_create_final_advice_same_advice_type_same_pv_gradings(self):
         """
@@ -134,8 +135,9 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response_data[0].get("type").get("key"), "proviso")
         self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
-        self.assertNotIn("\n-------\n", response_data[0]["collated_pv_grading"])
-        self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        self.assertNotIn("\n-------\n", pv_gradings)
+        self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
     def test_create_conflicting_final_advice_different_advice_type_same_pv_gradings(self):
         """
@@ -154,8 +156,9 @@ class CreateCaseAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
-        self.assertNotIn("\n-------\n", response_data[0]["collated_pv_grading"])
-        self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        self.assertNotIn("\n-------\n", pv_gradings)
+        self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
     def test_create_conflicting_final_advice_different_advice_type_different_pv_gradings(self):
         """
@@ -173,9 +176,10 @@ class CreateCaseAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
-        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        self.assertIn("\n-------\n", pv_gradings)
         for _, _, pv_grading in inputs:
-            self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+            self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
     # Normal restrictions on team advice items
     @parameterized.expand(

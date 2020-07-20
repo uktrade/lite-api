@@ -471,7 +471,7 @@ class CaseReferenceCodeManager(models.Manager):
 
 class AdviceManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().prefetch_related(*self.model.ENTITY_FIELDS)
+        return super().get_queryset().order_by("created_at").prefetch_related(*self.model.ENTITY_FIELDS)
 
     def get_user_advice(self, case):
         return self.get_queryset().filter(case=case, level=AdviceLevel.USER)
