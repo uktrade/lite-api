@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from conf.helpers import add_months
-from licences.enums import LicenceStatus
+from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
 from licences.helpers import get_approved_goods_types
 from licences.models import Licence
 from static.countries.models import Country
@@ -70,7 +69,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
     action = serializers.SerializerMethodField()  # 'insert', 'cancel' or 'update'
     old_id = serializers.SerializerMethodField()  # only required if action='update'
     start_date = serializers.DateField()
-    end_date = serializers.SerializerMethodField()
+    end_date = serializers.DateField()
     organisation = HMRCIntegrationOrganisationSerializer(source="application.organisation")
     end_user = HMRCIntegrationEndUserSerializer(source="application.end_user.party")
     countries = serializers.SerializerMethodField()
@@ -88,8 +87,8 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         ):
             self.fields.pop("countries")
 
-        self.action = LicenceStatus.hmrc_integration_action.get(self.instance.status)
-        if self.action != LicenceStatus.hmrc_integration_action.get(LicenceStatus.REINSTATED):
+        self.action = licence_status_to_hmrc_integration_action.get(self.instance.status)
+        if self.action != licence_status_to_hmrc_integration_action.get(LicenceStatus.REINSTATED):
             self.fields.pop("old_id")
 
     def get_action(self, _):
@@ -102,9 +101,6 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             .values_list("id", flat=True)
             .last()
         )
-
-    def get_end_date(self, instance):
-        return add_months(instance.start_date, instance.duration, "%Y-%m-%d")
 
     def get_countries(self, instance):
         return HMRCIntegrationCountrySerializer(
@@ -131,7 +127,8 @@ class HMRCIntegrationUsageUpdateGoodSerializer(serializers.Serializer):
 
 class HMRCIntegrationUsageUpdateLicenceSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True, allow_null=False)
-    goods = serializers.ListField(required=True, allow_null=False, allow_empty=False)
+    action = serializers.CharField(required=True, allow_null=False)
+    goods = serializers.ListField(required=True, allow_null=False, allow_empty=True)
 
 
 class HMRCIntegrationUsageUpdateLicencesSerializer(serializers.Serializer):

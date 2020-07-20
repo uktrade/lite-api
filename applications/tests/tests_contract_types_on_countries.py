@@ -13,26 +13,27 @@ class ContractTypeOnCountryTests(DataTestClient):
     def test_set_contract_type_on_country_on_application_success(self):
         application = self.create_draft_open_application(self.organisation)
 
-        data = {"countries": ["GB"], "contract_types": ["navy"], "other_contract_type_text": None}
+        data = {"countries": ["FR"], "contract_types": ["navy"], "other_contract_type_text": None}
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
-        coa = CountryOnApplication.objects.get(country_id="GB", application=application)
+        coa = CountryOnApplication.objects.get(country_id="FR", application=application)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(coa.contract_types, ["navy"])
 
     def test_set_multiple_contract_types_on_country_on_application_success(self):
         application = self.create_draft_open_application(self.organisation)
-        CountryOnApplication(country_id="FR", application=application).save()
+        # Add ES as an additional country (FR already present on draft open applications)
+        CountryOnApplication(country_id="ES", application=application).save()
 
-        data = {"countries": ["GB", "FR"], "contract_types": ["navy", "army"], "other_contract_type_text": ""}
+        data = {"countries": ["FR", "ES"], "contract_types": ["navy", "army"], "other_contract_type_text": ""}
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
-        coa_gb = CountryOnApplication.objects.get(country_id="GB", application=application)
+        coa_gb = CountryOnApplication.objects.get(country_id="ES", application=application)
         coa_fr = CountryOnApplication.objects.get(country_id="FR", application=application)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -42,7 +43,7 @@ class ContractTypeOnCountryTests(DataTestClient):
     def test_set_other_contract_type_without_text_on_country_on_application_failure(self):
         application = self.create_draft_open_application(self.organisation)
 
-        data = {"countries": ["GB"], "contract_types": ["other_contract_type"], "other_contract_type_text": ""}
+        data = {"countries": ["FR"], "contract_types": ["other_contract_type"], "other_contract_type_text": ""}
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
@@ -56,7 +57,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         other_text = "This is some text"
 
         data = {
-            "countries": ["GB"],
+            "countries": ["FR"],
             "contract_types": contract_types,
             "other_contract_type_text": other_text,
         }
@@ -64,7 +65,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
-        coa = CountryOnApplication.objects.get(country_id="GB", application=application)
+        coa = CountryOnApplication.objects.get(country_id="FR", application=application)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(set(coa.contract_types).issubset(set(contract_types)))
@@ -77,7 +78,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         other_text = "This is some text"
 
         data = {
-            "countries": ["GB"],
+            "countries": ["FR"],
             "contract_types": contract_types,
             "other_contract_type_text": other_text,
         }
@@ -85,7 +86,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
 
         response = self.client.put(url, data, **self.exporter_headers)
-        coa = CountryOnApplication.objects.get(country_id="GB", application=application)
+        coa = CountryOnApplication.objects.get(country_id="FR", application=application)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(set(coa.contract_types).issubset(set(contract_types)))
@@ -95,7 +96,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         application = self.create_draft_open_application(self.organisation)
 
         data = {
-            "countries": ["GB"],
+            "countries": ["FR"],
             "contract_types": [],
             "other_contract_type_text": "",
         }
@@ -109,7 +110,7 @@ class ContractTypeOnCountryTests(DataTestClient):
         application = self.create_draft_open_application(self.organisation)
 
         data = {
-            "countries": ["GB"],
+            "countries": ["FR"],
             "other_contract_type_text": "",
         }
 
@@ -122,13 +123,13 @@ class ContractTypeOnCountryTests(DataTestClient):
         application = self.create_draft_open_application(self.organisation)
 
         data = {
-            "countries": ["GB"],
+            "countries": ["FR"],
             "contract_types": ["navy"],
             "other_contract_type_text": "",
         }
 
         url = reverse("applications:contract_types", kwargs={"pk": application.id})
-        coa = CountryOnApplication.objects.get(country_id="GB", application=application)
+        coa = CountryOnApplication.objects.get(country_id="FR", application=application)
         coa.other_contract_type_text = "this is text"
         coa.save()
         self.client.put(url, data, **self.exporter_headers)
@@ -140,10 +141,10 @@ class ContractTypeOnCountryTests(DataTestClient):
         application = self.create_draft_open_application(self.organisation)
         falg = FlagFactory(team=self.team)
         flag = FlagFactory(team=self.team)
-        Country.objects.get(id="GB").flags.set([falg.id, flag.id])
+        Country.objects.get(id="FR").flags.set([falg.id, flag.id])
 
         data = {
-            "countries": ["GB"],
+            "countries": ["FR"],
             "contract_types": ["navy", "army"],
             "other_contract_type_text": "",
         }

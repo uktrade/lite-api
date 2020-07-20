@@ -20,7 +20,7 @@ class ComplianceExporterViewTests(DataTestClient):
         self.assertEqual(data["address"]["postcode"], site.address.postcode)
         self.assertEqual(data["address"]["country"]["id"], site.address.country.id)
 
-    def test_get_exporter_compliance_case_list(self):
+    def test_get_exporter_compliance_case_list_1(self):
         comp_case_1 = ComplianceSiteCaseFactory(
             organisation=self.organisation,
             site=self.organisation.primary_site,
@@ -48,11 +48,21 @@ class ComplianceExporterViewTests(DataTestClient):
 
         self.assertEqual(len(response_data), 3)
 
-        self.compare_compliance_case_in_list(response_data[0], comp_case_1, self.organisation.primary_site)
-        self.compare_compliance_case_in_list(response_data[1], comp_case_2, site_2)
-        self.compare_compliance_case_in_list(response_data[2], comp_case_3, site_3)
+        comp_cases = [comp_case_1, comp_case_2, comp_case_3]
+        comp_case_ids = [str(comp_case.id) for comp_case in comp_cases]
+        response_data_ids = [data["id"] for data in response_data]
 
-    def test_get_exporter_compliance_case_list(self):
+        self.assertEqual(set(comp_case_ids), set(response_data_ids))
+
+        comp_case_1_response_data = response_data[response_data_ids.index(str(comp_case_1.id))]
+        comp_case_2_response_data = response_data[response_data_ids.index(str(comp_case_2.id))]
+        comp_case_3_response_data = response_data[response_data_ids.index(str(comp_case_3.id))]
+
+        self.compare_compliance_case_in_list(comp_case_1_response_data, comp_case_1, self.organisation.primary_site)
+        self.compare_compliance_case_in_list(comp_case_2_response_data, comp_case_2, site_2)
+        self.compare_compliance_case_in_list(comp_case_3_response_data, comp_case_3, site_3)
+
+    def test_get_exporter_compliance_case_list_2(self):
         user_org_relationship = UserOrganisationRelationship.objects.get(user=self.exporter_user)
         comp_case_1 = ComplianceSiteCaseFactory(
             organisation=self.organisation,
