@@ -24,7 +24,7 @@ def set_goods_and_countries_for_open_media_application(application):
     _add_goodstypes_from_csv("MEDIA", application)
 
     CountryOnApplication.objects.bulk_create(
-        [CountryOnApplication(country=country, application=application) for country in Country.objects.all()]
+        [CountryOnApplication(country=country, application=application) for country in Country.objects.exclude(id="GB")]
     )
 
 
