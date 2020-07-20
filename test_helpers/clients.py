@@ -715,7 +715,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if add_a_good:
             # Add a good to the standard application
             self.good_on_application = GoodOnApplication.objects.create(
-                good=good if good else GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
+                good=good
+                if good
+                else GoodFactory(
+                    organisation=organisation, is_good_controlled=GoodControlled.YES, is_pv_graded=GoodPvGraded.NO,
+                ),
                 application=application,
                 quantity=10,
                 unit=Units.NAR,
