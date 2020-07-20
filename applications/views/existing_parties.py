@@ -42,7 +42,7 @@ class ExistingParties(generics.ListCreateAPIView):
 
         # Exclude the UK if end user on standard transhipment
         if application.case_type.id == CaseTypeEnum.SITL.id:
-            if "party_type" in request_data and request_data["party_type"][0] == "end_user":
+            if "end_user" in request_data["party_type"]:
                 uncopied_parties = uncopied_parties.exclude(country__id="GB")
                 newest_copied_parties = newest_copied_parties.exclude(country__id="GB")
 
