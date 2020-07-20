@@ -54,7 +54,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         error_messages={"blank": OpenGeneralLicences.serializerErrors.BLANK_URL},
     )
     case_type = PrimaryKeyRelatedSerializerField(
-        queryset=CaseType.objects.filter(id__in=CaseTypeEnum.OGL_ID_LIST).all(),
+        queryset=CaseType.objects.filter(id__in=CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS).all(),
         required=True,
         allow_null=False,
         allow_empty=False,
