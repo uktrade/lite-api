@@ -1,3 +1,4 @@
+import logging
 from copy import deepcopy
 
 from rest_framework import serializers
@@ -23,18 +24,17 @@ class AuditSerializer(serializers.ModelSerializer):
         )
 
     def get_user(self, instance):
-
-        if AuditType(instance.verb) == AuditType.REGISTER_ORGANISATION:
+        if instance.actor:
+            return {
+                "first_name": instance.actor.first_name,
+                "last_name": instance.actor.last_name,
+            }
+        else:
             # When an anonymous user is registering for an org,
             # we pass their email in the payload to use it as the actor later
             return {
                 "first_name": instance.payload["email"],
                 "last_name": "",
-            }
-        else:
-            return {
-                "first_name": instance.actor.first_name,
-                "last_name": instance.actor.last_name,
             }
 
     def get_text(self, instance):
@@ -50,7 +50,7 @@ class AuditSerializer(serializers.ModelSerializer):
                 if isinstance(payload[key], list):
                     payload[key] = ", ".join(payload[key])
             except KeyError as e:
-                print(f"Audit serialization exception skipped: {e}")
+                logging.error(f"Audit serialization exception skipped: {e}")
 
             # TODO: standardise payloads across all audits and remove below
             if key == "status" and "new" in payload[key]:
