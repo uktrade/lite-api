@@ -400,6 +400,71 @@
 
 					<div class="govuk-summary-list__row">
 						<dt class="govuk-summary-list__key">
+							{% exporter_lcs 'goods.CreateGoodForm.IsGraded.TITLE' %}
+						</dt>
+						<dd class="govuk-summary-list__value">
+							{{ good.is_pv_graded }}
+						</dd>
+					</div>
+
+					{% if good.pv_grading.grading %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodGradingForm.PREFIX' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.pv_grading.prefix|default_na }}
+							</dd>
+						</div>
+
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodGradingForm.GRADING' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.pv_grading.grading }}
+							</dd>
+						</div>
+
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodGradingForm.SUFFIX' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.pv_grading.suffix|default_na }}
+							</dd>
+						</div>
+
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodGradingForm.ISSUING_AUTHORITY' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.pv_grading.issuing_authority }}
+							</dd>
+						</div>
+
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodGradingForm.REFERENCE' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.pv_grading.reference }}
+							</dd>
+						</div>
+
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__key">
+								{% exporter_lcs 'goods.GoodGradingForm.DATE_OF_ISSUE' %}
+							</dt>
+							<dd class="govuk-summary-list__value">
+								{{ good.pv_grading.date_of_issue }}
+							</dd>
+						</div>
+					{% endif %}
+
+					<div class="govuk-summary-list__row">
+						<dt class="govuk-summary-list__key">
 							{% exporter_lcs 'goods.GoodsDetailSummary.INCORPORATED' %}
 						</dt>
 						<dd class="govuk-summary-list__value">

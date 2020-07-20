@@ -2,7 +2,7 @@ import factory
 from django.utils import timezone
 
 from goods import models
-from goods.enums import GoodControlled, ItemCategory, Component, MilitaryUse, FirearmGoodType
+from goods.enums import GoodControlled, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodPvGraded
 from static.control_list_entries.helpers import get_control_list_entry
 
 
@@ -14,6 +14,7 @@ class GoodFactory(factory.django.DjangoModelFactory):
     item_category = ItemCategory.GROUP1_COMPONENTS
     is_military_use = MilitaryUse.NO
     is_component = Component.NO
+    is_pv_graded = GoodPvGraded.NO
     uses_information_security = False
     information_security_details = None
     modified_military_use_details = None
