@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action, HMRCIntegrationActionEnum
-from licences.helpers import get_approved_goods_types
+from licences.helpers import get_approved_goods_types, get_approved_countries
 from licences.models import Licence
 from static.countries.models import Country
 
@@ -108,9 +108,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
 
     def get_countries(self, instance):
         if hasattr(instance.case, "baseapplication") and hasattr(instance.case.baseapplication, "openapplication"):
-            countries = Country.objects.filter(countries_on_application__application_id=instance.case.id).order_by(
-                "name"
-            )
+            countries = get_approved_countries(instance.case.baseapplication)
         else:
             countries = instance.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
 

@@ -4,7 +4,7 @@ from rest_framework import status
 from applications.models import CountryOnApplication
 from cases.enums import CaseTypeEnum, AdviceType, CaseTypeSubTypeEnum
 from cases.models import CaseType
-from cases.tests.factories import FinalAdviceFactory
+from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from licences.tests.factories import GoodOnLicenceFactory
@@ -28,6 +28,7 @@ class GetLicencesTests(DataTestClient):
             self.organisation, CaseTypeEnum.EXHIBITION
         )
         self.open_application = self.create_open_application_case(self.organisation)
+        self.open_application.goods_type.first().countries.set([Country.objects.first()])
         self.applications = [
             self.standard_application,
             self.f680_application,
@@ -59,6 +60,9 @@ class GetLicencesTests(DataTestClient):
                 GoodOnLicenceFactory(licence=licence, good=good, quantity=good.quantity, value=good.value)
             for goods_type in application.goods_type.all():
                 FinalAdviceFactory(user=self.gov_user, goods_type=goods_type, case=application)
+                for country in goods_type.countries.all():
+                    FinalAdviceFactory(user=self.gov_user, country=country, case=application)
+                    GoodCountryDecisionFactory(case=application, goods_type=goods_type, country=country)
 
     def test_get_all_licences(self):
         response = self.client.get(self.url, **self.exporter_headers)

@@ -5,11 +5,12 @@ from rest_framework.exceptions import ParseError
 
 from applications.models import GoodOnApplication
 from applications.serializers.good import GoodOnApplicationViewSerializer
-from cases.enums import AdviceType, CaseTypeSubTypeEnum
-from cases.models import Advice
+from cases.enums import CaseTypeSubTypeEnum
+from cases.models import GoodCountryDecision
 from conf.exceptions import NotFoundError
 from licences.models import Licence
 from lite_content.lite_api import strings
+from static.countries.models import Country
 from static.statuses.enums import CaseStatusEnum
 
 
@@ -23,10 +24,13 @@ def get_open_general_export_licence_case(pk):
 
 
 def get_approved_goods_types(application):
-    approved_goods = Advice.objects.filter(
-        case_id=application.id, type__in=[AdviceType.APPROVE, AdviceType.PROVISO]
-    ).values_list("goods_type", flat=True)
+    approved_goods = GoodCountryDecision.objects.filter(case_id=application.id).values_list("goods_type", flat=True)
     return application.goods_type.filter(id__in=approved_goods)
+
+
+def get_approved_countries(application):
+    approved_countries = GoodCountryDecision.objects.filter(case_id=application.id).values_list("country", flat=True)
+    return Country.objects.filter(id__in=approved_countries).order_by("name")
 
 
 @transaction.atomic

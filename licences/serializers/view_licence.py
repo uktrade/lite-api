@@ -12,7 +12,7 @@ from conf.serializers import KeyValueChoiceField, CountrySerializerField, Contro
 from goods.models import Good
 from goodstype.models import GoodsType
 from licences.enums import LicenceStatus
-from licences.helpers import serialize_goods_on_licence
+from licences.helpers import serialize_goods_on_licence, get_approved_countries
 from licences.models import Licence
 from parties.enums import PartyRole
 from parties.models import Party, PartyDocument
@@ -137,7 +137,7 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
         elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
-            return CountriesLicenceSerializer(instance.openapplication.application_countries, many=True).data
+            return CountriesLicenceSerializer(get_approved_countries(instance), many=True).data
         else:
             return None
 
