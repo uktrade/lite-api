@@ -439,7 +439,7 @@ class CaseManager(models.Manager):
         ).values_list("good", flat=True)
 
         queryset = queryset.filter(
-            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OGL_ID_LIST]
+            case_type__id__in=[CaseTypeEnum.OICL.id, CaseTypeEnum.OIEL.id, *CaseTypeEnum.OPEN_GENERAL_LICENCE_IDS]
         ) | queryset.filter(baseapplication__goods__id__in=approved_goods_on_licence,)
 
         return queryset.distinct()

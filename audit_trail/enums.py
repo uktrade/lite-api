@@ -66,6 +66,7 @@ class AuditType(LiteEnum):
     FINALISED_APPLICATION = autostr()
     UNASSIGNED_QUEUES = autostr()
     UNASSIGNED = autostr()
+    CREATED_DOCUMENT_TEMPLATE = autostr()
     UPDATED_LETTER_TEMPLATE_NAME = autostr()
     ADDED_LETTER_TEMPLATE_CASE_TYPES = autostr()
     UPDATED_LETTER_TEMPLATE_CASE_TYPES = autostr()
@@ -112,6 +113,7 @@ class AuditType(LiteEnum):
     COMPLIANCE_PEOPLE_PRESENT_UPDATED = autostr()
     COMPLIANCE_PEOPLE_PRESENT_DELETED = autostr()
     LICENCE_UPDATED_GOOD_USAGE = autostr()
+    LICENCE_UPDATED_STATUS = autostr()
 
     def human_readable(self):
         """
