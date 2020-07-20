@@ -16,7 +16,7 @@ from cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
 from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
-from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled
+from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled, GoodPvGraded
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
@@ -448,6 +448,24 @@ def _format_quantity(quantity, unit):
         return "0 " + pluralise_unit(Units.to_str(unit), quantity)
 
 
+def _get_pv_grading_context(pv_grading_details):
+    context = {
+        "prefix": pv_grading_details.prefix,
+        "suffix": pv_grading_details.suffix,
+        "issuing_authority": pv_grading_details.issuing_authority,
+        "reference": pv_grading_details.reference,
+        "date_of_issue": pv_grading_details.date_of_issue.strftime(DATE_FORMAT)
+        if pv_grading_details.date_of_issue
+        else None,
+    }
+    if pv_grading_details.grading:
+        context["grading"] = PvGrading.to_str(pv_grading_details.grading)
+    else:
+        context["grading"] = pv_grading_details.custom_grading
+
+    return context
+
+
 def _get_good_on_application_context(good_on_application, advice=None):
     good_context = {
         "description": good_on_application.good.description,
@@ -460,6 +478,7 @@ def _get_good_on_application_context(good_on_application, advice=None):
         "applied_for_value": f"£{good_on_application.value}",
         "is_incorporated": friendly_boolean(good_on_application.is_good_incorporated),
         "item_category": ItemCategory.to_str(good_on_application.good.item_category),
+        "is_pv_graded": GoodPvGraded.to_str(good_on_application.good.is_pv_graded),
     }
 
     # handle item categories for goods and their differences
@@ -515,6 +534,9 @@ def _get_good_on_application_context(good_on_application, advice=None):
     if good_on_application.item_type:
         good_context["item_type"] = good_on_application.item_type
         good_context["other_item_type"] = good_on_application.other_item_type
+
+    if good_on_application.good.is_pv_graded != GoodPvGraded.NO:
+        good_context["pv_grading"] = _get_pv_grading_context(good_on_application.good.pv_grading_details)
 
     return good_context
 
