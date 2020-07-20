@@ -4,14 +4,11 @@ from rest_framework import status
 
 from cases.enums import AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.libraries.advice import get_serialized_entities_from_final_advice_on_case
 from cases.models import Advice, GoodCountryDecision
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from conf import constants
 from goods.enums import PvGrading
-from goods.serializers import GoodCreateSerializer
 from goodstype.tests.factories import GoodsTypeFactory
-from parties.serializers import PartySerializer
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
@@ -381,47 +378,6 @@ class CreateCaseAdviceTests(DataTestClient):
         entity_field.remove("end_user")
         for field in entity_field:
             self.assertIsNone(getattr(advice_object, field, None))
-
-    def test_get_serialized_end_user_from_final_advice_on_case(self):
-        end_user = self.standard_application.end_user.party
-        data = {
-            "text": "I Am Easy to Find",
-            "note": "I Am Easy to Find",
-            "type": AdviceType.APPROVE,
-            "end_user": str(end_user.id),
-        }
-
-        self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
-
-        serialized_entities = get_serialized_entities_from_final_advice_on_case(case=self.standard_application)
-        self.assertIn("end_user", serialized_entities)
-        self.assertEqual(serialized_entities["end_user"], PartySerializer(end_user).data)
-
-        entity_field = Advice.ENTITY_FIELDS.copy()
-        entity_field.remove("end_user")
-        for field in entity_field:
-            self.assertIsNone(getattr(serialized_entities, field, None))
-
-    def test_get_serialized_goods_from_final_advice_on_case(self):
-        good = self.standard_application.goods.first().good
-
-        data = {
-            "text": "I Am Easy to Find",
-            "note": "I Am Easy to Find",
-            "type": AdviceType.APPROVE,
-            "good": str(good.id),
-        }
-
-        self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
-
-        serialized_entities = get_serialized_entities_from_final_advice_on_case(case=self.standard_application)
-        self.assertIn("goods", serialized_entities)
-        self.assertEqual(serialized_entities["goods"], [GoodCreateSerializer(good).data])
-
-        entity_field = Advice.ENTITY_FIELDS.copy()
-        entity_field.remove("good")
-        for field in entity_field:
-            self.assertIsNone(getattr(serialized_entities, field, None))
 
     def test_updating_final_advice_removes_draft_decision_documents(self):
         good = self.standard_application.goods.first().good
