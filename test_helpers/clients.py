@@ -525,9 +525,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return good
 
     def create_goods_query(self, description, organisation, clc_reason, pv_reason) -> GoodsQuery:
-        good = DataTestClient.create_good(
-            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
-        )
+        good = DataTestClient.create_good(description=description, organisation=organisation)
 
         goods_query = GoodsQuery.objects.create(
             clc_raised_reasons=clc_reason,
@@ -545,9 +543,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return goods_query
 
     def create_clc_query(self, description, organisation) -> GoodsQuery:
-        good = DataTestClient.create_good(
-            description=description, organisation=organisation, is_pv_graded=GoodPvGraded.NO
-        )
+        good = DataTestClient.create_good(description=description, organisation=organisation)
 
         clc_query = GoodsQuery.objects.create(
             clc_raised_reasons="this is a test text",
@@ -715,11 +711,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         if add_a_good:
             # Add a good to the standard application
             self.good_on_application = GoodOnApplication.objects.create(
-                good=good
-                if good
-                else GoodFactory(
-                    organisation=organisation, is_good_controlled=GoodControlled.YES, is_pv_graded=GoodPvGraded.NO,
-                ),
+                good=good if good else GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
                 application=application,
                 quantity=10,
                 unit=Units.NAR,
@@ -796,9 +788,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
         # Add a good to the standard application
         self.good_on_application = GoodOnApplication.objects.create(
-            good=GoodFactory(
-                organisation=organisation, is_good_controlled=GoodControlled.YES, is_pv_graded=GoodPvGraded.NO,
-            ),
+            good=GoodFactory(organisation=organisation, is_good_controlled=GoodControlled.YES),
             application=application,
             quantity=10,
             unit=Units.NAR,
