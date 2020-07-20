@@ -3,6 +3,7 @@ from django.db.models.functions import FirstValue
 from rest_framework import generics
 
 from applications.libraries.get_applications import get_application
+from cases.enums import CaseTypeEnum
 from conf.authentication import ExporterAuthentication
 from parties.models import Party
 from parties.serializers import PartySerializer
@@ -39,9 +40,7 @@ class ExistingParties(generics.ListCreateAPIView):
         uncopied_parties = self.get_uncopied_parties(application.organisation, params)
         newest_copied_parties = self.get_newest_copied_parties(application.organisation, params)
 
-        # Exclude the UK if standard transhipment
-        from cases.enums import CaseTypeEnum
-
+        # Exclude the UK if end user on standard transhipment
         if application.case_type.id == CaseTypeEnum.SITL.id:
             if "party_type" in request_data and request_data["party_type"][0] == "end_user":
                 uncopied_parties = uncopied_parties.exclude(country__id="GB")
