@@ -547,6 +547,7 @@ class GoodDocumentViewSerializer(serializers.Serializer):
     description = serializers.CharField()
     user = ExporterUserSimpleSerializer()
     s3_key = serializers.SerializerMethodField()
+    safe = serializers.BooleanField()
 
     def get_s3_key(self, instance):
         return instance.s3_key if instance.safe else "File not ready"

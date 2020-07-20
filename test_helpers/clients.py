@@ -350,15 +350,15 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         return case_doc
 
     @staticmethod
-    def create_application_document(application):
+    def create_application_document(application, safe=True):
         application_doc = ApplicationDocument(
             application=application,
             description="document description",
             name="document name",
             s3_key="documentkey",
             size=12,
-            virus_scanned_at=None,
-            safe=None,
+            virus_scanned_at=django.utils.timezone.now(),
+            safe=safe,
         )
 
         application_doc.save()
@@ -366,7 +366,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_good_document(
-        good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str,
+        good: Good, user: ExporterUser, organisation: Organisation, name: str, s3_key: str, safe=True
     ):
         good_doc = GoodDocument(
             good=good,
@@ -376,8 +376,8 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             name=name,
             s3_key=s3_key,
             size=123456,
-            virus_scanned_at=None,
-            safe=None,
+            virus_scanned_at=django.utils.timezone.now(),
+            safe=safe,
         )
         good_doc.save()
         return good_doc
