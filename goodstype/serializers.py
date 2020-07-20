@@ -13,7 +13,6 @@ from goods.enums import GoodControlled
 from goodstype.constants import DESCRIPTION_MAX_LENGTH
 from goodstype.document.models import GoodsTypeDocument
 from goodstype.models import GoodsType
-from picklists.models import PicklistItem
 from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.countries.serializers import CountrySerializer
 

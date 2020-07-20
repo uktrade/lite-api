@@ -29,7 +29,6 @@ from goods.models import Good, GoodDocument, PvGradingDetails, FirearmGoodDetail
 from gov_users.serializers import GovUserSimpleSerializer
 from lite_content.lite_api import strings
 from organisations.models import Organisation
-from picklists.models import PicklistItem
 from queries.goods_query.models import GoodsQuery
 from static.control_list_entries.serializers import ControlListEntrySerializer
 from static.missing_document_reasons.enums import GoodMissingDocumentReasons

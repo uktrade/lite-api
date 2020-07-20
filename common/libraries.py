@@ -4,7 +4,6 @@ from conf.helpers import str_to_bool
 from conf.serializers import ControlListEntryField
 from flags.enums import SystemFlags
 from lite_content.lite_api import strings
-from picklists.models import PicklistItem
 
 
 def initialize_good_or_goods_type_control_list_entries_serializer(self):
