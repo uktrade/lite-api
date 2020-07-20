@@ -1015,7 +1015,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
 
     @staticmethod
     def create_licence(
-        application: BaseApplication,
+        application: Case,
         status: LicenceStatus,
         reference_code=None,
         decisions=None,
@@ -1030,7 +1030,7 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
             start_date = django.utils.timezone.now().date()
 
         licence = Licence.objects.create(
-            application=application,
+            case=application,
             reference_code=reference_code,
             start_date=start_date,
             duration=get_default_duration(application),

@@ -1,9 +1,12 @@
 from django.urls import reverse
+from django.utils import timezone
 from parameterized import parameterized
 from rest_framework import status
 
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
+from licences.enums import LicenceStatus
+from licences.models import Licence
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.models import OpenGeneralLicenceCase
 from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
@@ -29,6 +32,16 @@ class RegisterOpenGeneralLicenceTests(DataTestClient):
         self.assertEqualIgnoreType(response_data["open_general_licence"], self.open_general_licence.id)
         self.assertEqual(response_data["registrations"], [str(OpenGeneralLicenceCase.objects.get().id)])
         self.assertEqual(OpenGeneralLicenceCase.objects.count(), 1)
+        ogl_case = OpenGeneralLicenceCase.objects.get()
+        self.assertTrue(
+            Licence.objects.filter(
+                reference_code=ogl_case.reference_code,
+                case=ogl_case,
+                status=LicenceStatus.ISSUED,
+                start_date=timezone.now().date(),
+                duration__isnull=False,
+            ).exists()
+        )
 
     @parameterized.expand(
         [

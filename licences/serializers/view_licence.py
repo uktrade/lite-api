@@ -3,22 +3,17 @@ from __future__ import division
 from django.db.models import F
 from rest_framework import serializers
 
-from applications.models import BaseApplication, PartyOnApplication
+from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication, CountryOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
 from cases.serializers import SimpleAdviceSerializer
-from conf.serializers import KeyValueChoiceField, CountrySerializerField
+from conf.serializers import KeyValueChoiceField, CountrySerializerField, ControlListEntryField
 from goods.models import Good
 from goodstype.models import GoodsType
 from licences.enums import LicenceStatus
-from licences.helpers import serialize_goods_on_licence
+from licences.helpers import serialize_goods_on_licence, get_approved_countries
 from licences.models import Licence
-from licences.serializers.view_licences import (
-    PartyLicenceListSerializer,
-    CountriesLicenceSerializer,
-    GoodLicenceListSerializer,
-)
 from parties.enums import PartyRole
 from parties.models import Party, PartyDocument
 from static.control_list_entries.serializers import ControlListEntrySerializer
@@ -142,7 +137,7 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
         elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
-            return CountriesLicenceSerializer(instance.openapplication.application_countries, many=True).data
+            return CountriesLicenceSerializer(get_approved_countries(instance), many=True).data
         else:
             return None
 
@@ -162,7 +157,7 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
     advice = serializers.SerializerMethodField()
 
     def get_advice(self, instance):
-        advice = instance.good.good.advice.get(level=AdviceLevel.FINAL, case_id=instance.licence.application_id)
+        advice = instance.good.good.advice.get(level=AdviceLevel.FINAL, case_id=instance.licence.case_id)
         return SimpleAdviceSerializer(instance=advice).data
 
     def get_applied_for_value_per_item(self, instance):
@@ -175,7 +170,7 @@ class GoodOnLicenceViewSerializer(serializers.Serializer):
 
 
 class LicenceSerializer(serializers.ModelSerializer):
-    application = ApplicationLicenceSerializer()
+    application = ApplicationLicenceSerializer(source="case.baseapplication")
     goods = serializers.SerializerMethodField()
     status = KeyValueChoiceField(choices=LicenceStatus.choices)
     document = serializers.SerializerMethodField()
@@ -240,3 +235,125 @@ class NLRdocumentSerializer(serializers.ModelSerializer):
             .annotate(party_name=F("name"), country_name=F("country__name"))
             .values("party_name", "country_name")
         )
+
+
+# Licence list serializers
+
+
+class GoodLicenceListSerializer(serializers.ModelSerializer):
+    control_list_entries = ControlListEntryField(many=True)
+
+    class Meta:
+        model = Good
+        fields = (
+            "description",
+            "control_list_entries",
+        )
+        read_only_fields = fields
+
+
+class GoodsTypeOnLicenceListSerializer(serializers.ModelSerializer):
+    control_list_entries = ControlListEntryField(many=True)
+
+    class Meta:
+        model = GoodsType
+        fields = (
+            "id",
+            "description",
+            "control_list_entries",
+            "usage",
+        )
+        read_only_fields = fields
+
+
+class GoodOnLicenceListSerializer(serializers.ModelSerializer):
+    good = GoodLicenceListSerializer(read_only=True)
+
+    class Meta:
+        model = GoodOnApplication
+        fields = ("good",)
+        read_only_fields = fields
+
+
+class CountriesLicenceSerializer(serializers.ModelSerializer):
+    country = CountrySerializerField()
+
+    class Meta:
+        model = CountryOnApplication
+        fields = ("country",)
+        read_only_fields = fields
+
+
+class PartyLicenceListSerializer(serializers.ModelSerializer):
+    country = CountrySerializerField()
+
+    class Meta:
+        model = Party
+        fields = (
+            "name",
+            "address",
+            "country",
+        )
+        read_only_fields = fields
+
+
+class DocumentLicenceListSerializer(serializers.ModelSerializer):
+    advice_type = KeyValueChoiceField(choices=AdviceType.choices)
+
+    class Meta:
+        model = GeneratedCaseDocument
+        fields = (
+            "advice_type",
+            "id",
+        )
+        read_only_fields = fields
+
+
+class ApplicationLicenceListSerializer(serializers.ModelSerializer):
+    destinations = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BaseApplication
+        fields = (
+            "id",
+            "name",
+            "destinations",
+            "documents",
+        )
+        read_only_fields = fields
+
+    def get_documents(self, instance):
+        documents = (
+            GeneratedCaseDocument.objects.filter(case=instance, advice_type__isnull=False, visible_to_exporter=True)
+            .order_by("advice_type", "-updated_at")
+            .distinct("advice_type")
+        )
+        return DocumentLicenceListSerializer(documents, many=True).data
+
+    def get_destinations(self, instance):
+        if instance.end_user:
+            return [PartyLicenceListSerializer(instance.end_user.party).data]
+        elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
+            return CountriesLicenceSerializer(instance.openapplication.application_countries, many=True).data
+
+
+class LicenceListSerializer(serializers.ModelSerializer):
+    application = ApplicationLicenceListSerializer(source="case.baseapplication")
+    goods = serializers.SerializerMethodField()
+    status = KeyValueChoiceField(choices=LicenceStatus.choices)
+
+    class Meta:
+        model = Licence
+        fields = (
+            "id",
+            "reference_code",
+            "status",
+            "application",
+            "goods",
+        )
+        read_only_fields = fields
+        ordering = ["created_at"]
+
+    def get_goods(self, instance):
+        return serialize_goods_on_licence(instance)

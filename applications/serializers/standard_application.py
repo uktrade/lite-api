@@ -68,7 +68,7 @@ class StandardApplicationViewSerializer(PartiesSerializerMixin, GenericApplicati
         )
 
     def get_licence(self, instance):
-        licence = Licence.objects.filter(application=instance).first()
+        licence = Licence.objects.filter(case=instance).first()
         if licence:
             return CaseLicenceViewSerializer(licence).data
 

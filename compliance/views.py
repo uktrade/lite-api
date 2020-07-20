@@ -129,7 +129,7 @@ class LicenceList(ListAPIView):
         org_id = get_case(self.kwargs["pk"]).organisation_id
         licences_with_olr = set(
             OpenLicenceReturns.objects.filter(year=olr_year, organisation_id=org_id).values_list(
-                "licences__application", flat=True
+                "licences__case", flat=True
             )
         )
 

@@ -265,7 +265,7 @@ def _get_goods_query_context(case):
 def _get_compliance_licence_status(case):
     # The latest non draft licence should be the only active licence on a case or the licence that was active
     last_licence = (
-        Licence.objects.filter(application_id=case.id).exclude(status=LicenceStatus.DRAFT).order_by("created_at").last()
+        Licence.objects.filter(case_id=case.id).exclude(status=LicenceStatus.DRAFT).order_by("created_at").last()
     )
 
     # not all case types contain a licence, for example OGLs do not. As a result we display the case status
