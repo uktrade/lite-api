@@ -15,6 +15,8 @@ def initialize_good_or_goods_type_control_list_entries_serializer(self):
         self.fields["control_list_entries"] = ControlListEntryField(many=True)
         self.fields["report_summary"] = serializers.CharField(
             required=True,
+            allow_blank=False,
+            allow_null=False,
             error_messages={
                 "required": strings.Picklists.REQUIRED_REPORT_SUMMARY,
                 "null": strings.Picklists.REQUIRED_REPORT_SUMMARY,
@@ -33,6 +35,7 @@ def update_good_or_goods_type_control_list_entries_details(instance, validated_d
             )
         instance.control_list_entries.set(validated_data.get("control_list_entries"))
     else:
+        instance.report_summary = ""
         instance.control_list_entries.clear()
 
     instance.flags.remove(SystemFlags.GOOD_NOT_YET_VERIFIED_ID)
