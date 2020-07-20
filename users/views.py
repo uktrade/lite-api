@@ -51,15 +51,39 @@ class AuthenticateExporterUser(APIView):
         """
         data = request.data
 
+        user_profile = data.get("user_profile")
+        if not user_profile:
+            return JsonResponse(
+                data={
+                    "errors": [
+                        "user_profile not provided, please ensure that your GREAT account has been fully "
+                        "registered with these details provided."
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        first_name = data.get("user_profile").get("first_name")
+        last_name = data.get("user_profile").get("last_name")
+        if not first_name or not last_name:
+            return JsonResponse(
+                data={
+                    "errors": [
+                        "first_name or last_name not provided, please ensure that your GREAT account has been fully "
+                        "registered with these details provided."
+                    ]
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         try:
             user = ExporterUser.objects.get(email=data.get("email"))
-
             # Update the user's first and last names
-            user.first_name = data.get("user_profile").get("first_name")
-            user.last_name = data.get("user_profile").get("last_name")
+            user.first_name = first_name
+            user.last_name = last_name
             user.save()
         except ExporterUser.DoesNotExist:
-            return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(data={"errors": ["User not found"]}, status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user)
         return JsonResponse(
