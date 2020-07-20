@@ -688,9 +688,7 @@ class ClcControlGoodSerializer(serializers.ModelSerializer):
     )
     control_list_entries = ControlListEntryField(required=False, allow_null=True, write_only=True, many=True)
     comment = serializers.CharField(allow_blank=True, max_length=500, required=True, allow_null=True)
-    report_summary = serializers.PrimaryKeyRelatedField(
-        queryset=PicklistItem.objects.all(), required=False, allow_null=True
-    )
+    report_summary = serializers.CharField()
 
     class Meta:
         model = Good
