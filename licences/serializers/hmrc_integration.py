@@ -81,10 +81,14 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         if not (hasattr(self.instance.case, "baseapplication") and self.instance.case.baseapplication.end_user):
             self.fields.pop("end_user")
 
-        if not (
-            hasattr(self.instance.case.baseapplication, "openapplication")
-            and self.instance.case.baseapplication.openapplication.application_countries.exists()
-        ) and not hasattr(self.instance.case, "opengenerallicencecase"):
+        if (
+            hasattr(self.instance.case, "baseapplication")
+            and not (
+                hasattr(self.instance.case.baseapplication, "openapplication")
+                and self.instance.case.baseapplication.openapplication.application_countries.exists()
+            )
+            and not hasattr(self.instance.case, "opengenerallicencecase")
+        ):
             self.fields.pop("countries")
 
         self.action = licence_status_to_hmrc_integration_action.get(self.instance.status)
@@ -103,10 +107,10 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
         )
 
     def get_countries(self, instance):
-        if hasattr(instance.case.baseapplication, "openapplication"):
-            countries = Country.objects.filter(
-                countries_on_application__application_id=instance.case.id
-            ).order_by("name")
+        if hasattr(instance.case, "baseapplication") and hasattr(instance.case.baseapplication, "openapplication"):
+            countries = Country.objects.filter(countries_on_application__application_id=instance.case.id).order_by(
+                "name"
+            )
         else:
             countries = instance.case.opengenerallicencecase.open_general_licence.countries.order_by("name")
 
