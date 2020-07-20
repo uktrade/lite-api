@@ -63,15 +63,15 @@ class Licence(TimestampableModel):
 
     def issue(self, send_status_change_to_hmrc=True):
         # re-issue the licence if an older version exists
-        try:
-            old_licence = Licence.objects.get(
-                case=self.case, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
-            )
+        status = LicenceStatus.ISSUED
+        old_licence = (
+            Licence.objects.filter(case=self.case).exclude(status=LicenceStatus.DRAFT).order_by("-created_at").first()
+        )
+        if old_licence:
             old_licence.cancel(send_status_change_to_hmrc=False)
-        except Licence.DoesNotExist:
-            old_licence = None
+            status = LicenceStatus.REINSTATED
 
-        self.status = LicenceStatus.ISSUED if not old_licence else LicenceStatus.REINSTATED
+        self.status = status
         self.save(send_status_change_to_hmrc=send_status_change_to_hmrc)
 
     def save(self, *args, **kwargs):

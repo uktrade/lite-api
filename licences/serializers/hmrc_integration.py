@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action
+from licences.enums import LicenceStatus, licence_status_to_hmrc_integration_action, HMRCIntegrationActionEnum
 from licences.helpers import get_approved_goods_types
 from licences.models import Licence
 from static.countries.models import Country
@@ -88,7 +88,7 @@ class HMRCIntegrationLicenceSerializer(serializers.Serializer):
             self.fields.pop("countries")
 
         self.action = licence_status_to_hmrc_integration_action.get(self.instance.status)
-        if self.action != licence_status_to_hmrc_integration_action.get(LicenceStatus.REINSTATED):
+        if self.action != HMRCIntegrationActionEnum.UPDATE:
             self.fields.pop("old_id")
 
     def get_action(self, _):

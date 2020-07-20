@@ -138,13 +138,16 @@ class HMRCIntegrationSerializersTests(DataTestClient):
             organisation=self.organisation,
         )
         open_general_licence_licence = Licence.objects.get(case=open_general_licence_case)
-        old_licence = None
+
         if action == HMRCIntegrationActionEnum.UPDATE:
-            old_licence = issue_open_general_licence(open_general_licence_case)
-
-        data = HMRCIntegrationLicenceSerializer(open_general_licence_licence).data
-
-        self._assert_dto(data, open_general_licence_licence, old_licence=old_licence)
+            # Cancel the original & issue a new OGL Licence
+            open_general_licence_licence.cancel()
+            new_licence = issue_open_general_licence(open_general_licence_case)
+            data = HMRCIntegrationLicenceSerializer(new_licence).data
+            self._assert_dto(data, new_licence, old_licence=open_general_licence_licence)
+        else:
+            data = HMRCIntegrationLicenceSerializer(open_general_licence_licence).data
+            self._assert_dto(data, open_general_licence_licence)
 
     def _assert_dto(self, data, licence, old_licence=None):
         if old_licence:

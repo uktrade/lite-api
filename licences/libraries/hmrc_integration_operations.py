@@ -164,7 +164,10 @@ def _update_licence(validated_data: dict) -> str:
     elif action == HMRCIntegrationActionEnum.EXPIRE:
         change_status = licence.expire
 
-    if action != HMRCIntegrationActionEnum.EXHAUST and licence.case.case_type_id not in CaseTypeEnum.OPEN_LICENCE_IDS:
+    if (
+        action != HMRCIntegrationActionEnum.EXHAUST
+        and licence.case.case_type_id in CaseTypeEnum.STANDARD_LICENCE_IDS + CaseTypeEnum.MOD_LICENCE_IDS
+    ):
         # If all Goods have been Exhausted; Exhaust the Licence
         if not licence.goods.filter(usage__lt=F("quantity")).exists():
             send_status_change_to_hmrc = action == HMRCIntegrationActionEnum.OPEN

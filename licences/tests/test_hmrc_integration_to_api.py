@@ -8,10 +8,12 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_207_MULTI_STATUS, H
 from audit_trail.enums import AuditType
 from audit_trail.models import Audit
 from cases.enums import AdviceType, AdviceLevel, CaseTypeEnum
+from cases.models import CaseType
 from goodstype.models import GoodsType
 from licences.enums import LicenceStatus, HMRCIntegrationActionEnum
-from licences.models import HMRCIntegrationUsageUpdate
+from licences.models import HMRCIntegrationUsageUpdate, Licence
 from licences.tests.factories import GoodOnLicenceFactory
+from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from test_helpers.clients import DataTestClient
 
 
@@ -46,6 +48,16 @@ class HMRCIntegrationUsageTests(DataTestClient):
         self.create_advice(self.gov_user, exhibition_application, "good", AdviceType.APPROVE, AdviceLevel.FINAL)
         licence = self.create_licence(exhibition_application, status=LicenceStatus.ISSUED)
         self._create_good_on_licence(licence, exhibition_application.goods.first())
+        return licence
+
+    def create_ogl_licence(self):
+        open_general_licence = OpenGeneralLicenceFactory(case_type=CaseType.objects.get(id=CaseTypeEnum.OGEL.id))
+        open_general_licence_case = OpenGeneralLicenceCaseFactory(
+            open_general_licence=open_general_licence,
+            site=self.organisation.primary_site,
+            organisation=self.organisation,
+        )
+        licence = Licence.objects.get(case=open_general_licence_case)
         return licence
 
     def create_open_licence(self):
@@ -135,7 +147,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
+        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence], [create_ogl_licence]]
     )
     def test_update_usages_exhaust_licence_action(self, create_licence):
         licence = create_licence(self)
@@ -160,7 +172,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
+        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence], [create_ogl_licence]]
     )
     def test_update_usages_cancel_licence_action(self, create_licence):
         licence = create_licence(self)
@@ -185,7 +197,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
+        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence], [create_ogl_licence]]
     )
     def test_update_usages_surrender_licence_action(self, create_licence):
         licence = create_licence(self)
@@ -210,7 +222,7 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence]]
+        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence], [create_ogl_licence]]
     )
     def test_update_usages_expire_licence_action(self, create_licence):
         licence = create_licence(self)
