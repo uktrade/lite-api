@@ -147,7 +147,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence], [create_ogl_licence]]
+        [
+            [create_siel_licence],
+            [create_f680_licence],
+            [create_gifting_licence],
+            [create_exhibition_licence],
+            [create_ogl_licence],
+        ]
     )
     def test_update_usages_exhaust_licence_action(self, create_licence):
         licence = create_licence(self)
@@ -172,7 +178,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence], [create_ogl_licence]]
+        [
+            [create_siel_licence],
+            [create_f680_licence],
+            [create_gifting_licence],
+            [create_exhibition_licence],
+            [create_ogl_licence],
+        ]
     )
     def test_update_usages_cancel_licence_action(self, create_licence):
         licence = create_licence(self)
@@ -197,7 +209,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence], [create_ogl_licence]]
+        [
+            [create_siel_licence],
+            [create_f680_licence],
+            [create_gifting_licence],
+            [create_exhibition_licence],
+            [create_ogl_licence],
+        ]
     )
     def test_update_usages_surrender_licence_action(self, create_licence):
         licence = create_licence(self)
@@ -222,7 +240,13 @@ class HMRCIntegrationUsageTests(DataTestClient):
         )
 
     @parameterized.expand(
-        [[create_siel_licence], [create_f680_licence], [create_gifting_licence], [create_exhibition_licence], [create_ogl_licence]]
+        [
+            [create_siel_licence],
+            [create_f680_licence],
+            [create_gifting_licence],
+            [create_exhibition_licence],
+            [create_ogl_licence],
+        ]
     )
     def test_update_usages_expire_licence_action(self, create_licence):
         licence = create_licence(self)
