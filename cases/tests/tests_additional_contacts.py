@@ -1,7 +1,11 @@
 from django.urls import reverse
 from faker import Faker
+from parameterized import parameterized
 from rest_framework import status
 
+from audit_trail.enums import AuditType
+from audit_trail.models import Audit
+from lite_content.lite_api.strings import PartyErrors
 from parties.enums import PartyType
 from parties.models import Party
 from test_helpers.clients import DataTestClient
@@ -56,6 +60,26 @@ class AdditionalContacts(DataTestClient):
         self.assertEqual(party.details, self.data["details"])
         self.assertEqual(party.address, self.data["address"])
         self.assertEqual(party.country.id, self.data["country"])
+        self.assertEqual(self.case.additional_contacts.first(), party)
+        self.assertEqual(Audit.objects.filter(verb=AuditType.ADD_ADDITIONAL_CONTACT_TO_CASE).count(), 1)
+
+    @parameterized.expand(
+        [
+            ("name", PartyErrors.NAME["blank"]),
+            ("email", PartyErrors.EMAIL["blank"]),
+            ("phone_number", PartyErrors.PHONE_NUMBER["blank"]),
+            ("details", PartyErrors.DETAILS["blank"]),
+            ("address", PartyErrors.ADDRESS["blank"]),
+        ]
+    )
+    def test_create_additional_contact_missing_data_failure(self, field_to_remove, expected_error):
+        data = self.data
+        data[field_to_remove] = ""
+
+        response = self.client.post(self.url, data, **self.gov_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["errors"], {field_to_remove: [expected_error]})
 
     def test_create_additional_contact_as_exporter_failure(self):
         party_count = Party.objects.count()
