@@ -53,6 +53,7 @@ from applications.serializers.generic_application import (
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
 from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.helpers import auto_generate_case_document
 from cases.helpers import can_set_status
 from cases.libraries.get_flags import get_flags
@@ -626,6 +627,11 @@ class ApplicationFinaliseView(APIView):
                 raise ParseError(licence_serializer.errors)
 
             licence = licence_serializer.save()
+
+            # Delete draft licence document that may now be invalid
+            GeneratedCaseDocument.objects.filter(
+                case_id=pk, advice_type=AdviceType.APPROVE, visible_to_exporter=False
+            ).delete()
 
             # Only validate & save GoodsOnLicence (quantities & values) for Standard applications
             if application.case_type.sub_type == CaseTypeSubTypeEnum.STANDARD:
