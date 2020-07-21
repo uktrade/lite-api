@@ -14,7 +14,6 @@ from cases.enums import (
     CaseTypeReferenceEnum,
     ECJUQueryType,
 )
-from cases.fields import HasOpenECJUQueriesRelatedField
 from cases.libraries.get_flags import get_ordered_flags
 from cases.models import (
     Case,
@@ -97,8 +96,8 @@ class CaseListSerializer(serializers.Serializer):
     submitted_at = serializers.SerializerMethodField()
     sla_days = serializers.IntegerField()
     sla_remaining_days = serializers.IntegerField()
-    has_open_ecju_queries = HasOpenECJUQueriesRelatedField(source="case_ecju_query")
     next_review_date = serializers.DateField()
+    has_open_queries = serializers.BooleanField()
 
     def __init__(self, *args, **kwargs):
         self.team = kwargs.pop("team", None)

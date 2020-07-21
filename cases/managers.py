@@ -247,9 +247,7 @@ class CaseManager(models.Manager):
         case_qs = (
             self.submitted()
             .select_related("status", "case_type")
-            .prefetch_related(
-                "case_ecju_query", "case_assignments", "case_assignments__user", "case_assignments__queue",
-            )
+            .prefetch_related("case_assignments", "case_assignments__user", "case_assignments__queue",)
         )
 
         if not include_hidden and user:
