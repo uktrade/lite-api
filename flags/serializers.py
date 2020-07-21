@@ -168,7 +168,7 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
             or (self.instance and self.instance.level == FlagLevels.GOOD)
         ):
             if "matching_value" in data:
-                if not ControlListEntry.objects.filter(rating__iexact=data["matching_value"]).exists():
+                if not ControlListEntry.objects.filter(rating=data["matching_value"]).exists():
                     raise serializers.ValidationError({"matching_value": strings.FlaggingRules.INVALID_CLC})
 
             if "is_for_verified_goods_only" not in data:
