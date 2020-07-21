@@ -7,8 +7,15 @@ from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ReadTimeoutError
 from django.http import StreamingHttpResponse
 
-from conf.settings import STREAMING_CHUNK_SIZE, S3_CONNECT_TIMEOUT, S3_REQUEST_TIMEOUT, AWS_ACCESS_KEY_ID, \
-    AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_STORAGE_BUCKET_NAME
+from conf.settings import (
+    STREAMING_CHUNK_SIZE,
+    S3_CONNECT_TIMEOUT,
+    S3_REQUEST_TIMEOUT,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_REGION,
+    AWS_STORAGE_BUCKET_NAME,
+)
 
 _client = boto3.client(
     "s3",
@@ -17,6 +24,7 @@ _client = boto3.client(
     region_name=AWS_REGION,
     config=Config(connect_timeout=S3_CONNECT_TIMEOUT, read_timeout=S3_REQUEST_TIMEOUT),
 )
+
 
 def get_object(document_id, s3_key):
     logging.info(f"Retrieving file '{s3_key}' on document '{document_id}'")
