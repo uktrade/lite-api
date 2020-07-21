@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sys
 
@@ -195,8 +196,8 @@ MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt 
 # AWS
 VCAP_SERVICES = env.json("VCAP_SERVICES", None)
 
-print(env("VCAP_SERVICES"))
-print(env.json("VCAP_SERVICES"))
+logging.error(env("VCAP_SERVICES"))
+logging.error(env.json("VCAP_SERVICES"))
 
 if VCAP_SERVICES:
     if "aws-s3-bucket" not in VCAP_SERVICES:
