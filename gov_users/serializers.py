@@ -162,14 +162,3 @@ class GovUserSimpleSerializer(serializers.ModelSerializer):
 
     def get_team(self, instance):
         return instance.team.name
-
-
-class GovUserNotificationSerializer(serializers.ModelSerializer):
-    audit_id = serializers.SerializerMethodField()
-
-    class Meta:
-        model = GovNotification
-        fields = ("audit_id",)
-
-    def get_audit_id(self, obj):
-        return obj.object_id

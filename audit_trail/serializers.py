@@ -23,7 +23,6 @@ class AuditSerializer(serializers.ModelSerializer):
         )
 
     def get_user(self, instance):
-
         if AuditType(instance.verb) == AuditType.REGISTER_ORGANISATION:
             # When an anonymous user is registering for an org,
             # we pass their email in the payload to use it as the actor later
@@ -33,8 +32,10 @@ class AuditSerializer(serializers.ModelSerializer):
             }
         else:
             return {
+                "id": instance.actor.id,
                 "first_name": instance.actor.first_name,
                 "last_name": instance.actor.last_name,
+                "type": instance.actor.type,
             }
 
     def get_text(self, instance):
