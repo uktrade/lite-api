@@ -84,8 +84,8 @@ class GetLicencesTests(DataTestClient):
             licence_data = node_by_id(response_data, licence.id)
 
             if licence.case.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
-                destination = licence.case.application_countries.first()
                 good = licence.case.goods_type.first()
+                destination = good.countries.first()
 
                 self.assertEqual(licence_data["goods"][0]["description"], good.description)
                 self.assertEqual(
@@ -93,7 +93,7 @@ class GetLicencesTests(DataTestClient):
                     good.control_list_entries.all()[0].text,
                 )
                 self.assertEqual(
-                    licence_data["application"]["destinations"][0]["country"]["id"], destination.country_id
+                    licence_data["application"]["destinations"][0]["country"]["id"], destination.id
                 )
             else:
                 if licence.case.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION:

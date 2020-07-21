@@ -3,7 +3,7 @@ from __future__ import division
 from django.db.models import F
 from rest_framework import serializers
 
-from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication, CountryOnApplication
+from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
@@ -17,7 +17,6 @@ from licences.models import Licence
 from parties.enums import PartyRole
 from parties.models import Party, PartyDocument
 from static.control_list_entries.serializers import ControlListEntrySerializer
-from static.countries.models import Country
 from static.units.enums import Units
 
 
