@@ -194,11 +194,11 @@ BACKGROUND_TASK_RUN_ASYNC = True
 MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt (assuming instantaneous failures)
 
 # AWS
-VCAP_SERVICES = env.json("VCAP_SERVICES", None)
+VCAP_SERVICES = env.json("VCAP_SERVICES")
 
 logging.error(env("VCAP_SERVICES"))
-logging.error(env("VCAP_SERVICES").keys())
 logging.error(env.json("VCAP_SERVICES"))
+logging.error(env.json("VCAP_SERVICES").keys())
 
 if VCAP_SERVICES:
     if "aws-s3-bucket" not in VCAP_SERVICES:
