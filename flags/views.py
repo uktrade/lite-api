@@ -214,10 +214,7 @@ class AssignFlags(APIView):
         else:
             return
 
-        payload = {
-            "flag_name": flags,
-            "additional_text": note
-        }
+        payload = {"flag_name": flags, "additional_text": note}
 
         audit_trail_service.create(
             actor=user, verb=verb, target=organisation, payload=payload,
