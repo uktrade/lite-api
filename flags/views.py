@@ -155,7 +155,7 @@ class AssignFlags(APIView):
         if isinstance(obj, Case):
             self._set_case_activity(added_flags, removed_flags, obj, user, note)
         elif isinstance(obj, Organisation):
-            self._set_organisation_activity(added_flags, removed_flags, obj, user)
+            self._set_organisation_activity(added_flags, removed_flags, obj, user, note)
 
         if isinstance(obj, Good):
             cases = []
@@ -203,23 +203,22 @@ class AssignFlags(APIView):
                 payload={"removed_flags": removed_flags, "additional_text": note},
             )
 
-    def _set_organisation_activity(self, added_flags, removed_flags, organisation, user, **kwargs):
+    def _set_organisation_activity(self, added_flags, removed_flags, organisation, user, note, **kwargs):
         # Add an activity item for the organisation
         if added_flags:
-            audit_trail_service.create(
-                actor=user,
-                verb=AuditType.ADDED_FLAG_ON_ORGANISATION,
-                target=organisation,
-                payload={"flag_name": added_flags},
-            )
+            verb = AuditType.ADDED_FLAG_ON_ORGANISATION
+            flags = added_flags
+        elif removed_flags:
+            verb = AuditType.REMOVED_FLAG_ON_ORGANISATION
+            flags = removed_flags
+        else:
+            return
 
-        if removed_flags:
-            audit_trail_service.create(
-                actor=user,
-                verb=AuditType.REMOVED_FLAG_ON_ORGANISATION,
-                target=organisation,
-                payload={"flag_name": removed_flags},
-            )
+        payload = {"flag_name": flags, "additional_text": note}
+
+        audit_trail_service.create(
+            actor=user, verb=verb, target=organisation, payload=payload,
+        )
 
     def _set_case_activity_for_goods(self, added_flags, removed_flags, case, user, note, good):
         # Add an activity item for the case

@@ -3,6 +3,7 @@ from django.utils import timezone
 from applications import constants
 from applications.enums import ApplicationExportType, GoodsTypeCategory, ContractType
 from applications.models import (
+    ApplicationDocument,
     CountryOnApplication,
     GoodOnApplication,
     SiteOnApplication,
@@ -11,7 +12,9 @@ from applications.models import (
 from cases.enums import CaseTypeSubTypeEnum
 from conf.helpers import str_to_bool
 from documents.models import Document
+from goods.models import GoodDocument
 from goodstype.models import GoodsType
+from goodstype.document.models import GoodsTypeDocument
 from lite_content.lite_api import strings
 from parties.models import PartyDocument
 
@@ -27,6 +30,18 @@ def _validate_locations(application, errors):
         errors["location"] = [strings.Applications.Generic.NO_LOCATION_SET]
 
     return errors
+
+
+def _get_document_errors(documents, processing_error, virus_error):
+    document_statuses = documents.values_list("safe", flat=True)
+
+    # If safe is None, then the document hasn't been virus scanned yet
+    if not all([safe is not None for safe in document_statuses]):
+        return processing_error
+
+    # If safe is False, the file contains a virus
+    if not all(document_statuses):
+        return virus_error
 
 
 def check_party_document(party, is_mandatory):
@@ -126,10 +141,22 @@ def _validate_countries(draft, errors, is_mandatory):
 def _validate_goods_types(draft, errors, is_mandatory):
     """ Checks there are GoodsTypes for the draft """
 
+    goods_types = GoodsType.objects.filter(application=draft)
+
     if is_mandatory:
-        results = GoodsType.objects.filter(application=draft)
-        if not results:
+        if not goods_types:
             errors["goods"] = [strings.Applications.Open.NO_GOODS_SET]
+
+    # Check goods documents
+    if goods_types:
+        document_errors = _get_document_errors(
+            GoodsTypeDocument.objects.filter(goods_type__in=goods_types),
+            processing_error=strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING,
+            virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
+        )
+
+        if document_errors:
+            errors["goods"] = [document_errors]
 
     return errors
 
@@ -246,12 +273,26 @@ def _validate_third_parties(draft, errors, is_mandatory):
     return errors
 
 
-def _validate_has_goods(draft, errors, is_mandatory):
-    """ Checks draft has Goods """
+def _validate_goods(draft, errors, is_mandatory):
+    """ Checks Goods """
+
+    goods_on_application = GoodOnApplication.objects.filter(application=draft)
 
     if is_mandatory:
-        if not GoodOnApplication.objects.filter(application=draft):
+        if not goods_on_application:
             errors["goods"] = [strings.Applications.Standard.NO_GOODS_SET]
+
+    # Check goods documents
+    if goods_on_application:
+        goods = goods_on_application.values_list("good", flat=True)
+        document_errors = _get_document_errors(
+            GoodDocument.objects.filter(good__in=goods),
+            processing_error=strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING,
+            virus_error=strings.Applications.Standard.GOODS_DOCUMENT_INFECTED,
+        )
+
+        if document_errors:
+            errors["goods"] = [document_errors]
 
     return errors
 
@@ -282,7 +323,7 @@ def _validate_standard_licence(draft, errors):
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_consignee(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
     errors = _validate_ultimate_end_users(draft, errors, is_mandatory=True)
     errors = _validate_end_use_details(draft, errors, draft.case_type.sub_type)
     errors = _validate_route_of_goods(draft, errors)
@@ -295,7 +336,7 @@ def _validate_exhibition_clearance(draft, errors):
     """ Checks that an exhibition clearance has goods, locations and details """
 
     errors = _validate_exhibition_details(draft, errors)
-    errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
     errors = _validate_locations(draft, errors)
 
     return errors
@@ -306,7 +347,7 @@ def _validate_gifting_clearance(draft, errors):
 
     errors = _validate_end_user(draft, errors, is_mandatory=True)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
-    errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
 
     if draft.consignee:
         errors["consignee"] = [strings.Applications.Gifting.CONSIGNEE]
@@ -324,7 +365,7 @@ def _validate_f680_clearance(draft, errors):
     """ F680 require goods and at least 1 end user or third party """
 
     errors = _validate_has_clearance_level(draft, errors, is_mandatory=True)
-    errors = _validate_has_goods(draft, errors, is_mandatory=True)
+    errors = _validate_goods(draft, errors, is_mandatory=True)
     errors = _validate_end_user(draft, errors, is_mandatory=False)
     errors = _validate_third_parties(draft, errors, is_mandatory=False)
     errors = _validate_additional_information(draft, errors)
@@ -395,6 +436,23 @@ def _validate_hmrc_query(draft, errors):
     return errors
 
 
+def _validate_additional_documents(draft, errors):
+    """ Validate additional documents """
+    documents = ApplicationDocument.objects.filter(application=draft)
+
+    if documents:
+        document_errors = _get_document_errors(
+            documents,
+            processing_error=strings.Applications.Standard.ADDITIONAL_DOCUMENTS_PROCESSING,
+            virus_error=strings.Applications.Standard.ADDITIONAL_DOCUMENTS_INFECTED,
+        )
+
+        if document_errors:
+            errors["supporting-documents"] = [document_errors]
+
+    return errors
+
+
 def validate_application_ready_for_submission(application):
     errors = {}
 
@@ -413,5 +471,7 @@ def validate_application_ready_for_submission(application):
         _validate_f680_clearance(application, errors)
     else:
         errors["unsupported_application"] = ["You can only validate a supported application type"]
+
+    errors = _validate_additional_documents(application, errors)
 
     return errors

@@ -112,6 +112,7 @@ class GoodsListControlCode(APIView):
                             "good_name": good.description,
                             "new_control_list_entry": new_control_list_entries,
                             "old_control_list_entry": old_control_list_entries,
+                            "additional_text": data.get("comment"),
                         },
                     )
 
