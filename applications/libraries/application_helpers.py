@@ -69,5 +69,5 @@ def create_submitted_audit(request, application, old_status):
             }
         },
         ignore_case_status=True,
-        send_notification=False
+        send_notification=False,
     )

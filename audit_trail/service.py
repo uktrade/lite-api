@@ -16,7 +16,9 @@ from users.models import ExporterUser, GovUser, BaseUser
 
 
 @validate_kwargs
-def create(actor, verb, action_object=None, target=None, payload=None, ignore_case_status=False, send_notification=True):
+def create(
+    actor, verb, action_object=None, target=None, payload=None, ignore_case_status=False, send_notification=True
+):
     if not payload:
         payload = {}
 
