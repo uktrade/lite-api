@@ -20,7 +20,6 @@ from cases.enums import (
 )
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.serializers import AdviceDocumentGovSerializer
-from cases.helpers import remove_next_review_date
 from cases.libraries.advice import group_advice
 from cases.libraries.delete_notifications import delete_exporter_notifications
 from cases.libraries.finalise import get_required_decision_document_types
@@ -75,15 +74,12 @@ from organisations.models import Site
 from parties.models import Party
 from parties.serializers import PartySerializer, AdditionalContactSerializer
 from queues.models import Queue
-from queues.serializers import TinyQueueSerializer
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.get_user import get_user_by_pk
 from users.models import ExporterUser
-from workflow.automation import run_routing_rules
-from workflow.user_queue_assignment import user_queue_assignment_workflow
 
 
 class CaseDetail(APIView):
@@ -740,7 +736,7 @@ class FinaliseView(UpdateAPIView):
             audit_trail_service.create(
                 actor=request.user,
                 verb=AuditType.GRANTED_APPLICATION
-                if Licence.objects.filter(application=case).count() < 2
+                if Licence.objects.filter(case=case).count() < 2
                 else AuditType.REINSTATED_APPLICATION,
                 target=case,
                 payload={"licence_duration": licence.duration, "start_date": licence.start_date.strftime("%Y-%m-%d")},
@@ -784,69 +780,6 @@ class FinaliseView(UpdateAPIView):
         return JsonResponse(return_payload, status=status.HTTP_201_CREATED)
 
 
-class AssignedQueues(APIView):
-    authentication_classes = (GovAuthentication,)
-    serializer_class = TinyQueueSerializer
-
-    def get(self, request, pk):
-        # Get all queues where this user is assigned to this case
-        queues = Queue.objects.filter(case_assignments__user=request.user.pk, case_assignments__case=pk)
-        serializer = TinyQueueSerializer(queues, many=True)
-        return JsonResponse(data={"queues": serializer.data}, status=status.HTTP_200_OK)
-
-    @transaction.atomic
-    def put(self, request, pk):
-        queues = request.data.get("queues")
-        note = request.data.get("note")
-
-        if queues:
-            queue_names = []
-            assignments = (
-                CaseAssignment.objects.select_related("queue")
-                .filter(user=request.user, case__id=pk, queue__id__in=queues)
-                .order_by("queue__name")
-            )
-            case = get_case(pk)
-
-            if assignments:
-                remove_next_review_date(case, request, pk)
-                queues = [assignment.queue for assignment in assignments]
-                queue_names = [queue.name for queue in queues]
-                assignments.delete()
-                user_queue_assignment_workflow(queues, case)
-                audit_trail_service.create(
-                    actor=request.user,
-                    verb=AuditType.UNASSIGNED_QUEUES,
-                    target=case,
-                    payload={"queues": queue_names, "additional_text": note},
-                )
-            else:
-                # When users click done without queue assignments
-                # Only a single queue ID can be passed
-                if len(queues) != 1:
-                    return JsonResponse(
-                        data={"errors": {"queues": [Cases.UnassignQueues.NOT_ASSIGNED_MULTIPLE_QUEUES]}},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                # Check queue belongs to that users team
-                queues = Queue.objects.filter(id=queues[0], team=request.user.team)
-                if not queues.exists():
-                    return JsonResponse(
-                        data={"errors": {"queues": [Cases.UnassignQueues.INVALID_TEAM]}},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                user_queue_assignment_workflow(queues, case)
-                audit_trail_service.create(
-                    actor=request.user, verb=AuditType.UNASSIGNED, target=case, payload={"additional_text": note}
-                )
-
-            return JsonResponse(data={"queues_removed": queue_names}, status=status.HTTP_200_OK)
-        else:
-            return JsonResponse(
-                data={"errors": {"queues": [Cases.UnassignQueues.NO_QUEUES]}}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-
 class AdditionalContacts(ListCreateAPIView):
     serializer_class = AdditionalContactSerializer
     pagination_class = None
@@ -883,26 +816,6 @@ class CaseApplicant(APIView):
             {"name": applicant.first_name + " " + applicant.last_name, "email": applicant.email},
             status=status.HTTP_200_OK,
         )
-
-
-class RerunRoutingRules(APIView):
-    authentication_classes = (GovAuthentication,)
-
-    def put(self, request, pk):
-        """
-        Reruns routing rules against a given case, in turn removing all existing queues, and user assignments,
-            and starting again from scratch on the given status
-        Audits who requests the rules to be rerun
-        """
-        case = get_case(pk)
-
-        audit_trail_service.create(
-            actor=request.user, verb=AuditType.RERUN_ROUTING_RULES, target=case,
-        )
-
-        run_routing_rules(case)
-
-        return JsonResponse(data={}, status=status.HTTP_200_OK)
 
 
 class NextReviewDate(APIView):

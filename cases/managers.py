@@ -423,6 +423,7 @@ class CaseManager(models.Manager):
                     LicenceStatus.ISSUED,
                     LicenceStatus.REINSTATED,
                     LicenceStatus.REVOKED,
+                    LicenceStatus.SUSPENDED,
                     LicenceStatus.SURRENDERED,
                     LicenceStatus.CANCELLED,
                 ],

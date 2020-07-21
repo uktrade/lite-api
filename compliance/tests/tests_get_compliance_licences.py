@@ -11,11 +11,11 @@ from test_helpers.clients import DataTestClient
 
 def _assert_response_data(self, response_data, licence, completed_olr=False):
     self.assertEqual(len(response_data), 1)
-    self.assertEqual(response_data[0]["id"], str(licence.application_id))
-    self.assertEqual(response_data[0]["reference_code"], licence.application.reference_code)
+    self.assertEqual(response_data[0]["id"], str(licence.case_id))
+    self.assertEqual(response_data[0]["reference_code"], licence.case.reference_code)
     self.assertEqual(response_data[0]["status"]["key"], licence.status)
     self.assertEqual(response_data[0]["status"]["value"], LicenceStatus.to_str(licence.status))
-    goods = licence.application.goods_type.all()
+    goods = licence.case.goods_type.all()
     self.assertEqual(len(response_data[0]["flags"]), 2)
     self.assertEqual(response_data[0]["flags"][0]["name"], goods[0].flags.all()[0].name)
     self.assertEqual(response_data[0]["flags"][1]["name"], goods[1].flags.all()[0].name)
@@ -23,10 +23,10 @@ def _assert_response_data(self, response_data, licence, completed_olr=False):
     self.assertEqual(response_data[0]["flags"][1]["level"], goods[1].flags.all()[0].level)
     self.assertEqual(response_data[0]["flags"][0]["priority"], goods[0].flags.all()[0].priority)
     self.assertEqual(response_data[0]["flags"][1]["priority"], goods[1].flags.all()[0].priority)
-    self.assertEqual(response_data[0]["case_type"]["id"], str(licence.application.case_type.id))
-    self.assertEqual(response_data[0]["case_type"]["reference"]["key"], licence.application.case_type.reference)
-    self.assertEqual(response_data[0]["case_type"]["type"]["key"], licence.application.case_type.type)
-    self.assertEqual(response_data[0]["case_type"]["sub_type"]["key"], licence.application.case_type.sub_type)
+    self.assertEqual(response_data[0]["case_type"]["id"], str(licence.case.case_type.id))
+    self.assertEqual(response_data[0]["case_type"]["reference"]["key"], licence.case.case_type.reference)
+    self.assertEqual(response_data[0]["case_type"]["type"]["key"], licence.case.case_type.type)
+    self.assertEqual(response_data[0]["case_type"]["sub_type"]["key"], licence.case.case_type.sub_type)
     self.assertEqual(response_data[0]["has_open_licence_returns"], completed_olr)
 
 

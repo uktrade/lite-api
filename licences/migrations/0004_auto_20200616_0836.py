@@ -9,7 +9,7 @@ def set_licence_reference(apps, schema_editor):
     Licence = apps.get_model("licences", "Licence")
     for licence in Licence.objects.all():
         if not licence.reference_code:
-            licence.reference_code = get_licence_reference_code(licence.application.reference_code)
+            licence.reference_code = get_licence_reference_code(licence.case.reference_code)
             licence.save()
 
 
