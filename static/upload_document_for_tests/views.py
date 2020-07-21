@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from conf.authentication import SharedAuthentication
-from conf.settings import env
+from conf.settings import env, AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 
 class UploadDocumentForTests(APIView):
@@ -20,9 +20,8 @@ class UploadDocumentForTests(APIView):
                 data={"errors": "This endpoint is not enabled"}, status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-        bucket_name = env("AWS_STORAGE_BUCKET_NAME")
         s3 = boto3.client(
-            "s3", aws_access_key_id=env("AWS_ACCESS_KEY_ID"), aws_secret_access_key=env("AWS_SECRET_ACCESS_KEY"),
+            "s3", aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
         )
         s3_key = "lite-e2e-test-file.txt"
 
@@ -31,7 +30,7 @@ class UploadDocumentForTests(APIView):
         )
 
         try:
-            s3.upload_file(file_to_upload_abs_path, bucket_name, s3_key)
+            s3.upload_file(file_to_upload_abs_path, AWS_STORAGE_BUCKET_NAME, s3_key)
         except Exception as e:  # noqa
             return JsonResponse(data={"errors": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
