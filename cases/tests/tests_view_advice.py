@@ -5,7 +5,6 @@ from cases.enums import AdviceLevel
 from cases.tests.factories import UserAdviceFactory, TeamAdviceFactory, FinalAdviceFactory
 from conf.helpers import date_to_drf_date
 from test_helpers.clients import DataTestClient
-from test_helpers.helpers import node_by_id
 
 
 class ViewCaseAdviceTests(DataTestClient):
@@ -16,6 +15,21 @@ class ViewCaseAdviceTests(DataTestClient):
         self.standard_case = self.submit_application(self.standard_application)
         self.standard_case_url = reverse("cases:case", kwargs={"pk": self.standard_case.id})
 
+    def _assert_advice(self, data, advice):
+        self.assertEqual(data["id"], str(advice.id))
+        self.assertEqual(data["text"], str(advice.text))
+        self.assertEqual(data["note"], advice.note)
+        self.assertEqual(data["type"]["key"], advice.type)
+        self.assertEqual(data["level"], advice.level)
+        self.assertEqual(data["proviso"], advice.proviso)
+        self.assertEqual(data["denial_reasons"], list(advice.denial_reasons.values_list("id", flat=True)))
+        self.assertEqual(data["footnote"], advice.footnote)
+        self.assertEqual(data["user"]["first_name"], self.gov_user.first_name)
+        self.assertEqual(data["user"]["last_name"], self.gov_user.last_name)
+        self.assertEqual(data["user"]["team"]["name"], self.gov_user.team.name)
+        self.assertEqual(data["created_at"], date_to_drf_date(advice.created_at))
+        self.assertEqual(data["good"], str(self.good.id))
+
     def test_view_all_advice(self):
         user_advice = UserAdviceFactory(user=self.gov_user, case=self.standard_case, good=self.good)
         team_advice = TeamAdviceFactory(user=self.gov_user, team=self.team, case=self.standard_case, good=self.good)
@@ -25,31 +39,15 @@ class ViewCaseAdviceTests(DataTestClient):
         response_data = response.json()["case"]["advice"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for advice in [user_advice, team_advice, final_advice]:
-            comparison_dict = {
-                "id": str(advice.id),
-                "text": advice.text,
-                "note": advice.note,
-                "level": advice.level,
-                "case": str(advice.case.id),
-                "type": {"key": advice.type, "value": "Approve"},
-                "updated_at": date_to_drf_date(advice.updated_at),
-                "created_at": date_to_drf_date(advice.created_at),
-                "good": str(self.good.id),
-                "user": {
-                    "email": self.gov_user.email,
-                    "first_name": self.gov_user.first_name,
-                    "last_name": self.gov_user.last_name,
-                    "id": str(self.gov_user.id),
-                    "status": "Active",
-                    "team": {"id": str(self.gov_user.team_id), "name": self.gov_user.team.name},
-                    "role_name": self.gov_user.role.name,
-                },
-                "footnote": None,
-                "footnote_required": None,
-            }
 
-            if advice.level == AdviceLevel.TEAM:
-                comparison_dict["team"] = {"id": str(self.team.id), "name": self.team.name}
+        # User advice
+        self.assertEqual(response_data[0]["level"], AdviceLevel.USER)
+        self._assert_advice(response_data[0], user_advice)
 
-            self.assertEqual(node_by_id(response_data, advice.id), comparison_dict)
+        # Team advice
+        self.assertEqual(response_data[1]["level"], AdviceLevel.TEAM)
+        self._assert_advice(response_data[1], team_advice)
+
+        # Team advice
+        self.assertEqual(response_data[2]["level"], AdviceLevel.FINAL)
+        self._assert_advice(response_data[2], final_advice)

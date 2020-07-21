@@ -1,3 +1,4 @@
+import logging
 from copy import deepcopy
 
 from rest_framework import serializers
@@ -51,7 +52,7 @@ class AuditSerializer(serializers.ModelSerializer):
                 if isinstance(payload[key], list):
                     payload[key] = ", ".join(payload[key])
             except KeyError as e:
-                print(f"Audit serialization exception skipped: {e}")
+                logging.error(f"Audit serialization exception skipped: {e}")
 
             # TODO: standardise payloads across all audits and remove below
             if key == "status" and "new" in payload[key]:
