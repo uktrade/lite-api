@@ -197,9 +197,8 @@ MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt 
 VCAP_SERVICES = env.json("VCAP_SERVICES", None)
 
 logging.error(env("VCAP_SERVICES"))
+logging.error(env("VCAP_SERVICES").keys())
 logging.error(env.json("VCAP_SERVICES"))
-logging.error(VCAP_SERVICES)
-logging.error(VCAP_SERVICES.keys())
 
 if VCAP_SERVICES:
     if "aws-s3-bucket" not in VCAP_SERVICES:
