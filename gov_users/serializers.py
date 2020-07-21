@@ -146,6 +146,9 @@ class GovUserCreateSerializer(GovUserViewSerializer):
 
         return validated_data
 
+    def clean_email(self, email):
+        return email.lower() if email else None
+
 
 class GovUserSimpleSerializer(serializers.ModelSerializer):
     team = serializers.SerializerMethodField()

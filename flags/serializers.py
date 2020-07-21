@@ -6,6 +6,7 @@ from conf.serializers import PrimaryKeyRelatedSerializerField
 from flags.enums import FlagLevels, FlagStatuses, FlagColours
 from flags.models import Flag, FlaggingRule
 from lite_content.lite_api import strings
+from static.control_list_entries.models import ControlListEntry
 from teams.models import Team
 from teams.serializers import TeamSerializer, TeamReadOnlySerializer
 
@@ -161,10 +162,19 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, data):
-        if "level" in data and data["level"] == "Good" and "is_for_verified_goods_only" not in data:
-            raise serializers.ValidationError(
-                {"is_for_verified_goods_only": strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY}
-            )
+        if (
+            "level" in data
+            and data["level"] == FlagLevels.GOOD
+            or (self.instance and self.instance.level == FlagLevels.GOOD)
+        ):
+            if "matching_value" in data:
+                if not ControlListEntry.objects.filter(rating__iexact=data["matching_value"]).exists():
+                    raise serializers.ValidationError({"matching_value": strings.FlaggingRules.INVALID_CLC})
+
+            if "is_for_verified_goods_only" not in data:
+                raise serializers.ValidationError(
+                    {"is_for_verified_goods_only": strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY}
+                )
         return super().validate(data)
 
 
