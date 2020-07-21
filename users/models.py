@@ -50,21 +50,9 @@ class Role(models.Model):
 
 
 class CustomUserManager(BaseUserManager):
+    """Cannot remove class as it's embedded in users/migrations/0001_initial"""
+
     use_in_migrations = False
-
-    def get_or_create(self, **kwargs):
-        defaults = kwargs.get("defaults")
-        if defaults:
-            email = defaults.get("email")
-            if email:
-                kwargs["defaults"]["email"] = email.lower()
-        return super().get_or_create(**kwargs)
-
-    def create(self, **kwargs):
-        email = kwargs.get("email")
-        if email:
-            kwargs["email"] = email.lower()
-        return super().create(**kwargs)
 
 
 class BaseUser(AbstractUser, TimestampableModel):
@@ -89,8 +77,6 @@ class BaseUser(AbstractUser, TimestampableModel):
 
     def __str__(self):
         return self.email
-
-    objects = CustomUserManager()
 
     def save(self, *args, **kwargs):
         self.email = self.email.lower() if self.email else None
