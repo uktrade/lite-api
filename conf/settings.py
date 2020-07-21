@@ -195,14 +195,18 @@ MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt 
 # AWS
 VCAP_SERVICES = env.json("VCAP_SERVICES", None)
 
+print(env("VCAP_SERVICES"))
+print(env.json("VCAP_SERVICES"))
+
 if VCAP_SERVICES:
     if "aws-s3-bucket" not in VCAP_SERVICES:
         raise Exception("S3 Bucket not bound to environment")
 
-    AWS_ACCESS_KEY_ID = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]["aws_access_key_id"]
-    AWS_SECRET_ACCESS_KEY = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]["aws_secret_access_key"]
-    AWS_REGION = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]["aws_region"]
-    AWS_STORAGE_BUCKET_NAME = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]["bucket_name"]
+    aws_credentials = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]
+    AWS_ACCESS_KEY_ID = aws_credentials["aws_access_key_id"]
+    AWS_SECRET_ACCESS_KEY = aws_credentials["aws_secret_access_key"]
+    AWS_REGION = aws_credentials["aws_region"]
+    AWS_STORAGE_BUCKET_NAME = aws_credentials["bucket_name"]
 else:
     AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
