@@ -196,11 +196,6 @@ MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt 
 # AWS
 VCAP_SERVICES = env.json("VCAP_SERVICES", {})
 
-logging.error("-----")
-logging.error(env("VCAP_SERVICES"))
-logging.error("-----")
-logging.error(env.json("VCAP_SERVICES"))
-logging.error("-----")
 logging.error(VCAP_SERVICES)
 
 if VCAP_SERVICES:
