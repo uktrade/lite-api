@@ -18,6 +18,7 @@ from conf.constants import ExporterPermissions
 from conf.exceptions import NotFoundError
 from conf.helpers import convert_queryset_to_str, get_value_from_enum, date_to_drf_date, str_to_bool
 from conf.permissions import assert_user_has_permission, check_user_has_permission
+from lite_content.lite_api import strings
 from lite_content.lite_api.strings import Users
 from organisations.enums import OrganisationStatus
 from organisations.libraries.get_organisation import get_request_user_organisation_id, get_request_user_organisation
@@ -51,15 +52,27 @@ class AuthenticateExporterUser(APIView):
         """
         data = request.data
 
+        user_profile = data.get("user_profile")
+        if not user_profile:
+            return JsonResponse(
+                data={"errors": [strings.Login.Error.USER_PROFILE]}, status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        first_name = data.get("user_profile").get("first_name")
+        last_name = data.get("user_profile").get("last_name")
+        if not first_name or not last_name:
+            return JsonResponse(
+                data={"errors": [strings.Login.Error.USER_PROFILE]}, status=status.HTTP_400_BAD_REQUEST,
+            )
+
         try:
             user = ExporterUser.objects.get(email=data.get("email"))
-
             # Update the user's first and last names
-            user.first_name = data.get("user_profile").get("first_name")
-            user.last_name = data.get("user_profile").get("last_name")
+            user.first_name = first_name
+            user.last_name = last_name
             user.save()
         except ExporterUser.DoesNotExist:
-            return JsonResponse(data={"errors": "User not found"}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_403_FORBIDDEN)
 
         token = user_to_token(user)
         return JsonResponse(
