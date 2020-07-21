@@ -23,16 +23,17 @@ class AuditManager(GFKManager):
         from cases.models import Case
 
         target = kwargs.get("target")
-        if isinstance(target, Case):
-            # Only audit cases if they do not have status set to 'Draft'
-            if not is_case_status_draft(target.status.status) or kwargs.get("ignore_case_status", False):
-                if "ignore_case_status" in kwargs:
-                    kwargs.pop("ignore_case_status")
-                audit = super(AuditManager, self).create(*args, **kwargs)
-                actor = kwargs.get("actor")
+        actor = kwargs.get("actor")
+        send_notification = kwargs.pop("send_notification") if "send_notification" in kwargs else True
+        ignore_case_status = kwargs.pop("ignore_case_status") if "ignore_case_status" in kwargs else False
 
-                if isinstance(actor, ExporterUser):
-                    # Notify gov users when exporter updates a case
+        if isinstance(target, Case):
+            # Only audit cases if their status is not draft
+            if not is_case_status_draft(target.status.status) or ignore_case_status:
+                audit = super(AuditManager, self).create(*args, **kwargs)
+
+                # Notify gov users when an exporter updates a case
+                if isinstance(actor, ExporterUser) and send_notification:
                     for gov_user in GovUser.objects.all():
                         gov_user.send_notification(content_object=audit, case=target)
 
@@ -40,6 +41,4 @@ class AuditManager(GFKManager):
 
             return None
 
-        if "ignore_case_status" in kwargs:
-            kwargs.pop("ignore_case_status")
         return super(AuditManager, self).create(*args, **kwargs)
