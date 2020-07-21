@@ -16,6 +16,7 @@ class LicenceStatus:
     REINSTATED = "reinstated"
     REVOKED = "revoked"
     SURRENDERED = "surrendered"
+    SUSPENDED = "suspended"
     EXHAUSTED = "exhausted"
     EXPIRED = "expired"
     DRAFT = "draft"
@@ -26,6 +27,7 @@ class LicenceStatus:
         (REINSTATED, "Reinstated"),
         (REVOKED, "Revoked"),
         (SURRENDERED, "Surrendered"),
+        (SUSPENDED, "Suspended"),
         (EXHAUSTED, "Exhausted"),
         (EXPIRED, "Expired"),
         (DRAFT, "Draft"),
@@ -51,6 +53,7 @@ licence_status_to_hmrc_integration_action = {
     LicenceStatus.REINSTATED: HMRCIntegrationActionEnum.UPDATE,
     LicenceStatus.REVOKED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.SURRENDERED: HMRCIntegrationActionEnum.CANCEL,
+    LicenceStatus.SUSPENDED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.EXHAUSTED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.EXPIRED: HMRCIntegrationActionEnum.CANCEL,
     LicenceStatus.CANCELLED: HMRCIntegrationActionEnum.CANCEL,

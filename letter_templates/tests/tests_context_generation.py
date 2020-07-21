@@ -16,7 +16,16 @@ from cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
 from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
-from goods.enums import PvGrading, ItemType, MilitaryUse, Component, ItemCategory, FirearmGoodType, GoodControlled
+from goods.enums import (
+    PvGrading,
+    ItemType,
+    MilitaryUse,
+    Component,
+    ItemCategory,
+    FirearmGoodType,
+    GoodControlled,
+    GoodPvGraded,
+)
 from goods.tests.factories import GoodFactory, FirearmFactory
 from goodstype.tests.factories import GoodsTypeFactory
 from letter_templates.context_generator import get_document_context
@@ -169,6 +178,29 @@ class DocumentContextGenerationTests(DataTestClient):
             )
             self.assertEqual(
                 context["information_security_details"], good_on_application.good.information_security_details
+            )
+
+        # pv grading
+        self.assertEqual(context["is_pv_graded"], GoodPvGraded.to_str(good_on_application.good.is_pv_graded))
+        if good_on_application.good.pv_grading_details:
+            if good_on_application.good.pv_grading_details.grading:
+                self.assertEqual(
+                    context["pv_grading"]["grading"],
+                    PvGrading.to_str(good_on_application.good.pv_grading_details.grading),
+                )
+            else:
+                self.assertEqual(
+                    context["pv_grading"]["grading"], good_on_application.good.pv_grading_details.custom_grading
+                )
+            self.assertEqual(context["pv_grading"]["prefix"], good_on_application.good.pv_grading_details.prefix)
+            self.assertEqual(context["pv_grading"]["suffix"], good_on_application.good.pv_grading_details.suffix)
+            self.assertEqual(
+                context["pv_grading"]["issuing_authority"],
+                good_on_application.good.pv_grading_details.issuing_authority,
+            )
+            self.assertEqual(context["pv_grading"]["reference"], good_on_application.good.pv_grading_details.reference)
+            self.assertEqual(
+                context["pv_grading"]["date_of_issue"], good_on_application.good.pv_grading_details.date_of_issue
             )
 
     def _assert_good_on_licence(self, context, good_on_licence):

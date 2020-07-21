@@ -45,3 +45,12 @@ class OpenGeneralLicenceCase(Case):
 
     class Meta:
         db_table = "open_general_licence_case"
+
+    def save(self, *args, **kwargs):
+        from open_general_licences.helpers import issue_open_general_licence
+
+        creating = self._state.adding
+        super(OpenGeneralLicenceCase, self).save(*args, **kwargs)
+
+        if creating:
+            issue_open_general_licence(self)

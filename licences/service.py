@@ -8,7 +8,7 @@ def get_case_licences(case):
         Licence.objects.prefetch_related(
             "goods", "goods__good", "goods__good__good", "goods__good__good__control_list_entries"
         )
-        .filter(application=case)
+        .filter(case=case)
         .order_by("created_at")
     )
     return [
