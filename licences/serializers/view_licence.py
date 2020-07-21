@@ -17,6 +17,7 @@ from licences.models import Licence
 from parties.enums import PartyRole
 from parties.models import Party, PartyDocument
 from static.control_list_entries.serializers import ControlListEntrySerializer
+from static.countries.models import Country
 from static.units.enums import Units
 
 
@@ -137,7 +138,7 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
         elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
-            return CountriesLicenceSerializer(get_approved_countries(instance), many=True).data
+            return [{"country": country} for country in CountriesLicenceSerializer(get_approved_countries(instance), many=True).data]
         else:
             return None
 
@@ -275,13 +276,9 @@ class GoodOnLicenceListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class CountriesLicenceSerializer(serializers.ModelSerializer):
-    country = CountrySerializerField()
-
-    class Meta:
-        model = CountryOnApplication
-        fields = ("country",)
-        read_only_fields = fields
+class CountriesLicenceSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField()
 
 
 class PartyLicenceListSerializer(serializers.ModelSerializer):
@@ -335,7 +332,7 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
         elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
-            return CountriesLicenceSerializer(instance.openapplication.application_countries, many=True).data
+            return [{"country": country} for country in CountriesLicenceSerializer(get_approved_countries(instance), many=True).data]
 
 
 class LicenceListSerializer(serializers.ModelSerializer):
