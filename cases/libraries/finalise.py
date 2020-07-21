@@ -7,7 +7,10 @@ def get_required_decision_document_types(case):
     Gets the list of required decision document types for advice
     """
     required_decisions = set(
-        Advice.objects.filter(case=case, level=AdviceLevel.FINAL).distinct("type").values_list("type", flat=True)
+        Advice.objects.filter(case=case, level=AdviceLevel.FINAL)
+        .order_by("type")
+        .distinct("type")
+        .values_list("type", flat=True)
     )
 
     # Map Proviso -> Approve advice (Proviso results in Approve document)

@@ -56,6 +56,26 @@ class OpenApplicationTests(DataTestClient):
             response, text=strings.Applications.Open.NO_GOODS_SET, status_code=status.HTTP_400_BAD_REQUEST,
         )
 
+    def test_submit_standard_application_with_unprocessed_goods_type_documents_failure(self):
+        self.create_document_for_goods_type(self.draft.goods_type.first(), safe=None)
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"], {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_PROCESSING]},
+        )
+
+    def test_submit_standard_application_with_infected_goods_type_documents_failure(self):
+        self.create_document_for_goods_type(self.draft.goods_type.first(), safe=False)
+
+        response = self.client.put(self.url, **self.exporter_headers)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json()["errors"], {"goods": [strings.Applications.Standard.GOODS_DOCUMENT_INFECTED]},
+        )
+
     def test_submit_open_application_without_destination_failure(self):
         CountryOnApplication.objects.get(application=self.draft).delete()
 

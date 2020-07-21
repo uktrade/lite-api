@@ -7,7 +7,7 @@ from audit_trail import service as audit_trail_service
 from audit_trail.serializers import AuditSerializer
 from cases.models import Case
 from conf.authentication import GovAuthentication
-from users.models import GovUser, GovNotification
+from users.models import GovNotification
 
 
 class CaseActivityView(APIView):
@@ -21,10 +21,8 @@ class CaseActivityView(APIView):
         )
 
         data = AuditSerializer(audit_trail_qs, many=True).data
-
-        if isinstance(request.user, GovUser):
-            # Delete notifications related to audits
-            GovNotification.objects.filter(user=request.user, object_id__in=[obj["id"] for obj in data]).delete()
+        # Delete notifications related to audits
+        GovNotification.objects.filter(user=request.user, object_id__in=[obj["id"] for obj in data]).delete()
 
         return JsonResponse(data={"activity": data}, status=status.HTTP_200_OK)
 
