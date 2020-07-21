@@ -193,9 +193,12 @@ BACKGROUND_TASK_RUN_ASYNC = True
 MAX_ATTEMPTS = 7  # e.g. 7th attempt occurs approx 40 minutes after 1st attempt (assuming instantaneous failures)
 
 # AWS
-VCAP_SERVICES = env.json("VCAP_SERVICES", {})
+VCAP_SERVICES = env.json("VCAP_SERVICES", None)
 
-if VCAP_SERVICES and "aws-s3-bucket" in VCAP_SERVICES:
+if VCAP_SERVICES:
+    if "aws-s3-bucket" not in VCAP_SERVICES:
+        raise Exception("S3 Bucket not bound to environment")
+
     AWS_ACCESS_KEY_ID = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]["aws_access_key_id"]
     AWS_SECRET_ACCESS_KEY = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]["aws_secret_access_key"]
     AWS_REGION = VCAP_SERVICES["aws-s3-bucket"][0]["credentials"]["aws_region"]
@@ -203,8 +206,8 @@ if VCAP_SERVICES and "aws-s3-bucket" in VCAP_SERVICES:
 else:
     AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
     AWS_REGION = env("AWS_REGION")
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 
 S3_CONNECT_TIMEOUT = 60  # Maximum time, in seconds, to wait for an initial connection
 S3_REQUEST_TIMEOUT = 60  # Maximum time, in seconds, to wait between bytes of a response
