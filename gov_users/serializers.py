@@ -1,12 +1,10 @@
+from rest_framework import serializers
 from rest_framework.fields import UUIDField
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
-from lite_content.lite_api import strings
-from rest_framework import serializers
-from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.validators import UniqueValidator
-
 from gov_users.enums import GovUserStatuses
+from lite_content.lite_api import strings
 from organisations.models import Organisation
 from queues.constants import SYSTEM_QUEUES
 from queues.models import Queue
