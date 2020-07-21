@@ -24,10 +24,6 @@ def convert_queryset_to_str(queryset):
     return [str(x) for x in queryset]
 
 
-def ensure_x_items_not_none(data, x):
-    return x == len([item for item in data if item is not None])
-
-
 def convert_pascal_case_to_snake_case(name):
     s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()

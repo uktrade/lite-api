@@ -4,14 +4,11 @@ from rest_framework import status
 
 from cases.enums import AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
-from cases.libraries.advice import get_serialized_entities_from_final_advice_on_case
 from cases.models import Advice, GoodCountryDecision
 from cases.tests.factories import FinalAdviceFactory, GoodCountryDecisionFactory
 from conf import constants
 from goods.enums import PvGrading
-from goods.serializers import GoodCreateSerializer
 from goodstype.tests.factories import GoodsTypeFactory
-from parties.serializers import PartySerializer
 from static.countries.models import Country
 from static.decisions.models import Decision
 from static.statuses.enums import CaseStatusEnum
@@ -116,9 +113,10 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response_data[0].get("type").get("key"), "proviso")
         self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
-        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        self.assertIn("\n-------\n", pv_gradings)
         for _, pv_grading in inputs:
-            self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+            self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
     def test_create_final_advice_same_advice_type_same_pv_gradings(self):
         """
@@ -134,8 +132,9 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response_data[0].get("type").get("key"), "proviso")
         self.assertEqual(response_data[0].get("proviso"), "I am easy to proviso")
-        self.assertNotIn("\n-------\n", response_data[0]["collated_pv_grading"])
-        self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        self.assertNotIn("\n-------\n", pv_gradings)
+        self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
     def test_create_conflicting_final_advice_different_advice_type_same_pv_gradings(self):
         """
@@ -154,8 +153,9 @@ class CreateCaseAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
-        self.assertNotIn("\n-------\n", response_data[0]["collated_pv_grading"])
-        self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        self.assertNotIn("\n-------\n", pv_gradings)
+        self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
     def test_create_conflicting_final_advice_different_advice_type_different_pv_gradings(self):
         """
@@ -173,9 +173,10 @@ class CreateCaseAdviceTests(DataTestClient):
         response_data = response.json()["advice"]
 
         self.assertEqual(response_data[0].get("type").get("key"), "conflicting")
-        self.assertIn("\n-------\n", response_data[0]["collated_pv_grading"])
+        pv_gradings = Advice.objects.get(id=response_data[0]["id"]).collated_pv_grading
+        self.assertIn("\n-------\n", pv_gradings)
         for _, _, pv_grading in inputs:
-            self.assertIn(PvGrading.to_str(pv_grading), response_data[0]["collated_pv_grading"])
+            self.assertIn(PvGrading.to_str(pv_grading), pv_gradings)
 
     # Normal restrictions on team advice items
     @parameterized.expand(
@@ -377,47 +378,6 @@ class CreateCaseAdviceTests(DataTestClient):
         entity_field.remove("end_user")
         for field in entity_field:
             self.assertIsNone(getattr(advice_object, field, None))
-
-    def test_get_serialized_end_user_from_final_advice_on_case(self):
-        end_user = self.standard_application.end_user.party
-        data = {
-            "text": "I Am Easy to Find",
-            "note": "I Am Easy to Find",
-            "type": AdviceType.APPROVE,
-            "end_user": str(end_user.id),
-        }
-
-        self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
-
-        serialized_entities = get_serialized_entities_from_final_advice_on_case(case=self.standard_application)
-        self.assertIn("end_user", serialized_entities)
-        self.assertEqual(serialized_entities["end_user"], PartySerializer(end_user).data)
-
-        entity_field = Advice.ENTITY_FIELDS.copy()
-        entity_field.remove("end_user")
-        for field in entity_field:
-            self.assertIsNone(getattr(serialized_entities, field, None))
-
-    def test_get_serialized_goods_from_final_advice_on_case(self):
-        good = self.standard_application.goods.first().good
-
-        data = {
-            "text": "I Am Easy to Find",
-            "note": "I Am Easy to Find",
-            "type": AdviceType.APPROVE,
-            "good": str(good.id),
-        }
-
-        self.client.post(self.standard_case_url, **self.gov_headers, data=[data])
-
-        serialized_entities = get_serialized_entities_from_final_advice_on_case(case=self.standard_application)
-        self.assertIn("goods", serialized_entities)
-        self.assertEqual(serialized_entities["goods"], [GoodCreateSerializer(good).data])
-
-        entity_field = Advice.ENTITY_FIELDS.copy()
-        entity_field.remove("good")
-        for field in entity_field:
-            self.assertIsNone(getattr(serialized_entities, field, None))
 
     def test_updating_final_advice_removes_draft_decision_documents(self):
         good = self.standard_application.goods.first().good
