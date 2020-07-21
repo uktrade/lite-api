@@ -43,14 +43,12 @@ class FinaliseApplicationTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["application"], str(self.standard_application.id))
+        self.assertEqual(response_data["case"], str(self.standard_application.id))
         self.assertEqual(response_data["reference_code"], self.standard_application.reference_code)
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
         self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
+        self.assertTrue(Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).exists())
 
         # The case should not be finalised until the case is complete
         self.assertNotEqual(self.standard_application.status, self.finalised_status)
@@ -66,19 +64,15 @@ class FinaliseApplicationTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["application"], str(self.standard_application.id))
+        self.assertEqual(response_data["case"], str(self.standard_application.id))
         self.assertEqual(response_data["reference_code"], self.standard_application.reference_code + "/A")
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
         self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
         # Check existing Licence & new draft Licence are present
-        self.assertEqual(Licence.objects.filter(application=self.standard_application).count(), 2)
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.ISSUED).exists()
-        )
+        self.assertEqual(Licence.objects.filter(case=self.standard_application).count(), 2)
+        self.assertTrue(Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).exists())
+        self.assertTrue(Licence.objects.filter(case=self.standard_application, status=LicenceStatus.ISSUED).exists())
 
     def test_approve_application_override_draft_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE, GovPermissions.MANAGE_LICENCE_DURATION])
@@ -91,14 +85,14 @@ class FinaliseApplicationTests(DataTestClient):
         self.standard_application.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["application"], str(self.standard_application.id))
+        self.assertEqual(response_data["case"], str(self.standard_application.id))
         self.assertEqual(response_data["reference_code"], self.standard_application.reference_code)
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
         self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
         # Check existing draft licence is replaced
-        self.assertEqual(Licence.objects.filter(application=self.standard_application).count(), 1)
-        self.assertEqual(Licence.objects.get(application=self.standard_application).duration, data["duration"])
+        self.assertEqual(Licence.objects.filter(case=self.standard_application).count(), 1)
+        self.assertEqual(Licence.objects.get(case=self.standard_application).duration, data["duration"])
 
     def test_default_duration_no_permission_finalise_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
@@ -110,9 +104,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["duration"], data["duration"])
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
+        self.assertTrue(Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).exists())
 
     def test_no_duration_finalise_success(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
@@ -124,9 +116,7 @@ class FinaliseApplicationTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response_data["duration"], get_default_duration(self.standard_application))
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
+        self.assertTrue(Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).exists())
 
     def test_no_permissions_finalise_failure(self):
         self._set_user_permission([])
@@ -165,12 +155,12 @@ class FinaliseApplicationTests(DataTestClient):
         response_data = response.json()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["application"], str(clearance_application.id))
+        self.assertEqual(response_data["case"], str(clearance_application.id))
         self.assertEqual(response_data["reference_code"], clearance_application.reference_code)
         self.assertEqual(response_data["start_date"], self.date.strftime("%Y-%m-%d"))
         self.assertEqual(response_data["duration"], data["duration"])
         self.assertEqual(response_data["status"], LicenceStatus.DRAFT)
-        self.assertTrue(Licence.objects.filter(application=clearance_application, status=LicenceStatus.DRAFT).exists())
+        self.assertTrue(Licence.objects.filter(case=clearance_application, status=LicenceStatus.DRAFT).exists())
 
     def test_set_duration_permission_denied(self):
         self._set_user_permission([GovPermissions.MANAGE_LICENCE_FINAL_ADVICE])
@@ -333,13 +323,11 @@ class FinaliseApplicationWithApprovedGoodsTests(DataTestClient):
         self.assertEqual(Licence.objects.count(), 1)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response_data["application"], str(self.standard_application.id))
-        self.assertTrue(
-            Licence.objects.filter(application=self.standard_application, status=LicenceStatus.DRAFT).exists()
-        )
+        self.assertEqual(response_data["case"], str(self.standard_application.id))
+        self.assertTrue(Licence.objects.filter(case=self.standard_application, status=LicenceStatus.DRAFT).exists())
 
         # validate licence
-        licence = Licence.objects.get(application=self.standard_application.id)
+        licence = Licence.objects.get(case_id=self.standard_application.id)
         good_licence = GoodOnLicence.objects.get(licence=licence)
 
         self.assertEqual(good_licence.quantity, self.good_on_application.quantity)

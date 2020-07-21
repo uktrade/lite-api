@@ -10,7 +10,7 @@ class LicenceCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Licence
-        fields = ("application", "reference_code", "start_date", "duration", "status")
+        fields = ("case", "reference_code", "start_date", "duration", "status")
 
     def validate(self, data):
         """

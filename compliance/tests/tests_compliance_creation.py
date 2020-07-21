@@ -73,7 +73,7 @@ class ComplianceCreateTests(DataTestClient):
         )
         GoodOnLicenceFactory(
             good=GoodOnApplicationFactory(application=case, good=good),
-            licence=LicenceFactory(application=case),
+            licence=LicenceFactory(case=case),
             quantity=100,
             value=1,
         )

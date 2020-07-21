@@ -46,7 +46,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.json()["licence"], str(licence.id))
         self.assertEqual(
             Licence.objects.filter(
-                application=self.standard_case,
+                case=self.standard_case,
                 status=LicenceStatus.ISSUED,
                 decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
             ).count(),
@@ -108,7 +108,7 @@ class FinaliseCaseTests(DataTestClient):
         self.assertEqual(response.json()["licence"], str(licence.id))
         self.assertEqual(
             Licence.objects.filter(
-                application=clearance_case,
+                case=clearance_case,
                 status=LicenceStatus.ISSUED,
                 decisions__exact=Decision.objects.get(name=AdviceType.APPROVE),
             ).count(),
