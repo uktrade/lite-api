@@ -3,7 +3,7 @@ from __future__ import division
 from django.db.models import F
 from rest_framework import serializers
 
-from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication, CountryOnApplication
+from applications.models import BaseApplication, PartyOnApplication, GoodOnApplication
 from cases.enums import CaseTypeSubTypeEnum, AdviceType, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.models import CaseType
@@ -137,7 +137,10 @@ class ApplicationLicenceSerializer(serializers.ModelSerializer):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
         elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
-            return CountriesLicenceSerializer(get_approved_countries(instance), many=True).data
+            return [
+                {"country": country}
+                for country in CountriesLicenceSerializer(get_approved_countries(instance), many=True).data
+            ]
         else:
             return None
 
@@ -275,13 +278,9 @@ class GoodOnLicenceListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class CountriesLicenceSerializer(serializers.ModelSerializer):
-    country = CountrySerializerField()
-
-    class Meta:
-        model = CountryOnApplication
-        fields = ("country",)
-        read_only_fields = fields
+class CountriesLicenceSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField()
 
 
 class PartyLicenceListSerializer(serializers.ModelSerializer):
@@ -335,7 +334,10 @@ class ApplicationLicenceListSerializer(serializers.ModelSerializer):
         if instance.end_user:
             return [PartyLicenceListSerializer(instance.end_user.party).data]
         elif hasattr(instance, "openapplication") and instance.openapplication.application_countries.exists():
-            return CountriesLicenceSerializer(instance.openapplication.application_countries, many=True).data
+            return [
+                {"country": country}
+                for country in CountriesLicenceSerializer(get_approved_countries(instance), many=True).data
+            ]
 
 
 class LicenceListSerializer(serializers.ModelSerializer):
