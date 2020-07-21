@@ -92,9 +92,7 @@ class GetLicencesTests(DataTestClient):
                     licence_data["goods"][0]["control_list_entries"][0]["text"],
                     good.control_list_entries.all()[0].text,
                 )
-                self.assertEqual(
-                    licence_data["application"]["destinations"][0]["country"]["id"], destination.id
-                )
+                self.assertEqual(licence_data["application"]["destinations"][0]["country"]["id"], destination.id)
             else:
                 if licence.case.case_type.sub_type != CaseTypeSubTypeEnum.EXHIBITION:
                     destination = licence.case.end_user.party
