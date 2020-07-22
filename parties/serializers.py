@@ -22,9 +22,13 @@ class PartySerializer(serializers.ModelSerializer):
     organisation = relations.PrimaryKeyRelatedField(queryset=Organisation.objects.all())
     document = serializers.SerializerMethodField()
     role = KeyValueChoiceField(choices=PartyRole.choices, error_messages=PartyErrors.ROLE, required=False)
-    role_other = serializers.CharField(max_length=75, allow_null=True, allow_blank=True, required=False)
+    role_other = serializers.CharField(
+        max_length=75, allow_null=True, allow_blank=True, required=False, error_messages=PartyErrors.ROLE_OTHER
+    )
     sub_type = KeyValueChoiceField(choices=SubType.choices, error_messages=PartyErrors.SUB_TYPE)
-    sub_type_other = serializers.CharField(max_length=75, allow_null=True, allow_blank=True, required=False)
+    sub_type_other = serializers.CharField(
+        max_length=75, allow_null=True, allow_blank=True, required=False, error_messages=PartyErrors.SUB_TYPE_OTHER
+    )
     flags = FlagSerializer(many=True, required=False)
     clearance_level = KeyValueChoiceField(choices=PvGrading.choices, allow_null=True, required=False, allow_blank=True)
     descriptors = serializers.CharField(allow_null=True, required=False, allow_blank=True)
@@ -84,9 +88,7 @@ class PartySerializer(serializers.ModelSerializer):
                     self.fields.pop("role_other")
 
             if application_type == CaseTypeSubTypeEnum.F680:
-                for field, serializer_instance in self.fields.items():
-                    if field == "clearance_level":
-                        serializer_instance.required = True
+                self.fields["clearance_level"].required = True
 
     @staticmethod
     def validate_website(value):
