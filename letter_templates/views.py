@@ -92,6 +92,8 @@ class LetterTemplateDetail(generics.RetrieveUpdateAPIView):
         paragraphs = PicklistItem.objects.filter(
             type=PicklistType.LETTER_PARAGRAPH, id__in=template["letter_paragraphs"]
         )
+        # Sort
+        paragraphs = [paragraphs.get(id=paragraph_id) for paragraph_id in template["letter_paragraphs"]]
         paragraph_text = get_paragraphs_as_html(paragraphs)
 
         if str_to_bool(request.GET.get("generate_preview")):
@@ -257,6 +259,9 @@ class TemplatePreview(generics.RetrieveAPIView):
         paragraphs = PicklistItem.objects.filter(
             type=PicklistType.LETTER_PARAGRAPH, id__in=request.GET.getlist("paragraphs")
         )
+        # Sort
+        paragraphs = [paragraphs.get(id=paragraph_id) for paragraph_id in request.GET.getlist("paragraphs")]
+
         layout = LetterLayout.objects.get(id=request.GET["layout"]).filename
         text = get_paragraphs_as_html(paragraphs)
         preview = generate_preview(layout, text=text)
