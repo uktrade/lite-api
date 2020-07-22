@@ -1050,7 +1050,11 @@ class DataTestClient(APITestCase, URLPatternsTestCase):
         case_types = (
             [CaseType.objects.first().id] if RoutingRulesAdditionalFields.CASE_TYPES in additional_rules else None
         )
-        country = Country.objects.first().id if RoutingRulesAdditionalFields.COUNTRY in additional_rules else None
+        country = (
+            Country.exclude_special_countries.first().id
+            if RoutingRulesAdditionalFields.COUNTRY in additional_rules
+            else None
+        )
 
         rule = RoutingRule.objects.create(
             team_id=team_id,

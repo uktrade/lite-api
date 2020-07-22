@@ -15,6 +15,7 @@ from static.countries.models import Country
 from static.denial_reasons.models import DenialReason
 from teams.models import Team
 from teams.serializers import TeamReadOnlySerializer
+from users.enums import UserType
 from users.models import GovUser
 
 
@@ -62,7 +63,7 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
 
     good = serializers.PrimaryKeyRelatedField(queryset=Good.objects.all(), required=False)
     goods_type = serializers.PrimaryKeyRelatedField(queryset=GoodsType.objects.all(), required=False)
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), required=False)
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.exclude_special_countries.all(), required=False)
     end_user = serializers.PrimaryKeyRelatedField(
         queryset=Party.objects.filter(type=PartyType.END_USER), required=False
     )
@@ -97,6 +98,12 @@ class AdviceCreateSerializer(serializers.ModelSerializer):
         for data in self.initial_data:
             if data.get("type") and data["type"] == AdviceType.PROVISO and not data["proviso"]:
                 raise ValidationError("Enter a proviso")
+
+        return value
+
+    def validate_user(self, value):
+        if value.type != UserType.INTERNAL:
+            raise ValidationError("Only GovUsers can give advice")
 
         return value
 

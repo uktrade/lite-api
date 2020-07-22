@@ -30,5 +30,7 @@ def get_default_duration(application):
         return DefaultDuration.PERMANENT_STANDARD.value
 
     elif application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN and export_type == ApplicationExportType.PERMANENT:
-        is_eu = Country.objects.filter(countries_on_application__application=application, is_eu=True).exists()
+        is_eu = Country.exclude_special_countries.filter(
+            countries_on_application__application=application, is_eu=True
+        ).exists()
         return DefaultDuration.PERMANENT_OPEN_EU.value if is_eu else DefaultDuration.PERMANENT_OPEN.value

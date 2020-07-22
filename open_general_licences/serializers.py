@@ -62,7 +62,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
         serializer=CaseTypeSerializer,
     )
     countries = PrimaryKeyRelatedSerializerField(
-        queryset=Country.objects.all(),
+        queryset=Country.exclude_special_countries.all(),
         many=True,
         required=True,
         allow_null=False,

@@ -181,7 +181,7 @@ def apply_flagging_rule_to_all_open_cases(flagging_rule: FlaggingRule):
             ).values_list("party_id", flat=True)
             flagging_rule.flag.parties.add(*parties)
 
-            Country.objects.get(id=flagging_rule.matching_value).flags.add(flagging_rule.flag)
+            Country.exclude_special_countries.get(id=flagging_rule.matching_value).flags.add(flagging_rule.flag)
 
 
 def apply_flagging_rule_for_flag(flag: Flag):

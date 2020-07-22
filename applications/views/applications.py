@@ -52,11 +52,12 @@ from applications.serializers.generic_application import (
 )
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
+from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum, AdviceLevel
 from cases.generated_documents.models import GeneratedCaseDocument
 from cases.generated_documents.helpers import auto_generate_case_document
 from cases.helpers import can_set_status
 from cases.libraries.get_flags import get_flags
+from cases.models import Advice
 from cases.service import get_destinations
 from cases.tasks import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
@@ -88,6 +89,7 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.notifications import get_case_notifications
+from users.enums import SystemUser
 from users.models import ExporterUser
 from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case
@@ -378,18 +380,30 @@ class ApplicationSubmission(APIView):
             if UUID(SystemFlags.ENFORCEMENT_CHECK_REQUIRED) not in application.flags.values_list("id", flat=True):
                 application.flags.add(SystemFlags.ENFORCEMENT_CHECK_REQUIRED)
 
-        # If the user hasn't visited the optional goods to country mapping page, then no goods to country mappings will
-        # have been saved before this point. So save mappings for all goods to all countries, which is the default
-        if (
-            application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN
-            and GoodsType.objects.filter(application=application, countries__isnull=True).exists()
-        ):
-            countries_on_application = CountryOnApplication.objects.filter(application=application).values_list(
-                "country", flat=True
-            )
+        if application.case_type.sub_type == CaseTypeSubTypeEnum.OPEN:
+            # If the user hasn't visited the optional goods to country mapping page, then no goods to country mappings will
+            # have been saved before this point. So save mappings for all goods to all countries, which is the default
+            if GoodsType.objects.filter(application=application, countries__isnull=True).exists():
+                countries_on_application = CountryOnApplication.objects.filter(application=application).values_list(
+                    "country", flat=True
+                )
 
-            for goods_type in GoodsType.objects.filter(application=application, countries__isnull=True):
-                goods_type.countries.set(countries_on_application)
+                for goods_type in GoodsType.objects.filter(application=application, countries__isnull=True):
+                    goods_type.countries.set(countries_on_application)
+
+            # Auto-Approve UK Continental Shelf if applicable
+            if (
+                CountryOnApplication.objects.filter(application=application, country_id="UKCS").exists()
+                and not Advice.objects.filter(case_id=application.id, country_id="UKCS").exists()
+            ):
+                Advice.objects.create(
+                    case_id=application.id,
+                    user_id=SystemUser.id,
+                    type=AdviceType.APPROVE,
+                    level=AdviceLevel.FINAL,
+                    country_id="UKCS",
+                    text="",
+                )
 
         # Serialize for the response message
         serializer = get_application_view_serializer(application)

@@ -6,7 +6,7 @@ from static.countries.models import Country
 
 def get_destination(pk):
     try:
-        destination = Country.include_special_countries.get(pk=pk)
+        destination = Country.objects.get(pk=pk)
     except Country.DoesNotExist:
         try:
             destination = Party.objects.get(pk=pk)

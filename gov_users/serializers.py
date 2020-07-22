@@ -65,9 +65,9 @@ class GovUserListSerializer(serializers.Serializer):
     email = serializers.CharField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    status = serializers.ChoiceField(choices=GovUserStatuses.choices)
-    team = TeamReadOnlySerializer()
-    role_name = serializers.CharField(source="role.name")
+    status = serializers.ChoiceField(choices=GovUserStatuses.choices, allow_null=True)
+    team = TeamReadOnlySerializer(allow_null=True)
+    role_name = serializers.CharField(source="role.name", allow_null=True)
 
 
 class GovUserViewSerializer(serializers.ModelSerializer):

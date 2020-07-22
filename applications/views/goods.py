@@ -209,7 +209,7 @@ class ApplicationGoodsType(APIView):
         """
         application = get_application(pk)
         goods_type = get_goods_type(goodstype_pk)
-        default_countries = Country.objects.filter(countries_on_application__application=application)
+        default_countries = Country.exclude_special_countries.filter(countries_on_application__application=application)
 
         goods_type_data = GoodsTypeViewSerializer(goods_type, default_countries=default_countries).data
 
@@ -270,7 +270,7 @@ class ApplicationGoodsTypeCountries(APIView):
                 )
 
             # Validate that the countries given are valid countries
-            if not Country.objects.filter(pk__in=countries).count() == len(countries):
+            if not Country.exclude_special_countries.filter(pk__in=countries).count() == len(countries):
                 return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
             initial_countries = list(good.countries.all())
