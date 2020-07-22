@@ -354,9 +354,9 @@ class CaseManager(models.Manager):
 
         if sla_days_elapsed_sort_order:
             if sla_days_elapsed_sort_order == SortOrder.ASCENDING:
-                case_qs = case_qs.order_by("-sla_remaining_days")
+                case_qs = case_qs.order_by("sla_days")
             else:
-                case_qs = case_qs.order_by("sla_remaining_days")
+                case_qs = case_qs.order_by("-sla_days")
 
         return case_qs.distinct()
 
