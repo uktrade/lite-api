@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.fields import UUIDField
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.validators import UniqueValidator
 
 from conf.serializers import PrimaryKeyRelatedSerializerField
 from gov_users.enums import GovUserStatuses
@@ -101,7 +100,6 @@ class GovUserViewSerializer(serializers.ModelSerializer):
 class GovUserCreateSerializer(GovUserViewSerializer):
     status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=GovUser.objects.all())],
         error_messages={"blank": strings.Users.INVALID_EMAIL, "invalid": strings.Users.INVALID_EMAIL},
     )
     team = PrimaryKeyRelatedField(
@@ -129,8 +127,12 @@ class GovUserCreateSerializer(GovUserViewSerializer):
             "default_queue",
         )
 
-    def validate(self, attrs):
-        validated_data = super().validate(attrs)
+    def validate(self, data):
+        validated_data = super().validate(data)
+
+        if GovUser.objects.filter(email__iexact=data.get("email")).exists():
+            raise serializers.ValidationError({"email": [strings.Users.UNIQUE_EMAIL]})
+
         default_queue = str(validated_data.get("default_queue") or self.instance.default_queue)
         team = validated_data.get("team") or self.instance.team
 
@@ -144,6 +146,9 @@ class GovUserCreateSerializer(GovUserViewSerializer):
             raise serializers.ValidationError({"default_queue": [strings.Users.INVALID_DEFAULT_QUEUE % team.name]})
 
         return validated_data
+
+    def clean_email(self, email):
+        return email.lower() if email else None
 
 
 class GovUserSimpleSerializer(serializers.ModelSerializer):

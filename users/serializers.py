@@ -105,6 +105,9 @@ class ExporterUserCreateUpdateSerializer(serializers.ModelSerializer):
                     role = Role.objects.get(id=Roles.EXPORTER_DEFAULT_ROLE_ID)
         return role
 
+    def clean_email(self, email):
+        return email.lower() if email else None
+
     def create(self, validated_data):
         organisation = validated_data.pop("organisation")
         sites = validated_data.pop("sites")
