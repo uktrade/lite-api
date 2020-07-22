@@ -57,7 +57,7 @@ class CaseDocumentDownloadTests(DataTestClient):
 
         response = self.client.get(url, **self.exporter_headers)
 
-        self.assertEqual(int(response.content.decode("utf-8")), status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_download_case_document_invalid_id_failure(self):
         url = reverse(self.path, kwargs={"case_pk": self.case.id, "document_pk": uuid.uuid4()})
