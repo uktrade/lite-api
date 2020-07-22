@@ -162,6 +162,11 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, data):
+        if "level" in data and data["level"] == FlagLevels.GOOD and "is_for_verified_goods_only" not in data:
+            raise serializers.ValidationError(
+                {"is_for_verified_goods_only": strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY}
+            )
+
         if (
             "level" in data
             and data["level"] == FlagLevels.GOOD
@@ -171,10 +176,6 @@ class FlaggingRuleSerializer(serializers.ModelSerializer):
                 if not ControlListEntry.objects.filter(rating=data["matching_value"]).exists():
                     raise serializers.ValidationError({"matching_value": strings.FlaggingRules.INVALID_CLC})
 
-            if "is_for_verified_goods_only" not in data:
-                raise serializers.ValidationError(
-                    {"is_for_verified_goods_only": strings.FlaggingRules.NO_ANSWER_VERIFIED_ONLY}
-                )
         return super().validate(data)
 
 

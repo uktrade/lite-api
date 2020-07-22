@@ -7,24 +7,30 @@ from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ReadTimeoutError
 from django.http import StreamingHttpResponse
 
-from conf.settings import env, STREAMING_CHUNK_SIZE, S3_CONNECT_TIMEOUT, S3_REQUEST_TIMEOUT
+from conf.settings import (
+    STREAMING_CHUNK_SIZE,
+    S3_CONNECT_TIMEOUT,
+    S3_REQUEST_TIMEOUT,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_REGION,
+    AWS_STORAGE_BUCKET_NAME,
+)
 
 _client = boto3.client(
     "s3",
-    aws_access_key_id=env("AWS_ACCESS_KEY_ID"),
-    aws_secret_access_key=env("AWS_SECRET_ACCESS_KEY"),
-    region_name=env("AWS_REGION"),
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    region_name=AWS_REGION,
     config=Config(connect_timeout=S3_CONNECT_TIMEOUT, read_timeout=S3_REQUEST_TIMEOUT),
 )
-
-_bucket_name = env("AWS_STORAGE_BUCKET_NAME")
 
 
 def get_object(document_id, s3_key):
     logging.info(f"Retrieving file '{s3_key}' on document '{document_id}'")
 
     try:
-        return _client.get_object(Bucket=_bucket_name, Key=s3_key)
+        return _client.get_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=s3_key)
     except ReadTimeoutError:
         logging.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
     except BotoCoreError as exc:
@@ -38,14 +44,14 @@ def generate_s3_key(document_name, file_extension):
 
 
 def upload_bytes_file(raw_file, s3_key):
-    _client.put_object(Bucket=_bucket_name, Key=s3_key, Body=raw_file)
+    _client.put_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=s3_key, Body=raw_file)
 
 
 def delete_file(document_id, s3_key):
     logging.info(f"Deleting file '{s3_key}' on document '{document_id}'")
 
     try:
-        _client.delete_object(Bucket=_bucket_name, Key=s3_key)
+        _client.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=s3_key)
     except ReadTimeoutError:
         logging.warning(f"Timeout exceeded when retrieving file '{s3_key}' on document '{document_id}'")
     except BotoCoreError as exc:
