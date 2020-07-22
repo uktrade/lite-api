@@ -65,7 +65,7 @@ class SeedingTests(SeedCommandTest):
     def test_seed_countries(self):
         self.seed_command(seedcountries.Command)
         self.assertEqual(
-            Country.include_special_countries.count(), len(seedcountries.Command.read_csv(seedcountries.COUNTRIES_FILE))
+            Country.objects.count(), len(seedcountries.Command.read_csv(seedcountries.COUNTRIES_FILE))
         )
 
     def test_seed_denial_reasons(self):
