@@ -24,8 +24,8 @@ class AuditManager(GFKManager):
 
         target = kwargs.get("target")
         actor = kwargs.get("actor")
-        send_notification = kwargs.pop("send_notification") if "send_notification" in kwargs else True
-        ignore_case_status = kwargs.pop("ignore_case_status") if "ignore_case_status" in kwargs else False
+        send_notification = kwargs.pop("send_notification", True)
+        ignore_case_status = kwargs.pop("ignore_case_status", False)
 
         if isinstance(target, Case):
             # Only audit cases if their status is not draft

@@ -39,7 +39,6 @@ class AuditSerializer(serializers.ModelSerializer):
                 "last_name": "",
             }
 
-
     def get_text(self, instance):
         verb = AuditType(instance.verb)
         payload = deepcopy(instance.payload)
