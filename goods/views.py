@@ -189,7 +189,7 @@ class GoodList(ListCreateAPIView):
         data["organisation"] = get_request_user_organisation_id(request)
         data["status"] = GoodStatus.DRAFT
 
-        if isinstance(data["control_list_entries"], str):
+        if isinstance(data.get("control_list_entries"), str):
             data["control_list_entries"] = data["control_list_entries"].split(" ")
 
         item_category = data.get("item_category")
