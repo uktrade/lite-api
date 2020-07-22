@@ -21,7 +21,7 @@ def get_exporter_user_by_email(email):
     Returns an ExporterUser depending on the email given
     """
     try:
-        return ExporterUser.objects.get(email=email)
+        return ExporterUser.objects.get(email__iexact=email)
     except ExporterUser.DoesNotExist:
         raise NotFoundError({"user": "User not found - " + email})
 
@@ -31,7 +31,7 @@ def get_gov_user_by_email(email):
     Returns a GovUser depending on the email given
     """
     try:
-        return GovUser.objects.get(email=email)
+        return GovUser.objects.get(email__iexact=email)
     except GovUser.DoesNotExist:
         raise NotFoundError({"user": "User not found - " + email})
 
