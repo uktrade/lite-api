@@ -19,6 +19,13 @@ class AuditManager(GFKManager):
     get_queryset = get_query_set
 
     def create(self, *args, **kwargs):
+        """
+        Create an audit entry for a model
+        target: the target object (such as a case)
+        actor: the object causing the audit entry (such as a user)
+        send_notification: certain scenarios alert internal users, default is True
+        ignore_case_status: draft cases become audited, default is False
+        """
         # TODO: decouple notifications and audit (signals?)
         from cases.models import Case
 
