@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import F
 from django.http.response import JsonResponse, HttpResponse
@@ -215,7 +216,7 @@ class ExporterCaseDocumentDownload(APIView):
     def get(self, request, case_pk, document_pk):
         case = get_case(case_pk)
         if case.organisation.id != get_request_user_organisation_id(request):
-            return HttpResponse(status.HTTP_401_UNAUTHORIZED)
+            raise PermissionDenied()
         try:
             document = CaseDocument.objects.get(id=document_pk, case=case, visible_to_exporter=True)
             return document_download_stream(document)
