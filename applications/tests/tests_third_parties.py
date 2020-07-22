@@ -45,6 +45,7 @@ class ThirdPartiesOnDraft(DataTestClient):
                 "country": "GB",
                 "sub_type": "government",
                 "role": "agent",
+                "role_other": "",
                 "website": "https://www.gov.uk",
                 "type": PartyType.THIRD_PARTY,
             },
@@ -54,6 +55,7 @@ class ThirdPartiesOnDraft(DataTestClient):
                 "country": "FR",
                 "sub_type": "government",
                 "role": "other",
+                "role_other": "Example",
                 "website": "https://www.gov.fr",
                 "type": PartyType.THIRD_PARTY,
             },
@@ -69,6 +71,7 @@ class ThirdPartiesOnDraft(DataTestClient):
             self.assertEqual(third_party["country"], response_party["country"]["id"])
             self.assertEqual(third_party["sub_type"], response_party["sub_type"]["key"])
             self.assertEqual(third_party["role"], response_party["role"]["key"])
+            self.assertEqual(third_party["role_other"], response_party["role_other"])
             self.assertEqual(third_party["website"], response_party["website"])
 
         # Drafts do not create audit

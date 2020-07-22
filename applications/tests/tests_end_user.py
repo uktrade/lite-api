@@ -48,6 +48,9 @@ class EndUserOnDraftTests(DataTestClient):
             "type": PartyType.END_USER,
         }
 
+        if data_type == "other":
+            data["sub_type_other"] = "Other"
+
         response = self.client.post(self.url, data, **self.exporter_headers)
 
         party_on_application = PartyOnApplication.objects.get(
@@ -60,6 +63,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(party_on_application.party.address, data["address"])
         self.assertEqual(party_on_application.party.country, get_country(data["country"]))
         self.assertEqual(party_on_application.party.sub_type, data_type)
+        self.assertEqual(party_on_application.party.sub_type_other, data.get("sub_type_other"))
         self.assertEqual(party_on_application.party.website, data["website"])
 
     def test_set_end_user_on_open_draft_application_success(self):
