@@ -37,4 +37,4 @@ class ExporterUserAuthenticateTests(DataTestClient):
         data = {"email": "something@random.com", "user_profile": {"first_name": "Bob", "last_name": "Dell"}}
 
         response = self.client.post(self.url, data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
