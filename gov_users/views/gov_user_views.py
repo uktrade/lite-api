@@ -8,7 +8,7 @@ from conf.authentication import GovAuthentication, HawkOnlyAuthentication
 from conf.constants import Roles, GovPermissions
 from conf.custom_views import OptionalPaginationView
 from gov_users.enums import GovUserStatuses
-from gov_users.serializers import GovUserCreateSerializer, GovUserViewSerializer, GovUserListSerializer
+from gov_users.serializers import GovUserCreateOrUpdateSerializer, GovUserViewSerializer, GovUserListSerializer
 from organisations.enums import OrganisationStatus
 from organisations.models import Organisation
 from users.enums import UserStatuses
@@ -77,7 +77,7 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
 
         return gov_users_qs
 
-    @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "JSON parse error"})
+    @swagger_auto_schema(request_body=GovUserCreateOrUpdateSerializer, responses={400: "JSON parse error"})
     def post(self, request):
         """
         Add a new gov user
@@ -89,7 +89,7 @@ class GovUserList(OptionalPaginationView, generics.CreateAPIView):
         ):
             raise PermissionDenied()
 
-        serializer = GovUserCreateSerializer(data=request.data)
+        serializer = GovUserCreateOrUpdateSerializer(data=request.data, is_creating=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -110,7 +110,7 @@ class GovUserDetail(APIView):
         serializer = GovUserViewSerializer(gov_user)
         return JsonResponse(data={"user": serializer.data})
 
-    @swagger_auto_schema(request_body=GovUserCreateSerializer, responses={400: "Bad Request"})
+    @swagger_auto_schema(request_body=GovUserCreateOrUpdateSerializer, responses={400: "Bad Request"})
     def put(self, request, pk):
         """
         Edit user from pk
@@ -141,7 +141,7 @@ class GovUserDetail(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        serializer = GovUserCreateSerializer(gov_user, data=data, partial=True)
+        serializer = GovUserCreateOrUpdateSerializer(gov_user, data=data, partial=True, is_creating=False)
         if serializer.is_valid():
             serializer.save()
 
