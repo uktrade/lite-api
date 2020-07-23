@@ -22,7 +22,9 @@ class PartyManager(models.Manager):
         """
         Copies the details of a party.
         """
-        qs = self.values("name", "address", "country", "website", "type", "organisation", "sub_type", "copy_of")
+        qs = self.values(
+            "name", "address", "country", "website", "type", "organisation", "sub_type", "sub_type_other", "copy_of"
+        )
         values = dict(qs.get(pk=pk))
         if not values["copy_of"]:
             values["copy_of"] = str(pk)
@@ -42,10 +44,12 @@ class Party(TimestampableModel):
         Organisation, blank=True, null=True, related_name="organisation_party", on_delete=models.DO_NOTHING,
     )
     flags = models.ManyToManyField(Flag, related_name="parties")
-    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
     role = models.CharField(
         choices=PartyRole.choices, default=PartyRole.OTHER, max_length=22, null=True, help_text="Third party type only"
     )
+    role_other = models.CharField(max_length=75, default=None, null=True)
+    sub_type = models.CharField(choices=SubType.choices, default=SubType.OTHER, max_length=20)
+    sub_type_other = models.CharField(max_length=75, default=None, null=True)
     clearance_level = models.CharField(
         choices=PvGrading.choices, max_length=30, null=True, help_text="Only relevant to F680 applications"
     )
