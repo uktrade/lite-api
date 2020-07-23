@@ -54,12 +54,11 @@ from applications.serializers.generic_application import (
 )
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
-from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum, AdviceLevel
-from cases.generated_documents.models import GeneratedCaseDocument
+from cases.enums import AdviceType, CaseTypeSubTypeEnum, CaseTypeEnum
 from cases.generated_documents.helpers import auto_generate_case_document
+from cases.generated_documents.models import GeneratedCaseDocument
 from cases.helpers import can_set_status
 from cases.libraries.get_flags import get_flags
-from cases.models import Advice
 from cases.service import get_destinations
 from cases.tasks import get_application_target_sla
 from conf.authentication import ExporterAuthentication, SharedAuthentication, GovAuthentication
@@ -91,7 +90,6 @@ from static.statuses.enums import CaseStatusEnum
 from static.statuses.libraries.case_status_validate import is_case_status_draft
 from static.statuses.libraries.get_case_status import get_case_status_by_status
 from users.libraries.notifications import get_case_notifications
-from users.enums import SystemUser
 from users.models import ExporterUser
 from workflow.automation import run_routing_rules
 from workflow.flagging_rules_automation import apply_flagging_rules_to_case

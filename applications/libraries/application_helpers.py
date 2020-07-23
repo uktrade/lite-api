@@ -1,8 +1,13 @@
 from audit_trail import service as audit_trail_service
 from audit_trail.enums import AuditType
+from applications.models import CountryOnApplication
+from cases.enums import AdviceType, AdviceLevel
+from cases.models import Advice
 from conf.constants import GovPermissions
 from conf.permissions import assert_user_has_permission
+from goodstype.models import GoodsType
 from static.statuses.enums import CaseStatusEnum
+from users.enums import SystemUser
 
 
 def optional_str_to_bool(optional_string: str):
