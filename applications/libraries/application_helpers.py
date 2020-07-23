@@ -69,3 +69,31 @@ def create_submitted_audit(request, application, old_status):
             }
         },
     )
+
+
+def set_goods_type_countries(application):
+    # If the user hasn't visited the optional goods to country mapping page, then no goods to country mappings will
+    # have been saved before this point. So save mappings for all goods to all countries, which is the default
+    if GoodsType.objects.filter(application=application, countries__isnull=True).exists():
+        countries_on_application = CountryOnApplication.objects.filter(application=application).values_list(
+            "country", flat=True
+        )
+
+        for goods_type in GoodsType.objects.filter(application=application, countries__isnull=True):
+            goods_type.countries.set(countries_on_application)
+
+
+def auto_approve_uk_continental_shelf(application):
+    # Auto-Approve UK Continental Shelf if applicable
+    if (
+        CountryOnApplication.objects.filter(application=application, country_id="UKCS").exists()
+        and not Advice.objects.filter(case_id=application.id, country_id="UKCS").exists()
+    ):
+        Advice.objects.create(
+            case_id=application.id,
+            user_id=SystemUser.id,
+            type=AdviceType.APPROVE,
+            level=AdviceLevel.FINAL,
+            country_id="UKCS",
+            text="",
+        )
