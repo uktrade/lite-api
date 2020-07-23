@@ -3,6 +3,7 @@ from rest_framework import status
 
 from cases.enums import CaseTypeEnum
 from cases.models import CaseType
+from licences.enums import LicenceStatus
 from open_general_licences.tests.factories import OpenGeneralLicenceFactory, OpenGeneralLicenceCaseFactory
 from organisations.tests.factories import SiteFactory
 from static.statuses.enums import CaseStatusEnum
@@ -95,7 +96,7 @@ class ExporterListTests(DataTestClient):
             registration["site"]["records_located_at"]["name"],
             self.organisation.primary_site.site_records_located_at.name,
         )
-        self.assertEqual(registration["status"]["key"], self.open_general_licence_case.status.status)
+        self.assertEqual(registration["status"]["key"], LicenceStatus.ISSUED)
         self.assertEqual(registration["submitted_at"], self.open_general_licence_case.submitted_at)
 
     def test_exporter_view_site_licences_success(self):
