@@ -15,5 +15,5 @@ class Country(models.Model):
     flags = models.ManyToManyField(Flag, related_name="countries")
     is_eu = models.BooleanField()
 
-    objects = CountryManager()
-    include_special_countries = models.Manager()
+    objects = models.Manager()
+    exclude_special_countries = CountryManager()
