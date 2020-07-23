@@ -7,6 +7,19 @@ class LicenceManager(models.Manager):
     def get_active_licence(self, application):
         return self.get(case=application, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED])
 
+    def get_inactive_licence(self, application):
+        return self.get(
+            case=application,
+            status__in=[
+                LicenceStatus.REVOKED,
+                LicenceStatus.SURRENDERED,
+                LicenceStatus.SUSPENDED,
+                LicenceStatus.EXHAUSTED,
+                LicenceStatus.EXPIRED,
+                LicenceStatus.CANCELLED,
+            ],
+        )
+
     def get_draft_licence(self, application):
         return self.get(case=application, status=LicenceStatus.DRAFT)
 
