@@ -73,6 +73,12 @@ class PartySerializer(serializers.ModelSerializer):
             else:
                 self.fields.pop("sub_type_other")
 
+            if application_type == CaseTypeSubTypeEnum.F680:
+                self.fields["descriptors"].required = True
+                self.fields["descriptors"].allow_blank = False
+                self.fields["descriptors"].allow_null = False
+                self.fields["clearance_level"].required = True
+
             if party_type == PartyType.THIRD_PARTY:
                 self.fields["role"].required = True
 
@@ -80,15 +86,8 @@ class PartySerializer(serializers.ModelSerializer):
                     self.fields["role_other"].required = True
                     self.fields["role_other"].allow_blank = False
                     self.fields["role_other"].allow_null = False
-
-                    if application_type != CaseTypeSubTypeEnum.F680:
-                        self.fields["descriptors"].required = True
-                        self.fields["descriptors"].allow_blank = False
                 else:
                     self.fields.pop("role_other")
-
-            if application_type == CaseTypeSubTypeEnum.F680:
-                self.fields["clearance_level"].required = True
 
     @staticmethod
     def validate_website(value):
