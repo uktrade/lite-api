@@ -68,7 +68,9 @@ class ComplianceSiteViewSerializer(serializers.ModelSerializer):
                 "reference_code": case.reference_code,
                 "visit_date": case.visit_date,
                 "case_officer": f"{case.case_officer.first_name} {case.case_officer.last_name}"
-                if case.case_officer
+                if case.case_officer and case.case_officer.first_name
+                else case.case_officer.email
+                if case.case_officer and case.case_officer.email
                 else None,
                 "flags": get_ordered_flags(case=case, team=self.team, limit=3),
             }
