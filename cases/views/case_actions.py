@@ -104,8 +104,8 @@ class OpenGeneralLicenceReissue(APIView):
         open_general_licence_case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
         open_general_licence_case.save()
 
-        audit_trail_service.create(actor=request.user, verb=AuditType.OGL_REISSUED, target=ogel.get_case(),
-                                   payload={"additional_text": request.data.get("text")})
+        audit_trail_service.create(actor=request.user, verb=AuditType.OGEL_REISSUED, target=open_general_licence_case.get_case(),
+                                   payload={"additional_text": request.data.get("note")})
 
         return JsonResponse(data={"licence": str(licence.pk)})
 
