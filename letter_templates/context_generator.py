@@ -15,8 +15,15 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryT
 from cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
-from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit, \
-    get_value_from_enum
+from conf.helpers import (
+    get_date_and_time,
+    add_months,
+    DATE_FORMAT,
+    TIME_FORMAT,
+    friendly_boolean,
+    pluralise_unit,
+    get_value_from_enum,
+)
 from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled, GoodPvGraded
 from licences.enums import LicenceStatus
 from licences.models import Licence
