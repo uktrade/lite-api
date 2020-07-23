@@ -128,8 +128,8 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
         )
 
     def __init__(self, *args, **kwargs):
-        super(GovUserCreateOrUpdateSerializer, self).__init__(*args, **kwargs)
         self.is_creating = kwargs.pop("is_creating", True)
+        super(GovUserCreateOrUpdateSerializer, self).__init__(*args, **kwargs)
 
     def validate(self, data):
         validated_data = super().validate(data)
