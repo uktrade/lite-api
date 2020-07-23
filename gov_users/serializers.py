@@ -97,7 +97,7 @@ class GovUserViewSerializer(serializers.ModelSerializer):
             return TinyQueueSerializer(Queue.objects.get(pk=queue_id)).data
 
 
-class GovUserCreateSerializer(GovUserViewSerializer):
+class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
     status = serializers.ChoiceField(choices=GovUserStatuses.choices, default=GovUserStatuses.ACTIVE)
     email = serializers.EmailField(
         error_messages={"blank": strings.Users.INVALID_EMAIL, "invalid": strings.Users.INVALID_EMAIL},
@@ -127,11 +127,16 @@ class GovUserCreateSerializer(GovUserViewSerializer):
             "default_queue",
         )
 
+    def __init__(self, *args, **kwargs):
+        super(GovUserCreateOrUpdateSerializer, self).__init__(*args, **kwargs)
+        self.is_creating = kwargs.pop("is_creating", True)
+
     def validate(self, data):
         validated_data = super().validate(data)
 
-        if GovUser.objects.filter(email__iexact=data.get("email")).exists():
-            raise serializers.ValidationError({"email": [strings.Users.UNIQUE_EMAIL]})
+        if self.is_creating:
+            if GovUser.objects.filter(email__iexact=data.get("email")).exists():
+                raise serializers.ValidationError({"email": [strings.Users.UNIQUE_EMAIL]})
 
         default_queue = str(validated_data.get("default_queue") or self.instance.default_queue)
         team = validated_data.get("team") or self.instance.team
