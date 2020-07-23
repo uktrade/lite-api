@@ -6,7 +6,7 @@ from rest_framework import status
 
 from applications.models import PartyOnApplication
 from lite_content.lite_api.strings import PartyErrors
-from parties.enums import PartyType
+from parties.enums import PartyType, SubType
 from parties.models import PartyDocument
 from static.countries.helpers import get_country
 from test_helpers.clients import DataTestClient
@@ -23,7 +23,7 @@ class ConsigneeOnDraftTests(DataTestClient):
             "size": 123456,
         }
 
-    @parameterized.expand(["government", "commercial", "other"])
+    @parameterized.expand([SubType.GOVERNMENT, SubType.COMMERCIAL, SubType.OTHER])
     def test_set_consignee_on_draft_successful(self, data_type):
         """
         Given a standard draft has been created
@@ -39,6 +39,9 @@ class ConsigneeOnDraftTests(DataTestClient):
             "website": "https://www.gov.py",
             "type": PartyType.CONSIGNEE,
         }
+
+        if data_type == SubType.OTHER:
+            data["sub_type_other"] = "Other"
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
