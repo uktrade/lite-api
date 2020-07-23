@@ -15,12 +15,20 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeSubTypeEnum, ECJUQueryT
 from cases.models import Advice, EcjuQuery, CaseNote, Case, GoodCountryDecision
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.models import ComplianceVisitCase, CompliancePerson, OpenLicenceReturns
-from conf.helpers import get_date_and_time, add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, pluralise_unit
+from conf.helpers import (
+    get_date_and_time,
+    add_months,
+    DATE_FORMAT,
+    TIME_FORMAT,
+    friendly_boolean,
+    pluralise_unit,
+    get_value_from_enum,
+)
 from goods.enums import PvGrading, ItemCategory, Component, MilitaryUse, FirearmGoodType, GoodControlled, GoodPvGraded
 from licences.enums import LicenceStatus
 from licences.models import Licence
 from organisations.models import Site, ExternalLocation
-from parties.enums import PartyRole
+from parties.enums import PartyRole, PartyType, SubType
 from queries.end_user_advisories.models import EndUserAdvisoryQuery
 from queries.goods_query.models import GoodsQuery
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
@@ -413,7 +421,7 @@ def _get_licence_context(licence):
 def _get_party_context(party):
     context = {
         "name": party.name,
-        "type": party.sub_type,
+        "type": party.sub_type_other if party.sub_type_other else get_value_from_enum(party.sub_type, SubType),
         "address": party.address,
         "descriptors": party.descriptors,
         "country": {"name": party.country.name, "code": party.country.id},
@@ -423,6 +431,9 @@ def _get_party_context(party):
         context["clearance_level"] = PvGrading.to_str(party.clearance_level)
     else:
         context["clearance_level"] = None
+
+    if party.type == PartyType.THIRD_PARTY:
+        context["role"] = party.role_other if party.role_other else get_value_from_enum(party.role, PartyRole)
 
     return context
 

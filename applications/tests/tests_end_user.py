@@ -6,7 +6,7 @@ from rest_framework import status
 
 from applications.models import PartyOnApplication
 from lite_content.lite_api.strings import PartyErrors
-from parties.enums import PartyType
+from parties.enums import PartyType, SubType
 from parties.models import Party
 from parties.models import PartyDocument
 from static.countries.helpers import get_country
@@ -37,7 +37,7 @@ class EndUserOnDraftTests(DataTestClient):
             "size": 123456,
         }
 
-    @parameterized.expand(["government", "commercial", "other"])
+    @parameterized.expand([SubType.GOVERNMENT, SubType.COMMERCIAL, SubType.OTHER])
     def test_set_end_user_on_draft_standard_application_successful(self, data_type):
         data = {
             "name": "Government",
@@ -47,6 +47,9 @@ class EndUserOnDraftTests(DataTestClient):
             "website": "https://www.gov.uk",
             "type": PartyType.END_USER,
         }
+
+        if data_type == SubType.OTHER:
+            data["sub_type_other"] = "Other"
 
         response = self.client.post(self.url, data, **self.exporter_headers)
 
@@ -60,6 +63,7 @@ class EndUserOnDraftTests(DataTestClient):
         self.assertEqual(party_on_application.party.address, data["address"])
         self.assertEqual(party_on_application.party.country, get_country(data["country"]))
         self.assertEqual(party_on_application.party.sub_type, data_type)
+        self.assertEqual(party_on_application.party.sub_type_other, data.get("sub_type_other"))
         self.assertEqual(party_on_application.party.website, data["website"])
 
     def test_set_end_user_on_open_draft_application_success(self):
@@ -67,7 +71,7 @@ class EndUserOnDraftTests(DataTestClient):
             "name": "Lemonworld Org",
             "address": "3730 Martinsburg Rd, Gambier, Ohio",
             "country": "US",
-            "sub_type": "individual",
+            "sub_type": SubType.INDIVIDUAL,
             "type": PartyType.END_USER,
         }
         response = self.client.post(self.url, data, **self.exporter_headers)

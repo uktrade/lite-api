@@ -68,4 +68,6 @@ def create_submitted_audit(request, application, old_status):
                 "old": CaseStatusEnum.get_text(old_status),
             }
         },
+        ignore_case_status=True,
+        send_notification=False,
     )

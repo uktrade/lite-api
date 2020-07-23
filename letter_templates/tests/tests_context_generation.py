@@ -15,7 +15,7 @@ from cases.enums import AdviceLevel, AdviceType, CaseTypeEnum
 from cases.tests.factories import GoodCountryDecisionFactory, FinalAdviceFactory
 from compliance.enums import ComplianceVisitTypes, ComplianceRiskValues
 from compliance.tests.factories import ComplianceVisitCaseFactory, ComplianceSiteCaseFactory, OpenLicenceReturnsFactory
-from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean
+from conf.helpers import add_months, DATE_FORMAT, TIME_FORMAT, friendly_boolean, get_value_from_enum
 from goods.enums import (
     PvGrading,
     ItemType,
@@ -31,7 +31,7 @@ from goodstype.tests.factories import GoodsTypeFactory
 from letter_templates.context_generator import get_document_context
 from licences.enums import LicenceStatus
 from licences.tests.factories import GoodOnLicenceFactory
-from parties.enums import PartyType
+from parties.enums import PartyType, SubType
 from parties.models import Party
 from static.countries.models import Country
 from static.f680_clearance_types.enums import F680ClearanceTypeEnum
@@ -86,7 +86,7 @@ class DocumentContextGenerationTests(DataTestClient):
         self.assertEqual(context["country"]["code"], party.country.id)
         self.assertEqual(context["website"], party.website)
         self.assertEqual(context["descriptors"], party.descriptors)
-        self.assertEqual(context["type"], party.sub_type)
+        self.assertEqual(context["type"], get_value_from_enum(party.sub_type, SubType))
         if party.clearance_level:
             self.assertEqual(context["clearance_level"], PvGrading.to_str(party.clearance_level))
 

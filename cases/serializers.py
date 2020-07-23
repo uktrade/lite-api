@@ -32,7 +32,7 @@ from compliance.serializers.ComplianceVisitCaseSerializers import ComplianceVisi
 from conf.serializers import KeyValueChoiceField, PrimaryKeyRelatedSerializerField
 from documents.libraries.process_document import process_document
 from goodstype.models import GoodsType
-from gov_users.serializers import GovUserSimpleSerializer, GovUserNotificationSerializer
+from gov_users.serializers import GovUserSimpleSerializer
 from licences.helpers import get_open_general_export_licence_case
 from lite_content.lite_api import strings
 from queries.serializers import QueryViewSerializer
@@ -244,8 +244,7 @@ class CaseDetailSerializer(serializers.ModelSerializer):
         queryset = GovNotification.objects.filter(user=self.user, content_type=content_type, case=instance)
 
         if queryset.exists():
-            notification = queryset.first()
-            return GovUserNotificationSerializer(notification).data
+            return {"audit_id": queryset.first().object_id}
 
     def get_copy_of(self, instance):
         if instance.copy_of and instance.copy_of.status.status != CaseStatusEnum.DRAFT:

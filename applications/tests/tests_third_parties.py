@@ -1,12 +1,13 @@
 from unittest import mock
 
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
 from applications.models import PartyOnApplication
 from audit_trail.models import Audit
 from lite_content.lite_api.strings import PartyErrors
-from parties.enums import PartyType
+from parties.enums import PartyType, PartyRole, SubType
 from parties.models import Party, PartyDocument
 from test_helpers.clients import DataTestClient
 
@@ -28,6 +29,7 @@ class ThirdPartiesOnDraft(DataTestClient):
             "size": 123456,
         }
 
+    @tag("only")
     def test_set_multiple_third_parties_on_draft_successful(self):
         """
         Given a standard draft has been created
@@ -43,8 +45,9 @@ class ThirdPartiesOnDraft(DataTestClient):
                 "name": "UK Government",
                 "address": "Westminster, London SW1A 0AA",
                 "country": "GB",
-                "sub_type": "government",
-                "role": "agent",
+                "sub_type": SubType.GOVERNMENT,
+                "role": PartyRole.AGENT,
+                "role_other": "",
                 "website": "https://www.gov.uk",
                 "type": PartyType.THIRD_PARTY,
             },
@@ -52,8 +55,9 @@ class ThirdPartiesOnDraft(DataTestClient):
                 "name": "French Government",
                 "address": "Paris",
                 "country": "FR",
-                "sub_type": "government",
-                "role": "other",
+                "sub_type": SubType.GOVERNMENT,
+                "role": PartyRole.OTHER,
+                "role_other": "Example",
                 "website": "https://www.gov.fr",
                 "type": PartyType.THIRD_PARTY,
             },
@@ -69,6 +73,7 @@ class ThirdPartiesOnDraft(DataTestClient):
             self.assertEqual(third_party["country"], response_party["country"]["id"])
             self.assertEqual(third_party["sub_type"], response_party["sub_type"]["key"])
             self.assertEqual(third_party["role"], response_party["role"]["key"])
+            self.assertEqual(third_party["role_other"], response_party.get("role_other", ""))
             self.assertEqual(third_party["website"], response_party["website"])
 
         # Drafts do not create audit

@@ -885,6 +885,7 @@
 						<th scope="col" class="govuk-table__header">#</th>
 						<th scope="col" class="govuk-table__header">Name</th>
 						<th scope="col" class="govuk-table__header">Type</th>
+						<th scope="col" class="govuk-table__header">Role</th>
 						{% if case_type.reference == "f680" %}
 							<th scope="col" class="govuk-table__header">Clearance level</th>
 						{% endif %}
@@ -898,7 +899,8 @@
 					<tr class="govuk-table__row">
 						<td class="govuk-table__cell govuk-table__cell--line-number">{{ forloop.counter }}.</td>
 						<td class="govuk-table__cell">{{ third_party.name }}</td>
-						<td class="govuk-table__cell">{{ third_party.type|title }}</td>
+						<td class="govuk-table__cell">{{ third_party.type }}</td>
+						<td class="govuk-table__cell">{{ third_party.role }}</td>
 						{% if case_type.reference == "f680" %}
 							<td class="govuk-table__cell">{{ third_party.clearance_level }}</td>
 						{% endif %}
