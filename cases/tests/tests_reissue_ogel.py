@@ -24,11 +24,11 @@ class ReissueOGELTests(DataTestClient):
             site=self.organisation.primary_site,
             organisation=self.organisation,
         )
-        self.url = reverse("cases:reissue_ogel", kwargs={"pk": self.case.id})
+        self.url = reverse("cases:reissue_ogl", kwargs={"pk": self.case.id})
 
     def test_reissue_invalid_ogel_id_failure(self):
         case = self.create_open_application_case(self.organisation)
-        url = reverse("cases:reissue_ogel", kwargs={"pk": case.id})
+        url = reverse("cases:reissue_ogl", kwargs={"pk": case.id})
 
         response = self.client.post(url, {}, **self.gov_headers)
 
