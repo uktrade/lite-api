@@ -239,17 +239,6 @@ class CreateCaseTeamAdviceTests(DataTestClient):
 
         self.assertEqual(len(response.json()["activity"]), 3)
 
-    # def test_creating_team_advice_does_not_overwrite_user_level_advice(self):
-    #     """
-    #     Because of the shared parent class, make sure the parent class "save" method is overridden by the child class
-    #     """
-    #     self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.USER)
-    #     self.create_advice(self.gov_user, self.standard_case, "end_user", AdviceType.NO_LICENCE_REQUIRED, AdviceLevel.TEAM)
-    #
-    #     self.client.get(self.standard_case_url, **self.gov_headers)
-    #
-    #     self.assertEqual(Advice.objects.count(), 2)
-
     @parameterized.expand(
         [
             [AdviceType.APPROVE],

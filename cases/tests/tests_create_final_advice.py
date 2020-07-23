@@ -309,7 +309,7 @@ class CreateCaseAdviceTests(DataTestClient):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place(self,):
+    def test_create_and_delete_audit_trail_is_created_when_the_appropriate_actions_take_place_final(self,):
         """
         Audit trail is created when clearing or combining advice
         """

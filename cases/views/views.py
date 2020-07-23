@@ -274,7 +274,7 @@ class TeamAdviceView(APIView):
                 return user_cannot_manage_team_advice
 
             team = self.request.user.team_id
-            advice = self.advice.filter(user__team_id=team)
+            advice = self.advice.filter(user__govuser__team_id=team)
             group_advice(self.case, advice, request.user, AdviceLevel.TEAM)
             case_advice_contains_refusal(pk)
 
