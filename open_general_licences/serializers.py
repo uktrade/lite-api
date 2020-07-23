@@ -90,7 +90,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
                     try:
                         licence = Licence.objects.get_active_licence(case)
                     except Licence.DoesNotExist:
-                        licence = Licence.objects.get_inactive_licence(case)
+                        licence = Licence.objects.order_by("-created_at").first()
 
                     data.append(
                         {
