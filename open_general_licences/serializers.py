@@ -108,10 +108,7 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
                                 },
                                 "records_located_at": {"name": case.records_located_at_name},
                             },
-                            "status": {
-                                "key": licence.status,
-                                "value": LicenceStatus.to_str(licence.status),
-                            },
+                            "status": {"key": licence.status, "value": LicenceStatus.to_str(licence.status),},
                             "submitted_at": case.submitted_at,
                         }
                     )
