@@ -14,9 +14,9 @@ class CountriesTests(DataTestClient):
         countries = response.json()["countries"]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Country.objects.count(), len(countries))
-        self.assertTrue(Country.objects.filter(name=countries[0]["name"]).exists())
-        self.assertTrue(Country.objects.filter(name=countries[-1]["name"]).exists())
+        self.assertEqual(Country.exclude_special_countries.count(), len(countries))
+        self.assertTrue(Country.exclude_special_countries.filter(name=countries[0]["name"]).exists())
+        self.assertTrue(Country.exclude_special_countries.filter(name=countries[-1]["name"]).exists())
 
     def test_filter_countries_by_exclude(self):
         country_one = Country.objects.first()
@@ -29,7 +29,7 @@ class CountriesTests(DataTestClient):
         country_names = [country["name"] for country in countries]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Country.objects.count() - 2, len(countries))
+        self.assertEqual(Country.exclude_special_countries.count() - 2, len(countries))
         self.assertNotIn(country_one.name, country_names)
         self.assertNotIn(country_two.name, country_names)
 

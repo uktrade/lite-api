@@ -11,7 +11,7 @@ class CountriesList(APIView):
     authentication_classes = (HawkOnlyAuthentication,)
 
     def get(self, request):
-        countries = Country.objects.exclude(id__in=request.GET.getlist("exclude"))
+        countries = Country.exclude_special_countries.exclude(id__in=request.GET.getlist("exclude"))
         serializer = CountrySerializer(countries, many=True)
         return JsonResponse(data={"countries": serializer.data})
 
