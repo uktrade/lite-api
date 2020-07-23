@@ -133,8 +133,9 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
 
     def validate(self, data):
         validated_data = super().validate(data)
+        email = data.get("email")
 
-        if self.is_creating or data["email"].lower() != self.instance.email.lower():
+        if email and (self.is_creating or email.lower() != self.instance.email.lower()):
             if GovUser.objects.filter(email__iexact=data.get("email")).exists():
                 raise serializers.ValidationError({"email": [strings.Users.UNIQUE_EMAIL]})
 
