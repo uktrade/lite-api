@@ -70,9 +70,7 @@ class OpenApplicationViewSerializer(PartiesSerializerMixin, GenericApplicationVi
 
     def get_goods_types(self, application):
         goods_types = application.goods_type.all().prefetch_related("countries", "countries__flags")
-        default_countries = list(
-            Country.objects.filter(countries_on_application__application_id=application.id)
-        )
+        default_countries = list(Country.objects.filter(countries_on_application__application_id=application.id))
         return GoodsTypeViewSerializer(goods_types, default_countries=default_countries, many=True).data
 
     def get_goodstype_category(self, instance):
