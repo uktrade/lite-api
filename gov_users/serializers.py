@@ -134,7 +134,7 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
     def validate(self, data):
         validated_data = super().validate(data)
 
-        if self.is_creating:
+        if self.is_creating or data["email"].lower() != self.instance.email.lower():
             if GovUser.objects.filter(email__iexact=data.get("email")).exists():
                 raise serializers.ValidationError({"email": [strings.Users.UNIQUE_EMAIL]})
 
@@ -151,9 +151,6 @@ class GovUserCreateOrUpdateSerializer(GovUserViewSerializer):
             raise serializers.ValidationError({"default_queue": [strings.Users.INVALID_DEFAULT_QUEUE % team.name]})
 
         return validated_data
-
-    def clean_email(self, email):
-        return email.lower() if email else None
 
 
 class GovUserSimpleSerializer(serializers.ModelSerializer):
