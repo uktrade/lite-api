@@ -72,7 +72,9 @@ class AuthenticateExporterUser(APIView):
             user.last_name = last_name
             user.save()
         except ExporterUser.DoesNotExist:
-            return JsonResponse(data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_403_FORBIDDEN)
+            return JsonResponse(
+                data={"errors": [strings.Login.Error.USER_NOT_FOUND]}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
         token = user_to_token(user)
         return JsonResponse(
