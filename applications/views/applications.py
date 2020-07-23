@@ -26,6 +26,8 @@ from applications.libraries.application_helpers import (
     can_status_be_set_by_exporter_user,
     can_status_be_set_by_gov_user,
     create_submitted_audit,
+    set_goods_type_countries,
+    auto_approve_uk_continental_shelf,
 )
 from applications.libraries.case_status_helpers import set_application_sla
 from applications.libraries.edit_applications import (
