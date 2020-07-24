@@ -5,6 +5,8 @@ from cases.enums import CaseTypeEnum
 from cases.models import CaseType
 from cases.serializers import CaseTypeSerializer
 from conf.serializers import ControlListEntryField, KeyValueChoiceField, PrimaryKeyRelatedSerializerField
+from licences.enums import LicenceStatus
+from licences.models import Licence
 from lite_content.lite_api.strings import OpenGeneralLicences
 from open_general_licences.enums import OpenGeneralLicenceStatus
 from open_general_licences.models import OpenGeneralLicence
@@ -82,31 +84,35 @@ class OpenGeneralLicenceSerializer(serializers.ModelSerializer):
     def get_registrations(self, instance):
         if self.context and "cases" in self.context:
             cases = self.context["cases"]
-            return [
-                {
-                    "reference_code": case.reference_code,
-                    "site": {
-                        "id": case.site.id,
-                        "name": case.site.name,
-                        "address": {
-                            "address_line_1": case.site.address.address_line_1,
-                            "address_line_2": case.site.address.address_line_2,
-                            "city": case.site.address.city,
-                            "region": case.site.address.region,
-                            "postcode": case.site.address.postcode,
-                            "country": {"name": "United Kingdom",},
-                        },
-                        "records_located_at": {"name": case.records_located_at_name},
-                    },
-                    "status": {
-                        "key": case.status.status,
-                        "value": get_status_value_from_case_status_enum(case.status.status),
-                    },
-                    "submitted_at": case.submitted_at,
-                }
-                for case in cases
-                if case.open_general_licence_id == instance.id
-            ]
+            data = []
+            for case in cases:
+                if case.open_general_licence_id == instance.id:
+                    try:
+                        licence = Licence.objects.get_active_licence(case)
+                    except Licence.DoesNotExist:
+                        licence = Licence.objects.order_by("-created_at").first()
+
+                    data.append(
+                        {
+                            "reference_code": licence.reference_code,
+                            "site": {
+                                "id": case.site.id,
+                                "name": case.site.name,
+                                "address": {
+                                    "address_line_1": case.site.address.address_line_1,
+                                    "address_line_2": case.site.address.address_line_2,
+                                    "city": case.site.address.city,
+                                    "region": case.site.address.region,
+                                    "postcode": case.site.address.postcode,
+                                    "country": {"name": "United Kingdom",},
+                                },
+                                "records_located_at": {"name": case.records_located_at_name},
+                            },
+                            "status": {"key": licence.status, "value": LicenceStatus.to_str(licence.status),},
+                            "submitted_at": case.submitted_at,
+                        }
+                    )
+            return data
 
     class Meta:
         model = OpenGeneralLicence
