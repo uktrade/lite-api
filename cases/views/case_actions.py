@@ -92,19 +92,26 @@ class OpenGeneralLicenceReissue(APIView):
 
     def post(self, request, pk):
         """
-        Reissue an OGEL licence
+        Reissue an open general licence
         """
-        ogel = get_object_or_404(OpenGeneralLicenceCase, id=pk)
+        open_general_licence_case = get_object_or_404(OpenGeneralLicenceCase, id=pk)
 
-        if Licence.objects.filter(case=ogel, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]).exists():
+        if Licence.objects.filter(
+            case=open_general_licence_case, status__in=[LicenceStatus.ISSUED, LicenceStatus.REINSTATED]
+        ).exists():
             raise PermissionDenied({"confirm": [Cases.ReissueOGEL.ERROR]})
 
-        licence = issue_open_general_licence(ogel)
+        licence = issue_open_general_licence(open_general_licence_case)
 
-        ogel.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
-        ogel.save()
+        open_general_licence_case.status = get_case_status_by_status(CaseStatusEnum.FINALISED)
+        open_general_licence_case.save()
 
-        audit_trail_service.create(actor=request.user, verb=AuditType.OGEL_REISSUED, target=ogel.get_case())
+        audit_trail_service.create(
+            actor=request.user,
+            verb=AuditType.OGEL_REISSUED,
+            target=open_general_licence_case.get_case(),
+            payload={"additional_text": request.data.get("note")},
+        )
 
         return JsonResponse(data={"licence": str(licence.pk)})
 

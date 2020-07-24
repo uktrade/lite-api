@@ -44,7 +44,7 @@ urlpatterns = [
     path("<uuid:pk>/finalise/", views.FinaliseView.as_view(), name="finalise"),
     path("<uuid:pk>/licences/", licences.LicencesView.as_view(), name="licences"),
     path("<uuid:pk>/assigned-queues/", case_actions.AssignedQueues.as_view(), name="assigned_queues"),
-    path("<uuid:pk>/reissue-ogel/", case_actions.OpenGeneralLicenceReissue.as_view(), name="reissue_ogel"),
+    path("<uuid:pk>/reissue-ogl/", case_actions.OpenGeneralLicenceReissue.as_view(), name="reissue_ogl"),
     path("<uuid:pk>/rerun-routing-rules/", case_actions.RerunRoutingRules.as_view(), name="rerun_routing_rules"),
     path("<uuid:pk>/review-date/", views.NextReviewDate.as_view(), name="review_date"),
 ]
