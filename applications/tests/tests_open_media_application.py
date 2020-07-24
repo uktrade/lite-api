@@ -68,7 +68,7 @@ class OpenMediaTests(DataTestClient):
         returned_coa = CountryOnApplication.objects.filter(application=OpenApplication.objects.first())
         # Ensure the UK is not in the list of media destinations
         self.assertNotIn(get_country("GB"), returned_coa)
-        self.assertEqual(returned_coa.count(), Country.objects.count() - 1)
+        self.assertEqual(returned_coa.count(), Country.exclude_special_countries.count() - 1)
 
     def test_cannot_add_goodstypes_on_media_application(self):
         application = self.create_draft_open_application(organisation=self.organisation)
