@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "drf_yasg",
+    'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl_drf',
     "core",
     "documents",
     "flags",
@@ -91,6 +93,8 @@ INSTALLED_APPS = [
     "teams",
     "users",
     "workflow.routing_rules",
+    "search",
+    "search.case",
 ]
 
 MIDDLEWARE = [
@@ -232,6 +236,15 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# Elasticsearch configuration
+if env.bool("LITE_API_ENABLE_ES", default=False):
+    ELASTICSEARCH_DSL = {
+        'default': {
+            'hosts': 'localhost:9200'
+        },
+    }
+
 
 if "test" not in sys.argv:
     LOGGING = {
