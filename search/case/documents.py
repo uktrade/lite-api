@@ -10,7 +10,9 @@ from cases.models import Case
 class CaseDocumentType(Document):
     id = TextField()
     reference_code = TextField()
+    case_type = TextField(attr="case_type.type")
     organisation = TextField(attr="organisation.name")
+    status = TextField(attr="status.status")
 
     class Index:
         name = "cases-alias"
@@ -28,7 +30,9 @@ def case_model_to_document(case, index_name):
         meta={"id": case.pk, "_index": index_name},
         id=case.pk,
         reference_code=case.reference_code,
-        organisation=case.organisation.id,
+        case_type=case.case_type.type,
+        organisation=case.organisation.name,
+        status=case.status.status,
     )
 
     return document
