@@ -39,7 +39,7 @@ class Command(BaseCommand):
 
     def update_aliases(self):
         current_indices = [
-            index for index, _ in self.client.indices.get(PATTERN).items() if index != self.new_index_name
+            index for index in self.client.indices.get(PATTERN).keys() if index != self.new_index_name
         ]
         actions = [
             {"remove": {"alias": ALIAS, "index": PATTERN}},
