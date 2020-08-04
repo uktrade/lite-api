@@ -58,8 +58,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "drf_yasg",
-    'django_elasticsearch_dsl',
-    'django_elasticsearch_dsl_drf',
     "core",
     "documents",
     "flags",
@@ -238,12 +236,20 @@ USE_L10N = True
 USE_TZ = True
 
 # Elasticsearch configuration
-if env.bool("LITE_API_ENABLE_ES", default=False):
+LITE_API_ENABLE_ES = env.bool("LITE_API_ENABLE_ES", False)
+if LITE_API_ENABLE_ES:
     ELASTICSEARCH_DSL = {
         'default': {
             'hosts': 'localhost:9200'
         },
     }
+
+    ELASTICSEARCH_CASES_INDEX_ALIAS = env.str("ELASTICSEARCH_CASES_INDEX_ALIAS", "cases-alias")
+
+    INSTALLED_APPS += [
+        'django_elasticsearch_dsl',
+        'django_elasticsearch_dsl_drf',
+    ]
 
 
 if "test" not in sys.argv:
